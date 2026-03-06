@@ -1,0 +1,335 @@
+openapi: 3.0.3
+
+info:
+  title: Wardrobe App API
+  version: 0.1.0
+  description: |
+    Wardrobe App の認証系API仕様。
+
+    このAPIは Cookie ベースのセッション認証を使用する。
+    POST リクエストでは CSRF 対策のため `X-CSRF-TOKEN` ヘッダが必要。
+
+servers:
+  - url: http://localhost:8000
+    description: Local development
+
+tags:
+  - name: Auth
+    description: 認証・セッション関連API
+
+paths:
+  /csrf-cookie:
+    get:
+      tags:
+        - Auth
+      summary: CSRFトークンとセッションCookieを発行する
+      description: |
+        CSRF保護が必要なPOST系APIを呼ぶ前に実行する。
+        このエンドポイントは Cookie に `XSRF-TOKEN` とセッションCookieを設定する。
+      operationId: getCsrfCookie
+      responses:
+        '204':
+          description: No Content
+          headers:
+            Set-Cookie:
+              description: |
+                `XSRF-TOKEN` とセッションCookie が設定される。
+              schema:
+                type: string
+
+  /api/register:
+    post:
+      tags:
+        - Auth
+      summary: ユーザー登録
+      description: |
+        新規ユーザーを登録し、登録成功時はそのままログイン状態にする。
+        Cookie ベースのセッション認証を使用するため、
+        事前に `/csrf-cookie` を呼び出し、`X-CSRF-TOKEN` ヘッダを付与すること。
+      operationId: register
+      parameters:
+        - $ref: '#/components/parameters/XCsrfTokenHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+            examples:
+              default:
+                value:
+                  name: "Test"
+                  email: "sample.user@gmail.com"
+                  password: "password123"
+      responses:
+        '201':
+          description: ユーザー登録成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterResponse'
+              examples:
+                success:
+                  value:
+                    message: registered
+                    user:
+                      id: 1
+                      name: Test
+                      email: sample.user@gmail.com
+        '422':
+          description: バリデーションエラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+              examples:
+                validationError:
+                  value:
+                    message: The given data was invalid.
+                    errors:
+                      email:
+                        - The email has already been taken.
+
+  /api/login:
+    post:
+      tags:
+        - Auth
+      summary: ログイン
+      description: |
+        メールアドレスとパスワードでログインする。
+        Cookie ベースのセッション認証を使用するため、
+        事前に `/csrf-cookie` を呼び出し、`X-CSRF-TOKEN` ヘッダを付与すること。
+      operationId: login
+      parameters:
+        - $ref: '#/components/parameters/XCsrfTokenHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            examples:
+              default:
+                value:
+                  email: "sample.user@gmail.com"
+                  password: "password123"
+      responses:
+        '200':
+          description: ログイン成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+              examples:
+                success:
+                  value:
+                    message: logged_in
+        '422':
+          description: バリデーションエラーまたは認証失敗
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/ValidationErrorResponse'
+                  - $ref: '#/components/schemas/MessageOnlyResponse'
+              examples:
+                invalidCredentials:
+                  value:
+                    message: invalid credentials
+
+  /api/me:
+    get:
+      tags:
+        - Auth
+      summary: ログイン中のユーザー情報を取得する
+      description: |
+        セッション認証済みユーザーのプロフィール情報を返す。
+        `laravel-session` Cookie が必要。
+      operationId: me
+      security:
+        - SessionCookieAuth: []
+      responses:
+        '200':
+          description: 取得成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+              examples:
+                success:
+                  value:
+                    id: 10
+                    name: Test
+                    email: sample.user@gmail.com
+        '401':
+          description: 未認証
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageOnlyResponse'
+              examples:
+                unauthenticated:
+                  value:
+                    message: Unauthenticated.
+
+  /api/logout:
+    post:
+      tags:
+        - Auth
+      summary: ログアウト
+      description: |
+        ログイン中のユーザーをログアウトし、セッションを破棄する。
+        POSTのため `X-CSRF-TOKEN` ヘッダが必要。
+      operationId: logout
+      security:
+        - SessionCookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XCsrfTokenHeader'
+      responses:
+        '200':
+          description: ログアウト成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageOnlyResponse'
+              examples:
+                success:
+                  value:
+                    message: logged_out
+        '401':
+          description: 未認証
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageOnlyResponse'
+              examples:
+                unauthenticated:
+                  value:
+                    message: Unauthenticated.
+
+components:
+  parameters:
+    XCsrfTokenHeader:
+      name: X-CSRF-TOKEN
+      in: header
+      required: false
+      description: |
+        CSRF対策用ヘッダ。
+        `/csrf-cookie` 実行後に取得した `XSRF-TOKEN` と同じ値を指定する。
+        実運用では必須。
+        Swagger UI では requestInterceptor により自動付与する。
+      schema:
+        type: string
+
+  schemas:
+    User:
+      type: object
+      required:
+        - id
+        - name
+        - email
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        name:
+          type: string
+          maxLength: 50
+          example: Test
+        email:
+          type: string
+          format: email
+          maxLength: 255
+          example: sample.user@gmail.com
+
+    RegisterRequest:
+      type: object
+      required:
+        - name
+        - email
+        - password
+      properties:
+        name:
+          type: string
+          maxLength: 50
+          example: Test
+        email:
+          type: string
+          format: email
+          maxLength: 255
+          example: sample.user@gmail.com
+        password:
+          type: string
+          minLength: 8
+          maxLength: 72
+          example: password123
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 255
+          example: sample.user@gmail.com
+        password:
+          type: string
+          minLength: 8
+          maxLength: 72
+          example: password123
+
+    RegisterResponse:
+      type: object
+      required:
+        - message
+        - user
+      properties:
+        message:
+          type: string
+          example: registered
+        user:
+          $ref: '#/components/schemas/User'
+
+    LoginResponse:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          example: logged_in
+
+    MessageOnlyResponse:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          example: logged_out
+
+    ValidationErrorResponse:
+      type: object
+      required:
+        - message
+        - errors
+      properties:
+        message:
+          type: string
+          example: The given data was invalid.
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+
+  securitySchemes:
+    SessionCookieAuth:
+      type: apiKey
+      in: cookie
+      name: laravel-session
