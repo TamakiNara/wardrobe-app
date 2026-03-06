@@ -12,7 +12,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        // webグループの EncryptCookies を差し替える（Illuminate版→App版）
+        $middleware->web(replace: [
+            \Illuminate\Cookie\Middleware\EncryptCookies::class => \App\Http\Middleware\EncryptCookies::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
