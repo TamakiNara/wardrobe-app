@@ -54,6 +54,12 @@ export async function fetchCsrfCookie(incomingCookie?: string) {
   };
 }
 
+function appendCookieStrings(cookies: string[], to: NextResponse) {
+  for (const cookie of cookies) {
+    to.headers.append("set-cookie", cookie);
+  }
+}
+
 function appendSetCookies(from: Response, to: NextResponse) {
   const headers = from.headers as Headers & {
     getSetCookie?: () => string[];
@@ -187,8 +193,10 @@ export async function forwardPostWithCsrfAndCookie(
     const data = await upstreamRes.json().catch(() => ({}));
     const final = NextResponse.json(data, { status: upstreamRes.status });
 
-    const upstreamSetCookies = extractSetCookie(upstreamRes);
-    return appendSetCookies(final, [...setCookies, ...upstreamSetCookies]);
+    appendCookieStrings(setCookies, final);
+    appendSetCookies(upstreamRes, final);
+
+    return final;
   } catch (error) {
     const message =
       error instanceof Error
