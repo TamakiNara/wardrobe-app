@@ -12,10 +12,13 @@ import {
   type ItemColorValue,
 } from "@/lib/master-data/item-colors";
 import ColorChip from "@/components/items/color-chip";
+import { useRouter } from "next/navigation";
+import type { CreateItemPayload, ItemFormColor } from "@/types/items";
 const SEASON_OPTIONS = ["春", "夏", "秋", "冬", "オール"] as const;
 const TPO_OPTIONS = ["仕事", "休日", "フォーマル"] as const;
 
 export default function NewItemPage() {
+  const router = useRouter();
   const [name, setName] = useState("");
 
   const [category, setCategory] = useState<ItemCategory | "">("");
@@ -93,8 +96,8 @@ export default function NewItemPage() {
     });
   }
 
-  function buildPayload() {
-    const colors = [];
+  function buildPayload(): CreateItemPayload {
+    const colors: ItemFormColor[] = [];
 
     if (selectedMainColor) {
       colors.push({
@@ -128,20 +131,67 @@ export default function NewItemPage() {
 
   const [submitPreview, setSubmitPreview] = useState<string>("");
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
+
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
     setSubmitPreview("");
+    setSubmitError(null);
+    setSubmitSuccess(null);
 
-    const isValid = validateForm();
-    if (!isValid) {
-      return;
-    }
+    if (!validateForm()) return;
 
     const payload = buildPayload();
 
-    console.log("item form payload:", payload);
-    setSubmitPreview(JSON.stringify(payload, null, 2));
+    setSubmitting(true);
+
+    try {
+      const res = await fetch("/api/items", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json().catch(() => null);
+.catch(() => null);
+
+      if (res.status === 401) {
+        setSubmitError("セッションが切れました。再度ログインしてください。");
+
+        setTimeout(() => {
+          router.push("/login");
+        }, 800);
+
+        return;
+      }
+
+      if (!res.ok) {
+        if (data?.errors) {
+          const firstError = Object.values(data.errors)[0];
+          if (Array.isArray(firstError) && firstError.length > 0) {
+            setSubmitError(String(firstError[0]));
+          } else {
+            setSubmitError("登録に失敗しました。");
+          }
+        } else {
+          setSubmitError(data?.message ?? "登録に失敗しました。");
+        }
+        return;
+      }
+
+      setSubmitPreview(JSON.stringify(data, null, 2));
+      setSubmitSuccess("送信に成功しました。");
+
+    } catch {
+      setSubmitError("通信に失敗しました。時間をおいて再度お試しください。");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -305,7 +355,7 @@ export default function NewItemPage() {
                       value={customMainHex}
                       onChange={(e) => setCustomMainHex(e.target.value)}
                       className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${
-                        errors.shape ? "border-red-400" : "border-gray-300"
+                        errors.mainColor  ? "border-red-400" : "border-gray-300"
                       }`}
                     />
                   </div>
@@ -453,10 +503,11 @@ export default function NewItemPage() {
                     </label>
                   );
                 })}
-                {errors.seasons && (
-                  <p className="mt-3 text-sm text-red-600">{errors.seasons}</p>
-                )}
               </div>
+
+              {errors.seasons && (
+                <p className="mt-3 text-sm text-red-600">{errors.seasons}</p>
+              )}
 
               {selectedSeasons.length > 0 && (
                 <p className="mt-3 text-sm text-gray-600">
@@ -468,7 +519,7 @@ export default function NewItemPage() {
             <div>
               <p
                 className={`mb-2 text-sm font-medium ${
-                  errors.seasons ? "text-red-600" : "text-gray-700"
+                  errors.tpos ? "text-red-600" : "text-gray-700"
                 }`}
               >TPO</p>
               <p className="mt-2 text-xs text-gray-500">未選択の場合はすべてのシーンで使用可能として扱います。</p>
@@ -495,10 +546,11 @@ export default function NewItemPage() {
                     </label>
                   );
                 })}
-                {errors.tpos && (
-                  <p className="mt-3 text-sm text-red-600">{errors.tpos}</p>
-                )}
               </div>
+
+              {errors.tpos && (
+                <p className="mt-3 text-sm text-red-600">{errors.tpos}</p>
+              )}
 
               {selectedTpos.length > 0 && (
                 <p className="mt-3 text-sm text-gray-600">
@@ -511,9 +563,10 @@ export default function NewItemPage() {
           <div className="flex flex-col gap-3 pt-2 sm:flex-row">
             <button
               type="submit"
-              className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-3 text-sm font-medium text-white transition hover:bg-blue-700"
+              disabled={submitting}
+              className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-3 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              登録する
+              {submitting ? "送信中..." : "登録する"}
             </button>
 
             <Link
@@ -536,6 +589,19 @@ export default function NewItemPage() {
           )}
 
         </form>
+
+        {submitError && (
+          <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+            {submitError}
+          </div>
+        )}
+
+        {submitSuccess && (
+          <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+            {submitSuccess}
+          </div>
+        )}
+
       </div>
     </main>
   );
