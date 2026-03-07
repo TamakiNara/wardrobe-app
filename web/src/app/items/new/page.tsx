@@ -17,6 +17,8 @@ const SEASON_OPTIONS = ["春", "夏", "秋", "冬", "オール"] as const;
 const TPO_OPTIONS = ["仕事", "休日", "フォーマル"] as const;
 
 export default function NewItemPage() {
+  const [name, setName] = useState("");
+
   const [category, setCategory] = useState<ItemCategory | "">("");
   const [shape, setShape] = useState("");
 
@@ -92,6 +94,50 @@ export default function NewItemPage() {
     });
   }
 
+  function buildPayload() {
+    const colors = [];
+
+    if (selectedMainColor) {
+      colors.push({
+        role: "main",
+        mode: useCustomMainColor ? "custom" : "preset",
+        value: useCustomMainColor ? customMainHex : mainColor,
+        hex: selectedMainColor.hex,
+        label: selectedMainColor.label,
+      });
+    }
+
+    if (selectedSubColor) {
+      colors.push({
+        role: "sub",
+        mode: useCustomSubColor ? "custom" : "preset",
+        value: useCustomSubColor ? customSubHex : subColor,
+        hex: selectedSubColor.hex,
+        label: selectedSubColor.label,
+      });
+    }
+
+    return {
+      name,
+      category,
+      shape,
+      colors,
+      seasons: selectedSeasons,
+      tpos: selectedTpos,
+    };
+  }
+
+  const [submitPreview, setSubmitPreview] = useState<string>("");
+
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+
+    const payload = buildPayload();
+
+    console.log("item form payload:", payload);
+    setSubmitPreview(JSON.stringify(payload, null, 2));
+  }
+
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">
       <div className="mx-auto max-w-3xl space-y-6">
@@ -109,7 +155,10 @@ export default function NewItemPage() {
           </Link>
         </div>
 
-        <form className="space-y-6 rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-6 rounded-2xl border border-gray-200 bg-white p-8 shadow-sm"
+        >
           <section className="space-y-4">
             <h2 className="text-lg font-semibold text-gray-900">基本情報</h2>
 
@@ -124,6 +173,8 @@ export default function NewItemPage() {
                 id="name"
                 type="text"
                 placeholder="例：ネイビーのシャツ"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
                 className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 placeholder:text-gray-400 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               />
             </div>
@@ -413,6 +464,18 @@ export default function NewItemPage() {
               キャンセル
             </Link>
           </div>
+
+          {submitPreview && (
+            <section className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
+              <h2 className="mb-3 text-sm font-semibold text-gray-800">
+                送信プレビュー
+              </h2>
+              <pre className="overflow-x-auto rounded-lg bg-gray-900 p-4 text-sm text-gray-100">
+                {submitPreview}
+              </pre>
+            </section>
+          )}
+
         </form>
       </div>
     </main>
