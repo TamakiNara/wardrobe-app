@@ -19,16 +19,42 @@ const TPO_OPTIONS = ["仕事", "休日", "フォーマル"] as const;
 export default function NewItemPage() {
   const [category, setCategory] = useState<ItemCategory | "">("");
   const [shape, setShape] = useState("");
+
   const [mainColor, setMainColor] = useState<ItemColorValue | "">("");
   const [subColor, setSubColor] = useState<ItemColorValue | "">("");
+
+  const [useCustomMainColor, setUseCustomMainColor] = useState(false);
+  const [useCustomSubColor, setUseCustomSubColor] = useState(false);
+
+  const [customMainHex, setCustomMainHex] = useState("#3B82F6");
+  const [customSubHex, setCustomSubHex] = useState("#9CA3AF");
 
   const shapeOptions = useMemo(() => {
     if (!category) return [];
     return ITEM_SHAPES[category];
   }, [category]);
 
-  const selectedMainColor = ITEM_COLORS.find((color) => color.value === mainColor);
-  const selectedSubColor = ITEM_COLORS.find((color) => color.value === subColor);
+  const selectedMainColor = useMemo(() => {
+    if (useCustomMainColor) {
+      return {
+        label: "カスタムカラー",
+        hex: customMainHex,
+      };
+    }
+
+    return ITEM_COLORS.find((color) => color.value === mainColor) ?? null;
+  }, [useCustomMainColor, customMainHex, mainColor]);
+
+  const selectedSubColor = useMemo(() => {
+    if (useCustomSubColor) {
+      return {
+        label: "カスタムカラー",
+        hex: customSubHex,
+      };
+    }
+
+    return ITEM_COLORS.find((color) => color.value === subColor) ?? null;
+  }, [useCustomSubColor, customSubHex, subColor]);
 
   function handleCategoryChange(nextCategory: string) {
     setCategory(nextCategory as ItemCategory | "");
@@ -122,49 +148,115 @@ export default function NewItemPage() {
           <section className="space-y-4">
             <h2 className="text-lg font-semibold text-gray-900">色</h2>
 
-            <div className="grid gap-4 md:grid-cols-2">
-              <div>
+            <div className="grid gap-6 md:grid-cols-2">
+              <div className="space-y-3">
                 <label
                   htmlFor="main-color"
-                  className="mb-1 block text-sm font-medium text-gray-700"
+                  className="block text-sm font-medium text-gray-700"
                 >
                   メインカラー
                 </label>
-                <select
-                  id="main-color"
-                  value={mainColor}
-                  onChange={(e) => setMainColor(e.target.value as ItemColorValue | "")}
-                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                >
-                  <option value="">選択してください</option>
-                  {ITEM_COLORS.map((color) => (
-                    <option key={color.value} value={color.value}>
-                      {color.label}
-                    </option>
-                  ))}
-                </select>
+
+                <label className="flex items-center gap-2 text-sm text-gray-700">
+                  <input
+                    type="checkbox"
+                    checked={useCustomMainColor}
+                    onChange={(e) => {
+                      setUseCustomMainColor(e.target.checked);
+                      if (e.target.checked) {
+                        setMainColor("");
+                      }
+                    }}
+                    className="h-4 w-4"
+                  />
+                  カスタムカラーを使う
+                </label>
+
+                {useCustomMainColor ? (
+                  <div className="flex items-center gap-3 rounded-xl border border-gray-300 bg-white px-4 py-3">
+                    <input
+                      type="color"
+                      value={customMainHex}
+                      onChange={(e) => setCustomMainHex(e.target.value)}
+                      className="h-10 w-14 cursor-pointer rounded border border-gray-300 bg-white p-1"
+                    />
+                    <input
+                      type="text"
+                      value={customMainHex}
+                      onChange={(e) => setCustomMainHex(e.target.value)}
+                      className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                    />
+                  </div>
+                ) : (
+                  <select
+                    id="main-color"
+                    value={mainColor}
+                    onChange={(e) => setMainColor(e.target.value as ItemColorValue | "")}
+                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  >
+                    <option value="">選択してください</option>
+                    {ITEM_COLORS.map((color) => (
+                      <option key={color.value} value={color.value}>
+                        {color.label}
+                      </option>
+                    ))}
+                  </select>
+                )}
               </div>
 
-              <div>
+              <div className="space-y-3">
                 <label
                   htmlFor="sub-color"
-                  className="mb-1 block text-sm font-medium text-gray-700"
+                  className="block text-sm font-medium text-gray-700"
                 >
                   サブカラー
                 </label>
-                <select
-                  id="sub-color"
-                  value={subColor}
-                  onChange={(e) => setSubColor(e.target.value as ItemColorValue | "")}
-                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                >
-                  <option value="">未選択</option>
-                  {ITEM_COLORS.map((color) => (
-                    <option key={color.value} value={color.value}>
-                      {color.label}
-                    </option>
-                  ))}
-                </select>
+
+                <label className="flex items-center gap-2 text-sm text-gray-700">
+                  <input
+                    type="checkbox"
+                    checked={useCustomSubColor}
+                    onChange={(e) => {
+                      setUseCustomSubColor(e.target.checked);
+                      if (e.target.checked) {
+                        setSubColor("");
+                      }
+                    }}
+                    className="h-4 w-4"
+                  />
+                  カスタムカラーを使う
+                </label>
+
+                {useCustomSubColor ? (
+                  <div className="flex items-center gap-3 rounded-xl border border-gray-300 bg-white px-4 py-3">
+                    <input
+                      type="color"
+                      value={customSubHex}
+                      onChange={(e) => setCustomSubHex(e.target.value)}
+                      className="h-10 w-14 cursor-pointer rounded border border-gray-300 bg-white p-1"
+                    />
+                    <input
+                      type="text"
+                      value={customSubHex}
+                      onChange={(e) => setCustomSubHex(e.target.value)}
+                      className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                    />
+                  </div>
+                ) : (
+                  <select
+                    id="sub-color"
+                    value={subColor}
+                    onChange={(e) => setSubColor(e.target.value as ItemColorValue | "")}
+                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  >
+                    <option value="">未選択</option>
+                    {ITEM_COLORS.map((color) => (
+                      <option key={color.value} value={color.value}>
+                        {color.label}
+                      </option>
+                    ))}
+                  </select>
+                )}
               </div>
             </div>
 
@@ -173,6 +265,7 @@ export default function NewItemPage() {
                 <p className="mb-3 text-sm font-medium text-gray-700">
                   選択中の色
                 </p>
+
                 <div className="flex flex-wrap gap-2">
                   {selectedMainColor && (
                     <ColorChip
@@ -190,11 +283,14 @@ export default function NewItemPage() {
                   )}
                 </div>
 
-                {mainColor && subColor && mainColor === subColor && (
-                  <p className="mt-3 text-sm text-amber-600">
-                    メインカラーとサブカラーが同じです。意図した選択か確認してください。
-                  </p>
-                )}
+                {selectedMainColor &&
+                  selectedSubColor &&
+                  selectedMainColor.hex.toLowerCase() ===
+                    selectedSubColor.hex.toLowerCase() && (
+                    <p className="mt-3 text-sm text-amber-600">
+                      メインカラーとサブカラーが同じです。意図した選択か確認してください。
+                    </p>
+                  )}
               </div>
             )}
           </section>

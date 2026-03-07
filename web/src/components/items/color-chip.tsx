@@ -25,6 +25,7 @@ export default function ColorChip({
       <span className="text-xs text-gray-500">
         {tone === "main" ? "メイン" : "サブ"}
       </span>
+      <span className="text-xs text-gray-400">{hex.toUpperCase()}</span>
     </div>
   );
 }
