@@ -7,14 +7,11 @@ import {
   ITEM_SHAPES,
   type ItemCategory,
 } from "@/lib/master-data/item-shapes";
-
-const COLOR_OPTIONS = [
-  { value: "black", label: "ブラック" },
-  { value: "white", label: "ホワイト" },
-  { value: "navy", label: "ネイビー" },
-  { value: "gray", label: "グレー" },
-  { value: "beige", label: "ベージュ" },
-];
+import {
+  ITEM_COLORS,
+  type ItemColorValue,
+} from "@/lib/master-data/item-colors";
+import ColorChip from "@/components/items/color-chip";
 
 const SEASON_OPTIONS = ["春", "夏", "秋", "冬", "オール"] as const;
 const TPO_OPTIONS = ["仕事", "休日", "フォーマル"] as const;
@@ -22,11 +19,16 @@ const TPO_OPTIONS = ["仕事", "休日", "フォーマル"] as const;
 export default function NewItemPage() {
   const [category, setCategory] = useState<ItemCategory | "">("");
   const [shape, setShape] = useState("");
+  const [mainColor, setMainColor] = useState<ItemColorValue | "">("");
+  const [subColor, setSubColor] = useState<ItemColorValue | "">("");
 
   const shapeOptions = useMemo(() => {
     if (!category) return [];
     return ITEM_SHAPES[category];
   }, [category]);
+
+  const selectedMainColor = ITEM_COLORS.find((color) => color.value === mainColor);
+  const selectedSubColor = ITEM_COLORS.find((color) => color.value === subColor);
 
   function handleCategoryChange(nextCategory: string) {
     setCategory(nextCategory as ItemCategory | "");
@@ -130,11 +132,12 @@ export default function NewItemPage() {
                 </label>
                 <select
                   id="main-color"
+                  value={mainColor}
+                  onChange={(e) => setMainColor(e.target.value as ItemColorValue | "")}
                   className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                  defaultValue=""
                 >
                   <option value="">選択してください</option>
-                  {COLOR_OPTIONS.map((color) => (
+                  {ITEM_COLORS.map((color) => (
                     <option key={color.value} value={color.value}>
                       {color.label}
                     </option>
@@ -151,11 +154,12 @@ export default function NewItemPage() {
                 </label>
                 <select
                   id="sub-color"
+                  value={subColor}
+                  onChange={(e) => setSubColor(e.target.value as ItemColorValue | "")}
                   className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                  defaultValue=""
                 >
                   <option value="">未選択</option>
-                  {COLOR_OPTIONS.map((color) => (
+                  {ITEM_COLORS.map((color) => (
                     <option key={color.value} value={color.value}>
                       {color.label}
                     </option>
@@ -163,6 +167,36 @@ export default function NewItemPage() {
                 </select>
               </div>
             </div>
+
+            {(selectedMainColor || selectedSubColor) && (
+              <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
+                <p className="mb-3 text-sm font-medium text-gray-700">
+                  選択中の色
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {selectedMainColor && (
+                    <ColorChip
+                      label={selectedMainColor.label}
+                      hex={selectedMainColor.hex}
+                      tone="main"
+                    />
+                  )}
+                  {selectedSubColor && (
+                    <ColorChip
+                      label={selectedSubColor.label}
+                      hex={selectedSubColor.hex}
+                      tone="sub"
+                    />
+                  )}
+                </div>
+
+                {mainColor && subColor && mainColor === subColor && (
+                  <p className="mt-3 text-sm text-amber-600">
+                    メインカラーとサブカラーが同じです。意図した選択か確認してください。
+                  </p>
+                )}
+              </div>
+            )}
           </section>
 
           <section className="space-y-4">
