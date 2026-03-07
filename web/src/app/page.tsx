@@ -29,6 +29,26 @@ async function getUser(): Promise<AuthUser | null> {
   return res.json();
 }
 
+function MenuCard({
+  href,
+  title,
+  description,
+}: {
+  href: string;
+  title: string;
+  description: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="block rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:border-blue-300 hover:shadow-md"
+    >
+      <h2 className="mb-2 text-lg font-semibold text-gray-900">{title}</h2>
+      <p className="text-sm text-gray-600">{description}</p>
+    </Link>
+  );
+}
+
 export default async function Home() {
   const user = await getUser();
 
@@ -70,41 +90,26 @@ export default async function Home() {
         </header>
 
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-            <h2 className="mb-2 text-lg font-semibold text-gray-900">
-              今日の候補
-            </h2>
-            <p className="text-sm text-gray-600">
-              TPOや季節から、今日のコーデ候補を確認します。
-            </p>
-          </div>
-
-          <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-            <h2 className="mb-2 text-lg font-semibold text-gray-900">
-              アイテム管理
-            </h2>
-            <p className="text-sm text-gray-600">
-              服の色・形・季節・TPOを登録して管理します。
-            </p>
-          </div>
-
-          <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-            <h2 className="mb-2 text-lg font-semibold text-gray-900">
-              コーデ管理
-            </h2>
-            <p className="text-sm text-gray-600">
-              コーデを登録し、一覧から見返せるようにします。
-            </p>
-          </div>
-
-          <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-            <h2 className="mb-2 text-lg font-semibold text-gray-900">
-              設定
-            </h2>
-            <p className="text-sm text-gray-600">
-              死蔵判定の日数など、使い方に合わせて調整します。
-            </p>
-          </div>
+          <MenuCard
+            href="/items"
+            title="アイテム管理"
+            description="服の色・形・季節・TPOを登録して管理します。"
+          />
+          <MenuCard
+            href="/outfits"
+            title="コーデ管理"
+            description="コーデを登録し、一覧から見返せるようにします。"
+          />
+          <MenuCard
+            href="/settings"
+            title="設定"
+            description="死蔵判定の日数など、使い方に合わせて調整します。"
+          />
+          <MenuCard
+            href="/items"
+            title="今日の候補"
+            description="今後、TPOや季節から候補を表示する予定です。"
+          />
         </section>
       </div>
     </main>
