@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useState, useMemo, FormEvent } from "react";
 import {
   ITEM_CATEGORIES,
   ITEM_SHAPES,
@@ -12,7 +12,6 @@ import {
   type ItemColorValue,
 } from "@/lib/master-data/item-colors";
 import ColorChip from "@/components/items/color-chip";
-
 const SEASON_OPTIONS = ["春", "夏", "秋", "冬", "オール"] as const;
 const TPO_OPTIONS = ["仕事", "休日", "フォーマル"] as const;
 
@@ -129,13 +128,42 @@ export default function NewItemPage() {
 
   const [submitPreview, setSubmitPreview] = useState<string>("");
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+
+    setSubmitPreview("");
+
+    const isValid = validateForm();
+    if (!isValid) {
+      return;
+    }
 
     const payload = buildPayload();
 
     console.log("item form payload:", payload);
     setSubmitPreview(JSON.stringify(payload, null, 2));
+  }
+
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  function validateForm() {
+    const nextErrors: Record<string, string> = {};
+
+    if (!category) {
+      nextErrors.category = "カテゴリを選択してください。";
+    }
+
+    if (!shape) {
+      nextErrors.shape = "形を選択してください。";
+    }
+
+    if (!selectedMainColor) {
+      nextErrors.mainColor = "メインカラーを選択してください。";
+    }
+
+    setErrors(nextErrors);
+
+    return Object.keys(nextErrors).length === 0;
   }
 
   return (
@@ -190,7 +218,9 @@ export default function NewItemPage() {
                 id="category"
                 value={category}
                 onChange={(e) => handleCategoryChange(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${
+                  errors.category ? "border-red-400" : "border-gray-300"
+                }`}
               >
                 <option value="">選択してください</option>
                 {ITEM_CATEGORIES.map((item) => (
@@ -199,6 +229,9 @@ export default function NewItemPage() {
                   </option>
                 ))}
               </select>
+              {errors.category && (
+                <p className="mt-2 text-sm text-red-600">{errors.category}</p>
+              )}
             </div>
 
             <div>
@@ -213,7 +246,9 @@ export default function NewItemPage() {
                 value={shape}
                 onChange={(e) => setShape(e.target.value)}
                 disabled={!category}
-                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${
+                  errors.shape ? "border-red-400" : "border-gray-300"
+                }`}
               >
                 <option value="">
                   {category ? "選択してください" : "先にカテゴリを選択してください"}
@@ -224,6 +259,9 @@ export default function NewItemPage() {
                   </option>
                 ))}
               </select>
+              {errors.shape && (
+                <p className="mt-2 text-sm text-red-600">{errors.shape}</p>
+              )}
             </div>
           </section>
 
@@ -266,7 +304,9 @@ export default function NewItemPage() {
                       type="text"
                       value={customMainHex}
                       onChange={(e) => setCustomMainHex(e.target.value)}
-                      className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                      className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${
+                        errors.shape ? "border-red-400" : "border-gray-300"
+                      }`}
                     />
                   </div>
                 ) : (
@@ -283,6 +323,9 @@ export default function NewItemPage() {
                       </option>
                     ))}
                   </select>
+                )}
+                {errors.mainColor && (
+                  <p className="mt-2 text-sm text-red-600">{errors.mainColor}</p>
                 )}
               </div>
 
@@ -381,7 +424,12 @@ export default function NewItemPage() {
             <h2 className="text-lg font-semibold text-gray-900">季節・TPO</h2>
 
             <div>
-              <p className="mb-2 text-sm font-medium text-gray-700">季節</p>
+              <p
+                className={`mb-2 text-sm font-medium ${
+                  errors.seasons ? "text-red-600" : "text-gray-700"
+                }`}
+              >季節</p>
+              <p className="mt-2 text-xs text-gray-500">未選択の場合はオールシーズン扱いになります。</p>
               <div className="flex flex-wrap gap-3">
                 {SEASON_OPTIONS.map((season) => {
                   const checked = selectedSeasons.includes(season);
@@ -405,6 +453,9 @@ export default function NewItemPage() {
                     </label>
                   );
                 })}
+                {errors.seasons && (
+                  <p className="mt-3 text-sm text-red-600">{errors.seasons}</p>
+                )}
               </div>
 
               {selectedSeasons.length > 0 && (
@@ -415,7 +466,12 @@ export default function NewItemPage() {
             </div>
 
             <div>
-              <p className="mb-2 text-sm font-medium text-gray-700">TPO</p>
+              <p
+                className={`mb-2 text-sm font-medium ${
+                  errors.seasons ? "text-red-600" : "text-gray-700"
+                }`}
+              >TPO</p>
+              <p className="mt-2 text-xs text-gray-500">未選択の場合はすべてのシーンで使用可能として扱います。</p>
               <div className="flex flex-wrap gap-3">
                 {TPO_OPTIONS.map((tpo) => {
                   const checked = selectedTpos.includes(tpo);
@@ -439,6 +495,9 @@ export default function NewItemPage() {
                     </label>
                   );
                 })}
+                {errors.tpos && (
+                  <p className="mt-3 text-sm text-red-600">{errors.tpos}</p>
+                )}
               </div>
 
               {selectedTpos.length > 0 && (
