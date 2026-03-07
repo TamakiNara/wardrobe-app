@@ -2,66 +2,170 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
 use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class AuthEndpointsTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_csrf_cookie_sets_session_and_xsrf_cookie(): void
+    private function issueCsrfToken(): string
     {
-        $res = $this->get('/csrf-cookie', ['Accept' => 'application/json']);
-
-        $res->assertNoContent();
-        $res->assertCookie('XSRF-TOKEN');
-        $res->assertCookie(config('session.cookie')); // laravel-session
+        // 先に CSRF Cookie を発行してセッションを開始する
+        $this->get('/csrf-cookie', ['Accept' => 'application/json']);
+        // 現在のセッションに紐づく CSRF トークンを取得
+        return session()->token();
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | /csrf-cookie
+    |--------------------------------------------------------------------------
+    */
+
+    /**
+     * CSRF用エンドポイントが必要なCookieを返すことを確認する。
+     *
+     * このアプリでは POST 系APIの前に /csrf-cookie を呼ぶ前提なので、
+     * 最低限 XSRF-TOKEN とセッションCookie が返ることを保証する。
+     */
+    public function test_csrf_cookie_sets_required_cookies(): void
+    {
+        $response = $this->get('/csrf-cookie', [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertNoContent();
+
+        // JavaScript側やBFF側で使う CSRF Cookie
+        $response->assertCookie('XSRF-TOKEN');
+
+        // Laravelセッション用 Cookie
+        $response->assertCookie(config('session.cookie'));
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | /api/register
+    |--------------------------------------------------------------------------
+    */
+
+    /**
+     * 正常な登録リクエストでユーザーが作成され、
+     * かつログイン状態になることを確認する。
+     */
     public function test_register_creates_user_and_logs_in(): void
     {
-        // CSRF/セッションを取得
-        $this->get('/csrf-cookie', ['Accept' => 'application/json']);
+        $token = $this->issueCsrfToken();
 
-        // Laravelのテストクライアントはセッションを保持してくれるので
-        // トークンは session('_token') で取れる
-        $token = session()->token();
-
-        $res = $this->postJson('/api/register', [
-            'name' => 'test',
-            'email' => 'p72fkzi1c_fo09hhkdk96@hotmail.com',
+        $response = $this->postJson('/api/register', [
+            'name' => 'Test',
+            'email' => 'sample.user@gmail.com',
             'password' => 'password123',
         ], [
             'Accept' => 'application/json',
             'X-CSRF-TOKEN' => $token,
         ]);
 
-        $res->assertStatus(201);
-        $this->assertDatabaseHas('users', ['email' => 'p72fkzi1c_fo09hhkdk96@hotmail.com']);
+        $response->assertCreated()
+            ->assertJsonPath('message', 'registered')
+            ->assertJsonPath('user.name', 'Test')
+            ->assertJsonPath('user.email', 'sample.user@gmail.com');
 
-        // ログインできていること（webガード）
+        // DBにユーザーが作成されていることを確認
+        $this->assertDatabaseHas('users', [
+            'name' => 'Test',
+            'email' => 'sample.user@gmail.com',
+        ]);
+
+        // 登録後にそのままログイン状態になる設計を保証
         $this->assertAuthenticated('web');
     }
 
-    public function test_me_requires_auth(): void
+    /**
+     * 既に存在するメールアドレスでは登録できないことを確認する。
+     */
+    public function test_register_returns_validation_error_when_email_is_duplicated(): void
     {
-        $res = $this->getJson('/api/me', ['Accept' => 'application/json']);
-        $res->assertStatus(401);
+        User::factory()->create([
+            'email' => 'sample.user@gmail.com',
+        ]);
+
+        $token = $this->issueCsrfToken();
+
+        $response = $this->postJson('/api/register', [
+            'name' => 'Test',
+            'email' => 'sample.user@gmail.com',
+            'password' => 'password123',
+        ], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['email']);
     }
 
-    public function test_login_then_me_returns_user(): void
+    /**
+    * パスワードが短すぎる場合は登録できないことを確認する。
+    */
+    public function test_register_returns_422_when_password_is_too_short(): void
+    {
+        $token = $this->issueCsrfToken();
+
+        $response = $this->postJson('/api/register', [
+            'name' => 'Test',
+            'email' => 'sample.user@gmail.com',
+            'password' => 'short', // 短いパスワード
+        ], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['password']);
+    }
+
+    /**
+    * 不正なメールアドレス形式では登録できないことを確認する。
+    */
+    public function test_register_returns_422_when_email_is_invalid(): void
+    {
+        $token = $this->issueCsrfToken();
+
+        $response = $this->postJson('/api/register', [
+            'name' => 'Test',
+            'email' => 'not-an-email',
+            'password' => 'password123',
+        ], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['email']);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | /api/login
+    |--------------------------------------------------------------------------
+    */
+
+    /**
+     * 正しいメールアドレス / パスワードでログインできることを確認する。
+     */
+    public function test_login_succeeds_with_valid_credentials(): void
     {
         $user = User::factory()->create([
-            'email' => 'p72fkzi1c_fo09hhkdk96@hotmail.com',
+            'email' => 'sample.user@gmail.com',
             'password' => bcrypt('password123'),
         ]);
 
-        $this->get('/csrf-cookie', ['Accept' => 'application/json']);
-        $token = session()->token();
+        $token = $this->issueCsrfToken();
 
-        $login = $this->postJson('/api/login', [
+        $response = $this->postJson('/api/login', [
             'email' => $user->email,
             'password' => 'password123',
         ], [
@@ -69,13 +173,124 @@ class AuthEndpointsTest extends TestCase
             'X-CSRF-TOKEN' => $token,
         ]);
 
-        $login->assertOk();
-        $this->assertAuthenticated('web');
+        $response->assertOk()
+            ->assertJsonPath('message', 'logged_in');
 
-        $me = $this->getJson('/api/me', ['Accept' => 'application/json']);
-        $me->assertOk()->assertJson([
-            'id' => $user->id,
-            'email' => $user->email,
+        $this->assertAuthenticated('web');
+    }
+
+    /**
+    * パスワードが間違っている場合はログインできないことを確認する。
+    */
+    public function test_login_returns_422_with_invalid_credentials(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'sample.user@gmail.com',
+            'password' => bcrypt('password123'),
         ]);
+
+        $token = $this->issueCsrfToken();
+
+        $response = $this->postJson('/api/login', [
+            'email' => $user->email,
+            'password' => 'wrong-password', // 間違ったパスワード
+        ], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonPath('message', 'invalid credentials');
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | /api/me
+    |--------------------------------------------------------------------------
+    */
+
+    /**
+     * 認証済み状態で /api/me を叩くと現在のユーザーが返ることを確認する。
+     */
+    public function test_me_returns_current_user_when_authenticated(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'sample.user@gmail.com',
+            'password' => bcrypt('password123'),
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->getJson('/api/me', [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk()
+            ->assertJson([
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+            ]);
+    }
+
+    /**
+     * 未認証状態で /api/me を叩くと 401 になることを確認する。
+     *
+     * 認証漏れが起きていないことを保証するテスト。
+     */
+    public function test_me_returns_401_when_unauthenticated(): void
+    {
+        $response = $this->getJson('/api/me', [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertStatus(401);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | /api/logout
+    |--------------------------------------------------------------------------
+    */
+
+    /**
+     * ログアウト後に未認証状態へ戻ることを確認する。
+     */
+    public function test_logout_invalidates_session(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'sample.user@gmail.com',
+            'password' => bcrypt('password123'),
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $token = $this->issueCsrfToken();
+
+        $response = $this->postJson('/api/logout', [], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('message', 'logged_out');
+
+        $this->assertGuest('web');
+    }
+
+    /**
+    * 未認証状態でも logout は安全に成功扱いになることを確認する。
+    */
+    public function test_logout_returns_200_when_unauthenticated(): void
+    {
+        $token = $this->issueCsrfToken();
+
+        $response = $this->postJson('/api/logout', [], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('message', 'logged_out');
     }
 }
