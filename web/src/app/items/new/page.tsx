@@ -1,6 +1,38 @@
+"use client";
+
 import Link from "next/link";
+import { useMemo, useState } from "react";
+import {
+  ITEM_CATEGORIES,
+  ITEM_SHAPES,
+  type ItemCategory,
+} from "@/lib/master-data/item-shapes";
+
+const COLOR_OPTIONS = [
+  { value: "black", label: "ブラック" },
+  { value: "white", label: "ホワイト" },
+  { value: "navy", label: "ネイビー" },
+  { value: "gray", label: "グレー" },
+  { value: "beige", label: "ベージュ" },
+];
+
+const SEASON_OPTIONS = ["春", "夏", "秋", "冬", "オール"] as const;
+const TPO_OPTIONS = ["仕事", "休日", "フォーマル"] as const;
 
 export default function NewItemPage() {
+  const [category, setCategory] = useState<ItemCategory | "">("");
+  const [shape, setShape] = useState("");
+
+  const shapeOptions = useMemo(() => {
+    if (!category) return [];
+    return ITEM_SHAPES[category];
+  }, [category]);
+
+  function handleCategoryChange(nextCategory: string) {
+    setCategory(nextCategory as ItemCategory | "");
+    setShape("");
+  }
+
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">
       <div className="mx-auto max-w-3xl space-y-6">
@@ -46,17 +78,16 @@ export default function NewItemPage() {
               </label>
               <select
                 id="category"
+                value={category}
+                onChange={(e) => handleCategoryChange(e.target.value)}
                 className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                defaultValue=""
               >
-                <option value="" disabled>
-                  選択してください
-                </option>
-                <option value="tops">トップス</option>
-                <option value="bottoms">ボトムス</option>
-                <option value="outer">アウター</option>
-                <option value="shoes">シューズ</option>
-                <option value="accessories">小物</option>
+                <option value="">選択してください</option>
+                {ITEM_CATEGORIES.map((item) => (
+                  <option key={item.value} value={item.value}>
+                    {item.label}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -69,12 +100,19 @@ export default function NewItemPage() {
               </label>
               <select
                 id="shape"
-                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                defaultValue=""
+                value={shape}
+                onChange={(e) => setShape(e.target.value)}
+                disabled={!category}
+                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               >
-                <option value="" disabled>
-                  カテゴリを選んだあとに設定予定
+                <option value="">
+                  {category ? "選択してください" : "先にカテゴリを選択してください"}
                 </option>
+                {shapeOptions.map((item) => (
+                  <option key={item.value} value={item.value}>
+                    {item.label}
+                  </option>
+                ))}
               </select>
             </div>
           </section>
@@ -95,14 +133,12 @@ export default function NewItemPage() {
                   className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                   defaultValue=""
                 >
-                  <option value="" disabled>
-                    選択してください
-                  </option>
-                  <option value="black">ブラック</option>
-                  <option value="white">ホワイト</option>
-                  <option value="navy">ネイビー</option>
-                  <option value="gray">グレー</option>
-                  <option value="beige">ベージュ</option>
+                  <option value="">選択してください</option>
+                  {COLOR_OPTIONS.map((color) => (
+                    <option key={color.value} value={color.value}>
+                      {color.label}
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -119,11 +155,11 @@ export default function NewItemPage() {
                   defaultValue=""
                 >
                   <option value="">未選択</option>
-                  <option value="black">ブラック</option>
-                  <option value="white">ホワイト</option>
-                  <option value="navy">ネイビー</option>
-                  <option value="gray">グレー</option>
-                  <option value="beige">ベージュ</option>
+                  {COLOR_OPTIONS.map((color) => (
+                    <option key={color.value} value={color.value}>
+                      {color.label}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>
@@ -135,7 +171,7 @@ export default function NewItemPage() {
             <div>
               <p className="mb-2 text-sm font-medium text-gray-700">季節</p>
               <div className="flex flex-wrap gap-3">
-                {["春", "夏", "秋", "冬", "オール"].map((season) => (
+                {SEASON_OPTIONS.map((season) => (
                   <label
                     key={season}
                     className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700"
@@ -150,7 +186,7 @@ export default function NewItemPage() {
             <div>
               <p className="mb-2 text-sm font-medium text-gray-700">TPO</p>
               <div className="flex flex-wrap gap-3">
-                {["仕事", "休日", "フォーマル"].map((tpo) => (
+                {TPO_OPTIONS.map((tpo) => (
                   <label
                     key={tpo}
                     className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700"
