@@ -54,73 +54,89 @@ export async function fetchCsrfCookie(incomingCookie?: string) {
   };
 }
 
-export function appendSetCookies(
-  response: NextResponse,
-  cookies: string[]
-): NextResponse {
-  for (const c of cookies) {
-    response.headers.append("set-cookie", c);
+function appendSetCookies(from: Response, to: NextResponse) {
+  const headers = from.headers as Headers & {
+    getSetCookie?: () => string[];
+  };
+
+  if (typeof headers.getSetCookie === "function") {
+    const cookies = headers.getSetCookie();
+    for (const cookie of cookies) {
+      to.headers.append("set-cookie", cookie);
+    }
+    return;
   }
-  return response;
+
+  const single = from.headers.get("set-cookie");
+  if (single) {
+    to.headers.append("set-cookie", single);
+  }
 }
 
 export async function forwardJsonWithCsrf(
   req: NextRequest,
-  targetPath: string
-): Promise<NextResponse> {
-  const ct = req.headers.get("content-type") ?? "";
+  path: string
+) {
+  const body = await req.text();
+  const incomingCookie = req.headers.get("cookie") ?? "";
 
-  if (!ct.includes("application/json")) {
-    return NextResponse.json(
-      { error: "Content-Type must be application/json" },
-      { status: 400 }
-    );
+  // 1. csrf-cookie を取得
+  const csrfRes = await fetch(`${LARAVEL_BASE_URL}/csrf-cookie`, {
+    method: "GET",
+    headers: {
+      cookie: incomingCookie,
+    },
+    cache: "no-store",
+  });
+
+  // csrf-cookie のレスポンスから Cookie を拾う
+  const csrfHeaders = csrfRes.headers as Headers & {
+    getSetCookie?: () => string[];
+  };
+
+  let csrfCookieHeader = "";
+
+  if (typeof csrfHeaders.getSetCookie === "function") {
+    csrfCookieHeader = csrfHeaders
+      .getSetCookie()
+      .map((cookie) => cookie.split(";")[0])
+      .join("; ");
+  } else {
+    const single = csrfRes.headers.get("set-cookie");
+    if (single) {
+      csrfCookieHeader = single.split(",").map((part) => part.split(";")[0]).join("; ");
+    }
   }
 
-  let requestBody: unknown;
+  // XSRF-TOKEN を cookie 文字列から取り出す
+  const xsrfTokenMatch = csrfCookieHeader.match(/XSRF-TOKEN=([^;]+)/);
+  const xsrfToken = xsrfTokenMatch
+    ? decodeURIComponent(xsrfTokenMatch[1])
+    : "";
 
-  try {
-    requestBody = await req.json();
-  } catch {
-    return NextResponse.json(
-      { error: "Invalid JSON body (or empty body). Send JSON via POST." },
-      { status: 400 }
-    );
-  }
+  // 2. 本APIへ転送
+  const laravelRes = await fetch(`${LARAVEL_BASE_URL}${path}`, {
+    method: req.method,
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRF-TOKEN": xsrfToken,
+      cookie: [incomingCookie, csrfCookieHeader].filter(Boolean).join("; "),
+    },
+    body,
+    cache: "no-store",
+  });
 
-  try {
-    const incomingCookie = req.headers.get("cookie") ?? "";
-    const { setCookies, xsrf } = await fetchCsrfCookie(incomingCookie);
+  const data = await laravelRes.json().catch(() => ({}));
 
-    const upstreamRes = await fetch(`${LARAVEL_BASE_URL}${targetPath}`, {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-        "X-CSRF-TOKEN": xsrf,
-        ...(setCookies.length
-          ? { Cookie: cookiesToHeader(setCookies) }
-          : incomingCookie
-          ? { Cookie: incomingCookie }
-          : {}),
-      },
-      body: JSON.stringify(requestBody),
-      cache: "no-store",
-    });
+  const response = NextResponse.json(data, {
+    status: laravelRes.status,
+  });
 
-    const data = await upstreamRes.json().catch(() => ({}));
-    const final = NextResponse.json(data, { status: upstreamRes.status });
+  // 3. csrf-cookie と本API 両方の Set-Cookie をブラウザへ返す
+  appendSetCookies(csrfRes, response);
+  appendSetCookies(laravelRes, response);
 
-    const upstreamSetCookies = extractSetCookie(upstreamRes);
-    return appendSetCookies(final, [...setCookies, ...upstreamSetCookies]);
-  } catch (error) {
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Unexpected upstream communication error.";
-
-    return NextResponse.json({ error: message }, { status: 502 });
-  }
+  return response;
 }
 
 export async function forwardGetWithCookie(
