@@ -61,6 +61,37 @@ export default function NewItemPage() {
     setShape("");
   }
 
+  const [selectedSeasons, setSelectedSeasons] = useState<string[]>([]);
+  const [selectedTpos, setSelectedTpos] = useState<string[]>([]);
+
+  function handleSeasonToggle(season: string) {
+    setSelectedSeasons((prev) => {
+      const isSelected = prev.includes(season);
+
+      if (season === "オール") {
+        return isSelected ? [] : ["オール"];
+      }
+
+      const withoutAll = prev.filter((item) => item !== "オール");
+
+      if (isSelected) {
+        return withoutAll.filter((item) => item !== season);
+      }
+
+      return [...withoutAll, season];
+    });
+  }
+
+  function handleTpoToggle(tpo: string) {
+    setSelectedTpos((prev) => {
+      if (prev.includes(tpo)) {
+        return prev.filter((item) => item !== tpo);
+      }
+
+      return [...prev, tpo];
+    });
+  }
+
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">
       <div className="mx-auto max-w-3xl space-y-6">
@@ -301,31 +332,69 @@ export default function NewItemPage() {
             <div>
               <p className="mb-2 text-sm font-medium text-gray-700">季節</p>
               <div className="flex flex-wrap gap-3">
-                {SEASON_OPTIONS.map((season) => (
-                  <label
-                    key={season}
-                    className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700"
-                  >
-                    <input type="checkbox" className="h-4 w-4" />
-                    {season}
-                  </label>
-                ))}
+                {SEASON_OPTIONS.map((season) => {
+                  const checked = selectedSeasons.includes(season);
+
+                  return (
+                    <label
+                      key={season}
+                      className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition ${
+                        checked
+                          ? "border-blue-500 bg-blue-50 text-blue-700"
+                          : "border-gray-300 bg-white text-gray-700"
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4"
+                        checked={checked}
+                        onChange={() => handleSeasonToggle(season)}
+                      />
+                      {season}
+                    </label>
+                  );
+                })}
               </div>
+
+              {selectedSeasons.length > 0 && (
+                <p className="mt-3 text-sm text-gray-600">
+                  選択中: {selectedSeasons.join(" / ")}
+                </p>
+              )}
             </div>
 
             <div>
               <p className="mb-2 text-sm font-medium text-gray-700">TPO</p>
               <div className="flex flex-wrap gap-3">
-                {TPO_OPTIONS.map((tpo) => (
-                  <label
-                    key={tpo}
-                    className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700"
-                  >
-                    <input type="checkbox" className="h-4 w-4" />
-                    {tpo}
-                  </label>
-                ))}
+                {TPO_OPTIONS.map((tpo) => {
+                  const checked = selectedTpos.includes(tpo);
+
+                  return (
+                    <label
+                      key={tpo}
+                      className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition ${
+                        checked
+                          ? "border-blue-500 bg-blue-50 text-blue-700"
+                          : "border-gray-300 bg-white text-gray-700"
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4"
+                        checked={checked}
+                        onChange={() => handleTpoToggle(tpo)}
+                      />
+                      {tpo}
+                    </label>
+                  );
+                })}
               </div>
+
+              {selectedTpos.length > 0 && (
+                <p className="mt-3 text-sm text-gray-600">
+                  選択中: {selectedTpos.join(" / ")}
+                </p>
+              )}
             </div>
           </section>
 
