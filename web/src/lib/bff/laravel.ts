@@ -98,6 +98,7 @@ export async function forwardGetWithCookie(
 export async function forwardJsonWithCsrf(
   req: NextRequest,
   targetPath: string,
+  options?: { forceRefreshCsrf?: boolean }
 ): Promise<NextResponse> {
   const bodyText = await req.text();
 
@@ -105,6 +106,7 @@ export async function forwardJsonWithCsrf(
     req,
     targetPath,
     bodyText ? JSON.parse(bodyText) : {},
+    options
   );
 }
 
@@ -112,6 +114,7 @@ export async function forwardPostWithCsrfAndCookie(
   req: NextRequest,
   targetPath: string,
   body: unknown = {},
+  options?: { forceRefreshCsrf?: boolean }
 ): Promise<NextResponse> {
   try {
     const incomingCookie = req.headers.get("cookie") ?? "";
@@ -119,7 +122,7 @@ export async function forwardPostWithCsrfAndCookie(
     let xsrf = readCookieValue(incomingCookie, "XSRF-TOKEN");
     let csrfCookiesToAppend: string[] = [];
 
-    if (!xsrf) {
+    if (options?.forceRefreshCsrf || !xsrf) {
       const { setCookies, xsrf: fetchedXsrf } =
         await fetchCsrfCookie(incomingCookie);
       xsrf = fetchedXsrf;
@@ -130,13 +133,20 @@ export async function forwardPostWithCsrfAndCookie(
       );
     }
 
+    const mergedCookie = [
+      incomingCookie,
+      ...csrfCookiesToAppend.map((cookie) => cookie.split(";")[0]),
+    ]
+      .filter(Boolean)
+      .join("; ");
+
     const upstreamRes = await fetch(`${LARAVEL_BASE_URL}${targetPath}`, {
       method: "POST",
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json",
         ...(xsrf ? { "X-CSRF-TOKEN": xsrf } : {}),
-        ...(incomingCookie ? { Cookie: incomingCookie } : {}),
+        ...(mergedCookie ? { Cookie: mergedCookie } : {}),
       },
       body: JSON.stringify(body),
       cache: "no-store",
