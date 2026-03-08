@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -49,42 +50,68 @@ export default async function ItemPage({
 
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">
-      <div className="mx-auto max-w-3xl rounded-2xl border bg-white p-6 shadow-sm">
-        <h1 className="text-2xl font-bold">{item.name ?? "名称未設定"}</h1>
+      <div className="mx-auto max-w-3xl space-y-6">
+        <nav className="text-sm text-gray-500">
+          <Link href="/" className="hover:underline">
+            ホーム
+          </Link>
+          {" / "}
+          <Link href="/items" className="hover:underline">
+            アイテム一覧
+          </Link>
+          {" / "}
+          <span className="text-gray-700">詳細</span>
+        </nav>
 
-        <p className="mt-2 text-gray-600">
-          {item.category} / {item.shape}
-        </p>
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="text-sm text-gray-500">アイテム管理</p>
+            <h1 className="min-h-8 text-2xl font-bold text-gray-900">
+              {item.name ?? "名称未設定"}
+            </h1>
+          </div>
 
-        <div className="mt-4 flex gap-2">
-          {mainColor && (
-            <span className="flex items-center gap-2">
-              <span
-                className="h-4 w-4 rounded-full border"
-                style={{ backgroundColor: mainColor.hex }}
-              />
-              {mainColor.label}
-            </span>
-          )}
-
-          {subColor && (
-            <span className="flex items-center gap-2">
-              <span
-                className="h-4 w-4 rounded-full border"
-                style={{ backgroundColor: subColor.hex }}
-              />
-              {subColor.label}
-            </span>
-          )}
+          <Link
+            href="/items"
+            className="text-sm font-medium text-blue-600 hover:underline"
+          >
+            一覧に戻る
+          </Link>
         </div>
 
-        <p className="mt-4 text-sm">
-          季節: {item.seasons?.length ? item.seasons.join(" / ") : "未設定"}
-        </p>
+        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <p className="text-gray-600">
+            {item.category} / {item.shape}
+          </p>
 
-        <p className="text-sm">
-          TPO: {item.tpos?.length ? item.tpos.join(" / ") : "未設定"}
-        </p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {mainColor && (
+              <span className="inline-flex items-center gap-2 rounded-full border border-gray-300 px-3 py-1 text-sm">
+                <span
+                  className="h-4 w-4 rounded-full border border-gray-300"
+                  style={{ backgroundColor: mainColor.hex }}
+                />
+                {mainColor.label}
+              </span>
+            )}
+            {subColor && (
+              <span className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-sm">
+                <span
+                  className="h-4 w-4 rounded-full border border-gray-300"
+                  style={{ backgroundColor: subColor.hex }}
+                />
+                {subColor.label}
+              </span>
+            )}
+          </div>
+
+          <p className="mt-4 text-sm text-gray-600">
+            季節: {item.seasons?.length ? item.seasons.join(" / ") : "未設定"}
+          </p>
+          <p className="mt-1 text-sm text-gray-600">
+            TPO: {item.tpos?.length ? item.tpos.join(" / ") : "未設定"}
+          </p>
+        </div>
       </div>
     </main>
   );

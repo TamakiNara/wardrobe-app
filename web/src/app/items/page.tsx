@@ -48,6 +48,13 @@ export default async function ItemsPage() {
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">
       <div className="mx-auto max-w-5xl space-y-6">
+        <nav className="text-sm text-gray-500">
+          <Link href="/" className="hover:underline">
+            ホーム
+          </Link>
+          {" / "}
+          <span className="text-gray-700">アイテム一覧</span>
+        </nav>
         <header className="flex flex-col gap-4 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm md:flex-row md:items-center md:justify-between">
           <div>
             <p className="text-sm text-gray-500">アイテム管理</p>

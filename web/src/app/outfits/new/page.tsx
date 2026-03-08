@@ -212,6 +212,17 @@ export default function NewOutfitPage() {
 
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">
+      <nav className="text-sm text-gray-500">
+        <Link href="/" className="hover:underline">
+          ホーム
+        </Link>
+        {" / "}
+        <Link href="/outfits" className="hover:underline">
+          コーデ一覧
+        </Link>
+        {" / "}
+        <span className="text-gray-700">新規登録</span>
+      </nav>
       <div className="mx-auto max-w-4xl space-y-6">
         <div className="flex items-center justify-between">
           <div>
@@ -329,7 +340,19 @@ export default function NewOutfitPage() {
           </section>
 
           <section className="space-y-4">
-            <h2 className="text-lg font-semibold text-gray-900">アイテム選択</h2>
+            <div className="flex items-center justify-between gap-4">
+              <h2 className="text-lg font-semibold text-gray-900">アイテム選択</h2>
+
+              <span className="rounded-full border border-gray-300 bg-gray-50 px-3 py-1 text-sm text-gray-700">
+                選択中 {selectedItemIds.length} 件
+              </span>
+            </div>
+
+            {selectedItemIds.length === 0 && !loadingItems && items.length > 0 && (
+              <p className="text-sm text-gray-500">
+                コーデに含めるアイテムを1つ以上選択してください。
+              </p>
+            )}
 
             {loadingItems ? (
               <p className="text-sm text-gray-600">アイテムを読み込み中です...</p>

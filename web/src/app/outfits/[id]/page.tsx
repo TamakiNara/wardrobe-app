@@ -69,7 +69,19 @@ export default async function OutfitDetailPage({
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">
       <div className="mx-auto max-w-4xl space-y-6">
-        <div className="flex items-center justify-between">
+        <nav className="text-sm text-gray-500">
+          <Link href="/" className="hover:underline">
+            ホーム
+          </Link>
+          {" / "}
+          <Link href="/outfits" className="hover:underline">
+            コーデ一覧
+          </Link>
+          {" / "}
+          <span className="text-gray-700">詳細</span>
+        </nav>
+
+        <div className="flex items-center justify-between gap-4">
           <div>
             <p className="text-sm text-gray-500">コーデ管理</p>
             <h1 className="min-h-8 text-2xl font-bold text-gray-900">
