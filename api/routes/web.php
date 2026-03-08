@@ -1,9 +1,12 @@
 <?php
 
 use App\Models\Item;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
+use App\Models\Outfit;
+use App\Models\OutfitItem;
 use App\Http\Controllers\AuthController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/csrf-cookie', function (Request $request) {
     // セッション開始＆CSRFトークン生成
@@ -92,6 +95,78 @@ Route::prefix('api')->middleware(['web'])->group(function () {
             'item' => $item,
         ]);
     });
+
+    Route::middleware('auth:web')->get('/outfits', function (Request $request) {
+        $outfits = Outfit::query()
+            ->where('user_id', $request->user()->id)
+            ->with(['outfitItems.item'])
+            ->latest()
+            ->get();
+
+        return response()->json([
+            'outfits' => $outfits,
+        ]);
+    });
+
+    Route::middleware('auth:web')->post('/outfits', function (Request $request) {
+        $validated = $request->validate([
+            'name' => ['nullable', 'string', 'max:255'],
+            'memo' => ['nullable', 'string'],
+            'seasons' => ['nullable', 'array'],
+            'seasons.*' => ['string', 'max:50'],
+            'tpos' => ['nullable', 'array'],
+            'tpos.*' => ['string', 'max:50'],
+            'items' => ['required', 'array', 'min:1'],
+            'items.*.item_id' => ['required', 'integer'],
+            'items.*.sort_order' => ['required', 'integer', 'min:0'],
+        ]);
+
+        $user = $request->user();
+
+        $itemIds = collect($validated['items'])
+            ->pluck('item_id')
+            ->unique()
+            ->values();
+
+        $ownedItemCount = \App\Models\Item::query()
+            ->where('user_id', $user->id)
+            ->whereIn('id', $itemIds)
+            ->count();
+
+        // 他人のitem_idは使用不可
+        if ($ownedItemCount !== $itemIds->count()) {
+            return response()->json([
+                'message' => '選択したアイテムに不正なデータが含まれています。',
+            ], 422);
+        }
+
+        $outfit = DB::transaction(function () use ($validated, $user) {
+            $outfit = Outfit::create([
+                'user_id' => $user->id,
+                'name' => $validated['name'] ?? null,
+                'memo' => $validated['memo'] ?? null,
+                'seasons' => $validated['seasons'] ?? [],
+                'tpos' => $validated['tpos'] ?? [],
+            ]);
+
+            $outfit->outfitItems()->createMany(
+                collect($validated['items'])->map(function ($item) {
+                    return [
+                        'item_id' => $item['item_id'],
+                        'sort_order' => $item['sort_order'],
+                    ];
+                })->all()
+            );
+
+            return $outfit->load(['outfitItems.item']);
+        });
+
+        return response()->json([
+            'message' => 'created',
+            'outfit' => $outfit,
+        ], 201);
+    });
+
 });
 
 // swagger-ui 表示用
