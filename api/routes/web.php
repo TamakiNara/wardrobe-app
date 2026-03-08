@@ -167,6 +167,17 @@ Route::prefix('api')->middleware(['web'])->group(function () {
         ], 201);
     });
 
+    Route::middleware('auth:web')->get('/outfits/{id}', function (Request $request, int $id) {
+        $outfit = Outfit::query()
+            ->where('user_id', $request->user()->id)
+            ->with(['outfitItems.item'])
+            ->findOrFail($id);
+
+        return response()->json([
+            'outfit' => $outfit,
+        ]);
+    });
+
 });
 
 // swagger-ui 表示用

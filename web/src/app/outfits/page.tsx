@@ -103,30 +103,29 @@ export default async function OutfitsPage() {
               const itemCount = outfitItems.length;
 
               return (
-                <article
-                  key={outfit.id}
-                  className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm"
-                >
-                  <h2 className="min-h-[1.5rem] text-lg font-semibold text-gray-900">
-                    {outfit.name ?? ""}
-                  </h2>
+                <Link href={`/outfits/${outfit.id}`} key={outfit.id}>
+                  <article className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:bg-gray-50">
+                    <h2 className="min-h-6 text-lg font-semibold text-gray-900">
+                      {outfit.name ?? ""}
+                    </h2>
 
-                  {outfit.memo && (
-                    <p className="mt-2 text-sm text-gray-600">{outfit.memo}</p>
-                  )}
+                    {outfit.memo && (
+                      <p className="mt-2 text-sm text-gray-600">{outfit.memo}</p>
+                    )}
 
-                  <p className="mt-4 text-sm text-gray-600">
-                    アイテム数: {itemCount}
-                  </p>
+                    <p className="mt-4 text-sm text-gray-600">
+                      アイテム数: {itemCount}
+                    </p>
 
-                  <p className="mt-2 text-sm text-gray-600">
-                    季節: {outfit.seasons?.length ? outfit.seasons.join(" / ") : "未設定"}
-                  </p>
+                    <p className="mt-2 text-sm text-gray-600">
+                      季節: {outfit.seasons?.length ? outfit.seasons.join(" / ") : "未設定"}
+                    </p>
 
-                  <p className="mt-1 text-sm text-gray-600">
-                    TPO: {outfit.tpos?.length ? outfit.tpos.join(" / ") : "未設定"}
-                  </p>
-                </article>
+                    <p className="mt-1 text-sm text-gray-600">
+                      TPO: {outfit.tpos?.length ? outfit.tpos.join(" / ") : "未設定"}
+                    </p>
+                  </article>
+                </Link>
               );
             })}
           </section>
