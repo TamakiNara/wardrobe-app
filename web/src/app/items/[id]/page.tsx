@@ -39,9 +39,10 @@ async function getItem(id: string): Promise<Item> {
 export default async function ItemPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const item = await getItem(params.id);
+  const { id } = await params;
+  const item = await getItem(id);
 
   const mainColor = item.colors.find((c) => c.role === "main");
   const subColor = item.colors.find((c) => c.role === "sub");

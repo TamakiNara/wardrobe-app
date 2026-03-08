@@ -3,7 +3,8 @@ import { forwardGetWithCookie } from "@/lib/bff/laravel";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
-  return forwardGetWithCookie(req, `/api/items/${params.id}`);
+  const { id } = await context.params;
+  return forwardGetWithCookie(req, `/api/items/${id}`);
 }
