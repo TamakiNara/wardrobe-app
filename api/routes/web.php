@@ -39,7 +39,18 @@ Route::prefix('api')->middleware(['web'])->group(function () {
         ]);
     });
 
-    Route::middleware('auth')->post('/items', function (Request $request) {
+    Route::middleware('auth:web')->get('/items', function (Request $request) {
+        $items = Item::query()
+            ->where('user_id', $request->user()->id)
+            ->latest()
+            ->get();
+
+        return response()->json([
+            'items' => $items,
+        ]);
+    });
+
+    Route::middleware('auth:web')->post('/items', function (Request $request) {
         $validated = $request->validate([
             'name' => ['nullable', 'string', 'max:255'],
             'category' => ['required', 'string', 'max:100'],
