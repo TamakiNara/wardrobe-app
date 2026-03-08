@@ -6,20 +6,17 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Item extends Model
+class Outfit extends Model
 {
     protected $fillable = [
         'user_id',
         'name',
-        'category',
-        'shape',
-        'colors',
+        'memo',
         'seasons',
         'tpos',
     ];
 
     protected $casts = [
-        'colors' => 'array',
         'seasons' => 'array',
         'tpos' => 'array',
     ];
@@ -31,6 +28,6 @@ class Item extends Model
 
     public function outfitItems(): HasMany
     {
-        return $this->hasMany(OutfitItem::class);
+        return $this->hasMany(OutfitItem::class)->orderBy('sort_order');
     }
 }
