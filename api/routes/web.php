@@ -96,6 +96,18 @@ Route::prefix('api')->middleware(['web'])->group(function () {
         ]);
     });
 
+    Route::middleware('auth:web')->delete('/items/{id}', function (Request $request, int $id) {
+        $item = Item::query()
+            ->where('user_id', $request->user()->id)
+            ->findOrFail($id);
+
+        $item->delete();
+
+        return response()->json([
+            'message' => 'deleted',
+        ]);
+    });
+
     Route::middleware('auth:web')->get('/outfits', function (Request $request) {
         $outfits = Outfit::query()
             ->where('user_id', $request->user()->id)

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import DeleteItemButton from "@/components/items/delete-item-button";
 
 type Item = {
   id: number;
@@ -77,6 +78,8 @@ export default async function ItemPage({
           >
             一覧に戻る
           </Link>
+
+          <DeleteItemButton itemId={item.id} />
         </div>
 
         <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">

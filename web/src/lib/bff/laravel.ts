@@ -171,3 +171,35 @@ export async function forwardPostWithCsrfAndCookie(
     return NextResponse.json({ error: message }, { status: 502 });
   }
 }
+
+export async function forwardDeleteWithCookie(
+  req: NextRequest,
+  targetPath: string
+): Promise<NextResponse> {
+  try {
+    const incomingCookie = req.headers.get("cookie") ?? "";
+
+    const upstreamRes = await fetch(`${LARAVEL_BASE_URL}${targetPath}`, {
+      method: "DELETE",
+      headers: {
+        Accept: "application/json",
+        ...(incomingCookie ? { Cookie: incomingCookie } : {}),
+      },
+      cache: "no-store",
+    });
+
+    const data = await upstreamRes.json().catch(() => ({}));
+    const final = NextResponse.json(data, { status: upstreamRes.status });
+
+    appendSetCookies(upstreamRes, final);
+
+    return final;
+  } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Unexpected upstream communication error.";
+
+    return NextResponse.json({ error: message }, { status: 502 });
+  }
+}

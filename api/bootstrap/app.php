@@ -19,6 +19,14 @@ return Application::configure(basePath: dirname(__DIR__))
             \Illuminate\Cookie\Middleware\EncryptCookies::class => \App\Http\Middleware\EncryptCookies::class,
         ]);
 
+        // BFF 経由で叩く API は CSRF 検証対象から外す
+        $middleware->validateCsrfTokens(except: [
+            'api/items',
+            'api/items/*',
+            'api/outfits',
+            'api/outfits/*',
+        ]);
+
         // APIは login ルートへリダイレクトさせず、401 を返す
         $middleware->redirectGuestsTo(function (Request $request) {
             if ($request->is('api/*') || $request->expectsJson()) {
