@@ -82,6 +82,16 @@ Route::prefix('api')->middleware(['web'])->group(function () {
             'item' => $item,
         ], 201);
     });
+
+    Route::middleware('auth:web')->get('/items/{id}', function (Request $request, int $id) {
+        $item = Item::query()
+            ->where('user_id', $request->user()->id)
+            ->findOrFail($id);
+
+        return response()->json([
+            'item' => $item,
+        ]);
+    });
 });
 
 // swagger-ui 表示用
