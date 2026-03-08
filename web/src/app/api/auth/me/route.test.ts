@@ -28,8 +28,8 @@ describe("GET /api/auth/me", () => {
           headers: {
             "content-type": "application/json",
           },
-        }
-      )
+        },
+      ),
     ) as typeof fetch;
 
     const req = new Request("http://localhost:3000/api/auth/me", {
@@ -50,7 +50,7 @@ describe("GET /api/auth/me", () => {
           Accept: "application/json",
           Cookie: "laravel-session=test_session",
         }),
-      })
+      }),
     );
 
     expect(res.status).toBe(200);
@@ -72,8 +72,8 @@ describe("GET /api/auth/me", () => {
           headers: {
             "content-type": "application/json",
           },
-        }
-      )
+        },
+      ),
     ) as typeof fetch;
 
     const req = new Request("http://localhost:3000/api/auth/me", {

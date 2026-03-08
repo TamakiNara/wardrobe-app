@@ -77,7 +77,7 @@ async function fetchCsrfCookie(incomingCookie?: string) {
 
 export async function forwardGetWithCookie(
   req: NextRequest,
-  targetPath: string
+  targetPath: string,
 ): Promise<NextResponse> {
   const incomingCookie = req.headers.get("cookie") ?? "";
 
@@ -97,21 +97,21 @@ export async function forwardGetWithCookie(
 
 export async function forwardJsonWithCsrf(
   req: NextRequest,
-  targetPath: string
+  targetPath: string,
 ): Promise<NextResponse> {
   const bodyText = await req.text();
 
   return forwardPostWithCsrfAndCookie(
     req,
     targetPath,
-    bodyText ? JSON.parse(bodyText) : {}
+    bodyText ? JSON.parse(bodyText) : {},
   );
 }
 
 export async function forwardPostWithCsrfAndCookie(
   req: NextRequest,
   targetPath: string,
-  body: unknown = {}
+  body: unknown = {},
 ): Promise<NextResponse> {
   try {
     const incomingCookie = req.headers.get("cookie") ?? "";
@@ -120,14 +120,13 @@ export async function forwardPostWithCsrfAndCookie(
     let csrfCookiesToAppend: string[] = [];
 
     if (!xsrf) {
-      const { setCookies, xsrf: fetchedXsrf } = await fetchCsrfCookie(
-        incomingCookie
-      );
+      const { setCookies, xsrf: fetchedXsrf } =
+        await fetchCsrfCookie(incomingCookie);
       xsrf = fetchedXsrf;
 
       // ブラウザへ返すのは XSRF-TOKEN だけ
       csrfCookiesToAppend = setCookies.filter((cookie) =>
-        cookie.startsWith("XSRF-TOKEN=")
+        cookie.startsWith("XSRF-TOKEN="),
       );
     }
 

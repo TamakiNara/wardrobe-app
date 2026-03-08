@@ -20,7 +20,7 @@ type LogoutResponse =
   paths["/api/logout"]["post"]["responses"]["200"]["content"]["application/json"];
 
 export async function register(
-  body: RegisterRequest
+  body: RegisterRequest,
 ): Promise<RegisterResponse> {
   return apiFetch<RegisterResponse>("/api/auth/register", {
     method: "POST",

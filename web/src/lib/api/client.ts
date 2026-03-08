@@ -9,7 +9,11 @@ export class ApiClientError extends Error {
   data: ApiError | null;
 
   constructor(status: number, data: ApiError | null) {
-    super(data?.message ?? data?.error ?? `API request failed with status ${status}`);
+    super(
+      data?.message ??
+        data?.error ??
+        `API request failed with status ${status}`,
+    );
     this.name = "ApiClientError";
     this.status = status;
     this.data = data;
@@ -18,7 +22,7 @@ export class ApiClientError extends Error {
 
 export async function apiFetch<TResponse>(
   path: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
 ): Promise<TResponse> {
   const res = await fetch(path, {
     ...options,

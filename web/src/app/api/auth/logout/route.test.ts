@@ -25,7 +25,7 @@ describe("POST /api/auth/logout", () => {
             "set-cookie":
               "XSRF-TOKEN=test_csrf_token; Path=/; SameSite=Lax, laravel-session=test_session; Path=/; HttpOnly; SameSite=Lax",
           },
-        })
+        }),
       )
       .mockResolvedValueOnce(
         new Response(
@@ -39,8 +39,8 @@ describe("POST /api/auth/logout", () => {
               "set-cookie":
                 "laravel-session=deleted; Path=/; HttpOnly; SameSite=Lax",
             },
-          }
-        )
+          },
+        ),
       ) as typeof fetch;
 
     const req = new Request("http://localhost:3000/api/auth/logout", {
@@ -65,7 +65,7 @@ describe("POST /api/auth/logout", () => {
     global.fetch = vi.fn().mockResolvedValueOnce(
       new Response(null, {
         status: 500,
-      })
+      }),
     ) as typeof fetch;
 
     const req = new Request("http://localhost:3000/api/auth/logout", {

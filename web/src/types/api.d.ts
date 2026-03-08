@@ -4,354 +4,356 @@
  */
 
 export interface paths {
-    "/csrf-cookie": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * CSRFトークンとセッションCookieを発行する
-         * @description CSRF保護が必要なPOST系APIを呼ぶ前に実行する。
-         *     このエンドポイントは Cookie に `XSRF-TOKEN` とセッションCookieを設定する。
-         */
-        get: operations["getCsrfCookie"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+  "/csrf-cookie": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/register": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * ユーザー登録
-         * @description 新規ユーザーを登録し、登録成功時はそのままログイン状態にする。
-         *     Cookie ベースのセッション認証を使用するため、
-         *     事前に `/csrf-cookie` を呼び出し、`X-CSRF-TOKEN` ヘッダを付与すること。
-         */
-        post: operations["register"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /**
+     * CSRFトークンとセッションCookieを発行する
+     * @description CSRF保護が必要なPOST系APIを呼ぶ前に実行する。
+     *     このエンドポイントは Cookie に `XSRF-TOKEN` とセッションCookieを設定する。
+     */
+    get: operations["getCsrfCookie"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/register": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/login": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * ログイン
-         * @description メールアドレスとパスワードでログインする。
-         *     Cookie ベースのセッション認証を使用するため、
-         *     事前に `/csrf-cookie` を呼び出し、`X-CSRF-TOKEN` ヘッダを付与すること。
-         */
-        post: operations["login"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /**
+     * ユーザー登録
+     * @description 新規ユーザーを登録し、登録成功時はそのままログイン状態にする。
+     *     Cookie ベースのセッション認証を使用するため、
+     *     事前に `/csrf-cookie` を呼び出し、`X-CSRF-TOKEN` ヘッダを付与すること。
+     */
+    post: operations["register"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/login": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/me": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * ログイン中のユーザー情報を取得する
-         * @description セッション認証済みユーザーのプロフィール情報を返す。
-         *     `laravel-session` Cookie が必要。
-         */
-        get: operations["me"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /**
+     * ログイン
+     * @description メールアドレスとパスワードでログインする。
+     *     Cookie ベースのセッション認証を使用するため、
+     *     事前に `/csrf-cookie` を呼び出し、`X-CSRF-TOKEN` ヘッダを付与すること。
+     */
+    post: operations["login"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/me": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/logout": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * ログアウト
-         * @description ログイン中のユーザーをログアウトし、セッションを破棄する。
-         *     POSTのため `X-CSRF-TOKEN` ヘッダが必要。
-         */
-        post: operations["logout"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /**
+     * ログイン中のユーザー情報を取得する
+     * @description セッション認証済みユーザーのプロフィール情報を返す。
+     *     `laravel-session` Cookie が必要。
+     */
+    get: operations["me"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/logout": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
+    get?: never;
+    put?: never;
+    /**
+     * ログアウト
+     * @description ログイン中のユーザーをログアウトし、セッションを破棄する。
+     *     POSTのため `X-CSRF-TOKEN` ヘッダが必要。
+     */
+    post: operations["logout"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
-    schemas: {
-        User: {
-            /**
-             * Format: int64
-             * @example 1
-             */
-            id: number;
-            /** @example Test */
-            name: string;
-            /**
-             * Format: email
-             * @example sample.user@gmail.com
-             */
-            email: string;
-        };
-        RegisterRequest: {
-            /** @example Test */
-            name: string;
-            /**
-             * Format: email
-             * @example sample.user@gmail.com
-             */
-            email: string;
-            /** @example password123 */
-            password: string;
-        };
-        LoginRequest: {
-            /**
-             * Format: email
-             * @example sample.user@gmail.com
-             */
-            email: string;
-            /** @example password123 */
-            password: string;
-        };
-        RegisterResponse: {
-            /** @example registered */
-            message: string;
-            user: components["schemas"]["User"];
-        };
-        LoginResponse: {
-            /** @example logged_in */
-            message: string;
-        };
-        MessageOnlyResponse: {
-            /** @example logged_out */
-            message: string;
-        };
-        ValidationErrorResponse: {
-            /** @example The given data was invalid. */
-            message: string;
-            errors: {
-                [key: string]: string[];
-            };
-        };
+  schemas: {
+    User: {
+      /**
+       * Format: int64
+       * @example 1
+       */
+      id: number;
+      /** @example Test */
+      name: string;
+      /**
+       * Format: email
+       * @example sample.user@gmail.com
+       */
+      email: string;
     };
-    responses: never;
+    RegisterRequest: {
+      /** @example Test */
+      name: string;
+      /**
+       * Format: email
+       * @example sample.user@gmail.com
+       */
+      email: string;
+      /** @example password123 */
+      password: string;
+    };
+    LoginRequest: {
+      /**
+       * Format: email
+       * @example sample.user@gmail.com
+       */
+      email: string;
+      /** @example password123 */
+      password: string;
+    };
+    RegisterResponse: {
+      /** @example registered */
+      message: string;
+      user: components["schemas"]["User"];
+    };
+    LoginResponse: {
+      /** @example logged_in */
+      message: string;
+    };
+    MessageOnlyResponse: {
+      /** @example logged_out */
+      message: string;
+    };
+    ValidationErrorResponse: {
+      /** @example The given data was invalid. */
+      message: string;
+      errors: {
+        [key: string]: string[];
+      };
+    };
+  };
+  responses: never;
+  parameters: {
+    /**
+     * @description CSRF対策用ヘッダ。
+     *     `/csrf-cookie` 実行後に取得した `XSRF-TOKEN` と同じ値を指定する。
+     *     実運用では必須。
+     *     Swagger UI では requestInterceptor により自動付与する。
+     */
+    XCsrfTokenHeader: string;
+  };
+  requestBodies: never;
+  headers: never;
+  pathItems: never;
+}
+export type $defs = Record<string, never>;
+export interface operations {
+  getCsrfCookie: {
     parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          /** @description `XSRF-TOKEN` とセッションCookie が設定される。 */
+          "Set-Cookie"?: string;
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  register: {
+    parameters: {
+      query?: never;
+      header?: {
         /**
          * @description CSRF対策用ヘッダ。
          *     `/csrf-cookie` 実行後に取得した `XSRF-TOKEN` と同じ値を指定する。
          *     実運用では必須。
          *     Swagger UI では requestInterceptor により自動付与する。
          */
-        XCsrfTokenHeader: string;
+        "X-CSRF-TOKEN"?: components["parameters"]["XCsrfTokenHeader"];
+      };
+      path?: never;
+      cookie?: never;
     };
-    requestBodies: never;
-    headers: never;
-    pathItems: never;
-}
-export type $defs = Record<string, never>;
-export interface operations {
-    getCsrfCookie: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No Content */
-            204: {
-                headers: {
-                    /** @description `XSRF-TOKEN` とセッションCookie が設定される。 */
-                    "Set-Cookie"?: string;
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["RegisterRequest"];
+      };
     };
-    register: {
-        parameters: {
-            query?: never;
-            header?: {
-                /**
-                 * @description CSRF対策用ヘッダ。
-                 *     `/csrf-cookie` 実行後に取得した `XSRF-TOKEN` と同じ値を指定する。
-                 *     実運用では必須。
-                 *     Swagger UI では requestInterceptor により自動付与する。
-                 */
-                "X-CSRF-TOKEN"?: components["parameters"]["XCsrfTokenHeader"];
-            };
-            path?: never;
-            cookie?: never;
+    responses: {
+      /** @description ユーザー登録成功 */
+      201: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["RegisterRequest"];
-            };
+        content: {
+          "application/json": components["schemas"]["RegisterResponse"];
         };
-        responses: {
-            /** @description ユーザー登録成功 */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RegisterResponse"];
-                };
-            };
-            /** @description バリデーションエラー */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ValidationErrorResponse"];
-                };
-            };
+      };
+      /** @description バリデーションエラー */
+      422: {
+        headers: {
+          [name: string]: unknown;
         };
+        content: {
+          "application/json": components["schemas"]["ValidationErrorResponse"];
+        };
+      };
     };
-    login: {
-        parameters: {
-            query?: never;
-            header?: {
-                /**
-                 * @description CSRF対策用ヘッダ。
-                 *     `/csrf-cookie` 実行後に取得した `XSRF-TOKEN` と同じ値を指定する。
-                 *     実運用では必須。
-                 *     Swagger UI では requestInterceptor により自動付与する。
-                 */
-                "X-CSRF-TOKEN"?: components["parameters"]["XCsrfTokenHeader"];
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["LoginRequest"];
-            };
-        };
-        responses: {
-            /** @description ログイン成功 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["LoginResponse"];
-                };
-            };
-            /** @description バリデーションエラーまたは認証失敗 */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ValidationErrorResponse"] | components["schemas"]["MessageOnlyResponse"];
-                };
-            };
-        };
+  };
+  login: {
+    parameters: {
+      query?: never;
+      header?: {
+        /**
+         * @description CSRF対策用ヘッダ。
+         *     `/csrf-cookie` 実行後に取得した `XSRF-TOKEN` と同じ値を指定する。
+         *     実運用では必須。
+         *     Swagger UI では requestInterceptor により自動付与する。
+         */
+        "X-CSRF-TOKEN"?: components["parameters"]["XCsrfTokenHeader"];
+      };
+      path?: never;
+      cookie?: never;
     };
-    me: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description 取得成功 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["User"];
-                };
-            };
-            /** @description 未認証 */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MessageOnlyResponse"];
-                };
-            };
-        };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["LoginRequest"];
+      };
     };
-    logout: {
-        parameters: {
-            query?: never;
-            header?: {
-                /**
-                 * @description CSRF対策用ヘッダ。
-                 *     `/csrf-cookie` 実行後に取得した `XSRF-TOKEN` と同じ値を指定する。
-                 *     実運用では必須。
-                 *     Swagger UI では requestInterceptor により自動付与する。
-                 */
-                "X-CSRF-TOKEN"?: components["parameters"]["XCsrfTokenHeader"];
-            };
-            path?: never;
-            cookie?: never;
+    responses: {
+      /** @description ログイン成功 */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description ログアウト成功 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MessageOnlyResponse"];
-                };
-            };
-            /** @description 未認証 */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MessageOnlyResponse"];
-                };
-            };
+        content: {
+          "application/json": components["schemas"]["LoginResponse"];
         };
+      };
+      /** @description バリデーションエラーまたは認証失敗 */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json":
+            | components["schemas"]["ValidationErrorResponse"]
+            | components["schemas"]["MessageOnlyResponse"];
+        };
+      };
     };
+  };
+  me: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description 取得成功 */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["User"];
+        };
+      };
+      /** @description 未認証 */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["MessageOnlyResponse"];
+        };
+      };
+    };
+  };
+  logout: {
+    parameters: {
+      query?: never;
+      header?: {
+        /**
+         * @description CSRF対策用ヘッダ。
+         *     `/csrf-cookie` 実行後に取得した `XSRF-TOKEN` と同じ値を指定する。
+         *     実運用では必須。
+         *     Swagger UI では requestInterceptor により自動付与する。
+         */
+        "X-CSRF-TOKEN"?: components["parameters"]["XCsrfTokenHeader"];
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description ログアウト成功 */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["MessageOnlyResponse"];
+        };
+      };
+      /** @description 未認証 */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["MessageOnlyResponse"];
+        };
+      };
+    };
+  };
 }

@@ -190,7 +190,6 @@ export default function NewItemPage() {
         router.push("/items");
         router.refresh();
       }, 800);
-
     } catch {
       setSubmitError("通信に失敗しました。時間をおいて再度お試しください。");
     } finally {
@@ -272,7 +271,7 @@ export default function NewItemPage() {
                 id="category"
                 value={category}
                 onChange={(e) => handleCategoryChange(e.target.value)}
-                  className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${
+                className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${
                   errors.category ? "border-red-400" : "border-gray-300"
                 }`}
               >
@@ -305,7 +304,9 @@ export default function NewItemPage() {
                 }`}
               >
                 <option value="">
-                  {category ? "選択してください" : "先にカテゴリを選択してください"}
+                  {category
+                    ? "選択してください"
+                    : "先にカテゴリを選択してください"}
                 </option>
                 {shapeOptions.map((item) => (
                   <option key={item.value} value={item.value}>
@@ -349,25 +350,27 @@ export default function NewItemPage() {
                 {useCustomMainColor ? (
                   <div className="flex items-center gap-3 rounded-xl border border-gray-300 bg-white px-4 py-3">
                     <input
-                        type="color"
-                        value={customMainHex}
-                        onChange={(e) => setCustomMainHex(e.target.value)}
-                        className="h-10 w-14 cursor-pointer rounded border border-gray-300 bg-white p-1"
+                      type="color"
+                      value={customMainHex}
+                      onChange={(e) => setCustomMainHex(e.target.value)}
+                      className="h-10 w-14 cursor-pointer rounded border border-gray-300 bg-white p-1"
                     />
                     <input
-                        type="text"
-                        value={customMainHex}
-                        onChange={(e) => setCustomMainHex(e.target.value)}
-                        className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${
+                      type="text"
+                      value={customMainHex}
+                      onChange={(e) => setCustomMainHex(e.target.value)}
+                      className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${
                         errors.mainColor ? "border-red-400" : "border-gray-300"
-                        }`}
+                      }`}
                     />
                   </div>
                 ) : (
                   <select
                     id="main-color"
                     value={mainColor}
-                    onChange={(e) => setMainColor(e.target.value as ItemColorValue | "")}
+                    onChange={(e) =>
+                      setMainColor(e.target.value as ItemColorValue | "")
+                    }
                     className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                   >
                     <option value="">選択してください</option>
@@ -379,7 +382,9 @@ export default function NewItemPage() {
                   </select>
                 )}
                 {errors.mainColor && (
-                  <p className="mt-2 text-sm text-red-600">{errors.mainColor}</p>
+                  <p className="mt-2 text-sm text-red-600">
+                    {errors.mainColor}
+                  </p>
                 )}
               </div>
 
@@ -425,7 +430,9 @@ export default function NewItemPage() {
                   <select
                     id="sub-color"
                     value={subColor}
-                    onChange={(e) => setSubColor(e.target.value as ItemColorValue | "")}
+                    onChange={(e) =>
+                      setSubColor(e.target.value as ItemColorValue | "")
+                    }
                     className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                   >
                     <option value="">未選択</option>
@@ -479,7 +486,9 @@ export default function NewItemPage() {
 
             <div>
               <p className="mb-2 text-sm font-medium">季節</p>
-              <p className="mt-2 text-xs text-gray-500">未選択の場合はオールシーズン扱いになります。</p>
+              <p className="mt-2 text-xs text-gray-500">
+                未選択の場合はオールシーズン扱いになります。
+              </p>
               <div className="flex flex-wrap gap-3">
                 {SEASON_OPTIONS.map((season) => {
                   const checked = selectedSeasons.includes(season);
@@ -514,7 +523,9 @@ export default function NewItemPage() {
 
             <div>
               <p className="mb-2 text-sm font-medium">TPO</p>
-              <p className="mt-2 text-xs text-gray-500">未選択の場合はすべてのシーンで使用可能として扱います。</p>
+              <p className="mt-2 text-xs text-gray-500">
+                未選択の場合はすべてのシーンで使用可能として扱います。
+              </p>
               <div className="flex flex-wrap gap-3">
                 {TPO_OPTIONS.map((tpo) => {
                   const checked = selectedTpos.includes(tpo);
@@ -575,7 +586,6 @@ export default function NewItemPage() {
               </pre>
             </section>
           )}
-
         </form>
 
         {submitError && (
@@ -589,7 +599,6 @@ export default function NewItemPage() {
             {submitSuccess}
           </div>
         )}
-
       </div>
     </main>
   );

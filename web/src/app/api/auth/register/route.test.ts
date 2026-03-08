@@ -26,7 +26,7 @@ describe("POST /api/auth/register", () => {
             "set-cookie":
               "XSRF-TOKEN=test_csrf_token; Path=/; SameSite=Lax, laravel-session=test_session; Path=/; HttpOnly; SameSite=Lax",
           },
-        })
+        }),
       )
       // 2回目: /api/register
       .mockResolvedValueOnce(
@@ -46,8 +46,8 @@ describe("POST /api/auth/register", () => {
               "set-cookie":
                 "laravel-session=new_session; Path=/; HttpOnly; SameSite=Lax",
             },
-          }
-        )
+          },
+        ),
       ) as typeof fetch;
 
     const req = new Request("http://localhost:3000/api/auth/register", {
@@ -73,7 +73,7 @@ describe("POST /api/auth/register", () => {
       expect.objectContaining({
         method: "GET",
         cache: "no-store",
-      })
+      }),
     );
 
     expect(global.fetch).toHaveBeenNthCalledWith(
@@ -92,7 +92,7 @@ describe("POST /api/auth/register", () => {
           email: "sample.user@gmail.com",
           password: "password123",
         }),
-      })
+      }),
     );
 
     expect(res.status).toBe(201);
@@ -148,7 +148,7 @@ describe("POST /api/auth/register", () => {
     global.fetch = vi.fn().mockResolvedValueOnce(
       new Response(null, {
         status: 500,
-      })
+      }),
     ) as typeof fetch;
 
     const req = new Request("http://localhost:3000/api/auth/register", {
@@ -179,7 +179,7 @@ describe("POST /api/auth/register", () => {
         headers: {
           "set-cookie": "laravel-session=test_session; Path=/; HttpOnly",
         },
-      })
+      }),
     ) as typeof fetch;
 
     const req = new Request("http://localhost:3000/api/auth/register", {
@@ -213,7 +213,7 @@ describe("POST /api/auth/register", () => {
             "set-cookie":
               "XSRF-TOKEN=test_csrf_token; Path=/; SameSite=Lax, laravel-session=test_session; Path=/; HttpOnly; SameSite=Lax",
           },
-        })
+        }),
       )
       .mockResolvedValueOnce(
         new Response(
@@ -228,8 +228,8 @@ describe("POST /api/auth/register", () => {
             headers: {
               "content-type": "application/json",
             },
-          }
-        )
+          },
+        ),
       ) as typeof fetch;
 
     const req = new Request("http://localhost:3000/api/auth/register", {

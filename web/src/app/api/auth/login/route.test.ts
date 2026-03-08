@@ -25,7 +25,7 @@ describe("POST /api/auth/login", () => {
             "set-cookie":
               "XSRF-TOKEN=test_csrf_token; Path=/; SameSite=Lax, laravel-session=test_session; Path=/; HttpOnly; SameSite=Lax",
           },
-        })
+        }),
       )
       .mockResolvedValueOnce(
         new Response(
@@ -39,8 +39,8 @@ describe("POST /api/auth/login", () => {
               "set-cookie":
                 "laravel-session=new_session; Path=/; HttpOnly; SameSite=Lax",
             },
-          }
-        )
+          },
+        ),
       ) as typeof fetch;
 
     const req = new Request("http://localhost:3000/api/auth/login", {
@@ -106,7 +106,7 @@ describe("POST /api/auth/login", () => {
     global.fetch = vi.fn().mockResolvedValueOnce(
       new Response(null, {
         status: 500,
-      })
+      }),
     ) as typeof fetch;
 
     const req = new Request("http://localhost:3000/api/auth/login", {
@@ -139,7 +139,7 @@ describe("POST /api/auth/login", () => {
             "set-cookie":
               "XSRF-TOKEN=test_csrf_token; Path=/; SameSite=Lax, laravel-session=test_session; Path=/; HttpOnly; SameSite=Lax",
           },
-        })
+        }),
       )
       .mockResolvedValueOnce(
         new Response(
@@ -151,8 +151,8 @@ describe("POST /api/auth/login", () => {
             headers: {
               "content-type": "application/json",
             },
-          }
-        )
+          },
+        ),
       ) as typeof fetch;
 
     const req = new Request("http://localhost:3000/api/auth/login", {

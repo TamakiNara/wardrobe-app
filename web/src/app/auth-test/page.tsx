@@ -101,7 +101,12 @@ export default function AuthTestPage() {
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            style={{ display: "block", width: "100%", padding: "8px", marginTop: "4px" }}
+            style={{
+              display: "block",
+              width: "100%",
+              padding: "8px",
+              marginTop: "4px",
+            }}
           />
         </label>
 
@@ -110,7 +115,12 @@ export default function AuthTestPage() {
           <input
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            style={{ display: "block", width: "100%", padding: "8px", marginTop: "4px" }}
+            style={{
+              display: "block",
+              width: "100%",
+              padding: "8px",
+              marginTop: "4px",
+            }}
           />
         </label>
 
@@ -120,12 +130,24 @@ export default function AuthTestPage() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             type="password"
-            style={{ display: "block", width: "100%", padding: "8px", marginTop: "4px" }}
+            style={{
+              display: "block",
+              width: "100%",
+              padding: "8px",
+              marginTop: "4px",
+            }}
           />
         </label>
       </div>
 
-      <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", marginTop: "20px" }}>
+      <div
+        style={{
+          display: "flex",
+          gap: "12px",
+          flexWrap: "wrap",
+          marginTop: "20px",
+        }}
+      >
         <button onClick={handleRegister} disabled={loading !== null}>
           {loading === "register" ? "Registering..." : "Register"}
         </button>

@@ -117,7 +117,8 @@ export default async function ItemsPage() {
                   </div>
 
                   <p className="mt-4 text-sm text-gray-600">
-                    季節: {item.seasons?.length ? item.seasons.join(" / ") : "未設定"}
+                    季節:{" "}
+                    {item.seasons?.length ? item.seasons.join(" / ") : "未設定"}
                   </p>
                   <p className="mt-1 text-sm text-gray-600">
                     TPO: {item.tpos?.length ? item.tpos.join(" / ") : "未設定"}
