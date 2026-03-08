@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Item;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
@@ -55,9 +56,19 @@ Route::prefix('api')->middleware(['web'])->group(function () {
             'tpos.*' => ['string', 'max:50'],
         ]);
 
+        $item = Item::create([
+            'user_id' => $request->user()->id,
+            'name' => $validated['name'] ?? null,
+            'category' => $validated['category'],
+            'shape' => $validated['shape'],
+            'colors' => $validated['colors'],
+            'seasons' => $validated['seasons'] ?? [],
+            'tpos' => $validated['tpos'] ?? [],
+        ]);
+
         return response()->json([
-            'message' => 'received',
-            'item' => $validated,
+            'message' => 'created',
+            'item' => $item,
         ], 201);
     });
 });

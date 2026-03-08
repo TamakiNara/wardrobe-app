@@ -158,7 +158,6 @@ export default function NewItemPage() {
       });
 
       const data = await res.json().catch(() => null);
-.catch(() => null);
 
       if (res.status === 401) {
         setSubmitError("セッションが切れました。再度ログインしてください。");
@@ -185,7 +184,12 @@ export default function NewItemPage() {
       }
 
       setSubmitPreview(JSON.stringify(data, null, 2));
-      setSubmitSuccess("送信に成功しました。");
+      setSubmitSuccess("登録に成功しました。");
+
+      setTimeout(() => {
+        router.push("/items");
+        router.refresh();
+      }, 800);
 
     } catch {
       setSubmitError("通信に失敗しました。時間をおいて再度お試しください。");
@@ -345,18 +349,18 @@ export default function NewItemPage() {
                 {useCustomMainColor ? (
                   <div className="flex items-center gap-3 rounded-xl border border-gray-300 bg-white px-4 py-3">
                     <input
-                      type="color"
-                      value={customMainHex}
-                      onChange={(e) => setCustomMainHex(e.target.value)}
-                      className="h-10 w-14 cursor-pointer rounded border border-gray-300 bg-white p-1"
+                        type="color"
+                        value={customMainHex}
+                        onChange={(e) => setCustomMainHex(e.target.value)}
+                        className="h-10 w-14 cursor-pointer rounded border border-gray-300 bg-white p-1"
                     />
                     <input
-                      type="text"
-                      value={customMainHex}
-                      onChange={(e) => setCustomMainHex(e.target.value)}
-                      className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${
-                        errors.mainColor  ? "border-red-400" : "border-gray-300"
-                      }`}
+                        type="text"
+                        value={customMainHex}
+                        onChange={(e) => setCustomMainHex(e.target.value)}
+                        className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${
+                        errors.mainColor ? "border-red-400" : "border-gray-300"
+                        }`}
                     />
                   </div>
                 ) : (
@@ -474,11 +478,7 @@ export default function NewItemPage() {
             <h2 className="text-lg font-semibold text-gray-900">季節・TPO</h2>
 
             <div>
-              <p
-                className={`mb-2 text-sm font-medium ${
-                  errors.seasons ? "text-red-600" : "text-gray-700"
-                }`}
-              >季節</p>
+              <p className="mb-2 text-sm font-medium">季節</p>
               <p className="mt-2 text-xs text-gray-500">未選択の場合はオールシーズン扱いになります。</p>
               <div className="flex flex-wrap gap-3">
                 {SEASON_OPTIONS.map((season) => {
@@ -505,10 +505,6 @@ export default function NewItemPage() {
                 })}
               </div>
 
-              {errors.seasons && (
-                <p className="mt-3 text-sm text-red-600">{errors.seasons}</p>
-              )}
-
               {selectedSeasons.length > 0 && (
                 <p className="mt-3 text-sm text-gray-600">
                   選択中: {selectedSeasons.join(" / ")}
@@ -517,11 +513,7 @@ export default function NewItemPage() {
             </div>
 
             <div>
-              <p
-                className={`mb-2 text-sm font-medium ${
-                  errors.tpos ? "text-red-600" : "text-gray-700"
-                }`}
-              >TPO</p>
+              <p className="mb-2 text-sm font-medium">TPO</p>
               <p className="mt-2 text-xs text-gray-500">未選択の場合はすべてのシーンで使用可能として扱います。</p>
               <div className="flex flex-wrap gap-3">
                 {TPO_OPTIONS.map((tpo) => {
@@ -547,10 +539,6 @@ export default function NewItemPage() {
                   );
                 })}
               </div>
-
-              {errors.tpos && (
-                <p className="mt-3 text-sm text-red-600">{errors.tpos}</p>
-              )}
 
               {selectedTpos.length > 0 && (
                 <p className="mt-3 text-sm text-gray-600">
