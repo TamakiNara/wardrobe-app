@@ -96,6 +96,42 @@ Route::prefix('api')->middleware(['web'])->group(function () {
         ]);
     });
 
+    Route::middleware('auth:web')->put('/items/{id}', function (Request $request, int $id) {
+        $item = Item::query()
+            ->where('user_id', $request->user()->id)
+            ->findOrFail($id);
+
+        $validated = $request->validate([
+            'name' => ['nullable', 'string', 'max:255'],
+            'category' => ['required', 'string', 'max:100'],
+            'shape' => ['required', 'string', 'max:100'],
+            'colors' => ['required', 'array', 'min:1'],
+            'colors.*.role' => ['required', 'string', 'in:main,sub'],
+            'colors.*.mode' => ['required', 'string', 'in:preset,custom'],
+            'colors.*.value' => ['required', 'string', 'max:100'],
+            'colors.*.hex' => ['required', 'string', 'max:20'],
+            'colors.*.label' => ['required', 'string', 'max:100'],
+            'seasons' => ['nullable', 'array'],
+            'seasons.*' => ['string', 'max:50'],
+            'tpos' => ['nullable', 'array'],
+            'tpos.*' => ['string', 'max:50'],
+        ]);
+
+        $item->update([
+            'name' => $validated['name'] ?? null,
+            'category' => $validated['category'],
+            'shape' => $validated['shape'],
+            'colors' => $validated['colors'],
+            'seasons' => $validated['seasons'] ?? [],
+            'tpos' => $validated['tpos'] ?? [],
+        ]);
+
+        return response()->json([
+            'message' => 'updated',
+            'item' => $item->fresh(),
+        ]);
+    });
+
     Route::middleware('auth:web')->delete('/items/{id}', function (Request $request, int $id) {
         $item = Item::query()
             ->where('user_id', $request->user()->id)

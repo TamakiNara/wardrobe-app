@@ -72,14 +72,23 @@ export default async function ItemPage({
             </h1>
           </div>
 
-          <Link
-            href="/items"
-            className="text-sm font-medium text-blue-600 hover:underline"
-          >
-            一覧に戻る
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link
+              href={`/items/${item.id}/edit`}
+              className="text-sm font-medium text-blue-600 hover:underline"
+            >
+              編集
+            </Link>
 
-          <DeleteItemButton itemId={item.id} />
+            <Link
+              href="/items"
+              className="text-sm font-medium text-blue-600 hover:underline"
+            >
+              一覧に戻る
+            </Link>
+
+            <DeleteItemButton itemId={item.id} />
+          </div>
         </div>
 
         <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">

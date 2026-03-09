@@ -172,6 +172,60 @@ export async function forwardPostWithCsrfAndCookie(
   }
 }
 
+export async function forwardPutWithCsrfAndCookie(
+  req: NextRequest,
+  targetPath: string,
+  body: unknown = {}
+): Promise<NextResponse> {
+  try {
+    const incomingCookie = req.headers.get("cookie") ?? "";
+
+    let xsrf = readCookieValue(incomingCookie, "XSRF-TOKEN");
+    let csrfCookiesToAppend: string[] = [];
+
+    if (!xsrf) {
+      const { setCookies, xsrf: fetchedXsrf } = await fetchCsrfCookie(
+        incomingCookie
+      );
+      xsrf = fetchedXsrf;
+
+      csrfCookiesToAppend = setCookies.filter((cookie) =>
+        cookie.startsWith("XSRF-TOKEN=")
+      );
+    }
+
+    const upstreamRes = await fetch(`${LARAVEL_BASE_URL}${targetPath}`, {
+      method: "PUT",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        ...(xsrf ? { "X-CSRF-TOKEN": xsrf } : {}),
+        ...(incomingCookie ? { Cookie: incomingCookie } : {}),
+      },
+      body: JSON.stringify(body),
+      cache: "no-store",
+    });
+
+    const data = await upstreamRes.json().catch(() => ({}));
+    const final = NextResponse.json(data, { status: upstreamRes.status });
+
+    if (csrfCookiesToAppend.length > 0) {
+      appendCookieStrings(csrfCookiesToAppend, final);
+    }
+
+    appendSetCookies(upstreamRes, final);
+
+    return final;
+  } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Unexpected upstream communication error.";
+
+    return NextResponse.json({ error: message }, { status: 502 });
+  }
+}
+
 export async function forwardDeleteWithCookie(
   req: NextRequest,
   targetPath: string
