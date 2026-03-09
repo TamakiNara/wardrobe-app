@@ -226,6 +226,18 @@ Route::prefix('api')->middleware(['web'])->group(function () {
         ]);
     });
 
+    Route::middleware('auth:web')->delete('/outfits/{id}', function (Request $request, int $id) {
+        $outfit = Outfit::query()
+            ->where('user_id', $request->user()->id)
+            ->findOrFail($id);
+
+        $outfit->delete();
+
+        return response()->json([
+            'message' => 'deleted',
+        ]);
+    });
+
 });
 
 // swagger-ui 表示用

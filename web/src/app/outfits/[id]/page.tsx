@@ -1,6 +1,7 @@
 import { headers } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import DeleteOutfitButton from "@/components/outfits/delete-outfit-button";
 
 type OutfitItem = {
   id: number;
@@ -89,12 +90,16 @@ export default async function OutfitDetailPage({
             </h1>
           </div>
 
-          <Link
-            href="/outfits"
-            className="text-sm font-medium text-blue-600 hover:underline"
-          >
-            一覧に戻る
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/outfits"
+              className="text-sm font-medium text-blue-600 hover:underline"
+            >
+              一覧に戻る
+            </Link>
+
+            <DeleteOutfitButton outfitId={outfit.id} />
+          </div>
         </div>
 
         <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
