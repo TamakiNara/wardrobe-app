@@ -1,6 +1,7 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import ItemsList from "@/components/items/items-list";
 
 type Item = {
   id: number;
@@ -91,57 +92,7 @@ export default async function ItemsPage() {
             </div>
           </section>
         ) : (
-          <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {items.map((item) => {
-              const mainColor = item.colors.find((c) => c.role === "main");
-              const subColor = item.colors.find((c) => c.role === "sub");
-
-              return (
-                <Link href={`/items/${item.id}`} key={item.id}>
-                  <article
-                    className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm"
-                  >
-                    <h2 className="text-lg font-semibold text-gray-900">
-                      {item.name || "名称未設定"}
-                    </h2>
-
-                    <p className="mt-2 text-sm text-gray-600">
-                      {item.category} / {item.shape}
-                    </p>
-
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      {mainColor && (
-                        <span className="inline-flex items-center gap-2 rounded-full border border-gray-300 px-3 py-1 text-sm">
-                          <span
-                            className="h-4 w-4 rounded-full border border-gray-300"
-                            style={{ backgroundColor: mainColor.hex }}
-                          />
-                          {mainColor.label}
-                        </span>
-                      )}
-                      {subColor && (
-                        <span className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-sm">
-                          <span
-                            className="h-4 w-4 rounded-full border border-gray-300"
-                            style={{ backgroundColor: subColor.hex }}
-                          />
-                          {subColor.label}
-                        </span>
-                      )}
-                    </div>
-
-                    <p className="mt-4 text-sm text-gray-600">
-                      季節:{" "}
-                      {item.seasons?.length ? item.seasons.join(" / ") : "未設定"}
-                    </p>
-                    <p className="mt-1 text-sm text-gray-600">
-                      TPO: {item.tpos?.length ? item.tpos.join(" / ") : "未設定"}
-                    </p>
-                  </article>
-                </Link>
-              );
-            })}
-          </section>
+          <ItemsList items={items} />
         )}
       </div>
     </main>
