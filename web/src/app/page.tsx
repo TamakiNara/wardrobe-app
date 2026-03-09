@@ -2,15 +2,22 @@ import { headers } from "next/headers";
 import Link from "next/link";
 import LogoutButton from "@/components/auth/logout-button";
 
-type AuthUser = {
+type User = {
   id: number;
   name: string;
   email: string;
 };
 
-async function getUser(): Promise<AuthUser | null> {
-  const headerStore = await headers();
-  const cookie = headerStore.get("cookie") ?? "";
+type Item = {
+  id: number;
+};
+
+type Outfit = {
+  id: number;
+};
+
+async function getUser(): Promise<User | null> {
+  const cookie = (await headers()).get("cookie") ?? "";
   const appUrl = process.env.NEXT_APP_URL ?? "http://localhost:3000";
 
   const res = await fetch(`${appUrl}/api/auth/me`, {
@@ -29,24 +36,46 @@ async function getUser(): Promise<AuthUser | null> {
   return res.json();
 }
 
-function MenuCard({
-  href,
-  title,
-  description,
-}: {
-  href: string;
-  title: string;
-  description: string;
-}) {
-  return (
-    <Link
-      href={href}
-      className="block rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:border-blue-300 hover:shadow-md"
-    >
-      <h2 className="mb-2 text-lg font-semibold text-gray-900">{title}</h2>
-      <p className="text-sm text-gray-600">{description}</p>
-    </Link>
-  );
+async function getItems(): Promise<Item[]> {
+  const cookie = (await headers()).get("cookie") ?? "";
+  const appUrl = process.env.NEXT_APP_URL ?? "http://localhost:3000";
+
+  const res = await fetch(`${appUrl}/api/items`, {
+    method: "GET",
+    headers: {
+      cookie,
+      Accept: "application/json",
+    },
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    return [];
+  }
+
+  const data = await res.json();
+  return data.items ?? [];
+}
+
+async function getOutfits(): Promise<Outfit[]> {
+  const cookie = (await headers()).get("cookie") ?? "";
+  const appUrl = process.env.NEXT_APP_URL ?? "http://localhost:3000";
+
+  const res = await fetch(`${appUrl}/api/outfits`, {
+    method: "GET",
+    headers: {
+      cookie,
+      Accept: "application/json",
+    },
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    return [];
+  }
+
+  const data = await res.json();
+  return data.outfits ?? [];
 }
 
 export default async function Home() {
@@ -54,62 +83,124 @@ export default async function Home() {
 
   if (!user) {
     return (
-      <main className="min-h-screen bg-gray-100 p-10">
-        <div className="mx-auto max-w-3xl rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
-          <h1 className="mb-4 text-2xl font-bold text-gray-900">
-            Wardrobe App
-          </h1>
-          <p className="mb-6 text-gray-600">
-            ログインすると、アイテム管理やコーデ管理を利用できます。
-          </p>
+      <main className="min-h-screen bg-gray-100 p-6 md:p-10">
+        <div className="mx-auto max-w-3xl space-y-6">
+          <section className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
+            <p className="text-sm text-gray-500">Wardrobe App</p>
+            <h1 className="mt-2 text-3xl font-bold text-gray-900">
+              服とコーデを管理するアプリ
+            </h1>
+            <p className="mt-3 text-sm leading-6 text-gray-600">
+              アイテムの色・形・季節・TPOを登録し、コーディネートとして管理できます。
+            </p>
 
-          <Link
-            href="/login"
-            className="inline-flex rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
-          >
-            ログインしてください
-          </Link>
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+              <Link
+                href="/login"
+                className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-3 text-sm font-medium text-white transition hover:bg-blue-700"
+              >
+                ログイン
+              </Link>
+              <Link
+                href="/register"
+                className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+              >
+                新規登録
+              </Link>
+            </div>
+          </section>
         </div>
       </main>
     );
   }
 
+  const [items, outfits] = await Promise.all([getItems(), getOutfits()]);
+
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">
       <div className="mx-auto max-w-5xl space-y-6">
-        <header className="flex flex-col gap-4 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm md:flex-row md:items-center md:justify-between">
-          <div>
-            <p className="text-sm text-gray-500">ログイン中</p>
-            <h1 className="text-2xl font-bold text-gray-900">
-              ようこそ {user.name} さん
-            </h1>
-            <p className="mt-1 text-sm text-gray-600">{user.email}</p>
+        <section className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <p className="text-sm text-gray-500">ホーム</p>
+              <h1 className="mt-2 text-3xl font-bold text-gray-900">
+                ようこそ {user.name} さん
+              </h1>
+              <p className="mt-3 text-sm leading-6 text-gray-600">
+                登録済みアイテムやコーデをここから確認できます。
+              </p>
+            </div>
+
+            <LogoutButton />
           </div>
+        </section>
 
-          <LogoutButton />
-        </header>
+        <section className="grid gap-4 md:grid-cols-2">
+          <article className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+            <p className="text-sm text-gray-500">アイテム管理</p>
+            <p className="mt-2 text-3xl font-bold text-gray-900">
+              {items.length}
+            </p>
+            <p className="mt-2 text-sm text-gray-600">登録済みアイテム数</p>
 
-        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <MenuCard
-            href="/items"
-            title="アイテム管理"
-            description="服の色・形・季節・TPOを登録して管理します。"
-          />
-          <MenuCard
-            href="/outfits"
-            title="コーデ管理"
-            description="コーデを登録し、一覧から見返せるようにします。"
-          />
-          <MenuCard
-            href="/settings"
-            title="設定"
-            description="死蔵判定の日数など、使い方に合わせて調整します。"
-          />
-          <MenuCard
-            href="/items"
-            title="今日の候補"
-            description="今後、TPOや季節から候補を表示する予定です。"
-          />
+            <div className="mt-6 flex gap-3">
+              <Link
+                href="/items"
+                className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
+              >
+                一覧を見る
+              </Link>
+              <Link
+                href="/items/new"
+                className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+              >
+                追加する
+              </Link>
+            </div>
+          </article>
+
+          <article className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+            <p className="text-sm text-gray-500">コーデ管理</p>
+            <p className="mt-2 text-3xl font-bold text-gray-900">
+              {outfits.length}
+            </p>
+            <p className="mt-2 text-sm text-gray-600">登録済みコーデ数</p>
+
+            <div className="mt-6 flex gap-3">
+              <Link
+                href="/outfits"
+                className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
+              >
+                一覧を見る
+              </Link>
+              <Link
+                href="/outfits/new"
+                className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+              >
+                追加する
+              </Link>
+            </div>
+          </article>
+        </section>
+
+        <section className="grid gap-4 md:grid-cols-2">
+          <Link href="/items" className="block">
+            <article className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition hover:bg-gray-50">
+              <h2 className="text-lg font-semibold text-gray-900">アイテム一覧へ</h2>
+              <p className="mt-2 text-sm text-gray-600">
+                服の色・形・季節・TPOを確認、編集、削除できます。
+              </p>
+            </article>
+          </Link>
+
+          <Link href="/outfits" className="block">
+            <article className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition hover:bg-gray-50">
+              <h2 className="text-lg font-semibold text-gray-900">コーデ一覧へ</h2>
+              <p className="mt-2 text-sm text-gray-600">
+                登録済みアイテムを組み合わせたコーデを確認できます。
+              </p>
+            </article>
+          </Link>
         </section>
       </div>
     </main>
