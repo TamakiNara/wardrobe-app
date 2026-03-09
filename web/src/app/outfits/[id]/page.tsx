@@ -92,6 +92,13 @@ export default async function OutfitDetailPage({
 
           <div className="flex items-center gap-3">
             <Link
+              href={`/outfits/${outfit.id}/edit`}
+              className="text-sm font-medium text-blue-600 hover:underline"
+            >
+              編集
+            </Link>
+
+            <Link
               href="/outfits"
               className="text-sm font-medium text-blue-600 hover:underline"
             >

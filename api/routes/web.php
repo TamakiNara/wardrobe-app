@@ -226,6 +226,67 @@ Route::prefix('api')->middleware(['web'])->group(function () {
         ]);
     });
 
+    Route::middleware('auth:web')->put('/outfits/{id}', function (Request $request, int $id) {
+        $outfit = Outfit::query()
+            ->where('user_id', $request->user()->id)
+            ->findOrFail($id);
+
+        $validated = $request->validate([
+            'name' => ['nullable', 'string', 'max:255'],
+            'memo' => ['nullable', 'string'],
+            'seasons' => ['nullable', 'array'],
+            'seasons.*' => ['string', 'max:50'],
+            'tpos' => ['nullable', 'array'],
+            'tpos.*' => ['string', 'max:50'],
+            'items' => ['required', 'array', 'min:1'],
+            'items.*.item_id' => ['required', 'integer'],
+            'items.*.sort_order' => ['required', 'integer', 'min:0'],
+        ]);
+
+        $user = $request->user();
+
+        $itemIds = collect($validated['items'])
+            ->pluck('item_id')
+            ->unique()
+            ->values();
+
+        $ownedItemCount = \App\Models\Item::query()
+            ->where('user_id', $user->id)
+            ->whereIn('id', $itemIds)
+            ->count();
+
+        if ($ownedItemCount !== $itemIds->count()) {
+            return response()->json([
+                'message' => '選択したアイテムに不正なデータが含まれています。',
+            ], 422);
+        }
+
+        DB::transaction(function () use ($outfit, $validated) {
+            $outfit->update([
+                'name' => $validated['name'] ?? null,
+                'memo' => $validated['memo'] ?? null,
+                'seasons' => $validated['seasons'] ?? [],
+                'tpos' => $validated['tpos'] ?? [],
+            ]);
+
+            $outfit->outfitItems()->delete();
+
+            $outfit->outfitItems()->createMany(
+                collect($validated['items'])->map(function ($item) {
+                    return [
+                        'item_id' => $item['item_id'],
+                        'sort_order' => $item['sort_order'],
+                    ];
+                })->all()
+            );
+        });
+
+        return response()->json([
+            'message' => 'updated',
+            'outfit' => $outfit->fresh()->load(['outfitItems.item']),
+        ]);
+    });
+
     Route::middleware('auth:web')->delete('/outfits/{id}', function (Request $request, int $id) {
         $outfit = Outfit::query()
             ->where('user_id', $request->user()->id)

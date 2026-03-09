@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import {
   forwardGetWithCookie,
+  forwardPutWithCsrfAndCookie,
   forwardDeleteWithCookie,
 } from "@/lib/bff/laravel";
 
@@ -10,6 +11,15 @@ export async function GET(
 ) {
   const { id } = await context.params;
   return forwardGetWithCookie(req, `/api/outfits/${id}`);
+}
+
+export async function PUT(
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> },
+) {
+  const { id } = await context.params;
+  const body = await req.json();
+  return forwardPutWithCsrfAndCookie(req, `/api/outfits/${id}`, body);
 }
 
 export async function DELETE(
