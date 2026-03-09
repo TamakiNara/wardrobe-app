@@ -1,6 +1,7 @@
 import { headers } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import OutfitsList from "@/components/outfits/outfits-list";
 
 type OutfitItem = {
   id: number;
@@ -104,38 +105,7 @@ export default async function OutfitsPage() {
             </div>
           </section>
         ) : (
-          <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {outfits.map((outfit) => {
-              const outfitItems = outfit.outfitItems ?? outfit.outfit_items ?? [];
-              const itemCount = outfitItems.length;
-
-              return (
-                <Link href={`/outfits/${outfit.id}`} key={outfit.id}>
-                  <article className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:bg-gray-50">
-                    <h2 className="min-h-6 text-lg font-semibold text-gray-900">
-                      {outfit.name ?? ""}
-                    </h2>
-
-                    {outfit.memo && (
-                      <p className="mt-2 text-sm text-gray-600">{outfit.memo}</p>
-                    )}
-
-                    <p className="mt-4 text-sm text-gray-600">
-                      アイテム数: {itemCount}
-                    </p>
-
-                    <p className="mt-2 text-sm text-gray-600">
-                      季節: {outfit.seasons?.length ? outfit.seasons.join(" / ") : "未設定"}
-                    </p>
-
-                    <p className="mt-1 text-sm text-gray-600">
-                      TPO: {outfit.tpos?.length ? outfit.tpos.join(" / ") : "未設定"}
-                    </p>
-                  </article>
-                </Link>
-              );
-            })}
-          </section>
+          <OutfitsList outfits={outfits} />
         )}
       </div>
     </main>
