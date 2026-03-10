@@ -14,6 +14,23 @@ import {
 import ColorChip from "@/components/items/color-chip";
 import { useRouter } from "next/navigation";
 import type { CreateItemPayload, ItemFormColor } from "@/types/items";
+import {
+  DEFAULT_TOPS_FIT,
+  TOPS_DESIGNS,
+  TOPS_FITS,
+  TOPS_LENGTHS,
+  TOPS_NECKS,
+  TOPS_RULES,
+  TOPS_SHAPES,
+  TOPS_SLEEVES,
+  type TopsDesignValue,
+  type TopsFitValue,
+  type TopsLengthValue,
+  type TopsNeckValue,
+  type TopsShapeValue,
+  type TopsSleeveValue,
+} from "@/lib/master-data/item-tops";
+
 const SEASON_OPTIONS = ["春", "夏", "秋", "冬", "オール"] as const;
 const TPO_OPTIONS = ["仕事", "休日", "フォーマル"] as const;
 
@@ -63,6 +80,15 @@ export default function NewItemPage() {
   function handleCategoryChange(nextCategory: string) {
     setCategory(nextCategory as ItemCategory | "");
     setShape("");
+
+    if (nextCategory !== "tops") {
+      setTopsShape("");
+      setTopsSleeve("");
+      setTopsLength("");
+      setTopsNeck("");
+      setTopsDesign("");
+      setTopsFit(DEFAULT_TOPS_FIT);
+    }
   }
 
   const [selectedSeasons, setSelectedSeasons] = useState<string[]>([]);
@@ -219,6 +245,70 @@ export default function NewItemPage() {
     return Object.keys(nextErrors).length === 0;
   }
 
+  const [topsShape, setTopsShape] = useState<TopsShapeValue | "">("");
+  const [topsSleeve, setTopsSleeve] = useState<TopsSleeveValue | "">("");
+  const [topsLength, setTopsLength] = useState<TopsLengthValue | "">("");
+  const [topsNeck, setTopsNeck] = useState<TopsNeckValue | "">("");
+  const [topsDesign, setTopsDesign] = useState<TopsDesignValue | "">("");
+  const [topsFit, setTopsFit] = useState<TopsFitValue>(DEFAULT_TOPS_FIT);
+
+  const isTopsCategory = category === "tops";
+
+  const topsRule = useMemo(() => {
+    if (!isTopsCategory || !topsShape) return null;
+    return TOPS_RULES[topsShape];
+  }, [isTopsCategory, topsShape]);
+
+  const availableTopsSleeves = useMemo(() => {
+    if (!topsRule) return [];
+    return TOPS_SLEEVES.filter((item) => topsRule.sleeves.includes(item.value));
+  }, [topsRule]);
+
+  const availableTopsLengths = useMemo(() => {
+    if (!topsRule) return [];
+    return TOPS_LENGTHS.filter((item) => topsRule.lengths.includes(item.value));
+  }, [topsRule]);
+
+  const availableTopsNecks = useMemo(() => {
+    if (!topsRule) return [];
+    return TOPS_NECKS.filter((item) => topsRule.necks.includes(item.value));
+  }, [topsRule]);
+
+  const availableTopsDesigns = useMemo(() => {
+    if (!topsRule) return [];
+    return TOPS_DESIGNS.filter((item) => topsRule.designs.includes(item.value));
+  }, [topsRule]);
+
+  const availableTopsFits = useMemo(() => {
+    if (!topsRule) return [];
+    return TOPS_FITS.filter((item) => topsRule.fits.includes(item.value));
+  }, [topsRule]);
+
+  function handleTopsShapeChange(nextShape: string) {
+    const value = nextShape as TopsShapeValue | "";
+    setTopsShape(value);
+
+    if (!value) {
+      setTopsSleeve("");
+      setTopsLength("");
+      setTopsNeck("");
+      setTopsDesign("");
+      setTopsFit(DEFAULT_TOPS_FIT);
+      return;
+    }
+
+    const rule = TOPS_RULES[value];
+
+    setTopsSleeve(rule.defaults?.sleeve ?? "");
+    setTopsLength(rule.defaults?.length ?? "");
+    setTopsNeck(rule.defaults?.neck ?? "");
+    setTopsDesign(rule.defaults?.design ?? "");
+    setTopsFit(rule.defaults?.fit ?? DEFAULT_TOPS_FIT);
+
+    // 既存 shape との互換のため、ひとまず shape に topsShape を入れておく
+    setShape(value);
+  }
+
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">
       <div className="mx-auto max-w-3xl space-y-6">
@@ -319,6 +409,195 @@ export default function NewItemPage() {
               )}
             </div>
           </section>
+
+          {isTopsCategory && (
+            <section className="space-y-4 rounded-xl border border-gray-200 bg-gray-50 p-4">
+              <div>
+                <p className="text-sm font-medium text-gray-700">トップス仕様</p>
+                <p className="mt-1 text-xs text-gray-500">
+                  トップス選択時のみ、形・袖・丈・首回り・デザイン・シルエットを指定できます。
+                </p>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <label
+                    htmlFor="tops-shape"
+                    className="mb-1 block text-sm font-medium text-gray-700"
+                  >
+                    形
+                  </label>
+                  <select
+                    id="tops-shape"
+                    value={topsShape}
+                    onChange={(e) => handleTopsShapeChange(e.target.value)}
+                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  >
+                    <option value="">選択してください</option>
+                    {TOPS_SHAPES.map((item) => (
+                      <option key={item.value} value={item.value}>
+                        {item.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="tops-sleeve"
+                    className="mb-1 block text-sm font-medium text-gray-700"
+                  >
+                    袖
+                  </label>
+                  <select
+                    id="tops-sleeve"
+                    value={topsSleeve}
+                    onChange={(e) => setTopsSleeve(e.target.value as TopsSleeveValue | "")}
+                    disabled={!topsShape}
+                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  >
+                    <option value="">
+                      {topsShape ? "選択してください" : "先に形を選択してください"}
+                    </option>
+                    {availableTopsSleeves.map((item) => (
+                      <option key={item.value} value={item.value}>
+                        {item.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="tops-length"
+                    className="mb-1 block text-sm font-medium text-gray-700"
+                  >
+                    丈
+                  </label>
+                  <select
+                    id="tops-length"
+                    value={topsLength}
+                    onChange={(e) => setTopsLength(e.target.value as TopsLengthValue | "")}
+                    disabled={!topsShape}
+                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  >
+                    <option value="">
+                      {topsShape ? "選択してください" : "先に形を選択してください"}
+                    </option>
+                    {availableTopsLengths.map((item) => (
+                      <option key={item.value} value={item.value}>
+                        {item.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="tops-neck"
+                    className="mb-1 block text-sm font-medium text-gray-700"
+                  >
+                    首回り
+                  </label>
+                  <select
+                    id="tops-neck"
+                    value={topsNeck}
+                    onChange={(e) => setTopsNeck(e.target.value as TopsNeckValue | "")}
+                    disabled={!topsShape}
+                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  >
+                    <option value="">
+                      {topsShape ? "選択してください" : "先に形を選択してください"}
+                    </option>
+                    {availableTopsNecks.map((item) => (
+                      <option key={item.value} value={item.value}>
+                        {item.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="tops-design"
+                    className="mb-1 block text-sm font-medium text-gray-700"
+                  >
+                    デザイン
+                  </label>
+                  <select
+                    id="tops-design"
+                    value={topsDesign}
+                    onChange={(e) => setTopsDesign(e.target.value as TopsDesignValue | "")}
+                    disabled={!topsShape || availableTopsDesigns.length === 0}
+                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  >
+                    <option value="">
+                      {availableTopsDesigns.length > 0 ? "未選択" : "選択肢がありません"}
+                    </option>
+                    {availableTopsDesigns.map((item) => (
+                      <option key={item.value} value={item.value}>
+                        {item.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="tops-fit"
+                    className="mb-1 block text-sm font-medium text-gray-700"
+                  >
+                    シルエット
+                  </label>
+                  <select
+                    id="tops-fit"
+                    value={topsFit}
+                    onChange={(e) => setTopsFit(e.target.value as TopsFitValue)}
+                    disabled={!topsShape}
+                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  >
+                    {availableTopsFits.map((item) => (
+                      <option key={item.value} value={item.value}>
+                        {item.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {topsShape && (
+                <div className="rounded-lg border border-gray-200 bg-white p-4">
+                  <p className="mb-2 text-sm font-medium text-gray-700">現在の選択</p>
+                  <dl className="grid gap-2 text-sm text-gray-600 md:grid-cols-2">
+                    <div>
+                      <dt className="font-medium text-gray-700">形</dt>
+                      <dd>{topsShape || "未選択"}</dd>
+                    </div>
+                    <div>
+                      <dt className="font-medium text-gray-700">袖</dt>
+                      <dd>{topsSleeve || "未選択"}</dd>
+                    </div>
+                    <div>
+                      <dt className="font-medium text-gray-700">丈</dt>
+                      <dd>{topsLength || "未選択"}</dd>
+                    </div>
+                    <div>
+                      <dt className="font-medium text-gray-700">首回り</dt>
+                      <dd>{topsNeck || "未選択"}</dd>
+                    </div>
+                    <div>
+                      <dt className="font-medium text-gray-700">デザイン</dt>
+                      <dd>{topsDesign || "未選択"}</dd>
+                    </div>
+                    <div>
+                      <dt className="font-medium text-gray-700">シルエット</dt>
+                      <dd>{topsFit}</dd>
+                    </div>
+                  </dl>
+                </div>
+              )}
+            </section>
+          )}
 
           <section className="space-y-4">
             <h2 className="text-lg font-semibold text-gray-900">色</h2>
