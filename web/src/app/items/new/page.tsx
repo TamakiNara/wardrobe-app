@@ -14,6 +14,7 @@ import {
 import ColorChip from "@/components/items/color-chip";
 import { useRouter } from "next/navigation";
 import type { CreateItemPayload, ItemFormColor } from "@/types/items";
+import ItemPreviewCard from "@/components/items/item-preview-card";
 import {
   DEFAULT_TOPS_FIT,
   TOPS_DESIGNS,
@@ -308,6 +309,36 @@ export default function NewItemPage() {
     // 既存 shape との互換のため、ひとまず shape に topsShape を入れておく
     setShape(value);
   }
+
+  function findLabel<T extends { value: string; label: string }>(
+    items: readonly T[],
+    value: string,
+  ) {
+    return items.find((item) => item.value === value)?.label ?? value;
+  }
+
+  const previewTopsSpec = isTopsCategory
+    ? {
+        shape: topsShape
+          ? findLabel(TOPS_SHAPES, topsShape)
+          : "",
+        sleeve: topsSleeve
+          ? findLabel(TOPS_SLEEVES, topsSleeve)
+          : "",
+        length: topsLength
+          ? findLabel(TOPS_LENGTHS, topsLength)
+          : "",
+        neck: topsNeck
+          ? findLabel(TOPS_NECKS, topsNeck)
+          : "",
+        design: topsDesign
+          ? findLabel(TOPS_DESIGNS, topsDesign)
+          : "",
+        fit: topsFit
+          ? findLabel(TOPS_FITS, topsFit)
+          : "",
+      }
+    : null;
 
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">
@@ -866,6 +897,17 @@ export default function NewItemPage() {
             </section>
           )}
         </form>
+
+        <ItemPreviewCard
+          name={name}
+          category={category}
+          shape={shape}
+          mainColorHex={selectedMainColor?.hex}
+          mainColorLabel={selectedMainColor?.label}
+          subColorHex={selectedSubColor?.hex}
+          subColorLabel={selectedSubColor?.label}
+          topsSpec={previewTopsSpec}
+        />
 
         {submitError && (
           <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
