@@ -1,3 +1,5 @@
+import TopsPreviewSvg from "@/components/items/preview-svg/tops-preview-svg";
+
 type ItemPreviewCardProps = {
   name: string;
   category: string;
@@ -7,6 +9,14 @@ type ItemPreviewCardProps = {
   subColorHex?: string;
   subColorLabel?: string;
   topsSpec?: {
+    shape?: string;
+    sleeve?: string;
+    length?: string;
+    neck?: string;
+    design?: string;
+    fit?: string;
+  } | null;
+  topsSpecRaw?: {
     shape?: string;
     sleeve?: string;
     length?: string;
@@ -53,6 +63,7 @@ export default function ItemPreviewCard({
   subColorHex,
   subColorLabel,
   topsSpec,
+  topsSpecRaw,
 }: ItemPreviewCardProps) {
   const isTops = category === "tops";
 
@@ -73,19 +84,30 @@ export default function ItemPreviewCard({
 
       <div className="mt-4 grid gap-4 md:grid-cols-[140px_1fr]">
         <div className="flex h-36 items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-white">
-          <div className="text-center">
-            <div
-              className="mx-auto h-16 w-16 rounded-2xl border border-gray-300"
-              style={{ backgroundColor: mainColorHex ?? "#E5E7EB" }}
+          {isTops && topsSpecRaw?.shape ? (
+            <TopsPreviewSvg
+              shape={topsSpecRaw.shape}
+              sleeve={topsSpecRaw.sleeve}
+              design={topsSpecRaw.design}
+              fit={topsSpecRaw.fit}
+              mainColor={mainColorHex}
+              subColor={subColorHex}
             />
-            {subColorHex && (
+          ) : (
+            <div className="text-center">
               <div
-                className="mt-2 ml-auto h-4 w-4 rounded-full border border-gray-300"
-                style={{ backgroundColor: subColorHex }}
+                className="mx-auto h-16 w-16 rounded-2xl border border-gray-300"
+                style={{ backgroundColor: mainColorHex ?? "#E5E7EB" }}
               />
-            )}
-            <p className="mt-2 text-xs text-gray-500">SVG枠（仮）</p>
-          </div>
+              {subColorHex && (
+                <div
+                  className="mt-2 ml-auto h-4 w-4 rounded-full border border-gray-300"
+                  style={{ backgroundColor: subColorHex }}
+                />
+              )}
+              <p className="mt-2 text-xs text-gray-500">SVG枠（仮）</p>
+            </div>
+          )}
         </div>
 
         <div className="space-y-4">

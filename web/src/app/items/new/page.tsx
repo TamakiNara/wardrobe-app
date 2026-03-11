@@ -340,6 +340,17 @@ export default function NewItemPage() {
       }
     : null;
 
+  const previewTopsSpecRaw = isTopsCategory
+    ? {
+        shape: topsShape || "",
+        sleeve: topsSleeve || "",
+        length: topsLength || "",
+        neck: topsNeck || "",
+        design: topsDesign || "",
+        fit: topsFit || "",
+      }
+    : null;
+
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">
       <div className="mx-auto max-w-3xl space-y-6">
@@ -907,6 +918,7 @@ export default function NewItemPage() {
           subColorHex={selectedSubColor?.hex}
           subColorLabel={selectedSubColor?.label}
           topsSpec={previewTopsSpec}
+          topsSpecRaw={previewTopsSpecRaw}
         />
 
         {submitError && (

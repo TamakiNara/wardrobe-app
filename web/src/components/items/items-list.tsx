@@ -156,41 +156,52 @@ export default function ItemsList({ items }: ItemsListProps) {
             return (
               <Link href={`/items/${item.id}`} key={item.id}>
                 <article className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:bg-gray-50">
-                  <h2 className="text-lg font-semibold text-gray-900">
-                    {item.name || "名称未設定"}
-                  </h2>
+                  <div className="flex items-start gap-4">
+                    <ShapeIcon
+                      shape={item.shape}
+                      mainColor={mainColor?.hex ?? "#CBD5E1"}
+                      subColor={subColor?.hex}
+                      className="h-20 w-20 shrink-0"
+                    />
 
-                  <p className="mt-2 text-sm text-gray-600">
-                    {item.category} / {item.shape}
-                  </p>
+                    <div className="min-w-0 flex-1">
+                      <h2 className="text-lg font-semibold text-gray-900">
+                        {item.name || "名称未設定"}
+                      </h2>
 
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    {mainColor && (
-                      <span className="inline-flex items-center gap-2 rounded-full border border-gray-300 px-3 py-1 text-sm">
-                        <span
-                          className="h-4 w-4 rounded-full border border-gray-300"
-                          style={{ backgroundColor: mainColor.hex }}
-                        />
-                        {mainColor.label}
-                      </span>
-                    )}
-                    {subColor && (
-                      <span className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-sm">
-                        <span
-                          className="h-4 w-4 rounded-full border border-gray-300"
-                          style={{ backgroundColor: subColor.hex }}
-                        />
-                        {subColor.label}
-                      </span>
-                    )}
+                      <p className="mt-2 text-sm text-gray-600">
+                        {item.category} / {item.shape}
+                      </p>
+
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        {mainColor && (
+                          <span className="inline-flex items-center gap-2 rounded-full border border-gray-300 px-3 py-1 text-sm">
+                            <span
+                              className="h-4 w-4 rounded-full border border-gray-300"
+                              style={{ backgroundColor: mainColor.hex }}
+                            />
+                            {mainColor.label}
+                          </span>
+                        )}
+                        {subColor && (
+                          <span className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-sm">
+                            <span
+                              className="h-4 w-4 rounded-full border border-gray-300"
+                              style={{ backgroundColor: subColor.hex }}
+                            />
+                            {subColor.label}
+                          </span>
+                        )}
+                      </div>
+
+                      <p className="mt-4 text-sm text-gray-600">
+                        季節: {item.seasons?.length ? item.seasons.join(" / ") : "未設定"}
+                      </p>
+                      <p className="mt-1 text-sm text-gray-600">
+                        TPO: {item.tpos?.length ? item.tpos.join(" / ") : "未設定"}
+                      </p>
+                    </div>
                   </div>
-
-                  <p className="mt-4 text-sm text-gray-600">
-                    季節: {item.seasons?.length ? item.seasons.join(" / ") : "未設定"}
-                  </p>
-                  <p className="mt-1 text-sm text-gray-600">
-                    TPO: {item.tpos?.length ? item.tpos.join(" / ") : "未設定"}
-                  </p>
                 </article>
               </Link>
             );
