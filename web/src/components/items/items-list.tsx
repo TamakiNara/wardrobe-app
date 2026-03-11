@@ -2,31 +2,48 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-
-type ItemColor = {
-  role: "main" | "sub";
-  mode: "preset" | "custom";
-  value: string;
-  hex: string;
-  label: string;
-};
-
-type Item = {
-  id: number;
-  name: string | null;
-  category: string;
-  shape: string;
-  colors: ItemColor[];
-  seasons: string[];
-  tpos: string[];
-};
+import TopsPreviewSvg from "@/components/items/preview-svg/tops-preview-svg";
+import type { ItemRecord } from "@/types/items";
 
 type ItemsListProps = {
-  items: Item[];
+  items: ItemRecord[];
 };
 
-const SEASON_OPTIONS = ["春", "夏", "秋", "冬", "オール"] as const;
-const TPO_OPTIONS = ["仕事", "休日", "フォーマル"] as const;
+function PreviewThumb({
+  item,
+  mainColorHex,
+  subColorHex,
+}: {
+  item: ItemRecord;
+  mainColorHex?: string;
+  subColorHex?: string;
+}) {
+  const topsSpec = item.spec?.tops;
+
+  if (item.category === "tops" && topsSpec?.shape) {
+    return (
+      <div className="flex h-20 w-20 items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-white">
+        <TopsPreviewSvg
+          shape={topsSpec.shape}
+          sleeve={topsSpec.sleeve ?? undefined}
+          design={topsSpec.design ?? undefined}
+          fit={topsSpec.fit ?? undefined}
+          mainColor={mainColorHex}
+          subColor={subColorHex}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex h-20 w-20 items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-white">
+      <div
+        className="h-12 w-12 rounded-2xl border border-gray-300"
+        style={{ backgroundColor: mainColorHex ?? "#E5E7EB" }}
+      />
+    </div>
+  );
+}
 
 export default function ItemsList({ items }: ItemsListProps) {
   const [categoryFilter, setCategoryFilter] = useState("");
@@ -37,23 +54,25 @@ export default function ItemsList({ items }: ItemsListProps) {
     return Array.from(new Set(items.map((item) => item.category))).sort();
   }, [items]);
 
+  const seasonOptions = useMemo(() => {
+    return Array.from(
+      new Set(items.flatMap((item) => item.seasons ?? [])),
+    ).sort();
+  }, [items]);
+
+  const tpoOptions = useMemo(() => {
+    return Array.from(new Set(items.flatMap((item) => item.tpos ?? []))).sort();
+  }, [items]);
+
   const filteredItems = useMemo(() => {
     return items.filter((item) => {
       const seasons = item.seasons ?? [];
       const tpos = item.tpos ?? [];
 
-      const isAllSeason = seasons.length === 0 || seasons.includes("オール");
-
       const matchCategory = categoryFilter
         ? item.category === categoryFilter
         : true;
-
-      const matchSeason = seasonFilter
-        ? seasonFilter === "オール"
-          ? isAllSeason
-          : seasons.includes(seasonFilter) || isAllSeason
-        : true;
-
+      const matchSeason = seasonFilter ? seasons.includes(seasonFilter) : true;
       const matchTpo = tpoFilter ? tpos.includes(tpoFilter) : true;
 
       return matchCategory && matchSeason && matchTpo;
@@ -92,7 +111,7 @@ export default function ItemsList({ items }: ItemsListProps) {
               className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             >
               <option value="">すべて</option>
-              {SEASON_OPTIONS.map((season) => (
+              {seasonOptions.map((season) => (
                 <option key={season} value={season}>
                   {season}
                 </option>
@@ -110,7 +129,7 @@ export default function ItemsList({ items }: ItemsListProps) {
               className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             >
               <option value="">すべて</option>
-              {TPO_OPTIONS.map((tpo) => (
+              {tpoOptions.map((tpo) => (
                 <option key={tpo} value={tpo}>
                   {tpo}
                 </option>
@@ -157,11 +176,10 @@ export default function ItemsList({ items }: ItemsListProps) {
               <Link href={`/items/${item.id}`} key={item.id}>
                 <article className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:bg-gray-50">
                   <div className="flex items-start gap-4">
-                    <ShapeIcon
-                      shape={item.shape}
-                      mainColor={mainColor?.hex ?? "#CBD5E1"}
-                      subColor={subColor?.hex}
-                      className="h-20 w-20 shrink-0"
+                    <PreviewThumb
+                      item={item}
+                      mainColorHex={mainColor?.hex}
+                      subColorHex={subColor?.hex}
                     />
 
                     <div className="min-w-0 flex-1">

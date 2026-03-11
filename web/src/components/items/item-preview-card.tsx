@@ -105,7 +105,7 @@ export default function ItemPreviewCard({
                   style={{ backgroundColor: subColorHex }}
                 />
               )}
-              <p className="mt-2 text-xs text-gray-500">SVG枠（仮）</p>
+              <p className="mt-2 text-xs text-gray-500">SVG プレビュー</p>
             </div>
           )}
         </div>

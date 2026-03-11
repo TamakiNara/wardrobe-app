@@ -6,6 +6,19 @@ export type ItemFormColor = {
   label: string;
 };
 
+export type TopsSpec = {
+  shape: string;
+  sleeve?: string | null;
+  length?: string | null;
+  neck?: string | null;
+  design?: string | null;
+  fit?: string | null;
+};
+
+export type ItemSpec = {
+  tops?: TopsSpec | null;
+};
+
 export type CreateItemPayload = {
   name: string;
   category: string;
@@ -13,4 +26,16 @@ export type CreateItemPayload = {
   colors: ItemFormColor[];
   seasons: string[];
   tpos: string[];
+  spec?: ItemSpec | null;
+};
+
+export type ItemRecord = {
+  id: number;
+  name: string | null;
+  category: string;
+  shape: string;
+  colors: ItemFormColor[];
+  seasons: string[];
+  tpos: string[];
+  spec?: ItemSpec | null;
 };

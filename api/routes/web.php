@@ -68,6 +68,14 @@ Route::prefix('api')->middleware(['web'])->group(function () {
             'seasons.*' => ['string', 'max:50'],
             'tpos' => ['nullable', 'array'],
             'tpos.*' => ['string', 'max:50'],
+            'spec' => ['nullable', 'array'],
+            'spec.tops' => ['nullable', 'array'],
+            'spec.tops.shape' => ['nullable', 'string', 'max:100'],
+            'spec.tops.sleeve' => ['nullable', 'string', 'max:100'],
+            'spec.tops.length' => ['nullable', 'string', 'max:100'],
+            'spec.tops.neck' => ['nullable', 'string', 'max:100'],
+            'spec.tops.design' => ['nullable', 'string', 'max:100'],
+            'spec.tops.fit' => ['nullable', 'string', 'max:100'],
         ]);
 
         $item = Item::create([
@@ -78,6 +86,7 @@ Route::prefix('api')->middleware(['web'])->group(function () {
             'colors' => $validated['colors'],
             'seasons' => $validated['seasons'] ?? [],
             'tpos' => $validated['tpos'] ?? [],
+            'spec' => $validated['spec'] ?? null,
         ]);
 
         return response()->json([
@@ -115,6 +124,14 @@ Route::prefix('api')->middleware(['web'])->group(function () {
             'seasons.*' => ['string', 'max:50'],
             'tpos' => ['nullable', 'array'],
             'tpos.*' => ['string', 'max:50'],
+            'spec' => ['nullable', 'array'],
+            'spec.tops' => ['nullable', 'array'],
+            'spec.tops.shape' => ['nullable', 'string', 'max:100'],
+            'spec.tops.sleeve' => ['nullable', 'string', 'max:100'],
+            'spec.tops.length' => ['nullable', 'string', 'max:100'],
+            'spec.tops.neck' => ['nullable', 'string', 'max:100'],
+            'spec.tops.design' => ['nullable', 'string', 'max:100'],
+            'spec.tops.fit' => ['nullable', 'string', 'max:100'],
         ]);
 
         $item->update([
@@ -124,6 +141,7 @@ Route::prefix('api')->middleware(['web'])->group(function () {
             'colors' => $validated['colors'],
             'seasons' => $validated['seasons'] ?? [],
             'tpos' => $validated['tpos'] ?? [],
+            'spec' => $validated['spec'] ?? null,
         ]);
 
         return response()->json([

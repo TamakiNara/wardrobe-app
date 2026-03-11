@@ -16,12 +16,14 @@ class Item extends Model
         'colors',
         'seasons',
         'tpos',
+        'spec',
     ];
 
     protected $casts = [
         'colors' => 'array',
         'seasons' => 'array',
         'tpos' => 'array',
+        'spec' => 'array',
     ];
 
     public function user(): BelongsTo

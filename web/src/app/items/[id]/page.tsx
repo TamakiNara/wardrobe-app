@@ -2,24 +2,39 @@ import Link from "next/link";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import DeleteItemButton from "@/components/items/delete-item-button";
+import ItemPreviewCard from "@/components/items/item-preview-card";
+import type { ItemRecord } from "@/types/items";
 
-type Item = {
-  id: number;
-  name: string | null;
-  category: string;
-  shape: string;
-  colors: {
-    role: "main" | "sub";
-    mode: "preset" | "custom";
-    value: string;
-    hex: string;
-    label: string;
-  }[];
-  seasons: string[];
-  tpos: string[];
-};
+function buildTopsSpecLabels(item: ItemRecord) {
+  const tops = item.spec?.tops;
 
-async function getItem(id: string): Promise<Item> {
+  if (!tops) return null;
+
+  return {
+    shape: tops.shape ?? "",
+    sleeve: tops.sleeve ?? "",
+    length: tops.length ?? "",
+    neck: tops.neck ?? "",
+    design: tops.design ?? "",
+    fit: tops.fit ?? "",
+  };
+}
+
+function buildTopsSpecRaw(item: ItemRecord) {
+  const tops = item.spec?.tops;
+
+  if (!tops) return null;
+
+  return {
+    shape: tops.shape,
+    sleeve: tops.sleeve ?? undefined,
+    length: tops.length ?? undefined,
+    neck: tops.neck ?? undefined,
+    design: tops.design ?? undefined,
+    fit: tops.fit ?? undefined,
+  };
+}
+async function getItem(id: string): Promise<ItemRecord> {
   const cookie = (await headers()).get("cookie") ?? "";
   const appUrl = process.env.NEXT_APP_URL ?? "http://localhost:3000";
 
@@ -48,6 +63,8 @@ export default async function ItemPage({
 
   const mainColor = item.colors.find((c) => c.role === "main");
   const subColor = item.colors.find((c) => c.role === "sub");
+  const topsSpec = buildTopsSpecLabels(item);
+  const topsSpecRaw = buildTopsSpecRaw(item);
 
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">
@@ -90,6 +107,18 @@ export default async function ItemPage({
             <DeleteItemButton itemId={item.id} />
           </div>
         </div>
+
+        <ItemPreviewCard
+          name={item.name ?? ""}
+          category={item.category}
+          shape={item.shape}
+          mainColorHex={mainColor?.hex}
+          mainColorLabel={mainColor?.label}
+          subColorHex={subColor?.hex}
+          subColorLabel={subColor?.label}
+          topsSpec={topsSpec}
+          topsSpecRaw={topsSpecRaw}
+        />
 
         <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
           <p className="text-gray-600">

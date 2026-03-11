@@ -13,20 +13,34 @@ import {
   type ItemColorValue,
 } from "@/lib/master-data/item-colors";
 import ColorChip from "@/components/items/color-chip";
-import type { CreateItemPayload, ItemFormColor } from "@/types/items";
+import ItemPreviewCard from "@/components/items/item-preview-card";
+import type { CreateItemPayload, ItemFormColor, ItemRecord } from "@/types/items";
+import {
+  DEFAULT_TOPS_FIT,
+  TOPS_DESIGNS,
+  TOPS_FITS,
+  TOPS_LENGTHS,
+  TOPS_NECKS,
+  TOPS_RULES,
+  TOPS_SHAPES,
+  TOPS_SLEEVES,
+  type TopsDesignValue,
+  type TopsFitValue,
+  type TopsLengthValue,
+  type TopsNeckValue,
+  type TopsShapeValue,
+  type TopsSleeveValue,
+} from "@/lib/master-data/item-tops";
 
 const SEASON_OPTIONS = ["春", "夏", "秋", "冬", "オール"] as const;
 const TPO_OPTIONS = ["仕事", "休日", "フォーマル"] as const;
 
-type Item = {
-  id: number;
-  name: string | null;
-  category: string;
-  shape: string;
-  colors: ItemFormColor[];
-  seasons: string[];
-  tpos: string[];
-};
+function findLabel<T extends { value: string; label: string }>(
+  items: readonly T[],
+  value: string,
+) {
+  return items.find((item) => item.value === value)?.label ?? value;
+}
 
 export default function EditItemPage({
   params,
@@ -44,20 +58,78 @@ export default function EditItemPage({
 
   const [mainColor, setMainColor] = useState<ItemColorValue | "">("");
   const [subColor, setSubColor] = useState<ItemColorValue | "">("");
-
   const [useCustomMainColor, setUseCustomMainColor] = useState(false);
   const [useCustomSubColor, setUseCustomSubColor] = useState(false);
-
   const [customMainHex, setCustomMainHex] = useState("#3B82F6");
   const [customSubHex, setCustomSubHex] = useState("#9CA3AF");
 
   const [selectedSeasons, setSelectedSeasons] = useState<string[]>([]);
   const [selectedTpos, setSelectedTpos] = useState<string[]>([]);
 
+  const [topsShape, setTopsShape] = useState<TopsShapeValue | "">("");
+  const [topsSleeve, setTopsSleeve] = useState<TopsSleeveValue | "">("");
+  const [topsLength, setTopsLength] = useState<TopsLengthValue | "">("");
+  const [topsNeck, setTopsNeck] = useState<TopsNeckValue | "">("");
+  const [topsDesign, setTopsDesign] = useState<TopsDesignValue | "">("");
+  const [topsFit, setTopsFit] = useState<TopsFitValue>(DEFAULT_TOPS_FIT);
+
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
+
+  const isTopsCategory = category === "tops";
+
+  const shapeOptions = useMemo(() => {
+    if (!category) return [];
+    return ITEM_SHAPES[category];
+  }, [category]);
+
+  const selectedMainColor = useMemo(() => {
+    if (useCustomMainColor) {
+      return { label: "カスタムカラー", hex: customMainHex };
+    }
+
+    return ITEM_COLORS.find((color) => color.value === mainColor) ?? null;
+  }, [useCustomMainColor, customMainHex, mainColor]);
+
+  const selectedSubColor = useMemo(() => {
+    if (useCustomSubColor) {
+      return { label: "カスタムカラー", hex: customSubHex };
+    }
+
+    return ITEM_COLORS.find((color) => color.value === subColor) ?? null;
+  }, [useCustomSubColor, customSubHex, subColor]);
+
+  const topsRule = useMemo(() => {
+    if (!isTopsCategory || !topsShape) return null;
+    return TOPS_RULES[topsShape];
+  }, [isTopsCategory, topsShape]);
+
+  const availableTopsSleeves = useMemo(() => {
+    if (!topsRule) return [];
+    return TOPS_SLEEVES.filter((item) => topsRule.sleeves.includes(item.value));
+  }, [topsRule]);
+
+  const availableTopsLengths = useMemo(() => {
+    if (!topsRule) return [];
+    return TOPS_LENGTHS.filter((item) => topsRule.lengths.includes(item.value));
+  }, [topsRule]);
+
+  const availableTopsNecks = useMemo(() => {
+    if (!topsRule) return [];
+    return TOPS_NECKS.filter((item) => topsRule.necks.includes(item.value));
+  }, [topsRule]);
+
+  const availableTopsDesigns = useMemo(() => {
+    if (!topsRule) return [];
+    return TOPS_DESIGNS.filter((item) => topsRule.designs.includes(item.value));
+  }, [topsRule]);
+
+  const availableTopsFits = useMemo(() => {
+    if (!topsRule) return [];
+    return TOPS_FITS.filter((item) => topsRule.fits.includes(item.value));
+  }, [topsRule]);
 
   useEffect(() => {
     async function loadItem() {
@@ -65,24 +137,22 @@ export default function EditItemPage({
       setItemId(Number(id));
 
       try {
-        const res = await fetch(`/api/items/${id}`, {
-          headers: {
-            Accept: "application/json",
-          },
+        const response = await fetch(`/api/items/${id}`, {
+          headers: { Accept: "application/json" },
         });
 
-        if (res.status === 401) {
+        if (response.status === 401) {
           router.push("/login");
           return;
         }
 
-        if (!res.ok) {
+        if (!response.ok) {
           router.push("/items");
           return;
         }
 
-        const data = await res.json();
-        const item: Item = data.item;
+        const data = await response.json();
+        const item: ItemRecord = data.item;
 
         setName(item.name ?? "");
         setCategory(item.category as ItemCategory);
@@ -90,16 +160,15 @@ export default function EditItemPage({
         setSelectedSeasons(item.seasons ?? []);
         setSelectedTpos(item.tpos ?? []);
 
-        const main = item.colors.find((c) => c.role === "main");
-        const sub = item.colors.find((c) => c.role === "sub");
+        const main = item.colors.find((color) => color.role === "main");
+        const sub = item.colors.find((color) => color.role === "sub");
+        const tops = item.spec?.tops;
 
         if (main) {
           if (main.mode === "custom") {
             setUseCustomMainColor(true);
             setCustomMainHex(main.hex);
-            setMainColor("");
           } else {
-            setUseCustomMainColor(false);
             setMainColor(main.value as ItemColorValue);
           }
         }
@@ -108,11 +177,21 @@ export default function EditItemPage({
           if (sub.mode === "custom") {
             setUseCustomSubColor(true);
             setCustomSubHex(sub.hex);
-            setSubColor("");
           } else {
-            setUseCustomSubColor(false);
             setSubColor(sub.value as ItemColorValue);
           }
+        }
+
+        if (item.category === "tops") {
+          const resolvedShape = (tops?.shape ?? item.shape) as TopsShapeValue;
+          setTopsShape(resolvedShape);
+
+          const rule = TOPS_RULES[resolvedShape];
+          setTopsSleeve((tops?.sleeve as TopsSleeveValue | null | undefined) ?? rule?.defaults?.sleeve ?? "");
+          setTopsLength((tops?.length as TopsLengthValue | null | undefined) ?? rule?.defaults?.length ?? "");
+          setTopsNeck((tops?.neck as TopsNeckValue | null | undefined) ?? rule?.defaults?.neck ?? "");
+          setTopsDesign((tops?.design as TopsDesignValue | null | undefined) ?? rule?.defaults?.design ?? "");
+          setTopsFit((tops?.fit as TopsFitValue | null | undefined) ?? rule?.defaults?.fit ?? DEFAULT_TOPS_FIT);
         }
       } finally {
         setLoading(false);
@@ -122,64 +201,49 @@ export default function EditItemPage({
     loadItem();
   }, [params, router]);
 
-  const shapeOptions = useMemo(() => {
-    if (!category) return [];
-    return ITEM_SHAPES[category];
-  }, [category]);
-
-  const selectedMainColor = useMemo(() => {
-    if (useCustomMainColor) {
-      return {
-        label: "カスタムカラー",
-        hex: customMainHex,
-      };
-    }
-
-    return ITEM_COLORS.find((color) => color.value === mainColor) ?? null;
-  }, [useCustomMainColor, customMainHex, mainColor]);
-
-  const selectedSubColor = useMemo(() => {
-    if (useCustomSubColor) {
-      return {
-        label: "カスタムカラー",
-        hex: customSubHex,
-      };
-    }
-
-    return ITEM_COLORS.find((color) => color.value === subColor) ?? null;
-  }, [useCustomSubColor, customSubHex, subColor]);
+  function resetTopsState() {
+    setTopsShape("");
+    setTopsSleeve("");
+    setTopsLength("");
+    setTopsNeck("");
+    setTopsDesign("");
+    setTopsFit(DEFAULT_TOPS_FIT);
+  }
 
   function handleCategoryChange(nextCategory: string) {
     setCategory(nextCategory as ItemCategory | "");
     setShape("");
+
+    if (nextCategory !== "tops") {
+      resetTopsState();
+    }
   }
 
-  function handleSeasonToggle(season: string) {
-    setSelectedSeasons((prev) => {
-      const isSelected = prev.includes(season);
+  function handleTopsShapeChange(nextShape: string) {
+    const value = nextShape as TopsShapeValue | "";
+    setTopsShape(value);
 
-      if (season === "オール") {
-        return isSelected ? [] : ["オール"];
-      }
+    if (!value) {
+      setTopsSleeve("");
+      setTopsLength("");
+      setTopsNeck("");
+      setTopsDesign("");
+      setTopsFit(DEFAULT_TOPS_FIT);
+      setShape("");
+      return;
+    }
 
-      const withoutAll = prev.filter((item) => item !== "オール");
-
-      if (isSelected) {
-        return withoutAll.filter((item) => item !== season);
-      }
-
-      return [...withoutAll, season];
-    });
+    const rule = TOPS_RULES[value];
+    setTopsSleeve(rule.defaults?.sleeve ?? "");
+    setTopsLength(rule.defaults?.length ?? "");
+    setTopsNeck(rule.defaults?.neck ?? "");
+    setTopsDesign(rule.defaults?.design ?? "");
+    setTopsFit(rule.defaults?.fit ?? DEFAULT_TOPS_FIT);
+    setShape(value);
   }
 
-  function handleTpoToggle(tpo: string) {
-    setSelectedTpos((prev) => {
-      if (prev.includes(tpo)) {
-        return prev.filter((item) => item !== tpo);
-      }
-
-      return [...prev, tpo];
-    });
+  function toggleValue(value: string, current: string[], setter: (values: string[]) => void) {
+    setter(current.includes(value) ? current.filter((item) => item !== value) : [...current, value]);
   }
 
   function buildPayload(): CreateItemPayload {
@@ -212,78 +276,63 @@ export default function EditItemPage({
       colors,
       seasons: selectedSeasons,
       tpos: selectedTpos,
+      spec:
+        isTopsCategory && topsShape
+          ? {
+              tops: {
+                shape: topsShape,
+                sleeve: topsSleeve || null,
+                length: topsLength || null,
+                neck: topsNeck || null,
+                design: topsDesign || null,
+                fit: topsFit || null,
+              },
+            }
+          : null,
     };
   }
 
   function validateForm() {
     const nextErrors: Record<string, string> = {};
 
-    if (!category) {
-      nextErrors.category = "カテゴリを選択してください。";
-    }
-
-    if (!shape) {
-      nextErrors.shape = "形を選択してください。";
-    }
-
-    if (!selectedMainColor) {
-      nextErrors.mainColor = "メインカラーを選択してください。";
-    }
+    if (!category) nextErrors.category = "カテゴリを選択してください。";
+    if (!shape) nextErrors.shape = "形を選択してください。";
+    if (!selectedMainColor) nextErrors.mainColor = "メインカラーを選択してください。";
 
     setErrors(nextErrors);
-
     return Object.keys(nextErrors).length === 0;
   }
 
-  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
     setSubmitError(null);
     setSubmitSuccess(null);
 
     if (!validateForm() || !itemId) return;
 
-    const payload = buildPayload();
-
     setSubmitting(true);
 
     try {
-      const res = await fetch(`/api/items/${itemId}`, {
+      const response = await fetch(`/api/items/${itemId}`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(buildPayload()),
       });
 
-      const data = await res.json().catch(() => null);
+      const data = await response.json().catch(() => null);
 
-      if (res.status === 401) {
+      if (response.status === 401) {
         setSubmitError("セッションが切れました。再度ログインしてください。");
-
-        setTimeout(() => {
-          router.push("/login");
-        }, 800);
-
+        setTimeout(() => router.push("/login"), 800);
         return;
       }
 
-      if (!res.ok) {
-        if (data?.errors) {
-          const firstError = Object.values(data.errors)[0];
-          if (Array.isArray(firstError) && firstError.length > 0) {
-            setSubmitError(String(firstError[0]));
-          } else {
-            setSubmitError("更新に失敗しました。");
-          }
-        } else {
-          setSubmitError(data?.message ?? "更新に失敗しました。");
-        }
+      if (!response.ok) {
+        setSubmitError(data?.message ?? "更新に失敗しました。");
         return;
       }
 
       setSubmitSuccess("更新に成功しました。");
-
       setTimeout(() => {
         router.push(`/items/${itemId}`);
         router.refresh();
@@ -294,6 +343,28 @@ export default function EditItemPage({
       setSubmitting(false);
     }
   }
+
+  const previewTopsSpec = isTopsCategory
+    ? {
+        shape: topsShape ? findLabel(TOPS_SHAPES, topsShape) : "",
+        sleeve: topsSleeve ? findLabel(TOPS_SLEEVES, topsSleeve) : "",
+        length: topsLength ? findLabel(TOPS_LENGTHS, topsLength) : "",
+        neck: topsNeck ? findLabel(TOPS_NECKS, topsNeck) : "",
+        design: topsDesign ? findLabel(TOPS_DESIGNS, topsDesign) : "",
+        fit: topsFit ? findLabel(TOPS_FITS, topsFit) : "",
+      }
+    : null;
+
+  const previewTopsSpecRaw = isTopsCategory
+    ? {
+        shape: topsShape || "",
+        sleeve: topsSleeve || "",
+        length: topsLength || "",
+        neck: topsNeck || "",
+        design: topsDesign || "",
+        fit: topsFit || "",
+      }
+    : null;
 
   if (loading) {
     return (
@@ -309,13 +380,9 @@ export default function EditItemPage({
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">
       <div className="mx-auto max-w-3xl space-y-6">
         <nav className="text-sm text-gray-500">
-          <Link href="/" className="hover:underline">
-            ホーム
-          </Link>
+          <Link href="/" className="hover:underline">ホーム</Link>
           {" / "}
-          <Link href="/items" className="hover:underline">
-            アイテム一覧
-          </Link>
+          <Link href="/items" className="hover:underline">アイテム一覧</Link>
           {" / "}
           <span className="text-gray-700">編集</span>
         </nav>
@@ -326,218 +393,157 @@ export default function EditItemPage({
             <h1 className="text-2xl font-bold text-gray-900">アイテム編集</h1>
           </div>
 
-          <Link
-            href={itemId ? `/items/${itemId}` : "/items"}
-            className="text-sm font-medium text-blue-600 hover:underline"
-          >
+          <Link href={itemId ? `/items/${itemId}` : "/items"} className="text-sm font-medium text-blue-600 hover:underline">
             詳細に戻る
           </Link>
         </div>
 
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-6 rounded-2xl border border-gray-200 bg-white p-8 shadow-sm"
-        >
-          {/* ここから下は items/new のフォーム本体をほぼそのまま流用 */}
-          {/* 基本情報 */}
+        <form onSubmit={handleSubmit} className="space-y-6 rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
           <section className="space-y-4">
             <h2 className="text-lg font-semibold text-gray-900">基本情報</h2>
 
             <div>
-              <label
-                htmlFor="name"
-                className="mb-1 block text-sm font-medium text-gray-700"
-              >
-                名前
-              </label>
-              <input
-                id="name"
-                type="text"
-                placeholder="例：ネイビーのシャツ"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 placeholder:text-gray-400 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-              />
+              <label htmlFor="name" className="mb-1 block text-sm font-medium text-gray-700">名前</label>
+              <input id="name" type="text" value={name} onChange={(e) => setName(e.target.value)} className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
             </div>
 
             <div>
-              <label
-                htmlFor="category"
-                className="mb-1 block text-sm font-medium text-gray-700"
-              >
-                カテゴリ
-              </label>
-              <select
-                id="category"
-                value={category}
-                onChange={(e) => handleCategoryChange(e.target.value)}
-                className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${
-                  errors.category ? "border-red-400" : "border-gray-300"
-                }`}
-              >
+              <label htmlFor="category" className="mb-1 block text-sm font-medium text-gray-700">カテゴリ</label>
+              <select id="category" value={category} onChange={(e) => handleCategoryChange(e.target.value)} className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors.category ? "border-red-400" : "border-gray-300"}`}>
                 <option value="">選択してください</option>
                 {ITEM_CATEGORIES.map((item) => (
-                  <option key={item.value} value={item.value}>
-                    {item.label}
-                  </option>
+                  <option key={item.value} value={item.value}>{item.label}</option>
                 ))}
               </select>
-              {errors.category && (
-                <p className="mt-2 text-sm text-red-600">{errors.category}</p>
-              )}
+              {errors.category && <p className="mt-2 text-sm text-red-600">{errors.category}</p>}
             </div>
 
             <div>
-              <label
-                htmlFor="shape"
-                className="mb-1 block text-sm font-medium text-gray-700"
-              >
-                形
-              </label>
-              <select
-                id="shape"
-                value={shape}
-                onChange={(e) => setShape(e.target.value)}
-                disabled={!category}
-                className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${
-                  errors.shape ? "border-red-400" : "border-gray-300"
-                }`}
-              >
-                <option value="">
-                  {category ? "選択してください" : "先にカテゴリを選択してください"}
-                </option>
+              <label htmlFor="shape" className="mb-1 block text-sm font-medium text-gray-700">形</label>
+              <select id="shape" value={shape} onChange={(e) => setShape(e.target.value)} disabled={!category || isTopsCategory} className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors.shape ? "border-red-400" : "border-gray-300"}`}>
+                <option value="">選択してください</option>
                 {shapeOptions.map((item) => (
-                  <option key={item.value} value={item.value}>
-                    {item.label}
-                  </option>
+                  <option key={item.value} value={item.value}>{item.label}</option>
                 ))}
               </select>
-              {errors.shape && (
-                <p className="mt-2 text-sm text-red-600">{errors.shape}</p>
-              )}
+              {errors.shape && <p className="mt-2 text-sm text-red-600">{errors.shape}</p>}
             </div>
           </section>
 
-          {/* 色 */}
+          {isTopsCategory && (
+            <section className="space-y-4 rounded-xl border border-gray-200 bg-gray-50 p-4">
+              <div>
+                <p className="text-sm font-medium text-gray-700">トップス仕様</p>
+                <p className="mt-1 text-xs text-gray-500">保存済みのトップス仕様を編集しながら、下のプレビューに反映します。</p>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <label htmlFor="tops-shape" className="mb-1 block text-sm font-medium text-gray-700">形</label>
+                  <select id="tops-shape" value={topsShape} onChange={(e) => handleTopsShapeChange(e.target.value)} className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
+                    <option value="">選択してください</option>
+                    {TOPS_SHAPES.map((item) => (
+                      <option key={item.value} value={item.value}>{item.label}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label htmlFor="tops-sleeve" className="mb-1 block text-sm font-medium text-gray-700">袖</label>
+                  <select id="tops-sleeve" value={topsSleeve} onChange={(e) => setTopsSleeve(e.target.value as TopsSleeveValue | "")} disabled={!topsShape} className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
+                    <option value="">選択してください</option>
+                    {availableTopsSleeves.map((item) => (
+                      <option key={item.value} value={item.value}>{item.label}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label htmlFor="tops-length" className="mb-1 block text-sm font-medium text-gray-700">丈</label>
+                  <select id="tops-length" value={topsLength} onChange={(e) => setTopsLength(e.target.value as TopsLengthValue | "")} disabled={!topsShape} className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
+                    <option value="">選択してください</option>
+                    {availableTopsLengths.map((item) => (
+                      <option key={item.value} value={item.value}>{item.label}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label htmlFor="tops-neck" className="mb-1 block text-sm font-medium text-gray-700">首元</label>
+                  <select id="tops-neck" value={topsNeck} onChange={(e) => setTopsNeck(e.target.value as TopsNeckValue | "")} disabled={!topsShape} className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
+                    <option value="">選択してください</option>
+                    {availableTopsNecks.map((item) => (
+                      <option key={item.value} value={item.value}>{item.label}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label htmlFor="tops-design" className="mb-1 block text-sm font-medium text-gray-700">デザイン</label>
+                  <select id="tops-design" value={topsDesign} onChange={(e) => setTopsDesign(e.target.value as TopsDesignValue | "")} disabled={!topsShape || availableTopsDesigns.length === 0} className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
+                    <option value="">{availableTopsDesigns.length ? "選択してください" : "選択肢がありません"}</option>
+                    {availableTopsDesigns.map((item) => (
+                      <option key={item.value} value={item.value}>{item.label}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label htmlFor="tops-fit" className="mb-1 block text-sm font-medium text-gray-700">シルエット</label>
+                  <select id="tops-fit" value={topsFit} onChange={(e) => setTopsFit(e.target.value as TopsFitValue)} disabled={!topsShape} className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
+                    {availableTopsFits.map((item) => (
+                      <option key={item.value} value={item.value}>{item.label}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </section>
+          )}
+
           <section className="space-y-4">
             <h2 className="text-lg font-semibold text-gray-900">色</h2>
 
             <div className="grid gap-6 md:grid-cols-2">
               <div className="space-y-3">
-                <label
-                  htmlFor="main-color"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  メインカラー
-                </label>
-
+                <label className="block text-sm font-medium text-gray-700">メインカラー</label>
                 <label className="flex items-center gap-2 text-sm text-gray-700">
-                  <input
-                    type="checkbox"
-                    checked={useCustomMainColor}
-                    onChange={(e) => {
-                      setUseCustomMainColor(e.target.checked);
-                      if (e.target.checked) {
-                        setMainColor("");
-                      }
-                    }}
-                    className="h-4 w-4"
-                  />
+                  <input type="checkbox" checked={useCustomMainColor} onChange={(e) => { setUseCustomMainColor(e.target.checked); if (e.target.checked) setMainColor(""); }} className="h-4 w-4" />
                   カスタムカラーを使う
                 </label>
 
                 {useCustomMainColor ? (
                   <div className="flex items-center gap-3 rounded-xl border border-gray-300 bg-white px-4 py-3">
-                    <input
-                      type="color"
-                      value={customMainHex}
-                      onChange={(e) => setCustomMainHex(e.target.value)}
-                      className="h-10 w-14 cursor-pointer rounded border border-gray-300 bg-white p-1"
-                    />
-                    <input
-                      type="text"
-                      value={customMainHex}
-                      onChange={(e) => setCustomMainHex(e.target.value)}
-                      className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${
-                        errors.mainColor ? "border-red-400" : "border-gray-300"
-                      }`}
-                    />
+                    <input type="color" value={customMainHex} onChange={(e) => setCustomMainHex(e.target.value)} className="h-10 w-14 cursor-pointer rounded border border-gray-300 bg-white p-1" />
+                    <input type="text" value={customMainHex} onChange={(e) => setCustomMainHex(e.target.value)} className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors.mainColor ? "border-red-400" : "border-gray-300"}`} />
                   </div>
                 ) : (
-                  <select
-                    id="main-color"
-                    value={mainColor}
-                    onChange={(e) =>
-                      setMainColor(e.target.value as ItemColorValue | "")
-                    }
-                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                  >
+                  <select value={mainColor} onChange={(e) => setMainColor(e.target.value as ItemColorValue | "")} className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
                     <option value="">選択してください</option>
                     {ITEM_COLORS.map((color) => (
-                      <option key={color.value} value={color.value}>
-                        {color.label}
-                      </option>
+                      <option key={color.value} value={color.value}>{color.label}</option>
                     ))}
                   </select>
                 )}
-
-                {errors.mainColor && (
-                  <p className="mt-2 text-sm text-red-600">{errors.mainColor}</p>
-                )}
+                {errors.mainColor && <p className="mt-2 text-sm text-red-600">{errors.mainColor}</p>}
               </div>
 
               <div className="space-y-3">
-                <label
-                  htmlFor="sub-color"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  サブカラー
-                </label>
-
+                <label className="block text-sm font-medium text-gray-700">サブカラー</label>
                 <label className="flex items-center gap-2 text-sm text-gray-700">
-                  <input
-                    type="checkbox"
-                    checked={useCustomSubColor}
-                    onChange={(e) => {
-                      setUseCustomSubColor(e.target.checked);
-                      if (e.target.checked) {
-                        setSubColor("");
-                      }
-                    }}
-                    className="h-4 w-4"
-                  />
+                  <input type="checkbox" checked={useCustomSubColor} onChange={(e) => { setUseCustomSubColor(e.target.checked); if (e.target.checked) setSubColor(""); }} className="h-4 w-4" />
                   カスタムカラーを使う
                 </label>
 
                 {useCustomSubColor ? (
                   <div className="flex items-center gap-3 rounded-xl border border-gray-300 bg-white px-4 py-3">
-                    <input
-                      type="color"
-                      value={customSubHex}
-                      onChange={(e) => setCustomSubHex(e.target.value)}
-                      className="h-10 w-14 cursor-pointer rounded border border-gray-300 bg-white p-1"
-                    />
-                    <input
-                      type="text"
-                      value={customSubHex}
-                      onChange={(e) => setCustomSubHex(e.target.value)}
-                      className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                    />
+                    <input type="color" value={customSubHex} onChange={(e) => setCustomSubHex(e.target.value)} className="h-10 w-14 cursor-pointer rounded border border-gray-300 bg-white p-1" />
+                    <input type="text" value={customSubHex} onChange={(e) => setCustomSubHex(e.target.value)} className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
                   </div>
                 ) : (
-                  <select
-                    id="sub-color"
-                    value={subColor}
-                    onChange={(e) =>
-                      setSubColor(e.target.value as ItemColorValue | "")
-                    }
-                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                  >
+                  <select value={subColor} onChange={(e) => setSubColor(e.target.value as ItemColorValue | "")} className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
                     <option value="">未選択</option>
                     {ITEM_COLORS.map((color) => (
-                      <option key={color.value} value={color.value}>
-                        {color.label}
-                      </option>
+                      <option key={color.value} value={color.value}>{color.label}</option>
                     ))}
                   </select>
                 )}
@@ -546,138 +552,74 @@ export default function EditItemPage({
 
             {(selectedMainColor || selectedSubColor) && (
               <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
-                <p className="mb-3 text-sm font-medium text-gray-700">
-                  選択中の色
-                </p>
-
+                <p className="mb-3 text-sm font-medium text-gray-700">選択中の色</p>
                 <div className="flex flex-wrap gap-2">
-                  {selectedMainColor && (
-                    <ColorChip
-                      label={selectedMainColor.label}
-                      hex={selectedMainColor.hex}
-                      tone="main"
-                    />
-                  )}
-                  {selectedSubColor && (
-                    <ColorChip
-                      label={selectedSubColor.label}
-                      hex={selectedSubColor.hex}
-                      tone="sub"
-                    />
-                  )}
+                  {selectedMainColor && <ColorChip label={selectedMainColor.label} hex={selectedMainColor.hex} tone="main" />}
+                  {selectedSubColor && <ColorChip label={selectedSubColor.label} hex={selectedSubColor.hex} tone="sub" />}
                 </div>
               </div>
             )}
           </section>
 
-          {/* 季節・TPO */}
           <section className="space-y-4">
             <h2 className="text-lg font-semibold text-gray-900">季節・TPO</h2>
 
             <div>
-              <p className="mb-2 text-sm font-medium text-gray-700">季節</p>
-              <p className="mt-2 text-xs text-gray-500">
-                未選択の場合はオールシーズン扱いになります。
-              </p>
+              <p className="mb-2 text-sm font-medium">季節</p>
               <div className="flex flex-wrap gap-3">
                 {SEASON_OPTIONS.map((season) => {
                   const checked = selectedSeasons.includes(season);
-
                   return (
-                    <label
-                      key={season}
-                      className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition ${
-                        checked
-                          ? "border-blue-500 bg-blue-50 text-blue-700"
-                          : "border-gray-300 bg-white text-gray-700"
-                      }`}
-                    >
-                      <input
-                        type="checkbox"
-                        className="h-4 w-4"
-                        checked={checked}
-                        onChange={() => handleSeasonToggle(season)}
-                      />
+                    <label key={season} className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition ${checked ? "border-blue-500 bg-blue-50 text-blue-700" : "border-gray-300 bg-white text-gray-700"}`}>
+                      <input type="checkbox" className="h-4 w-4" checked={checked} onChange={() => toggleValue(season, selectedSeasons, setSelectedSeasons)} />
                       {season}
                     </label>
                   );
                 })}
               </div>
-
-              {selectedSeasons.length > 0 && (
-                <p className="mt-3 text-sm text-gray-600">
-                  選択中: {selectedSeasons.join(" / ")}
-                </p>
-              )}
             </div>
 
             <div>
-              <p className="mb-2 text-sm font-medium text-gray-700">TPO</p>
-              <p className="mt-2 text-xs text-gray-500">
-                未選択の場合はすべてのシーンで使用可能として扱います。
-              </p>
+              <p className="mb-2 text-sm font-medium">TPO</p>
               <div className="flex flex-wrap gap-3">
                 {TPO_OPTIONS.map((tpo) => {
                   const checked = selectedTpos.includes(tpo);
-
                   return (
-                    <label
-                      key={tpo}
-                      className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition ${
-                        checked
-                          ? "border-blue-500 bg-blue-50 text-blue-700"
-                          : "border-gray-300 bg-white text-gray-700"
-                      }`}
-                    >
-                      <input
-                        type="checkbox"
-                        className="h-4 w-4"
-                        checked={checked}
-                        onChange={() => handleTpoToggle(tpo)}
-                      />
+                    <label key={tpo} className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition ${checked ? "border-blue-500 bg-blue-50 text-blue-700" : "border-gray-300 bg-white text-gray-700"}`}>
+                      <input type="checkbox" className="h-4 w-4" checked={checked} onChange={() => toggleValue(tpo, selectedTpos, setSelectedTpos)} />
                       {tpo}
                     </label>
                   );
                 })}
               </div>
-
-              {selectedTpos.length > 0 && (
-                <p className="mt-3 text-sm text-gray-600">
-                  選択中: {selectedTpos.join(" / ")}
-                </p>
-              )}
             </div>
           </section>
 
           <div className="flex flex-col gap-3 pt-2 sm:flex-row">
-            <button
-              type="submit"
-              disabled={submitting}
-              className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-3 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
-            >
+            <button type="submit" disabled={submitting} className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-3 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50">
               {submitting ? "更新中..." : "更新する"}
             </button>
 
-            <Link
-              href={itemId ? `/items/${itemId}` : "/items"}
-              className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
-            >
+            <Link href={itemId ? `/items/${itemId}` : "/items"} className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50">
               キャンセル
             </Link>
           </div>
         </form>
 
-        {submitError && (
-          <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-            {submitError}
-          </div>
-        )}
+        <ItemPreviewCard
+          name={name}
+          category={category}
+          shape={shape}
+          mainColorHex={selectedMainColor?.hex}
+          mainColorLabel={selectedMainColor?.label}
+          subColorHex={selectedSubColor?.hex}
+          subColorLabel={selectedSubColor?.label}
+          topsSpec={previewTopsSpec}
+          topsSpecRaw={previewTopsSpecRaw}
+        />
 
-        {submitSuccess && (
-          <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
-            {submitSuccess}
-          </div>
-        )}
+        {submitError && <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">{submitError}</div>}
+        {submitSuccess && <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">{submitSuccess}</div>}
       </div>
     </main>
   );
