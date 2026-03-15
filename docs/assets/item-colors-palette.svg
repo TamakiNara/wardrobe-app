@@ -1,0 +1,362 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="2210" viewBox="0 0 1200 2210" role="img" aria-labelledby="title desc">
+  <title id="title">Item Color Palette</title>
+  <desc id="desc">wardrobe-app のプリセットカラー一覧</desc>
+  <rect width="1200" height="2210" fill="#f7f4ee" />
+  <text x="60" y="88" fill="#1f2937" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="36" font-weight="700">Preset Color Palette</text>
+  <text x="60" y="124" fill="#6b7280" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="18">wardrobe-app / item-colors.ts</text>
+  <text x="60" y="170" fill="#374151" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="24" font-weight="700">ベーシックカラー</text>
+  <g transform="translate(60 194)">
+    <rect x="0" y="0" width="196" height="146" rx="20" fill="#ffffff" stroke="#ddd6c7"/>
+    <rect x="20" y="20" width="52" height="52" rx="14" fill="#ECECEC" stroke="#d1d5db"/>
+    <text x="88" y="42" fill="#111827" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="18" font-weight="700">ホワイト</text>
+    <text x="88" y="68" fill="#6b7280" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="14">white</text>
+    <text x="20" y="108" fill="#374151" font-family="'SFMono-Regular', Consolas, monospace" font-size="14">#ECECEC</text>
+  </g>
+  <g transform="translate(272 194)">
+    <rect x="0" y="0" width="196" height="146" rx="20" fill="#ffffff" stroke="#ddd6c7"/>
+    <rect x="20" y="20" width="52" height="52" rx="14" fill="#F5F3EE" stroke="#d1d5db"/>
+    <text x="88" y="42" fill="#111827" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="18" font-weight="700">オフホワイト</text>
+    <text x="88" y="68" fill="#6b7280" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="14">off_white</text>
+    <text x="20" y="108" fill="#374151" font-family="'SFMono-Regular', Consolas, monospace" font-size="14">#F5F3EE</text>
+  </g>
+  <g transform="translate(484 194)">
+    <rect x="0" y="0" width="196" height="146" rx="20" fill="#ffffff" stroke="#ddd6c7"/>
+    <rect x="20" y="20" width="52" height="52" rx="14" fill="#9AA0A6" stroke="#d1d5db"/>
+    <text x="88" y="42" fill="#111827" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="18" font-weight="700">グレー</text>
+    <text x="88" y="68" fill="#6b7280" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="14">gray</text>
+    <text x="20" y="108" fill="#374151" font-family="'SFMono-Regular', Consolas, monospace" font-size="14">#9AA0A6</text>
+  </g>
+  <g transform="translate(696 194)">
+    <rect x="0" y="0" width="196" height="146" rx="20" fill="#ffffff" stroke="#ddd6c7"/>
+    <rect x="20" y="20" width="52" height="52" rx="14" fill="#2F4058" stroke="#d1d5db"/>
+    <text x="88" y="42" fill="#111827" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="18" font-weight="700">ネイビー</text>
+    <text x="88" y="68" fill="#6b7280" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="14">navy</text>
+    <text x="20" y="108" fill="#374151" font-family="'SFMono-Regular', Consolas, monospace" font-size="14">#2F4058</text>
+  </g>
+  <g transform="translate(908 194)">
+    <rect x="0" y="0" width="196" height="146" rx="20" fill="#ffffff" stroke="#ddd6c7"/>
+    <rect x="20" y="20" width="52" height="52" rx="14" fill="#1F1F1F" stroke="#d1d5db"/>
+    <text x="88" y="42" fill="#111827" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="18" font-weight="700">ブラック</text>
+    <text x="88" y="68" fill="#6b7280" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="14">black</text>
+    <text x="20" y="108" fill="#374151" font-family="'SFMono-Regular', Consolas, monospace" font-size="14">#1F1F1F</text>
+  </g>
+  <g transform="translate(60 356)">
+    <rect x="0" y="0" width="196" height="146" rx="20" fill="#ffffff" stroke="#ddd6c7"/>
+    <rect x="20" y="20" width="52" height="52" rx="14" fill="#F1E8D8" stroke="#d1d5db"/>
+    <text x="88" y="42" fill="#111827" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="18" font-weight="700">アイボリー</text>
+    <text x="88" y="68" fill="#6b7280" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="14">ivory</text>
+    <text x="20" y="108" fill="#374151" font-family="'SFMono-Regular', Consolas, monospace" font-size="14">#F1E8D8</text>
+  </g>
+  <g transform="translate(272 356)">
+    <rect x="0" y="0" width="196" height="146" rx="20" fill="#ffffff" stroke="#ddd6c7"/>
+    <rect x="20" y="20" width="52" height="52" rx="14" fill="#D3C0A4" stroke="#d1d5db"/>
+    <text x="88" y="42" fill="#111827" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="18" font-weight="700">ベージュ</text>
+    <text x="88" y="68" fill="#6b7280" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="14">beige</text>
+    <text x="20" y="108" fill="#374151" font-family="'SFMono-Regular', Consolas, monospace" font-size="14">#D3C0A4</text>
+  </g>
+  <g transform="translate(484 356)">
+    <rect x="0" y="0" width="196" height="146" rx="20" fill="#ffffff" stroke="#ddd6c7"/>
+    <rect x="20" y="20" width="52" height="52" rx="14" fill="#A79B8B" stroke="#d1d5db"/>
+    <text x="88" y="42" fill="#111827" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="18" font-weight="700">グレージュ</text>
+    <text x="88" y="68" fill="#6b7280" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="14">greige</text>
+    <text x="20" y="108" fill="#374151" font-family="'SFMono-Regular', Consolas, monospace" font-size="14">#A79B8B</text>
+  </g>
+  <g transform="translate(696 356)">
+    <rect x="0" y="0" width="196" height="146" rx="20" fill="#ffffff" stroke="#ddd6c7"/>
+    <rect x="20" y="20" width="52" height="52" rx="14" fill="#8A6F5A" stroke="#d1d5db"/>
+    <text x="88" y="42" fill="#111827" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="18" font-weight="700">モカ</text>
+    <text x="88" y="68" fill="#6b7280" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="14">mocha</text>
+    <text x="20" y="108" fill="#374151" font-family="'SFMono-Regular', Consolas, monospace" font-size="14">#8A6F5A</text>
+  </g>
+  <g transform="translate(908 356)">
+    <rect x="0" y="0" width="196" height="146" rx="20" fill="#ffffff" stroke="#ddd6c7"/>
+    <rect x="20" y="20" width="52" height="52" rx="14" fill="#704E3E" stroke="#d1d5db"/>
+    <text x="88" y="42" fill="#111827" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="18" font-weight="700">ブラウン</text>
+    <text x="88" y="68" fill="#6b7280" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="14">brown</text>
+    <text x="20" y="108" fill="#374151" font-family="'SFMono-Regular', Consolas, monospace" font-size="14">#704E3E</text>
+  </g>
+  <text x="60" y="540" fill="#374151" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="24" font-weight="700">ビビッドカラー</text>
+  <g transform="translate(60 564)">
+    <rect x="0" y="0" width="196" height="146" rx="20" fill="#ffffff" stroke="#ddd6c7"/>
+    <rect x="20" y="20" width="52" height="52" rx="14" fill="#E53935" stroke="#d1d5db"/>
+    <text x="88" y="42" fill="#111827" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="18" font-weight="700">レッド</text>
+    <text x="88" y="68" fill="#6b7280" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="14">red</text>
+    <text x="20" y="108" fill="#374151" font-family="'SFMono-Regular', Consolas, monospace" font-size="14">#E53935</text>
+  </g>
+  <g transform="translate(272 564)">
+    <rect x="0" y="0" width="196" height="146" rx="20" fill="#ffffff" stroke="#ddd6c7"/>
+    <rect x="20" y="20" width="52" height="52" rx="14" fill="#FF8A00" stroke="#d1d5db"/>
+    <text x="88" y="42" fill="#111827" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="18" font-weight="700">オレンジ</text>
+    <text x="88" y="68" fill="#6b7280" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="14">orange</text>
+    <text x="20" y="108" fill="#374151" font-family="'SFMono-Regular', Consolas, monospace" font-size="14">#FF8A00</text>
+  </g>
+  <g transform="translate(484 564)">
+    <rect x="0" y="0" width="196" height="146" rx="20" fill="#ffffff" stroke="#ddd6c7"/>
+    <rect x="20" y="20" width="52" height="52" rx="14" fill="#FFD400" stroke="#d1d5db"/>
+    <text x="88" y="42" fill="#111827" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="18" font-weight="700">イエロー</text>
+    <text x="88" y="68" fill="#6b7280" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="14">yellow</text>
+    <text x="20" y="108" fill="#374151" font-family="'SFMono-Regular', Consolas, monospace" font-size="14">#FFD400</text>
+  </g>
+  <g transform="translate(696 564)">
+    <rect x="0" y="0" width="196" height="146" rx="20" fill="#ffffff" stroke="#ddd6c7"/>
+    <rect x="20" y="20" width="52" height="52" rx="14" fill="#A8D61D" stroke="#d1d5db"/>
+    <text x="88" y="42" fill="#111827" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="18" font-weight="700">ライム</text>
+    <text x="88" y="68" fill="#6b7280" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="14">lime</text>
+    <text x="20" y="108" fill="#374151" font-family="'SFMono-Regular', Consolas, monospace" font-size="14">#A8D61D</text>
+  </g>
+  <g transform="translate(908 564)">
+    <rect x="0" y="0" width="196" height="146" rx="20" fill="#ffffff" stroke="#ddd6c7"/>
+    <rect x="20" y="20" width="52" height="52" rx="14" fill="#00A65A" stroke="#d1d5db"/>
+    <text x="88" y="42" fill="#111827" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="18" font-weight="700">グリーン</text>
+    <text x="88" y="68" fill="#6b7280" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="14">green</text>
+    <text x="20" y="108" fill="#374151" font-family="'SFMono-Regular', Consolas, monospace" font-size="14">#00A65A</text>
+  </g>
+  <g transform="translate(60 726)">
+    <rect x="0" y="0" width="196" height="146" rx="20" fill="#ffffff" stroke="#ddd6c7"/>
+    <rect x="20" y="20" width="52" height="52" rx="14" fill="#00A7A0" stroke="#d1d5db"/>
+    <text x="88" y="42" fill="#111827" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="18" font-weight="700">ティール</text>
+    <text x="88" y="68" fill="#6b7280" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="14">teal</text>
+    <text x="20" y="108" fill="#374151" font-family="'SFMono-Regular', Consolas, monospace" font-size="14">#00A7A0</text>
+  </g>
+  <g transform="translate(272 726)">
+    <rect x="0" y="0" width="196" height="146" rx="20" fill="#ffffff" stroke="#ddd6c7"/>
+    <rect x="20" y="20" width="52" height="52" rx="14" fill="#0077D9" stroke="#d1d5db"/>
+    <text x="88" y="42" fill="#111827" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="18" font-weight="700">ブルー</text>
+    <text x="88" y="68" fill="#6b7280" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="14">blue</text>
+    <text x="20" y="108" fill="#374151" font-family="'SFMono-Regular', Consolas, monospace" font-size="14">#0077D9</text>
+  </g>
+  <g transform="translate(484 726)">
+    <rect x="0" y="0" width="196" height="146" rx="20" fill="#ffffff" stroke="#ddd6c7"/>
+    <rect x="20" y="20" width="52" height="52" rx="14" fill="#7B3FE4" stroke="#d1d5db"/>
+    <text x="88" y="42" fill="#111827" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="18" font-weight="700">パープル</text>
+    <text x="88" y="68" fill="#6b7280" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="14">purple</text>
+    <text x="20" y="108" fill="#374151" font-family="'SFMono-Regular', Consolas, monospace" font-size="14">#7B3FE4</text>
+  </g>
+  <g transform="translate(696 726)">
+    <rect x="0" y="0" width="196" height="146" rx="20" fill="#ffffff" stroke="#ddd6c7"/>
+    <rect x="20" y="20" width="52" height="52" rx="14" fill="#C900A7" stroke="#d1d5db"/>
+    <text x="88" y="42" fill="#111827" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="18" font-weight="700">マゼンタ</text>
+    <text x="88" y="68" fill="#6b7280" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="14">magenta</text>
+    <text x="20" y="108" fill="#374151" font-family="'SFMono-Regular', Consolas, monospace" font-size="14">#C900A7</text>
+  </g>
+  <g transform="translate(908 726)">
+    <rect x="0" y="0" width="196" height="146" rx="20" fill="#ffffff" stroke="#ddd6c7"/>
+    <rect x="20" y="20" width="52" height="52" rx="14" fill="#FF4F8B" stroke="#d1d5db"/>
+    <text x="88" y="42" fill="#111827" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="18" font-weight="700">ローズ</text>
+    <text x="88" y="68" fill="#6b7280" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="14">rose</text>
+    <text x="20" y="108" fill="#374151" font-family="'SFMono-Regular', Consolas, monospace" font-size="14">#FF4F8B</text>
+  </g>
+  <text x="60" y="910" fill="#374151" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="24" font-weight="700">ペールカラー</text>
+  <g transform="translate(60 934)">
+    <rect x="0" y="0" width="196" height="146" rx="20" fill="#ffffff" stroke="#ddd6c7"/>
+    <rect x="20" y="20" width="52" height="52" rx="14" fill="#F3C8C3" stroke="#d1d5db"/>
+    <text x="88" y="42" fill="#111827" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="18" font-weight="700">ペールレッド</text>
+    <text x="88" y="68" fill="#6b7280" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="14">pale_red</text>
+    <text x="20" y="108" fill="#374151" font-family="'SFMono-Regular', Consolas, monospace" font-size="14">#F3C8C3</text>
+  </g>
+  <g transform="translate(272 934)">
+    <rect x="0" y="0" width="196" height="146" rx="20" fill="#ffffff" stroke="#ddd6c7"/>
+    <rect x="20" y="20" width="52" height="52" rx="14" fill="#F5D7C7" stroke="#d1d5db"/>
+    <text x="88" y="42" fill="#111827" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="18" font-weight="700">ピーチ</text>
+    <text x="88" y="68" fill="#6b7280" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="14">peach</text>
+    <text x="20" y="108" fill="#374151" font-family="'SFMono-Regular', Consolas, monospace" font-size="14">#F5D7C7</text>
+  </g>
+  <g transform="translate(484 934)">
+    <rect x="0" y="0" width="196" height="146" rx="20" fill="#ffffff" stroke="#ddd6c7"/>
+    <rect x="20" y="20" width="52" height="52" rx="14" fill="#F6EDB8" stroke="#d1d5db"/>
+    <text x="88" y="42" fill="#111827" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="18" font-weight="700">ペールイエロー</text>
+    <text x="88" y="68" fill="#6b7280" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="14">pale_yellow</text>
+    <text x="20" y="108" fill="#374151" font-family="'SFMono-Regular', Consolas, monospace" font-size="14">#F6EDB8</text>
+  </g>
+  <g transform="translate(696 934)">
+    <rect x="0" y="0" width="196" height="146" rx="20" fill="#ffffff" stroke="#ddd6c7"/>
+    <rect x="20" y="20" width="52" height="52" rx="14" fill="#E1E9C8" stroke="#d1d5db"/>
+    <text x="88" y="42" fill="#111827" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="18" font-weight="700">ピスタチオ</text>
+    <text x="88" y="68" fill="#6b7280" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="14">pistachio</text>
+    <text x="20" y="108" fill="#374151" font-family="'SFMono-Regular', Consolas, monospace" font-size="14">#E1E9C8</text>
+  </g>
+  <g transform="translate(908 934)">
+    <rect x="0" y="0" width="196" height="146" rx="20" fill="#ffffff" stroke="#ddd6c7"/>
+    <rect x="20" y="20" width="52" height="52" rx="14" fill="#D6EADF" stroke="#d1d5db"/>
+    <text x="88" y="42" fill="#111827" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="18" font-weight="700">ミント</text>
+    <text x="88" y="68" fill="#6b7280" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="14">mint</text>
+    <text x="20" y="108" fill="#374151" font-family="'SFMono-Regular', Consolas, monospace" font-size="14">#D6EADF</text>
+  </g>
+  <g transform="translate(60 1096)">
+    <rect x="0" y="0" width="196" height="146" rx="20" fill="#ffffff" stroke="#ddd6c7"/>
+    <rect x="20" y="20" width="52" height="52" rx="14" fill="#DDECF8" stroke="#d1d5db"/>
+    <text x="88" y="42" fill="#111827" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="18" font-weight="700">スカイ</text>
+    <text x="88" y="68" fill="#6b7280" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="14">sky</text>
+    <text x="20" y="108" fill="#374151" font-family="'SFMono-Regular', Consolas, monospace" font-size="14">#DDECF8</text>
+  </g>
+  <g transform="translate(272 1096)">
+    <rect x="0" y="0" width="196" height="146" rx="20" fill="#ffffff" stroke="#ddd6c7"/>
+    <rect x="20" y="20" width="52" height="52" rx="14" fill="#D7E7F4" stroke="#d1d5db"/>
+    <text x="88" y="42" fill="#111827" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="18" font-weight="700">ペールブルー</text>
+    <text x="88" y="68" fill="#6b7280" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="14">pale_blue</text>
+    <text x="20" y="108" fill="#374151" font-family="'SFMono-Regular', Consolas, monospace" font-size="14">#D7E7F4</text>
+  </g>
+  <g transform="translate(484 1096)">
+    <rect x="0" y="0" width="196" height="146" rx="20" fill="#ffffff" stroke="#ddd6c7"/>
+    <rect x="20" y="20" width="52" height="52" rx="14" fill="#E3E7EC" stroke="#d1d5db"/>
+    <text x="88" y="42" fill="#111827" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="18" font-weight="700">パウダーグレー</text>
+    <text x="88" y="68" fill="#6b7280" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="14">powder_gray</text>
+    <text x="20" y="108" fill="#374151" font-family="'SFMono-Regular', Consolas, monospace" font-size="14">#E3E7EC</text>
+  </g>
+  <g transform="translate(696 1096)">
+    <rect x="0" y="0" width="196" height="146" rx="20" fill="#ffffff" stroke="#ddd6c7"/>
+    <rect x="20" y="20" width="52" height="52" rx="14" fill="#DDD2F0" stroke="#d1d5db"/>
+    <text x="88" y="42" fill="#111827" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="18" font-weight="700">ラベンダー</text>
+    <text x="88" y="68" fill="#6b7280" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="14">lavender</text>
+    <text x="20" y="108" fill="#374151" font-family="'SFMono-Regular', Consolas, monospace" font-size="14">#DDD2F0</text>
+  </g>
+  <g transform="translate(908 1096)">
+    <rect x="0" y="0" width="196" height="146" rx="20" fill="#ffffff" stroke="#ddd6c7"/>
+    <rect x="20" y="20" width="52" height="52" rx="14" fill="#F2D0D8" stroke="#d1d5db"/>
+    <text x="88" y="42" fill="#111827" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="18" font-weight="700">ペールピンク</text>
+    <text x="88" y="68" fill="#6b7280" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="14">pale_pink</text>
+    <text x="20" y="108" fill="#374151" font-family="'SFMono-Regular', Consolas, monospace" font-size="14">#F2D0D8</text>
+  </g>
+  <text x="60" y="1280" fill="#374151" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="24" font-weight="700">ディープカラー</text>
+  <g transform="translate(60 1304)">
+    <rect x="0" y="0" width="196" height="146" rx="20" fill="#ffffff" stroke="#ddd6c7"/>
+    <rect x="20" y="20" width="52" height="52" rx="14" fill="#8A4E2D" stroke="#d1d5db"/>
+    <text x="88" y="42" fill="#111827" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="18" font-weight="700">カッパー</text>
+    <text x="88" y="68" fill="#6b7280" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="14">copper</text>
+    <text x="20" y="108" fill="#374151" font-family="'SFMono-Regular', Consolas, monospace" font-size="14">#8A4E2D</text>
+  </g>
+  <g transform="translate(272 1304)">
+    <rect x="0" y="0" width="196" height="146" rx="20" fill="#ffffff" stroke="#ddd6c7"/>
+    <rect x="20" y="20" width="52" height="52" rx="14" fill="#7A233A" stroke="#d1d5db"/>
+    <text x="88" y="42" fill="#111827" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="18" font-weight="700">ワイン</text>
+    <text x="88" y="68" fill="#6b7280" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="14">wine</text>
+    <text x="20" y="108" fill="#374151" font-family="'SFMono-Regular', Consolas, monospace" font-size="14">#7A233A</text>
+  </g>
+  <g transform="translate(484 1304)">
+    <rect x="0" y="0" width="196" height="146" rx="20" fill="#ffffff" stroke="#ddd6c7"/>
+    <rect x="20" y="20" width="52" height="52" rx="14" fill="#6E2F42" stroke="#d1d5db"/>
+    <text x="88" y="42" fill="#111827" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="18" font-weight="700">ボルドー</text>
+    <text x="88" y="68" fill="#6b7280" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="14">bordeaux</text>
+    <text x="20" y="108" fill="#374151" font-family="'SFMono-Regular', Consolas, monospace" font-size="14">#6E2F42</text>
+  </g>
+  <g transform="translate(696 1304)">
+    <rect x="0" y="0" width="196" height="146" rx="20" fill="#ffffff" stroke="#ddd6c7"/>
+    <rect x="20" y="20" width="52" height="52" rx="14" fill="#5B375E" stroke="#d1d5db"/>
+    <text x="88" y="42" fill="#111827" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="18" font-weight="700">プラム</text>
+    <text x="88" y="68" fill="#6b7280" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="14">plum</text>
+    <text x="20" y="108" fill="#374151" font-family="'SFMono-Regular', Consolas, monospace" font-size="14">#5B375E</text>
+  </g>
+  <g transform="translate(908 1304)">
+    <rect x="0" y="0" width="196" height="146" rx="20" fill="#ffffff" stroke="#ddd6c7"/>
+    <rect x="20" y="20" width="52" height="52" rx="14" fill="#4F3E68" stroke="#d1d5db"/>
+    <text x="88" y="42" fill="#111827" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="18" font-weight="700">ディープパープル</text>
+    <text x="88" y="68" fill="#6b7280" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="14">deep_purple</text>
+    <text x="20" y="108" fill="#374151" font-family="'SFMono-Regular', Consolas, monospace" font-size="14">#4F3E68</text>
+  </g>
+  <g transform="translate(60 1466)">
+    <rect x="0" y="0" width="196" height="146" rx="20" fill="#ffffff" stroke="#ddd6c7"/>
+    <rect x="20" y="20" width="52" height="52" rx="14" fill="#24324A" stroke="#d1d5db"/>
+    <text x="88" y="42" fill="#111827" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="18" font-weight="700">ミッドナイト</text>
+    <text x="88" y="68" fill="#6b7280" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="14">midnight</text>
+    <text x="20" y="108" fill="#374151" font-family="'SFMono-Regular', Consolas, monospace" font-size="14">#24324A</text>
+  </g>
+  <g transform="translate(272 1466)">
+    <rect x="0" y="0" width="196" height="146" rx="20" fill="#ffffff" stroke="#ddd6c7"/>
+    <rect x="20" y="20" width="52" height="52" rx="14" fill="#2D4F7C" stroke="#d1d5db"/>
+    <text x="88" y="42" fill="#111827" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="18" font-weight="700">ディープブルー</text>
+    <text x="88" y="68" fill="#6b7280" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="14">deep_blue</text>
+    <text x="20" y="108" fill="#374151" font-family="'SFMono-Regular', Consolas, monospace" font-size="14">#2D4F7C</text>
+  </g>
+  <g transform="translate(484 1466)">
+    <rect x="0" y="0" width="196" height="146" rx="20" fill="#ffffff" stroke="#ddd6c7"/>
+    <rect x="20" y="20" width="52" height="52" rx="14" fill="#1F5C63" stroke="#d1d5db"/>
+    <text x="88" y="42" fill="#111827" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="18" font-weight="700">ディープティール</text>
+    <text x="88" y="68" fill="#6b7280" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="14">deep_teal</text>
+    <text x="20" y="108" fill="#374151" font-family="'SFMono-Regular', Consolas, monospace" font-size="14">#1F5C63</text>
+  </g>
+  <g transform="translate(696 1466)">
+    <rect x="0" y="0" width="196" height="146" rx="20" fill="#ffffff" stroke="#ddd6c7"/>
+    <rect x="20" y="20" width="52" height="52" rx="14" fill="#2F5D46" stroke="#d1d5db"/>
+    <text x="88" y="42" fill="#111827" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="18" font-weight="700">ディープグリーン</text>
+    <text x="88" y="68" fill="#6b7280" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="14">deep_green</text>
+    <text x="20" y="108" fill="#374151" font-family="'SFMono-Regular', Consolas, monospace" font-size="14">#2F5D46</text>
+  </g>
+  <g transform="translate(908 1466)">
+    <rect x="0" y="0" width="196" height="146" rx="20" fill="#ffffff" stroke="#ddd6c7"/>
+    <rect x="20" y="20" width="52" height="52" rx="14" fill="#43522A" stroke="#d1d5db"/>
+    <text x="88" y="42" fill="#111827" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="18" font-weight="700">フォレスト</text>
+    <text x="88" y="68" fill="#6b7280" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="14">forest</text>
+    <text x="20" y="108" fill="#374151" font-family="'SFMono-Regular', Consolas, monospace" font-size="14">#43522A</text>
+  </g>
+  <text x="60" y="1650" fill="#374151" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="24" font-weight="700">アースカラー</text>
+  <g transform="translate(60 1674)">
+    <rect x="0" y="0" width="196" height="146" rx="20" fill="#ffffff" stroke="#ddd6c7"/>
+    <rect x="20" y="20" width="52" height="52" rx="14" fill="#B96F4E" stroke="#d1d5db"/>
+    <text x="88" y="42" fill="#111827" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="18" font-weight="700">テラコッタ</text>
+    <text x="88" y="68" fill="#6b7280" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="14">terracotta</text>
+    <text x="20" y="108" fill="#374151" font-family="'SFMono-Regular', Consolas, monospace" font-size="14">#B96F4E</text>
+  </g>
+  <g transform="translate(272 1674)">
+    <rect x="0" y="0" width="196" height="146" rx="20" fill="#ffffff" stroke="#ddd6c7"/>
+    <rect x="20" y="20" width="52" height="52" rx="14" fill="#A8563A" stroke="#d1d5db"/>
+    <text x="88" y="42" fill="#111827" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="18" font-weight="700">ラスト</text>
+    <text x="88" y="68" fill="#6b7280" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="14">rust</text>
+    <text x="20" y="108" fill="#374151" font-family="'SFMono-Regular', Consolas, monospace" font-size="14">#A8563A</text>
+  </g>
+  <g transform="translate(484 1674)">
+    <rect x="0" y="0" width="196" height="146" rx="20" fill="#ffffff" stroke="#ddd6c7"/>
+    <rect x="20" y="20" width="52" height="52" rx="14" fill="#B98B58" stroke="#d1d5db"/>
+    <text x="88" y="42" fill="#111827" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="18" font-weight="700">キャメル</text>
+    <text x="88" y="68" fill="#6b7280" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="14">camel</text>
+    <text x="20" y="108" fill="#374151" font-family="'SFMono-Regular', Consolas, monospace" font-size="14">#B98B58</text>
+  </g>
+  <g transform="translate(696 1674)">
+    <rect x="0" y="0" width="196" height="146" rx="20" fill="#ffffff" stroke="#ddd6c7"/>
+    <rect x="20" y="20" width="52" height="52" rx="14" fill="#B6923E" stroke="#d1d5db"/>
+    <text x="88" y="42" fill="#111827" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="18" font-weight="700">マスタード</text>
+    <text x="88" y="68" fill="#6b7280" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="14">mustard</text>
+    <text x="20" y="108" fill="#374151" font-family="'SFMono-Regular', Consolas, monospace" font-size="14">#B6923E</text>
+  </g>
+  <g transform="translate(908 1674)">
+    <rect x="0" y="0" width="196" height="146" rx="20" fill="#ffffff" stroke="#ddd6c7"/>
+    <rect x="20" y="20" width="52" height="52" rx="14" fill="#D2BE98" stroke="#d1d5db"/>
+    <text x="88" y="42" fill="#111827" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="18" font-weight="700">サンド</text>
+    <text x="88" y="68" fill="#6b7280" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="14">sand</text>
+    <text x="20" y="108" fill="#374151" font-family="'SFMono-Regular', Consolas, monospace" font-size="14">#D2BE98</text>
+  </g>
+  <g transform="translate(60 1836)">
+    <rect x="0" y="0" width="196" height="146" rx="20" fill="#ffffff" stroke="#ddd6c7"/>
+    <rect x="20" y="20" width="52" height="52" rx="14" fill="#8B8A5A" stroke="#d1d5db"/>
+    <text x="88" y="42" fill="#111827" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="18" font-weight="700">カーキ</text>
+    <text x="88" y="68" fill="#6b7280" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="14">khaki</text>
+    <text x="20" y="108" fill="#374151" font-family="'SFMono-Regular', Consolas, monospace" font-size="14">#8B8A5A</text>
+  </g>
+  <g transform="translate(272 1836)">
+    <rect x="0" y="0" width="196" height="146" rx="20" fill="#ffffff" stroke="#ddd6c7"/>
+    <rect x="20" y="20" width="52" height="52" rx="14" fill="#4F6B3B" stroke="#d1d5db"/>
+    <text x="88" y="42" fill="#111827" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="18" font-weight="700">モス</text>
+    <text x="88" y="68" fill="#6b7280" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="14">moss</text>
+    <text x="20" y="108" fill="#374151" font-family="'SFMono-Regular', Consolas, monospace" font-size="14">#4F6B3B</text>
+  </g>
+  <g transform="translate(484 1836)">
+    <rect x="0" y="0" width="196" height="146" rx="20" fill="#ffffff" stroke="#ddd6c7"/>
+    <rect x="20" y="20" width="52" height="52" rx="14" fill="#66714A" stroke="#d1d5db"/>
+    <text x="88" y="42" fill="#111827" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="18" font-weight="700">オリーブ</text>
+    <text x="88" y="68" fill="#6b7280" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="14">olive</text>
+    <text x="20" y="108" fill="#374151" font-family="'SFMono-Regular', Consolas, monospace" font-size="14">#66714A</text>
+  </g>
+  <g transform="translate(696 1836)">
+    <rect x="0" y="0" width="196" height="146" rx="20" fill="#ffffff" stroke="#ddd6c7"/>
+    <rect x="20" y="20" width="52" height="52" rx="14" fill="#61758C" stroke="#d1d5db"/>
+    <text x="88" y="42" fill="#111827" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="18" font-weight="700">スレートブルー</text>
+    <text x="88" y="68" fill="#6b7280" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="14">slate_blue</text>
+    <text x="20" y="108" fill="#374151" font-family="'SFMono-Regular', Consolas, monospace" font-size="14">#61758C</text>
+  </g>
+  <g transform="translate(908 1836)">
+    <rect x="0" y="0" width="196" height="146" rx="20" fill="#ffffff" stroke="#ddd6c7"/>
+    <rect x="20" y="20" width="52" height="52" rx="14" fill="#6D4C41" stroke="#d1d5db"/>
+    <text x="88" y="42" fill="#111827" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="18" font-weight="700">ココア</text>
+    <text x="88" y="68" fill="#6b7280" font-family="'Yu Gothic UI', 'Hiragino Sans', sans-serif" font-size="14">cocoa</text>
+    <text x="20" y="108" fill="#374151" font-family="'SFMono-Regular', Consolas, monospace" font-size="14">#6D4C41</text>
+  </g>
+</svg>

@@ -3,6 +3,14 @@
 このファイルは、現在の実装状況と次に着手する内容を共有するための引き継ぎメモです。
 設計の正本は `docs/` 配下の各資料を参照し、日々の実装状況と判断メモはこのファイルに集約します。
 
+### カラーパレット
+
+- プリセットカラーを `ベーシック / アース / ディープ / ペール / ビビッド` の 5 グループで管理するようにした
+- create / edit の色選択 UI はグループ単位で選べるよう `optgroup` 表示にした
+- docs 貼り付け用のカラーパレット画像を追加した
+
+![プリセットカラー一覧](./assets/item-colors-palette.svg)
+
 ---
 
 ## 現在の実装状況
@@ -48,6 +56,7 @@
 - `tops spec` を `items.spec` として保存可能にした
 - create / edit / detail / list の各画面で `spec.tops` を利用するように統一した
 - `ItemPreviewCard` と一覧カードで tops SVG プレビューを利用するようにした
+- `tshirt` に加えて `shirt / blouse / knit / cardigan / camisole / tanktop` の SVG プレビューに対応した
 - `tops` 用 master-data (`shape / sleeve / length / neck / design / fit`) を UI に反映した
 - 詳細画面では `topsSpecRaw` を nullable-safe に組み立てるよう修正した
 
@@ -137,8 +146,8 @@ UI/UX メモ:
 
 優先度順:
 
-1. tops SVG を `tshirt` 以外にも広げる
-2. `spec` を前提にした詳細表示ラベルの整備
+1. `spec` を前提にした詳細表示ラベルの整備
+2. tops SVG の形状差分をさらに細かくする
 3. docs の OpenAPI / database / architecture の整合を追加確認する
 
 ---

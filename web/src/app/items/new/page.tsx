@@ -13,6 +13,7 @@ import {
   type ItemColorValue,
 } from "@/lib/master-data/item-colors";
 import ColorChip from "@/components/items/color-chip";
+import ColorSelect from "@/components/items/color-select";
 import type { CreateItemPayload, ItemFormColor } from "@/types/items";
 import ItemPreviewCard from "@/components/items/item-preview-card";
 import {
@@ -524,18 +525,11 @@ export default function NewItemPage() {
                     <input type="text" value={customMainHex} onChange={(e) => setCustomMainHex(e.target.value)} className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors.mainColor ? "border-red-400" : "border-gray-300"}`} />
                   </div>
                 ) : (
-                  <select
+                  <ColorSelect
                     value={mainColor}
-                    onChange={(e) => setMainColor(e.target.value as ItemColorValue | "")}
-                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                  >
-                    <option value="">選択してください</option>
-                    {ITEM_COLORS.map((color) => (
-                      <option key={color.value} value={color.value}>
-                        {color.label}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={setMainColor}
+                    placeholder="選択してください"
+                  />
                 )}
                 {errors.mainColor && <p className="mt-2 text-sm text-red-600">{errors.mainColor}</p>}
               </div>
@@ -561,18 +555,12 @@ export default function NewItemPage() {
                     <input type="text" value={customSubHex} onChange={(e) => setCustomSubHex(e.target.value)} className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
                   </div>
                 ) : (
-                  <select
+                  <ColorSelect
                     value={subColor}
-                    onChange={(e) => setSubColor(e.target.value as ItemColorValue | "")}
-                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                  >
-                    <option value="">未選択</option>
-                    {ITEM_COLORS.map((color) => (
-                      <option key={color.value} value={color.value}>
-                        {color.label}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={setSubColor}
+                    placeholder="未選択"
+                    emptyOptionLabel="色を選ばない"
+                  />
                 )}
               </div>
             </div>
