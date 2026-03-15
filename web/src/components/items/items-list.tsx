@@ -26,6 +26,7 @@ function PreviewThumb({
         <TopsPreviewSvg
           shape={topsSpec.shape}
           sleeve={topsSpec.sleeve ?? undefined}
+          neck={topsSpec.neck ?? undefined}
           design={topsSpec.design ?? undefined}
           fit={topsSpec.fit ?? undefined}
           mainColor={mainColorHex}

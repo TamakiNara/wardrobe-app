@@ -1,17 +1,29 @@
+import GenericTopsPreviewSvg from "./generic-tops-preview-svg";
 import TshirtPreviewSvg from "./tshirt-preview-svg";
 
 type TopsPreviewSvgProps = {
   shape?: string;
   sleeve?: string;
   design?: string;
+  neck?: string;
   fit?: string;
   mainColor?: string;
   subColor?: string;
 };
 
+const GENERIC_TOPS_SHAPES = new Set([
+  "shirt",
+  "blouse",
+  "knit",
+  "cardigan",
+  "camisole",
+  "tanktop",
+]);
+
 export default function TopsPreviewSvg({
   shape,
   sleeve,
+  neck,
   design,
   fit,
   mainColor,
@@ -27,6 +39,19 @@ export default function TopsPreviewSvg({
         sleeve={sleeve}
         design={design}
         fit={fit}
+      />
+    );
+  }
+
+  if (GENERIC_TOPS_SHAPES.has(shape)) {
+    return (
+      <GenericTopsPreviewSvg
+        shape={shape}
+        neck={neck}
+        sleeve={sleeve}
+        fit={fit}
+        mainColor={mainColor ?? "#CBD5E1"}
+        subColor={subColor}
       />
     );
   }

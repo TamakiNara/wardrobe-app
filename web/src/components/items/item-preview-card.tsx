@@ -88,6 +88,7 @@ export default function ItemPreviewCard({
             <TopsPreviewSvg
               shape={topsSpecRaw.shape}
               sleeve={topsSpecRaw.sleeve}
+              neck={topsSpecRaw.neck}
               design={topsSpecRaw.design}
               fit={topsSpecRaw.fit}
               mainColor={mainColorHex}
