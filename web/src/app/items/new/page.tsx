@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { useMemo, useState, type FormEvent } from "react";
@@ -17,6 +17,8 @@ import ColorSelect from "@/components/items/color-select";
 import type { CreateItemPayload, ItemFormColor } from "@/types/items";
 import ItemPreviewCard from "@/components/items/item-preview-card";
 import {
+  buildTopsSpecLabels,
+  buildTopsSpecRaw,
   DEFAULT_TOPS_FIT,
   TOPS_DESIGNS,
   TOPS_FITS,
@@ -36,12 +38,7 @@ import {
 const SEASON_OPTIONS = ["春", "夏", "秋", "冬", "オール"] as const;
 const TPO_OPTIONS = ["仕事", "休日", "フォーマル"] as const;
 
-function findLabel<T extends { value: string; label: string }>(
-  items: readonly T[],
-  value: string,
-) {
-  return items.find((item) => item.value === value)?.label ?? value;
-}
+
 
 export default function NewItemPage() {
   const router = useRouter();
@@ -275,27 +272,26 @@ export default function NewItemPage() {
   }
 
   const previewTopsSpec = isTopsCategory
-    ? {
-        shape: topsShape ? findLabel(TOPS_SHAPES, topsShape) : "",
-        sleeve: topsSleeve ? findLabel(TOPS_SLEEVES, topsSleeve) : "",
-        length: topsLength ? findLabel(TOPS_LENGTHS, topsLength) : "",
-        neck: topsNeck ? findLabel(TOPS_NECKS, topsNeck) : "",
-        design: topsDesign ? findLabel(TOPS_DESIGNS, topsDesign) : "",
-        fit: topsFit ? findLabel(TOPS_FITS, topsFit) : "",
-      }
+    ? buildTopsSpecLabels({
+        shape: topsShape || undefined,
+        sleeve: topsSleeve || undefined,
+        length: topsLength || undefined,
+        neck: topsNeck || undefined,
+        design: topsDesign || undefined,
+        fit: topsFit || undefined,
+      })
     : null;
 
   const previewTopsSpecRaw = isTopsCategory
-    ? {
-        shape: topsShape || "",
-        sleeve: topsSleeve || "",
-        length: topsLength || "",
-        neck: topsNeck || "",
-        design: topsDesign || "",
-        fit: topsFit || "",
-      }
+    ? buildTopsSpecRaw({
+        shape: topsShape || undefined,
+        sleeve: topsSleeve || undefined,
+        length: topsLength || undefined,
+        neck: topsNeck || undefined,
+        design: topsDesign || undefined,
+        fit: topsFit || undefined,
+      })
     : null;
-
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">
       <div className="mx-auto max-w-3xl space-y-6">

@@ -3,53 +3,10 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import DeleteItemButton from "@/components/items/delete-item-button";
 import ItemPreviewCard from "@/components/items/item-preview-card";
-import {
-  TOPS_DESIGNS,
-  TOPS_FITS,
-  TOPS_LENGTHS,
-  TOPS_NECKS,
-  TOPS_SHAPES,
-  TOPS_SLEEVES,
-} from "@/lib/master-data/item-tops";
+import { buildTopsSpecLabels, buildTopsSpecRaw } from "@/lib/master-data/item-tops";
+import { findItemCategoryLabel, findItemShapeLabel } from "@/lib/master-data/item-shapes";
 import type { ItemRecord } from "@/types/items";
 
-function findLabel(
-  options: ReadonlyArray<{ value: string; label: string }>,
-  value?: string | null,
-) {
-  if (!value) return "";
-  return options.find((option) => option.value === value)?.label ?? value;
-}
-
-function buildTopsSpecLabels(item: ItemRecord) {
-  const tops = item.spec?.tops;
-
-  if (!tops) return null;
-
-  return {
-    shape: findLabel(TOPS_SHAPES, tops.shape),
-    sleeve: findLabel(TOPS_SLEEVES, tops.sleeve),
-    length: findLabel(TOPS_LENGTHS, tops.length),
-    neck: findLabel(TOPS_NECKS, tops.neck),
-    design: findLabel(TOPS_DESIGNS, tops.design),
-    fit: findLabel(TOPS_FITS, tops.fit),
-  };
-}
-
-function buildTopsSpecRaw(item: ItemRecord) {
-  const tops = item.spec?.tops;
-
-  if (!tops) return null;
-
-  return {
-    shape: tops.shape,
-    sleeve: tops.sleeve ?? undefined,
-    length: tops.length ?? undefined,
-    neck: tops.neck ?? undefined,
-    design: tops.design ?? undefined,
-    fit: tops.fit ?? undefined,
-  };
-}
 async function getItem(id: string): Promise<ItemRecord> {
   const cookie = (await headers()).get("cookie") ?? "";
   const appUrl = process.env.NEXT_APP_URL ?? "http://localhost:3000";
@@ -79,8 +36,10 @@ export default async function ItemPage({
 
   const mainColor = item.colors.find((c) => c.role === "main");
   const subColor = item.colors.find((c) => c.role === "sub");
-  const topsSpec = buildTopsSpecLabels(item);
-  const topsSpecRaw = buildTopsSpecRaw(item);
+  const topsSpec = buildTopsSpecLabels(item.spec?.tops);
+  const topsSpecRaw = buildTopsSpecRaw(item.spec?.tops);
+  const categoryLabel = findItemCategoryLabel(item.category);
+  const shapeLabel = findItemShapeLabel(item.category, item.shape);
 
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">
@@ -138,7 +97,7 @@ export default async function ItemPage({
 
         <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
           <p className="text-gray-600">
-            {item.category} / {item.shape}
+            {categoryLabel} / {shapeLabel}
           </p>
 
           <div className="mt-4 flex flex-wrap gap-2">

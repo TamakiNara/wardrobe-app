@@ -5,3 +5,4 @@ export * from "./necks";
 export * from "./designs";
 export * from "./fits";
 export * from "./rules";
+export * from "./display";

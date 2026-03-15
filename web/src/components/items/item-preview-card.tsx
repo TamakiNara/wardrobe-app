@@ -1,4 +1,8 @@
-import TopsPreviewSvg from "@/components/items/preview-svg/tops-preview-svg";
+﻿import TopsPreviewSvg from "@/components/items/preview-svg/tops-preview-svg";
+import {
+  findItemCategoryLabel,
+  findItemShapeLabel,
+} from "@/lib/master-data/item-shapes";
 
 type ItemPreviewCardProps = {
   name: string;
@@ -66,6 +70,8 @@ export default function ItemPreviewCard({
   topsSpecRaw,
 }: ItemPreviewCardProps) {
   const isTops = category === "tops";
+  const categoryLabel = findItemCategoryLabel(category) || "カテゴリ未選択";
+  const shapeLabel = findItemShapeLabel(category, shape);
 
   return (
     <section className="rounded-2xl border border-gray-200 bg-gray-50 p-5">
@@ -76,8 +82,8 @@ export default function ItemPreviewCard({
             {name || "名称未設定"}
           </h2>
           <p className="mt-1 text-sm text-gray-600">
-            {category || "カテゴリ未選択"}
-            {shape ? ` / ${shape}` : ""}
+            {categoryLabel}
+            {shapeLabel ? ` / ${shapeLabel}` : ""}
           </p>
         </div>
       </div>

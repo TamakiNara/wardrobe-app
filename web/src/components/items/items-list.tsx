@@ -1,8 +1,13 @@
-"use client";
+﻿"use client";
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import TopsPreviewSvg from "@/components/items/preview-svg/tops-preview-svg";
+import {
+  ITEM_CATEGORIES,
+  findItemCategoryLabel,
+  findItemShapeLabel,
+} from "@/lib/master-data/item-shapes";
 import type { ItemRecord } from "@/types/items";
 
 type ItemsListProps = {
@@ -52,7 +57,9 @@ export default function ItemsList({ items }: ItemsListProps) {
   const [tpoFilter, setTpoFilter] = useState("");
 
   const categoryOptions = useMemo(() => {
-    return Array.from(new Set(items.map((item) => item.category))).sort();
+    return ITEM_CATEGORIES.filter((category) =>
+      items.some((item) => item.category === category.value),
+    );
   }, [items]);
 
   const seasonOptions = useMemo(() => {
@@ -95,8 +102,8 @@ export default function ItemsList({ items }: ItemsListProps) {
             >
               <option value="">すべて</option>
               {categoryOptions.map((category) => (
-                <option key={category} value={category}>
-                  {category}
+                <option key={category.value} value={category.value}>
+                  {category.label}
                 </option>
               ))}
             </select>
@@ -172,6 +179,8 @@ export default function ItemsList({ items }: ItemsListProps) {
           {filteredItems.map((item) => {
             const mainColor = item.colors.find((c) => c.role === "main");
             const subColor = item.colors.find((c) => c.role === "sub");
+            const categoryLabel = findItemCategoryLabel(item.category);
+            const shapeLabel = findItemShapeLabel(item.category, item.shape);
 
             return (
               <Link href={`/items/${item.id}`} key={item.id}>
@@ -189,7 +198,7 @@ export default function ItemsList({ items }: ItemsListProps) {
                       </h2>
 
                       <p className="mt-2 text-sm text-gray-600">
-                        {item.category} / {item.shape}
+                        {categoryLabel} / {shapeLabel}
                       </p>
 
                       <div className="mt-4 flex flex-wrap gap-2">
