@@ -25,7 +25,7 @@ export const TOPS_RULES: Record<TopsShapeValue, TopsRule> = {
   tshirt: {
     sleeves: ["short", "five", "seven", "long", "sleeveless", "french"],
     lengths: ["short", "normal", "long"],
-    necks: ["crew", "v", "mock"],
+    necks: ["crew", "v", "mock", "collar"],
     designs: ["raglan"],
     fits: ["normal", "oversized"],
     defaults: {
@@ -55,7 +55,7 @@ export const TOPS_RULES: Record<TopsShapeValue, TopsRule> = {
   blouse: {
     sleeves: ["short", "five", "seven", "long", "sleeveless", "french"],
     lengths: ["normal", "long"],
-    necks: ["crew", "v", "mock"],
+    necks: ["crew", "v", "mock", "collar"],
     designs: [],
     fits: ["normal", "oversized"],
     defaults: {

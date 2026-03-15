@@ -3,7 +3,23 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import DeleteItemButton from "@/components/items/delete-item-button";
 import ItemPreviewCard from "@/components/items/item-preview-card";
+import {
+  TOPS_DESIGNS,
+  TOPS_FITS,
+  TOPS_LENGTHS,
+  TOPS_NECKS,
+  TOPS_SHAPES,
+  TOPS_SLEEVES,
+} from "@/lib/master-data/item-tops";
 import type { ItemRecord } from "@/types/items";
+
+function findLabel(
+  options: ReadonlyArray<{ value: string; label: string }>,
+  value?: string | null,
+) {
+  if (!value) return "";
+  return options.find((option) => option.value === value)?.label ?? value;
+}
 
 function buildTopsSpecLabels(item: ItemRecord) {
   const tops = item.spec?.tops;
@@ -11,12 +27,12 @@ function buildTopsSpecLabels(item: ItemRecord) {
   if (!tops) return null;
 
   return {
-    shape: tops.shape ?? "",
-    sleeve: tops.sleeve ?? "",
-    length: tops.length ?? "",
-    neck: tops.neck ?? "",
-    design: tops.design ?? "",
-    fit: tops.fit ?? "",
+    shape: findLabel(TOPS_SHAPES, tops.shape),
+    sleeve: findLabel(TOPS_SLEEVES, tops.sleeve),
+    length: findLabel(TOPS_LENGTHS, tops.length),
+    neck: findLabel(TOPS_NECKS, tops.neck),
+    design: findLabel(TOPS_DESIGNS, tops.design),
+    fit: findLabel(TOPS_FITS, tops.fit),
   };
 }
 
