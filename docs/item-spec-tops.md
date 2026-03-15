@@ -78,7 +78,7 @@ type ItemSpec = {
 備考:
 
 - SVG 表示では shape を起点にベース形状を切り替えます
-- 現状で SVG 実装が進んでいるのは `tshirt` が中心です
+- 現在は `tshirt / shirt / blouse / knit / cardigan / camisole / tanktop` の SVG プレビューに対応しています
 
 ### sleeve
 
@@ -130,6 +130,7 @@ type ItemSpec = {
 - `v`
 - `turtle`
 - `mock`
+- `collar`
 
 意味:
 
@@ -137,6 +138,7 @@ type ItemSpec = {
 - `v`: V ネック
 - `turtle`: タートルネック
 - `mock`: モックネック
+- `collar`: 襟
 
 ### design
 
@@ -189,7 +191,15 @@ UI ではこのルールに従って選択肢を絞り込みます。
 
 - sleeve: `short` `five` `seven` `long`
 - length: `normal` `long`
-- neck: `crew` `v`
+- neck: `crew` `v` `collar`
+- fit: `normal` `oversized`
+- design: なし
+
+### blouse
+
+- sleeve: `short` `five` `seven` `long` `sleeveless` `french`
+- length: `short` `normal` `long`
+- neck: `crew` `v` `mock` `collar`
 - fit: `normal` `oversized`
 - design: なし
 
@@ -207,9 +217,10 @@ UI ではこのルールに従って選択肢を絞り込みます。
 - master-data は `web/src/lib/master-data/item-tops/`
 - 入力 UI は `web/src/app/items/new/page.tsx` と `web/src/app/items/[id]/edit/page.tsx`
 - プレビューは `web/src/components/items/item-preview-card.tsx` と `web/src/components/items/preview-svg/`
+- 表示ラベル共通化は `web/src/lib/master-data/item-tops/display.ts` で対応済み
 
 今後の拡張候補:
 
-- `shirt` / `blouse` / `knit` などの SVG 実装拡張
-- 表示ラベルと保存値のマッピング整理
+- tops SVG の形状差分をさらに細かくする
+- 一覧カードに tops 仕様の要約表示を出すか検討する
 - OpenAPI への `spec.tops` 反映

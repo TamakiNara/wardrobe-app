@@ -59,6 +59,9 @@
 - `tshirt` に加えて `shirt / blouse / knit / cardigan / camisole / tanktop` の SVG プレビューに対応した
 - `tops` 用 master-data (`shape / sleeve / length / neck / design / fit`) を UI に反映した
 - 詳細画面では `topsSpecRaw` を nullable-safe に組み立てるよう修正した
+- `spec.tops` の表示ラベル変換を共通化し、detail / create / edit のプレビュー表示で同じ変換を使うようにした
+- `category / shape` の表示は master-data の日本語ラベルを使うように統一した
+- tops の形表示は `Tシャツ/カットソー` `ニット/セーター` など、画面間で揺れない名称に整理した
 
 現状のデータ項目:
 
@@ -133,6 +136,8 @@ UI/UX メモ:
 - 詳細画面で `spec.tops` を利用したプレビュー表示を追加
 - 一覧画面で `spec.tops.shape` がある場合は SVG プレビューを表示
 - 詳細画面の関連コンポーネント (`ItemPreviewCard`, `DeleteItemButton`) の日本語文字化けを修正
+- `tops spec` の表示ラベル共通ヘルパーを追加し、各画面のプレビュー欄で再利用するように変更
+- `item-shapes` 側に category / shape の表示ラベル関数を追加し、一覧 / 詳細 / プレビューカードの表記を統一
 
 ### ドキュメント
 
@@ -146,8 +151,8 @@ UI/UX メモ:
 
 優先度順:
 
-1. `spec` を前提にした詳細表示ラベルの整備
-2. tops SVG の形状差分をさらに細かくする
+1. tops SVG の形状差分をさらに細かくする
+2. 一覧カードに tops 仕様の要約表示を出すか検討する
 3. docs の OpenAPI / database / architecture の整合を追加確認する
 
 ---
