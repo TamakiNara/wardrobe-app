@@ -4,10 +4,11 @@ info:
   title: Wardrobe App API
   version: 0.1.0
   description: |
-    Wardrobe App の認証系API仕様。
+    Wardrobe App のAPI仕様。
 
     このAPIは Cookie ベースのセッション認証を使用する。
     POST リクエストでは CSRF 対策のため `X-CSRF-TOKEN` ヘッダが必要。
+    現状は Auth のみ記載
 
 servers:
   - url: http://localhost:8000

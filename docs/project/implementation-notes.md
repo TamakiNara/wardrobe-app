@@ -1,4 +1,4 @@
-﻿# Wardrobe App 作業メモ
+# Wardrobe App 作業メモ
 
 このファイルは、現在の実装状況と次に着手する内容を共有するための引き継ぎメモです。
 設計の正本は `docs/` 配下の各資料を参照し、日々の実装状況と判断メモはこのファイルに集約します。
@@ -9,7 +9,7 @@
 - create / edit の色選択 UI はグループ単位で選べるよう `optgroup` 表示にした
 - docs 貼り付け用のカラーパレット画像を追加した
 
-![プリセットカラー一覧](./assets/item-colors-palette.svg)
+![プリセットカラー一覧](../assets/item-colors-palette.svg)
 
 ---
 
@@ -141,9 +141,9 @@ UI/UX メモ:
 
 ### ドキュメント
 
-- `docs/item-spec-tops.md` を現行実装に合わせて更新
-- `docs/database.md` に `items.spec` を追記
-- `docs/api.md` に `spec.tops` を含む items API の概要を追記
+- `docs/specs/items/tops.md` を現行実装に合わせて更新
+- `docs/data/database.md` に `items.spec` を追記
+- `docs/api/api-overview.md` に `spec.tops` を含む items API の概要を追記
 
 ---
 
@@ -159,6 +159,6 @@ UI/UX メモ:
 
 ## 注意点
 
-- `docs/implementation-notes.md` は作業ログ寄りの資料として運用する
-- 設計の正本は `docs/api.md` `docs/database.md` `docs/system-architecture.md` を参照する
+- `docs/project/implementation-notes.md` は作業ログ寄りの資料として運用する
+- 設計の正本は `docs/api/api-overview.md` `docs/data/database.md` `docs/architecture/system-overview.md` を参照する
 - 日本語テキストは UTF-8 前提で編集すること
