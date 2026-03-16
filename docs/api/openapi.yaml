@@ -17,6 +17,8 @@ servers:
 tags:
   - name: Auth
     description: 認証・セッション関連API
+  - name: Categories
+    description: カテゴリ master 関連API
 
 paths:
   /csrf-cookie:
@@ -208,6 +210,33 @@ paths:
                   value:
                     message: Unauthenticated.
 
+
+  /api/categories:
+    get:
+      tags:
+        - Categories
+      summary: カテゴリ一覧を取得する
+      description: |
+        category master から大分類と中分類の一覧を返す。
+        DBカラムは `group_id` だが、レスポンスJSONでは `groupId` を返す。
+      operationId: listCategories
+      responses:
+        '200':
+          description: 取得成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoriesResponse'
+              examples:
+                success:
+                  value:
+                    groups:
+                      - id: tops
+                        name: トップス
+                        categories:
+                          - id: tops_tshirt
+                            groupId: tops
+                            name: Tシャツ
 components:
   parameters:
     XCsrfTokenHeader:
@@ -223,6 +252,51 @@ components:
         type: string
 
   schemas:
+
+    CategoriesResponse:
+      type: object
+      required:
+        - groups
+      properties:
+        groups:
+          type: array
+          items:
+            $ref: '#/components/schemas/CategoryGroup'
+
+    CategoryGroup:
+      type: object
+      required:
+        - id
+        - name
+        - categories
+      properties:
+        id:
+          type: string
+          example: tops
+        name:
+          type: string
+          example: トップス
+        categories:
+          type: array
+          items:
+            $ref: '#/components/schemas/Category'
+
+    Category:
+      type: object
+      required:
+        - id
+        - groupId
+        - name
+      properties:
+        id:
+          type: string
+          example: tops_tshirt
+        groupId:
+          type: string
+          example: tops
+        name:
+          type: string
+          example: Tシャツ
     User:
       type: object
       required:

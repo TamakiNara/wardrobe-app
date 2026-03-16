@@ -1,4 +1,4 @@
-﻿# API
+# API
 
 ## Auth
 
@@ -6,6 +6,37 @@
 - `POST /api/login`
 - `POST /api/logout`
 - `GET /api/me`
+
+---
+
+## Categories
+
+- `GET /api/categories`
+
+### Categories response
+
+```json
+{
+  "groups": [
+    {
+      "id": "tops",
+      "name": "トップス",
+      "categories": [
+        {
+          "id": "tops_tshirt",
+          "groupId": "tops",
+          "name": "Tシャツ"
+        }
+      ]
+    }
+  ]
+}
+```
+
+### Notes
+
+- category master の有効データのみ返す
+- DBカラムは `group_id` だが、JSONでは `groupId` を返す
 
 ---
 
