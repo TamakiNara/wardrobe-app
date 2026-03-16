@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import {
   ITEM_CATEGORIES,
   ITEM_SHAPES,
   type ItemCategory,
 } from "@/lib/master-data/item-shapes";
+import { buildSupportedCategoryOptions, fetchCategoryGroups } from "@/lib/api/categories";
 import {
   ITEM_COLORS,
   type ItemColorValue,
@@ -45,6 +46,7 @@ export default function NewItemPage() {
 
   const [name, setName] = useState("");
   const [category, setCategory] = useState<ItemCategory | "">("");
+  const [categoryOptions, setCategoryOptions] = useState(ITEM_CATEGORIES);
   const [shape, setShape] = useState("");
 
   const [mainColor, setMainColor] = useState<ItemColorValue | "">("");
@@ -127,6 +129,27 @@ export default function NewItemPage() {
     if (!topsRule) return [];
     return TOPS_FITS.filter((item) => topsRule.fits.includes(item.value));
   }, [topsRule]);
+
+
+  useEffect(() => {
+    let active = true;
+
+    fetchCategoryGroups()
+      .then((groups) => {
+        if (!active) return;
+        const nextOptions = buildSupportedCategoryOptions(groups);
+        if (nextOptions.length > 0) {
+          setCategoryOptions(nextOptions as typeof ITEM_CATEGORIES);
+        }
+      })
+      .catch(() => {
+        // フロントでは取得失敗時に固定 master data へフォールバックする
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   function resetTopsState() {
     setTopsShape("");
@@ -334,7 +357,7 @@ export default function NewItemPage() {
                 className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors.category ? "border-red-400" : "border-gray-300"}`}
               >
                 <option value="">選択してください</option>
-                {ITEM_CATEGORIES.map((item) => (
+                {categoryOptions.map((item) => (
                   <option key={item.value} value={item.value}>
                     {item.label}
                   </option>

@@ -1,6 +1,6 @@
-﻿"use client";
+"use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import TopsPreviewSvg from "@/components/items/preview-svg/tops-preview-svg";
 import {
@@ -8,7 +8,7 @@ import {
   findItemCategoryLabel,
   findItemShapeLabel,
 } from "@/lib/master-data/item-shapes";
-import type { ItemRecord } from "@/types/items";
+import { buildSupportedCategoryOptions, fetchCategoryGroups } from "@/lib/api/categories";
 
 type ItemsListProps = {
   items: ItemRecord[];
@@ -53,14 +53,36 @@ function PreviewThumb({
 
 export default function ItemsList({ items }: ItemsListProps) {
   const [categoryFilter, setCategoryFilter] = useState("");
+  const [apiCategoryOptions, setApiCategoryOptions] = useState(ITEM_CATEGORIES);
   const [seasonFilter, setSeasonFilter] = useState("");
   const [tpoFilter, setTpoFilter] = useState("");
 
+  useEffect(() => {
+    let active = true;
+
+    fetchCategoryGroups()
+      .then((groups) => {
+        if (!active) return;
+        const nextOptions = buildSupportedCategoryOptions(groups);
+        if (nextOptions.length > 0) {
+          setApiCategoryOptions(nextOptions as typeof ITEM_CATEGORIES);
+        }
+      })
+      .catch(() => {
+        // 一覧の絞り込みは取得失敗時に固定 master data へフォールバックする
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const categoryOptions = useMemo(() => {
-    return ITEM_CATEGORIES.filter((category) =>
+    return apiCategoryOptions.filter((category) =>
       items.some((item) => item.category === category.value),
     );
-  }, [items]);
+  }, [apiCategoryOptions, items]);
+
 
   const seasonOptions = useMemo(() => {
     return Array.from(
