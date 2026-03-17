@@ -1,0 +1,84 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\CategoryGroup;
+use App\Models\CategoryMaster;
+use Database\Seeders\CategoryGroupSeeder;
+use Database\Seeders\CategoryMasterSeeder;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+class CategoriesEndpointTest extends TestCase
+{
+    use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->seed(CategoryGroupSeeder::class);
+        $this->seed(CategoryMasterSeeder::class);
+    }
+
+    public function test_categories_endpoint_returns_active_groups_and_categories(): void
+    {
+        CategoryGroup::query()->where('id', 'bags')->update(['is_active' => false]);
+        CategoryMaster::query()->where('id', 'tops_vest')->update(['is_active' => false]);
+
+        $response = $this->getJson('/api/categories', [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk();
+
+        $groups = $response->json('groups');
+
+        $this->assertNotNull($groups);
+        $this->assertContains('tops', array_column($groups, 'id'));
+        $this->assertNotContains('bags', array_column($groups, 'id'));
+
+        $topsGroup = collect($groups)->firstWhere('id', 'tops');
+
+        $this->assertNotNull($topsGroup);
+        $this->assertSame('トップス', $topsGroup['name']);
+        $this->assertContains('tops_tshirt', array_column($topsGroup['categories'], 'id'));
+        $this->assertNotContains('tops_vest', array_column($topsGroup['categories'], 'id'));
+    }
+
+    public function test_categories_endpoint_returns_group_id_as_group_id_in_json(): void
+    {
+        $response = $this->getJson('/api/categories', [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk();
+
+        $topsGroup = collect($response->json('groups'))->firstWhere('id', 'tops');
+        $firstCategory = $topsGroup['categories'][0] ?? null;
+
+        $this->assertNotNull($firstCategory);
+        $this->assertArrayHasKey('groupId', $firstCategory);
+        $this->assertSame('tops', $firstCategory['groupId']);
+        $this->assertArrayNotHasKey('group_id', $firstCategory);
+    }
+
+    public function test_categories_endpoint_returns_groups_and_categories_in_sort_order(): void
+    {
+        CategoryGroup::query()->where('id', 'accessories')->update(['sort_order' => 0]);
+        CategoryMaster::query()->where('id', 'tops_vest')->update(['sort_order' => 0]);
+
+        $response = $this->getJson('/api/categories', [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk();
+
+        $groups = $response->json('groups');
+        $this->assertSame('accessories', $groups[0]['id']);
+
+        $topsGroup = collect($groups)->firstWhere('id', 'tops');
+        $this->assertNotNull($topsGroup);
+        $this->assertSame('tops_vest', $topsGroup['categories'][0]['id']);
+    }
+}
