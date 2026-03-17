@@ -6,17 +6,23 @@ import type {
   CategoryOption,
 } from "@/types/categories";
 
-const SUPPORTED_CATEGORY_VALUES = new Set(ITEM_CATEGORIES.map((item) => item.value));
+const SUPPORTED_CATEGORY_VALUES = new Set<string>(
+  ITEM_CATEGORIES.map((item) => item.value),
+);
 
 export async function fetchCategoryGroups(): Promise<CategoryGroupRecord[]> {
   const data = await apiFetch<CategoriesResponse>("/api/categories");
   return data.groups ?? [];
 }
 
-export function buildSupportedCategoryOptions(groups: CategoryGroupRecord[]): CategoryOption[] {
+export function buildSupportedCategoryOptions(
+  groups: CategoryGroupRecord[],
+): CategoryOption[] {
   return groups
-    .filter((group) => SUPPORTED_CATEGORY_VALUES.has(group.id))
-    .map((group) => ({
+    .filter((group: CategoryGroupRecord) =>
+      SUPPORTED_CATEGORY_VALUES.has(group.id),
+    )
+    .map((group: CategoryGroupRecord) => ({
       value: group.id,
       label: group.name,
     }));

@@ -60,7 +60,9 @@
 - `tops` 用 master-data (`shape / sleeve / length / neck / design / fit`) を UI に反映した
 - 詳細画面では `topsSpecRaw` を nullable-safe に組み立てるよう修正した
 - `spec.tops` の表示ラベル変換を共通化し、detail / create / edit のプレビュー表示で同じ変換を使うようにした
-- `category / shape` の表示は master-data の日本語ラベルを使うように統一した
+- category / shape の表示は master-data の日本語ラベルを使うように統一した
+- category master を DB / Seeder / API に追加し、GET /api/categories を利用できるようにした
+- create / edit / list のカテゴリ選択肢は categories API を読む下地を追加した
 - tops の形表示は `Tシャツ/カットソー` `ニット/セーター` など、画面間で揺れない名称に整理した
 
 現状のデータ項目:
@@ -162,3 +164,9 @@ UI/UX メモ:
 - `docs/project/implementation-notes.md` は作業ログ寄りの資料として運用する
 - 設計の正本は `docs/api/api-overview.md` `docs/data/database.md` `docs/architecture/system-overview.md` を参照する
 - 日本語テキストは UTF-8 前提で編集すること
+
+## 今後の課題（settings）
+
+- `すべてON / すべてOFF` の保存確認ダイアログを導入する場合は、登録済みアイテムがあるケースを考慮する
+- 警告文言には `現在〇アイテム` のように現在の登録件数を表示する
+- 一括変更時に、表示対象外になってもデータ自体は削除されないことを明示する

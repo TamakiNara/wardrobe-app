@@ -183,7 +183,7 @@ export default async function Home() {
           </article>
         </section>
 
-        <section className="grid gap-4 md:grid-cols-2">
+        <section className="grid gap-4 md:grid-cols-3">
           <Link href="/items" className="block">
             <article className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition hover:bg-gray-50">
               <h2 className="text-lg font-semibold text-gray-900">アイテム一覧へ</h2>
@@ -198,6 +198,15 @@ export default async function Home() {
               <h2 className="text-lg font-semibold text-gray-900">コーデ一覧へ</h2>
               <p className="mt-2 text-sm text-gray-600">
                 登録済みアイテムを組み合わせたコーデを確認できます。
+              </p>
+            </article>
+          </Link>
+
+          <Link href="/settings" className="block">
+            <article className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition hover:bg-gray-50">
+              <h2 className="text-lg font-semibold text-gray-900">設定へ</h2>
+              <p className="mt-2 text-sm text-gray-600">
+                カテゴリ表示設定など、アプリの動作に関わる項目を確認できます。
               </p>
             </article>
           </Link>
