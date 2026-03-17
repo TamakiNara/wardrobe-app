@@ -154,10 +154,10 @@ export default async function OutfitDetailPage({
 
           <div className="space-y-2">
             <p className="text-sm text-gray-600">
-              季節: {outfit.seasons?.length ? outfit.seasons.join(" / ") : "未設定"}
+              季節： {outfit.seasons?.length ? outfit.seasons.join(" / ") : "未設定"}
             </p>
             <p className="text-sm text-gray-600">
-              TPO: {outfit.tpos?.length ? outfit.tpos.join(" / ") : "未設定"}
+              TPO： {outfit.tpos?.length ? outfit.tpos.join(" / ") : "未設定"}
             </p>
           </div>
         </section>

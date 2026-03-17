@@ -125,7 +125,7 @@ export default function OutfitsList({ outfits }: OutfitsListProps) {
 
         <div className="mt-4 flex items-center justify-between gap-4">
           <p className="text-sm text-gray-600">
-            表示件数: {filteredOutfits.length} / {outfits.length}
+            表示件数： {filteredOutfits.length} / {outfits.length}
           </p>
 
           <button
@@ -175,7 +175,7 @@ export default function OutfitsList({ outfits }: OutfitsListProps) {
                   )}
 
                   <p className="mt-4 text-sm text-gray-600">
-                    表示アイテム数: {itemCount}
+                    表示アイテム数： {itemCount}
                   </p>
 
                   {hiddenItemCount > 0 && (
@@ -185,12 +185,12 @@ export default function OutfitsList({ outfits }: OutfitsListProps) {
                   )}
 
                   <p className="mt-2 text-sm text-gray-600">
-                    季節:{" "}
+                    季節：{" "}
                     {outfit.seasons?.length ? outfit.seasons.join(" / ") : "未設定"}
                   </p>
 
                   <p className="mt-1 text-sm text-gray-600">
-                    TPO: {outfit.tpos?.length ? outfit.tpos.join(" / ") : "未設定"}
+                    TPO： {outfit.tpos?.length ? outfit.tpos.join(" / ") : "未設定"}
                   </p>
                 </article>
               </Link>

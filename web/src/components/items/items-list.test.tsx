@@ -123,7 +123,7 @@ describe("ItemsList", () => {
       await waitForEffects();
     });
 
-    expect(container.textContent).toContain("表示件数: 1 / 1");
+    expect(container.textContent).toContain("表示件数： 1 / 1");
     expect(container.textContent).toContain("白T");
     expect(container.textContent).not.toContain("青シャツ");
   });

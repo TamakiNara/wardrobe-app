@@ -90,7 +90,7 @@ describe("OutfitsList", () => {
       await waitForEffects();
     });
 
-    expect(container.textContent).toContain("表示アイテム数: 1");
+    expect(container.textContent).toContain("表示アイテム数： 1");
     expect(container.textContent).toContain("現在の表示設定により 1 件を非表示にしています。");
   });
 });
