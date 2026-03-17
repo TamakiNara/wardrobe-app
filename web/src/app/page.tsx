@@ -183,24 +183,7 @@ export default async function Home() {
           </article>
         </section>
 
-        <section className="grid gap-4 md:grid-cols-3">
-          <Link href="/items" className="block">
-            <article className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition hover:bg-gray-50">
-              <h2 className="text-lg font-semibold text-gray-900">アイテム一覧へ</h2>
-              <p className="mt-2 text-sm text-gray-600">
-                服の色・形・季節・TPOを確認、編集、削除できます。
-              </p>
-            </article>
-          </Link>
-
-          <Link href="/outfits" className="block">
-            <article className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition hover:bg-gray-50">
-              <h2 className="text-lg font-semibold text-gray-900">コーデ一覧へ</h2>
-              <p className="mt-2 text-sm text-gray-600">
-                登録済みアイテムを組み合わせたコーデを確認できます。
-              </p>
-            </article>
-          </Link>
+        <section className="grid gap-4">
 
           <Link href="/settings" className="block">
             <article className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition hover:bg-gray-50">
