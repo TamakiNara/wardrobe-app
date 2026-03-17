@@ -111,6 +111,31 @@ class SettingsCategoriesEndpointsTest extends TestCase
         );
     }
 
+    public function test_put_settings_categories_allows_saving_empty_visible_category_ids(): void
+    {
+        $user = User::factory()->create([
+            'visible_category_ids' => ['tops_tshirt', 'outer_jacket'],
+        ]);
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $response = $this->putJson('/api/settings/categories', [
+            'visibleCategoryIds' => [],
+        ], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('message', 'updated')
+            ->assertJson([
+                'visibleCategoryIds' => [],
+            ]);
+
+        $this->assertSame([], $user->fresh()->visible_category_ids);
+    }
+
     public function test_put_settings_categories_returns_422_for_invalid_category_id(): void
     {
         $user = User::factory()->create([

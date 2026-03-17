@@ -64,7 +64,7 @@ Route::prefix('api')->middleware(['web'])->group(function () {
 
     Route::middleware('auth:web')->put('/settings/categories', function (Request $request) {
         $validated = $request->validate([
-            'visibleCategoryIds' => ['required', 'array'],
+            'visibleCategoryIds' => ['present', 'array'],
             'visibleCategoryIds.*' => ['string', 'distinct', 'exists:category_master,id'],
         ]);
 
