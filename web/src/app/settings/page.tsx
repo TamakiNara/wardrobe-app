@@ -109,6 +109,21 @@ export default function SettingsPage() {
     return currentVisibleCategoryIds.join("|") !== savedVisibleCategoryIds.join("|");
   }, [currentVisibleCategoryIds, savedVisibleCategoryIds]);
 
+  useEffect(() => {
+    if (!hasChanges || saving) return;
+
+    function handleBeforeUnload(event: BeforeUnloadEvent) {
+      event.preventDefault();
+      event.returnValue = "";
+    }
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [hasChanges, saving]);
+
   function toggleGroup(groupId: string) {
     setExpandedGroups((current) => ({
       ...current,

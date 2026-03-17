@@ -89,6 +89,96 @@ describe("SettingsPage", () => {
     expect((checkboxes[1] as HTMLInputElement).checked).toBe(false);
     expect(updateCategoryVisibilitySettingsMock).not.toHaveBeenCalled();
   });
+  it("未保存変更があると保存ボタンが有効になり、保存後に戻る", async () => {
+    fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
+    fetchCategoryVisibilitySettingsMock.mockResolvedValue({
+      visibleCategoryIds: ["tops_tshirt"],
+    });
+    updateCategoryVisibilitySettingsMock.mockResolvedValue({
+      visibleCategoryIds: ["tops_tshirt", "tops_shirt"],
+    });
+
+    const { default: SettingsPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(SettingsPage));
+      await waitForEffects();
+    });
+
+    const initialSaveButtons = Array.from(container.querySelectorAll("button")).filter(
+      (button) => button.textContent === "変更なし",
+    );
+    expect(initialSaveButtons).toHaveLength(2);
+    expect(initialSaveButtons.every((button) => (button as HTMLButtonElement).disabled)).toBe(true);
+
+    const checkboxes = container.querySelectorAll('input[type="checkbox"]');
+
+    await act(async () => {
+      (checkboxes[1] as HTMLInputElement).click();
+      await waitForEffects();
+    });
+
+    const enabledSaveButtons = Array.from(container.querySelectorAll("button")).filter(
+      (button) => button.textContent === "表示設定を保存",
+    );
+    expect(enabledSaveButtons).toHaveLength(2);
+    expect(enabledSaveButtons.every((button) => !(button as HTMLButtonElement).disabled)).toBe(true);
+
+    await act(async () => {
+      (enabledSaveButtons[0] as HTMLButtonElement).click();
+      await waitForEffects();
+    });
+
+    expect(updateCategoryVisibilitySettingsMock).toHaveBeenCalledWith({
+      visibleCategoryIds: ["tops_shirt", "tops_tshirt"],
+    });
+    expect(container.textContent).toContain("カテゴリ表示設定を保存しました。");
+
+    const saveButtonsAfterSave = Array.from(container.querySelectorAll("button")).filter(
+      (button) => button.textContent === "変更なし",
+    );
+    expect(saveButtonsAfterSave).toHaveLength(2);
+    expect(saveButtonsAfterSave.every((button) => (button as HTMLButtonElement).disabled)).toBe(true);
+  });
+
+  it("未保存変更があるとブラウザ離脱時に警告する", async () => {
+    fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
+    fetchCategoryVisibilitySettingsMock.mockResolvedValue({
+      visibleCategoryIds: ["tops_tshirt"],
+    });
+
+    const { default: SettingsPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(SettingsPage));
+      await waitForEffects();
+    });
+
+    const checkboxes = container.querySelectorAll('input[type="checkbox"]');
+
+    await act(async () => {
+      (checkboxes[1] as HTMLInputElement).click();
+      await waitForEffects();
+    });
+
+    const event = new Event("beforeunload", { cancelable: true });
+    let returnValue = undefined;
+    Object.defineProperty(event, "returnValue", {
+      get() {
+        return returnValue;
+      },
+      set(value) {
+        returnValue = value;
+      },
+      configurable: true,
+    });
+
+    window.dispatchEvent(event);
+
+    expect(event.defaultPrevented).toBe(true);
+    expect(returnValue).toBe("");
+  });
+
 
   it("401 のときはログイン画面へ遷移する", async () => {
     const { ApiClientError } = await import("@/lib/api/client");
