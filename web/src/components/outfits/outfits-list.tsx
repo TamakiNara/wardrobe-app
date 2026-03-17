@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { isItemVisibleByCategorySettings } from "@/lib/api/categories";
+import { fetchCategoryVisibilitySettings } from "@/lib/api/settings";
 
 type OutfitItem = {
   id: number;
@@ -42,6 +44,24 @@ const TPO_OPTIONS = ["仕事", "休日", "フォーマル"] as const;
 export default function OutfitsList({ outfits }: OutfitsListProps) {
   const [seasonFilter, setSeasonFilter] = useState("");
   const [tpoFilter, setTpoFilter] = useState("");
+  const [visibleCategoryIds, setVisibleCategoryIds] = useState<string[] | null>(null);
+
+  useEffect(() => {
+    let active = true;
+
+    fetchCategoryVisibilitySettings()
+      .then((settings) => {
+        if (!active) return;
+        setVisibleCategoryIds(settings.visibleCategoryIds);
+      })
+      .catch(() => {
+        // 設定取得に失敗した場合でも、一覧自体は表示する
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const filteredOutfits = useMemo(() => {
     return outfits.filter((outfit) => {
@@ -134,7 +154,14 @@ export default function OutfitsList({ outfits }: OutfitsListProps) {
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {filteredOutfits.map((outfit) => {
             const outfitItems = outfit.outfitItems ?? outfit.outfit_items ?? [];
-            const itemCount = outfitItems.length;
+            const visibleOutfitItems =
+              visibleCategoryIds === null
+                ? outfitItems
+                : outfitItems.filter((outfitItem) =>
+                    isItemVisibleByCategorySettings(outfitItem.item, visibleCategoryIds),
+                  );
+            const itemCount = visibleOutfitItems.length;
+            const hiddenItemCount = outfitItems.length - visibleOutfitItems.length;
 
             return (
               <Link href={`/outfits/${outfit.id}`} key={outfit.id}>
@@ -148,8 +175,14 @@ export default function OutfitsList({ outfits }: OutfitsListProps) {
                   )}
 
                   <p className="mt-4 text-sm text-gray-600">
-                    アイテム数: {itemCount}
+                    表示アイテム数: {itemCount}
                   </p>
+
+                  {hiddenItemCount > 0 && (
+                    <p className="mt-1 text-sm text-amber-700">
+                      現在の表示設定により {hiddenItemCount} 件を非表示にしています。
+                    </p>
+                  )}
 
                   <p className="mt-2 text-sm text-gray-600">
                     季節:{" "}

@@ -2,6 +2,7 @@ import { headers } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import DeleteOutfitButton from "@/components/outfits/delete-outfit-button";
+import { isItemVisibleByCategorySettings } from "@/lib/api/categories";
 
 type OutfitItem = {
   id: number;
@@ -58,14 +59,48 @@ async function getOutfit(id: string): Promise<Outfit> {
   return data.outfit;
 }
 
+async function getCategoryVisibilitySettings(): Promise<string[] | null> {
+  const cookie = (await headers()).get("cookie") ?? "";
+  const appUrl = process.env.NEXT_APP_URL ?? "http://localhost:3000";
+
+  const res = await fetch(`${appUrl}/api/settings/categories`, {
+    headers: {
+      cookie,
+      Accept: "application/json",
+    },
+    cache: "no-store",
+  });
+
+  if (res.status === 401) {
+    redirect("/login");
+  }
+
+  if (!res.ok) {
+    return null;
+  }
+
+  const data = await res.json().catch(() => null);
+  return data?.visibleCategoryIds ?? null;
+}
+
 export default async function OutfitDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const outfit = await getOutfit(id);
+  const [outfit, visibleCategoryIds] = await Promise.all([
+    getOutfit(id),
+    getCategoryVisibilitySettings(),
+  ]);
   const outfitItems = outfit.outfitItems ?? outfit.outfit_items ?? [];
+  const visibleOutfitItems =
+    visibleCategoryIds === null
+      ? outfitItems
+      : outfitItems.filter((outfitItem) =>
+          isItemVisibleByCategorySettings(outfitItem.item, visibleCategoryIds),
+        );
+  const hiddenOutfitItemCount = outfitItems.length - visibleOutfitItems.length;
 
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">
@@ -134,9 +169,20 @@ export default async function OutfitDetailPage({
 
           {outfitItems.length === 0 ? (
             <p className="text-sm text-gray-600">アイテムが登録されていません。</p>
+          ) : visibleOutfitItems.length === 0 ? (
+            <div className="space-y-3">
+              <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                現在の表示設定では、表示中のアイテムがありません。
+              </p>
+            </div>
           ) : (
             <div className="space-y-3">
-              {outfitItems.map((outfitItem, index) => {
+              {hiddenOutfitItemCount > 0 && (
+                <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                  現在の表示設定により {hiddenOutfitItemCount} 件を非表示にしています。
+                </p>
+              )}
+              {visibleOutfitItems.map((outfitItem, index) => {
                 const item = outfitItem.item;
                 const mainColor = item.colors.find((c) => c.role === "main");
                 const subColor = item.colors.find((c) => c.role === "sub");
