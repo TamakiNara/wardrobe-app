@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\CategoryMaster;
 use App\Models\Item;
 use App\Models\Outfit;
 use App\Models\OutfitItem;
@@ -39,6 +40,56 @@ Route::prefix('api')->middleware(['web'])->group(function () {
             'id' => $user->id,
             'name' => $user->name,
             'email' => $user->email,
+        ]);
+    });
+
+    Route::middleware('auth:web')->get('/settings/categories', function (Request $request) {
+        $user = $request->user();
+
+        $visibleCategoryIds = $user->visible_category_ids;
+
+        if ($visibleCategoryIds === null) {
+            $visibleCategoryIds = CategoryMaster::query()
+                ->where('is_active', true)
+                ->orderBy('group_id')
+                ->orderBy('sort_order')
+                ->pluck('id')
+                ->all();
+        }
+
+        return response()->json([
+            'visibleCategoryIds' => $visibleCategoryIds,
+        ]);
+    });
+
+    Route::middleware('auth:web')->put('/settings/categories', function (Request $request) {
+        $validated = $request->validate([
+            'visibleCategoryIds' => ['required', 'array'],
+            'visibleCategoryIds.*' => ['string', 'distinct', 'exists:category_master,id'],
+        ]);
+
+        $visibleCategoryIds = collect($validated['visibleCategoryIds'])
+            ->values();
+
+        $activeCount = CategoryMaster::query()
+            ->where('is_active', true)
+            ->whereIn('id', $visibleCategoryIds)
+            ->count();
+
+        if ($activeCount !== $visibleCategoryIds->count()) {
+            return response()->json([
+                'message' => '無効なカテゴリが含まれています。',
+            ], 422);
+        }
+
+        $user = $request->user();
+        $user->forceFill([
+            'visible_category_ids' => $visibleCategoryIds->all(),
+        ])->save();
+
+        return response()->json([
+            'message' => 'updated',
+            'visibleCategoryIds' => $user->visible_category_ids ?? [],
         ]);
     });
 

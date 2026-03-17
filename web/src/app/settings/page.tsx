@@ -1,16 +1,34 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { ApiClientError } from "@/lib/api/client";
 import { fetchCategoryGroups } from "@/lib/api/categories";
+import {
+  fetchCategoryVisibilitySettings,
+  updateCategoryVisibilitySettings,
+} from "@/lib/api/settings";
 import type { CategoryGroupRecord } from "@/types/categories";
 
-function buildInitialVisibility(groups: CategoryGroupRecord[]) {
+function buildVisibilityFromIds(
+  groups: CategoryGroupRecord[],
+  visibleCategoryIds: string[],
+) {
+  const visibleIdSet = new Set(visibleCategoryIds);
+
   return Object.fromEntries(
     groups.flatMap((group) =>
-      group.categories.map((category) => [category.id, true]),
+      group.categories.map((category) => [category.id, visibleIdSet.has(category.id)]),
     ),
   ) as Record<string, boolean>;
+}
+
+function collectVisibleCategoryIds(visibility: Record<string, boolean>) {
+  return Object.entries(visibility)
+    .filter(([, enabled]) => enabled)
+    .map(([categoryId]) => categoryId)
+    .sort();
 }
 
 function getGroupState(
@@ -27,26 +45,50 @@ function getGroupState(
 }
 
 export default function SettingsPage() {
+  const router = useRouter();
   const [groups, setGroups] = useState<CategoryGroupRecord[]>([]);
   const [visibility, setVisibility] = useState<Record<string, boolean>>({});
-  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(
-    {},
-  );
+  const [savedVisibleCategoryIds, setSavedVisibleCategoryIds] = useState<string[]>([]);
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
 
-    fetchCategoryGroups()
-      .then((fetchedGroups) => {
+    Promise.all([
+      fetchCategoryGroups(),
+      fetchCategoryVisibilitySettings(),
+    ])
+      .then(([fetchedGroups, settings]) => {
         if (!active) return;
+
+        const initialVisibility = buildVisibilityFromIds(
+          fetchedGroups,
+          settings.visibleCategoryIds,
+        );
+
         setGroups(fetchedGroups);
-        setVisibility(buildInitialVisibility(fetchedGroups));
+        setVisibility(initialVisibility);
+        setSavedVisibleCategoryIds(
+          [...settings.visibleCategoryIds].sort(),
+        );
         setExpandedGroups(
           Object.fromEntries(
             fetchedGroups.map((group) => [group.id, true]),
           ) as Record<string, boolean>,
         );
+      })
+      .catch((error) => {
+        if (!active) return;
+        if (error instanceof ApiClientError && error.status === 401) {
+          router.push("/login");
+          return;
+        }
+        setLoadError("カテゴリ設定の読み込みに失敗しました。");
       })
       .finally(() => {
         if (!active) return;
@@ -56,7 +98,16 @@ export default function SettingsPage() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [router]);
+
+  const currentVisibleCategoryIds = useMemo(
+    () => collectVisibleCategoryIds(visibility),
+    [visibility],
+  );
+
+  const hasChanges = useMemo(() => {
+    return currentVisibleCategoryIds.join("|") !== savedVisibleCategoryIds.join("|");
+  }, [currentVisibleCategoryIds, savedVisibleCategoryIds]);
 
   function toggleGroup(groupId: string) {
     setExpandedGroups((current) => ({
@@ -66,6 +117,8 @@ export default function SettingsPage() {
   }
 
   function setGroupVisibility(group: CategoryGroupRecord, enabled: boolean) {
+    setSaveMessage(null);
+    setSaveError(null);
     setVisibility((current) => {
       const next = { ...current };
       for (const category of group.categories) {
@@ -76,10 +129,32 @@ export default function SettingsPage() {
   }
 
   function toggleCategory(categoryId: string) {
+    setSaveMessage(null);
+    setSaveError(null);
     setVisibility((current) => ({
       ...current,
       [categoryId]: !(current[categoryId] !== false),
     }));
+  }
+
+  async function handleSave() {
+    setSaving(true);
+    setSaveMessage(null);
+    setSaveError(null);
+
+    try {
+      const response = await updateCategoryVisibilitySettings({
+        visibleCategoryIds: currentVisibleCategoryIds,
+      });
+      const normalizedIds = [...response.visibleCategoryIds].sort();
+      setSavedVisibleCategoryIds(normalizedIds);
+      setVisibility(buildVisibilityFromIds(groups, normalizedIds));
+      setSaveMessage("カテゴリ表示設定を保存しました。");
+    } catch {
+      setSaveError("カテゴリ表示設定の保存に失敗しました。");
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -94,31 +169,47 @@ export default function SettingsPage() {
         </nav>
 
         <section className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
-          <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">設定</h1>
-              <p className="mt-2 text-sm text-gray-600">
-                各種設定を変更できます。
-                <br />
-                表示内容や利用方法に関する項目は、ここから調整できます。
-              </p>
-            </div>
-
-            <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-              保存機能は未接続です。現在は UI と状態管理の土台まで実装しています。
-            </div>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">設定</h1>
+            <p className="mt-2 text-sm text-gray-600">
+              各種設定を変更できます。
+              <br />
+              表示内容や利用方法に関する項目は、ここから調整できます。
+            </p>
           </div>
         </section>
 
         <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-gray-900">カテゴリ表示設定</h2>
-          <p className="mt-2 text-sm text-gray-600">
-            ONにしたカテゴリのみ、登録や選択時に表示されます。
-          </p>
+          <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">カテゴリ表示設定</h2>
+              <p className="mt-2 text-sm text-gray-600">
+                ONにしたカテゴリのみ、登録や選択時に表示されます。
+              </p>
+            </div>
 
+            <div className="flex flex-col items-start gap-2 md:items-end">
+              {saveMessage ? (
+                <p className="text-sm text-emerald-700">{saveMessage}</p>
+              ) : null}
+              {saveError ? (
+                <p className="text-sm text-red-600">{saveError}</p>
+              ) : null}
+              <button
+                type="button"
+                onClick={handleSave}
+                disabled={loading || saving || !hasChanges}
+                className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300"
+              >
+                {saving ? "保存中..." : hasChanges ? "表示設定を保存" : "変更なし"}
+              </button>
+            </div>
+          </div>
 
           {loading ? (
             <p className="mt-6 text-sm text-gray-600">カテゴリを読み込み中です...</p>
+          ) : loadError ? (
+            <p className="mt-6 text-sm text-red-600">{loadError}</p>
           ) : (
             <div className="mt-6 space-y-4">
               {groups.map((group) => {
@@ -213,6 +304,17 @@ export default function SettingsPage() {
                   </section>
                 );
               })}
+
+              <div className="flex justify-end border-t border-gray-200 pt-4">
+                <button
+                  type="button"
+                  onClick={handleSave}
+                  disabled={loading || saving || !hasChanges}
+                  className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300"
+                >
+                  {saving ? "保存中..." : hasChanges ? "表示設定を保存" : "変更なし"}
+                </button>
+              </div>
             </div>
           )}
         </section>

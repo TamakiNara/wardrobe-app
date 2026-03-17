@@ -9,6 +9,8 @@ import {
   type ItemCategory,
 } from "@/lib/master-data/item-shapes";
 import { buildSupportedCategoryOptions, fetchCategoryGroups } from "@/lib/api/categories";
+import { fetchCategoryVisibilitySettings } from "@/lib/api/settings";
+import type { CategoryOption } from "@/types/categories";
 import {
   ITEM_COLORS,
   type ItemColorValue,
@@ -53,7 +55,7 @@ export default function EditItemPage({
 
   const [name, setName] = useState("");
   const [category, setCategory] = useState<ItemCategory | "">("");
-  const [categoryOptions, setCategoryOptions] = useState(ITEM_CATEGORIES);
+  const [categoryOptions, setCategoryOptions] = useState<CategoryOption[]>(ITEM_CATEGORIES);
   const [shape, setShape] = useState("");
 
   const [mainColor, setMainColor] = useState<ItemColorValue | "">("");
@@ -134,13 +136,17 @@ export default function EditItemPage({
   useEffect(() => {
     let active = true;
 
-    fetchCategoryGroups()
-      .then((groups) => {
+    Promise.all([
+      fetchCategoryGroups(),
+      fetchCategoryVisibilitySettings(),
+    ])
+      .then(([groups, settings]) => {
         if (!active) return;
-        const nextOptions = buildSupportedCategoryOptions(groups);
-        if (nextOptions.length > 0) {
-          setCategoryOptions(nextOptions as typeof ITEM_CATEGORIES);
-        }
+        const nextOptions = buildSupportedCategoryOptions(
+          groups,
+          settings.visibleCategoryIds,
+        );
+        setCategoryOptions(nextOptions);
       })
       .catch(() => {
         // フロントでは取得失敗時に固定 master data へフォールバックする
@@ -151,6 +157,20 @@ export default function EditItemPage({
     };
   }, []);
 
+  useEffect(() => {
+    if (!category) return;
+
+    setCategoryOptions((current) => {
+      if (current.some((option) => option.value === category)) {
+        return current;
+      }
+
+      const currentOption = ITEM_CATEGORIES.find((option) => option.value === category);
+      return currentOption
+        ? [...current, currentOption]
+        : current;
+    });
+  }, [category]);
   useEffect(() => {
     async function loadItem() {
       const { id } = await params;

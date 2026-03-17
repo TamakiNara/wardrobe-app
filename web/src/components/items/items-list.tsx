@@ -9,6 +9,8 @@ import {
   findItemShapeLabel,
 } from "@/lib/master-data/item-shapes";
 import { buildSupportedCategoryOptions, fetchCategoryGroups } from "@/lib/api/categories";
+import { fetchCategoryVisibilitySettings } from "@/lib/api/settings";
+import type { CategoryOption } from "@/types/categories";
 
 type ItemsListProps = {
   items: ItemRecord[];
@@ -53,20 +55,24 @@ function PreviewThumb({
 
 export default function ItemsList({ items }: ItemsListProps) {
   const [categoryFilter, setCategoryFilter] = useState("");
-  const [apiCategoryOptions, setApiCategoryOptions] = useState(ITEM_CATEGORIES);
+  const [apiCategoryOptions, setApiCategoryOptions] = useState<CategoryOption[]>(ITEM_CATEGORIES);
   const [seasonFilter, setSeasonFilter] = useState("");
   const [tpoFilter, setTpoFilter] = useState("");
 
   useEffect(() => {
     let active = true;
 
-    fetchCategoryGroups()
-      .then((groups) => {
+    Promise.all([
+      fetchCategoryGroups(),
+      fetchCategoryVisibilitySettings(),
+    ])
+      .then(([groups, settings]) => {
         if (!active) return;
-        const nextOptions = buildSupportedCategoryOptions(groups);
-        if (nextOptions.length > 0) {
-          setApiCategoryOptions(nextOptions as typeof ITEM_CATEGORIES);
-        }
+        const nextOptions = buildSupportedCategoryOptions(
+          groups,
+          settings.visibleCategoryIds,
+        );
+        setApiCategoryOptions(nextOptions);
       })
       .catch(() => {
         // 一覧の絞り込みは取得失敗時に固定 master data へフォールバックする
