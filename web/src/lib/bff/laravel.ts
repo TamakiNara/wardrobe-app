@@ -100,12 +100,32 @@ export async function forwardJsonWithCsrf(
   targetPath: string,
   options?: { forceRefreshCsrf?: boolean }
 ): Promise<NextResponse> {
+  const contentType = req.headers.get("content-type") ?? "";
   const bodyText = await req.text();
+
+  if (bodyText && !contentType.toLowerCase().includes("application/json")) {
+    return NextResponse.json(
+      { error: "Content-Type must be application/json" },
+      { status: 400 }
+    );
+  }
+
+  let body: unknown = {};
+  if (bodyText) {
+    try {
+      body = JSON.parse(bodyText);
+    } catch {
+      return NextResponse.json(
+        { error: "Invalid JSON body (or empty body). Send JSON via POST." },
+        { status: 400 }
+      );
+    }
+  }
 
   return forwardPostWithCsrfAndCookie(
     req,
     targetPath,
-    bodyText ? JSON.parse(bodyText) : {},
+    body,
     options
   );
 }

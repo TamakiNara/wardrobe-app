@@ -48,8 +48,9 @@ describe("GET /api/auth/me", () => {
         method: "GET",
         headers: expect.objectContaining({
           Accept: "application/json",
-          Cookie: "laravel-session=test_session",
+          cookie: "laravel-session=test_session",
         }),
+        cache: "no-store",
       }),
     );
 
