@@ -8,7 +8,11 @@ import {
   findItemCategoryLabel,
   findItemShapeLabel,
 } from "@/lib/master-data/item-shapes";
-import { buildSupportedCategoryOptions, fetchCategoryGroups } from "@/lib/api/categories";
+import {
+  buildSupportedCategoryOptions,
+  fetchCategoryGroups,
+  isItemVisibleByCategorySettings,
+} from "@/lib/api/categories";
 import { fetchCategoryVisibilitySettings } from "@/lib/api/settings";
 import type { CategoryOption } from "@/types/categories";
 
@@ -56,6 +60,7 @@ function PreviewThumb({
 export default function ItemsList({ items }: ItemsListProps) {
   const [categoryFilter, setCategoryFilter] = useState("");
   const [apiCategoryOptions, setApiCategoryOptions] = useState<CategoryOption[]>(ITEM_CATEGORIES);
+  const [visibleCategoryIds, setVisibleCategoryIds] = useState<string[] | null>(null);
   const [seasonFilter, setSeasonFilter] = useState("");
   const [tpoFilter, setTpoFilter] = useState("");
 
@@ -73,6 +78,7 @@ export default function ItemsList({ items }: ItemsListProps) {
           settings.visibleCategoryIds,
         );
         setApiCategoryOptions(nextOptions);
+        setVisibleCategoryIds(settings.visibleCategoryIds);
       })
       .catch(() => {
         // 一覧の絞り込みは取得失敗時に固定 master data へフォールバックする
@@ -83,25 +89,34 @@ export default function ItemsList({ items }: ItemsListProps) {
     };
   }, []);
 
+  const visibleItems = useMemo(() => {
+    if (visibleCategoryIds === null) {
+      return items;
+    }
+
+    return items.filter((item) =>
+      isItemVisibleByCategorySettings(item, visibleCategoryIds),
+    );
+  }, [items, visibleCategoryIds]);
+
   const categoryOptions = useMemo(() => {
     return apiCategoryOptions.filter((category) =>
-      items.some((item) => item.category === category.value),
+      visibleItems.some((item) => item.category === category.value),
     );
-  }, [apiCategoryOptions, items]);
-
+  }, [apiCategoryOptions, visibleItems]);
 
   const seasonOptions = useMemo(() => {
     return Array.from(
-      new Set(items.flatMap((item) => item.seasons ?? [])),
+      new Set(visibleItems.flatMap((item) => item.seasons ?? [])),
     ).sort();
-  }, [items]);
+  }, [visibleItems]);
 
   const tpoOptions = useMemo(() => {
-    return Array.from(new Set(items.flatMap((item) => item.tpos ?? []))).sort();
-  }, [items]);
+    return Array.from(new Set(visibleItems.flatMap((item) => item.tpos ?? []))).sort();
+  }, [visibleItems]);
 
   const filteredItems = useMemo(() => {
-    return items.filter((item) => {
+    return visibleItems.filter((item) => {
       const seasons = item.seasons ?? [];
       const tpos = item.tpos ?? [];
 
@@ -113,7 +128,7 @@ export default function ItemsList({ items }: ItemsListProps) {
 
       return matchCategory && matchSeason && matchTpo;
     });
-  }, [items, categoryFilter, seasonFilter, tpoFilter]);
+  }, [visibleItems, categoryFilter, seasonFilter, tpoFilter]);
 
   return (
     <div className="space-y-6">
@@ -176,7 +191,7 @@ export default function ItemsList({ items }: ItemsListProps) {
 
         <div className="mt-4 flex items-center justify-between gap-4">
           <p className="text-sm text-gray-600">
-            表示件数: {filteredItems.length} / {items.length}
+            表示件数: {filteredItems.length} / {visibleItems.length}
           </p>
 
           <button

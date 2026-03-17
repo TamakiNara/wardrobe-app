@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { isItemVisibleByCategorySettings } from "@/lib/api/categories";
+import { fetchCategoryVisibilitySettings } from "@/lib/api/settings";
 import type { CreateOutfitPayload } from "@/types/outfits";
 
 const SEASON_OPTIONS = ["春", "夏", "秋", "冬", "オール"] as const;
@@ -50,11 +52,14 @@ export default function NewOutfitPage() {
       setLoadingItems(true);
 
       try {
-        const res = await fetch("/api/items", {
-          headers: {
-            Accept: "application/json",
-          },
-        });
+        const [res, settings] = await Promise.all([
+          fetch("/api/items", {
+            headers: {
+              Accept: "application/json",
+            },
+          }),
+          fetchCategoryVisibilitySettings(),
+        ]);
 
         if (res.status === 401) {
           router.push("/login");
@@ -68,7 +73,12 @@ export default function NewOutfitPage() {
           return;
         }
 
-        setItems(data?.items ?? []);
+        const visibleCategoryIds = settings.visibleCategoryIds;
+        const nextItems = (data?.items ?? []).filter((item: Item) =>
+          isItemVisibleByCategorySettings(item, visibleCategoryIds),
+        );
+
+        setItems(nextItems);
       } catch {
         setSubmitError("アイテム一覧の取得に失敗しました。");
       } finally {

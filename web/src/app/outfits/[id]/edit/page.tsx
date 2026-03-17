@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { isItemVisibleByCategorySettings } from "@/lib/api/categories";
+import { fetchCategoryVisibilitySettings } from "@/lib/api/settings";
 import type { CreateOutfitPayload } from "@/types/outfits";
 
 const SEASON_OPTIONS = ["春", "夏", "秋", "冬", "オール"] as const;
@@ -70,13 +72,14 @@ export default function EditOutfitPage({
       setOutfitId(Number(id));
 
       try {
-        const [outfitRes, itemsRes] = await Promise.all([
+        const [outfitRes, itemsRes, settings] = await Promise.all([
           fetch(`/api/outfits/${id}`, {
             headers: { Accept: "application/json" },
           }),
           fetch("/api/items", {
             headers: { Accept: "application/json" },
           }),
+          fetchCategoryVisibilitySettings(),
         ]);
 
         if (outfitRes.status === 401 || itemsRes.status === 401) {
@@ -105,7 +108,14 @@ export default function EditOutfitPage({
         setSelectedTpos(outfit.tpos ?? []);
         setSelectedItemIds(outfitItems.map((item) => item.item_id));
 
-        setItems(allItems);
+        const selectedIds = outfitItems.map((item) => item.item_id);
+        const visibleCategoryIds = settings.visibleCategoryIds;
+        const nextItems = allItems.filter((item) =>
+          selectedIds.includes(item.id) ||
+          isItemVisibleByCategorySettings(item, visibleCategoryIds),
+        );
+
+        setItems(nextItems);
       } finally {
         setLoading(false);
         setLoadingItems(false);
