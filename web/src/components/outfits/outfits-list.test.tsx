@@ -19,7 +19,7 @@ vi.mock("@/lib/api/settings", () => ({
 const sampleOutfits = [
   {
     id: 1,
-    name: "春コーデ",
+    name: "春コーディネート",
     memo: null,
     seasons: ["春"],
     tpos: ["休日"],

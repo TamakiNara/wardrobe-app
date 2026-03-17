@@ -198,16 +198,16 @@ export default function NewOutfitPage() {
           if (Array.isArray(firstError) && firstError.length > 0) {
             setSubmitError(String(firstError[0]));
           } else {
-            setSubmitError("コーデの登録に失敗しました。");
+            setSubmitError("コーディネートの登録に失敗しました。");
           }
         } else {
-          setSubmitError(data?.message ?? "コーデの登録に失敗しました。");
+          setSubmitError(data?.message ?? "コーディネートの登録に失敗しました。");
         }
         return;
       }
 
       setSubmitPreview(JSON.stringify(data, null, 2));
-      setSubmitSuccess("コーデの登録に成功しました。");
+      setSubmitSuccess("コーディネートの登録に成功しました。");
 
       setTimeout(() => {
         router.push("/outfits");
@@ -228,7 +228,7 @@ export default function NewOutfitPage() {
         </Link>
         {" / "}
         <Link href="/outfits" className="hover:underline">
-          コーデ一覧
+          コーディネート一覧
         </Link>
         {" / "}
         <span className="text-gray-700">新規登録</span>
@@ -236,8 +236,8 @@ export default function NewOutfitPage() {
       <div className="mx-auto max-w-4xl space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm text-gray-500">コーデ管理</p>
-            <h1 className="text-2xl font-bold text-gray-900">コーデ登録</h1>
+            <p className="text-sm text-gray-500">コーディネート管理</p>
+            <h1 className="text-2xl font-bold text-gray-900">コーディネート登録</h1>
           </div>
 
           <Link
@@ -360,7 +360,7 @@ export default function NewOutfitPage() {
 
             {selectedItemIds.length === 0 && !loadingItems && items.length > 0 && (
               <p className="text-sm text-gray-500">
-                コーデに含めるアイテムを1つ以上選択してください。
+                コーディネートに含めるアイテムを1つ以上選択してください。
               </p>
             )}
 

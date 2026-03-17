@@ -144,7 +144,7 @@ export default function OutfitsList({ outfits }: OutfitsListProps) {
       {filteredOutfits.length === 0 ? (
         <section className="rounded-2xl border border-dashed border-gray-300 bg-white p-10 text-center shadow-sm">
           <h2 className="text-lg font-semibold text-gray-900">
-            条件に一致するコーデがありません
+            条件に一致するコーディネートがありません
           </h2>
           <p className="mt-2 text-sm text-gray-600">
             条件を変更するか、絞り込みをクリアしてください。

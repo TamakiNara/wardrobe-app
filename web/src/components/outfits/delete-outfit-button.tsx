@@ -15,7 +15,7 @@ export default function DeleteOutfitButton({
   const [error, setError] = useState<string | null>(null);
 
   async function handleDelete() {
-    const ok = window.confirm("このコーデを削除しますか？");
+    const ok = window.confirm("このコーディネートを削除しますか？");
     if (!ok) return;
 
     setSubmitting(true);

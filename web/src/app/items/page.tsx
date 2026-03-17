@@ -79,7 +79,7 @@ export default async function ItemsPage() {
               まだアイテムがありません
             </h2>
             <p className="mt-2 text-sm text-gray-600">
-              最初の1着を登録すると、一覧やコーデ管理に進めます。
+              最初の1着を登録すると、一覧やコーディネート管理に進めます。
             </p>
 
             <div className="mt-6">

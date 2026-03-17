@@ -272,7 +272,7 @@ export default function EditOutfitPage({
           </Link>
           {" / "}
           <Link href="/outfits" className="hover:underline">
-            コーデ一覧
+            コーディネート一覧
           </Link>
           {" / "}
           <span className="text-gray-700">編集</span>
@@ -280,8 +280,8 @@ export default function EditOutfitPage({
 
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm text-gray-500">コーデ管理</p>
-            <h1 className="text-2xl font-bold text-gray-900">コーデ編集</h1>
+            <p className="text-sm text-gray-500">コーディネート管理</p>
+            <h1 className="text-2xl font-bold text-gray-900">コーディネート編集</h1>
           </div>
 
           <Link

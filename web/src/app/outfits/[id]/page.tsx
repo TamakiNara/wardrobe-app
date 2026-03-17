@@ -111,7 +111,7 @@ export default async function OutfitDetailPage({
           </Link>
           {" / "}
           <Link href="/outfits" className="hover:underline">
-            コーデ一覧
+            コーディネート一覧
           </Link>
           {" / "}
           <span className="text-gray-700">詳細</span>
@@ -119,7 +119,7 @@ export default async function OutfitDetailPage({
 
         <div className="flex items-center justify-between gap-4">
           <div>
-            <p className="text-sm text-gray-500">コーデ管理</p>
+            <p className="text-sm text-gray-500">コーディネート管理</p>
             <h1 className="min-h-8 text-2xl font-bold text-gray-900">
               {outfit.name ?? ""}
             </h1>
