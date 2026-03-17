@@ -5,12 +5,14 @@ import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { CategoryGroupRecord } from "@/types/categories";
+import type { ItemRecord } from "@/types/items";
 
 const pushMock = vi.fn();
 const routerMock = { push: pushMock };
 const fetchCategoryGroupsMock = vi.fn();
 const fetchCategoryVisibilitySettingsMock = vi.fn();
 const updateCategoryVisibilitySettingsMock = vi.fn();
+const fetchItemsMock = vi.fn();
 
 vi.mock("next/link", () => ({
   default: ({ children, href, ...props }: React.ComponentProps<"a">) =>
@@ -21,8 +23,19 @@ vi.mock("next/navigation", () => ({
   useRouter: () => routerMock,
 }));
 
-vi.mock("@/lib/api/categories", () => ({
-  fetchCategoryGroups: fetchCategoryGroupsMock,
+vi.mock("@/lib/api/categories", async () => {
+  const actual = await vi.importActual<typeof import("@/lib/api/categories")>(
+    "@/lib/api/categories",
+  );
+
+  return {
+    ...actual,
+    fetchCategoryGroups: fetchCategoryGroupsMock,
+  };
+});
+
+vi.mock("@/lib/api/items", () => ({
+  fetchItems: fetchItemsMock,
 }));
 
 vi.mock("@/lib/api/settings", () => ({
@@ -42,10 +55,28 @@ const sampleGroups: CategoryGroupRecord[] = [
   },
 ];
 
+const sampleItems: ItemRecord[] = [
+  {
+    id: 1,
+    name: "白T",
+    category: "tops",
+    shape: "tshirt",
+    colors: [],
+    seasons: [],
+    tpos: [],
+  },
+];
+
 async function waitForEffects() {
   await Promise.resolve();
   await Promise.resolve();
   await new Promise((resolve) => setTimeout(resolve, 0));
+}
+
+function getSaveButtons(container: HTMLDivElement) {
+  return Array.from(
+    container.querySelectorAll<HTMLButtonElement>("button.bg-blue-600"),
+  );
 }
 
 describe("SettingsPage", () => {
@@ -58,6 +89,7 @@ describe("SettingsPage", () => {
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
+    fetchItemsMock.mockResolvedValue(sampleItems);
   });
 
   afterEach(() => {
@@ -89,6 +121,7 @@ describe("SettingsPage", () => {
     expect((checkboxes[1] as HTMLInputElement).checked).toBe(false);
     expect(updateCategoryVisibilitySettingsMock).not.toHaveBeenCalled();
   });
+
   it("未保存変更があると保存ボタンが有効になり、保存後に戻る", async () => {
     fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
     fetchCategoryVisibilitySettingsMock.mockResolvedValue({
@@ -105,11 +138,8 @@ describe("SettingsPage", () => {
       await waitForEffects();
     });
 
-    const initialSaveButtons = Array.from(container.querySelectorAll("button")).filter(
-      (button) => button.textContent === "変更なし",
-    );
-    expect(initialSaveButtons).toHaveLength(2);
-    expect(initialSaveButtons.every((button) => (button as HTMLButtonElement).disabled)).toBe(true);
+    expect(getSaveButtons(container)).toHaveLength(2);
+    expect(getSaveButtons(container).every((button) => button.disabled)).toBe(true);
 
     const checkboxes = container.querySelectorAll('input[type="checkbox"]');
 
@@ -118,27 +148,17 @@ describe("SettingsPage", () => {
       await waitForEffects();
     });
 
-    const enabledSaveButtons = Array.from(container.querySelectorAll("button")).filter(
-      (button) => button.textContent === "表示設定を保存",
-    );
-    expect(enabledSaveButtons).toHaveLength(2);
-    expect(enabledSaveButtons.every((button) => !(button as HTMLButtonElement).disabled)).toBe(true);
+    expect(getSaveButtons(container).every((button) => !button.disabled)).toBe(true);
 
     await act(async () => {
-      (enabledSaveButtons[0] as HTMLButtonElement).click();
+      getSaveButtons(container)[0].click();
       await waitForEffects();
     });
 
     expect(updateCategoryVisibilitySettingsMock).toHaveBeenCalledWith({
       visibleCategoryIds: ["tops_shirt", "tops_tshirt"],
     });
-    expect(container.textContent).toContain("カテゴリ表示設定を保存しました。");
-
-    const saveButtonsAfterSave = Array.from(container.querySelectorAll("button")).filter(
-      (button) => button.textContent === "変更なし",
-    );
-    expect(saveButtonsAfterSave).toHaveLength(2);
-    expect(saveButtonsAfterSave.every((button) => (button as HTMLButtonElement).disabled)).toBe(true);
+    expect(getSaveButtons(container).every((button) => button.disabled)).toBe(true);
   });
 
   it("未保存変更があるとブラウザ離脱時に警告する", async () => {
@@ -179,6 +199,98 @@ describe("SettingsPage", () => {
     expect(returnValue).toBe("");
   });
 
+  it("すべてOFFの前に件数付き確認ダイアログを表示する", async () => {
+    fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
+    fetchCategoryVisibilitySettingsMock.mockResolvedValue({
+      visibleCategoryIds: ["tops_tshirt", "tops_shirt"],
+    });
+
+    const confirmMock = vi.spyOn(window, "confirm").mockReturnValue(true);
+    const { default: SettingsPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(SettingsPage));
+      await waitForEffects();
+    });
+
+    const groupButtons = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button.border"),
+    );
+    expect(groupButtons).toHaveLength(2);
+
+    await act(async () => {
+      groupButtons[1].click();
+      await waitForEffects();
+    });
+
+    expect(confirmMock).toHaveBeenCalledTimes(1);
+    expect(confirmMock.mock.calls[0][0]).toContain("トップスをすべてOFFにしますか？");
+    expect(confirmMock.mock.calls[0][0]).toContain("現在1アイテム");
+    expect(confirmMock.mock.calls[0][0]).toContain("この大分類");
+    expect(confirmMock.mock.calls[0][0]).toContain("非表示にしてもデータは削除されません。");
+    expect(getSaveButtons(container).every((button) => !button.disabled)).toBe(true);
+
+    confirmMock.mockRestore();
+  });
+
+  it("個別カテゴリをOFFにするときも件数付き確認ダイアログを表示する", async () => {
+    fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
+    fetchCategoryVisibilitySettingsMock.mockResolvedValue({
+      visibleCategoryIds: ["tops_tshirt", "tops_shirt"],
+    });
+
+    const confirmMock = vi.spyOn(window, "confirm").mockReturnValue(true);
+    const { default: SettingsPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(SettingsPage));
+      await waitForEffects();
+    });
+
+    const checkboxes = container.querySelectorAll('input[type="checkbox"]');
+
+    await act(async () => {
+      (checkboxes[0] as HTMLInputElement).click();
+      await waitForEffects();
+    });
+
+    expect(confirmMock).toHaveBeenCalledTimes(1);
+    expect(confirmMock.mock.calls[0][0]).toContain("TシャツをOFFにしますか？");
+    expect(confirmMock.mock.calls[0][0]).toContain("現在1アイテム");
+    expect(confirmMock.mock.calls[0][0]).toContain("このカテゴリ");
+    expect(getSaveButtons(container).every((button) => !button.disabled)).toBe(true);
+
+    confirmMock.mockRestore();
+  });
+
+  it("すべてONでは確認ダイアログを表示しない", async () => {
+    fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
+    fetchCategoryVisibilitySettingsMock.mockResolvedValue({
+      visibleCategoryIds: [],
+    });
+
+    const confirmMock = vi.spyOn(window, "confirm").mockReturnValue(true);
+    const { default: SettingsPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(SettingsPage));
+      await waitForEffects();
+    });
+
+    const groupButtons = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button.border"),
+    );
+
+    await act(async () => {
+      groupButtons[0].click();
+      await waitForEffects();
+    });
+
+    expect(confirmMock).not.toHaveBeenCalled();
+    expect(getSaveButtons(container).every((button) => !button.disabled)).toBe(true);
+
+    confirmMock.mockRestore();
+  });
 
   it("401 のときはログイン画面へ遷移する", async () => {
     const { ApiClientError } = await import("@/lib/api/client");

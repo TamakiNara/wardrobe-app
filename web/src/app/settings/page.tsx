@@ -4,12 +4,14 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ApiClientError } from "@/lib/api/client";
-import { fetchCategoryGroups } from "@/lib/api/categories";
+import { fetchItems } from "@/lib/api/items";
+import { fetchCategoryGroups, findVisibleCategoryIdForItem } from "@/lib/api/categories";
 import {
   fetchCategoryVisibilitySettings,
   updateCategoryVisibilitySettings,
 } from "@/lib/api/settings";
 import type { CategoryGroupRecord } from "@/types/categories";
+import type { ItemRecord } from "@/types/items";
 
 function buildVisibilityFromIds(
   groups: CategoryGroupRecord[],
@@ -31,6 +33,35 @@ function collectVisibleCategoryIds(visibility: Record<string, boolean>) {
     .sort();
 }
 
+function buildRegisteredItemCountByCategoryId(items: ItemRecord[]) {
+  const counts: Record<string, number> = {};
+
+  for (const item of items) {
+    const categoryId = findVisibleCategoryIdForItem(item.category, item.shape);
+    if (!categoryId) continue;
+    counts[categoryId] = (counts[categoryId] ?? 0) + 1;
+  }
+
+  return counts;
+}
+
+function getRegisteredItemCountForGroup(
+  group: CategoryGroupRecord,
+  counts: Record<string, number>,
+) {
+  return group.categories.reduce(
+    (total, category) => total + (counts[category.id] ?? 0),
+    0,
+  );
+}
+
+function getRegisteredItemCountForCategory(
+  categoryId: string,
+  counts: Record<string, number>,
+) {
+  return counts[categoryId] ?? 0;
+}
+
 function getGroupState(
   group: CategoryGroupRecord,
   visibility: Record<string, boolean>,
@@ -50,6 +81,7 @@ export default function SettingsPage() {
   const [visibility, setVisibility] = useState<Record<string, boolean>>({});
   const [savedVisibleCategoryIds, setSavedVisibleCategoryIds] = useState<string[]>([]);
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
+  const [registeredItems, setRegisteredItems] = useState<ItemRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -62,8 +94,14 @@ export default function SettingsPage() {
     Promise.all([
       fetchCategoryGroups(),
       fetchCategoryVisibilitySettings(),
+      fetchItems().catch((error) => {
+        if (error instanceof ApiClientError && error.status === 401) {
+          throw error;
+        }
+        return [] as ItemRecord[];
+      }),
     ])
-      .then(([fetchedGroups, settings]) => {
+      .then(([fetchedGroups, settings, fetchedItems]) => {
         if (!active) return;
 
         const initialVisibility = buildVisibilityFromIds(
@@ -81,6 +119,7 @@ export default function SettingsPage() {
             fetchedGroups.map((group) => [group.id, true]),
           ) as Record<string, boolean>,
         );
+        setRegisteredItems(fetchedItems);
       })
       .catch((error) => {
         if (!active) return;
@@ -124,6 +163,70 @@ export default function SettingsPage() {
     };
   }, [hasChanges, saving]);
 
+  const registeredItemCountByCategoryId = useMemo(
+    () => buildRegisteredItemCountByCategoryId(registeredItems),
+    [registeredItems],
+  );
+
+
+  function confirmGroupVisibilityChange(
+    group: CategoryGroupRecord,
+    enabled: boolean,
+  ) {
+    const alreadyMatched = group.categories.every(
+      (category) => (visibility[category.id] !== false) === enabled,
+    );
+
+    if (alreadyMatched || enabled) {
+      return true;
+    }
+
+    const itemCount = getRegisteredItemCountForGroup(
+      group,
+      registeredItemCountByCategoryId,
+    );
+
+    if (itemCount === 0) {
+      return true;
+    }
+
+    const message = [
+      `${group.name}をすべてOFFにしますか？`,
+      `現在${itemCount}アイテムがこの大分類に登録されています。`,
+      "非表示にしてもデータは削除されません。" +
+        "\n" +
+        "変更後は「表示設定を保存」を押してください。",
+    ].join("\n\n");
+
+
+    return window.confirm(message);
+  }
+
+  function confirmCategoryVisibilityChange(categoryId: string) {
+    const itemCount = getRegisteredItemCountForCategory(
+      categoryId,
+      registeredItemCountByCategoryId,
+    );
+
+    if (itemCount === 0) {
+      return true;
+    }
+
+    const categoryName =
+      groups
+        .flatMap((group) => group.categories)
+        .find((category) => category.id === categoryId)?.name ?? categoryId;
+    const message = [
+      `${categoryName}をOFFにしますか？`,
+      `現在${itemCount}アイテムがこのカテゴリに登録されています。`,
+      "非表示にしてもデータは削除されません。" +
+        "\n" +
+        "変更後は「表示設定を保存」を押してください。",
+    ].join("\n\n");
+
+    return window.confirm(message);
+  }
+
   function toggleGroup(groupId: string) {
     setExpandedGroups((current) => ({
       ...current,
@@ -132,6 +235,10 @@ export default function SettingsPage() {
   }
 
   function setGroupVisibility(group: CategoryGroupRecord, enabled: boolean) {
+    if (!confirmGroupVisibilityChange(group, enabled)) {
+      return;
+    }
+
     setSaveMessage(null);
     setSaveError(null);
     setVisibility((current) => {
@@ -144,6 +251,11 @@ export default function SettingsPage() {
   }
 
   function toggleCategory(categoryId: string) {
+    const willEnable = visibility[categoryId] === false;
+    if (!willEnable && !confirmCategoryVisibilityChange(categoryId)) {
+      return;
+    }
+
     setSaveMessage(null);
     setSaveError(null);
     setVisibility((current) => ({
