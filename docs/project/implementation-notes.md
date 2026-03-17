@@ -55,6 +55,22 @@
 - outfits 一覧では、コーデ自体は残しつつ、表示アイテム数を現在の表示設定で再計算する
 - outfits 詳細では、OFF にしたカテゴリのアイテムを非表示にし、非表示件数を案内する
 
+### 次の作業予定
+
+優先順:
+
+1. settings の未保存変更まわりを仕上げる
+   - 未保存変更の検知
+   - 離脱警告
+   - 保存ボタンの活性制御
+2. カテゴリ表示設定の一括操作確認ダイアログを入れる
+   - `すべてON / すべてOFF` 実行時の確認
+   - 登録済みアイテム件数を警告表示に含める
+3. 認証切れ後の `CSRF token mismatch` を解消する
+   - 再ログイン時の CSRF Cookie 再取得タイミングを見直す
+4. tops SVG の見た目調整に戻る
+   - `tshirt / shirt / blouse` の細部調整を再開する
+
 ### items
 
 実装済み:
@@ -102,6 +118,51 @@ UI/UX メモ:
 - shape に応じて選択可能な sleeve / length / neck / design / fit を絞り込む
 - 入力中の内容は下部プレビューへ即時反映する
 - 一覧でも tops 形状が分かるよう SVG プレビューを利用する
+
+### items 追加候補（TODO）
+
+検討中の項目:
+
+- `brand_name`：ブランド名
+- `memo`：メモ
+- `weather_tags`：天気対応（例：雨対応、防寒、晴れ向きなど）
+- `size_gender`：メンズ / ウィメンズ
+- `size_label`：S / M / L / FREE など
+- `size_details`：実寸の詳細
+- `price`：購入金額
+- `purchase_url`：商品ページなどの URL
+- 画像アップロード
+  - `item_images` テーブルを分ける案を想定
+  - `is_primary` を使い、優先画像がある場合は SVG ではなく画像をアイコン表示する
+
+仮案として想定している items テーブル追加項目:
+
+- `category_id`
+- `brand_name`
+- `memo`
+- `price`
+- `purchase_url`
+- `size_gender`
+- `size_label`
+- `weather_tags` （json）
+- `size_details` （json）
+
+仮案として想定している item_images テーブル:
+
+- `id`
+- `item_id`
+- `url`
+- `is_primary`
+- `sort_order`
+- `created_at`
+- `updated_at`
+
+補足:
+
+- これらはまだ未実装の TODO であり、現時点の DB / API 仕様には含めない
+- `category_id` はカテゴリ master 連携を進める場合の移行候補としての位置づけ
+- 画像優先表示は item 一覧 / 詳細 / コーデ選択画面への影響があるので、UI 仕様と同時に検討する
+- 透け感の表現として、SVG の `opacity` 属性を使う案を検討対象に含める
 
 ### カラーパレット
 
