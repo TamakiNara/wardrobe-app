@@ -279,6 +279,69 @@ class AuthEndpointsTest extends TestCase
     }
 
     /**
+     * ログアウト時に CSRF トークンが再生成されることを確認する。
+     *
+     * フロント側ではこの更新に追従できないと、再ログイン時に
+     * `CSRF token mismatch.` が起きうる。
+     */
+    public function test_logout_regenerates_csrf_token(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'sample.user@gmail.com',
+            'password' => bcrypt('password123'),
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $beforeLogoutToken = $this->issueCsrfToken();
+
+        $this->postJson('/api/logout', [], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $beforeLogoutToken,
+        ])->assertOk();
+
+        $afterLogoutToken = session()->token();
+
+        $this->assertNotSame($beforeLogoutToken, $afterLogoutToken);
+    }
+
+    /**
+     * ログアウト後でも、新しい CSRF トークンを取得し直せば
+     * 再ログインできることを確認する。
+     */
+    public function test_login_succeeds_after_logout_when_csrf_token_is_refreshed(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'sample.user@gmail.com',
+            'password' => bcrypt('password123'),
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $staleToken = $this->issueCsrfToken();
+
+        $this->postJson('/api/logout', [], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $staleToken,
+        ])->assertOk();
+
+        $freshToken = $this->issueCsrfToken();
+
+        $response = $this->postJson('/api/login', [
+            'email' => $user->email,
+            'password' => 'password123',
+        ], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $freshToken,
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('message', 'logged_in');
+
+        $this->assertAuthenticated('web');
+    }
+
+    /**
     * 未認証状態でも logout は安全に成功扱いになることを確認する。
     */
     public function test_logout_returns_200_when_unauthenticated(): void
