@@ -102,13 +102,15 @@ DBテーブル構成の詳細は `docs/data/database.md` を参照する。
 
 ## プリセット
 
-* 男
-* 女
-* カスタム
+| 内部値 | UI 表示 |
+| ------ | -------- |
+| `male` | `Men` |
+| `female` | `Women` |
+| `custom` | `Custom` |
 
 ---
 
-## 男基本セット
+## `male` / `Men` 基本セット
 
 初期OFF
 
@@ -121,13 +123,13 @@ DBテーブル構成の詳細は `docs/data/database.md` を参照する。
 
 ---
 
-## 女基本セット
+## `female` / `Women` 基本セット
 
 基本 **すべてON**
 
 ---
 
-## カスタム
+## `custom` / `Custom`
 
 全カテゴリON状態で表示し、
 ユーザーが不要カテゴリをOFFにする。
@@ -137,6 +139,12 @@ DBテーブル構成の詳細は `docs/data/database.md` を参照する。
 ```
 カテゴリは後から設定画面で変更できます
 ```
+
+補足:
+
+- 新規登録直後の導線では、まずカテゴリプリセット選択画面を表示する
+- `custom` を選んだ場合は、全カテゴリ ON の状態でカテゴリ微調整画面へ進む
+- 詳細は `docs/specs/settings/category-preset-selection.md` を参照する
 
 ---
 

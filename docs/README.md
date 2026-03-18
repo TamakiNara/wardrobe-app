@@ -16,8 +16,10 @@
 - 認証の流れを確認したいときは `architecture/auth-flow.md`
 - アーキテクチャ全体を見たいときは `architecture/system-overview.md`
 - 設計判断の理由を見たいときは `decisions/architecture-decisions.md`
+- セキュリティの現状と課題を見たいときは `security/web-security.md`
 - tops の詳細仕様を見たいときは `specs/items/tops.md`
 - カテゴリ表示設定の仕様を見たいときは `specs/settings/category-settings.md`
+- 新規登録直後のカテゴリプリセット選択を見たいときは `specs/settings/category-preset-selection.md`
 
 ---
 
@@ -66,6 +68,13 @@
 
 - DB テーブル構造と保存方針の整理
 
+### `security/web-security.md`
+
+役割:
+
+- IPA の観点をベースにセキュリティ対策の現状を整理する
+- 実装済み対策、未対応事項、優先度付き課題をまとめる
+
 ### `specs/items/tops.md`
 
 役割:
@@ -82,6 +91,14 @@
 
 - 現在はカテゴリ表示設定の仕様を整理している
 - 今後、設定系仕様を増やすときの配置先として使う
+
+
+### `specs/settings/category-preset-selection.md`
+
+役割:
+
+- 新規登録直後のカテゴリプリセット選択導線を整理する
+- 内部値 `male / female / custom` と UI 表示 `Men / Women / Custom` の初回設定フローを定義する
 
 ### `decisions/architecture-decisions.md`
 
