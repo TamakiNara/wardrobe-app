@@ -336,3 +336,24 @@ outfit と item の関連テーブルです。
 - 既存レコードの主キーを変えない
 - Seeder 追加時も `DB は snake_case / JSON は camelCase` の方針を崩さない
 - 表示名は更新可能だが、ID はリリース後に変更しない
+
+---
+
+## wear_logs (future)
+
+着用履歴 / 着用予定を扱う将来テーブル案です。
+
+想定する主項目:
+
+- `user_id`
+- `wear_date`
+- `status`
+- `outfit_id` nullable
+- `items_snapshot` json
+- `memo` nullable
+
+補足:
+
+- `items_snapshot` に登録時点の item 構成を保持し、outfit 編集後でも受けた記録の意味を変えない
+- 1 日複数件、同じ item の重複登録を許可する前提
+- 詳細は `docs/specs/wears/wear-logs.md` を参照
