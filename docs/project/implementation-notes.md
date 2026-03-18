@@ -224,6 +224,16 @@ UI/UX メモ:
 
 ![プリセットカラー一覧](../assets/item-colors-palette.svg)
 
+### API / ルーティング整理メモ
+
+将来的な整理方針:
+
+- `web.php` の items / outfits は Controller に分離したい
+- 想定候補は `ItemsController` `OutfitsController`
+- 作成系 / 更新系の入力は FormRequest に分離したい
+- 想定候補は `StoreItemRequest` `UpdateItemRequest` `StoreOutfitRequest` `UpdateOutfitRequest`
+- 先に docs 側では API を「認証系 API / 設定系 API / 参照マスタ API」の役割でも追えるように整理する
+
 ## 将来案
 
 ### 将来機能の候補

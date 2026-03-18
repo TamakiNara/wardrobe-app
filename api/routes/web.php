@@ -3,7 +3,6 @@
 use App\Models\CategoryMaster;
 use App\Models\Item;
 use App\Models\Outfit;
-use App\Models\OutfitItem;
 use App\Http\Controllers\AuthController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -30,19 +29,24 @@ Route::get('/csrf-cookie', function (Request $request) {
 });
 
 Route::prefix('api')->middleware(['web'])->group(function () {
+    // Auth
     Route::post('/register', [AuthController::class, 'register']);
-    Route::post('/login',    [AuthController::class, 'login']);
-    Route::post('/logout',   [AuthController::class, 'logout']);
+    Route::post('/login', [AuthController::class, 'login']);
 
-    Route::middleware('auth:web')->get('/me', function (Request $request) {
-        $user = $request->user();
-        return response()->json([
-            'id' => $user->id,
-            'name' => $user->name,
-            'email' => $user->email,
-        ]);
+    Route::middleware('auth:web')->group(function () {
+        Route::get('/me', function (Request $request) {
+            $user = $request->user();
+            return response()->json([
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+            ]);
+        });
+
+        Route::post('/logout', [AuthController::class, 'logout']);
     });
 
+    // Settings
     Route::middleware('auth:web')->get('/settings/categories', function (Request $request) {
         $user = $request->user();
 
@@ -93,6 +97,7 @@ Route::prefix('api')->middleware(['web'])->group(function () {
         ]);
     });
 
+    // Items
     Route::middleware('auth:web')->get('/items', function (Request $request) {
         $items = Item::query()
             ->where('user_id', $request->user()->id)
@@ -213,6 +218,7 @@ Route::prefix('api')->middleware(['web'])->group(function () {
         ]);
     });
 
+    // Outfits
     Route::middleware('auth:web')->get('/outfits', function (Request $request) {
         $outfits = Outfit::query()
             ->where('user_id', $request->user()->id)
@@ -245,7 +251,7 @@ Route::prefix('api')->middleware(['web'])->group(function () {
             ->unique()
             ->values();
 
-        $ownedItemCount = \App\Models\Item::query()
+        $ownedItemCount = Item::query()
             ->where('user_id', $user->id)
             ->whereIn('id', $itemIds)
             ->count();
@@ -319,7 +325,7 @@ Route::prefix('api')->middleware(['web'])->group(function () {
             ->unique()
             ->values();
 
-        $ownedItemCount = \App\Models\Item::query()
+        $ownedItemCount = Item::query()
             ->where('user_id', $user->id)
             ->whereIn('id', $itemIds)
             ->count();
@@ -372,7 +378,7 @@ Route::prefix('api')->middleware(['web'])->group(function () {
 
 // swagger-ui 表示用
 Route::get('/docs/openapi.yaml', function () {
-    $path = dirname(base_path()) . DIRECTORY_SEPARATOR . 'docs' . DIRECTORY_SEPARATOR . 'openapi.yaml';
+    $path = dirname(base_path()) . DIRECTORY_SEPARATOR . 'docs' . DIRECTORY_SEPARATOR . 'api' . DIRECTORY_SEPARATOR . 'openapi.yaml';
 
     if (! file_exists($path)) {
         abort(404, 'OpenAPI file not found.');

@@ -7,18 +7,24 @@ info:
     Wardrobe App のAPI仕様。
 
     このAPIは Cookie ベースのセッション認証を使用する。
-    POST リクエストでは CSRF 対策のため `X-CSRF-TOKEN` ヘッダが必要。
-    現状は Auth のみ記載
+    CSRF 保護が必要な POST / PUT / DELETE では `X-CSRF-TOKEN` ヘッダが必要。
+    docs 上では認証系 API / 設定系 API / 参照マスタ API を軸に整理しつつ、Items / Outfits も実装単位で記載する。
 
 servers:
   - url: http://localhost:8000
-    description: Local development
+    description: ローカル開発環境
 
 tags:
   - name: Auth
-    description: 認証・セッション関連API
-  - name: Categories
-    description: カテゴリ master 関連API
+    description: 認証・セッション関連 API
+  - name: ReferenceMasters
+    description: 参照マスタ API
+  - name: Settings
+    description: 設定関連 API
+  - name: Items
+    description: アイテム関連 API
+  - name: Outfits
+    description: コーディネート関連 API
 
 paths:
   /csrf-cookie:
@@ -27,16 +33,15 @@ paths:
         - Auth
       summary: CSRFトークンとセッションCookieを発行する
       description: |
-        CSRF保護が必要なPOST系APIを呼ぶ前に実行する。
-        このエンドポイントは Cookie に `XSRF-TOKEN` とセッションCookieを設定する。
+        CSRF保護が必要な API を呼ぶ前に実行する。
+        XSRF-TOKEN とセッションCookie を Cookie に設定する。
       operationId: getCsrfCookie
       responses:
         '204':
-          description: No Content
+          description: レスポンスボディなし
           headers:
             Set-Cookie:
-              description: |
-                `XSRF-TOKEN` とセッションCookie が設定される。
+              description: "XSRF-TOKEN とセッションCookie が設定される"
               schema:
                 type: string
 
@@ -46,9 +51,8 @@ paths:
         - Auth
       summary: ユーザー登録
       description: |
-        新規ユーザーを登録し、登録成功時はそのままログイン状態にする。
-        Cookie ベースのセッション認証を使用するため、
-        事前に `/csrf-cookie` を呼び出し、`X-CSRF-TOKEN` ヘッダを付与すること。
+        新規ユーザーを登録し、成功時はそのままログイン状態にする。
+        Cookie ベース認証のため、事前に `/csrf-cookie` を呼び出し `X-CSRF-TOKEN` を付与する。
       operationId: register
       parameters:
         - $ref: '#/components/parameters/XCsrfTokenHeader'
@@ -58,12 +62,6 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/RegisterRequest'
-            examples:
-              default:
-                value:
-                  name: "Test"
-                  email: "sample.user@gmail.com"
-                  password: "password123"
       responses:
         '201':
           description: ユーザー登録成功
@@ -71,27 +69,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RegisterResponse'
-              examples:
-                success:
-                  value:
-                    message: registered
-                    user:
-                      id: 1
-                      name: Test
-                      email: sample.user@gmail.com
         '422':
           description: バリデーションエラー
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ValidationErrorResponse'
-              examples:
-                validationError:
-                  value:
-                    message: The given data was invalid.
-                    errors:
-                      email:
-                        - The email has already been taken.
 
   /api/login:
     post:
@@ -100,8 +83,7 @@ paths:
       summary: ログイン
       description: |
         メールアドレスとパスワードでログインする。
-        Cookie ベースのセッション認証を使用するため、
-        事前に `/csrf-cookie` を呼び出し、`X-CSRF-TOKEN` ヘッダを付与すること。
+        Cookie ベース認証のため、事前に `/csrf-cookie` を呼び出し `X-CSRF-TOKEN` を付与する。
       operationId: login
       parameters:
         - $ref: '#/components/parameters/XCsrfTokenHeader'
@@ -111,11 +93,6 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/LoginRequest'
-            examples:
-              default:
-                value:
-                  email: "sample.user@gmail.com"
-                  password: "password123"
       responses:
         '200':
           description: ログイン成功
@@ -123,31 +100,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/LoginResponse'
-              examples:
-                success:
-                  value:
-                    message: logged_in
         '422':
-          description: バリデーションエラーまたは認証失敗
+          description: 認証失敗またはバリデーションエラー
           content:
             application/json:
               schema:
-                oneOf:
-                  - $ref: '#/components/schemas/ValidationErrorResponse'
-                  - $ref: '#/components/schemas/MessageOnlyResponse'
-              examples:
-                invalidCredentials:
-                  value:
-                    message: invalid credentials
+                $ref: '#/components/schemas/ValidationErrorResponse'
 
   /api/me:
     get:
       tags:
         - Auth
-      summary: ログイン中のユーザー情報を取得する
-      description: |
-        セッション認証済みユーザーのプロフィール情報を返す。
-        `laravel-session` Cookie が必要。
+      summary: ログインユーザー情報取得
       operationId: me
       security:
         - SessionCookieAuth: []
@@ -158,22 +122,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
-              examples:
-                success:
-                  value:
-                    id: 10
-                    name: Test
-                    email: sample.user@gmail.com
         '401':
           description: 未認証
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MessageOnlyResponse'
-              examples:
-                unauthenticated:
-                  value:
-                    message: Unauthenticated.
 
   /api/logout:
     post:
@@ -181,11 +131,9 @@ paths:
         - Auth
       summary: ログアウト
       description: |
-        ログイン中のユーザーをログアウトし、セッションを破棄する。
-        POSTのため `X-CSRF-TOKEN` ヘッダが必要。
+        ルート定義は `auth:web` 配下に置くが、未認証で `/api/logout` を呼んだ場合も例外ハンドラ側で `logged_out` を返す。
+        POST のため `X-CSRF-TOKEN` ヘッダが必要。
       operationId: logout
-      security:
-        - SessionCookieAuth: []
       parameters:
         - $ref: '#/components/parameters/XCsrfTokenHeader'
       responses:
@@ -195,31 +143,13 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MessageOnlyResponse'
-              examples:
-                success:
-                  value:
-                    message: logged_out
-        '401':
-          description: 未認証
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MessageOnlyResponse'
-              examples:
-                unauthenticated:
-                  value:
-                    message: Unauthenticated.
-
 
   /api/categories:
     get:
       tags:
-        - Categories
-      summary: カテゴリ一覧を取得する
-      description: |
-        category master から大分類と中分類の一覧を返す。
-        DBカラムは `group_id` だが、レスポンスJSONでは `groupId` を返す。
-      operationId: listCategories
+        - ReferenceMasters
+      summary: カテゴリ一覧取得
+      description: 参照マスタとしてカテゴリ一覧を返す。実装は `api/routes/api.php` 側に定義されている。
       responses:
         '200':
           description: 取得成功
@@ -227,16 +157,291 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CategoriesResponse'
-              examples:
-                success:
-                  value:
-                    groups:
-                      - id: tops
-                        name: トップス
-                        categories:
-                          - id: tops_tshirt
-                            groupId: tops
-                            name: Tシャツ
+
+  /api/settings/categories:
+    get:
+      tags:
+        - Settings
+      summary: カテゴリ表示設定取得
+      security:
+        - SessionCookieAuth: []
+      responses:
+        '200':
+          description: 取得成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoryVisibilitySettingsResponse'
+        '401':
+          description: 未認証
+    put:
+      tags:
+        - Settings
+      summary: カテゴリ表示設定更新
+      security:
+        - SessionCookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XCsrfTokenHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCategoryVisibilitySettingsRequest'
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoryVisibilitySettingsUpdatedResponse'
+        '401':
+          description: 未認証
+        '422':
+          description: バリデーションエラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+
+  /api/items:
+    get:
+      tags:
+        - Items
+      summary: アイテム一覧取得
+      security:
+        - SessionCookieAuth: []
+      responses:
+        '200':
+          description: 取得成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ItemsResponse'
+        '401':
+          description: 未認証
+    post:
+      tags:
+        - Items
+      summary: アイテム作成
+      security:
+        - SessionCookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XCsrfTokenHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ItemUpsertRequest'
+      responses:
+        '201':
+          description: 作成成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ItemResponseWithMessage'
+        '401':
+          description: 未認証
+        '422':
+          description: バリデーションエラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+
+  /api/items/{id}:
+    get:
+      tags:
+        - Items
+      summary: アイテム詳細取得
+      security:
+        - SessionCookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ItemIdPath'
+      responses:
+        '200':
+          description: 取得成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ItemResponse'
+        '401':
+          description: 未認証
+        '404':
+          description: 未検出
+    put:
+      tags:
+        - Items
+      summary: アイテム更新
+      security:
+        - SessionCookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ItemIdPath'
+        - $ref: '#/components/parameters/XCsrfTokenHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ItemUpsertRequest'
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ItemResponseWithMessage'
+        '401':
+          description: 未認証
+        '404':
+          description: 未検出
+        '422':
+          description: バリデーションエラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+    delete:
+      tags:
+        - Items
+      summary: アイテム削除
+      security:
+        - SessionCookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ItemIdPath'
+        - $ref: '#/components/parameters/XCsrfTokenHeader'
+      responses:
+        '200':
+          description: 削除成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageOnlyResponse'
+        '401':
+          description: 未認証
+        '404':
+          description: 未検出
+
+  /api/outfits:
+    get:
+      tags:
+        - Outfits
+      summary: コーディネート一覧取得
+      security:
+        - SessionCookieAuth: []
+      responses:
+        '200':
+          description: 取得成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OutfitsResponse'
+        '401':
+          description: 未認証
+    post:
+      tags:
+        - Outfits
+      summary: コーディネート作成
+      security:
+        - SessionCookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XCsrfTokenHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OutfitUpsertRequest'
+      responses:
+        '201':
+          description: 作成成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OutfitResponseWithMessage'
+        '401':
+          description: 未認証
+        '422':
+          description: バリデーションエラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+
+  /api/outfits/{id}:
+    get:
+      tags:
+        - Outfits
+      summary: コーディネート詳細取得
+      security:
+        - SessionCookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/OutfitIdPath'
+      responses:
+        '200':
+          description: 取得成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OutfitResponse'
+        '401':
+          description: 未認証
+        '404':
+          description: 未検出
+    put:
+      tags:
+        - Outfits
+      summary: コーディネート更新
+      security:
+        - SessionCookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/OutfitIdPath'
+        - $ref: '#/components/parameters/XCsrfTokenHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OutfitUpsertRequest'
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OutfitResponseWithMessage'
+        '401':
+          description: 未認証
+        '404':
+          description: 未検出
+        '422':
+          description: バリデーションエラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+    delete:
+      tags:
+        - Outfits
+      summary: コーディネート削除
+      security:
+        - SessionCookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/OutfitIdPath'
+        - $ref: '#/components/parameters/XCsrfTokenHeader'
+      responses:
+        '200':
+          description: 削除成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageOnlyResponse'
+        '401':
+          description: 未認証
+        '404':
+          description: 未検出
+
 components:
   parameters:
     XCsrfTokenHeader:
@@ -250,53 +455,22 @@ components:
         Swagger UI では requestInterceptor により自動付与する。
       schema:
         type: string
+    ItemIdPath:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+    OutfitIdPath:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+        minimum: 1
 
   schemas:
-
-    CategoriesResponse:
-      type: object
-      required:
-        - groups
-      properties:
-        groups:
-          type: array
-          items:
-            $ref: '#/components/schemas/CategoryGroup'
-
-    CategoryGroup:
-      type: object
-      required:
-        - id
-        - name
-        - categories
-      properties:
-        id:
-          type: string
-          example: tops
-        name:
-          type: string
-          example: トップス
-        categories:
-          type: array
-          items:
-            $ref: '#/components/schemas/Category'
-
-    Category:
-      type: object
-      required:
-        - id
-        - groupId
-        - name
-      properties:
-        id:
-          type: string
-          example: tops_tshirt
-        groupId:
-          type: string
-          example: tops
-        name:
-          type: string
-          example: Tシャツ
     User:
       type: object
       required:
@@ -402,6 +576,382 @@ components:
             type: array
             items:
               type: string
+
+    CategoriesResponse:
+      type: object
+      required:
+        - groups
+      properties:
+        groups:
+          type: array
+          items:
+            $ref: '#/components/schemas/CategoryGroup'
+
+    CategoryGroup:
+      type: object
+      required:
+        - id
+        - name
+        - categories
+      properties:
+        id:
+          type: string
+          example: tops
+        name:
+          type: string
+          example: トップス
+        categories:
+          type: array
+          items:
+            $ref: '#/components/schemas/Category'
+
+    Category:
+      type: object
+      required:
+        - id
+        - groupId
+        - name
+      properties:
+        id:
+          type: string
+          example: tops_tshirt
+        groupId:
+          type: string
+          example: tops
+        name:
+          type: string
+          example: Tシャツ
+
+    CategoryVisibilitySettingsResponse:
+      type: object
+      required:
+        - visibleCategoryIds
+      properties:
+        visibleCategoryIds:
+          type: array
+          items:
+            type: string
+          example:
+            - tops_tshirt
+            - bottoms_denim_pants
+
+    UpdateCategoryVisibilitySettingsRequest:
+      type: object
+      required:
+        - visibleCategoryIds
+      properties:
+        visibleCategoryIds:
+          type: array
+          items:
+            type: string
+          example:
+            - tops_tshirt
+            - bottoms_denim_pants
+
+    CategoryVisibilitySettingsUpdatedResponse:
+      allOf:
+        - $ref: '#/components/schemas/MessageOnlyResponse'
+        - type: object
+          required:
+            - visibleCategoryIds
+          properties:
+            visibleCategoryIds:
+              type: array
+              items:
+                type: string
+
+    ItemColor:
+      type: object
+      required:
+        - role
+        - mode
+        - value
+        - hex
+        - label
+      properties:
+        role:
+          type: string
+          enum: [main, sub]
+        mode:
+          type: string
+          enum: [preset, custom]
+        value:
+          type: string
+          example: navy
+        hex:
+          type: string
+          example: '#1f3a5f'
+        label:
+          type: string
+          example: ネイビー
+
+    TopsSpec:
+      type: object
+      properties:
+        shape:
+          type: string
+        sleeve:
+          type: string
+        length:
+          type: string
+        neck:
+          type: string
+        design:
+          type: string
+        fit:
+          type: string
+
+    ItemSpec:
+      type: object
+      properties:
+        tops:
+          $ref: '#/components/schemas/TopsSpec'
+      additionalProperties: true
+
+    ItemRecord:
+      type: object
+      required:
+        - id
+        - user_id
+        - category
+        - shape
+        - colors
+        - seasons
+        - tpos
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: integer
+          example: 1
+        user_id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          nullable: true
+          example: ネイビーTシャツ
+        category:
+          type: string
+          example: tops_tshirt
+        shape:
+          type: string
+          example: crew_neck_tshirt
+        colors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ItemColor'
+        seasons:
+          type: array
+          items:
+            type: string
+        tpos:
+          type: array
+          items:
+            type: string
+        spec:
+          allOf:
+            - $ref: '#/components/schemas/ItemSpec'
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ItemUpsertRequest:
+      type: object
+      required:
+        - category
+        - shape
+        - colors
+      properties:
+        name:
+          type: string
+          nullable: true
+          maxLength: 255
+        category:
+          type: string
+          maxLength: 100
+        shape:
+          type: string
+          maxLength: 100
+        colors:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/ItemColor'
+        seasons:
+          type: array
+          items:
+            type: string
+        tpos:
+          type: array
+          items:
+            type: string
+        spec:
+          $ref: '#/components/schemas/ItemSpec'
+
+    ItemsResponse:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ItemRecord'
+
+    ItemResponse:
+      type: object
+      required:
+        - item
+      properties:
+        item:
+          $ref: '#/components/schemas/ItemRecord'
+
+    ItemResponseWithMessage:
+      allOf:
+        - $ref: '#/components/schemas/MessageOnlyResponse'
+        - type: object
+          required:
+            - item
+          properties:
+            item:
+              $ref: '#/components/schemas/ItemRecord'
+
+    OutfitItemPivotRecord:
+      type: object
+      required:
+        - id
+        - outfit_id
+        - item_id
+        - sort_order
+      properties:
+        id:
+          type: integer
+          example: 10
+        outfit_id:
+          type: integer
+          example: 2
+        item_id:
+          type: integer
+          example: 1
+        sort_order:
+          type: integer
+          example: 0
+        item:
+          $ref: '#/components/schemas/ItemRecord'
+
+    OutfitRecord:
+      type: object
+      required:
+        - id
+        - user_id
+        - seasons
+        - tpos
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: integer
+          example: 1
+        user_id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          nullable: true
+          example: 週末カジュアル
+        memo:
+          type: string
+          nullable: true
+        seasons:
+          type: array
+          items:
+            type: string
+        tpos:
+          type: array
+          items:
+            type: string
+        outfit_items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OutfitItemPivotRecord'
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    OutfitItemInput:
+      type: object
+      required:
+        - item_id
+        - sort_order
+      properties:
+        item_id:
+          type: integer
+          minimum: 1
+        sort_order:
+          type: integer
+          minimum: 0
+
+    OutfitUpsertRequest:
+      type: object
+      required:
+        - items
+      properties:
+        name:
+          type: string
+          nullable: true
+          maxLength: 255
+        memo:
+          type: string
+          nullable: true
+        seasons:
+          type: array
+          items:
+            type: string
+        tpos:
+          type: array
+          items:
+            type: string
+        items:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/OutfitItemInput'
+
+    OutfitsResponse:
+      type: object
+      required:
+        - outfits
+      properties:
+        outfits:
+          type: array
+          items:
+            $ref: '#/components/schemas/OutfitRecord'
+
+    OutfitResponse:
+      type: object
+      required:
+        - outfit
+      properties:
+        outfit:
+          $ref: '#/components/schemas/OutfitRecord'
+
+    OutfitResponseWithMessage:
+      allOf:
+        - $ref: '#/components/schemas/MessageOnlyResponse'
+        - type: object
+          required:
+            - outfit
+          properties:
+            outfit:
+              $ref: '#/components/schemas/OutfitRecord'
 
   securitySchemes:
     SessionCookieAuth:

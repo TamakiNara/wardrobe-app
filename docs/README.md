@@ -12,6 +12,7 @@
 - 実装の現況や次にやることを知りたいときは `project/implementation-notes.md`
 - API の概要を見たいときは `api/api-overview.md`
 - OpenAPI の正本を見たいときは `api/openapi.yaml`
+- API docs の分類方針を見たいときは、`api/openapi.yaml` の tag を「認証系 / 設定系 / 参照マスタ / 実装単位」で追う
 - DB 構造を見たいときは `data/database.md`
 - 認証の流れを確認したいときは `architecture/auth-flow.md`
 - アーキテクチャ全体を見たいときは `architecture/system-overview.md`
@@ -61,6 +62,7 @@
 役割:
 
 - API schema の機械可読な定義
+- docs 上では `Auth` `Settings` `ReferenceMasters` を役割分類の軸にし、`Items` `Outfits` は実装単位の API 群として整理する
 
 ### `data/database.md`
 

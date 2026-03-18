@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "generate:api-types": "openapi-typescript ../docs/openapi.yaml -o src/types/api.d.ts",
+    "generate:api-types": "openapi-typescript ../docs/api/openapi.yaml -o src/types/api.d.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint src --ext .ts,.tsx --ignore-pattern \"**/*.test.ts\" --ignore-pattern \"**/*.test.tsx\"",
