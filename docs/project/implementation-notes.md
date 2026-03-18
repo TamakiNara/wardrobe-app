@@ -24,9 +24,14 @@
    - `male / female / custom` を内部値とし、UI では `Men / Women / Custom` を表示する選択 UI を用意する
    - `custom` 選択時のカテゴリ微調整導線を整理する
    - 初回導線での保存タイミングを実装に落とす
-5. tops SVG の見た目調整に戻る
+5. アプリ全体の共通ボトムナビを追加する
+   - タブは `ホーム / アイテム / コーディネート / 設定` の 4 つ
+   - 初期実装では PC / スマホ共通で画面下部固定とする
+   - アイコンは Lucide の `home / tshirt / sparkles / settings` を利用予定
+   - 将来的に PC は上部ナビへ切り替える余地を残す
+6. tops SVG の見た目調整に戻る
    - `tshirt / shirt / blouse` の細部調整を再開する
-6. docs の OpenAPI / database / architecture の整合を追加確認する
+7. docs の OpenAPI / database / architecture の整合を追加確認する
 
 ## 進行中
 
