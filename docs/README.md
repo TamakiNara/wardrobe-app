@@ -15,12 +15,14 @@
 - API docs の分類方針を見たいときは、`api/openapi.yaml` の tag を「認証系 / 設定系 / 参照マスタ / 実装単位」で追う
 - DB 構造を見たいときは `data/database.md`
 - 認証の流れを確認したいときは `architecture/auth-flow.md`
+- 画面遷移図を見たいときは `architecture/screen-flows.md`
 - アーキテクチャ全体を見たいときは `architecture/system-overview.md`
 - 設計判断の理由を見たいときは `decisions/architecture-decisions.md`
 - セキュリティの現状と課題を見たいときは `security/web-security.md`
 - tops の詳細仕様を見たいときは `specs/items/tops.md`
 - カテゴリ表示設定の仕様を見たいときは `specs/settings/category-settings.md`
 - 新規登録直後のカテゴリプリセット選択を見たいときは `specs/settings/category-preset-selection.md`
+- アプリ全体の共通ナビ仕様を見たいときは `specs/navigation/global-navigation.md`
 
 ---
 
@@ -50,6 +52,13 @@
 
 - 認証フローの説明
 - Cookie / CSRF / Session の流れの整理
+
+### `architecture/screen-flows.md`
+
+役割:
+
+- 主要画面の画面遷移図を Mermaid でまとめる
+- ログイン 〜 ログアウト、新規登録 〜 カテゴリ設定 〜 items / outfits 登録の導線を整理する
 
 ### `api/api-overview.md`
 
@@ -101,6 +110,14 @@
 
 - 新規登録直後のカテゴリプリセット選択導線を整理する
 - 内部値 `male / female / custom` と UI 表示 `Men / Women / Custom` の初回設定フローを定義する
+
+### `specs/navigation/global-navigation.md`
+
+役割:
+
+- アプリ全体で共通利用するナビゲーションの仕様を整理する
+- 初期のボトムナビ方針と、将来の PC 上部ナビ方針を定義する
+- 実装時の推奨配置場所を残す
 
 ### `decisions/architecture-decisions.md`
 

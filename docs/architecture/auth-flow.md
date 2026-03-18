@@ -44,3 +44,7 @@ sequenceDiagram
 
 5. `POST /api/logout`  
   セッション破棄
+
+## 関連資料
+
+- `docs/architecture/screen-flows.md`
