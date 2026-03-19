@@ -29,9 +29,14 @@
    - 初期実装では PC / スマホ共通で画面下部固定とする
    - アイコンは Lucide の `home / tshirt / sparkles / settings` を利用予定
    - 将来的に PC は上部ナビへ切り替える余地を残す
-6. tops SVG の見た目調整に戻る
+6. 一覧画面の検索・絞り込み・並び順仕様を固める
+   - 対象は `items / outfits / wear logs` の 3 画面
+   - 検索はテキスト入力、絞り込みは選択式条件として分離する
+   - 並び順は単一選択、初期値は items / outfits = 新しい順、wear logs = 日付の新しい順とする
+   - 0件時は「データ自体が0件」と「絞り込み結果が0件」を分けて扱う
+7. tops SVG の見た目調整に戻る
    - `tshirt / shirt / blouse` の細部調整を再開する
-7. docs の OpenAPI / database / architecture の整合を追加確認する
+8. docs の OpenAPI / database / architecture の整合を追加確認する
 
 ## 進行中
 
@@ -286,6 +291,17 @@ UI/UX メモ:
 - outfit 由来登録でも、記録時点の item 構成をスナップショット保存する方向
 - カレンダー表示、最近着た item、着用回数、しばらく着ていない item などの集計基盤として使う
 - 詳細は `docs/specs/wears/wear-logs.md` に整理
+
+### 検索・絞り込み・並び順構想
+
+将来仕様メモ:
+
+- 対象画面は item 一覧 / outfit 一覧 / 着用履歴一覧
+- 検索はテキスト入力、絞り込みは選択式条件として UI を分離する
+- 検索対象は item 名 / brand 名 / メモ の部分一致を基本とする
+- 並び順は単一選択とし、初期値は items / outfits = 新しい順、wear logs = 日付の新しい順
+- 0件時は未登録と絞り込み結果 0 件を別の空状態として扱う
+- 詳細は `docs/specs/discovery/search-filter-sort.md` に整理
 
 ## 現在の実装状況
 
