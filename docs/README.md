@@ -14,6 +14,7 @@
 - OpenAPI の正本を見たいときは `api/openapi.yaml`
 - API docs の分類方針を見たいときは、`api/openapi.yaml` の tag を「認証系 / 設定系 / 参照マスタ / 実装単位」で追う
 - DB 構造を見たいときは `data/database.md`
+- テスト用 seed ユーザー方針を見たいときは `data/test-seed-users.md`
 - 認証の流れを確認したいときは `architecture/auth-flow.md`
 - 画面遷移図を見たいときは `architecture/screen-flows.md`
 - アーキテクチャ全体を見たいときは `architecture/system-overview.md`
@@ -78,6 +79,13 @@
 役割:
 
 - DB テーブル構造と保存方針の整理
+
+### `data/test-seed-users.md`
+
+役割:
+
+- テスト用ユーザーとサンプルデータの seed 方針を整理する
+- 確認用アカウントの種類、sample data の中身、再実行手順をまとめる
 
 ### `security/web-security.md`
 

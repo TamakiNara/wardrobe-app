@@ -38,9 +38,14 @@
    - エラーメッセージの文体、情報量、行動案内の共通ルールを決める
    - 重要画面は `login / register / item create-edit / settings / outfits / image upload` を対象にする
    - 空状態は `items / outfits / settings / home` を先に整理し、wear logs / search 0 件 / error 系を後追いする
-8. tops SVG の見た目調整に戻る
+8. テスト用 seed ユーザーと sample data の方針を固める
+   - 3 アカウント固定とし、`empty-user@example.com` / `standard-user@example.com` / `large-user@example.com` を使う
+   - パスワードは README にデフォルト値を書き、env で上書き可能にする
+   - 標準確認用は手書き中心、多件数確認用は Factory 併用で作る
+   - 詳細は `docs/data/test-seed-users.md` に集約する
+9. tops SVG の見た目調整に戻る
    - `tshirt / shirt / blouse` の細部調整を再開する
-9. docs の OpenAPI / database / architecture の整合を追加確認する
+10. docs の OpenAPI / database / architecture の整合を追加確認する
 
 ## 進行中
 
@@ -154,6 +159,16 @@
 - ログアウトボタン
 
 ## 後回し
+
+### テスト用 seed ユーザー構想
+
+- 3 アカウント固定で、`empty-user@example.com` / `standard-user@example.com` / `large-user@example.com` を作る
+- デフォルトパスワードは README に記載し、Seeder 側で env 上書きを許可する
+- sample data はそれぞれのユーザーに紐づける
+  - standard 確認用は手書き中心の Item / Outfits / カテゴリ設定
+  - large 確認用は Factory 併用の多件数 data
+- 画像あり sample は最初は URL ベースとし、ローカルファイル対応は後回しにする
+- 詳細は `docs/data/test-seed-users.md` を参照する
 
 ### items の現状メモ
 
