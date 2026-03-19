@@ -38,14 +38,9 @@
    - エラーメッセージの文体、情報量、行動案内の共通ルールを決める
    - 重要画面は `login / register / item create-edit / settings / outfits / image upload` を対象にする
    - 空状態は `items / outfits / settings / home` を先に整理し、wear logs / search 0 件 / error 系を後追いする
-8. テスト用 seed ユーザーと sample data の方針を固める
-   - 3 アカウント固定とし、`empty-user@example.com` / `standard-user@example.com` / `large-user@example.com` を使う
-   - パスワードは README にデフォルト値を書き、env で上書き可能にする
-   - 標準確認用は手書き中心、多件数確認用は Factory 併用で作る
-   - 詳細は `docs/data/test-seed-users.md` に集約する
-9. tops SVG の見た目調整に戻る
+8. tops SVG の見た目調整に戻る
    - `tshirt / shirt / blouse` の細部調整を再開する
-10. docs の OpenAPI / database / architecture の整合を追加確認する
+9. docs の OpenAPI / database / architecture の整合を追加確認する
 
 ## 進行中
 
@@ -74,6 +69,21 @@
 - 未保存変更がある状態で、再読み込みやタブを閉じる操作をしたときはブラウザの離脱警告を出す
 - ページ内遷移での未保存変更警告は未対応のため、必要に応じて今後整理する
 - 新規登録直後のカテゴリプリセット選択画面は未着手
+
+### テスト用 seed ユーザー
+
+実装済み:
+
+- 3 アカウント固定の `empty-user@example.com` / `standard-user@example.com` / `large-user@example.com` を Seeder で作成する
+- デフォルトパスワードは `password123` 、env は `TEST_SEED_USER_PASSWORD` で上書きできる
+- `TestDatasetSeeder` で、テスト用ユーザーと sample data だけを再投入できる
+- `standard-user` には手書き 7 件の items と 3 件の outfits を紐づける
+- `large-user` には Factory 併用の 36 件の items と 12 件の outfits を紐づける
+- `empty-user` は items / outfits 0 件の初期状態として再生成する
+
+補足:
+
+- 現行 schema では item の brand / memo / image URL までは持てないため、sample data では category / colors / seasons / tpos / spec を中心に再現している
 
 ### 認証
 
@@ -159,16 +169,6 @@
 - ログアウトボタン
 
 ## 後回し
-
-### テスト用 seed ユーザー構想
-
-- 3 アカウント固定で、`empty-user@example.com` / `standard-user@example.com` / `large-user@example.com` を作る
-- デフォルトパスワードは README に記載し、Seeder 側で env 上書きを許可する
-- sample data はそれぞれのユーザーに紐づける
-  - standard 確認用は手書き中心の Item / Outfits / カテゴリ設定
-  - large 確認用は Factory 併用の多件数 data
-- 画像あり sample は最初は URL ベースとし、ローカルファイル対応は後回しにする
-- 詳細は `docs/data/test-seed-users.md` を参照する
 
 ### items の現状メモ
 

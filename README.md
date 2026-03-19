@@ -49,7 +49,7 @@ Frontend)** を経由します。
 
 詳細は以下を参照してください。
 
-    docs/system-architecture.md
+    docs/architecture/system-overview.md
 
 ---
 
@@ -85,11 +85,30 @@ CSRF 対策には Laravel の標準機構を使用しています。
 
 ---
 
+# Test Seed Users
+
+`php artisan migrate:fresh --seed` で、テスト用ユーザーと sample data を初期投入できます。
+`php artisan db:seed --class=TestDatasetSeeder` で、テスト用 data だけを再投入できます。
+
+デフォルトで作成されるアカウント:
+
+- `empty-user@example.com`
+  - Item 0 件 / Outfits 0 件 / 新規登録直後の初期状態確認用
+- `standard-user@example.com`
+  - Item 7 件 / Outfits 3 件 / 標準的な画面確認用
+- `large-user@example.com`
+  - Item 36 件 / Outfits 12 件 / 多件数のフィルタ・検索確認用
+
+- デフォルトパスワード: `password123`
+- env で上書きする場合は `TEST_SEED_USER_PASSWORD` を使います
+
+---
+
 # API
 
 詳細仕様は
 
-    docs/api.md
+    docs/api/api-overview.md
 
 を参照してください。
 
@@ -99,7 +118,7 @@ CSRF 対策には Laravel の標準機構を使用しています。
 
 詳細は
 
-    docs/database.md
+    docs/data/database.md
 
 に記載予定です。
 
@@ -111,9 +130,9 @@ CSRF 対策には Laravel の標準機構を使用しています。
     ├ api        # Laravel API
     ├ web        # Next.js Frontend + BFF
     └ docs
-       ├ system-architecture.md
-       ├ api.md
-       └ database.md (planned)
+       ├ architecture/
+       ├ api/
+       └ data/
 
 ---
 

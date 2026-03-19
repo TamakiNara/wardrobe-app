@@ -11,7 +11,7 @@
   - `empty-user@example.com`
   - `standard-user@example.com`
   - `large-user@example.com`
-- パスワードは README にデフォルト値を記載し、env で上書き可能にする
+- パスワードは README にデフォルト値 `password123` を記載し、env `TEST_SEED_USER_PASSWORD` で上書き可能にする
 - サンプルデータはそのユーザーに紐づける
   - Item
   - Outfits
@@ -22,7 +22,7 @@
 ## 再現性の方針
 
 - `php artisan migrate:fresh --seed` で初期状態を再現できる形を目指す
-- 必要に応じて、テスト用ユーザーとサンプルデータだけを再実行できる専用 Seeder も検討する
+- `php artisan db:seed --class=TestDatasetSeeder` で、テスト用ユーザーとサンプルデータだけを再実行できる構成にする
 - 「マイグレーション直後に入る基本 seed」と「確認用テストデータ」の責務は分ける方向で考える
 
 ---
@@ -32,7 +32,7 @@
 - テスト用アカウントの一覧
 - ログイン情報
   - デフォルトパスワード
-  - env での上書き方法
+  - env `TEST_SEED_USER_PASSWORD` での上書き方法
 - サンプルデータありのアカウントかどうか
 - データを初期状態に戻す方法
 
@@ -69,7 +69,7 @@
 
 ## サンプル Item の設計
 
-### 入れておきたい差分
+### 将来的に入れたい差分
 
 - カテゴリ違い
 - 色違い
@@ -79,7 +79,7 @@
 - サイズあり / なし
 - 画像あり sample は最初は URL ベースとし、ローカルファイル対応は後回しにする
 
-### 具体例
+### 将来項目を含む具体例メモ
 
 - 白Tシャツ: ブランドあり、画像なし
 - 黒カーディガン: ブランドなし、メモあり
@@ -91,10 +91,9 @@
 
 ## サンプル Outfit の設計
 
-### 入れておきたい差分
+### 現在入れている差分
 
 - 使用アイテム数が違う
-- メモあり / なし
 - TPO 違い
 - 季節違い
 
@@ -143,3 +142,12 @@
 - パスワードは README にデフォルト値を記載し、Seeder 実装では env 上書き可能にする
 - 画像あり sample は URL ベースで開始し、ローカルファイルは後回しとする
 - 標準確認用データは手書き中心、多件数確認用データは Factory 併用とする
+
+---
+
+## 現在の実装メモ
+
+- 現行 schema で seed 対応している sample item の差分は category / color / seasons / tpos / spec まで
+- brand 名 / item メモ / 画像 URL などの将来項目は、テーブル追加後に sample data へ反映する
+- `standard-user@example.com` は手書き 7 件の Item と 3 件の Outfit、`large-user@example.com` は Factory 併用の 36 件の Item と 12 件の Outfit を持つ
+- `php artisan migrate:fresh --seed` と `php artisan db:seed --class=TestDatasetSeeder` は実行確認済み
