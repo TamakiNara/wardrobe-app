@@ -34,9 +34,13 @@
    - 検索はテキスト入力、絞り込みは選択式条件として分離する
    - 並び順は単一選択、初期値は items / outfits = 新しい順、wear logs = 日付の新しい順とする
    - 0件時は「データ自体が0件」と「絞り込み結果が0件」を分けて扱う
-7. tops SVG の見た目調整に戻る
+7. 各画面のエラーメッセージと空状態を整理する
+   - エラーメッセージの文体、情報量、行動案内の共通ルールを決める
+   - 重要画面は `login / register / item create-edit / settings / outfits / image upload` を対象にする
+   - 空状態は `items / outfits / settings / home` を先に整理し、wear logs / search 0 件 / error 系を後追いする
+8. tops SVG の見た目調整に戻る
    - `tshirt / shirt / blouse` の細部調整を再開する
-8. docs の OpenAPI / database / architecture の整合を追加確認する
+9. docs の OpenAPI / database / architecture の整合を追加確認する
 
 ## 進行中
 
@@ -280,7 +284,6 @@ UI/UX メモ:
 - `wear_count` は軽量な集計値、`wear_logs` は履歴正本として役割を分ける構成も選択肢に入る
 - 画像活用はアップロード基盤が先行し、その後に背景除去・色抽出を段階追加するのが自然
 
-
 ### 着用履歴構想
 
 将来仕様メモ:
@@ -302,6 +305,15 @@ UI/UX メモ:
 - 並び順は単一選択とし、初期値は items / outfits = 新しい順、wear logs = 日付の新しい順
 - 0件時は未登録と絞り込み結果 0 件を別の空状態として扱う
 - 詳細は `docs/specs/discovery/search-filter-sort.md` に整理
+
+### エラーメッセージと空状態構想
+
+将来仕様メモ:
+
+- エラーメッセージは丁寧語を基本にし、技術詳細は UI に出さない方向
+- 原因は分かる範囲で簡潔に書き、可能な限り次の行動も案内する
+- 空状態は「未登録」「条件不一致」「エラー由来」を分けて考える方向
+- 詳細は `docs/specs/error-message-guidelines.md` と `docs/ui/empty-state.md` に整理
 
 ## 現在の実装状況
 
