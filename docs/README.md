@@ -87,6 +87,20 @@
 - テスト用ユーザーとサンプルデータの seed 方針を整理する
 - 確認用アカウントの種類、sample data の中身、再実行手順をまとめる
 
+### `data/er-diagram.md`
+
+役割:
+
+- README から参照する簡略 ER 図をまとめる
+- 読み手向けに、主要テーブル同士の関係だけを把握しやすい粒度で整理する
+
+### `setup.md`
+
+役割:
+
+- 開発環境のセットアップ手順を README から分離してまとめる
+- Backend / Frontend の起動方法、env、seed、確認用アカウントを整理する
+
 ### `security/web-security.md`
 
 役割:

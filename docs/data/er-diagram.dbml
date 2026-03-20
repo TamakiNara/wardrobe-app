@@ -1,0 +1,60 @@
+Table users {
+  id bigint [pk]
+  email varchar
+  name varchar
+  visible_category_ids json [note: 'Visible category id list']
+}
+
+Table items {
+  id bigint [pk]
+  user_id bigint [ref: > users.id]
+  name varchar
+  category varchar
+  shape varchar
+  colors json
+  seasons json
+  tpos json
+  spec json
+}
+
+Table outfits {
+  id bigint [pk]
+  user_id bigint [ref: > users.id]
+  name varchar
+  memo text
+}
+
+Table outfit_items {
+  id bigint [pk]
+  outfit_id bigint [ref: > outfits.id]
+  item_id bigint [ref: > items.id]
+  sort_order int
+}
+
+Table category_groups {
+  id varchar [pk]
+  name varchar
+  sort_order int
+  is_active boolean
+}
+
+Table category_master {
+  id varchar [pk]
+  group_id varchar [ref: > category_groups.id]
+  name varchar
+  sort_order int
+  is_active boolean
+}
+
+Table category_presets {
+  id varchar [pk]
+  name varchar
+  sort_order int
+  is_active boolean
+}
+
+Table category_preset_categories {
+  id bigint [pk]
+  preset_id varchar [ref: > category_presets.id]
+  category_id varchar [ref: > category_master.id]
+}
