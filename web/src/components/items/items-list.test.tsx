@@ -127,4 +127,31 @@ describe("ItemsList", () => {
     expect(container.textContent).toContain("白T");
     expect(container.textContent).not.toContain("青シャツ");
   });
+
+  it("季節は定義順で表示し、TPO は共通の候補だけを表示する", async () => {
+    fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
+    fetchCategoryVisibilitySettingsMock.mockResolvedValue({
+      visibleCategoryIds: ["tops_tshirt", "tops_shirt"],
+    });
+
+    const { default: ItemsList } = await import("./items-list");
+
+    await act(async () => {
+      root.render(React.createElement(ItemsList, { items: sampleItems }));
+      await waitForEffects();
+    });
+
+    const selects = Array.from(container.querySelectorAll("select"));
+    const seasonOptions = Array.from(selects[1].querySelectorAll("option")).map(
+      (option) => option.textContent,
+    );
+    const tpoOptions = Array.from(selects[2].querySelectorAll("option")).map(
+      (option) => option.textContent,
+    );
+
+    expect(seasonOptions).toEqual(["すべて", "春", "夏"]);
+    expect(tpoOptions).toEqual(["すべて", "仕事", "休日"]);
+    expect(container.textContent).toContain("TPO： 仕事");
+    expect(container.textContent).not.toContain("TPO： 通勤");
+  });
 });

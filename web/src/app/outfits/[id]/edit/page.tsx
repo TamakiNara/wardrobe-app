@@ -6,9 +6,7 @@ import { useRouter } from "next/navigation";
 import { isItemVisibleByCategorySettings } from "@/lib/api/categories";
 import { fetchCategoryVisibilitySettings } from "@/lib/api/settings";
 import type { CreateOutfitPayload } from "@/types/outfits";
-
-const SEASON_OPTIONS = ["春", "夏", "秋", "冬", "オール"] as const;
-const TPO_OPTIONS = ["仕事", "休日", "フォーマル"] as const;
+import { SEASON_OPTIONS, TPO_OPTIONS } from "@/lib/master-data/item-attributes";
 
 type Item = {
   id: number;

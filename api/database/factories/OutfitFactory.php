@@ -16,7 +16,7 @@ class OutfitFactory extends Factory
     public function definition(): array
     {
         $seasonPool = ['春', '夏', '秋', '冬'];
-        $tpoPool = ['休日', '仕事', '通勤', 'お出かけ'];
+        $tpoPool = ['仕事', '休日', 'フォーマル'];
 
         return [
             'user_id' => User::factory(),

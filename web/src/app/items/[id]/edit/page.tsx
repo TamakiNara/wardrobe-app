@@ -18,6 +18,7 @@ import {
 import ColorChip from "@/components/items/color-chip";
 import ColorSelect from "@/components/items/color-select";
 import ItemPreviewCard from "@/components/items/item-preview-card";
+import { SEASON_OPTIONS, TPO_OPTIONS } from "@/lib/master-data/item-attributes";
 import type { CreateItemPayload, ItemFormColor, ItemRecord } from "@/types/items";
 import {
   buildTopsSpecLabels,
@@ -37,9 +38,6 @@ import {
   type TopsShapeValue,
   type TopsSleeveValue,
 } from "@/lib/master-data/item-tops";
-
-const SEASON_OPTIONS = ["春", "夏", "秋", "冬", "オール"] as const;
-const TPO_OPTIONS = ["仕事", "休日", "フォーマル"] as const;
 
 
 

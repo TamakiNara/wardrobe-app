@@ -50,7 +50,7 @@ class SampleItemSeeder extends Seeder
                     ['role' => 'main', 'mode' => 'preset', 'value' => 'black', 'hex' => '#1F1F1F', 'label' => 'ブラック'],
                 ],
                 'seasons' => ['春', '秋'],
-                'tpos' => ['通勤', '休日'],
+                'tpos' => ['仕事', '休日'],
                 'spec' => [
                     'tops' => [
                         'shape' => 'cardigan',
@@ -90,7 +90,7 @@ class SampleItemSeeder extends Seeder
                     ['role' => 'main', 'mode' => 'preset', 'value' => 'navy', 'hex' => '#2F4058', 'label' => 'ネイビー'],
                 ],
                 'seasons' => ['春', '秋', '冬'],
-                'tpos' => ['通勤', '休日'],
+                'tpos' => ['仕事', '休日'],
                 'spec' => null,
             ],
             [
@@ -101,7 +101,7 @@ class SampleItemSeeder extends Seeder
                     ['role' => 'main', 'mode' => 'preset', 'value' => 'black', 'hex' => '#1F1F1F', 'label' => 'ブラック'],
                 ],
                 'seasons' => ['春', '夏', '秋'],
-                'tpos' => ['休日', 'お出かけ'],
+                'tpos' => ['休日', 'フォーマル'],
                 'spec' => null,
             ],
             [
@@ -113,7 +113,7 @@ class SampleItemSeeder extends Seeder
                     ['role' => 'sub', 'mode' => 'preset', 'value' => 'gray', 'hex' => '#9AA0A6', 'label' => 'グレー'],
                 ],
                 'seasons' => ['春', '夏', '秋'],
-                'tpos' => ['通勤', '休日'],
+                'tpos' => ['仕事', '休日'],
                 'spec' => null,
             ],
             [
@@ -124,7 +124,7 @@ class SampleItemSeeder extends Seeder
                     ['role' => 'main', 'mode' => 'preset', 'value' => 'beige', 'hex' => '#D3C0A4', 'label' => 'ベージュ'],
                 ],
                 'seasons' => ['春', '夏', '秋', '冬'],
-                'tpos' => ['通勤', '休日', 'お出かけ'],
+                'tpos' => ['仕事', '休日', 'フォーマル'],
                 'spec' => null,
             ],
         ];

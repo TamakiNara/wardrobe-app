@@ -14,6 +14,11 @@ import {
   isItemVisibleByCategorySettings,
 } from "@/lib/api/categories";
 import { fetchCategoryVisibilitySettings } from "@/lib/api/settings";
+import {
+  buildOrderedOptions,
+  SEASON_OPTIONS,
+  TPO_OPTIONS,
+} from "@/lib/master-data/item-attributes";
 import type { CategoryOption } from "@/types/categories";
 
 type ItemsListProps = {
@@ -106,13 +111,17 @@ export default function ItemsList({ items }: ItemsListProps) {
   }, [apiCategoryOptions, visibleItems]);
 
   const seasonOptions = useMemo(() => {
-    return Array.from(
-      new Set(visibleItems.flatMap((item) => item.seasons ?? [])),
-    ).sort();
+    return buildOrderedOptions(
+      visibleItems.flatMap((item) => item.seasons ?? []),
+      SEASON_OPTIONS,
+    );
   }, [visibleItems]);
 
   const tpoOptions = useMemo(() => {
-    return Array.from(new Set(visibleItems.flatMap((item) => item.tpos ?? []))).sort();
+    return buildOrderedOptions(
+      visibleItems.flatMap((item) => item.tpos ?? []),
+      TPO_OPTIONS,
+    );
   }, [visibleItems]);
 
   const filteredItems = useMemo(() => {

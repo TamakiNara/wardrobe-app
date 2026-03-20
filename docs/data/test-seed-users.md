@@ -95,6 +95,7 @@
 
 - 使用アイテム数が違う
 - TPO 違い
+  - 現在の seed は `仕事 / 休日 / フォーマル` に統一する
 - 季節違い
 
 ### 例
@@ -148,6 +149,7 @@
 ## 現在の実装メモ
 
 - 現行 schema で seed 対応している sample item の差分は category / color / seasons / tpos / spec まで
+- 季節 UI の表示順は `春 / 夏 / 秋 / 冬 / オール`、TPO の正規値は `仕事 / 休日 / フォーマル` を前提にそろえる
 - brand 名 / item メモ / 画像 URL などの将来項目は、テーブル追加後に sample data へ反映する
 - `standard-user@example.com` は手書き 7 件の Item と 3 件の Outfit、`large-user@example.com` は Factory 併用の 36 件の Item と 12 件の Outfit を持つ
 - `php artisan migrate:fresh --seed` と `php artisan db:seed --class=TestDatasetSeeder` は実行確認済み

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { isItemVisibleByCategorySettings } from "@/lib/api/categories";
 import { fetchCategoryVisibilitySettings } from "@/lib/api/settings";
+import { SEASON_OPTIONS, TPO_OPTIONS } from "@/lib/master-data/item-attributes";
 
 type OutfitItem = {
   id: number;
@@ -37,9 +38,6 @@ type Outfit = {
 type OutfitsListProps = {
   outfits: Outfit[];
 };
-
-const SEASON_OPTIONS = ["春", "夏", "秋", "冬", "オール"] as const;
-const TPO_OPTIONS = ["仕事", "休日", "フォーマル"] as const;
 
 export default function OutfitsList({ outfits }: OutfitsListProps) {
   const [seasonFilter, setSeasonFilter] = useState("");
