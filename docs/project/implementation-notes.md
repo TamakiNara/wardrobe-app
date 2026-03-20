@@ -43,7 +43,10 @@
    - UI は `もっと見る` を基本とし、API は `page / per_page` または `cursor / limit` を受けられる形を検討する
 9. tops SVG の見た目調整に戻る
    - `tshirt / shirt / blouse` の細部調整を再開する
-10. docs の OpenAPI / database / architecture の整合を追加確認する
+10. ログ設計の方針を整理する
+    - まずは障害調査しやすいアプリケーションログと一部イベントログを対象にする
+    - 機密情報を出さず、将来の監査ログへ拡張できる形を目指す
+11. docs の OpenAPI / database / architecture の整合を追加確認する
 
 ## 進行中
 
