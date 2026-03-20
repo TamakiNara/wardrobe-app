@@ -38,9 +38,12 @@
    - エラーメッセージの文体、情報量、行動案内の共通ルールを決める
    - 重要画面は `login / register / item create-edit / settings / outfits / image upload` を対象にする
    - 空状態は `items / outfits / settings / home` を先に整理し、wear logs / search 0 件 / error 系を後追いする
-8. tops SVG の見た目調整に戻る
+8. 一覧件数が増えたときのページング方針を整理する
+   - items は初期 20 件前後、outfits は初期 12〜20 件程度を基本とする
+   - UI は `もっと見る` を基本とし、API は `page / per_page` または `cursor / limit` を受けられる形を検討する
+9. tops SVG の見た目調整に戻る
    - `tshirt / shirt / blouse` の細部調整を再開する
-9. docs の OpenAPI / database / architecture の整合を追加確認する
+10. docs の OpenAPI / database / architecture の整合を追加確認する
 
 ## 進行中
 
