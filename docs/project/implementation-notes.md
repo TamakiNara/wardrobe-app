@@ -309,14 +309,14 @@ UI/UX メモ:
 
 将来仕様メモ:
 
-- item 単位 / outfit 単位どちらでも登録できる着用記録を検討中
+- 初期仕様では `planned / worn` の 2 状態を扱う
+- 登録導線は `outfit から登録 / item から登録 / 着用履歴画面から日付先行で登録` を想定する
+- item 起点では、まずその item を含む outfit を検索し、候補がなければ `item のみで登録` または `新しい outfit を作成` を選べるようにしたい
 - 1 日複数件可、同じ item の同日重複も許可する方向
-- status は `planned / worn / candidate / log` を候補とする
 - outfit 由来登録でも、記録時点の item 構成をスナップショット保存する方向
 - カレンダー表示、最近着た item、着用回数、しばらく着ていない item などの集計基盤として使う
 - 詳細は `docs/specs/wears/wear-logs.md` に整理
 
-### 検索・絞り込み・並び順構想
 
 将来仕様メモ:
 
