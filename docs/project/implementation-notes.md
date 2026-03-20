@@ -207,7 +207,8 @@ UI/UX メモ:
 
 - `brand_name`：ブランド名
 - `memo`：メモ
-- `weather_tags`：天気対応（例：雨対応、防寒、晴れ向きなど）
+- `is_rain_ok`：雨対応フラグ（boolean、初期値 false を想定）
+- `weather_tags`：天気対応の拡張タグ。必要になるまで後回し
 - `size_gender`：メンズ / ウィメンズ
 - `size_label`：S / M / L / FREE など
 - `size_details`：実寸の詳細
@@ -234,9 +235,9 @@ UI/UX メモ:
 - `is_favorite`
 - `size_gender`
 - `size_label`
-- `weather_tags` （json）
+- `is_rain_ok`
 - `size_details` （json）
-
+- `tags` / `item_tags` （別テーブル構成を想定）
 仮案として想定している item_images テーブル:
 
 - `id`
@@ -268,6 +269,17 @@ UI/UX メモ:
 - 作成系 / 更新系の入力は FormRequest に分離したい
 - 想定候補は `StoreItemRequest` `UpdateItemRequest` `StoreOutfitRequest` `UpdateOutfitRequest`
 - 先に docs 側では API を「認証系 API / 設定系 API / 参照マスタ API」の役割でも追えるように整理する
+
+### タグ / 雨対応フラグ構想
+
+将来仕様メモ:
+
+- タグは共通マスタではなく、ユーザー単位で持つ
+- `tags` `item_tags` `outfit_tags` の 3 テーブルを基本に考える
+- タグは補助分類として使い、カテゴリ / TPO / 季節 / 天気の正式項目の代替にはしない
+- 雨対応はまず `items.is_rain_ok` の boolean で持ち、`weather_tags` のような拡張は後回しにする
+- 保存値に `#` は含めず、UI 表示だけで `#` を付ける想定にする
+- 将来的に着用履歴へタグを付ける場合は `outfit_log_tags` の追加で拡張する
 
 ## 将来案
 
