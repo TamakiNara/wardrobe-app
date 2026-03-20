@@ -9,8 +9,7 @@
 
 参考:
 
-- IPA「安全なウェブサイトの作り方」
-  - https://www.ipa.go.jp/security/vuln/websecurity/about.html
+- [IPA「安全なウェブサイトの作り方」](https://www.ipa.go.jp/security/vuln/websecurity/about.html)
 
 補足:
 
@@ -106,11 +105,12 @@
 
 - 認証成功時のセッション再生成あり
 - ログアウト時の invalidate / token 再生成あり
-- 再ログイン時の `CSRF token mismatch` が未解消
+- auth 系では再ログイン時の `CSRF token mismatch` は解消済み
 
 今後の対策:
 
-- CSRF Cookie の再取得タイミングを修正する
+- auth 系と BFF の CSRF / session 補助動作は実装済み
+- state-changing API 全体を CSRF 付きで統一する方針は維持し、Laravel 側の CSRF 例外を段階的に見直す
 - 本番での Secure / SameSite / HttpOnly 方針を整理する
 
 ---
@@ -133,7 +133,8 @@
 
 現状:
 
-- auth 系では BFF が CSRF を取得して転送
+- auth 系では BFF が CSRF と session cookie を取得して転送する
+- BFF の `POST / PUT / DELETE` は `419 / CSRF token mismatch` 時に 1 回だけ CSRF を再取得して自動再試行する
 - `items` / `outfits` は Laravel 側で CSRF 例外
 
 評価:
@@ -144,6 +145,7 @@
 
 - state-changing API を CSRF 例外から外す
 - BFF からの POST / PUT / DELETE を CSRF 付きで統一
+- 認証切れ後の再ログイン導線は改善済みだが、Laravel 側の CSRF 例外設計自体は引き続き見直し対象
 
 ---
 

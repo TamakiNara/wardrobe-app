@@ -8,12 +8,17 @@ function extractSetCookie(res: Response): string[] {
     getSetCookie?: () => string[];
   };
 
-  if (typeof headers.getSetCookie === "function") {
-    return headers.getSetCookie();
-  }
+  const rawCookies =
+    typeof headers.getSetCookie === "function"
+      ? headers.getSetCookie()
+      : (() => {
+          const single = res.headers.get("set-cookie");
+          return single ? [single] : [];
+        })();
 
-  const single = res.headers.get("set-cookie");
-  return single ? [single] : [];
+  return rawCookies.flatMap((cookie) =>
+    cookie.split(/,(?=\s*[A-Za-z0-9_\-]+=)/),
+  );
 }
 
 function readXsrfFromSetCookies(setCookies: string[]): string | null {
@@ -50,6 +55,22 @@ function appendSetCookies(from: Response, to: NextResponse) {
   appendCookieStrings(cookies, to);
 }
 
+function buildMergedCookie(
+  incomingCookie: string,
+  refreshedSetCookies: string[],
+): string {
+  return [
+    incomingCookie,
+    ...refreshedSetCookies.map((cookie) => cookie.split(";")[0]),
+  ]
+    .filter(Boolean)
+    .join("; ");
+}
+
+function shouldRetryWithFreshCsrf(response: Response): boolean {
+  return response.status === 419;
+}
+
 async function fetchCsrfCookie(incomingCookie?: string) {
   const csrfRes = await fetch(`${LARAVEL_BASE_URL}/csrf-cookie`, {
     method: "GET",
@@ -69,9 +90,17 @@ async function fetchCsrfCookie(incomingCookie?: string) {
   }
 
   return {
-    csrfRes,
     setCookies,
     xsrf,
+  };
+}
+
+async function getFreshCsrf(incomingCookie: string) {
+  const { setCookies, xsrf } = await fetchCsrfCookie(incomingCookie);
+
+  return {
+    xsrf,
+    refreshedSetCookies: setCookies,
   };
 }
 
@@ -140,43 +169,46 @@ export async function forwardPostWithCsrfAndCookie(
     const incomingCookie = req.headers.get("cookie") ?? "";
 
     let xsrf = readCookieValue(incomingCookie, "XSRF-TOKEN");
-    let csrfCookiesToAppend: string[] = [];
+    let refreshedSetCookies: string[] = [];
+
+    const refreshCsrf = async () => {
+      const fresh = await getFreshCsrf(incomingCookie);
+      xsrf = fresh.xsrf;
+      refreshedSetCookies = fresh.refreshedSetCookies;
+    };
 
     if (options?.forceRefreshCsrf || !xsrf) {
-      const { setCookies, xsrf: fetchedXsrf } =
-        await fetchCsrfCookie(incomingCookie);
-      xsrf = fetchedXsrf;
-
-      // ブラウザへ返すのは XSRF-TOKEN だけ
-      csrfCookiesToAppend = setCookies.filter((cookie) =>
-        cookie.startsWith("XSRF-TOKEN="),
-      );
+      await refreshCsrf();
     }
 
-    const mergedCookie = [
-      incomingCookie,
-      ...csrfCookiesToAppend.map((cookie) => cookie.split(";")[0]),
-    ]
-      .filter(Boolean)
-      .join("; ");
+    const sendRequest = () => {
+      const mergedCookie = buildMergedCookie(incomingCookie, refreshedSetCookies);
 
-    const upstreamRes = await fetch(`${LARAVEL_BASE_URL}${targetPath}`, {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-        ...(xsrf ? { "X-CSRF-TOKEN": xsrf } : {}),
-        ...(mergedCookie ? { Cookie: mergedCookie } : {}),
-      },
-      body: JSON.stringify(body),
-      cache: "no-store",
-    });
+      return fetch(`${LARAVEL_BASE_URL}${targetPath}`, {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          ...(xsrf ? { "X-CSRF-TOKEN": xsrf } : {}),
+          ...(mergedCookie ? { Cookie: mergedCookie } : {}),
+        },
+        body: JSON.stringify(body),
+        cache: "no-store",
+      });
+    };
+
+    let upstreamRes = await sendRequest();
+
+    if (shouldRetryWithFreshCsrf(upstreamRes) && !options?.forceRefreshCsrf) {
+      await refreshCsrf();
+      upstreamRes = await sendRequest();
+    }
 
     const data = await upstreamRes.json().catch(() => ({}));
     const final = NextResponse.json(data, { status: upstreamRes.status });
 
-    if (csrfCookiesToAppend.length > 0) {
-      appendCookieStrings(csrfCookiesToAppend, final);
+    if (refreshedSetCookies.length > 0) {
+      appendCookieStrings(refreshedSetCookies, final);
     }
 
     appendSetCookies(upstreamRes, final);
@@ -201,36 +233,46 @@ export async function forwardPutWithCsrfAndCookie(
     const incomingCookie = req.headers.get("cookie") ?? "";
 
     let xsrf = readCookieValue(incomingCookie, "XSRF-TOKEN");
-    let csrfCookiesToAppend: string[] = [];
+    let refreshedSetCookies: string[] = [];
+
+    const refreshCsrf = async () => {
+      const fresh = await getFreshCsrf(incomingCookie);
+      xsrf = fresh.xsrf;
+      refreshedSetCookies = fresh.refreshedSetCookies;
+    };
 
     if (!xsrf) {
-      const { setCookies, xsrf: fetchedXsrf } = await fetchCsrfCookie(
-        incomingCookie
-      );
-      xsrf = fetchedXsrf;
-
-      csrfCookiesToAppend = setCookies.filter((cookie) =>
-        cookie.startsWith("XSRF-TOKEN=")
-      );
+      await refreshCsrf();
     }
 
-    const upstreamRes = await fetch(`${LARAVEL_BASE_URL}${targetPath}`, {
-      method: "PUT",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-        ...(xsrf ? { "X-CSRF-TOKEN": xsrf } : {}),
-        ...(incomingCookie ? { Cookie: incomingCookie } : {}),
-      },
-      body: JSON.stringify(body),
-      cache: "no-store",
-    });
+    const sendRequest = () => {
+      const mergedCookie = buildMergedCookie(incomingCookie, refreshedSetCookies);
+
+      return fetch(`${LARAVEL_BASE_URL}${targetPath}`, {
+        method: "PUT",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          ...(xsrf ? { "X-CSRF-TOKEN": xsrf } : {}),
+          ...(mergedCookie ? { Cookie: mergedCookie } : {}),
+        },
+        body: JSON.stringify(body),
+        cache: "no-store",
+      });
+    };
+
+    let upstreamRes = await sendRequest();
+
+    if (shouldRetryWithFreshCsrf(upstreamRes)) {
+      await refreshCsrf();
+      upstreamRes = await sendRequest();
+    }
 
     const data = await upstreamRes.json().catch(() => ({}));
     const final = NextResponse.json(data, { status: upstreamRes.status });
 
-    if (csrfCookiesToAppend.length > 0) {
-      appendCookieStrings(csrfCookiesToAppend, final);
+    if (refreshedSetCookies.length > 0) {
+      appendCookieStrings(refreshedSetCookies, final);
     }
 
     appendSetCookies(upstreamRes, final);
@@ -253,17 +295,46 @@ export async function forwardDeleteWithCookie(
   try {
     const incomingCookie = req.headers.get("cookie") ?? "";
 
-    const upstreamRes = await fetch(`${LARAVEL_BASE_URL}${targetPath}`, {
-      method: "DELETE",
-      headers: {
-        Accept: "application/json",
-        ...(incomingCookie ? { Cookie: incomingCookie } : {}),
-      },
-      cache: "no-store",
-    });
+    let xsrf = readCookieValue(incomingCookie, "XSRF-TOKEN");
+    let refreshedSetCookies: string[] = [];
+
+    const refreshCsrf = async () => {
+      const fresh = await getFreshCsrf(incomingCookie);
+      xsrf = fresh.xsrf;
+      refreshedSetCookies = fresh.refreshedSetCookies;
+    };
+
+    if (!xsrf) {
+      await refreshCsrf();
+    }
+
+    const sendRequest = () => {
+      const mergedCookie = buildMergedCookie(incomingCookie, refreshedSetCookies);
+
+      return fetch(`${LARAVEL_BASE_URL}${targetPath}`, {
+        method: "DELETE",
+        headers: {
+          Accept: "application/json",
+          ...(xsrf ? { "X-CSRF-TOKEN": xsrf } : {}),
+          ...(mergedCookie ? { Cookie: mergedCookie } : {}),
+        },
+        cache: "no-store",
+      });
+    };
+
+    let upstreamRes = await sendRequest();
+
+    if (shouldRetryWithFreshCsrf(upstreamRes)) {
+      await refreshCsrf();
+      upstreamRes = await sendRequest();
+    }
 
     const data = await upstreamRes.json().catch(() => ({}));
     const final = NextResponse.json(data, { status: upstreamRes.status });
+
+    if (refreshedSetCookies.length > 0) {
+      appendCookieStrings(refreshedSetCookies, final);
+    }
 
     appendSetCookies(upstreamRes, final);
 

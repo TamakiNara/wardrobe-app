@@ -58,6 +58,20 @@ describe("POST /api/auth/login", () => {
     const json = await res.json();
 
     expect(global.fetch).toHaveBeenCalledTimes(2);
+    expect(global.fetch).toHaveBeenNthCalledWith(
+      2,
+      "http://localhost:8000/api/login",
+      expect.objectContaining({
+        method: "POST",
+        headers: expect.objectContaining({
+          "X-CSRF-TOKEN": "test_csrf_token",
+          Cookie: expect.stringContaining("XSRF-TOKEN=test_csrf_token"),
+        }),
+      }),
+    );
+    expect((global.fetch as any).mock.calls[1][1].headers.Cookie).toContain(
+      "laravel-session=test_session",
+    );
     expect(res.status).toBe(200);
     expect(json).toEqual({
       message: "logged_in",

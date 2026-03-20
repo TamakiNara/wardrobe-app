@@ -180,6 +180,32 @@ class AuthEndpointsTest extends TestCase
     }
 
     /**
+     * seed 用の example.com アカウントでもログインできることを確認する。
+     */
+    public function test_login_accepts_example_com_address_used_by_seed_users(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'standard-user@example.com',
+            'password' => bcrypt('password123'),
+        ]);
+
+        $token = $this->issueCsrfToken();
+
+        $response = $this->postJson('/api/login', [
+            'email' => $user->email,
+            'password' => 'password123',
+        ], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('message', 'logged_in');
+
+        $this->assertAuthenticated('web');
+    }
+
+    /**
     * パスワードが間違っている場合はログインできないことを確認する。
     */
     public function test_login_returns_422_with_invalid_credentials(): void

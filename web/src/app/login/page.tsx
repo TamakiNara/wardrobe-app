@@ -4,6 +4,24 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+function mapLoginErrorMessage(message?: string | null): string {
+  if (!message) return "ログインに失敗しました";
+
+  if (message === "invalid credentials") {
+    return "メールアドレスまたはパスワードが正しくありません";
+  }
+
+  if (message === "CSRF token mismatch.") {
+    return "セッションの有効期限が切れました。もう一度ログインしてください";
+  }
+
+  if (message.includes("valid email address")) {
+    return "メールアドレスの形式を確認してください";
+  }
+
+  return "ログインに失敗しました。時間をおいてもう一度お試しください";
+}
+
 export default function LoginPage() {
   const router = useRouter();
 
@@ -31,7 +49,7 @@ export default function LoginPage() {
 
     if (!res.ok) {
       const data = await res.json().catch(() => null);
-      setError(data?.message ?? "ログインに失敗しました");
+      setError(mapLoginErrorMessage(data?.message));
       return;
     }
 
