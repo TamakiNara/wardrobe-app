@@ -20,6 +20,7 @@ import {
   TPO_OPTIONS,
 } from "@/lib/master-data/item-attributes";
 import type { CategoryOption } from "@/types/categories";
+import type { ItemRecord } from "@/types/items";
 
 type ItemsListProps = {
   items: ItemRecord[];
@@ -64,7 +65,7 @@ function PreviewThumb({
 
 export default function ItemsList({ items }: ItemsListProps) {
   const [categoryFilter, setCategoryFilter] = useState("");
-  const [apiCategoryOptions, setApiCategoryOptions] = useState<CategoryOption[]>(ITEM_CATEGORIES);
+  const [apiCategoryOptions, setApiCategoryOptions] = useState<CategoryOption[]>([...ITEM_CATEGORIES]);
   const [visibleCategoryIds, setVisibleCategoryIds] = useState<string[] | null>(null);
   const [seasonFilter, setSeasonFilter] = useState("");
   const [tpoFilter, setTpoFilter] = useState("");

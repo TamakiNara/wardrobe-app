@@ -39,14 +39,12 @@ import {
   type TopsSleeveValue,
 } from "@/lib/master-data/item-tops";
 
-
-
 export default function NewItemPage() {
   const router = useRouter();
 
   const [name, setName] = useState("");
   const [category, setCategory] = useState<ItemCategory | "">("");
-  const [categoryOptions, setCategoryOptions] = useState<CategoryOption[]>(ITEM_CATEGORIES);
+  const [categoryOptions, setCategoryOptions] = useState<CategoryOption[]>([...ITEM_CATEGORIES]);
   const [shape, setShape] = useState("");
 
   const [mainColor, setMainColor] = useState<ItemColorValue | "">("");

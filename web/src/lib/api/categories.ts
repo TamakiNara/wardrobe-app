@@ -35,6 +35,15 @@ const ITEM_CATEGORY_ID_BY_SHAPE: Record<string, Record<string, string>> = {
     down: "outer_down",
     "outer-cardigan": "outer_other",
   },
+  dress: {
+    onepiece: "dress_onepiece",
+    allinone: "dress_allinone",
+  },
+  inner: {
+    roomwear: "inner_roomwear",
+    underwear: "inner_underwear",
+    pajamas: "inner_pajamas",
+  },
   shoes: {
     sneakers: "shoes_sneakers",
     pumps: "shoes_pumps",

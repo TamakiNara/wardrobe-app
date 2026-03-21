@@ -23,6 +23,22 @@ const groups: CategoryGroupRecord[] = [
     ],
   },
   {
+    id: "dress",
+    name: "ワンピース・オールインワン",
+    categories: [
+      { id: "dress_onepiece", groupId: "dress", name: "ワンピース" },
+      { id: "dress_allinone", groupId: "dress", name: "オールインワン / サロペット" },
+    ],
+  },
+  {
+    id: "inner",
+    name: "ルームウェア・インナー",
+    categories: [
+      { id: "inner_roomwear", groupId: "inner", name: "ルームウェア" },
+      { id: "inner_underwear", groupId: "inner", name: "インナー" },
+    ],
+  },
+  {
     id: "bags",
     name: "バッグ",
     categories: [
@@ -36,12 +52,15 @@ describe("buildSupportedCategoryOptions", () => {
     expect(buildSupportedCategoryOptions(groups)).toEqual([
       { value: "tops", label: "トップス" },
       { value: "outer", label: "アウター" },
+      { value: "dress", label: "ワンピース・オールインワン" },
+      { value: "inner", label: "ルームウェア・インナー" },
     ]);
   });
 
   it("表示対象の中分類がない大分類は候補から外す", () => {
-    expect(buildSupportedCategoryOptions(groups, ["tops_tshirt"])).toEqual([
+    expect(buildSupportedCategoryOptions(groups, ["tops_tshirt", "inner_roomwear"])).toEqual([
       { value: "tops", label: "トップス" },
+      { value: "inner", label: "ルームウェア・インナー" },
     ]);
   });
 
@@ -55,6 +74,8 @@ describe("findVisibleCategoryIdForItem", () => {
     expect(findVisibleCategoryIdForItem("tops", "shirt")).toBe("tops_shirt");
     expect(findVisibleCategoryIdForItem("tops", "blouse")).toBe("tops_shirt");
     expect(findVisibleCategoryIdForItem("outer", "trench")).toBe("outer_coat");
+    expect(findVisibleCategoryIdForItem("dress", "onepiece")).toBe("dress_onepiece");
+    expect(findVisibleCategoryIdForItem("inner", "roomwear")).toBe("inner_roomwear");
     expect(findVisibleCategoryIdForItem("accessories", "tote")).toBe("bags_tote");
   });
 
@@ -81,6 +102,20 @@ describe("isItemVisibleByCategorySettings", () => {
       isItemVisibleByCategorySettings(
         { category: "tops", shape: "shirt" },
         ["tops_shirt"],
+      ),
+    ).toBe(true);
+
+    expect(
+      isItemVisibleByCategorySettings(
+        { category: "dress", shape: "onepiece" },
+        ["dress_onepiece"],
+      ),
+    ).toBe(true);
+
+    expect(
+      isItemVisibleByCategorySettings(
+        { category: "inner", shape: "roomwear" },
+        ["inner_roomwear"],
       ),
     ).toBe(true);
 

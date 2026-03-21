@@ -23,6 +23,15 @@
     { value: "chester", label: "チェスターコート" },
     { value: "down", label: "ダウン" },
   ],
+  dress: [
+    { value: "onepiece", label: "ワンピース" },
+    { value: "allinone", label: "オールインワン / サロペット" },
+  ],
+  inner: [
+    { value: "roomwear", label: "ルームウェア" },
+    { value: "underwear", label: "インナー" },
+    { value: "pajamas", label: "パジャマ" },
+  ],
   shoes: [
     { value: "pumps", label: "パンプス" },
     { value: "sneakers", label: "スニーカー" },
@@ -42,6 +51,8 @@ export const ITEM_CATEGORIES = [
   { value: "tops", label: "トップス" },
   { value: "bottoms", label: "ボトムス" },
   { value: "outer", label: "アウター" },
+  { value: "dress", label: "ワンピース・オールインワン" },
+  { value: "inner", label: "ルームウェア・インナー" },
   { value: "shoes", label: "シューズ" },
   { value: "accessories", label: "小物" },
 ] as const;
