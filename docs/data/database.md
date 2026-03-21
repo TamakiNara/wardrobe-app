@@ -417,22 +417,52 @@ outfit と item の関連テーブルです。
 ## wear_logs (future)
 
 着用履歴 / 着用予定を扱う将来テーブル案です。
+現時点での方向性は以下とする。
 
-想定する主項目:
+- `1 wear log = 1 wear event`
+- 順序は `event_date + display_order` で管理する
+- `planned` / `worn` は同一レコードで保持する
+- `source_outfit_id` はベース outfit を示す参照とする
+- 実際の item 構成の正本は `wear_log_items` とする
+- MVP では snapshot なしで始め、必要になった場合に snapshot 列を追加する余地を残する
+- 同一 wear log 内で同一 `source_item_id` の重複は許可しない
 
-- `user_id`
-- `wear_date`
-- `status`
-- `outfit_id` nullable
-- `items_snapshot` json
-- `memo` nullable
+### wear_logs columns
+
+| column | type | description |
+| --- | --- | --- |
+| id | bigint | 主キー |
+| user_id | bigint | 所有ユーザーID |
+| status | string | `planned` / `worn` |
+| event_date | date | 着用日 / 予定日 |
+| display_order | unsigned int | 同日内の表示順 |
+| source_outfit_id | bigint nullable | ベース outfit ID |
+| memo | text nullable | メモ |
+| created_at | timestamp | 作成日時 |
+| updated_at | timestamp | 更新日時 |
+
+### wear_log_items columns
+
+| column | type | description |
+| --- | --- | --- |
+| id | bigint | 主キー |
+| wear_log_id | bigint | 対象 wear log ID |
+| source_item_id | bigint nullable | 参照 item ID |
+| item_source_type | string nullable | `outfit` / `manual` 候補 |
+| sort_order | unsigned int | 表示順 |
+| created_at | timestamp | 作成日時 |
+| updated_at | timestamp | 更新日時 |
+
+### related future status columns
+
+- `items.status`: `active` / `disposed`
+- `outfits.status`: `active` / `invalid`
 
 補足:
 
-- `items_snapshot` に登録時点の item 構成を保持し、outfit 編集後でも受けた記録の意味を変えない
-- 1 日複数件、同じ item の重複登録を許可する前提
-- 将来的にタグ付けが必要になった場合は `outfit_log_tags` のような関連テーブルを追加し、`tags` を流用する拡張を想定する
-- 詳細は `docs/specs/wears/wear-logs.md` を参照
+- MVP では状態変更履歴を持たず、最終保存値を正とする
+- invalid outfit は通常利用導線から外すが、確認・復旧・複製で再利用できるようにする
+- 詳細は `docs/specs/wears/wear-logs.md` を参照する
 
 ---
 

@@ -20,6 +20,7 @@
 6. ログ設計の方針を整理する
    - アプリケーションログと一部イベントログの方針を詰める
 7. docs の OpenAPI / database / architecture の整合を追加確認する
+   - `docs/data/database.md` に残っている英語見出し / 英語本文も段階的に日本語へ統一する
 
 ## 進行中
 
@@ -298,13 +299,15 @@ UI/UX メモ:
 
 将来仕様メモ:
 
-- 初期仕様では `planned / worn` の 2 状態を扱う
+- `planned / worn` は同一レコードで扱い、トグルで相互切替可能とする
+- `cancelled` / `skipped` は MVP では持たず、不要な予定や誤登録は削除で対応する
+- 1 wear log = 1 着用イベントとし、同日複数件を許可する
+- 順序は `event_date + display_order` で持ち、初期並び順は `event_date desc, display_order asc` を想定する
 - 登録導線は `outfit から登録 / item から登録 / 着用履歴画面から日付先行で登録` を想定する
-- item 起点では、まずその item を含む outfit を検索し、候補がなければ `item のみで登録` または `新しい outfit を作成` を選べるようにしたい
-- 1 日複数件可、同じ item の同日重複も許可する方向
-- outfit 由来登録でも、記録時点の item 構成をスナップショット保存する方向
-- カレンダー表示、最近着た item、着用回数、しばらく着ていない item などの集計基盤として使う
-- 詳細は `docs/specs/wears/wear-logs.md` に整理
+- `source_outfit_id` は「ベースにした outfit」を示す参照とし、実際に着た item 群の正本は `wear_log_items` とする
+- MVP では snapshot なしで始め、まずは `source_item_id` / `source_outfit_id` と構成情報を正にする
+- item は `active / disposed`、outfit は `active / invalid` の status 管理候補とし、wear logs 整合性と連動させる
+- 詳細は `docs/specs/wears/wear-logs.md` と `docs/data/database.md` に整理
 
 ### 検索 / 絞り込み / 並び順構想
 
