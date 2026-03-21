@@ -148,6 +148,13 @@
 - アイテム一覧 / コーディネート一覧 / 着用履歴一覧の対象画面を横断してそろえる
 - 0件時の空状態を「未登録」と「絞り込み結果なし」で分ける前提を定義する
 
+### `specs/discovery/list-common-guidelines.md`
+
+役割:
+
+- 一覧画面の URL クエリ、フィルタ、並び順、ページング、状態別 UI の共通方針を整理する
+- items / outfits / wear logs を横断した API / UI / テスト方針の基準をまとめる
+
 ### `specs/discovery/list-pagination.md`
 
 役割:

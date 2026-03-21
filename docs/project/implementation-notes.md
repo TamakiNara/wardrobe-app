@@ -9,8 +9,8 @@
 
 1. アプリ全体の共通ボトムナビを追加する
    - ホーム / アイテム / コーディネート / 設定 の 4 タブを可用にする
-2. 一覧画面の検索・絞り込み・並び順仕様を固める
-   - items / outfits / wear logs で共通の UI 方針を整理する
+2. 一覧画面の検索・絞り込み・並び順仕様を実装へ落とし込む
+   - URL クエリ / AND 条件 / sort / page / 共通 UI 枠の方針は `docs/specs/discovery/list-common-guidelines.md` を正本にする
 3. 各画面のエラーメッセージと空状態を整理する
    - login / register / item / settings / outfits の共通文言を詰める
 4. 一覧件数が増えたときのページング方針を整理する
@@ -315,7 +315,7 @@ UI/UX メモ:
 - 検索対象は item 名 / brand 名 / メモ の部分一致を基本とする
 - 並び順は単一選択とし、初期値は items / outfits = 新しい順、wear logs = 日付の新しい順
 - 0件時は未登録と絞り込み結果 0 件を別の空状態として扱う
-- 詳細は `docs/specs/discovery/search-filter-sort.md` に整理
+- 詳細は `docs/specs/discovery/search-filter-sort.md` と `docs/specs/discovery/list-common-guidelines.md` に整理
 
 ### エラーメッセージと空状態構想
 
@@ -324,6 +324,7 @@ UI/UX メモ:
 - エラーメッセージは丁寧語を基本にし、技術詳細は UI に出さない方向
 - 原因は分かる範囲で簡潔に書き、可能な限り次の行動も案内する
 - 空状態は「未登録」「条件不一致」「エラー由来」を分けて考える方向
+- 一覧系の URL クエリ / ページング / 状態別 UI の共通方針は `docs/specs/discovery/list-common-guidelines.md` を参照する
 - 詳細は `docs/specs/error-message-guidelines.md` と `docs/ui/empty-state.md` に整理
 
 ## 現在の実装状況
