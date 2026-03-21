@@ -56,7 +56,7 @@ export default function RegisterPage() {
         return;
       }
 
-      router.push("/");
+      router.push("/register/category-preset");
     } catch {
       setError("通信に失敗しました。時間をおいて再度お試しください。");
     } finally {

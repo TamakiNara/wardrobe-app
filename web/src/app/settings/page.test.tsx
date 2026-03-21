@@ -9,6 +9,7 @@ import type { ItemRecord } from "@/types/items";
 
 const pushMock = vi.fn();
 const routerMock = { push: pushMock };
+let searchParamsValue = "";
 const fetchCategoryGroupsMock = vi.fn();
 const fetchCategoryVisibilitySettingsMock = vi.fn();
 const updateCategoryVisibilitySettingsMock = vi.fn();
@@ -21,6 +22,7 @@ vi.mock("next/link", () => ({
 
 vi.mock("next/navigation", () => ({
   useRouter: () => routerMock,
+  useSearchParams: () => new URLSearchParams(searchParamsValue),
 }));
 
 vi.mock("@/lib/api/categories", async () => {
@@ -90,6 +92,7 @@ describe("SettingsPage", () => {
     document.body.appendChild(container);
     root = createRoot(container);
     fetchItemsMock.mockResolvedValue(sampleItems);
+    searchParamsValue = "";
   });
 
   afterEach(() => {
@@ -309,4 +312,43 @@ describe("SettingsPage", () => {
 
     expect(pushMock).toHaveBeenCalledWith("/login");
   });
+
+  it("custom onboarding では初期状態で保存でき、保存後にホームへ進む", async () => {
+    searchParamsValue = "mode=onboarding&preset=custom";
+    fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
+    fetchCategoryVisibilitySettingsMock.mockResolvedValue({
+      visibleCategoryIds: ["tops_tshirt"],
+    });
+    updateCategoryVisibilitySettingsMock.mockResolvedValue({
+      visibleCategoryIds: ["tops_shirt", "tops_tshirt"],
+    });
+
+    const { default: SettingsPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(SettingsPage));
+      await waitForEffects();
+    });
+
+    const checkboxes = container.querySelectorAll('input[type="checkbox"]');
+    expect(checkboxes).toHaveLength(2);
+    expect((checkboxes[0] as HTMLInputElement).checked).toBe(true);
+    expect((checkboxes[1] as HTMLInputElement).checked).toBe(true);
+
+    const saveButtons = getSaveButtons(container);
+    expect(saveButtons).toHaveLength(2);
+    expect(saveButtons.every((button) => !button.disabled)).toBe(true);
+    expect(saveButtons[0].textContent).toBe("保存してはじめる");
+
+    await act(async () => {
+      saveButtons[0].click();
+      await waitForEffects();
+    });
+
+    expect(updateCategoryVisibilitySettingsMock).toHaveBeenCalledWith({
+      visibleCategoryIds: ["tops_shirt", "tops_tshirt"],
+    });
+    expect(pushMock).toHaveBeenCalledWith("/");
+  });
+
 });

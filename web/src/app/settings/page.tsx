@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ApiClientError } from "@/lib/api/client";
+import { collectAllCategoryIds } from "@/lib/master-data/category-presets";
 import { fetchItems } from "@/lib/api/items";
 import { fetchCategoryGroups, findVisibleCategoryIdForItem } from "@/lib/api/categories";
 import {
@@ -75,8 +76,9 @@ function getGroupState(
   return "partial";
 }
 
-export default function SettingsPage() {
+function SettingsPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [groups, setGroups] = useState<CategoryGroupRecord[]>([]);
   const [visibility, setVisibility] = useState<Record<string, boolean>>({});
   const [savedVisibleCategoryIds, setSavedVisibleCategoryIds] = useState<string[]>([]);
@@ -87,6 +89,11 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [requiresInitialSave, setRequiresInitialSave] = useState(false);
+
+  const isOnboardingCustom =
+    searchParams.get("mode") === "onboarding" &&
+    searchParams.get("preset") === "custom";
 
   useEffect(() => {
     let active = true;
@@ -104,16 +111,21 @@ export default function SettingsPage() {
       .then(([fetchedGroups, settings, fetchedItems]) => {
         if (!active) return;
 
+        const allCategoryIds = collectAllCategoryIds(fetchedGroups);
+        const initialVisibleCategoryIds = isOnboardingCustom
+          ? allCategoryIds
+          : settings.visibleCategoryIds;
         const initialVisibility = buildVisibilityFromIds(
           fetchedGroups,
-          settings.visibleCategoryIds,
+          initialVisibleCategoryIds,
         );
 
         setGroups(fetchedGroups);
         setVisibility(initialVisibility);
         setSavedVisibleCategoryIds(
-          [...settings.visibleCategoryIds].sort(),
+          isOnboardingCustom ? [] : [...settings.visibleCategoryIds].sort(),
         );
+        setRequiresInitialSave(isOnboardingCustom);
         setExpandedGroups(
           Object.fromEntries(
             fetchedGroups.map((group) => [group.id, true]),
@@ -137,7 +149,7 @@ export default function SettingsPage() {
     return () => {
       active = false;
     };
-  }, [router]);
+  }, [isOnboardingCustom, router]);
 
   const currentVisibleCategoryIds = useMemo(
     () => collectVisibleCategoryIds(visibility),
@@ -148,8 +160,18 @@ export default function SettingsPage() {
     return currentVisibleCategoryIds.join("|") !== savedVisibleCategoryIds.join("|");
   }, [currentVisibleCategoryIds, savedVisibleCategoryIds]);
 
+  const hasSaveAction = hasChanges || requiresInitialSave;
+  const saveButtonLabel = saving
+    ? "\u4fdd\u5b58\u4e2d..."
+    : isOnboardingCustom
+      ? "\u4fdd\u5b58\u3057\u3066\u306f\u3058\u3081\u308b"
+      : hasChanges
+        ? "\u8868\u793a\u8a2d\u5b9a\u3092\u4fdd\u5b58"
+        : "\u5909\u66f4\u306a\u3057";
+  const saveButtonDisabled = loading || saving || !hasSaveAction;
+
   useEffect(() => {
-    if (!hasChanges || saving) return;
+    if (!hasSaveAction || saving) return;
 
     function handleBeforeUnload(event: BeforeUnloadEvent) {
       event.preventDefault();
@@ -161,7 +183,7 @@ export default function SettingsPage() {
     return () => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
     };
-  }, [hasChanges, saving]);
+  }, [hasSaveAction, saving]);
 
   const registeredItemCountByCategoryId = useMemo(
     () => buildRegisteredItemCountByCategoryId(registeredItems),
@@ -265,6 +287,8 @@ export default function SettingsPage() {
   }
 
   async function handleSave() {
+    if (saveButtonDisabled) return;
+
     setSaving(true);
     setSaveMessage(null);
     setSaveError(null);
@@ -276,6 +300,13 @@ export default function SettingsPage() {
       const normalizedIds = [...response.visibleCategoryIds].sort();
       setSavedVisibleCategoryIds(normalizedIds);
       setVisibility(buildVisibilityFromIds(groups, normalizedIds));
+      setRequiresInitialSave(false);
+
+      if (isOnboardingCustom) {
+        router.push("/");
+        return;
+      }
+
       setSaveMessage("カテゴリ表示設定を保存しました。");
     } catch {
       setSaveError("カテゴリ表示設定の保存に失敗しました。");
@@ -325,10 +356,10 @@ export default function SettingsPage() {
               <button
                 type="button"
                 onClick={handleSave}
-                disabled={loading || saving || !hasChanges}
+                disabled={saveButtonDisabled}
                 className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300"
               >
-                {saving ? "保存中..." : hasChanges ? "表示設定を保存" : "変更なし"}
+                {saveButtonLabel}
               </button>
             </div>
           </div>
@@ -436,10 +467,10 @@ export default function SettingsPage() {
                 <button
                   type="button"
                   onClick={handleSave}
-                  disabled={loading || saving || !hasChanges}
+                  disabled={saveButtonDisabled}
                   className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300"
                 >
-                  {saving ? "保存中..." : hasChanges ? "表示設定を保存" : "変更なし"}
+                  {saveButtonLabel}
                 </button>
               </div>
             </div>
@@ -447,5 +478,14 @@ export default function SettingsPage() {
         </section>
       </div>
     </main>
+  );
+}
+
+
+export default function SettingsPage() {
+  return (
+    <Suspense fallback={null}>
+      <SettingsPageContent />
+    </Suspense>
   );
 }
