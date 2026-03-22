@@ -321,6 +321,10 @@ UI/UX メモ:
 - `source_outfit_id` は「ベースにした outfit」を示す参照とし、実際に着た item 群の正本は `wear_log_items` とする
 - MVP では snapshot なしで始め、まずは `source_item_id` / `source_outfit_id` と構成情報を正にする
 - item は `active / disposed`、outfit は `active / invalid` の status 管理候補とし、wear logs 整合性と連動させる
+- invalid outfit は通常利用導線から外し、別一覧で確認 / 復帰 / 複製できる方向とする
+- `item_source_type` は `outfit / manual` を採用候補とし、wear_log_items に保持する前提で整理する
+- item を `disposed` にした時は関連 active outfit を invalid 化するが、wear logs は書き換えず補助状態だけ表示する
+- 状態変更と副作用はサービス層 / ユースケース層で一元管理する方向とする
 - 詳細は `docs/specs/wears/wear-logs.md` と `docs/data/database.md` に整理
 
 ### 検索 / 絞り込み / 並び順構想

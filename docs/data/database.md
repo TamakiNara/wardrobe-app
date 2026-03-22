@@ -448,7 +448,7 @@ outfit と item の関連テーブルです。
 | id | bigint | 主キー |
 | wear_log_id | bigint | 対象 wear log ID |
 | source_item_id | bigint nullable | 参照 item ID |
-| item_source_type | string nullable | `outfit` / `manual` 候補 |
+| item_source_type | string | `outfit` / `manual` |
 | sort_order | unsigned int | 表示順 |
 | created_at | timestamp | 作成日時 |
 | updated_at | timestamp | 更新日時 |
@@ -461,6 +461,10 @@ outfit と item の関連テーブルです。
 補足:
 
 - MVP では状態変更履歴を持たず、最終保存値を正とする
+- `source_outfit_id` は nullable だが、指定する場合は自分の `active` outfit を前提とする
+- `item_source_type` は各 item が最終構成に入った主たる経路を表す
+- item を `disposed` にした場合は関連 `active` outfit を `invalid` に更新し、wear logs は変更しない
+- item を `active` に戻しても関連 outfit は自動復帰しない
 - invalid outfit は通常利用導線から外すが、確認・復旧・複製で再利用できるようにする
 - 詳細は `docs/specs/wears/wear-logs.md` を参照する
 
