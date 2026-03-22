@@ -193,4 +193,29 @@ describe("OutfitsList", () => {
 
     expect(replaceMock).toHaveBeenCalledWith("/outfits", { scroll: false });
   });
+
+  it("検索結果が 0 件のときは空状態文言を表示する", async () => {
+    searchParamsValue = "keyword=%E5%86%AC";
+    fetchCategoryVisibilitySettingsMock.mockResolvedValue({
+      visibleCategoryIds: ["tops_tshirt", "tops_shirt"],
+    });
+
+    const { default: OutfitsList } = await import("./outfits-list");
+
+    await act(async () => {
+      root.render(
+        React.createElement(OutfitsList, {
+          ...defaultListProps,
+          outfits: [],
+          totalCount: 0,
+          totalAllCount: 2,
+        }),
+      );
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain("条件に一致するコーディネートがありません");
+    expect(container.textContent).toContain("条件を変えてお試しください。");
+    expect(container.textContent).toContain("条件をクリア");
+  });
 });

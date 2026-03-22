@@ -313,6 +313,53 @@ describe("SettingsPage", () => {
     expect(pushMock).toHaveBeenCalledWith("/login");
   });
 
+  it("読み込み失敗時は再試行文言を表示する", async () => {
+    fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
+    fetchCategoryVisibilitySettingsMock.mockRejectedValue(new Error("network"));
+
+    const { default: SettingsPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(SettingsPage));
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain(
+      "カテゴリ設定を読み込めませんでした。時間をおいて再度お試しください。",
+    );
+  });
+
+  it("保存失敗時は再試行文言を表示する", async () => {
+    fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
+    fetchCategoryVisibilitySettingsMock.mockResolvedValue({
+      visibleCategoryIds: ["tops_tshirt"],
+    });
+    updateCategoryVisibilitySettingsMock.mockRejectedValue(new Error("network"));
+
+    const { default: SettingsPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(SettingsPage));
+      await waitForEffects();
+    });
+
+    const checkboxes = container.querySelectorAll('input[type="checkbox"]');
+
+    await act(async () => {
+      (checkboxes[1] as HTMLInputElement).click();
+      await waitForEffects();
+    });
+
+    await act(async () => {
+      getSaveButtons(container)[0].click();
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain(
+      "設定を保存できませんでした。時間をおいて再度お試しください。",
+    );
+  });
+
   it("custom onboarding では初期状態で保存でき、保存後にホームへ進む", async () => {
     searchParamsValue = "mode=onboarding&preset=custom";
     fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);

@@ -4,6 +4,18 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+export function mapRegisterErrorMessage(message?: string | null): string {
+  if (!message) {
+    return "通信に失敗しました。時間をおいて再度お試しください。";
+  }
+
+  if (message.includes("valid email address")) {
+    return "メールアドレスの形式が正しくありません。";
+  }
+
+  return "入力されていない項目があります。内容をご確認ください。";
+}
+
 export default function RegisterPage() {
   const router = useRouter();
 
@@ -17,6 +29,11 @@ export default function RegisterPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+
+    if (!name.trim() || !email.trim() || !password || !passwordConfirmation) {
+      setError("入力されていない項目があります。内容をご確認ください。");
+      return;
+    }
 
     setError(null);
 
@@ -46,12 +63,12 @@ export default function RegisterPage() {
         if (data?.errors) {
           const firstError = Object.values(data.errors)[0];
           if (Array.isArray(firstError) && firstError.length > 0) {
-            setError(String(firstError[0]));
+            setError(mapRegisterErrorMessage(String(firstError[0])));
           } else {
-            setError("登録に失敗しました");
+            setError("入力されていない項目があります。内容をご確認ください。");
           }
         } else {
-          setError(data?.message ?? "登録に失敗しました");
+          setError(mapRegisterErrorMessage(data?.message));
         }
         return;
       }

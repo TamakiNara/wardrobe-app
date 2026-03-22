@@ -4,22 +4,24 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-function mapLoginErrorMessage(message?: string | null): string {
-  if (!message) return "ログインに失敗しました";
+export function mapLoginErrorMessage(message?: string | null): string {
+  if (!message) {
+    return "通信に失敗しました。時間をおいて再度お試しください。";
+  }
 
   if (message === "invalid credentials") {
-    return "メールアドレスまたはパスワードが正しくありません";
+    return "メールアドレスまたはパスワードが正しくありません。";
   }
 
   if (message === "CSRF token mismatch.") {
-    return "セッションの有効期限が切れました。もう一度ログインしてください";
+    return "通信に失敗しました。時間をおいて再度お試しください。";
   }
 
   if (message.includes("valid email address")) {
-    return "メールアドレスの形式を確認してください";
+    return "メールアドレスの形式が正しくありません。";
   }
 
-  return "ログインに失敗しました。時間をおいてもう一度お試しください";
+  return "通信に失敗しました。時間をおいて再度お試しください。";
 }
 
 export default function LoginPage() {
@@ -34,26 +36,35 @@ export default function LoginPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    setLoading(true);
-    setError(null);
-
-    const res = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ email, password }),
-    });
-
-    setLoading(false);
-
-    if (!res.ok) {
-      const data = await res.json().catch(() => null);
-      setError(mapLoginErrorMessage(data?.message));
+    if (!email.trim() || !password) {
+      setError("入力されていない項目があります。内容をご確認ください。");
       return;
     }
 
-    router.push("/");
+    setLoading(true);
+    setError(null);
+
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        setError(mapLoginErrorMessage(data?.message));
+        return;
+      }
+
+      router.push("/");
+    } catch {
+      setError("通信に失敗しました。時間をおいて再度お試しください。");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (

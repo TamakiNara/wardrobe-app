@@ -348,7 +348,7 @@ export default function ItemsList({
             条件に一致するアイテムがありません
           </h2>
           <p className="mt-2 text-sm text-gray-600">
-            条件を変更するか、絞り込みをクリアしてください。
+            条件を変えてお試しください。
           </p>
         </section>
       ) : (

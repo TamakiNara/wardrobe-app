@@ -44,6 +44,12 @@ type OutfitsResponse = {
   };
 };
 
+type ItemCountResponse = {
+  meta: {
+    totalAll: number;
+  };
+};
+
 function buildQueryString(searchParams: OutfitsPageSearchParams): string {
   const params = new URLSearchParams();
 
@@ -107,6 +113,25 @@ async function getOutfits(searchParams: OutfitsPageSearchParams): Promise<Outfit
   };
 }
 
+async function getItemCount(): Promise<number> {
+  const cookie = (await headers()).get("cookie") ?? "";
+  const appUrl = process.env.NEXT_APP_URL ?? "http://localhost:3000";
+  const res = await fetch(`${appUrl}/api/items`, {
+    headers: {
+      cookie,
+      Accept: "application/json",
+    },
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    return 0;
+  }
+
+  const data = (await res.json()) as Partial<ItemCountResponse>;
+  return data.meta?.totalAll ?? 0;
+}
+
 export default async function OutfitsPage({
   searchParams,
 }: {
@@ -114,6 +139,7 @@ export default async function OutfitsPage({
 }) {
   const resolvedSearchParams = await searchParams;
   const data = await getOutfits(resolvedSearchParams);
+  const itemCount = data.meta.totalAll === 0 ? await getItemCount() : 0;
   const outfits = data.outfits;
 
   return (
@@ -146,18 +172,20 @@ export default async function OutfitsPage({
         {data.meta.totalAll === 0 ? (
           <section className="rounded-2xl border border-dashed border-gray-300 bg-white p-10 text-center shadow-sm">
             <h2 className="text-lg font-semibold text-gray-900">
-              まだコーディネートがありません
+              まだコーディネートが登録されていません
             </h2>
             <p className="mt-2 text-sm text-gray-600">
-              登録済みアイテムを使って、最初のコーディネートを作成できます。
+              {itemCount === 0
+                ? "先にアイテムを登録して、組み合わせを作れる状態にしましょう。"
+                : "手持ちのアイテムを組み合わせて作ってみましょう。"}
             </p>
 
             <div className="mt-6">
               <Link
-                href="/outfits/new"
+                href={itemCount === 0 ? "/items/new" : "/outfits/new"}
                 className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
               >
-                コーディネートを登録する
+                {itemCount === 0 ? "アイテムを追加する" : "コーディネートを作成する"}
               </Link>
             </div>
           </section>

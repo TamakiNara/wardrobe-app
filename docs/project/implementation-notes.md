@@ -8,7 +8,7 @@
 優先順:
 
 1. 各画面のエラーメッセージと空状態を整理する
-   - login / register / item / settings / outfits の共通文言を詰める
+   - login / register / items / outfits / settings に初期文言を反映済み。未反映画面と細かな文言差分を引き続き詰める
 2. スマホ実機でキーワード検索入力と IME 変換が安定するかを確認する
    - iPhone / Android で変換中に文字が潰れないか、page 遷移が走らないかを確認する
 3. tops SVG の見た目調整に戻る

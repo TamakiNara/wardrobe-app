@@ -139,7 +139,7 @@ function SettingsPageContent() {
           router.push("/login");
           return;
         }
-        setLoadError("カテゴリ設定の読み込みに失敗しました。");
+        setLoadError("カテゴリ設定を読み込めませんでした。時間をおいて再度お試しください。");
       })
       .finally(() => {
         if (!active) return;
@@ -309,7 +309,7 @@ function SettingsPageContent() {
 
       setSaveMessage("カテゴリ表示設定を保存しました。");
     } catch {
-      setSaveError("カテゴリ表示設定の保存に失敗しました。");
+      setSaveError("設定を保存できませんでした。時間をおいて再度お試しください。");
     } finally {
       setSaving(false);
     }

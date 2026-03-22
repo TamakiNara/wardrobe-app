@@ -258,4 +258,30 @@ describe("ItemsList", () => {
 
     expect(replaceMock).toHaveBeenCalledWith("/items", { scroll: false });
   });
+
+  it("検索結果が 0 件のときは空状態文言を表示する", async () => {
+    searchParamsValue = "keyword=%E9%9D%92";
+    fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
+    fetchCategoryVisibilitySettingsMock.mockResolvedValue({
+      visibleCategoryIds: ["tops_tshirt", "tops_shirt"],
+    });
+
+    const { default: ItemsList } = await import("./items-list");
+
+    await act(async () => {
+      root.render(
+        React.createElement(ItemsList, {
+          ...defaultListProps,
+          items: [],
+          totalCount: 0,
+          totalAllCount: 2,
+        }),
+      );
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain("条件に一致するアイテムがありません");
+    expect(container.textContent).toContain("条件を変えてお試しください。");
+    expect(container.textContent).toContain("条件をクリア");
+  });
 });
