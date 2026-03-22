@@ -8,10 +8,18 @@ import type { CategoryGroupRecord } from "@/types/categories";
 
 const fetchCategoryGroupsMock = vi.fn();
 const fetchCategoryVisibilitySettingsMock = vi.fn();
+const replaceMock = vi.fn();
+let searchParamsValue = "";
 
 vi.mock("next/link", () => ({
   default: ({ children, href, ...props }: React.ComponentProps<"a">) =>
     React.createElement("a", { href, ...props }, children),
+}));
+
+vi.mock("next/navigation", () => ({
+  usePathname: () => "/items",
+  useRouter: () => ({ replace: replaceMock }),
+  useSearchParams: () => new URLSearchParams(searchParamsValue),
 }));
 
 vi.mock("@/components/items/preview-svg/tops-preview-svg", () => ({
@@ -96,6 +104,7 @@ describe("ItemsList", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    searchParamsValue = "";
     globalThis.IS_REACT_ACT_ENVIRONMENT = true;
     container = document.createElement("div");
     document.body.appendChild(container);
@@ -123,7 +132,7 @@ describe("ItemsList", () => {
       await waitForEffects();
     });
 
-    expect(container.textContent).toContain("表示件数： 1 / 1");
+    expect(container.textContent).toContain("表示件数: 1 / 1");
     expect(container.textContent).toContain("白T");
     expect(container.textContent).not.toContain("青シャツ");
   });
@@ -151,7 +160,40 @@ describe("ItemsList", () => {
 
     expect(seasonOptions).toEqual(["すべて", "春", "夏"]);
     expect(tpoOptions).toEqual(["すべて", "仕事", "休日"]);
-    expect(container.textContent).toContain("TPO： 仕事");
-    expect(container.textContent).not.toContain("TPO： 通勤");
+    expect(container.textContent).toContain("TPO: 仕事");
+    expect(container.textContent).not.toContain("TPO: 通勤");
+  });
+
+  it("URL クエリの初期値を反映し、条件クリアで URL も戻す", async () => {
+    searchParamsValue = "keyword=%E7%99%BD&season=%E5%A4%8F&sort=name_asc";
+    fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
+    fetchCategoryVisibilitySettingsMock.mockResolvedValue({
+      visibleCategoryIds: ["tops_tshirt", "tops_shirt"],
+    });
+
+    const { default: ItemsList } = await import("./items-list");
+
+    await act(async () => {
+      root.render(React.createElement(ItemsList, { items: sampleItems }));
+      await waitForEffects();
+    });
+
+    const input = container.querySelector<HTMLInputElement>('input[type="search"]');
+    const selects = Array.from(container.querySelectorAll("select"));
+    const clearButton = Array.from(container.querySelectorAll("button")).find((button) =>
+      button.textContent?.includes("クリア"),
+    );
+
+    expect(input?.value).toBe("白");
+    expect((selects[1] as HTMLSelectElement).value).toBe("夏");
+    expect((selects[3] as HTMLSelectElement).value).toBe("name_asc");
+    expect(replaceMock).not.toHaveBeenCalled();
+
+    await act(async () => {
+      clearButton?.click();
+      await waitForEffects();
+    });
+
+    expect(replaceMock).toHaveBeenCalledWith("/items", { scroll: false });
   });
 });

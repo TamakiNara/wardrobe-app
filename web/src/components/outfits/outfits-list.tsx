@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { isItemVisibleByCategorySettings } from "@/lib/api/categories";
 import { fetchCategoryVisibilitySettings } from "@/lib/api/settings";
@@ -39,9 +40,69 @@ type OutfitsListProps = {
   outfits: Outfit[];
 };
 
+type OutfitSortValue = "updated_at_desc" | "name_asc";
+
+const DEFAULT_SORT: OutfitSortValue = "updated_at_desc";
+const SORT_OPTIONS: Array<{ value: OutfitSortValue; label: string }> = [
+  { value: "updated_at_desc", label: "更新順" },
+  { value: "name_asc", label: "名前順" },
+];
+
+function normalizeSort(value: string | null): OutfitSortValue {
+  if (value === "name_asc") {
+    return value;
+  }
+
+  return DEFAULT_SORT;
+}
+
+function normalizeKeyword(value: string | null): string {
+  return value?.trim() ?? "";
+}
+
+function buildQueryString({
+  keyword,
+  season,
+  tpo,
+  sort,
+}: {
+  keyword: string;
+  season: string;
+  tpo: string;
+  sort: OutfitSortValue;
+}): string {
+  const params = new URLSearchParams();
+
+  if (keyword) {
+    params.set("keyword", keyword);
+  }
+
+  if (season) {
+    params.set("season", season);
+  }
+
+  if (tpo) {
+    params.set("tpo", tpo);
+  }
+
+  if (sort !== DEFAULT_SORT) {
+    params.set("sort", sort);
+  }
+
+  return params.toString();
+}
+
 export default function OutfitsList({ outfits }: OutfitsListProps) {
-  const [seasonFilter, setSeasonFilter] = useState("");
-  const [tpoFilter, setTpoFilter] = useState("");
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const keyword = normalizeKeyword(searchParams.get("keyword"));
+  const seasonFilter = searchParams.get("season") ?? "";
+  const tpoFilter = searchParams.get("tpo") ?? "";
+  const sort = normalizeSort(searchParams.get("sort"));
+
+  const [isComposingKeyword, setIsComposingKeyword] = useState(false);
   const [visibleCategoryIds, setVisibleCategoryIds] = useState<string[] | null>(null);
 
   useEffect(() => {
@@ -61,36 +122,96 @@ export default function OutfitsList({ outfits }: OutfitsListProps) {
     };
   }, []);
 
+  function updateQuery(nextValues: Partial<{
+    keyword: string;
+    season: string;
+    tpo: string;
+    sort: OutfitSortValue;
+  }>) {
+    const nextQuery = buildQueryString({
+      keyword: nextValues.keyword ?? keyword,
+      season: nextValues.season ?? seasonFilter,
+      tpo: nextValues.tpo ?? tpoFilter,
+      sort: nextValues.sort ?? sort,
+    });
+
+    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, {
+      scroll: false,
+    });
+  }
+
   const filteredOutfits = useMemo(() => {
-    return outfits.filter((outfit) => {
+    const normalizedKeyword = keyword.toLocaleLowerCase("ja-JP");
+
+    const nextOutfits = outfits.filter((outfit) => {
       const seasons = outfit.seasons ?? [];
       const tpos = outfit.tpos ?? [];
+      const name = (outfit.name ?? "").toLocaleLowerCase("ja-JP");
 
       const isAllSeason = seasons.length === 0 || seasons.includes("オール");
 
+      const matchKeyword = normalizedKeyword
+        ? name.includes(normalizedKeyword)
+        : true;
       const matchSeason = seasonFilter
         ? seasonFilter === "オール"
           ? isAllSeason
           : seasons.includes(seasonFilter) || isAllSeason
         : true;
-
       const matchTpo = tpoFilter ? tpos.includes(tpoFilter) : true;
 
-      return matchSeason && matchTpo;
+      return matchKeyword && matchSeason && matchTpo;
     });
-  }, [outfits, seasonFilter, tpoFilter]);
+
+    if (sort === "name_asc") {
+      return [...nextOutfits].sort((a, b) =>
+        (a.name ?? "").localeCompare(b.name ?? "", "ja-JP"),
+      );
+    }
+
+    return nextOutfits;
+  }, [keyword, outfits, seasonFilter, sort, tpoFilter]);
+
+  const hasActiveFilters = Boolean(
+    keyword || seasonFilter || tpoFilter || sort !== DEFAULT_SORT,
+  );
 
   return (
     <div className="space-y-6">
       <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+          <div className="xl:col-span-2">
+            <label className="mb-1 block text-sm font-medium text-gray-700">
+              キーワード
+            </label>
+            <input
+              type="search"
+              key={`keyword-${keyword}`}
+              defaultValue={keyword}
+              onChange={(e) => {
+                const nextKeyword = e.target.value;
+                if (!isComposingKeyword) {
+                  updateQuery({ keyword: nextKeyword });
+                }
+              }}
+              onCompositionStart={() => setIsComposingKeyword(true)}
+              onCompositionEnd={(e) => {
+                const nextKeyword = e.currentTarget.value;
+                setIsComposingKeyword(false);
+                updateQuery({ keyword: nextKeyword });
+              }}
+              placeholder="名前で検索"
+              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            />
+          </div>
+
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700">
               季節
             </label>
             <select
               value={seasonFilter}
-              onChange={(e) => setSeasonFilter(e.target.value)}
+              onChange={(e) => updateQuery({ season: e.target.value })}
               className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             >
               <option value="">すべて</option>
@@ -108,7 +229,7 @@ export default function OutfitsList({ outfits }: OutfitsListProps) {
             </label>
             <select
               value={tpoFilter}
-              onChange={(e) => setTpoFilter(e.target.value)}
+              onChange={(e) => updateQuery({ tpo: e.target.value })}
               className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             >
               <option value="">すべて</option>
@@ -119,22 +240,37 @@ export default function OutfitsList({ outfits }: OutfitsListProps) {
               ))}
             </select>
           </div>
+
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">
+              sort
+            </label>
+            <select
+              value={sort}
+              onChange={(e) => updateQuery({ sort: normalizeSort(e.target.value) })}
+              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            >
+              {SORT_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
         <div className="mt-4 flex items-center justify-between gap-4">
           <p className="text-sm text-gray-600">
-            表示件数： {filteredOutfits.length} / {outfits.length}
+            表示件数: {filteredOutfits.length} / {outfits.length}
           </p>
 
           <button
             type="button"
-            onClick={() => {
-              setSeasonFilter("");
-              setTpoFilter("");
-            }}
-            className="text-sm font-medium text-blue-600 hover:underline"
+            onClick={() => router.replace(pathname, { scroll: false })}
+            className="text-sm font-medium text-blue-600 hover:underline disabled:text-gray-400 disabled:no-underline"
+            disabled={!hasActiveFilters}
           >
-            絞り込みをクリア
+            条件をクリア
           </button>
         </div>
       </section>
@@ -173,7 +309,7 @@ export default function OutfitsList({ outfits }: OutfitsListProps) {
                   )}
 
                   <p className="mt-4 text-sm text-gray-600">
-                    表示アイテム数： {itemCount}
+                    表示アイテム数: {itemCount}
                   </p>
 
                   {hiddenItemCount > 0 && (
@@ -183,12 +319,12 @@ export default function OutfitsList({ outfits }: OutfitsListProps) {
                   )}
 
                   <p className="mt-2 text-sm text-gray-600">
-                    季節：{" "}
+                    季節:{" "}
                     {outfit.seasons?.length ? outfit.seasons.join(" / ") : "未設定"}
                   </p>
 
                   <p className="mt-1 text-sm text-gray-600">
-                    TPO： {outfit.tpos?.length ? outfit.tpos.join(" / ") : "未設定"}
+                    TPO: {outfit.tpos?.length ? outfit.tpos.join(" / ") : "未設定"}
                   </p>
                 </article>
               </Link>

@@ -6,10 +6,18 @@ import { createRoot } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const fetchCategoryVisibilitySettingsMock = vi.fn();
+const replaceMock = vi.fn();
+let searchParamsValue = "";
 
 vi.mock("next/link", () => ({
   default: ({ children, href, ...props }: React.ComponentProps<"a">) =>
     React.createElement("a", { href, ...props }, children),
+}));
+
+vi.mock("next/navigation", () => ({
+  usePathname: () => "/outfits",
+  useRouter: () => ({ replace: replaceMock }),
+  useSearchParams: () => new URLSearchParams(searchParamsValue),
 }));
 
 vi.mock("@/lib/api/settings", () => ({
@@ -50,6 +58,14 @@ const sampleOutfits = [
       },
     ],
   },
+  {
+    id: 2,
+    name: "夏の散歩",
+    memo: null,
+    seasons: ["夏"],
+    tpos: ["休日"],
+    outfitItems: [],
+  },
 ];
 
 async function waitForEffects() {
@@ -64,6 +80,7 @@ describe("OutfitsList", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    searchParamsValue = "";
     globalThis.IS_REACT_ACT_ENVIRONMENT = true;
     container = document.createElement("div");
     document.body.appendChild(container);
@@ -90,7 +107,41 @@ describe("OutfitsList", () => {
       await waitForEffects();
     });
 
-    expect(container.textContent).toContain("表示アイテム数： 1");
+    expect(container.textContent).toContain("表示アイテム数: 1");
     expect(container.textContent).toContain("現在の表示設定により 1 件を非表示にしています。");
+  });
+
+  it("URL クエリの初期値を反映し、条件クリアで URL も戻す", async () => {
+    searchParamsValue = "keyword=%E5%A4%8F&season=%E5%A4%8F&sort=name_asc";
+    fetchCategoryVisibilitySettingsMock.mockResolvedValue({
+      visibleCategoryIds: ["tops_tshirt", "tops_shirt"],
+    });
+
+    const { default: OutfitsList } = await import("./outfits-list");
+
+    await act(async () => {
+      root.render(React.createElement(OutfitsList, { outfits: sampleOutfits }));
+      await waitForEffects();
+    });
+
+    const input = container.querySelector<HTMLInputElement>('input[type="search"]');
+    const selects = Array.from(container.querySelectorAll("select"));
+    const clearButton = Array.from(container.querySelectorAll("button")).find((button) =>
+      button.textContent?.includes("クリア"),
+    );
+
+    expect(input?.value).toBe("夏");
+    expect((selects[0] as HTMLSelectElement).value).toBe("夏");
+    expect((selects[2] as HTMLSelectElement).value).toBe("name_asc");
+    expect(container.textContent).toContain("夏の散歩");
+    expect(container.textContent).not.toContain("春コーディネート");
+    expect(replaceMock).not.toHaveBeenCalled();
+
+    await act(async () => {
+      clearButton?.click();
+      await waitForEffects();
+    });
+
+    expect(replaceMock).toHaveBeenCalledWith("/outfits", { scroll: false });
   });
 });

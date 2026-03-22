@@ -7,17 +7,17 @@
 
 優先順:
 
-1. 一覧画面の検索・絞り込み・並び順仕様を実装へ落とし込む
-   - URL クエリ / AND 条件 / sort / page / 共通 UI 枠の方針は `docs/specs/discovery/list-common-guidelines.md` を正本にする
+1. 一覧画面のページング方針と API クエリ対応を整理する
+   - items / outfits の keyword / 各絞り込み / sort は URL クエリ連動まで反映済み
+   - 現在は一覧取得後にフロント側で絞り込み・並び替えを適用しているため、API 側の受け口と page を次に詰める
+   - スマホ実機でキーワード検索入力と IME 変換が安定するかを確認する
 2. 各画面のエラーメッセージと空状態を整理する
    - login / register / item / settings / outfits の共通文言を詰める
-3. 一覧件数が増えたときのページング方針を整理する
-   - UI は もっと見る、API は page / per_page または cursor / limit を検討する
-4. tops SVG の見た目調整に戻る
+3. tops SVG の見た目調整に戻る
    - tshirt / shirt / blouse の細部調整を再開する
-5. ログ設計の方針を整理する
+4. ログ設計の方針を整理する
    - アプリケーションログと一部イベントログの方針を詰める
-6. docs の OpenAPI / database / architecture の整合を追加確認する
+5. docs の OpenAPI / database / architecture の整合を追加確認する
    - `docs/data/database.md` に残っている英語見出し / 英語本文も段階的に日本語へ統一する
 
 ## 進行中
@@ -112,6 +112,9 @@
 - create / edit / list のカテゴリ選択肢は categories API を読む下地を追加した
 - Item 新規作成 / 編集のカテゴリ候補に `dress` と `inner` を追加し、ワンピース・オールインワン / ルームウェア・インナーも設定連動で選べるようにした
 - tops の形表示は `Tシャツ/カットソー` `ニット/セーター` など、画面間で揺れない名称に整理した
+- items 一覧は `keyword / category / season / tpo / sort` を URL クエリを正本として扱い、再読み込みや戻る操作後も条件を復元できる
+- 複数条件は AND で絞り込み、`sort` は `updated_at_desc / name_asc` で切り替える
+- キーワード入力は IME 変換中に URL 更新を止め、変換確定後に検索条件へ反映する
 
 次に詰める候補:
 
@@ -128,6 +131,12 @@
 - 編集
 - 削除
 - 一覧フィルタ
+
+今回までの反映内容:
+
+- outfits 一覧は `keyword / season / tpo / sort` を URL クエリを正本として扱い、再読み込みや戻る操作後も条件を復元できる
+- 複数条件は AND で絞り込み、`sort` は `updated_at_desc / name_asc` で切り替える
+- キーワード入力は IME 変換中に URL 更新を止め、変換確定後に検索条件へ反映する
 
 項目:
 
