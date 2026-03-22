@@ -12,8 +12,22 @@ type Item = {
   id: number;
 };
 
+type ItemsResponse = {
+  items?: Item[];
+  meta?: {
+    totalAll?: number;
+  };
+};
+
 type Outfit = {
   id: number;
+};
+
+type OutfitsResponse = {
+  outfits?: Outfit[];
+  meta?: {
+    totalAll?: number;
+  };
 };
 
 async function getUser(): Promise<User | null> {
@@ -36,7 +50,7 @@ async function getUser(): Promise<User | null> {
   return res.json();
 }
 
-async function getItems(): Promise<Item[]> {
+async function getItemsCount(): Promise<number> {
   const cookie = (await headers()).get("cookie") ?? "";
   const appUrl = process.env.NEXT_APP_URL ?? "http://localhost:3000";
 
@@ -50,14 +64,14 @@ async function getItems(): Promise<Item[]> {
   });
 
   if (!res.ok) {
-    return [];
+    return 0;
   }
 
-  const data = await res.json();
-  return data.items ?? [];
+  const data = (await res.json()) as ItemsResponse;
+  return data.meta?.totalAll ?? data.items?.length ?? 0;
 }
 
-async function getOutfits(): Promise<Outfit[]> {
+async function getOutfitsCount(): Promise<number> {
   const cookie = (await headers()).get("cookie") ?? "";
   const appUrl = process.env.NEXT_APP_URL ?? "http://localhost:3000";
 
@@ -71,11 +85,11 @@ async function getOutfits(): Promise<Outfit[]> {
   });
 
   if (!res.ok) {
-    return [];
+    return 0;
   }
 
-  const data = await res.json();
-  return data.outfits ?? [];
+  const data = (await res.json()) as OutfitsResponse;
+  return data.meta?.totalAll ?? data.outfits?.length ?? 0;
 }
 
 export default async function Home() {
@@ -114,7 +128,10 @@ export default async function Home() {
     );
   }
 
-  const [items, outfits] = await Promise.all([getItems(), getOutfits()]);
+  const [itemsCount, outfitsCount] = await Promise.all([
+    getItemsCount(),
+    getOutfitsCount(),
+  ]);
 
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">
@@ -139,7 +156,7 @@ export default async function Home() {
           <article className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
             <p className="text-sm text-gray-500">アイテム管理</p>
             <p className="mt-2 text-3xl font-bold text-gray-900">
-              {items.length}
+              {itemsCount}
             </p>
             <p className="mt-2 text-sm text-gray-600">登録済みアイテム数</p>
 
@@ -162,7 +179,7 @@ export default async function Home() {
           <article className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
             <p className="text-sm text-gray-500">コーディネート管理</p>
             <p className="mt-2 text-3xl font-bold text-gray-900">
-              {outfits.length}
+              {outfitsCount}
             </p>
             <p className="mt-2 text-sm text-gray-600">登録済みコーディネート数</p>
 
