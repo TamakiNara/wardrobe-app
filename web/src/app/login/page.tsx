@@ -55,7 +55,7 @@ export default function LoginPage() {
 
       if (!res.ok) {
         const data = await res.json().catch(() => null);
-        setError(mapLoginErrorMessage(data?.message));
+        setError(mapLoginErrorMessage(data?.message ?? data?.error));
         return;
       }
 

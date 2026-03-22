@@ -12,6 +12,9 @@ describe("mapRegisterErrorMessage", () => {
     expect(mapRegisterErrorMessage("The name field is required.")).toBe(
       "入力されていない項目があります。内容をご確認ください。",
     );
+    expect(mapRegisterErrorMessage("Failed to get CSRF cookie from backend.")).toBe(
+      "通信に失敗しました。時間をおいて再度お試しください。",
+    );
     expect(mapRegisterErrorMessage()).toBe(
       "通信に失敗しました。時間をおいて再度お試しください。",
     );

@@ -79,7 +79,7 @@ const defaultListProps = {
 async function waitForEffects() {
   await Promise.resolve();
   await Promise.resolve();
-  await new Promise((resolve) => setTimeout(resolve, 0));
+  await vi.advanceTimersByTimeAsync(0);
 }
 
 describe("OutfitsList", () => {
@@ -88,6 +88,7 @@ describe("OutfitsList", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.useFakeTimers();
     searchParamsValue = "";
     globalThis.IS_REACT_ACT_ENVIRONMENT = true;
     container = document.createElement("div");
@@ -99,6 +100,7 @@ describe("OutfitsList", () => {
     act(() => {
       root.unmount();
     });
+    vi.useRealTimers();
     container.remove();
     globalThis.IS_REACT_ACT_ENVIRONMENT = false;
   });
@@ -217,5 +219,38 @@ describe("OutfitsList", () => {
     expect(container.textContent).toContain("条件に一致するコーディネートがありません");
     expect(container.textContent).toContain("条件を変えてお試しください。");
     expect(container.textContent).toContain("条件をクリア");
+  });
+
+  it("キーワード削除中は debounce 後に URL を更新する", async () => {
+    searchParamsValue = "keyword=%E5%A4%8F%E3%82%B3%E3%83%BC%E3%83%87";
+    fetchCategoryVisibilitySettingsMock.mockResolvedValue({
+      visibleCategoryIds: ["tops_tshirt", "tops_shirt"],
+    });
+
+    const { default: OutfitsList } = await import("./outfits-list");
+
+    await act(async () => {
+      root.render(React.createElement(OutfitsList, defaultListProps));
+      await waitForEffects();
+    });
+
+    const input = container.querySelector<HTMLInputElement>('input[type="search"]');
+
+    await act(async () => {
+      input!.value = "夏コー";
+      input!.dispatchEvent(new Event("input", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    expect(replaceMock).not.toHaveBeenCalled();
+
+    await act(async () => {
+      vi.advanceTimersByTime(250);
+      await waitForEffects();
+    });
+
+    expect(replaceMock).toHaveBeenCalledWith("/outfits?keyword=%E5%A4%8F%E3%82%B3%E3%83%BC", {
+      scroll: false,
+    });
   });
 });

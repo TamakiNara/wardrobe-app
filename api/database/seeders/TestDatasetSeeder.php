@@ -9,6 +9,9 @@ class TestDatasetSeeder extends Seeder
     public function run(): void
     {
         $this->call([
+            CategoryGroupSeeder::class,
+            CategoryMasterSeeder::class,
+            CategoryPresetSeeder::class,
             TestUserSeeder::class,
             SampleUserSettingSeeder::class,
             SampleItemSeeder::class,

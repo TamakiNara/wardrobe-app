@@ -1,6 +1,6 @@
-import { headers } from "next/headers";
 import Link from "next/link";
 import LogoutButton from "@/components/auth/logout-button";
+import { fetchLaravelWithCookie } from "@/lib/server/laravel";
 
 type User = {
   id: number;
@@ -31,17 +31,7 @@ type OutfitsResponse = {
 };
 
 async function getUser(): Promise<User | null> {
-  const cookie = (await headers()).get("cookie") ?? "";
-  const appUrl = process.env.NEXT_APP_URL ?? "http://localhost:3000";
-
-  const res = await fetch(`${appUrl}/api/auth/me`, {
-    method: "GET",
-    headers: {
-      cookie,
-      Accept: "application/json",
-    },
-    cache: "no-store",
-  });
+  const res = await fetchLaravelWithCookie("/api/me");
 
   if (!res.ok) {
     return null;
@@ -51,17 +41,7 @@ async function getUser(): Promise<User | null> {
 }
 
 async function getItemsCount(): Promise<number> {
-  const cookie = (await headers()).get("cookie") ?? "";
-  const appUrl = process.env.NEXT_APP_URL ?? "http://localhost:3000";
-
-  const res = await fetch(`${appUrl}/api/items`, {
-    method: "GET",
-    headers: {
-      cookie,
-      Accept: "application/json",
-    },
-    cache: "no-store",
-  });
+  const res = await fetchLaravelWithCookie("/api/items");
 
   if (!res.ok) {
     return 0;
@@ -72,17 +52,7 @@ async function getItemsCount(): Promise<number> {
 }
 
 async function getOutfitsCount(): Promise<number> {
-  const cookie = (await headers()).get("cookie") ?? "";
-  const appUrl = process.env.NEXT_APP_URL ?? "http://localhost:3000";
-
-  const res = await fetch(`${appUrl}/api/outfits`, {
-    method: "GET",
-    headers: {
-      cookie,
-      Accept: "application/json",
-    },
-    cache: "no-store",
-  });
+  const res = await fetchLaravelWithCookie("/api/outfits");
 
   if (!res.ok) {
     return 0;

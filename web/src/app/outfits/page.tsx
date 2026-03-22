@@ -1,7 +1,7 @@
-import { headers } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import OutfitsList from "@/components/outfits/outfits-list";
+import { fetchLaravelWithCookie } from "@/lib/server/laravel";
 
 type OutfitItem = {
   id: number;
@@ -71,18 +71,9 @@ function buildQueryString(searchParams: OutfitsPageSearchParams): string {
 }
 
 async function getOutfits(searchParams: OutfitsPageSearchParams): Promise<OutfitsResponse> {
-  const cookie = (await headers()).get("cookie") ?? "";
-  const appUrl = process.env.NEXT_APP_URL ?? "http://localhost:3000";
   const query = buildQueryString(searchParams);
-  const url = query ? `${appUrl}/api/outfits?${query}` : `${appUrl}/api/outfits`;
-
-  const res = await fetch(url, {
-    headers: {
-      cookie,
-      Accept: "application/json",
-    },
-    cache: "no-store",
-  });
+  const path = query ? `/api/outfits?${query}` : "/api/outfits";
+  const res = await fetchLaravelWithCookie(path);
 
   if (res.status === 401) {
     redirect("/login");
@@ -114,15 +105,7 @@ async function getOutfits(searchParams: OutfitsPageSearchParams): Promise<Outfit
 }
 
 async function getItemCount(): Promise<number> {
-  const cookie = (await headers()).get("cookie") ?? "";
-  const appUrl = process.env.NEXT_APP_URL ?? "http://localhost:3000";
-  const res = await fetch(`${appUrl}/api/items`, {
-    headers: {
-      cookie,
-      Accept: "application/json",
-    },
-    cache: "no-store",
-  });
+  const res = await fetchLaravelWithCookie("/api/items");
 
   if (!res.ok) {
     return 0;

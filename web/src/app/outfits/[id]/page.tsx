@@ -1,8 +1,8 @@
-import { headers } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import DeleteOutfitButton from "@/components/outfits/delete-outfit-button";
 import { isItemVisibleByCategorySettings } from "@/lib/api/categories";
+import { fetchLaravelWithCookie } from "@/lib/server/laravel";
 
 type OutfitItem = {
   id: number;
@@ -36,16 +36,7 @@ type Outfit = {
 };
 
 async function getOutfit(id: string): Promise<Outfit> {
-  const cookie = (await headers()).get("cookie") ?? "";
-  const appUrl = process.env.NEXT_APP_URL ?? "http://localhost:3000";
-
-  const res = await fetch(`${appUrl}/api/outfits/${id}`, {
-    headers: {
-      cookie,
-      Accept: "application/json",
-    },
-    cache: "no-store",
-  });
+  const res = await fetchLaravelWithCookie(`/api/outfits/${id}`);
 
   if (res.status === 401) {
     redirect("/login");
@@ -60,16 +51,7 @@ async function getOutfit(id: string): Promise<Outfit> {
 }
 
 async function getCategoryVisibilitySettings(): Promise<string[] | null> {
-  const cookie = (await headers()).get("cookie") ?? "";
-  const appUrl = process.env.NEXT_APP_URL ?? "http://localhost:3000";
-
-  const res = await fetch(`${appUrl}/api/settings/categories`, {
-    headers: {
-      cookie,
-      Accept: "application/json",
-    },
-    cache: "no-store",
-  });
+  const res = await fetchLaravelWithCookie("/api/settings/categories");
 
   if (res.status === 401) {
     redirect("/login");

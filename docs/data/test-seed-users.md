@@ -25,6 +25,10 @@
 - `php artisan db:seed --class=TestDatasetSeeder` で、テスト用ユーザーとサンプルデータだけを再実行できる構成にする
 - 「マイグレーション直後に入る基本 seed」と「確認用テストデータ」の責務は分ける方向で考える
 
+
+- `TestDatasetSeeder` 単体でも、category group / category master / category preset からテスト用ユーザー / sample data まで一通り再投入できる構成にする
+
+
 ---
 
 ## README に書くこと
@@ -153,3 +157,7 @@
 - brand 名 / item メモ / 画像 URL などの将来項目は、テーブル追加後に sample data へ反映する
 - `standard-user@example.com` は手書き 7 件の Item と 3 件の Outfit、`large-user@example.com` は Factory 併用の 36 件の Item と 12 件の Outfit を持つ
 - `php artisan migrate:fresh --seed` と `php artisan db:seed --class=TestDatasetSeeder` は実行確認済み
+
+
+- `TestDatasetSeeder` 単体実行時でも category 系 master とユーザーの `visible_category_ids` が整合するように修正済み
+

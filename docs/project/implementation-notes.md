@@ -10,7 +10,7 @@
 1. 各画面のエラーメッセージと空状態を整理する
    - login / register / items / outfits / settings に初期文言を反映済み。未反映画面と細かな文言差分を引き続き詰める
 2. スマホ実機でキーワード検索入力と IME 変換が安定するかを確認する
-   - iPhone / Android で変換中に文字が潰れないか、page 遷移が走らないかを確認する
+   - Chrome 実機では items / outfits の入力確認を完了。Safari 実機が必要なら追加確認する
 3. tops SVG の見た目調整に戻る
    - tshirt / shirt / blouse の細部調整を再開する
 4. ログ設計の方針を整理する
@@ -52,6 +52,7 @@
 - 3 アカウント固定の `empty-user@example.com` / `standard-user@example.com` / `large-user@example.com` を Seeder で作成する
 - デフォルトパスワードは `password123` 、env は `TEST_SEED_USER_PASSWORD` で上書きできる
 - `TestDatasetSeeder` で、テスト用ユーザーと sample data だけを再投入できる
+- `TestDatasetSeeder` 単体実行でも category group / master / preset を含めて再投入できる
 - `standard-user` には手書き 7 件の items と 3 件の outfits を紐づける
 - `large-user` には Factory 併用の 36 件の items と 12 件の outfits を紐づける
 - `empty-user` は items / outfits 0 件の初期状態として再生成する
@@ -69,6 +70,7 @@
 - ログアウト
 - ログイン状態確認 (`/api/me`)
 - 認証切れ後の再ログインで、BFF が CSRF / session cookie を補完しながら自動再試行できる
+- 未認証時はログイン / 新規登録画面で共通ボトムナビを出さない
 
 方針:
 
@@ -165,6 +167,7 @@
 - アイテム一覧 / 新規作成への導線
 - コーディネート一覧 / 新規作成への導線
 - ログアウトボタン
+- server component の件数取得や詳細取得は `LARAVEL_API_BASE_URL` 経由で Laravel を直接参照し、`NEXT_APP_URL` には依存しない
 
 ## 後回し
 

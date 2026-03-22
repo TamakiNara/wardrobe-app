@@ -1,23 +1,14 @@
 import Link from "next/link";
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import DeleteItemButton from "@/components/items/delete-item-button";
 import ItemPreviewCard from "@/components/items/item-preview-card";
 import { buildTopsSpecLabels, buildTopsSpecRaw } from "@/lib/master-data/item-tops";
 import { findItemCategoryLabel, findItemShapeLabel } from "@/lib/master-data/item-shapes";
+import { fetchLaravelWithCookie } from "@/lib/server/laravel";
 import type { ItemRecord } from "@/types/items";
 
 async function getItem(id: string): Promise<ItemRecord> {
-  const cookie = (await headers()).get("cookie") ?? "";
-  const appUrl = process.env.NEXT_APP_URL ?? "http://localhost:3000";
-
-  const res = await fetch(`${appUrl}/api/items/${id}`, {
-    headers: {
-      cookie,
-      Accept: "application/json",
-    },
-    cache: "no-store",
-  });
+  const res = await fetchLaravelWithCookie(`/api/items/${id}`);
 
   if (res.status === 401) redirect("/login");
   if (!res.ok) redirect("/items");

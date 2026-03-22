@@ -13,7 +13,16 @@ export function mapRegisterErrorMessage(message?: string | null): string {
     return "メールアドレスの形式が正しくありません。";
   }
 
-  return "入力されていない項目があります。内容をご確認ください。";
+  if (
+    message.includes("required") ||
+    message.includes("must be") ||
+    message.includes("confirmed") ||
+    message.includes("already been taken")
+  ) {
+    return "入力されていない項目があります。内容をご確認ください。";
+  }
+
+  return "通信に失敗しました。時間をおいて再度お試しください。";
 }
 
 export default function RegisterPage() {
@@ -68,7 +77,7 @@ export default function RegisterPage() {
             setError("入力されていない項目があります。内容をご確認ください。");
           }
         } else {
-          setError(mapRegisterErrorMessage(data?.message));
+          setError(mapRegisterErrorMessage(data?.message ?? data?.error));
         }
         return;
       }

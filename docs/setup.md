@@ -73,6 +73,13 @@ php artisan migrate:fresh --seed
 php artisan db:seed --class=TestDatasetSeeder
 ```
 
+
+補足:
+
+- `TestDatasetSeeder` は category group / category master / category preset も含むため、`migrate:fresh --seed` 後だけでなく、途中で sample data を入れ直す場合でもそのまま実行できます
+- `standard-user@example.com` のアイテムが 0 件になるなど、カテゴリ表示設定の整合が崩れた場合は、あらためてこの Seeder を再実行してください
+
+
 ### 5. Laravel サーバ起動
 
 ```bash
@@ -97,17 +104,24 @@ npm install
 Next.js 側では `web/.env.local` を作成し、以下の環境変数を設定します。
 
 ```env
-LARAVEL_BASE_URL=http://localhost:8000
-LARAVEL_API_BASE_URL=http://localhost:8000
-NEXT_APP_URL=http://localhost:3000
+LARAVEL_BASE_URL=http://127.0.0.1:8000
+LARAVEL_API_BASE_URL=http://127.0.0.1:8000
 ```
 
 補足:
 
 - `web/.env.example` はまだ用意していないため、現状は手動作成を前提とします
 - `LARAVEL_BASE_URL`: BFF が Laravel へリクエストするときの基準 URL
-- `LARAVEL_API_BASE_URL`: `me` 取得など一部処理で参照する URL
-- `NEXT_APP_URL`: ページ内の absolute URL 生成に利用
+- `LARAVEL_API_BASE_URL`: server component や `me` 取得などで Laravel へ直接リクエストするときの基準 URL
+- `NEXT_APP_URL` は現状のローカル開発では必須ではありません
+
+
+実機確認の補足:
+
+- スマホから LAN IP で Next.js を開く場合でも、`LARAVEL_BASE_URL` / `LARAVEL_API_BASE_URL` は Next.js サーバから見える Laravel の URL を指します
+- `php artisan serve` の既定を使うなら `http://127.0.0.1:8000` のままで構いません
+- 実機から開く URL は `http://<PCのLAN IP>:3000` を使い、`web/.env.local` 側は Laravel 側の接続先だけを設定するのが基本です
+
 
 ### 3. Next.js サーバ起動
 

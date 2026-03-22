@@ -7,11 +7,12 @@ import { shouldShowGlobalNav } from "@/lib/navigation/global-nav-items";
 
 type AppShellProps = {
   children: ReactNode;
+  hasSession: boolean;
 };
 
-export default function AppShell({ children }: AppShellProps) {
+export default function AppShell({ children, hasSession }: AppShellProps) {
   const pathname = usePathname();
-  const showGlobalNav = shouldShowGlobalNav(pathname);
+  const showGlobalNav = hasSession && shouldShowGlobalNav(pathname);
 
   return (
     <>

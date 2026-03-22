@@ -2,11 +2,10 @@ import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const headersMock = vi.fn();
-const fetchMock = vi.fn();
+const fetchLaravelWithCookieMock = vi.fn();
 
-vi.mock("next/headers", () => ({
-  headers: headersMock,
+vi.mock("@/lib/server/laravel", () => ({
+  fetchLaravelWithCookie: fetchLaravelWithCookieMock,
 }));
 
 vi.mock("next/link", () => ({
@@ -21,14 +20,10 @@ vi.mock("@/components/auth/logout-button", () => ({
 describe("Home", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    headersMock.mockResolvedValue({
-      get: (name: string) => (name === "cookie" ? "session=test" : null),
-    });
-    vi.stubGlobal("fetch", fetchMock);
   });
 
   it("一覧APIの先頭ページ件数ではなく totalAll を表示する", async () => {
-    fetchMock
+    fetchLaravelWithCookieMock
       .mockResolvedValueOnce({
         ok: true,
         json: async () => ({
@@ -58,5 +53,8 @@ describe("Home", () => {
     expect(markup).toContain("ようこそ Large User さん");
     expect(markup).toContain(">36<");
     expect(markup).toContain(">12<");
+    expect(fetchLaravelWithCookieMock).toHaveBeenNthCalledWith(1, "/api/me");
+    expect(fetchLaravelWithCookieMock).toHaveBeenNthCalledWith(2, "/api/items");
+    expect(fetchLaravelWithCookieMock).toHaveBeenNthCalledWith(3, "/api/outfits");
   });
 });

@@ -157,9 +157,14 @@ export default function ItemsList({
   const page = normalizePage(searchParams.get("page"));
 
   const [isComposingKeyword, setIsComposingKeyword] = useState(false);
+  const [draftKeyword, setDraftKeyword] = useState(keyword);
   const [apiCategoryOptions, setApiCategoryOptions] = useState<CategoryOption[]>([
     ...ITEM_CATEGORIES,
   ]);
+
+  useEffect(() => {
+    setDraftKeyword(keyword);
+  }, [keyword]);
 
   useEffect(() => {
     let active = true;
@@ -184,6 +189,20 @@ export default function ItemsList({
       active = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (isComposingKeyword || draftKeyword === keyword) {
+      return;
+    }
+
+    const timerId = window.setTimeout(() => {
+      updateQuery({ keyword: draftKeyword, page: 1 });
+    }, 250);
+
+    return () => {
+      window.clearTimeout(timerId);
+    };
+  }, [draftKeyword, isComposingKeyword, keyword]);
 
   function updateQuery(nextValues: Partial<{
     keyword: string;
@@ -235,19 +254,14 @@ export default function ItemsList({
             </label>
             <input
               type="search"
-              key={`keyword-${keyword}`}
-              defaultValue={keyword}
+              value={draftKeyword}
               onChange={(e) => {
-                const nextKeyword = e.target.value;
-                if (!isComposingKeyword) {
-                  updateQuery({ keyword: nextKeyword, page: 1 });
-                }
+                setDraftKeyword(e.target.value);
               }}
               onCompositionStart={() => setIsComposingKeyword(true)}
               onCompositionEnd={(e) => {
-                const nextKeyword = e.currentTarget.value;
                 setIsComposingKeyword(false);
-                updateQuery({ keyword: nextKeyword, page: 1 });
+                setDraftKeyword(e.currentTarget.value);
               }}
               placeholder="名前で検索"
               className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"

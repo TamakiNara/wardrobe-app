@@ -1,7 +1,7 @@
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import ItemsList from "@/components/items/items-list";
+import { fetchLaravelWithCookie } from "@/lib/server/laravel";
 
 type Item = {
   id: number;
@@ -55,18 +55,9 @@ function buildQueryString(searchParams: ItemsPageSearchParams): string {
 }
 
 async function getItems(searchParams: ItemsPageSearchParams): Promise<ItemsResponse> {
-  const cookie = (await headers()).get("cookie") ?? "";
-  const appUrl = process.env.NEXT_APP_URL ?? "http://localhost:3000";
   const query = buildQueryString(searchParams);
-  const url = query ? `${appUrl}/api/items?${query}` : `${appUrl}/api/items`;
-
-  const res = await fetch(url, {
-    headers: {
-      cookie,
-      Accept: "application/json",
-    },
-    cache: "no-store",
-  });
+  const path = query ? `/api/items?${query}` : "/api/items";
+  const res = await fetchLaravelWithCookie(path);
 
   if (res.status === 401) {
     redirect("/login");
