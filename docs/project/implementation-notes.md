@@ -7,12 +7,10 @@
 
 優先順:
 
-1. 一覧画面のページング方針と API クエリ対応を整理する
-   - items / outfits の keyword / 各絞り込み / sort は URL クエリ連動まで反映済み
-   - 現在は一覧取得後にフロント側で絞り込み・並び替えを適用しているため、API 側の受け口と page を次に詰める
-   - スマホ実機でキーワード検索入力と IME 変換が安定するかを確認する
-2. 各画面のエラーメッセージと空状態を整理する
+1. 各画面のエラーメッセージと空状態を整理する
    - login / register / item / settings / outfits の共通文言を詰める
+2. スマホ実機でキーワード検索入力と IME 変換が安定するかを確認する
+   - iPhone / Android で変換中に文字が潰れないか、page 遷移が走らないかを確認する
 3. tops SVG の見た目調整に戻る
    - tshirt / shirt / blouse の細部調整を再開する
 4. ログ設計の方針を整理する
@@ -115,6 +113,10 @@
 - items 一覧は `keyword / category / season / tpo / sort` を URL クエリを正本として扱い、再読み込みや戻る操作後も条件を復元できる
 - 複数条件は AND で絞り込み、`sort` は `updated_at_desc / name_asc` で切り替える
 - キーワード入力は IME 変換中に URL 更新を止め、変換確定後に検索条件へ反映する
+- BFF の GET は URL クエリを Laravel へそのまま転送し、Laravel 側で検索・並び替え・`page` を適用する
+- Laravel の一覧 API は `total / totalAll / page / lastPage` と filter 候補を meta として返し、UI で前へ / 次へのページャを描画する
+- `total` は現在の検索条件に一致した件数、`totalAll` はフィルタ前の母数として API から取得している。現在のページャ文言は `2 / 3ページ（全36件）` の形で `total` のみを表示する
+- 1 ページ件数は一旦 `App\Support\ListQuerySupport::PAGE_SIZE = 12` の暫定定数で管理しており、docs の正本値との最終整合は別途調整する
 
 次に詰める候補:
 
@@ -137,6 +139,10 @@
 - outfits 一覧は `keyword / season / tpo / sort` を URL クエリを正本として扱い、再読み込みや戻る操作後も条件を復元できる
 - 複数条件は AND で絞り込み、`sort` は `updated_at_desc / name_asc` で切り替える
 - キーワード入力は IME 変換中に URL 更新を止め、変換確定後に検索条件へ反映する
+- BFF の GET は URL クエリを Laravel へそのまま転送し、Laravel 側で検索・並び替え・`page` を適用する
+- Laravel の一覧 API は `total / totalAll / page / lastPage` を meta として返し、UI で前へ / 次へのページャを描画する
+- `total` は現在の検索条件に一致した件数、`totalAll` はフィルタ前の母数として API から取得している。現在のページャ文言は `2 / 3ページ（全36件）` の形で `total` のみを表示する
+- 1 ページ件数は一旦 `App\Support\ListQuerySupport::PAGE_SIZE = 12` の暫定定数で管理しており、docs の正本値との最終整合は別途調整する
 
 項目:
 

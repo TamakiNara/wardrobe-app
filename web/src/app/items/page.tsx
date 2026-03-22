@@ -19,11 +19,48 @@ type Item = {
   tpos: string[];
 };
 
-async function getItems(): Promise<Item[]> {
+type ItemsPageSearchParams = Record<string, string | string[] | undefined>;
+
+type ItemsResponse = {
+  items: Item[];
+  meta: {
+    total: number;
+    totalAll: number;
+    page: number;
+    lastPage: number;
+    availableCategories: string[];
+    availableSeasons: string[];
+    availableTpos: string[];
+  };
+};
+
+function buildQueryString(searchParams: ItemsPageSearchParams): string {
+  const params = new URLSearchParams();
+
+  for (const [key, value] of Object.entries(searchParams)) {
+    if (Array.isArray(value)) {
+      const firstValue = value[0];
+      if (firstValue) {
+        params.set(key, firstValue);
+      }
+      continue;
+    }
+
+    if (value) {
+      params.set(key, value);
+    }
+  }
+
+  return params.toString();
+}
+
+async function getItems(searchParams: ItemsPageSearchParams): Promise<ItemsResponse> {
   const cookie = (await headers()).get("cookie") ?? "";
   const appUrl = process.env.NEXT_APP_URL ?? "http://localhost:3000";
+  const query = buildQueryString(searchParams);
+  const url = query ? `${appUrl}/api/items?${query}` : `${appUrl}/api/items`;
 
-  const res = await fetch(`${appUrl}/api/items`, {
+  const res = await fetch(url, {
     headers: {
       cookie,
       Accept: "application/json",
@@ -36,15 +73,44 @@ async function getItems(): Promise<Item[]> {
   }
 
   if (!res.ok) {
-    return [];
+    return {
+      items: [],
+      meta: {
+        total: 0,
+        totalAll: 0,
+        page: 1,
+        lastPage: 1,
+        availableCategories: [],
+        availableSeasons: [],
+        availableTpos: [],
+      },
+    };
   }
 
-  const data = await res.json();
-  return data.items ?? [];
+  const data = (await res.json()) as Partial<ItemsResponse>;
+
+  return {
+    items: data.items ?? [],
+    meta: {
+      total: data.meta?.total ?? 0,
+      totalAll: data.meta?.totalAll ?? 0,
+      page: data.meta?.page ?? 1,
+      lastPage: data.meta?.lastPage ?? 1,
+      availableCategories: data.meta?.availableCategories ?? [],
+      availableSeasons: data.meta?.availableSeasons ?? [],
+      availableTpos: data.meta?.availableTpos ?? [],
+    },
+  };
 }
 
-export default async function ItemsPage() {
-  const items = await getItems();
+export default async function ItemsPage({
+  searchParams,
+}: {
+  searchParams: Promise<ItemsPageSearchParams>;
+}) {
+  const resolvedSearchParams = await searchParams;
+  const data = await getItems(resolvedSearchParams);
+  const items = data.items;
 
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">
@@ -73,7 +139,7 @@ export default async function ItemsPage() {
           </Link>
         </header>
 
-        {items.length === 0 ? (
+        {data.meta.totalAll === 0 ? (
           <section className="rounded-2xl border border-dashed border-gray-300 bg-white p-10 text-center shadow-sm">
             <h2 className="text-lg font-semibold text-gray-900">
               まだアイテムがありません
@@ -92,7 +158,16 @@ export default async function ItemsPage() {
             </div>
           </section>
         ) : (
-          <ItemsList items={items} />
+          <ItemsList
+            items={items}
+            totalCount={data.meta.total}
+            totalAllCount={data.meta.totalAll}
+            currentPage={data.meta.page}
+            lastPage={data.meta.lastPage}
+            availableCategoryValues={data.meta.availableCategories}
+            availableSeasons={data.meta.availableSeasons}
+            availableTpos={data.meta.availableTpos}
+          />
         )}
       </div>
     </main>

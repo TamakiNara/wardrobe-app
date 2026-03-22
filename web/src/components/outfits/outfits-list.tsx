@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { isItemVisibleByCategorySettings } from "@/lib/api/categories";
 import { fetchCategoryVisibilitySettings } from "@/lib/api/settings";
 import { SEASON_OPTIONS, TPO_OPTIONS } from "@/lib/master-data/item-attributes";
@@ -38,6 +38,10 @@ type Outfit = {
 
 type OutfitsListProps = {
   outfits: Outfit[];
+  totalCount: number;
+  totalAllCount: number;
+  currentPage: number;
+  lastPage: number;
 };
 
 type OutfitSortValue = "updated_at_desc" | "name_asc";
@@ -60,16 +64,27 @@ function normalizeKeyword(value: string | null): string {
   return value?.trim() ?? "";
 }
 
+function normalizePage(value: string | null): number {
+  const page = Number(value ?? "1");
+  if (!Number.isInteger(page) || page < 1) {
+    return 1;
+  }
+
+  return page;
+}
+
 function buildQueryString({
   keyword,
   season,
   tpo,
   sort,
+  page,
 }: {
   keyword: string;
   season: string;
   tpo: string;
   sort: OutfitSortValue;
+  page: number;
 }): string {
   const params = new URLSearchParams();
 
@@ -89,10 +104,20 @@ function buildQueryString({
     params.set("sort", sort);
   }
 
+  if (page > 1) {
+    params.set("page", String(page));
+  }
+
   return params.toString();
 }
 
-export default function OutfitsList({ outfits }: OutfitsListProps) {
+export default function OutfitsList({
+  outfits,
+  totalCount,
+  totalAllCount,
+  currentPage,
+  lastPage,
+}: OutfitsListProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -101,6 +126,7 @@ export default function OutfitsList({ outfits }: OutfitsListProps) {
   const seasonFilter = searchParams.get("season") ?? "";
   const tpoFilter = searchParams.get("tpo") ?? "";
   const sort = normalizeSort(searchParams.get("sort"));
+  const page = normalizePage(searchParams.get("page"));
 
   const [isComposingKeyword, setIsComposingKeyword] = useState(false);
   const [visibleCategoryIds, setVisibleCategoryIds] = useState<string[] | null>(null);
@@ -127,12 +153,14 @@ export default function OutfitsList({ outfits }: OutfitsListProps) {
     season: string;
     tpo: string;
     sort: OutfitSortValue;
+    page: number;
   }>) {
     const nextQuery = buildQueryString({
       keyword: nextValues.keyword ?? keyword,
       season: nextValues.season ?? seasonFilter,
       tpo: nextValues.tpo ?? tpoFilter,
       sort: nextValues.sort ?? sort,
+      page: nextValues.page ?? page,
     });
 
     router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, {
@@ -140,40 +168,8 @@ export default function OutfitsList({ outfits }: OutfitsListProps) {
     });
   }
 
-  const filteredOutfits = useMemo(() => {
-    const normalizedKeyword = keyword.toLocaleLowerCase("ja-JP");
-
-    const nextOutfits = outfits.filter((outfit) => {
-      const seasons = outfit.seasons ?? [];
-      const tpos = outfit.tpos ?? [];
-      const name = (outfit.name ?? "").toLocaleLowerCase("ja-JP");
-
-      const isAllSeason = seasons.length === 0 || seasons.includes("オール");
-
-      const matchKeyword = normalizedKeyword
-        ? name.includes(normalizedKeyword)
-        : true;
-      const matchSeason = seasonFilter
-        ? seasonFilter === "オール"
-          ? isAllSeason
-          : seasons.includes(seasonFilter) || isAllSeason
-        : true;
-      const matchTpo = tpoFilter ? tpos.includes(tpoFilter) : true;
-
-      return matchKeyword && matchSeason && matchTpo;
-    });
-
-    if (sort === "name_asc") {
-      return [...nextOutfits].sort((a, b) =>
-        (a.name ?? "").localeCompare(b.name ?? "", "ja-JP"),
-      );
-    }
-
-    return nextOutfits;
-  }, [keyword, outfits, seasonFilter, sort, tpoFilter]);
-
   const hasActiveFilters = Boolean(
-    keyword || seasonFilter || tpoFilter || sort !== DEFAULT_SORT,
+    keyword || seasonFilter || tpoFilter || sort !== DEFAULT_SORT || currentPage > 1,
   );
 
   return (
@@ -191,14 +187,14 @@ export default function OutfitsList({ outfits }: OutfitsListProps) {
               onChange={(e) => {
                 const nextKeyword = e.target.value;
                 if (!isComposingKeyword) {
-                  updateQuery({ keyword: nextKeyword });
+                  updateQuery({ keyword: nextKeyword, page: 1 });
                 }
               }}
               onCompositionStart={() => setIsComposingKeyword(true)}
               onCompositionEnd={(e) => {
                 const nextKeyword = e.currentTarget.value;
                 setIsComposingKeyword(false);
-                updateQuery({ keyword: nextKeyword });
+                updateQuery({ keyword: nextKeyword, page: 1 });
               }}
               placeholder="名前で検索"
               className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
@@ -211,7 +207,7 @@ export default function OutfitsList({ outfits }: OutfitsListProps) {
             </label>
             <select
               value={seasonFilter}
-              onChange={(e) => updateQuery({ season: e.target.value })}
+              onChange={(e) => updateQuery({ season: e.target.value, page: 1 })}
               className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             >
               <option value="">すべて</option>
@@ -229,7 +225,7 @@ export default function OutfitsList({ outfits }: OutfitsListProps) {
             </label>
             <select
               value={tpoFilter}
-              onChange={(e) => updateQuery({ tpo: e.target.value })}
+              onChange={(e) => updateQuery({ tpo: e.target.value, page: 1 })}
               className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             >
               <option value="">すべて</option>
@@ -247,7 +243,7 @@ export default function OutfitsList({ outfits }: OutfitsListProps) {
             </label>
             <select
               value={sort}
-              onChange={(e) => updateQuery({ sort: normalizeSort(e.target.value) })}
+              onChange={(e) => updateQuery({ sort: normalizeSort(e.target.value), page: 1 })}
               className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             >
               {SORT_OPTIONS.map((option) => (
@@ -261,7 +257,7 @@ export default function OutfitsList({ outfits }: OutfitsListProps) {
 
         <div className="mt-4 flex items-center justify-between gap-4">
           <p className="text-sm text-gray-600">
-            表示件数: {filteredOutfits.length} / {outfits.length}
+            表示件数: {outfits.length} / {totalCount}
           </p>
 
           <button
@@ -275,7 +271,7 @@ export default function OutfitsList({ outfits }: OutfitsListProps) {
         </div>
       </section>
 
-      {filteredOutfits.length === 0 ? (
+      {outfits.length === 0 ? (
         <section className="rounded-2xl border border-dashed border-gray-300 bg-white p-10 text-center shadow-sm">
           <h2 className="text-lg font-semibold text-gray-900">
             条件に一致するコーディネートがありません
@@ -286,7 +282,7 @@ export default function OutfitsList({ outfits }: OutfitsListProps) {
         </section>
       ) : (
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {filteredOutfits.map((outfit) => {
+          {outfits.map((outfit) => {
             const outfitItems = outfit.outfitItems ?? outfit.outfit_items ?? [];
             const visibleOutfitItems =
               visibleCategoryIds === null
@@ -332,6 +328,32 @@ export default function OutfitsList({ outfits }: OutfitsListProps) {
           })}
         </section>
       )}
+
+      <section className="flex items-center justify-between rounded-2xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
+        <button
+          type="button"
+          onClick={() => updateQuery({ page: currentPage - 1 })}
+          disabled={currentPage <= 1}
+          className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:text-gray-400"
+        >
+          前へ
+        </button>
+
+        <p className="text-sm text-gray-600">
+          {currentPage} / {lastPage}ページ
+          <span className="ml-2 text-gray-400">
+            （全{totalCount}件）
+          </span>
+        </p>
+        <button
+          type="button"
+          onClick={() => updateQuery({ page: currentPage + 1 })}
+          disabled={currentPage >= lastPage}
+          className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:text-gray-400"
+        >
+          次へ
+        </button>
+      </section>
     </div>
   );
 }

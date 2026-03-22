@@ -1,9 +1,11 @@
 <?php
 
+use App\Http\Controllers\AuthController;
 use App\Models\CategoryMaster;
 use App\Models\Item;
 use App\Models\Outfit;
-use App\Http\Controllers\AuthController;
+use App\Support\ItemsIndexQuery;
+use App\Support\OutfitsIndexQuery;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
@@ -99,14 +101,7 @@ Route::prefix('api')->middleware(['web'])->group(function () {
 
     // Items
     Route::middleware('auth:web')->get('/items', function (Request $request) {
-        $items = Item::query()
-            ->where('user_id', $request->user()->id)
-            ->latest()
-            ->get();
-
-        return response()->json([
-            'items' => $items,
-        ]);
+        return response()->json(ItemsIndexQuery::build($request->user(), $request));
     });
 
     Route::middleware('auth:web')->post('/items', function (Request $request) {
@@ -220,15 +215,7 @@ Route::prefix('api')->middleware(['web'])->group(function () {
 
     // Outfits
     Route::middleware('auth:web')->get('/outfits', function (Request $request) {
-        $outfits = Outfit::query()
-            ->where('user_id', $request->user()->id)
-            ->with(['outfitItems.item'])
-            ->latest()
-            ->get();
-
-        return response()->json([
-            'outfits' => $outfits,
-        ]);
+        return response()->json(OutfitsIndexQuery::build($request->user(), $request));
     });
 
     Route::middleware('auth:web')->post('/outfits', function (Request $request) {

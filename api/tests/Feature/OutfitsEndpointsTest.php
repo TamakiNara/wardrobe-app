@@ -264,4 +264,54 @@ class OutfitsEndpointsTest extends TestCase
             'X-CSRF-TOKEN' => $token,
         ])->assertStatus(404);
     }
+
+    public function test_get_outfits_applies_filters_sort_and_pagination(): void
+    {
+        $user = User::factory()->create();
+
+        for ($index = 1; $index <= 13; $index++) {
+            Outfit::query()->create([
+                'user_id' => $user->id,
+                'name' => sprintf('夏コーデ%02d', $index),
+                'memo' => null,
+                'seasons' => ['夏'],
+                'tpos' => ['休日'],
+            ]);
+        }
+
+        Outfit::query()->create([
+            'user_id' => $user->id,
+            'name' => '春コーデ',
+            'memo' => null,
+            'seasons' => ['春'],
+            'tpos' => ['仕事'],
+        ]);
+
+        $otherUser = User::factory()->create();
+        Outfit::query()->create([
+            'user_id' => $otherUser->id,
+            'name' => '他人の夏コーデ',
+            'memo' => null,
+            'seasons' => ['夏'],
+            'tpos' => ['休日'],
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->getJson('/api/outfits?keyword=%E5%A4%8F&season=%E5%A4%8F&tpo=%E4%BC%91%E6%97%A5&sort=name_asc&page=2', [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonCount(1, 'outfits')
+            ->assertJsonPath('outfits.0.name', '夏コーデ13')
+            ->assertJsonPath('meta.total', 13)
+            ->assertJsonPath('meta.totalAll', 14)
+            ->assertJsonPath('meta.page', 2)
+            ->assertJsonPath('meta.lastPage', 2);
+
+        $response->assertJsonMissing([
+            'name' => '春コーデ',
+        ]);
+    }
 }

@@ -32,11 +32,45 @@ type Outfit = {
   outfitItems?: OutfitItem[];
 };
 
-async function getOutfits(): Promise<Outfit[]> {
+type OutfitsPageSearchParams = Record<string, string | string[] | undefined>;
+
+type OutfitsResponse = {
+  outfits: Outfit[];
+  meta: {
+    total: number;
+    totalAll: number;
+    page: number;
+    lastPage: number;
+  };
+};
+
+function buildQueryString(searchParams: OutfitsPageSearchParams): string {
+  const params = new URLSearchParams();
+
+  for (const [key, value] of Object.entries(searchParams)) {
+    if (Array.isArray(value)) {
+      const firstValue = value[0];
+      if (firstValue) {
+        params.set(key, firstValue);
+      }
+      continue;
+    }
+
+    if (value) {
+      params.set(key, value);
+    }
+  }
+
+  return params.toString();
+}
+
+async function getOutfits(searchParams: OutfitsPageSearchParams): Promise<OutfitsResponse> {
   const cookie = (await headers()).get("cookie") ?? "";
   const appUrl = process.env.NEXT_APP_URL ?? "http://localhost:3000";
+  const query = buildQueryString(searchParams);
+  const url = query ? `${appUrl}/api/outfits?${query}` : `${appUrl}/api/outfits`;
 
-  const res = await fetch(`${appUrl}/api/outfits`, {
+  const res = await fetch(url, {
     headers: {
       cookie,
       Accept: "application/json",
@@ -49,15 +83,38 @@ async function getOutfits(): Promise<Outfit[]> {
   }
 
   if (!res.ok) {
-    return [];
+    return {
+      outfits: [],
+      meta: {
+        total: 0,
+        totalAll: 0,
+        page: 1,
+        lastPage: 1,
+      },
+    };
   }
 
-  const data = await res.json();
-  return data.outfits ?? [];
+  const data = (await res.json()) as Partial<OutfitsResponse>;
+
+  return {
+    outfits: data.outfits ?? [],
+    meta: {
+      total: data.meta?.total ?? 0,
+      totalAll: data.meta?.totalAll ?? 0,
+      page: data.meta?.page ?? 1,
+      lastPage: data.meta?.lastPage ?? 1,
+    },
+  };
 }
 
-export default async function OutfitsPage() {
-  const outfits = await getOutfits();
+export default async function OutfitsPage({
+  searchParams,
+}: {
+  searchParams: Promise<OutfitsPageSearchParams>;
+}) {
+  const resolvedSearchParams = await searchParams;
+  const data = await getOutfits(resolvedSearchParams);
+  const outfits = data.outfits;
 
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">
@@ -86,7 +143,7 @@ export default async function OutfitsPage() {
           </Link>
         </header>
 
-        {outfits.length === 0 ? (
+        {data.meta.totalAll === 0 ? (
           <section className="rounded-2xl border border-dashed border-gray-300 bg-white p-10 text-center shadow-sm">
             <h2 className="text-lg font-semibold text-gray-900">
               まだコーディネートがありません
@@ -105,7 +162,13 @@ export default async function OutfitsPage() {
             </div>
           </section>
         ) : (
-          <OutfitsList outfits={outfits} />
+          <OutfitsList
+            outfits={outfits}
+            totalCount={data.meta.total}
+            totalAllCount={data.meta.totalAll}
+            currentPage={data.meta.page}
+            lastPage={data.meta.lastPage}
+          />
         )}
       </div>
     </main>

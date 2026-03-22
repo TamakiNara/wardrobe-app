@@ -4,17 +4,8 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import TopsPreviewSvg from "@/components/items/preview-svg/tops-preview-svg";
-import {
-  buildSupportedCategoryOptions,
-  fetchCategoryGroups,
-  isItemVisibleByCategorySettings,
-} from "@/lib/api/categories";
+import { buildSupportedCategoryOptions, fetchCategoryGroups } from "@/lib/api/categories";
 import { fetchCategoryVisibilitySettings } from "@/lib/api/settings";
-import {
-  buildOrderedOptions,
-  SEASON_OPTIONS,
-  TPO_OPTIONS,
-} from "@/lib/master-data/item-attributes";
 import {
   ITEM_CATEGORIES,
   findItemCategoryLabel,
@@ -25,6 +16,13 @@ import type { ItemRecord } from "@/types/items";
 
 type ItemsListProps = {
   items: ItemRecord[];
+  totalCount: number;
+  totalAllCount: number;
+  currentPage: number;
+  lastPage: number;
+  availableCategoryValues: string[];
+  availableSeasons: string[];
+  availableTpos: string[];
 };
 
 type ItemSortValue = "updated_at_desc" | "name_asc";
@@ -47,18 +45,29 @@ function normalizeKeyword(value: string | null): string {
   return value?.trim() ?? "";
 }
 
+function normalizePage(value: string | null): number {
+  const page = Number(value ?? "1");
+  if (!Number.isInteger(page) || page < 1) {
+    return 1;
+  }
+
+  return page;
+}
+
 function buildQueryString({
   keyword,
   category,
   season,
   tpo,
   sort,
+  page,
 }: {
   keyword: string;
   category: string;
   season: string;
   tpo: string;
   sort: ItemSortValue;
+  page: number;
 }): string {
   const params = new URLSearchParams();
 
@@ -80,6 +89,10 @@ function buildQueryString({
 
   if (sort !== DEFAULT_SORT) {
     params.set("sort", sort);
+  }
+
+  if (page > 1) {
+    params.set("page", String(page));
   }
 
   return params.toString();
@@ -122,7 +135,16 @@ function PreviewThumb({
   );
 }
 
-export default function ItemsList({ items }: ItemsListProps) {
+export default function ItemsList({
+  items,
+  totalCount,
+  totalAllCount,
+  currentPage,
+  lastPage,
+  availableCategoryValues,
+  availableSeasons,
+  availableTpos,
+}: ItemsListProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -132,12 +154,12 @@ export default function ItemsList({ items }: ItemsListProps) {
   const seasonFilter = searchParams.get("season") ?? "";
   const tpoFilter = searchParams.get("tpo") ?? "";
   const sort = normalizeSort(searchParams.get("sort"));
+  const page = normalizePage(searchParams.get("page"));
 
   const [isComposingKeyword, setIsComposingKeyword] = useState(false);
   const [apiCategoryOptions, setApiCategoryOptions] = useState<CategoryOption[]>([
     ...ITEM_CATEGORIES,
   ]);
-  const [visibleCategoryIds, setVisibleCategoryIds] = useState<string[] | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -153,7 +175,6 @@ export default function ItemsList({ items }: ItemsListProps) {
           settings.visibleCategoryIds,
         );
         setApiCategoryOptions(nextOptions);
-        setVisibleCategoryIds(settings.visibleCategoryIds);
       })
       .catch(() => {
         // 一覧の絞り込みは取得失敗時に固定 master data へフォールバックする
@@ -170,6 +191,7 @@ export default function ItemsList({ items }: ItemsListProps) {
     season: string;
     tpo: string;
     sort: ItemSortValue;
+    page: number;
   }>) {
     const nextQuery = buildQueryString({
       keyword: nextValues.keyword ?? keyword,
@@ -177,6 +199,7 @@ export default function ItemsList({ items }: ItemsListProps) {
       season: nextValues.season ?? seasonFilter,
       tpo: nextValues.tpo ?? tpoFilter,
       sort: nextValues.sort ?? sort,
+      page: nextValues.page ?? page,
     });
 
     router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, {
@@ -184,67 +207,22 @@ export default function ItemsList({ items }: ItemsListProps) {
     });
   }
 
-  const visibleItems = useMemo(() => {
-    if (visibleCategoryIds === null) {
-      return items;
-    }
-
-    return items.filter((item) =>
-      isItemVisibleByCategorySettings(item, visibleCategoryIds),
-    );
-  }, [items, visibleCategoryIds]);
-
   const categoryOptions = useMemo(() => {
     return apiCategoryOptions.filter((category) =>
-      visibleItems.some((item) => item.category === category.value),
+      availableCategoryValues.includes(category.value),
     );
-  }, [apiCategoryOptions, visibleItems]);
+  }, [apiCategoryOptions, availableCategoryValues]);
 
-  const seasonOptions = useMemo(() => {
-    return buildOrderedOptions(
-      visibleItems.flatMap((item) => item.seasons ?? []),
-      SEASON_OPTIONS,
-    );
-  }, [visibleItems]);
-
-  const tpoOptions = useMemo(() => {
-    return buildOrderedOptions(
-      visibleItems.flatMap((item) => item.tpos ?? []),
-      TPO_OPTIONS,
-    );
-  }, [visibleItems]);
-
-  const filteredItems = useMemo(() => {
-    const normalizedKeyword = keyword.toLocaleLowerCase("ja-JP");
-
-    const nextItems = visibleItems.filter((item) => {
-      const seasons = item.seasons ?? [];
-      const tpos = item.tpos ?? [];
-      const name = (item.name ?? "").toLocaleLowerCase("ja-JP");
-
-      const matchKeyword = normalizedKeyword
-        ? name.includes(normalizedKeyword)
-        : true;
-      const matchCategory = categoryFilter
-        ? item.category === categoryFilter
-        : true;
-      const matchSeason = seasonFilter ? seasons.includes(seasonFilter) : true;
-      const matchTpo = tpoFilter ? tpos.includes(tpoFilter) : true;
-
-      return matchKeyword && matchCategory && matchSeason && matchTpo;
-    });
-
-    if (sort === "name_asc") {
-      return [...nextItems].sort((a, b) =>
-        (a.name ?? "").localeCompare(b.name ?? "", "ja-JP"),
-      );
-    }
-
-    return nextItems;
-  }, [categoryFilter, keyword, seasonFilter, sort, tpoFilter, visibleItems]);
+  const seasonOptions = availableSeasons;
+  const tpoOptions = availableTpos;
 
   const hasActiveFilters = Boolean(
-    keyword || categoryFilter || seasonFilter || tpoFilter || sort !== DEFAULT_SORT,
+    keyword ||
+      categoryFilter ||
+      seasonFilter ||
+      tpoFilter ||
+      sort !== DEFAULT_SORT ||
+      currentPage > 1,
   );
 
   return (
@@ -262,14 +240,14 @@ export default function ItemsList({ items }: ItemsListProps) {
               onChange={(e) => {
                 const nextKeyword = e.target.value;
                 if (!isComposingKeyword) {
-                  updateQuery({ keyword: nextKeyword });
+                  updateQuery({ keyword: nextKeyword, page: 1 });
                 }
               }}
               onCompositionStart={() => setIsComposingKeyword(true)}
               onCompositionEnd={(e) => {
                 const nextKeyword = e.currentTarget.value;
                 setIsComposingKeyword(false);
-                updateQuery({ keyword: nextKeyword });
+                updateQuery({ keyword: nextKeyword, page: 1 });
               }}
               placeholder="名前で検索"
               className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
@@ -282,7 +260,7 @@ export default function ItemsList({ items }: ItemsListProps) {
             </label>
             <select
               value={categoryFilter}
-              onChange={(e) => updateQuery({ category: e.target.value })}
+              onChange={(e) => updateQuery({ category: e.target.value, page: 1 })}
               className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             >
               <option value="">すべて</option>
@@ -300,7 +278,7 @@ export default function ItemsList({ items }: ItemsListProps) {
             </label>
             <select
               value={seasonFilter}
-              onChange={(e) => updateQuery({ season: e.target.value })}
+              onChange={(e) => updateQuery({ season: e.target.value, page: 1 })}
               className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             >
               <option value="">すべて</option>
@@ -318,7 +296,7 @@ export default function ItemsList({ items }: ItemsListProps) {
             </label>
             <select
               value={tpoFilter}
-              onChange={(e) => updateQuery({ tpo: e.target.value })}
+              onChange={(e) => updateQuery({ tpo: e.target.value, page: 1 })}
               className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             >
               <option value="">すべて</option>
@@ -336,7 +314,7 @@ export default function ItemsList({ items }: ItemsListProps) {
             </label>
             <select
               value={sort}
-              onChange={(e) => updateQuery({ sort: normalizeSort(e.target.value) })}
+              onChange={(e) => updateQuery({ sort: normalizeSort(e.target.value), page: 1 })}
               className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             >
               {SORT_OPTIONS.map((option) => (
@@ -350,7 +328,7 @@ export default function ItemsList({ items }: ItemsListProps) {
 
         <div className="mt-4 flex items-center justify-between gap-4">
           <p className="text-sm text-gray-600">
-            表示件数: {filteredItems.length} / {visibleItems.length}
+            表示件数: {items.length} / {totalCount}
           </p>
 
           <button
@@ -364,7 +342,7 @@ export default function ItemsList({ items }: ItemsListProps) {
         </div>
       </section>
 
-      {filteredItems.length === 0 ? (
+      {items.length === 0 ? (
         <section className="rounded-2xl border border-dashed border-gray-300 bg-white p-10 text-center shadow-sm">
           <h2 className="text-lg font-semibold text-gray-900">
             条件に一致するアイテムがありません
@@ -375,7 +353,7 @@ export default function ItemsList({ items }: ItemsListProps) {
         </section>
       ) : (
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {filteredItems.map((item) => {
+          {items.map((item) => {
             const mainColor = item.colors.find((c) => c.role === "main");
             const subColor = item.colors.find((c) => c.role === "sub");
             const categoryLabel = findItemCategoryLabel(item.category);
@@ -435,6 +413,32 @@ export default function ItemsList({ items }: ItemsListProps) {
           })}
         </section>
       )}
+
+      <section className="flex items-center justify-between rounded-2xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
+        <button
+          type="button"
+          onClick={() => updateQuery({ page: currentPage - 1 })}
+          disabled={currentPage <= 1}
+          className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:text-gray-400"
+        >
+          前へ
+        </button>
+
+        <p className="text-sm text-gray-600">
+          {currentPage} / {lastPage}ページ
+          <span className="ml-2 text-gray-400">
+            （全{totalCount}件）
+          </span>
+        </p>
+        <button
+          type="button"
+          onClick={() => updateQuery({ page: currentPage + 1 })}
+          disabled={currentPage >= lastPage}
+          className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:text-gray-400"
+        >
+          次へ
+        </button>
+      </section>
     </div>
   );
 }

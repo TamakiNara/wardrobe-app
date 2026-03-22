@@ -68,6 +68,14 @@ const sampleOutfits = [
   },
 ];
 
+const defaultListProps = {
+  outfits: sampleOutfits,
+  totalCount: sampleOutfits.length,
+  totalAllCount: sampleOutfits.length,
+  currentPage: 1,
+  lastPage: 1,
+};
+
 async function waitForEffects() {
   await Promise.resolve();
   await Promise.resolve();
@@ -103,12 +111,46 @@ describe("OutfitsList", () => {
     const { default: OutfitsList } = await import("./outfits-list");
 
     await act(async () => {
-      root.render(React.createElement(OutfitsList, { outfits: sampleOutfits }));
+      root.render(React.createElement(OutfitsList, defaultListProps));
       await waitForEffects();
     });
 
     expect(container.textContent).toContain("表示アイテム数: 1");
     expect(container.textContent).toContain("現在の表示設定により 1 件を非表示にしています。");
+  });
+
+  it("ページャ操作で page クエリを更新する", async () => {
+    searchParamsValue = "page=2";
+    fetchCategoryVisibilitySettingsMock.mockResolvedValue({
+      visibleCategoryIds: ["tops_tshirt", "tops_shirt"],
+    });
+
+    const { default: OutfitsList } = await import("./outfits-list");
+
+    await act(async () => {
+      root.render(
+        React.createElement(OutfitsList, {
+          ...defaultListProps,
+          currentPage: 2,
+          lastPage: 4,
+          totalCount: 30,
+          totalAllCount: 30,
+        }),
+      );
+      await waitForEffects();
+    });
+
+    const nextButton = Array.from(container.querySelectorAll("button")).find((button) =>
+      button.textContent?.includes("次へ"),
+    );
+
+    await act(async () => {
+      nextButton?.click();
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain("2 / 4ページ（全30件）");
+    expect(replaceMock).toHaveBeenCalledWith("/outfits?page=3", { scroll: false });
   });
 
   it("URL クエリの初期値を反映し、条件クリアで URL も戻す", async () => {
@@ -120,7 +162,14 @@ describe("OutfitsList", () => {
     const { default: OutfitsList } = await import("./outfits-list");
 
     await act(async () => {
-      root.render(React.createElement(OutfitsList, { outfits: sampleOutfits }));
+      root.render(
+        React.createElement(OutfitsList, {
+          ...defaultListProps,
+          outfits: [sampleOutfits[1]],
+          totalCount: 1,
+          totalAllCount: 2,
+        }),
+      );
       await waitForEffects();
     });
 

@@ -109,8 +109,9 @@ export async function forwardGetWithCookie(
   targetPath: string,
 ): Promise<NextResponse> {
   const incomingCookie = req.headers.get("cookie") ?? "";
+  const search = req.nextUrl.search;
 
-  const upstreamRes = await fetch(`${LARAVEL_BASE_URL}${targetPath}`, {
+  const upstreamRes = await fetch(`${LARAVEL_BASE_URL}${targetPath}${search}`, {
     method: "GET",
     headers: {
       Accept: "application/json",

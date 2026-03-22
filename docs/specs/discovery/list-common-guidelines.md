@@ -171,11 +171,13 @@ MVP では通常のページングを採用する。
 
 ## 3-7. 現在の実装反映（2026-03 時点）
 
-- items 一覧は `keyword / category / season / tpo / sort` を URL クエリと連動して扱う
-- outfits 一覧は `keyword / season / tpo / sort` を URL クエリと連動して扱う
+- items 一覧は `keyword / category / season / tpo / sort / page` を URL クエリと連動して扱う
+- outfits 一覧は `keyword / season / tpo / sort / page` を URL クエリと連動して扱う
+- BFF の GET は URL クエリを Laravel へそのまま転送し、Laravel 側で検索・並び替え・`page` を適用する
 - 複数条件は AND で適用し、`sort` は現在 `updated_at_desc` と `name_asc` に対応している
-- 現時点では API 側のクエリ受け口までは未対応で、一覧取得後にフロント側で絞り込み・並び替えを適用している
-- `page` パラメータとページャ UI は未着手のため、今後 API / UI を合わせて追加する
+- Laravel の一覧 API は `total / totalAll / page / lastPage` を meta として返し、UI で前へ / 次へのページャを描画する
+- `total` は現在の検索結果件数、`totalAll` はフィルタ前の総件数である。MVP のページャ文言は `2 / 3ページ（全36件）` のように `total` のみを表示する
+- 現在の items 一覧 UI は `category_id / rain_ok` ではなく `category / season / tpo` を使っている
 - キーワード入力は IME 変換中に URL 更新を止め、変換確定後に検索条件へ反映する
 - スマホ実機での IME 変換安定性は別途確認する
 

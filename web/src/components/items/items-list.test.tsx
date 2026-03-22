@@ -92,6 +92,17 @@ const sampleItems = [
   },
 ];
 
+const defaultListProps = {
+  items: sampleItems,
+  totalCount: sampleItems.length,
+  totalAllCount: sampleItems.length,
+  currentPage: 1,
+  lastPage: 1,
+  availableCategoryValues: ["tops"],
+  availableSeasons: ["春", "夏"],
+  availableTpos: ["仕事", "休日"],
+};
+
 async function waitForEffects() {
   await Promise.resolve();
   await Promise.resolve();
@@ -128,7 +139,16 @@ describe("ItemsList", () => {
     const { default: ItemsList } = await import("./items-list");
 
     await act(async () => {
-      root.render(React.createElement(ItemsList, { items: sampleItems }));
+      root.render(
+        React.createElement(ItemsList, {
+          ...defaultListProps,
+          items: [sampleItems[0]],
+          totalCount: 1,
+          totalAllCount: 1,
+          availableSeasons: ["夏"],
+          availableTpos: ["休日"],
+        }),
+      );
       await waitForEffects();
     });
 
@@ -146,7 +166,7 @@ describe("ItemsList", () => {
     const { default: ItemsList } = await import("./items-list");
 
     await act(async () => {
-      root.render(React.createElement(ItemsList, { items: sampleItems }));
+      root.render(React.createElement(ItemsList, defaultListProps));
       await waitForEffects();
     });
 
@@ -164,6 +184,41 @@ describe("ItemsList", () => {
     expect(container.textContent).not.toContain("TPO: 通勤");
   });
 
+  it("ページャ操作で page クエリを更新する", async () => {
+    searchParamsValue = "page=2";
+    fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
+    fetchCategoryVisibilitySettingsMock.mockResolvedValue({
+      visibleCategoryIds: ["tops_tshirt", "tops_shirt"],
+    });
+
+    const { default: ItemsList } = await import("./items-list");
+
+    await act(async () => {
+      root.render(
+        React.createElement(ItemsList, {
+          ...defaultListProps,
+          currentPage: 2,
+          lastPage: 3,
+          totalCount: 25,
+          totalAllCount: 25,
+        }),
+      );
+      await waitForEffects();
+    });
+
+    const nextButton = Array.from(container.querySelectorAll("button")).find((button) =>
+      button.textContent?.includes("次へ"),
+    );
+
+    await act(async () => {
+      nextButton?.click();
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain("2 / 3ページ（全25件）");
+    expect(replaceMock).toHaveBeenCalledWith("/items?page=3", { scroll: false });
+  });
+
   it("URL クエリの初期値を反映し、条件クリアで URL も戻す", async () => {
     searchParamsValue = "keyword=%E7%99%BD&season=%E5%A4%8F&sort=name_asc";
     fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
@@ -174,7 +229,14 @@ describe("ItemsList", () => {
     const { default: ItemsList } = await import("./items-list");
 
     await act(async () => {
-      root.render(React.createElement(ItemsList, { items: sampleItems }));
+      root.render(
+        React.createElement(ItemsList, {
+          ...defaultListProps,
+          items: [sampleItems[0]],
+          totalCount: 1,
+          totalAllCount: 2,
+        }),
+      );
       await waitForEffects();
     });
 
