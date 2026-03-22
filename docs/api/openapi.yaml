@@ -25,6 +25,10 @@ tags:
     description: アイテム関連 API
   - name: Outfits
     description: コーディネート関連 API
+  - name: Wear Logs (Future)
+    description: |
+      wear logs 用の将来 API 設計です。
+      現時点では未実装です。
 
 paths:
   /csrf-cookie:
@@ -441,6 +445,165 @@ paths:
           description: 未認証
         '404':
           description: 未検出
+  /api/wear-logs:
+    get:
+      tags:
+        - Wear Logs (Future)
+      summary: wear logs 一覧取得
+      description: |
+        wear logs 一覧取得用の将来 API 設計です。
+        現時点では未実装です。
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+        - name: keyword
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: sort
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [date_desc, date_asc]
+            default: date_desc
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [planned, worn]
+        - name: date_from
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+        - name: date_to
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: wear logs 一覧
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WearLogListResponse'
+        '401':
+          description: 未認証
+
+    post:
+      tags:
+        - Wear Logs (Future)
+      summary: wear log 作成
+      description: |
+        wear log 作成用の将来 API 設計です。
+        現時点では未実装です。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WearLogUpsertRequest'
+      responses:
+        '201':
+          description: wear log 作成成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WearLogDetailResponse'
+        '401':
+          description: 未認証
+        '422':
+          description: バリデーションエラー
+  /api/wear-logs/{wearLogId}:
+    get:
+      tags:
+        - Wear Logs (Future)
+      summary: wear log 詳細取得
+      description: |
+        wear log 詳細取得用の将来 API 設計です。
+        現時点では未実装です。
+      parameters:
+        - name: wearLogId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: wear log 詳細
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WearLogDetailResponse'
+        '401':
+          description: 未認証
+        '404':
+          description: 対象データなし
+
+    put:
+      tags:
+        - Wear Logs (Future)
+      summary: wear log 更新
+      description: |
+        wear log 更新用の将来 API 設計です。
+        現時点では未実装です。
+      parameters:
+        - name: wearLogId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WearLogUpsertRequest'
+      responses:
+        '200':
+          description: wear log 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WearLogDetailResponse'
+        '401':
+          description: 未認証
+        '404':
+          description: 対象データなし
+        '422':
+          description: バリデーションエラー
+
+    delete:
+      tags:
+        - Wear Logs (Future)
+      summary: wear log 削除
+      description: |
+        wear log 削除用の将来 API 設計です。
+        現時点では未実装です。
+      parameters:
+        - name: wearLogId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: wear log 削除成功
+        '401':
+          description: 未認証
+        '404':
+          description: 対象データなし
+
 
 components:
   parameters:
@@ -952,6 +1115,239 @@ components:
           properties:
             outfit:
               $ref: '#/components/schemas/OutfitRecord'
+
+    WearLogStatus:
+      type: string
+      enum:
+        - planned
+        - worn
+
+    WearLogItemSourceType:
+      type: string
+      enum:
+        - outfit
+        - manual
+
+    WearLogItemUpsert:
+      type: object
+      required:
+        - source_item_id
+        - sort_order
+        - item_source_type
+      properties:
+        source_item_id:
+          type: integer
+          example: 101
+        sort_order:
+          type: integer
+          minimum: 1
+          example: 1
+        item_source_type:
+          $ref: '#/components/schemas/WearLogItemSourceType'
+
+    WearLogUpsertRequest:
+      type: object
+      required:
+        - status
+        - event_date
+        - display_order
+        - items
+      properties:
+        status:
+          $ref: '#/components/schemas/WearLogStatus'
+        event_date:
+          type: string
+          format: date
+          example: '2026-03-21'
+        display_order:
+          type: integer
+          minimum: 1
+          example: 2
+        source_outfit_id:
+          type: integer
+          nullable: true
+          example: 10
+          description: |
+            ベースにした outfit の ID。
+            最終的な item 構成と完全一致している必要はありません。
+        memo:
+          type: string
+          nullable: true
+          example: 雨だったので1枚追加
+        items:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/WearLogItemUpsert'
+
+    WearLogListItem:
+      type: object
+      required:
+        - id
+        - status
+        - event_date
+        - display_order
+        - items_count
+      properties:
+        id:
+          type: integer
+          example: 1
+        status:
+          $ref: '#/components/schemas/WearLogStatus'
+        event_date:
+          type: string
+          format: date
+          example: '2026-03-21'
+        display_order:
+          type: integer
+          example: 1
+        source_outfit_id:
+          type: integer
+          nullable: true
+          example: 10
+        source_outfit_name:
+          type: string
+          nullable: true
+          example: 通勤セット
+        source_outfit_status:
+          type: string
+          nullable: true
+          enum:
+            - active
+            - invalid
+        has_disposed_items:
+          type: boolean
+          example: false
+        memo:
+          type: string
+          nullable: true
+          example: 雨だったので上着追加
+        items_count:
+          type: integer
+          example: 3
+
+    WearLogItemDetail:
+      type: object
+      required:
+        - id
+        - source_item_id
+        - item_name
+        - sort_order
+        - item_source_type
+      properties:
+        id:
+          type: integer
+          example: 11
+        source_item_id:
+          type: integer
+          nullable: true
+          example: 101
+        item_name:
+          type: string
+          example: 白シャツ
+        source_item_status:
+          type: string
+          nullable: true
+          enum:
+            - active
+            - disposed
+        sort_order:
+          type: integer
+          example: 1
+        item_source_type:
+          $ref: '#/components/schemas/WearLogItemSourceType'
+
+    WearLogDetailResponse:
+      type: object
+      required:
+        - id
+        - status
+        - event_date
+        - display_order
+        - items
+      properties:
+        id:
+          type: integer
+          example: 1
+        status:
+          $ref: '#/components/schemas/WearLogStatus'
+        event_date:
+          type: string
+          format: date
+          example: '2026-03-21'
+        display_order:
+          type: integer
+          example: 1
+        source_outfit_id:
+          type: integer
+          nullable: true
+          example: 10
+        source_outfit_name:
+          type: string
+          nullable: true
+          example: 通勤セット
+        source_outfit_status:
+          type: string
+          nullable: true
+          enum:
+            - active
+            - invalid
+        memo:
+          type: string
+          nullable: true
+          example: 雨だったので上着追加
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/WearLogItemDetail'
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    WearLogListResponse:
+      type: object
+      required:
+        - data
+        - meta
+        - links
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/WearLogListItem'
+        meta:
+          type: object
+          properties:
+            page:
+              type: integer
+              example: 1
+            lastPage:
+              type: integer
+              example: 1
+            total:
+              type: integer
+              example: 1
+            totalAll:
+              type: integer
+              example: 1
+        links:
+          type: object
+          properties:
+            first:
+              type: string
+              nullable: true
+            last:
+              type: string
+              nullable: true
+            prev:
+              type: string
+              nullable: true
+            next:
+              type: string
+              nullable: true
 
   securitySchemes:
     SessionCookieAuth:

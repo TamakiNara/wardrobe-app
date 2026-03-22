@@ -309,24 +309,6 @@ UI/UX メモ:
 - `wear_count` は軽量な集計値、`wear_logs` は履歴正本として役割を分ける構成も選択肢に入る
 - 画像活用はアップロード基盤が先行し、その後に背景除去・色抽出を段階追加するのが自然
 
-### 着用履歴構想
-
-将来仕様メモ:
-
-- `planned / worn` は同一レコードで扱い、トグルで相互切替可能とする
-- `cancelled` / `skipped` は MVP では持たず、不要な予定や誤登録は削除で対応する
-- 1 wear log = 1 着用イベントとし、同日複数件を許可する
-- 順序は `event_date + display_order` で持ち、初期並び順は `event_date desc, display_order asc` を想定する
-- 登録導線は `outfit から登録 / item から登録 / 着用履歴画面から日付先行で登録` を想定する
-- `source_outfit_id` は「ベースにした outfit」を示す参照とし、実際に着た item 群の正本は `wear_log_items` とする
-- MVP では snapshot なしで始め、まずは `source_item_id` / `source_outfit_id` と構成情報を正にする
-- item は `active / disposed`、outfit は `active / invalid` の status 管理候補とし、wear logs 整合性と連動させる
-- invalid outfit は通常利用導線から外し、別一覧で確認 / 復帰 / 複製できる方向とする
-- `item_source_type` は `outfit / manual` を採用候補とし、wear_log_items に保持する前提で整理する
-- item を `disposed` にした時は関連 active outfit を invalid 化するが、wear logs は書き換えず補助状態だけ表示する
-- 状態変更と副作用はサービス層 / ユースケース層で一元管理する方向とする
-- 詳細は `docs/specs/wears/wear-logs.md` と `docs/data/database.md` に整理
-
 ### 検索 / 絞り込み / 並び順構想
 
 将来仕様メモ:
@@ -347,6 +329,38 @@ UI/UX メモ:
 - 空状態は「未登録」「条件不一致」「エラー由来」を分けて考える方向
 - 一覧系の URL クエリ / ページング / 状態別 UI の共通方針は `docs/specs/discovery/list-common-guidelines.md` を参照する
 - 詳細は `docs/specs/error-message-guidelines.md` と `docs/ui/empty-state.md` に整理
+
+## wear logs 実装メモ（未実装）
+
+wear logs は現時点では **未実装**。  
+ただし、仕様・DB・API の正本は先に docs へ反映済みとする。
+
+### 正本として参照するファイル
+
+- 仕様: `docs/specs/wears/wear-logs.md`
+- DB: `docs/data/database.md`
+- API: `docs/api/openapi.yaml`
+
+### 実装時の前提
+
+- `planned` / `worn` は同一レコードで管理する
+- `worn -> planned -> worn` の再変更を許可し、常に最終保存状態を正とする
+- 1 wear log = 1着用イベント
+- 同日複数件を許容する
+- 時刻は持たず、`event_date + display_order` で順序を表現する
+- `source_outfit_id` は「完全一致したコーデ」ではなく、「ベースにした outfit」を表す
+- 保存時の正本は最終的な `items` 構成とする
+- `item_source_type` は `outfit` / `manual`
+- 同一 wear log 内で同一 item の重複は不可
+- MVP では snapshot を持たない
+- `disposed` item と `invalid` outfit は新規登録・更新時の候補から除外する
+- current status は履歴の主表示ではなく補助情報として扱う
+
+### 実装時の補足
+
+- API は future 設計として `openapi.yaml` に記載済みだが、現時点では未実装
+- 実装時は Request / Response / validation / transaction を `openapi.yaml` と `wear-logs.md` に合わせる
+- 更新処理は差分更新ではなく、明細込み全体更新を前提とする
 
 ## 現在の実装状況
 
