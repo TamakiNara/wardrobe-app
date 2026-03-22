@@ -304,7 +304,11 @@ describe("ItemsList", () => {
     const input = container.querySelector<HTMLInputElement>('input[type="search"]');
 
     await act(async () => {
-      input!.value = "白T";
+      const valueSetter = Object.getOwnPropertyDescriptor(
+        window.HTMLInputElement.prototype,
+        "value",
+      )?.set;
+      valueSetter?.call(input, "白T");
       input!.dispatchEvent(new Event("input", { bubbles: true }));
       await waitForEffects();
     });

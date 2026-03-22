@@ -237,7 +237,11 @@ describe("OutfitsList", () => {
     const input = container.querySelector<HTMLInputElement>('input[type="search"]');
 
     await act(async () => {
-      input!.value = "夏コー";
+      const valueSetter = Object.getOwnPropertyDescriptor(
+        window.HTMLInputElement.prototype,
+        "value",
+      )?.set;
+      valueSetter?.call(input, "夏コー");
       input!.dispatchEvent(new Event("input", { bubbles: true }));
       await waitForEffects();
     });

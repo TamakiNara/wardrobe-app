@@ -77,7 +77,7 @@ export default function EditOutfitPage({
           fetch("/api/items", {
             headers: { Accept: "application/json" },
           }),
-          fetchCategoryVisibilitySettings(),
+          fetchCategoryVisibilitySettings().catch(() => null),
         ]);
 
         if (outfitRes.status === 401 || itemsRes.status === 401) {
@@ -107,11 +107,13 @@ export default function EditOutfitPage({
         setSelectedItemIds(outfitItems.map((item) => item.item_id));
 
         const selectedIds = outfitItems.map((item) => item.item_id);
-        const visibleCategoryIds = settings.visibleCategoryIds;
-        const nextItems = allItems.filter((item) =>
-          selectedIds.includes(item.id) ||
-          isItemVisibleByCategorySettings(item, visibleCategoryIds),
-        );
+        const visibleCategoryIds = settings?.visibleCategoryIds;
+        const nextItems = visibleCategoryIds
+          ? allItems.filter((item) =>
+              selectedIds.includes(item.id) ||
+              isItemVisibleByCategorySettings(item, visibleCategoryIds),
+            )
+          : allItems;
 
         setItems(nextItems);
       } finally {

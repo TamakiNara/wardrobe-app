@@ -56,7 +56,7 @@ export default function NewOutfitPage() {
               Accept: "application/json",
             },
           }),
-          fetchCategoryVisibilitySettings(),
+          fetchCategoryVisibilitySettings().catch(() => null),
         ]);
 
         if (res.status === 401) {
@@ -71,10 +71,12 @@ export default function NewOutfitPage() {
           return;
         }
 
-        const visibleCategoryIds = settings.visibleCategoryIds;
-        const nextItems = (data?.items ?? []).filter((item: Item) =>
-          isItemVisibleByCategorySettings(item, visibleCategoryIds),
-        );
+        const visibleCategoryIds = settings?.visibleCategoryIds;
+        const nextItems = visibleCategoryIds
+          ? (data?.items ?? []).filter((item: Item) =>
+              isItemVisibleByCategorySettings(item, visibleCategoryIds),
+            )
+          : (data?.items ?? []);
 
         setItems(nextItems);
       } catch {
