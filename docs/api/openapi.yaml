@@ -327,6 +327,75 @@ paths:
         '404':
           description: 未検出
 
+  /api/items/{id}/dispose:
+    post:
+      tags:
+        - Items
+      summary: アイテムを disposed に変更
+      description: |
+        item status 変更用の future API 設計です。
+        現時点では未実装です。
+
+        item を `disposed` に変更し、「手放した / 現在所持していない」状態へ遷移させる。
+        通常の `ItemUpsertRequest` とは分けて扱う。
+        関連する `active` outfit がある場合は、それらを `invalid` にする副作用を伴う前提とする。
+      security:
+        - SessionCookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ItemIdPath'
+        - $ref: '#/components/parameters/XCsrfTokenHeader'
+      responses:
+        '200':
+          description: 変更成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ItemResponseWithMessage'
+        '401':
+          description: 未認証
+        '404':
+          description: 未検出
+        '422':
+          description: 変更不可またはバリデーションエラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+
+  /api/items/{id}/reactivate:
+    post:
+      tags:
+        - Items
+      summary: アイテムを active に戻す
+      description: |
+        item status 変更用の future API 設計です。
+        現時点では未実装です。
+
+        item を `active` に戻すが、関連 outfit は自動 `restore` しない前提とする。
+        通常の `ItemUpsertRequest` とは分けて扱う。
+      security:
+        - SessionCookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ItemIdPath'
+        - $ref: '#/components/parameters/XCsrfTokenHeader'
+      responses:
+        '200':
+          description: 変更成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ItemResponseWithMessage'
+        '401':
+          description: 未認証
+        '404':
+          description: 未検出
+        '422':
+          description: 変更不可またはバリデーションエラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+
   /api/outfits:
     get:
       tags:
