@@ -597,6 +597,8 @@ paths:
         disposed item は通常選択状態にしない前提で初期値生成する想定とする。
         response の `outfit` は保存済み record ではなく、
         新規作成画面へ渡す初期値 payload を返す。
+        `items[*].selectable=false` と `note` により、
+        現在は使えない item を補助表示できる前提とする。
       security:
         - SessionCookieAuth: []
       parameters:

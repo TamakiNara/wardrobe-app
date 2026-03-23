@@ -43,6 +43,16 @@ Outfit の item 候補表示と、`disposed` item の扱いを整理する。
 
 ---
 
+## 複製時の候補
+
+- `duplicate` は新規作成画面へ渡す初期値 payload を返す前提とする
+- active outfit の複製では、構成 item を通常どおり初期選択に含める
+- invalid outfit の複製では、`disposed` item を初期選択に含めない
+- ただし「元コーデには含まれていたが現在は候補に使えない」ことが分かる表示は残す
+- その後の候補表示と保存条件は、新規作成時のルールに従う
+
+---
+
 ## `disposed` item の表示
 
 ### 必須表示
