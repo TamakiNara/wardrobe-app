@@ -86,6 +86,7 @@
 - `spec.tops.*` は create / update の両方で受け付ける
 - DB 保存方針は [`../data/database.md`](../data/database.md) を参照
 - 詳細仕様は [`../specs/items/tops.md`](../specs/items/tops.md) を参照
+- item status の状態管理は [`../specs/items/status-management.md`](../specs/items/status-management.md) を参照
 - 未認証時は `401 Unauthenticated.` を返す
 
 ---

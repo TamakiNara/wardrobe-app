@@ -11,7 +11,7 @@ docs 上の整合確認は概ね完了しており、本書では「確認済み
 - item status は `active` / `disposed` を採用する
 - `disposed` は「手放した / 現在所持していない」状態を表し、物理削除より優先する
 - `disposed` item は通常一覧、outfit の選択候補、wear logs の選択候補から除外する
-- 正本: `docs/data/database.md`, `docs/api/openapi.yaml`
+- 正本: `docs/specs/items/status-management.md`, `docs/data/database.md`, `docs/api/openapi.yaml`
 
 - outfit status は `active` / `invalid` を採用する
 - 通常の create / update では `status` を payload に含めず、内部状態として扱う

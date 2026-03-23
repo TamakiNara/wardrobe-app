@@ -21,6 +21,7 @@
 - 設計判断の理由を見たいときは `decisions/architecture-decisions.md`
 - セキュリティの現状と課題を見たいときは `security/web-security.md`
 - tops の詳細仕様を見たいときは `specs/items/tops.md`
+- item status の状態管理を見たいときは `specs/items/status-management.md`
 - カテゴリ表示設定の仕様を見たいときは `specs/settings/category-settings.md`
 - 新規登録直後のカテゴリプリセット選択を見たいときは `specs/settings/category-preset-selection.md`
 - アプリ全体の共通ナビ仕様を見たいときは `specs/navigation/global-navigation.md`
@@ -115,6 +116,13 @@
 役割:
 
 - tops の spec 定義をまとめる
+
+### `specs/items/status-management.md`
+
+役割:
+
+- item status の状態管理と副作用を整理する
+- `active / disposed`、delete との役割分担、outfit / wear logs への影響をまとめる
 
 ### `specs/settings/category-settings.md`
 
@@ -236,6 +244,7 @@
 
 必ず確認する:
 
+- `specs/items/status-management.md`
 - `specs/items/tops.md`
 - `api/api-overview.md`
 - `data/database.md`

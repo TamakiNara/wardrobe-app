@@ -40,7 +40,7 @@
 ### docs 上で決定済み
 
 - Item の `status` は `active` / `disposed` とし、通常一覧・outfit・wear logs の候補から `disposed` を除外する
-  - 正本: `docs/data/database.md`, `docs/api/openapi.yaml`
+  - 正本: `docs/specs/items/status-management.md`, `docs/data/database.md`, `docs/api/openapi.yaml`
 - Outfit の `status` は `active` / `invalid` とし、通常保存では `status` を payload に含めない
   - 正本: `docs/specs/outfits/create-edit.md`, `docs/data/database.md`, `docs/api/openapi.yaml`
 - wear logs は `source_outfit_id` を「ベースにした outfit」として持ち、最終的な item 構成は `items` / `wear_log_items` を正本とする
