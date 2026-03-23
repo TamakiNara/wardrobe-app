@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import InvalidOutfitsList from "@/components/outfits/invalid-outfits-list";
 import { fetchLaravelWithCookie } from "@/lib/server/laravel";
 
 type Outfit = {
@@ -21,8 +22,34 @@ type OutfitsResponse = {
   };
 };
 
-async function getInvalidOutfits(): Promise<OutfitsResponse> {
-  const res = await fetchLaravelWithCookie("/api/outfits/invalid");
+type InvalidOutfitsPageSearchParams = Record<string, string | string[] | undefined>;
+
+function buildQueryString(searchParams: InvalidOutfitsPageSearchParams): string {
+  const params = new URLSearchParams();
+
+  for (const [key, value] of Object.entries(searchParams)) {
+    if (Array.isArray(value)) {
+      const firstValue = value[0];
+      if (firstValue) {
+        params.set(key, firstValue);
+      }
+      continue;
+    }
+
+    if (value) {
+      params.set(key, value);
+    }
+  }
+
+  return params.toString();
+}
+
+async function getInvalidOutfits(
+  searchParams: InvalidOutfitsPageSearchParams,
+): Promise<OutfitsResponse> {
+  const query = buildQueryString(searchParams);
+  const path = query ? `/api/outfits/invalid?${query}` : "/api/outfits/invalid";
+  const res = await fetchLaravelWithCookie(path);
 
   if (res.status === 401) {
     redirect("/login");
@@ -53,8 +80,13 @@ async function getInvalidOutfits(): Promise<OutfitsResponse> {
   };
 }
 
-export default async function InvalidOutfitsPage() {
-  const data = await getInvalidOutfits();
+export default async function InvalidOutfitsPage({
+  searchParams,
+}: {
+  searchParams: Promise<InvalidOutfitsPageSearchParams>;
+}) {
+  const resolvedSearchParams = await searchParams;
+  const data = await getInvalidOutfits(resolvedSearchParams);
 
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">
@@ -88,59 +120,12 @@ export default async function InvalidOutfitsPage() {
           </Link>
         </header>
 
-        {data.meta.totalAll === 0 ? (
-          <section className="rounded-2xl border border-dashed border-gray-300 bg-white p-10 text-center shadow-sm">
-            <h2 className="text-lg font-semibold text-gray-900">
-              無効なコーディネートはありません
-            </h2>
-            <p className="mt-2 text-sm text-gray-600">
-              現在は通常利用できないコーディネートはありません。
-            </p>
-          </section>
-        ) : (
-          <section className="space-y-4">
-            {data.outfits.map((outfit) => (
-              <article
-                key={outfit.id}
-                className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm"
-              >
-                <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                  <div className="space-y-2">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h2 className="text-lg font-semibold text-gray-900">
-                        {outfit.name || "名称未設定"}
-                      </h2>
-                      <span className="rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-sm font-medium text-amber-800">
-                        無効
-                      </span>
-                    </div>
-                    <p className="text-sm text-gray-600">
-                      季節： {outfit.seasons?.length ? outfit.seasons.join(" / ") : "未設定"}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      TPO： {outfit.tpos?.length ? outfit.tpos.join(" / ") : "未設定"}
-                    </p>
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    <Link
-                      href={`/outfits/${outfit.id}`}
-                      className="text-sm font-medium text-blue-600 hover:underline"
-                    >
-                      詳細
-                    </Link>
-                    <Link
-                      href={`/outfits/${outfit.id}/edit`}
-                      className="text-sm font-medium text-blue-600 hover:underline"
-                    >
-                      編集
-                    </Link>
-                  </div>
-                </div>
-              </article>
-            ))}
-          </section>
-        )}
+        <InvalidOutfitsList
+          outfits={data.outfits}
+          totalCount={data.meta.total}
+          currentPage={data.meta.page}
+          lastPage={data.meta.lastPage}
+        />
       </div>
     </main>
   );
