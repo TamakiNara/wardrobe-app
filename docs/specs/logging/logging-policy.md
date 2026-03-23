@@ -219,18 +219,42 @@ MVP では、詳細な差分監査までは行わない。
 - `payload_json`
 - `created_at`
 
+### resource_type の最小セット
+
+MVP では、`resource_type` は次を想定する。
+
+- `item`
+- `outfit`
+- `wear_log`
+
+`setting` などの追加は将来必要になった時点で検討する。  
+現時点では、重要な状態変化や副作用の中心となるリソースに絞る。
+
 ---
 
-## event_type の例
+## event_type の最小セット
+
+MVP では、まず次をイベントログの対象とする。
 
 - `item_disposed`
 - `item_reactivated`
 - `outfit_invalidated`
 - `outfit_restored`
 - `outfit_duplicated`
+
+### 将来追加候補
+
+wear logs 実装後は、必要に応じて次を追加検討する。
+
 - `wear_log_created`
 - `wear_log_updated`
 - `wear_log_deleted`
+
+### 方針
+
+- MVP では、状態変化と副作用の確認に必要な最小セットに絞る
+- 軽微な編集履歴は対象にしない
+- event type は用途が曖昧なものを増やさず、意味が明確な単位で定義する
 
 ---
 
