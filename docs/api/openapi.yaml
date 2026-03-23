@@ -554,11 +554,11 @@ paths:
         - Outfits
       summary: invalid コーディネート手動復帰
       description: |
-        invalid outfit の手動復帰用の future API 設計です。
-        現時点では未実装です。
+        実装済みの invalid outfit 手動復帰 API。
 
-        構成 item がすべて active で、他に invalid 理由がない場合のみ
-        `status=active` へ復帰できる想定とする。
+        対象 outfit が `invalid` で、構成 item がすべて `active` の場合のみ
+        `status=active` へ復帰できる。
+        item や `outfit_items` 自体は書き換えない。
         主な利用箇所は invalid outfit 一覧または詳細画面の補助導線を想定する。
       security:
         - SessionCookieAuth: []

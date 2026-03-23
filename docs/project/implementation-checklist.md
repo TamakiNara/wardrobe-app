@@ -42,9 +42,9 @@ item 詳細画面での status 操作 UI は `docs/specs/items/detail-status-ui.
 - 正本: `docs/specs/wears/wear-logs.md`, `docs/data/database.md`, `docs/api/openapi.yaml`
 
 - invalid outfit 向けの補助導線は一部未実装
-- 対象: 手動 `restore`、`duplicate`
-- backend: `POST /api/outfits/{id}/restore`、`POST /api/outfits/{id}/duplicate`
-- frontend: invalid 一覧 / 詳細からの action と、新規作成画面への複製初期値適用
+- 対象: `duplicate`
+- backend: `POST /api/outfits/{id}/duplicate`
+- frontend: invalid 一覧 / 詳細からの `restore` / `duplicate` action と、新規作成画面への複製初期値適用
 - 正本: `docs/specs/outfits/create-edit.md`, `docs/api/openapi.yaml`
 
 - event_logs は未実装
@@ -55,7 +55,6 @@ item 詳細画面での status 操作 UI は `docs/specs/items/detail-status-ui.
 
 ## future API
 
-- `POST /api/outfits/{id}/restore`
 - `POST /api/outfits/{id}/duplicate`
 - `GET /api/wear-logs`
 - `GET /api/wear-logs/{id}`
@@ -70,6 +69,7 @@ item 詳細画面での status 操作 UI は `docs/specs/items/detail-status-ui.
 
 - item を `disposed` にすると、その item を含む `active` outfit は `invalid` に遷移する
 - outfit は item が `active` に戻っても自動 `restore` しない
+- 手動 `restore` は対象 outfit が `invalid` で、構成 item がすべて `active` の場合のみ許可する
 - 正本: `docs/specs/outfits/create-edit.md`, `docs/data/database.md`, `docs/api/openapi.yaml`
 
 - `disposed` item と `invalid` outfit は wear logs の新規登録・更新候補から除外する
@@ -94,8 +94,8 @@ item 詳細画面での status 操作 UI は `docs/specs/items/detail-status-ui.
    - `active / invalid`、通常保存時の `status` 非包含、item `disposed` に伴う invalid 化は docs に反映済みのため、実装を揃える
    - 理由: invalid outfit future API と wear logs の前提になるため
 3. invalid outfit 残タスクの実装着手
-   - 対象: 手動 `restore`、`duplicate`
-   - 理由: invalid 一覧は実装済みのため、再利用導線の残タスクへ絞って進めやすいため
+   - 対象: `duplicate` と invalid 一覧 / 詳細での action 導線
+   - 理由: `restore` API は実装済みのため、再利用導線と UI 反映へ絞って進めやすいため
 4. wear logs の実装着手
    - 対象: DB、API、UI、validation、一覧共通仕様との接続
    - 理由: `source_outfit_id`、`item_source_type`、候補除外、副作用の前提を利用するため
