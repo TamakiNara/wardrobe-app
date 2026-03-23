@@ -17,14 +17,13 @@ item 詳細画面での status 操作 UI を確認するときは `docs/specs/it
    - `docs/data/database.md`
    - `docs/api/openapi.yaml`
    の間で、仕様 / DB / API のズレがないか確認する
-   - wear logs / outfits は概ね整理済みのため、次は Item API の `disposed` 前提が OpenAPI に十分反映されているかを確認する
-   - invalid outfit の future API（一覧 / restore / duplicate）を implementation-notes にも追記する
+   - wear logs / outfits は概ね整理済みのため、次は Item API の `disposed` 前提と invalid outfit 実装済み API が OpenAPI に十分反映されているかを確認する
 2. `docs/api/openapi.yaml` の Item / Outfit 関連を引き続き確認する
    - `ItemRecord.status`
    - `ItemUpsertRequest` の `status` 非包含方針
    - `disposed` と delete の役割分担
    - outfits / wear logs の候補除外前提との整合
-   - invalid outfit future API の description / schema / response の過不足確認
+   - invalid outfit の実装済み一覧 API と future API（`restore` / `duplicate`）の description / schema / response の過不足確認
 3. 各画面のエラーメッセージと空状態を整理する
    - login / register / items / outfits / settings に初期文言を反映済み
    - 未反映画面と細かな文言差分を引き続き詰める
@@ -52,7 +51,7 @@ item 詳細画面での status 操作 UI を確認するときは `docs/specs/it
 
 ### 未実装
 
-- `invalid outfit` 一覧、`restore`、`duplicate` は `future API` として定義済みだが未実装
+- `invalid outfit` では `GET /api/outfits/invalid` は実装済みであり、未実装は主に `restore` と `duplicate`
   - 正本: `docs/specs/outfits/create-edit.md`, `docs/api/openapi.yaml`
 - wear logs の API / DB / UI は docs に反映済みだが未実装
   - 正本: `docs/specs/wears/wear-logs.md`, `docs/data/database.md`, `docs/api/openapi.yaml`
@@ -61,7 +60,6 @@ item 詳細画面での status 操作 UI を確認するときは `docs/specs/it
 
 ### `future API`
 
-- `GET /api/outfits/invalid`
 - `POST /api/outfits/{id}/restore`
 - `POST /api/outfits/{id}/duplicate`
 - `GET /api/wear-logs`
@@ -216,9 +214,8 @@ item 詳細画面での status 操作 UI を確認するときは `docs/specs/it
 
 `future API` メモ:
 
-- invalid outfit の運用は `docs/api/openapi.yaml` にも `future API` として反映済み
-- 現時点では未実装だが、将来的に以下を追加する想定
-  - `GET /api/outfits/invalid`
+- invalid outfit の一覧取得 `GET /api/outfits/invalid` は実装済み
+- 現時点で未実装の中心は以下
   - `POST /api/outfits/{id}/restore`
   - `POST /api/outfits/{id}/duplicate`
 - `restore` は手動復帰用の補助導線とし、構成 item がすべて active の場合のみ許可する想定

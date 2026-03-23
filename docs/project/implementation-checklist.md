@@ -41,8 +41,8 @@ item 詳細画面での status 操作 UI は `docs/specs/items/detail-status-ui.
 - 対象: API、DB テーブル、UI、validation、transaction、一覧・詳細・登録・更新・削除
 - 正本: `docs/specs/wears/wear-logs.md`, `docs/data/database.md`, `docs/api/openapi.yaml`
 
-- invalid outfit 向けの補助導線は未実装
-- 対象: invalid 一覧、手動 `restore`、`duplicate`
+- invalid outfit 向けの補助導線は一部未実装
+- 対象: 手動 `restore`、`duplicate`
 - 正本: `docs/specs/outfits/create-edit.md`, `docs/api/openapi.yaml`
 
 - event_logs は未実装
@@ -53,7 +53,6 @@ item 詳細画面での status 操作 UI は `docs/specs/items/detail-status-ui.
 
 ## future API
 
-- `GET /api/outfits/invalid`
 - `POST /api/outfits/{id}/restore`
 - `POST /api/outfits/{id}/duplicate`
 - `GET /api/wear-logs`
@@ -92,9 +91,9 @@ item 詳細画面での status 操作 UI は `docs/specs/items/detail-status-ui.
 2. outfit status と invalid 化副作用の実装着手
    - `active / invalid`、通常保存時の `status` 非包含、item `disposed` に伴う invalid 化は docs に反映済みのため、実装を揃える
    - 理由: invalid outfit future API と wear logs の前提になるため
-3. invalid outfit future API の実装着手
-   - 対象: invalid 一覧、`restore`、`duplicate`
-   - 理由: outfit status 運用が固まった後なら、再利用導線を独立して実装しやすいため
+3. invalid outfit 残タスクの実装着手
+   - 対象: 手動 `restore`、`duplicate`
+   - 理由: invalid 一覧は実装済みのため、再利用導線の残タスクへ絞って進めやすいため
 4. wear logs の実装着手
    - 対象: DB、API、UI、validation、一覧共通仕様との接続
    - 理由: `source_outfit_id`、`item_source_type`、候補除外、副作用の前提を利用するため

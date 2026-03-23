@@ -524,12 +524,11 @@ paths:
         - Outfits
       summary: invalid コーディネート一覧取得
       description: |
-        invalid outfit 一覧取得用の future API 設計です。
-        現時点では未実装です。
+        実装済みの invalid outfit 一覧取得 API。
 
         通常一覧には出さない `status=invalid` の outfit を返す。
-        現在の実装では未対応だが、将来的には一覧共通仕様に合わせた
-        ページング形式へ揃えることを検討する。
+        response 形式は通常一覧と同じ `OutfitsResponse` を使い、
+        `meta.page` / `meta.lastPage` / `meta.total` / `meta.totalAll` を返す。
       security:
         - SessionCookieAuth: []
       responses:
