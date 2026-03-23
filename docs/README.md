@@ -24,6 +24,7 @@
 - カテゴリ表示設定の仕様を見たいときは `specs/settings/category-settings.md`
 - 新規登録直後のカテゴリプリセット選択を見たいときは `specs/settings/category-preset-selection.md`
 - アプリ全体の共通ナビ仕様を見たいときは `specs/navigation/global-navigation.md`
+- Outfit の作成・編集・invalid/複製方針を見たいときは `specs/outfits/create-edit.md`
 
 ---
 
@@ -169,6 +170,14 @@
 - 着用履歴と明日着る予定の登録仕様を整理する
 - outfit 起点 / item 起点 / 日付起点の登録導線、`planned / worn` の状態管理を定義する
 - item 検索経由での outfit 選択、スナップショット保存、一覧・集計の前提となるデータ構造を整理する
+
+### `specs/outfits/create-edit.md`
+
+役割:
+
+- Outfit の作成・編集・保存条件を整理する
+- `active / invalid` の状態管理、複製、invalid 一覧の扱いを定義する
+- `outfits` / `outfit_items` と API payload の前提をまとめる
 
 ### `specs/logging.md`
 

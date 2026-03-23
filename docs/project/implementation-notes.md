@@ -147,6 +147,10 @@
 - `total` は現在の検索条件に一致した件数、`totalAll` はフィルタ前の母数として API から取得している。現在のページャ文言は `2 / 3ページ（全36件）` の形で `total` のみを表示する
 - 1 ページ件数は一旦 `App\Support\ListQuerySupport::PAGE_SIZE = 12` の暫定定数で管理しており、docs の正本値との最終整合は別途調整する
 
+関連仕様:
+
+- 作成 / 編集 / invalid / 複製の正本は `docs/specs/outfits/create-edit.md`
+
 項目:
 
 - `name`

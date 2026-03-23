@@ -332,6 +332,9 @@ paths:
       tags:
         - Outfits
       summary: コーディネート一覧取得
+      description: |
+        現在の実装では `outfits` 配列を返す。
+        将来的には一覧共通仕様に合わせたページング形式へ揃えることを検討する。
       security:
         - SessionCookieAuth: []
       responses:
@@ -1003,7 +1006,8 @@ components:
           example: 1
         sort_order:
           type: integer
-          example: 0
+          minimum: 1
+          example: 1
         item:
           $ref: '#/components/schemas/ItemRecord'
 
@@ -1012,6 +1016,7 @@ components:
       required:
         - id
         - user_id
+        - status
         - seasons
         - tpos
         - created_at
@@ -1023,6 +1028,12 @@ components:
         user_id:
           type: integer
           example: 1
+        status:
+          type: string
+          enum:
+            - active
+            - invalid
+          example: active
         name:
           type: string
           nullable: true
@@ -1060,10 +1071,19 @@ components:
           minimum: 1
         sort_order:
           type: integer
-          minimum: 0
+          minimum: 1
 
     OutfitUpsertRequest:
       type: object
+      description: |
+        Outfit の作成 / 更新 request。
+        通常の作成 / 更新 payload に status は含めない。
+        status は内部状態として管理し、invalid は item 状態変化の副作用でのみ発生する。
+
+        items は 1 件以上必須。
+        同一 outfit 内で同一 item_id の重複は不可。
+        指定できるのは active な item のみで、disposed item は指定不可。
+        sort_order は 1, 2, 3... の連番を前提とする。
       required:
         - items
       properties:
@@ -1090,6 +1110,11 @@ components:
 
     OutfitsResponse:
       type: object
+      description: |
+        コーディネート一覧 response。
+        現在の実装では `outfits` 配列を返す形を採用している。
+        将来的には一覧共通仕様に合わせて、page / total / totalAll / lastPage を含む
+        共通レスポンス形式へ揃えることを検討する。
       required:
         - outfits
       properties:

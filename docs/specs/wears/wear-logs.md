@@ -351,6 +351,10 @@ Item 側は `disposed`、Outfit 側は `invalid` とし、
 - invalid outfit 一覧で参照する
 - wear log の `source_outfit_id` 候補には出さない
 
+補足:
+
+- Outfit 自体の作成 / 編集 / invalid / 複製仕様の正本は `docs/specs/outfits/create-edit.md`
+
 ---
 
 ## disposed item を含む outfit の扱い
