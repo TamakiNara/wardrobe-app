@@ -43,6 +43,8 @@ item 詳細画面での status 操作 UI は `docs/specs/items/detail-status-ui.
 
 - invalid outfit 向けの補助導線は一部未実装
 - 対象: 手動 `restore`、`duplicate`
+- backend: `POST /api/outfits/{id}/restore`、`POST /api/outfits/{id}/duplicate`
+- frontend: invalid 一覧 / 詳細からの action と、新規作成画面への複製初期値適用
 - 正本: `docs/specs/outfits/create-edit.md`, `docs/api/openapi.yaml`
 
 - event_logs は未実装

@@ -552,6 +552,7 @@ paths:
 
         構成 item がすべて active で、他に invalid 理由がない場合のみ
         `status=active` へ復帰できる想定とする。
+        主な利用箇所は invalid outfit 一覧または詳細画面の補助導線を想定する。
       security:
         - SessionCookieAuth: []
       parameters:
@@ -587,6 +588,8 @@ paths:
         active / invalid を問わず複製可能とする。
         invalid outfit の場合は再利用導線として特に重要とし、
         disposed item は通常選択状態にしない前提で初期値生成する想定とする。
+        response の `outfit` は保存済み record ではなく、
+        新規作成画面へ渡す初期値 payload を返す。
       security:
         - SessionCookieAuth: []
       parameters:
