@@ -298,6 +298,19 @@ UI/UX メモ:
 - 想定候補は `StoreItemRequest` `UpdateItemRequest` `StoreOutfitRequest` `UpdateOutfitRequest`
 - 先に docs 側では API を「認証系 API / 設定系 API / 参照マスタ API」の役割でも追えるように整理する
 
+### ログ設計
+
+関連仕様:
+
+- ログ設計の正本は `docs/specs/logging/logging-policy.md`
+
+メモ:
+
+- MVP ではアプリケーションログとイベントログを分けて考える
+- イベントログは `disposed / invalid / restore / duplicate` など、重要な状態変化を優先して残す
+- 軽微な編集や閲覧操作は原則としてイベントログに残さない
+- ログ記録はモデルイベントではなく、サービス層 / ユースケース層で明示的に行う方針とする
+
 ### タグ / 雨対応フラグ構想
 
 将来仕様メモ:

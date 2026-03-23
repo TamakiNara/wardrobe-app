@@ -538,6 +538,32 @@ MVP では snapshot を持たず、最終的な item 群と参照先 current dat
 
 ---
 
+## event_logs (future)
+
+重要な状態変化や副作用のある操作を記録する将来テーブル案。
+MVP ではアプリケーションログとイベントログを分けて考え、ここではイベントログを想定する。
+
+### Columns
+
+| column | type | description |
+| --- | --- | --- |
+| id | bigint | 主キー |
+| event_type | string | イベント種別 |
+| user_id | bigint | 実行ユーザーID |
+| resource_type | string | 対象リソース種別 |
+| resource_id | bigint | 対象リソースID |
+| payload_json | json nullable | 補助情報 |
+| created_at | timestamp | 作成日時 |
+
+### Notes
+
+- MVP では重要な状態変化のみを対象とする
+- 例: `item_disposed` `item_reactivated` `outfit_invalidated` `outfit_restored` `outfit_duplicated`
+- 軽微な編集や一覧閲覧は対象外とする
+- 詳細方針は `docs/specs/logging/logging-policy.md` を参照
+
+---
+
 ## Tagging Design Summary (future)
 
 今回の草案で決めたこと:
