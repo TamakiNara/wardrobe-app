@@ -222,6 +222,38 @@ Route::prefix('api')->middleware(['web'])->group(function () {
         return response()->json(OutfitsIndexQuery::build($request->user(), $request, 'invalid'));
     });
 
+    Route::middleware('auth:web')->post('/outfits/{id}/restore', function (Request $request, int $id) {
+        $outfit = Outfit::query()
+            ->where('user_id', $request->user()->id)
+            ->with(['outfitItems.item'])
+            ->findOrFail($id);
+
+        if ($outfit->status !== 'invalid') {
+            return response()->json([
+                'message' => 'このコーディネートは復帰できません。',
+            ], 422);
+        }
+
+        $hasInactiveItems = $outfit->outfitItems->contains(function ($outfitItem) {
+            return $outfitItem->item === null || $outfitItem->item->status !== 'active';
+        });
+
+        if ($hasInactiveItems) {
+            return response()->json([
+                'message' => 'このコーディネートは復帰できません。',
+            ], 422);
+        }
+
+        $outfit->update([
+            'status' => 'active',
+        ]);
+
+        return response()->json([
+            'message' => 'restored',
+            'outfit' => $outfit->fresh()->load(['outfitItems.item']),
+        ]);
+    });
+
     Route::middleware('auth:web')->post('/outfits', function (Request $request) {
         $validated = $request->validate([
             'name' => ['nullable', 'string', 'max:255'],

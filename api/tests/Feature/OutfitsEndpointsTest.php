@@ -186,6 +186,153 @@ class OutfitsEndpointsTest extends TestCase
         ]);
     }
 
+    public function test_post_outfit_restore_restores_invalid_outfit_when_all_items_are_active(): void
+    {
+        $user = User::factory()->create();
+        $itemA = $this->createItem($user, ['name' => 'トップス']);
+        $itemB = $this->createItem($user, ['name' => 'ボトムス', 'category' => 'bottoms']);
+
+        $outfit = Outfit::query()->create([
+            'user_id' => $user->id,
+            'status' => 'invalid',
+            'name' => '復帰対象',
+            'memo' => 'memo',
+            'seasons' => ['春'],
+            'tpos' => ['休日'],
+        ]);
+        $outfit->outfitItems()->createMany([
+            ['item_id' => $itemA->id, 'sort_order' => 1],
+            ['item_id' => $itemB->id, 'sort_order' => 2],
+        ]);
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $response = $this->postJson("/api/outfits/{$outfit->id}/restore", [], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('message', 'restored')
+            ->assertJsonPath('outfit.id', $outfit->id)
+            ->assertJsonPath('outfit.status', 'active')
+            ->assertJsonCount(2, 'outfit.outfit_items')
+            ->assertJsonPath('outfit.outfit_items.0.item_id', $itemA->id)
+            ->assertJsonPath('outfit.outfit_items.1.item_id', $itemB->id);
+
+        $this->assertDatabaseHas('outfits', [
+            'id' => $outfit->id,
+            'status' => 'active',
+        ]);
+        $this->assertDatabaseHas('outfit_items', [
+            'outfit_id' => $outfit->id,
+            'item_id' => $itemA->id,
+            'sort_order' => 1,
+        ]);
+        $this->assertDatabaseHas('outfit_items', [
+            'outfit_id' => $outfit->id,
+            'item_id' => $itemB->id,
+            'sort_order' => 2,
+        ]);
+    }
+
+    public function test_post_outfit_restore_returns_422_when_outfit_includes_disposed_item(): void
+    {
+        $user = User::factory()->create();
+        $disposedItem = $this->createItem($user, [
+            'name' => '手放し済み',
+            'status' => 'disposed',
+        ]);
+
+        $outfit = Outfit::query()->create([
+            'user_id' => $user->id,
+            'status' => 'invalid',
+            'name' => '復帰不可',
+            'memo' => null,
+            'seasons' => ['春'],
+            'tpos' => ['休日'],
+        ]);
+        $outfit->outfitItems()->create([
+            'item_id' => $disposedItem->id,
+            'sort_order' => 1,
+        ]);
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $response = $this->postJson("/api/outfits/{$outfit->id}/restore", [], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonPath('message', 'このコーディネートは復帰できません。');
+
+        $this->assertDatabaseHas('outfits', [
+            'id' => $outfit->id,
+            'status' => 'invalid',
+        ]);
+    }
+
+    public function test_post_outfit_restore_returns_422_when_outfit_is_already_active(): void
+    {
+        $user = User::factory()->create();
+        $item = $this->createItem($user);
+
+        $outfit = Outfit::query()->create([
+            'user_id' => $user->id,
+            'status' => 'active',
+            'name' => '通常コーデ',
+            'memo' => null,
+            'seasons' => ['春'],
+            'tpos' => ['休日'],
+        ]);
+        $outfit->outfitItems()->create([
+            'item_id' => $item->id,
+            'sort_order' => 1,
+        ]);
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $response = $this->postJson("/api/outfits/{$outfit->id}/restore", [], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonPath('message', 'このコーディネートは復帰できません。');
+    }
+
+    public function test_post_outfit_restore_returns_404_for_other_users_outfit(): void
+    {
+        $user = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $item = $this->createItem($otherUser);
+
+        $outfit = Outfit::query()->create([
+            'user_id' => $otherUser->id,
+            'status' => 'invalid',
+            'name' => '他人の無効コーデ',
+            'memo' => null,
+            'seasons' => ['春'],
+            'tpos' => ['休日'],
+        ]);
+        $outfit->outfitItems()->create([
+            'item_id' => $item->id,
+            'sort_order' => 1,
+        ]);
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $this->postJson("/api/outfits/{$outfit->id}/restore", [], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ])->assertStatus(404);
+    }
+
     public function test_post_outfits_creates_outfit_and_outfit_items(): void
     {
         $user = User::factory()->create();
