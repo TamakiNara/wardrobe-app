@@ -20,6 +20,7 @@ type OutfitItem = {
       hex: string;
       label: string;
     }[];
+    status: "active" | "disposed";
     seasons: string[];
     tpos: string[];
   };
@@ -192,9 +193,16 @@ export default async function OutfitDetailPage({
 
                     <div className="mt-1 flex items-start justify-between gap-4">
                       <div>
-                        <h3 className="font-medium text-gray-900">
-                          {item.name || "名称未設定"}
-                        </h3>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h3 className="font-medium text-gray-900">
+                            {item.name || "名称未設定"}
+                          </h3>
+                          {item.status === "disposed" && (
+                            <span className="rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800">
+                              手放し済み
+                            </span>
+                          )}
+                        </div>
                         <p className="mt-1 text-sm text-gray-600">
                           {item.category} / {item.shape}
                         </p>

@@ -53,6 +53,7 @@ describe("OutfitDetailPage", () => {
                 item: {
                   id: 2,
                   name: "白T",
+                  status: "disposed",
                   category: "tops",
                   shape: "tshirt",
                   colors: [],
@@ -80,6 +81,7 @@ describe("OutfitDetailPage", () => {
     expect(markup).toContain("無効");
     expect(markup).toContain("このコーディネートには現在利用できないアイテムが含まれています。");
     expect(markup).toContain("内容を見直してから保存してください。");
+    expect(markup).toContain("手放し済み");
     expect(markup).toContain('href="/outfits/10/edit"');
   });
 });
