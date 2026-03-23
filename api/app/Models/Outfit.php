@@ -13,6 +13,7 @@ class Outfit extends Model
 
     protected $fillable = [
         'user_id',
+        'status',
         'name',
         'memo',
         'seasons',
