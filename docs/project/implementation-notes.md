@@ -5,6 +5,7 @@
 
 実装着手前の確認観点を見返すときは `docs/project/implementation-checklist.md` を参照します。
 item status 変更仕様の正本を確認するときは `docs/specs/items/status-management.md` を参照します。
+item 詳細画面での status 操作 UI を確認するときは `docs/specs/items/detail-status-ui.md` を参照します。
 
 ## 直近TODO
 

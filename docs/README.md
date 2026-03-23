@@ -22,6 +22,7 @@
 - セキュリティの現状と課題を見たいときは `security/web-security.md`
 - tops の詳細仕様を見たいときは `specs/items/tops.md`
 - item status の状態管理を見たいときは `specs/items/status-management.md`
+- item 詳細画面での status 操作 UI を見たいときは `specs/items/detail-status-ui.md`
 - カテゴリ表示設定の仕様を見たいときは `specs/settings/category-settings.md`
 - 新規登録直後のカテゴリプリセット選択を見たいときは `specs/settings/category-preset-selection.md`
 - アプリ全体の共通ナビ仕様を見たいときは `specs/navigation/global-navigation.md`
@@ -123,6 +124,13 @@
 
 - item status の状態管理と副作用を整理する
 - `active / disposed`、delete との役割分担、outfit / wear logs への影響をまとめる
+
+### `specs/items/detail-status-ui.md`
+
+役割:
+
+- item 詳細画面での status 操作 UI を整理する
+- 「手放す」「所持品に戻す」、確認ダイアログ、成功 / 失敗メッセージ方針をまとめる
 
 ### `specs/settings/category-settings.md`
 
@@ -245,6 +253,7 @@
 必ず確認する:
 
 - `specs/items/status-management.md`
+- `specs/items/detail-status-ui.md`
 - `specs/items/tops.md`
 - `api/api-overview.md`
 - `data/database.md`
