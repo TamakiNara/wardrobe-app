@@ -27,6 +27,7 @@ type OutfitItem = {
 
 type Outfit = {
   id: number;
+  status: "active" | "invalid";
   name: string | null;
   memo: string | null;
   seasons: string[];
@@ -105,6 +106,19 @@ export default async function OutfitDetailPage({
             <h1 className="min-h-8 text-2xl font-bold text-gray-900">
               {outfit.name ?? ""}
             </h1>
+            {outfit.status === "invalid" && (
+              <div className="mt-3 space-y-2">
+                <p className="inline-flex rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-sm font-medium text-amber-800">
+                  無効
+                </p>
+                <p className="text-sm text-amber-800">
+                  このコーディネートには現在利用できないアイテムが含まれています。
+                </p>
+                <p className="text-sm text-gray-600">
+                  内容を見直してから保存してください。
+                </p>
+              </div>
+            )}
           </div>
 
           <div className="flex items-center gap-3">
