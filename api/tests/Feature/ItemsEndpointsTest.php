@@ -92,4 +92,41 @@ class ItemsEndpointsTest extends TestCase
             'name' => '白シャツ',
         ]);
     }
+
+    public function test_get_items_excludes_disposed_items_from_normal_list(): void
+    {
+        $user = User::factory()->create();
+        $user->forceFill([
+            'visible_category_ids' => ['tops_tshirt'],
+        ])->save();
+
+        $activeItem = $this->createItem($user, [
+            'name' => '表示される白T',
+            'status' => 'active',
+            'shape' => 'tshirt',
+        ]);
+
+        $this->createItem($user, [
+            'name' => '手放した白T',
+            'status' => 'disposed',
+            'shape' => 'tshirt',
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->getJson('/api/items', [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonCount(1, 'items')
+            ->assertJsonPath('items.0.id', $activeItem->id)
+            ->assertJsonPath('items.0.name', '表示される白T')
+            ->assertJsonPath('meta.total', 1)
+            ->assertJsonPath('meta.totalAll', 1);
+
+        $response->assertJsonMissing([
+            'name' => '手放した白T',
+        ]);
+    }
 }

@@ -23,6 +23,7 @@ class ItemsIndexQuery
 
         $visibleItems = Item::query()
             ->where('user_id', $user->id)
+            ->where('status', 'active')
             ->latest()
             ->get()
             ->filter(fn (Item $item) => ListQuerySupport::isItemVisibleForList($item, $visibleCategoryIds))
