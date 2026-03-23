@@ -33,6 +33,48 @@
 6. tops SVG の見た目調整に戻る
    - tshirt / shirt / blouse の細部調整を再開する
 
+## 実装着手前チェックリスト
+
+### docs 上で決定済み
+
+- Item の `status` は `active` / `disposed` とし、通常一覧・outfit・wear logs の候補から `disposed` を除外する
+  - 正本: `docs/data/database.md`, `docs/api/openapi.yaml`
+- Outfit の `status` は `active` / `invalid` とし、通常保存では `status` を payload に含めない
+  - 正本: `docs/specs/outfits/create-edit.md`, `docs/data/database.md`, `docs/api/openapi.yaml`
+- wear logs は `source_outfit_id` を「ベースにした outfit」として持ち、最終的な item 構成は `items` / `wear_log_items` を正本とする
+  - 正本: `docs/specs/wears/wear-logs.md`, `docs/data/database.md`, `docs/api/openapi.yaml`
+- `item_source_type` は `outfit` / `manual`、`current status` は補助情報として扱う
+  - 正本: `docs/specs/wears/wear-logs.md`, `docs/api/openapi.yaml`
+
+### 未実装
+
+- `invalid outfit` 一覧、`restore`、`duplicate` は `future API` として定義済みだが未実装
+  - 正本: `docs/specs/outfits/create-edit.md`, `docs/api/openapi.yaml`
+- wear logs の API / DB / UI は docs に反映済みだが未実装
+  - 正本: `docs/specs/wears/wear-logs.md`, `docs/data/database.md`, `docs/api/openapi.yaml`
+- event log は `disposed / invalid / restore / duplicate` を優先対象としているが未実装
+  - 正本: `docs/specs/logging/logging-policy.md`
+
+### `future API`
+
+- `GET /api/outfits/invalid`
+- `POST /api/outfits/{id}/restore`
+- `POST /api/outfits/{id}/duplicate`
+- `GET /api/wear-logs`
+- `GET /api/wear-logs/{id}`
+- `POST /api/wear-logs`
+- `PUT /api/wear-logs/{id}`
+- `DELETE /api/wear-logs/{id}`
+
+### 副作用あり
+
+- item を `disposed` にすると、その item を含む `active outfit` は `invalid` に遷移する
+  - 正本: `docs/specs/outfits/create-edit.md`, `docs/data/database.md`
+- item が `active` に戻っても outfit は自動 `restore` しない
+  - 正本: `docs/specs/outfits/create-edit.md`, `docs/api/openapi.yaml`
+- `disposed item` / `invalid outfit` は wear logs の新規登録・更新候補から除外する
+  - 正本: `docs/specs/wears/wear-logs.md`, `docs/data/database.md`, `docs/api/openapi.yaml`
+
 ## 進行中
 
 ### settings
@@ -168,9 +210,9 @@
 
 - 作成 / 編集 / invalid / 複製の正本は `docs/specs/outfits/create-edit.md`
 
-future API メモ:
+`future API` メモ:
 
-- invalid outfit の運用は `docs/api/openapi.yaml` にも future API として反映済み
+- invalid outfit の運用は `docs/api/openapi.yaml` にも `future API` として反映済み
 - 現時点では未実装だが、将来的に以下を追加する想定
   - `GET /api/outfits/invalid`
   - `POST /api/outfits/{id}/restore`
@@ -403,11 +445,11 @@ wear logs は現時点では **未実装**。
 - 同一 wear log 内で同一 item の重複は不可
 - MVP では snapshot を持たない
 - `disposed` item と `invalid` outfit は新規登録・更新時の候補から除外する
-- current status は履歴の主表示ではなく補助情報として扱う
+- `current status` は履歴の主表示ではなく補助情報として扱う
 
 ### 実装時の補足
 
-- API は future 設計として `openapi.yaml` に記載済みだが、現時点では未実装
+- API は `future API` として `openapi.yaml` に記載済みだが、現時点では未実装
 - 実装時は Request / Response / validation / transaction を `openapi.yaml` と `wear-logs.md` に合わせる
 - 更新処理は差分更新ではなく、明細込み全体更新を前提とする
 

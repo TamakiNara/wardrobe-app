@@ -25,6 +25,7 @@
 - 新規登録直後のカテゴリプリセット選択を見たいときは `specs/settings/category-preset-selection.md`
 - アプリ全体の共通ナビ仕様を見たいときは `specs/navigation/global-navigation.md`
 - Outfit の作成・編集・invalid/複製方針を見たいときは `specs/outfits/create-edit.md`
+- wear logs の `source_outfit_id` / `item_source_type` / `current status` 方針を見たいときは `specs/wears/wear-logs.md`
 
 ---
 

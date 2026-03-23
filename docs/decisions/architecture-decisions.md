@@ -112,7 +112,7 @@ Session 認証を利用する場合、次が必要になる
 ## Trade-offs
 
 - Laravel の一般的な API 構成とは異なる
-- 将来 API 公開する場合は再設計が必要
+- `future API` を公開する場合は再設計が必要
 
 ---
 

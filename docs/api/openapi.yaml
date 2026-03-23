@@ -27,7 +27,7 @@ tags:
     description: コーディネート関連 API
   - name: Wear Logs (Future)
     description: |
-      wear logs 用の将来 API 設計です。
+      wear logs 用の future API 設計です。
       現時点では未実装です。
 
 paths:
@@ -455,7 +455,7 @@ paths:
         - Outfits
       summary: invalid コーディネート一覧取得
       description: |
-        invalid outfit 一覧取得用の将来 API 設計です。
+        invalid outfit 一覧取得用の future API 設計です。
         現時点では未実装です。
 
         通常一覧には出さない `status=invalid` の outfit を返す。
@@ -479,7 +479,7 @@ paths:
         - Outfits
       summary: invalid コーディネート手動復帰
       description: |
-        invalid outfit の手動復帰用の将来 API 設計です。
+        invalid outfit の手動復帰用の future API 設計です。
         現時点では未実装です。
 
         構成 item がすべて active で、他に invalid 理由がない場合のみ
@@ -513,7 +513,7 @@ paths:
         - Outfits
       summary: コーディネート複製
       description: |
-        outfit 複製用の将来 API 設計です。
+        outfit 複製用の future API 設計です。
         現時点では未実装です。
 
         active / invalid を問わず複製可能とする。
@@ -542,7 +542,7 @@ paths:
         - Wear Logs (Future)
       summary: wear logs 一覧取得
       description: |
-        wear logs 一覧取得用の将来 API 設計です。
+        wear logs 一覧取得用の future API 設計です。
         現時点では未実装です。
       parameters:
         - name: page
@@ -596,7 +596,7 @@ paths:
         - Wear Logs (Future)
       summary: wear log 作成
       description: |
-        wear log 作成用の将来 API 設計です。
+        wear log 作成用の future API 設計です。
         現時点では未実装です。
       requestBody:
         required: true
@@ -621,7 +621,7 @@ paths:
         - Wear Logs (Future)
       summary: wear log 詳細取得
       description: |
-        wear log 詳細取得用の将来 API 設計です。
+        wear log 詳細取得用の future API 設計です。
         現時点では未実装です。
       parameters:
         - name: wearLogId
@@ -646,7 +646,7 @@ paths:
         - Wear Logs (Future)
       summary: wear log 更新
       description: |
-        wear log 更新用の将来 API 設計です。
+        wear log 更新用の future API 設計です。
         現時点では未実装です。
       parameters:
         - name: wearLogId
@@ -679,7 +679,7 @@ paths:
         - Wear Logs (Future)
       summary: wear log 削除
       description: |
-        wear log 削除用の将来 API 設計です。
+        wear log 削除用の future API 設計です。
         現時点では未実装です。
       parameters:
         - name: wearLogId
