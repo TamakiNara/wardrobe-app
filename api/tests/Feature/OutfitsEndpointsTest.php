@@ -83,6 +83,7 @@ class OutfitsEndpointsTest extends TestCase
     public function test_get_outfits_excludes_invalid_outfits_from_normal_list(): void
     {
         $user = User::factory()->create();
+        $otherUser = User::factory()->create();
 
         $activeOutfit = Outfit::query()->create([
             'user_id' => $user->id,
@@ -97,6 +98,15 @@ class OutfitsEndpointsTest extends TestCase
             'user_id' => $user->id,
             'status' => 'invalid',
             'name' => '無効コーデ',
+            'memo' => null,
+            'seasons' => ['春'],
+            'tpos' => ['休日'],
+        ]);
+
+        Outfit::query()->create([
+            'user_id' => $otherUser->id,
+            'status' => 'active',
+            'name' => '他人の通常コーデ',
             'memo' => null,
             'seasons' => ['春'],
             'tpos' => ['休日'],
@@ -117,6 +127,9 @@ class OutfitsEndpointsTest extends TestCase
 
         $response->assertJsonMissing([
             'name' => '無効コーデ',
+        ]);
+        $response->assertJsonMissing([
+            'name' => '他人の通常コーデ',
         ]);
     }
 
