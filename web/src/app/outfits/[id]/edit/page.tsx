@@ -6,21 +6,10 @@ import { useRouter } from "next/navigation";
 import { isItemVisibleByCategorySettings } from "@/lib/api/categories";
 import { fetchCategoryVisibilitySettings } from "@/lib/api/settings";
 import type { CreateOutfitPayload } from "@/types/outfits";
+import type { ItemRecord } from "@/types/items";
 import { SEASON_OPTIONS, TPO_OPTIONS } from "@/lib/master-data/item-attributes";
 
-type Item = {
-  id: number;
-  name: string | null;
-  category: string;
-  shape: string;
-  colors: {
-    role: "main" | "sub";
-    mode: "preset" | "custom";
-    value: string;
-    hex: string;
-    label: string;
-  }[];
-};
+type Item = ItemRecord;
 
 type OutfitItem = {
   id: number;
@@ -107,13 +96,25 @@ export default function EditOutfitPage({
         setSelectedItemIds(outfitItems.map((item) => item.item_id));
 
         const selectedIds = outfitItems.map((item) => item.item_id);
+        const selectedItemsFromOutfit = outfitItems.map((item) => item.item);
         const visibleCategoryIds = settings?.visibleCategoryIds;
-        const nextItems = visibleCategoryIds
+        const visibleItems = visibleCategoryIds
           ? allItems.filter((item) =>
               selectedIds.includes(item.id) ||
               isItemVisibleByCategorySettings(item, visibleCategoryIds),
             )
           : allItems;
+
+        const nextItems = [...selectedItemsFromOutfit, ...visibleItems].reduce<Item[]>(
+          (carry, item) => {
+            if (carry.some((current) => current.id === item.id)) {
+              return carry;
+            }
+
+            return [...carry, item];
+          },
+          [],
+        );
 
         setItems(nextItems);
       } finally {
@@ -169,6 +170,14 @@ export default function EditOutfitPage({
       .filter((item): item is Item => Boolean(item));
   }, [selectedItemIds, items]);
 
+  const candidateItems = useMemo(() => {
+    return items.filter((item) => item.status === "active" || selectedItemIds.includes(item.id));
+  }, [items, selectedItemIds]);
+
+  const hasDisposedSelectedItems = useMemo(() => {
+    return selectedItems.some((item) => item.status === "disposed");
+  }, [selectedItems]);
+
   function buildPayload(): CreateOutfitPayload {
     return {
       name,
@@ -177,7 +186,7 @@ export default function EditOutfitPage({
       tpos: selectedTpos,
       items: selectedItemIds.map((itemId, index) => ({
         item_id: itemId,
-        sort_order: index,
+        sort_order: index + 1,
       })),
     };
   }
@@ -187,6 +196,10 @@ export default function EditOutfitPage({
 
     if (selectedItemIds.length === 0) {
       nextErrors.items = "アイテムを1つ以上選択してください。";
+    }
+
+    if (hasDisposedSelectedItems) {
+      nextErrors.items = "手放し済みのアイテムを含むため、このままでは保存できません。";
     }
 
     setErrors(nextErrors);
@@ -404,13 +417,13 @@ export default function EditOutfitPage({
 
             {loadingItems ? (
               <p className="text-sm text-gray-600">アイテムを読み込み中です...</p>
-            ) : items.length === 0 ? (
+            ) : candidateItems.length === 0 ? (
               <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-6 text-sm text-gray-600">
                 登録済みアイテムがありません。先にアイテムを登録してください。
               </div>
             ) : (
               <div className="grid gap-3 md:grid-cols-2">
-                {items.map((item) => {
+                {candidateItems.map((item) => {
                   const checked = selectedItemIds.includes(item.id);
                   const mainColor = item.colors.find((c) => c.role === "main");
 
@@ -432,12 +445,24 @@ export default function EditOutfitPage({
                         />
 
                         <div className="min-w-0 flex-1">
-                          <p className="font-medium text-gray-900">
-                            {item.name || "名称未設定"}
-                          </p>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="font-medium text-gray-900">
+                              {item.name || "名称未設定"}
+                            </p>
+                            {item.status === "disposed" && (
+                              <span className="rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800">
+                                手放し済み
+                              </span>
+                            )}
+                          </div>
                           <p className="mt-1 text-sm text-gray-600">
                             {item.category} / {item.shape}
                           </p>
+                          {item.status === "disposed" && (
+                            <p className="mt-2 text-sm text-amber-800">
+                              このアイテムは現在の候補には使えません
+                            </p>
+                          )}
 
                           {mainColor && (
                             <div className="mt-2 inline-flex items-center gap-2 rounded-full border border-gray-300 px-3 py-1 text-sm">
@@ -456,6 +481,12 @@ export default function EditOutfitPage({
               </div>
             )}
 
+            {hasDisposedSelectedItems && (
+              <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                手放し済みのアイテムを含むため、このままでは保存できません。
+              </div>
+            )}
+
             {errors.items && (
               <p className="mt-2 text-sm text-red-600">{errors.items}</p>
             )}
@@ -469,6 +500,7 @@ export default function EditOutfitPage({
                   {selectedItems.map((item, index) => (
                     <li key={item.id}>
                       {index + 1}. {item.name || "名称未設定"} ({item.category} / {item.shape})
+                      {item.status === "disposed" ? " / 手放し済み" : ""}
                     </li>
                   ))}
                 </ol>
@@ -479,7 +511,7 @@ export default function EditOutfitPage({
           <div className="flex flex-col gap-3 pt-2 sm:flex-row">
             <button
               type="submit"
-              disabled={submitting || loadingItems}
+              disabled={submitting || loadingItems || hasDisposedSelectedItems}
               className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-3 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {submitting ? "更新中..." : "更新する"}
