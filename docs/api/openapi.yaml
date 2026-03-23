@@ -589,16 +589,15 @@ paths:
         - Outfits
       summary: コーディネート複製
       description: |
-        outfit 複製用の future API 設計です。
-        現時点では未実装です。
+        実装済みの outfit 複製用 API。
 
         active / invalid を問わず複製可能とする。
         invalid outfit の場合は再利用導線として特に重要とし、
-        disposed item は通常選択状態にしない前提で初期値生成する想定とする。
+        disposed item は通常選択状態にしない形で初期値生成する。
         response の `outfit` は保存済み record ではなく、
         新規作成画面へ渡す初期値 payload を返す。
         `items[*].selectable=false` と `note` により、
-        現在は使えない item を補助表示できる前提とする。
+        現在は使えない item を補助表示できる。
       security:
         - SessionCookieAuth: []
       parameters:

@@ -254,6 +254,44 @@ Route::prefix('api')->middleware(['web'])->group(function () {
         ]);
     });
 
+    Route::middleware('auth:web')->post('/outfits/{id}/duplicate', function (Request $request, int $id) {
+        $outfit = Outfit::query()
+            ->where('user_id', $request->user()->id)
+            ->with(['outfitItems.item'])
+            ->findOrFail($id);
+
+        $payloadItems = $outfit->outfitItems
+            ->sortBy('sort_order')
+            ->values()
+            ->map(function ($outfitItem) use ($outfit) {
+                $isDisposed = $outfit->status === 'invalid'
+                    && ($outfitItem->item === null || $outfitItem->item->status !== 'active');
+
+                return [
+                    'item_id' => $outfitItem->item_id,
+                    'sort_order' => $outfitItem->sort_order,
+                    'selectable' => ! $isDisposed,
+                    'note' => $isDisposed ? '手放したアイテムのため初期選択から除外' : null,
+                ];
+            })
+            ->all();
+
+        $duplicatedName = $outfit->name !== null
+            ? $outfit->name . '（コピー）'
+            : '（コピー）';
+
+        return response()->json([
+            'message' => 'duplicated_payload_ready',
+            'outfit' => [
+                'name' => $duplicatedName,
+                'memo' => $outfit->memo,
+                'seasons' => $outfit->seasons ?? [],
+                'tpos' => $outfit->tpos ?? [],
+                'items' => $payloadItems,
+            ],
+        ]);
+    });
+
     Route::middleware('auth:web')->post('/outfits', function (Request $request) {
         $validated = $request->validate([
             'name' => ['nullable', 'string', 'max:255'],

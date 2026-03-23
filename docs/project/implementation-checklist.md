@@ -42,9 +42,9 @@ item 詳細画面での status 操作 UI は `docs/specs/items/detail-status-ui.
 - 正本: `docs/specs/wears/wear-logs.md`, `docs/data/database.md`, `docs/api/openapi.yaml`
 
 - invalid outfit 向けの補助導線は一部未実装
-- 対象: `duplicate`
-- backend: `POST /api/outfits/{id}/duplicate`
-- frontend: invalid 一覧 / 詳細からの `restore` / `duplicate` action と、新規作成画面への複製初期値適用
+- 対象: invalid 一覧 / 詳細からの `duplicate` action と、新規作成画面への複製初期値適用
+- backend: `POST /api/outfits/{id}/duplicate` は実装済み
+- frontend: `duplicate` response を新規作成画面へ反映する導線は未実装
 - 正本: `docs/specs/outfits/create-edit.md`, `docs/api/openapi.yaml`
 
 - event_logs は未実装
@@ -55,7 +55,6 @@ item 詳細画面での status 操作 UI は `docs/specs/items/detail-status-ui.
 
 ## future API
 
-- `POST /api/outfits/{id}/duplicate`
 - `GET /api/wear-logs`
 - `GET /api/wear-logs/{id}`
 - `POST /api/wear-logs`
@@ -78,6 +77,7 @@ item 詳細画面での status 操作 UI は `docs/specs/items/detail-status-ui.
 
 - `duplicate` は `active` / `invalid` 共通機能だが、invalid outfit では再利用の主導線になる
 - invalid outfit の `duplicate` では `disposed` item を通常選択状態にしない
+- `duplicate` response は保存済み outfit ではなく、新規作成画面へ渡す初期値 payload を返す
 - 正本: `docs/specs/outfits/create-edit.md`, `docs/api/openapi.yaml`
 
 - event_logs を実装する場合、`item_disposed` `item_reactivated` `outfit_invalidated` `outfit_restored` `outfit_duplicated` などのイベント種別設計が連動する
@@ -94,8 +94,8 @@ item 詳細画面での status 操作 UI は `docs/specs/items/detail-status-ui.
    - `active / invalid`、通常保存時の `status` 非包含、item `disposed` に伴う invalid 化は docs に反映済みのため、実装を揃える
    - 理由: invalid outfit future API と wear logs の前提になるため
 3. invalid outfit 残タスクの実装着手
-   - 対象: `duplicate` と invalid 一覧 / 詳細での action 導線
-   - 理由: `restore` API は実装済みのため、再利用導線と UI 反映へ絞って進めやすいため
+   - 対象: invalid 一覧 / 詳細での `duplicate` action と、新規作成画面への初期値適用
+   - 理由: `restore` / `duplicate` API は実装済みのため、残りの UI 反映へ絞って進めやすいため
 4. wear logs の実装着手
    - 対象: DB、API、UI、validation、一覧共通仕様との接続
    - 理由: `source_outfit_id`、`item_source_type`、候補除外、副作用の前提を利用するため

@@ -23,7 +23,7 @@ item 詳細画面での status 操作 UI を確認するときは `docs/specs/it
    - `ItemUpsertRequest` の `status` 非包含方針
    - `disposed` と delete の役割分担
    - outfits / wear logs の候補除外前提との整合
-   - invalid outfit の実装済み API（一覧 / `restore`）と future API（`duplicate`）の description / schema / response の過不足確認
+   - invalid outfit の実装済み API（一覧 / `restore` / `duplicate`）の description / schema / response の過不足確認
 3. 各画面のエラーメッセージと空状態を整理する
    - login / register / items / outfits / settings に初期文言を反映済み
    - 未反映画面と細かな文言差分を引き続き詰める
@@ -51,7 +51,8 @@ item 詳細画面での status 操作 UI を確認するときは `docs/specs/it
 
 ### 未実装
 
-- `invalid outfit` では `GET /api/outfits/invalid` と `POST /api/outfits/{id}/restore` は実装済みであり、未実装の中心は `duplicate`
+- `invalid outfit` では `GET /api/outfits/invalid`、`POST /api/outfits/{id}/restore`、`POST /api/outfits/{id}/duplicate` は実装済み
+  - 残タスクの中心は frontend の `duplicate` 導線と wear logs
   - 正本: `docs/specs/outfits/create-edit.md`, `docs/api/openapi.yaml`
 - wear logs の API / DB / UI は docs に反映済みだが未実装
   - 正本: `docs/specs/wears/wear-logs.md`, `docs/data/database.md`, `docs/api/openapi.yaml`
@@ -60,7 +61,6 @@ item 詳細画面での status 操作 UI を確認するときは `docs/specs/it
 
 ### `future API`
 
-- `POST /api/outfits/{id}/duplicate`
 - `GET /api/wear-logs`
 - `GET /api/wear-logs/{id}`
 - `POST /api/wear-logs`
@@ -75,6 +75,9 @@ item 詳細画面での status 操作 UI を確認するときは `docs/specs/it
   - 正本: `docs/specs/outfits/create-edit.md`, `docs/api/openapi.yaml`
 - 手動 `restore` は対象 outfit が `invalid` で、構成 item がすべて `active` の場合のみ許可する
   - 正本: `docs/specs/outfits/create-edit.md`, `docs/api/openapi.yaml`
+- `duplicate` は保存済み outfit ではなく、新規作成画面へ渡す初期値 payload を返す
+  - invalid outfit 由来の `disposed` item は `selectable=false` と `note` で返す
+  - 正本: `docs/specs/outfits/create-edit.md`, `docs/specs/outfits/item-candidate-rules.md`, `docs/api/openapi.yaml`
 - `disposed item` / `invalid outfit` は wear logs の新規登録・更新候補から除外する
   - 正本: `docs/specs/wears/wear-logs.md`, `docs/data/database.md`, `docs/api/openapi.yaml`
 
@@ -217,8 +220,10 @@ item 詳細画面での status 操作 UI を確認するときは `docs/specs/it
 
 - invalid outfit の一覧取得 `GET /api/outfits/invalid` は実装済み
 - 手動復帰 `POST /api/outfits/{id}/restore` は実装済み
-- 現時点で未実装の中心は以下
-  - `POST /api/outfits/{id}/duplicate`
+- 複製初期値取得 `POST /api/outfits/{id}/duplicate` は実装済み
+- 現時点の残タスクの中心は以下
+  - frontend の `duplicate` 導線
+  - wear logs
 - `restore` は手動復帰用の補助導線とし、対象 outfit が `invalid` で、構成 item がすべて active の場合のみ許可する
 - `duplicate` は active / invalid 共通機能だが、invalid outfit では再利用の主導線として扱う
 - `duplicate` は保存済み outfit を直接複製作成する API ではなく、新規作成画面に渡す初期値生成 API として設計している

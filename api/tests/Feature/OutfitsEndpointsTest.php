@@ -333,6 +333,159 @@ class OutfitsEndpointsTest extends TestCase
         ])->assertStatus(404);
     }
 
+    public function test_post_outfit_duplicate_returns_payload_for_active_outfit(): void
+    {
+        $user = User::factory()->create();
+        $itemA = $this->createItem($user, ['name' => 'トップス']);
+        $itemB = $this->createItem($user, ['name' => 'ボトムス', 'category' => 'bottoms']);
+
+        $outfit = Outfit::query()->create([
+            'user_id' => $user->id,
+            'status' => 'active',
+            'name' => '通勤コーデ',
+            'memo' => '春秋向け',
+            'seasons' => ['春', '秋'],
+            'tpos' => ['仕事'],
+        ]);
+        $outfit->outfitItems()->createMany([
+            ['item_id' => $itemA->id, 'sort_order' => 1],
+            ['item_id' => $itemB->id, 'sort_order' => 2],
+        ]);
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $response = $this->postJson("/api/outfits/{$outfit->id}/duplicate", [], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('message', 'duplicated_payload_ready')
+            ->assertJsonPath('outfit.name', '通勤コーデ（コピー）')
+            ->assertJsonPath('outfit.memo', '春秋向け')
+            ->assertJsonPath('outfit.seasons.0', '春')
+            ->assertJsonPath('outfit.seasons.1', '秋')
+            ->assertJsonPath('outfit.tpos.0', '仕事')
+            ->assertJsonCount(2, 'outfit.items')
+            ->assertJsonPath('outfit.items.0.item_id', $itemA->id)
+            ->assertJsonPath('outfit.items.0.sort_order', 1)
+            ->assertJsonPath('outfit.items.0.selectable', true)
+            ->assertJsonPath('outfit.items.0.note', null)
+            ->assertJsonPath('outfit.items.1.item_id', $itemB->id)
+            ->assertJsonPath('outfit.items.1.sort_order', 2)
+            ->assertJsonPath('outfit.items.1.selectable', true)
+            ->assertJsonPath('outfit.items.1.note', null);
+
+        $response->assertJsonMissingPath('outfit.id');
+        $response->assertJsonMissingPath('outfit.status');
+        $response->assertJsonMissingPath('outfit.created_at');
+        $response->assertJsonMissingPath('outfit.updated_at');
+    }
+
+    public function test_post_outfit_duplicate_returns_payload_for_invalid_outfit(): void
+    {
+        $user = User::factory()->create();
+        $activeItem = $this->createItem($user, ['name' => '使用可能']);
+
+        $outfit = Outfit::query()->create([
+            'user_id' => $user->id,
+            'status' => 'invalid',
+            'name' => '無効コーデ',
+            'memo' => null,
+            'seasons' => ['冬'],
+            'tpos' => ['休日'],
+        ]);
+        $outfit->outfitItems()->create([
+            'item_id' => $activeItem->id,
+            'sort_order' => 1,
+        ]);
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $response = $this->postJson("/api/outfits/{$outfit->id}/duplicate", [], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('message', 'duplicated_payload_ready')
+            ->assertJsonPath('outfit.name', '無効コーデ（コピー）')
+            ->assertJsonPath('outfit.items.0.item_id', $activeItem->id)
+            ->assertJsonPath('outfit.items.0.selectable', true)
+            ->assertJsonPath('outfit.items.0.note', null);
+    }
+
+    public function test_post_outfit_duplicate_marks_disposed_items_as_not_selectable_for_invalid_outfit(): void
+    {
+        $user = User::factory()->create();
+        $activeItem = $this->createItem($user, ['name' => '使用可能']);
+        $disposedItem = $this->createItem($user, [
+            'name' => '手放し済み',
+            'status' => 'disposed',
+        ]);
+
+        $outfit = Outfit::query()->create([
+            'user_id' => $user->id,
+            'status' => 'invalid',
+            'name' => '差し替え前コーデ',
+            'memo' => 'memo',
+            'seasons' => ['春'],
+            'tpos' => ['休日'],
+        ]);
+        $outfit->outfitItems()->createMany([
+            ['item_id' => $activeItem->id, 'sort_order' => 1],
+            ['item_id' => $disposedItem->id, 'sort_order' => 2],
+        ]);
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $response = $this->postJson("/api/outfits/{$outfit->id}/duplicate", [], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('message', 'duplicated_payload_ready')
+            ->assertJsonPath('outfit.items.0.item_id', $activeItem->id)
+            ->assertJsonPath('outfit.items.0.selectable', true)
+            ->assertJsonPath('outfit.items.0.note', null)
+            ->assertJsonPath('outfit.items.1.item_id', $disposedItem->id)
+            ->assertJsonPath('outfit.items.1.sort_order', 2)
+            ->assertJsonPath('outfit.items.1.selectable', false)
+            ->assertJsonPath('outfit.items.1.note', '手放したアイテムのため初期選択から除外');
+    }
+
+    public function test_post_outfit_duplicate_returns_404_for_other_users_outfit(): void
+    {
+        $user = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $item = $this->createItem($otherUser);
+
+        $outfit = Outfit::query()->create([
+            'user_id' => $otherUser->id,
+            'status' => 'active',
+            'name' => '他人のコーデ',
+            'memo' => null,
+            'seasons' => ['春'],
+            'tpos' => ['休日'],
+        ]);
+        $outfit->outfitItems()->create([
+            'item_id' => $item->id,
+            'sort_order' => 1,
+        ]);
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $this->postJson("/api/outfits/{$outfit->id}/duplicate", [], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ])->assertStatus(404);
+    }
+
     public function test_post_outfits_creates_outfit_and_outfit_items(): void
     {
         $user = User::factory()->create();
