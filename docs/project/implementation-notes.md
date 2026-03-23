@@ -7,16 +7,29 @@
 
 優先順:
 
-1. 各画面のエラーメッセージと空状態を整理する
-   - login / register / items / outfits / settings に初期文言を反映済み。未反映画面と細かな文言差分を引き続き詰める
-2. スマホ実機でキーワード検索入力と IME 変換が安定するかを確認する
-   - Chrome 実機では items / outfits の入力確認を完了。Safari 実機が必要なら追加確認する
-3. tops SVG の見た目調整に戻る
-   - tshirt / shirt / blouse の細部調整を再開する
+1. docs 正本の整合確認を続ける
+   - `docs/specs/wears/wear-logs.md`
+   - `docs/specs/outfits/create-edit.md`
+   - `docs/data/database.md`
+   - `docs/api/openapi.yaml`
+   の間で、仕様 / DB / API のズレがないか確認する
+   - wear logs / outfits は概ね整理済みのため、次は Item API の `disposed` 前提が OpenAPI に十分反映されているかを確認する
+2. `docs/api/openapi.yaml` の Item API を確認する
+   - `ItemRecord` に `status` をどう表すか
+   - `ItemUpsertRequest` に `status` を含めるか含めないか
+   - `disposed` と delete の役割分担が docs 上で誤読されないか
+   - outfits / wear logs の候補除外前提と整合するか
+3. 各画面のエラーメッセージと空状態を整理する
+   - login / register / items / outfits / settings に初期文言を反映済み
+   - 未反映画面と細かな文言差分を引き続き詰める
 4. ログ設計の方針を整理する
    - アプリケーションログと一部イベントログの方針を詰める
-5. docs の OpenAPI / database / architecture の整合を追加確認する
-   - `docs/data/database.md` に残っている英語見出し / 英語本文も段階的に日本語へ統一する
+   - item `disposed` / outfit `invalid` / 将来の wear logs 状態変更で何を残すか整理する
+5. スマホ実機でキーワード検索入力と IME 変換が安定するかを確認する
+   - Chrome 実機では items / outfits の入力確認を完了
+   - Safari 実機が必要なら追加確認する
+6. tops SVG の見た目調整に戻る
+   - tshirt / shirt / blouse の細部調整を再開する
 
 ## 進行中
 
@@ -119,7 +132,8 @@
 - BFF の GET は URL クエリを Laravel へそのまま転送し、Laravel 側で検索・並び替え・`page` を適用する
 - Laravel の一覧 API は `total / totalAll / page / lastPage` と filter 候補を meta として返し、UI で前へ / 次へのページャを描画する
 - `total` は現在の検索条件に一致した件数、`totalAll` はフィルタ前の母数として API から取得している。現在のページャ文言は `2 / 3ページ（全36件）` の形で `total` のみを表示する
-- 1 ページ件数は一旦 `App\Support\ListQuerySupport::PAGE_SIZE = 12` の暫定定数で管理しており、docs の正本値との最終整合は別途調整する
+- 1 ページ件数は `App\Support\ListQuerySupport::PAGE_SIZE = 12` で統一している
+- docs の一覧共通仕様も 12件/ページ 前提に揃える
 
 次に詰める候補:
 
@@ -145,7 +159,8 @@
 - BFF の GET は URL クエリを Laravel へそのまま転送し、Laravel 側で検索・並び替え・`page` を適用する
 - Laravel の一覧 API は `total / totalAll / page / lastPage` を meta として返し、UI で前へ / 次へのページャを描画する
 - `total` は現在の検索条件に一致した件数、`totalAll` はフィルタ前の母数として API から取得している。現在のページャ文言は `2 / 3ページ（全36件）` の形で `total` のみを表示する
-- 1 ページ件数は一旦 `App\Support\ListQuerySupport::PAGE_SIZE = 12` の暫定定数で管理しており、docs の正本値との最終整合は別途調整する
+- 1 ページ件数は `App\Support\ListQuerySupport::PAGE_SIZE = 12` で統一している
+- docs の一覧共通仕様も 12件/ページ 前提に揃える
 
 関連仕様:
 
@@ -409,5 +424,6 @@ wear logs は現時点では **未実装**。
 ## 注意点
 
 - `docs/project/implementation-notes.md` は作業ログ寄りの資料として運用する
-- 設計の正本は `docs/api/api-overview.md` `docs/data/database.md` `docs/architecture/system-overview.md` を参照する
+- 設計の正本は `docs/specs/` `docs/data/database.md` `docs/api/openapi.yaml` を参照する
+- 特に wear logs は `docs/specs/wears/wear-logs.md`、outfits は `docs/specs/outfits/create-edit.md` を優先して参照する
 - 日本語テキストは UTF-8 前提で編集すること
