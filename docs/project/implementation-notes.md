@@ -4,6 +4,7 @@
 設計の正本は `docs/` 配下の各資料を参照し、日々の実装状況と判断メモはこのファイルに集約します。
 
 実装着手前の確認観点を見返すときは `docs/project/implementation-checklist.md` を参照します。
+item status 変更仕様の正本を確認するときは `docs/specs/items/status-management.md` を参照します。
 
 ## 直近TODO
 

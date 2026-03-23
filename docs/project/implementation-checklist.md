@@ -3,6 +3,7 @@
 このファイルは、ここまで整理した docs を、実装順と副作用の観点で見返しやすくするためのチェックリストです。  
 docs 上の整合確認は概ね完了しており、本書では「確認済み / 実装未着手」の観点を中心に整理します。  
 大きな仕様変更は行わず、正本として `docs/specs/` `docs/data/database.md` `docs/api/openapi.yaml` を優先して参照します。
+item status 変更仕様は `docs/specs/items/status-management.md` を起点に確認します。
 
 ---
 
