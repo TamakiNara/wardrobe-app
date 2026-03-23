@@ -18,6 +18,7 @@ class OutfitsIndexQuery
 
         $outfits = Outfit::query()
             ->where('user_id', $user->id)
+            ->where('status', 'active')
             ->with(['outfitItems.item'])
             ->latest()
             ->get();
