@@ -53,7 +53,7 @@ class ItemStatusEndpointsTest extends TestCase
 
         $outfit->outfitItems()->create([
             'item_id' => $item->id,
-            'sort_order' => 0,
+            'sort_order' => 1,
         ]);
 
         return $outfit;
@@ -84,6 +84,51 @@ class ItemStatusEndpointsTest extends TestCase
 
         $this->assertDatabaseHas('outfits', [
             'id' => $outfit->id,
+            'status' => 'invalid',
+        ]);
+    }
+
+    public function test_dispose_does_not_affect_unrelated_outfits(): void
+    {
+        $user = User::factory()->create();
+        $targetItem = $this->createItem($user, ['name' => '対象アイテム']);
+        $otherItem = $this->createItem($user, [
+            'name' => '別アイテム',
+            'category' => 'bottoms',
+            'shape' => 'wide',
+        ]);
+
+        $affectedOutfit = $this->createOutfit($user, $targetItem, [
+            'name' => '影響ありコーデ',
+            'status' => 'active',
+        ]);
+        $unaffectedOutfit = $this->createOutfit($user, $otherItem, [
+            'name' => '影響なしコーデ',
+            'status' => 'active',
+        ]);
+        $alreadyInvalidOutfit = $this->createOutfit($user, $targetItem, [
+            'name' => '既存invalidコーデ',
+            'status' => 'invalid',
+        ]);
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $this->postJson("/api/items/{$targetItem->id}/dispose", [], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ])->assertOk();
+
+        $this->assertDatabaseHas('outfits', [
+            'id' => $affectedOutfit->id,
+            'status' => 'invalid',
+        ]);
+        $this->assertDatabaseHas('outfits', [
+            'id' => $unaffectedOutfit->id,
+            'status' => 'active',
+        ]);
+        $this->assertDatabaseHas('outfits', [
+            'id' => $alreadyInvalidOutfit->id,
             'status' => 'invalid',
         ]);
     }
