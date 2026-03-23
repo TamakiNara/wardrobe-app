@@ -448,6 +448,94 @@ paths:
           description: 未認証
         '404':
           description: 未検出
+
+  /api/outfits/invalid:
+    get:
+      tags:
+        - Outfits
+      summary: invalid コーディネート一覧取得
+      description: |
+        invalid outfit 一覧取得用の将来 API 設計です。
+        現時点では未実装です。
+
+        通常一覧には出さない `status=invalid` の outfit を返す。
+        現在の実装では未対応だが、将来的には一覧共通仕様に合わせた
+        ページング形式へ揃えることを検討する。
+      security:
+        - SessionCookieAuth: []
+      responses:
+        '200':
+          description: 取得成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OutfitsResponse'
+        '401':
+          description: 未認証
+
+  /api/outfits/{id}/restore:
+    post:
+      tags:
+        - Outfits
+      summary: invalid コーディネート手動復帰
+      description: |
+        invalid outfit の手動復帰用の将来 API 設計です。
+        現時点では未実装です。
+
+        構成 item がすべて active で、他に invalid 理由がない場合のみ
+        `status=active` へ復帰できる想定とする。
+      security:
+        - SessionCookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/OutfitIdPath'
+        - $ref: '#/components/parameters/XCsrfTokenHeader'
+      responses:
+        '200':
+          description: 復帰成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OutfitResponseWithMessage'
+        '401':
+          description: 未認証
+        '404':
+          description: 未検出
+        '422':
+          description: 復帰不可またはバリデーションエラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+
+  /api/outfits/{id}/duplicate:
+    post:
+      tags:
+        - Outfits
+      summary: コーディネート複製
+      description: |
+        outfit 複製用の将来 API 設計です。
+        現時点では未実装です。
+
+        active / invalid を問わず複製可能とする。
+        invalid outfit の場合は再利用導線として特に重要とし、
+        disposed item は通常選択状態にしない前提で初期値生成する想定とする。
+      security:
+        - SessionCookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/OutfitIdPath'
+        - $ref: '#/components/parameters/XCsrfTokenHeader'
+      responses:
+        '200':
+          description: 複製用初期値取得成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OutfitDuplicateResponse'
+        '401':
+          description: 未認証
+        '404':
+          description: 未検出
+
   /api/wear-logs:
     get:
       tags:
@@ -1160,6 +1248,67 @@ components:
           properties:
             outfit:
               $ref: '#/components/schemas/OutfitRecord'
+
+    OutfitDuplicateItem:
+      type: object
+      required:
+        - item_id
+        - sort_order
+        - selectable
+      properties:
+        item_id:
+          type: integer
+          example: 101
+        sort_order:
+          type: integer
+          minimum: 1
+          example: 1
+        selectable:
+          type: boolean
+          example: true
+        note:
+          type: string
+          nullable: true
+          example: 手放したアイテムのため初期選択から除外
+
+    OutfitDuplicatePayload:
+      type: object
+      required:
+        - name
+        - items
+      properties:
+        name:
+          type: string
+          nullable: true
+          example: 通勤セット（コピー）
+        memo:
+          type: string
+          nullable: true
+          example: 春秋向け
+        seasons:
+          type: array
+          items:
+            type: string
+        tpos:
+          type: array
+          items:
+            type: string
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OutfitDuplicateItem'
+
+    OutfitDuplicateResponse:
+      type: object
+      required:
+        - message
+        - outfit
+      properties:
+        message:
+          type: string
+          example: duplicated_payload_ready
+        outfit:
+          $ref: '#/components/schemas/OutfitDuplicatePayload'
 
     WearLogStatus:
       type: string

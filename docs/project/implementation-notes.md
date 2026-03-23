@@ -14,11 +14,13 @@
    - `docs/api/openapi.yaml`
    の間で、仕様 / DB / API のズレがないか確認する
    - wear logs / outfits は概ね整理済みのため、次は Item API の `disposed` 前提が OpenAPI に十分反映されているかを確認する
-2. `docs/api/openapi.yaml` の Item API を確認する
-   - `ItemRecord` に `status` をどう表すか
-   - `ItemUpsertRequest` に `status` を含めるか含めないか
-   - `disposed` と delete の役割分担が docs 上で誤読されないか
-   - outfits / wear logs の候補除外前提と整合するか
+   - invalid outfit の future API（一覧 / restore / duplicate）を implementation-notes にも追記する
+2. `docs/api/openapi.yaml` の Item / Outfit 関連を引き続き確認する
+   - `ItemRecord.status`
+   - `ItemUpsertRequest` の `status` 非包含方針
+   - `disposed` と delete の役割分担
+   - outfits / wear logs の候補除外前提との整合
+   - invalid outfit future API の description / schema / response の過不足確認
 3. 各画面のエラーメッセージと空状態を整理する
    - login / register / items / outfits / settings に初期文言を反映済み
    - 未反映画面と細かな文言差分を引き続き詰める
@@ -165,6 +167,17 @@
 関連仕様:
 
 - 作成 / 編集 / invalid / 複製の正本は `docs/specs/outfits/create-edit.md`
+
+future API メモ:
+
+- invalid outfit の運用は `docs/api/openapi.yaml` にも future API として反映済み
+- 現時点では未実装だが、将来的に以下を追加する想定
+  - `GET /api/outfits/invalid`
+  - `POST /api/outfits/{id}/restore`
+  - `POST /api/outfits/{id}/duplicate`
+- `restore` は手動復帰用の補助導線とし、構成 item がすべて active の場合のみ許可する想定
+- `duplicate` は active / invalid 共通機能だが、invalid outfit では再利用の主導線として扱う
+- `duplicate` は保存済み outfit を直接複製作成する API ではなく、新規作成画面に渡す初期値生成 API として設計している
 
 項目:
 
