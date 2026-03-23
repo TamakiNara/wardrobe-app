@@ -228,7 +228,7 @@ Route::prefix('api')->middleware(['web'])->group(function () {
             'tpos.*' => ['string', 'max:50'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.item_id' => ['required', 'integer'],
-            'items.*.sort_order' => ['required', 'integer', 'min:0'],
+            'items.*.sort_order' => ['required', 'integer', 'min:1'],
         ]);
 
         $user = $request->user();
@@ -303,7 +303,7 @@ Route::prefix('api')->middleware(['web'])->group(function () {
             'tpos.*' => ['string', 'max:50'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.item_id' => ['required', 'integer'],
-            'items.*.sort_order' => ['required', 'integer', 'min:0'],
+            'items.*.sort_order' => ['required', 'integer', 'min:1'],
         ]);
 
         $user = $request->user();

@@ -95,8 +95,8 @@ class OutfitsEndpointsTest extends TestCase
             'seasons' => ['春', '秋'],
             'tpos' => ['休日'],
             'items' => [
-                ['item_id' => $itemA->id, 'sort_order' => 0],
-                ['item_id' => $itemB->id, 'sort_order' => 1],
+                ['item_id' => $itemA->id, 'sort_order' => 1],
+                ['item_id' => $itemB->id, 'sort_order' => 2],
             ],
         ], [
             'Accept' => 'application/json',
@@ -128,8 +128,8 @@ class OutfitsEndpointsTest extends TestCase
         $response = $this->postJson('/api/outfits', [
             'name' => '休日コーデ',
             'items' => [
-                ['item_id' => $ownedItem->id, 'sort_order' => 0],
-                ['item_id' => $otherUsersItem->id, 'sort_order' => 1],
+                ['item_id' => $ownedItem->id, 'sort_order' => 1],
+                ['item_id' => $otherUsersItem->id, 'sort_order' => 2],
             ],
         ], [
             'Accept' => 'application/json',
@@ -155,8 +155,8 @@ class OutfitsEndpointsTest extends TestCase
         $response = $this->postJson('/api/outfits', [
             'name' => '休日コーデ',
             'items' => [
-                ['item_id' => $activeItem->id, 'sort_order' => 0],
-                ['item_id' => $disposedItem->id, 'sort_order' => 1],
+                ['item_id' => $activeItem->id, 'sort_order' => 1],
+                ['item_id' => $disposedItem->id, 'sort_order' => 2],
             ],
         ], [
             'Accept' => 'application/json',
@@ -182,7 +182,7 @@ class OutfitsEndpointsTest extends TestCase
         ]);
         $ownedOutfit->outfitItems()->create([
             'item_id' => $item->id,
-            'sort_order' => 0,
+            'sort_order' => 1,
         ]);
 
         $otherOutfit = Outfit::query()->create([
@@ -220,7 +220,7 @@ class OutfitsEndpointsTest extends TestCase
         ]);
         $outfit->outfitItems()->create([
             'item_id' => $itemA->id,
-            'sort_order' => 0,
+            'sort_order' => 1,
         ]);
 
         $this->actingAs($user, 'web');
@@ -232,7 +232,7 @@ class OutfitsEndpointsTest extends TestCase
             'seasons' => ['秋'],
             'tpos' => ['仕事'],
             'items' => [
-                ['item_id' => $itemB->id, 'sort_order' => 0],
+                ['item_id' => $itemB->id, 'sort_order' => 1],
             ],
         ], [
             'Accept' => 'application/json',
@@ -271,7 +271,7 @@ class OutfitsEndpointsTest extends TestCase
         ]);
         $outfit->outfitItems()->create([
             'item_id' => $activeItem->id,
-            'sort_order' => 0,
+            'sort_order' => 1,
         ]);
 
         $this->actingAs($user, 'web');
@@ -280,7 +280,7 @@ class OutfitsEndpointsTest extends TestCase
         $response = $this->putJson("/api/outfits/{$outfit->id}", [
             'name' => '更新後',
             'items' => [
-                ['item_id' => $disposedItem->id, 'sort_order' => 0],
+                ['item_id' => $disposedItem->id, 'sort_order' => 1],
             ],
         ], [
             'Accept' => 'application/json',
@@ -297,6 +297,53 @@ class OutfitsEndpointsTest extends TestCase
         $this->assertDatabaseHas('outfit_items', [
             'outfit_id' => $outfit->id,
             'item_id' => $activeItem->id,
+        ]);
+    }
+
+    public function test_put_outfits_returns_422_when_items_include_other_users_item(): void
+    {
+        $user = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $ownedItem = $this->createItem($user, ['name' => '自分のアイテム']);
+        $otherUsersItem = $this->createItem($otherUser, ['name' => '他人のアイテム']);
+
+        $outfit = Outfit::query()->create([
+            'user_id' => $user->id,
+            'name' => '更新前',
+            'memo' => null,
+            'seasons' => ['春'],
+            'tpos' => ['休日'],
+        ]);
+        $outfit->outfitItems()->create([
+            'item_id' => $ownedItem->id,
+            'sort_order' => 1,
+        ]);
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $response = $this->putJson("/api/outfits/{$outfit->id}", [
+            'name' => '更新後',
+            'items' => [
+                ['item_id' => $ownedItem->id, 'sort_order' => 1],
+                ['item_id' => $otherUsersItem->id, 'sort_order' => 2],
+            ],
+        ], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonPath('message', '選択したアイテムに不正なデータが含まれています。');
+
+        $this->assertDatabaseHas('outfits', [
+            'id' => $outfit->id,
+            'name' => '更新前',
+        ]);
+        $this->assertDatabaseHas('outfit_items', [
+            'outfit_id' => $outfit->id,
+            'item_id' => $ownedItem->id,
+            'sort_order' => 1,
         ]);
     }
 
