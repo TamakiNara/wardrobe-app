@@ -213,6 +213,12 @@ paths:
       tags:
         - Items
       summary: アイテム一覧取得
+      description: |
+        実装済みのアイテム一覧取得 API。
+
+        通常一覧に表示する `status=active` の item を返す。
+        response 形式は `items` 配列と `meta.total` / `meta.totalAll` /
+        `meta.page` / `meta.lastPage` を含む。
       security:
         - SessionCookieAuth: []
       responses:
@@ -333,12 +339,11 @@ paths:
         - Items
       summary: アイテムを disposed に変更
       description: |
-        item status 変更用の future API 設計です。
-        現時点では未実装です。
+        実装済みの item status 変更 API。
 
         item を `disposed` に変更し、「手放した / 現在所持していない」状態へ遷移させる。
         通常の `ItemUpsertRequest` とは分けて扱う。
-        関連する `active` outfit がある場合は、それらを `invalid` にする副作用を伴う前提とする。
+        関連する `active` outfit がある場合は、それらを `invalid` にする副作用を伴う。
       security:
         - SessionCookieAuth: []
       parameters:
@@ -368,10 +373,9 @@ paths:
         - Items
       summary: アイテムを active に戻す
       description: |
-        item status 変更用の future API 設計です。
-        現時点では未実装です。
+        実装済みの item status 変更 API。
 
-        item を `active` に戻すが、関連 outfit は自動 `restore` しない前提とする。
+        item を `active` に戻すが、関連 outfit は自動 `restore` しない。
         通常の `ItemUpsertRequest` とは分けて扱う。
       security:
         - SessionCookieAuth: []
@@ -402,8 +406,11 @@ paths:
         - Outfits
       summary: コーディネート一覧取得
       description: |
-        現在の実装では `outfits` 配列を返す。
-        将来的には一覧共通仕様に合わせたページング形式へ揃えることを検討する。
+        実装済みのコーディネート一覧取得 API。
+
+        通常一覧に表示する `status=active` の outfit を返す。
+        response 形式は `outfits` 配列と `meta.total` / `meta.totalAll` /
+        `meta.page` / `meta.lastPage` を含む。
       security:
         - SessionCookieAuth: []
       responses:
@@ -1137,16 +1144,36 @@ components:
       type: object
       description: |
         アイテム一覧 response。
-        現在の実装では `items` 配列を返す形を採用している。
-        将来的には一覧共通仕様に合わせて、page / total / totalAll / lastPage を含む
-        共通レスポンス形式へ揃えることを検討する。
+        現在の実装では `items` 配列に加えて、
+        `meta.total` / `meta.totalAll` / `meta.page` / `meta.lastPage` を返す。
       required:
         - items
+        - meta
       properties:
         items:
           type: array
           items:
             $ref: '#/components/schemas/ItemRecord'
+        meta:
+          type: object
+          required:
+            - total
+            - totalAll
+            - page
+            - lastPage
+          properties:
+            total:
+              type: integer
+              example: 12
+            totalAll:
+              type: integer
+              example: 12
+            page:
+              type: integer
+              example: 1
+            lastPage:
+              type: integer
+              example: 2
 
     ItemResponse:
       type: object
@@ -1291,16 +1318,36 @@ components:
       type: object
       description: |
         コーディネート一覧 response。
-        現在の実装では `outfits` 配列を返す形を採用している。
-        将来的には一覧共通仕様に合わせて、page / total / totalAll / lastPage を含む
-        共通レスポンス形式へ揃えることを検討する。
+        現在の実装では `outfits` 配列に加えて、
+        `meta.total` / `meta.totalAll` / `meta.page` / `meta.lastPage` を返す。
       required:
         - outfits
+        - meta
       properties:
         outfits:
           type: array
           items:
             $ref: '#/components/schemas/OutfitRecord'
+        meta:
+          type: object
+          required:
+            - total
+            - totalAll
+            - page
+            - lastPage
+          properties:
+            total:
+              type: integer
+              example: 8
+            totalAll:
+              type: integer
+              example: 8
+            page:
+              type: integer
+              example: 1
+            lastPage:
+              type: integer
+              example: 1
 
     OutfitResponse:
       type: object
