@@ -68,15 +68,24 @@ export default async function InvalidOutfitsPage() {
             コーディネート一覧
           </Link>
           {" / "}
-          <span className="text-gray-700">無効コーデ一覧</span>
+          <span className="text-gray-700">無効コーディネート一覧</span>
         </nav>
 
-        <header className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-          <p className="text-sm text-gray-500">コーディネート管理</p>
-          <h1 className="text-2xl font-bold text-gray-900">無効コーデ一覧</h1>
-          <p className="mt-1 text-sm text-gray-600">
-            現在利用できないアイテムを含むコーディネートを確認します。
-          </p>
+        <header className="flex flex-col gap-4 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="text-sm text-gray-500">コーディネート管理</p>
+            <h1 className="text-2xl font-bold text-gray-900">無効コーディネート一覧</h1>
+            <p className="mt-1 text-sm text-gray-600">
+              現在利用できないアイテムを含むコーディネートを確認します。
+            </p>
+          </div>
+
+          <Link
+            href="/outfits"
+            className="text-sm font-medium text-blue-600 hover:underline"
+          >
+            コーディネート一覧に戻る
+          </Link>
         </header>
 
         {data.meta.totalAll === 0 ? (

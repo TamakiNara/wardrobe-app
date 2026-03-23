@@ -144,12 +144,21 @@ export default async function OutfitsPage({
             </p>
           </div>
 
-          <Link
-            href="/outfits/new"
-            className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
-          >
-            コーディネートを追加
-          </Link>
+          <div className="flex flex-wrap items-center gap-3">
+            <Link
+              href="/outfits/invalid"
+              className="text-sm font-medium text-blue-600 hover:underline"
+            >
+              無効コーディネート一覧
+            </Link>
+
+            <Link
+              href="/outfits/new"
+              className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
+            >
+              コーディネートを追加
+            </Link>
+          </div>
         </header>
 
         {data.meta.totalAll === 0 ? (

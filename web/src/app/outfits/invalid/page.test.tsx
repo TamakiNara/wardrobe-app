@@ -55,11 +55,13 @@ describe("InvalidOutfitsPage", () => {
     const { default: InvalidOutfitsPage } = await import("./page");
     const markup = renderToStaticMarkup(await InvalidOutfitsPage());
 
-    expect(markup).toContain("無効コーデ一覧");
+    expect(markup).toContain("無効コーディネート一覧");
     expect(markup).toContain("通勤コーデ");
     expect(markup).toContain("無効");
     expect(markup).toContain("季節： 秋");
     expect(markup).toContain("TPO： 仕事");
+    expect(markup).toContain('href="/outfits"');
+    expect(markup).toContain("コーディネート一覧に戻る");
     expect(markup).toContain('href="/outfits/10"');
     expect(markup).toContain('href="/outfits/10/edit"');
   });

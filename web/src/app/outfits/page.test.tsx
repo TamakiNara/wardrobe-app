@@ -64,6 +64,8 @@ describe("OutfitsPage", () => {
     expect(markup).toContain(
       "先にアイテムを登録して、組み合わせを作れる状態にしましょう。",
     );
+    expect(markup).toContain('href="/outfits/invalid"');
+    expect(markup).toContain("無効コーディネート一覧");
     expect(markup).toContain('href="/items/new"');
     expect(markup).toContain("アイテムを追加する");
   });
@@ -97,6 +99,8 @@ describe("OutfitsPage", () => {
     );
 
     expect(markup).toContain("手持ちのアイテムを組み合わせて作ってみましょう。");
+    expect(markup).toContain('href="/outfits/invalid"');
+    expect(markup).toContain("無効コーディネート一覧");
     expect(markup).toContain('href="/outfits/new"');
     expect(markup).toContain("コーディネートを作成する");
   });
