@@ -61,6 +61,7 @@ const sampleItems: ItemRecord[] = [
   {
     id: 1,
     name: "白T",
+    status: "active",
     category: "tops",
     shape: "tshirt",
     colors: [],
@@ -185,7 +186,7 @@ describe("SettingsPage", () => {
     });
 
     const event = new Event("beforeunload", { cancelable: true });
-    let returnValue = undefined;
+    let returnValue: string | undefined = undefined;
     Object.defineProperty(event, "returnValue", {
       get() {
         return returnValue;

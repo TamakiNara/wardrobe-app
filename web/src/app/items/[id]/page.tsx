@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import DeleteItemButton from "@/components/items/delete-item-button";
+import ItemStatusAction from "@/components/items/item-status-action";
 import ItemPreviewCard from "@/components/items/item-preview-card";
 import { buildTopsSpecLabels, buildTopsSpecRaw } from "@/lib/master-data/item-tops";
 import { findItemCategoryLabel, findItemShapeLabel } from "@/lib/master-data/item-shapes";
@@ -47,15 +48,22 @@ export default async function ItemPage({
           <span className="text-gray-700">詳細</span>
         </nav>
 
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div>
             <p className="text-sm text-gray-500">アイテム管理</p>
             <h1 className="min-h-8 text-2xl font-bold text-gray-900">
               {item.name ?? "名称未設定"}
             </h1>
+            {item.status === "disposed" && (
+              <p className="mt-2 inline-flex rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-sm font-medium text-amber-800">
+                手放し済み
+              </p>
+            )}
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3 md:justify-end">
+            <ItemStatusAction itemId={item.id} status={item.status} />
+
             <Link
               href={`/items/${item.id}/edit`}
               className="text-sm font-medium text-blue-600 hover:underline"

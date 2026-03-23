@@ -2,11 +2,13 @@ export type CategoryRecord = {
   id: string;
   groupId: string;
   name: string;
+  sortOrder?: number;
 };
 
 export type CategoryGroupRecord = {
   id: string;
   name: string;
+  sortOrder?: number;
   categories: CategoryRecord[];
 };
 

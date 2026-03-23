@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import TopsPreviewSvg from "@/components/items/preview-svg/tops-preview-svg";
 import { buildSupportedCategoryOptions, fetchCategoryGroups } from "@/lib/api/categories";
 import { fetchCategoryVisibilitySettings } from "@/lib/api/settings";
@@ -138,7 +138,6 @@ function PreviewThumb({
 export default function ItemsList({
   items,
   totalCount,
-  totalAllCount,
   currentPage,
   lastPage,
   availableCategoryValues,
@@ -165,6 +164,28 @@ export default function ItemsList({
   useEffect(() => {
     setDraftKeyword(keyword);
   }, [keyword]);
+
+  const updateQuery = useCallback((nextValues: Partial<{
+    keyword: string;
+    category: string;
+    season: string;
+    tpo: string;
+    sort: ItemSortValue;
+    page: number;
+  }>) => {
+    const nextQuery = buildQueryString({
+      keyword: nextValues.keyword ?? keyword,
+      category: nextValues.category ?? categoryFilter,
+      season: nextValues.season ?? seasonFilter,
+      tpo: nextValues.tpo ?? tpoFilter,
+      sort: nextValues.sort ?? sort,
+      page: nextValues.page ?? page,
+    });
+
+    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, {
+      scroll: false,
+    });
+  }, [categoryFilter, keyword, page, pathname, router, seasonFilter, sort, tpoFilter]);
 
   useEffect(() => {
     let active = true;
@@ -202,29 +223,7 @@ export default function ItemsList({
     return () => {
       window.clearTimeout(timerId);
     };
-  }, [draftKeyword, isComposingKeyword, keyword]);
-
-  function updateQuery(nextValues: Partial<{
-    keyword: string;
-    category: string;
-    season: string;
-    tpo: string;
-    sort: ItemSortValue;
-    page: number;
-  }>) {
-    const nextQuery = buildQueryString({
-      keyword: nextValues.keyword ?? keyword,
-      category: nextValues.category ?? categoryFilter,
-      season: nextValues.season ?? seasonFilter,
-      tpo: nextValues.tpo ?? tpoFilter,
-      sort: nextValues.sort ?? sort,
-      page: nextValues.page ?? page,
-    });
-
-    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, {
-      scroll: false,
-    });
-  }
+  }, [draftKeyword, isComposingKeyword, keyword, updateQuery]);
 
   const categoryOptions = useMemo(() => {
     return apiCategoryOptions.filter((category) =>

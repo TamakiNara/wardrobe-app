@@ -104,6 +104,7 @@ describe("EditItemPage", () => {
           item: {
             id: 1,
             name: "サンプル",
+            status: "active",
             category: "tops",
             shape: "tshirt",
             colors: [],

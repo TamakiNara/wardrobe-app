@@ -44,7 +44,10 @@ describe("AppShell", () => {
       root.render(
         React.createElement(
           AppShell,
-          { hasSession: false },
+          {
+            hasSession: false,
+            children: React.createElement("main", null, "content"),
+          },
           React.createElement("main", null, "content"),
         ),
       );
@@ -62,7 +65,10 @@ describe("AppShell", () => {
       root.render(
         React.createElement(
           AppShell,
-          { hasSession: true },
+          {
+            hasSession: true,
+            children: React.createElement("main", null, "content"),
+          },
           React.createElement("main", null, "content"),
         ),
       );

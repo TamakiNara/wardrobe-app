@@ -5,6 +5,7 @@ import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { CategoryGroupRecord } from "@/types/categories";
+import type { ItemRecord } from "@/types/items";
 
 const fetchCategoryGroupsMock = vi.fn();
 const fetchCategoryVisibilitySettingsMock = vi.fn();
@@ -53,10 +54,11 @@ const sampleGroups: CategoryGroupRecord[] = [
   },
 ];
 
-const sampleItems = [
+const sampleItems: ItemRecord[] = [
   {
     id: 1,
     name: "白T",
+    status: "active",
     category: "tops",
     shape: "tshirt",
     colors: [
@@ -75,6 +77,7 @@ const sampleItems = [
   {
     id: 2,
     name: "青シャツ",
+    status: "active",
     category: "tops",
     shape: "shirt",
     colors: [

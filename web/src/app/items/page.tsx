@@ -6,6 +6,7 @@ import { fetchLaravelWithCookie } from "@/lib/server/laravel";
 type Item = {
   id: number;
   name: string | null;
+  status: "active" | "disposed";
   category: string;
   shape: string;
   colors: {

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { isItemVisibleByCategorySettings } from "@/lib/api/categories";
 import { fetchCategoryVisibilitySettings } from "@/lib/api/settings";
 import { SEASON_OPTIONS, TPO_OPTIONS } from "@/lib/master-data/item-attributes";
@@ -114,7 +114,6 @@ function buildQueryString({
 export default function OutfitsList({
   outfits,
   totalCount,
-  totalAllCount,
   currentPage,
   lastPage,
 }: OutfitsListProps) {
@@ -135,6 +134,26 @@ export default function OutfitsList({
   useEffect(() => {
     setDraftKeyword(keyword);
   }, [keyword]);
+
+  const updateQuery = useCallback((nextValues: Partial<{
+    keyword: string;
+    season: string;
+    tpo: string;
+    sort: OutfitSortValue;
+    page: number;
+  }>) => {
+    const nextQuery = buildQueryString({
+      keyword: nextValues.keyword ?? keyword,
+      season: nextValues.season ?? seasonFilter,
+      tpo: nextValues.tpo ?? tpoFilter,
+      sort: nextValues.sort ?? sort,
+      page: nextValues.page ?? page,
+    });
+
+    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, {
+      scroll: false,
+    });
+  }, [keyword, page, pathname, router, seasonFilter, sort, tpoFilter]);
 
   useEffect(() => {
     let active = true;
@@ -165,27 +184,7 @@ export default function OutfitsList({
     return () => {
       window.clearTimeout(timerId);
     };
-  }, [draftKeyword, isComposingKeyword, keyword]);
-
-  function updateQuery(nextValues: Partial<{
-    keyword: string;
-    season: string;
-    tpo: string;
-    sort: OutfitSortValue;
-    page: number;
-  }>) {
-    const nextQuery = buildQueryString({
-      keyword: nextValues.keyword ?? keyword,
-      season: nextValues.season ?? seasonFilter,
-      tpo: nextValues.tpo ?? tpoFilter,
-      sort: nextValues.sort ?? sort,
-      page: nextValues.page ?? page,
-    });
-
-    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, {
-      scroll: false,
-    });
-  }
+  }, [draftKeyword, isComposingKeyword, keyword, updateQuery]);
 
   const hasActiveFilters = Boolean(
     keyword || seasonFilter || tpoFilter || sort !== DEFAULT_SORT || currentPage > 1,

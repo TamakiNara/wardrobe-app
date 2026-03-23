@@ -29,9 +29,12 @@ export type CreateItemPayload = {
   spec?: ItemSpec | null;
 };
 
+export type ItemStatus = "active" | "disposed";
+
 export type ItemRecord = {
   id: number;
   name: string | null;
+  status: ItemStatus;
   category: string;
   shape: string;
   colors: ItemFormColor[];

@@ -1,7 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { fetchLaravelWithCookie } from "./laravel";
 
-const headersMock = vi.fn();
+const { headersMock } = vi.hoisted(() => ({
+  headersMock: vi.fn(),
+}));
 
 vi.mock("next/headers", () => ({
   headers: headersMock,
