@@ -23,6 +23,19 @@ vi.mock("@/components/outfits/delete-outfit-button", () => ({
   default: () => React.createElement("button", null, "delete"),
 }));
 
+vi.mock("@/components/outfits/outfit-restore-action", () => ({
+  default: ({ outfitId, canRestore }: { outfitId: number; canRestore: boolean }) =>
+    React.createElement(
+      "div",
+      {
+        "data-testid": "outfit-restore-action",
+        "data-outfit-id": String(outfitId),
+        "data-can-restore": String(canRestore),
+      },
+      canRestore ? "restore-enabled" : "restore-disabled",
+    ),
+}));
+
 describe("OutfitDetailPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -82,6 +95,7 @@ describe("OutfitDetailPage", () => {
     expect(markup).toContain("このコーディネートには現在利用できないアイテムが含まれています。");
     expect(markup).toContain("内容を見直してから保存してください。");
     expect(markup).toContain("手放し済み");
+    expect(markup).toContain("restore-disabled");
     expect(markup).toContain('href="/outfits/10/edit"');
   });
 });

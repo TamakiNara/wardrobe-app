@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import DeleteOutfitButton from "@/components/outfits/delete-outfit-button";
+import OutfitRestoreAction from "@/components/outfits/outfit-restore-action";
 import { isItemVisibleByCategorySettings } from "@/lib/api/categories";
 import { fetchLaravelWithCookie } from "@/lib/server/laravel";
 
@@ -78,6 +79,9 @@ export default async function OutfitDetailPage({
     getCategoryVisibilitySettings(),
   ]);
   const outfitItems = outfit.outfitItems ?? outfit.outfit_items ?? [];
+  const canRestore =
+    outfit.status === "invalid" &&
+    outfitItems.every((outfitItem) => outfitItem.item.status === "active");
   const visibleOutfitItems =
     visibleCategoryIds === null
       ? outfitItems
@@ -122,7 +126,10 @@ export default async function OutfitDetailPage({
             )}
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-start gap-3">
+            {outfit.status === "invalid" && (
+              <OutfitRestoreAction outfitId={outfit.id} canRestore={canRestore} />
+            )}
             <Link
               href={`/outfits/${outfit.id}/edit`}
               className="text-sm font-medium text-blue-600 hover:underline"
