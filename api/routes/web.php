@@ -238,13 +238,14 @@ Route::prefix('api')->middleware(['web'])->group(function () {
             ->unique()
             ->values();
 
-        $ownedItemCount = Item::query()
+        $availableItemCount = Item::query()
             ->where('user_id', $user->id)
+            ->where('status', 'active')
             ->whereIn('id', $itemIds)
             ->count();
 
-        // 他人のitem_idは使用不可
-        if ($ownedItemCount !== $itemIds->count()) {
+        // 他人のitem_idや disposed item は使用不可
+        if ($availableItemCount !== $itemIds->count()) {
             return response()->json([
                 'message' => '選択したアイテムに不正なデータが含まれています。',
             ], 422);
@@ -312,12 +313,13 @@ Route::prefix('api')->middleware(['web'])->group(function () {
             ->unique()
             ->values();
 
-        $ownedItemCount = Item::query()
+        $availableItemCount = Item::query()
             ->where('user_id', $user->id)
+            ->where('status', 'active')
             ->whereIn('id', $itemIds)
             ->count();
 
-        if ($ownedItemCount !== $itemIds->count()) {
+        if ($availableItemCount !== $itemIds->count()) {
             return response()->json([
                 'message' => '選択したアイテムに不正なデータが含まれています。',
             ], 422);

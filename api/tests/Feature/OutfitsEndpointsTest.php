@@ -140,6 +140,33 @@ class OutfitsEndpointsTest extends TestCase
             ->assertJsonPath('message', '選択したアイテムに不正なデータが含まれています。');
     }
 
+    public function test_post_outfits_returns_422_when_items_include_disposed_item(): void
+    {
+        $user = User::factory()->create();
+        $activeItem = $this->createItem($user, ['name' => '使用可能']);
+        $disposedItem = $this->createItem($user, [
+            'name' => '手放し済み',
+            'status' => 'disposed',
+        ]);
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $response = $this->postJson('/api/outfits', [
+            'name' => '休日コーデ',
+            'items' => [
+                ['item_id' => $activeItem->id, 'sort_order' => 0],
+                ['item_id' => $disposedItem->id, 'sort_order' => 1],
+            ],
+        ], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonPath('message', '選択したアイテムに不正なデータが含まれています。');
+    }
+
     public function test_get_outfit_returns_only_owned_outfit(): void
     {
         $user = User::factory()->create();
@@ -224,6 +251,53 @@ class OutfitsEndpointsTest extends TestCase
             'memo' => 'new memo',
         ]);
         $this->assertDatabaseCount('outfit_items', 1);
+    }
+
+    public function test_put_outfits_returns_422_when_items_include_disposed_item(): void
+    {
+        $user = User::factory()->create();
+        $activeItem = $this->createItem($user, ['name' => '使用可能']);
+        $disposedItem = $this->createItem($user, [
+            'name' => '手放し済み',
+            'status' => 'disposed',
+        ]);
+
+        $outfit = Outfit::query()->create([
+            'user_id' => $user->id,
+            'name' => '更新前',
+            'memo' => null,
+            'seasons' => ['春'],
+            'tpos' => ['休日'],
+        ]);
+        $outfit->outfitItems()->create([
+            'item_id' => $activeItem->id,
+            'sort_order' => 0,
+        ]);
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $response = $this->putJson("/api/outfits/{$outfit->id}", [
+            'name' => '更新後',
+            'items' => [
+                ['item_id' => $disposedItem->id, 'sort_order' => 0],
+            ],
+        ], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonPath('message', '選択したアイテムに不正なデータが含まれています。');
+
+        $this->assertDatabaseHas('outfits', [
+            'id' => $outfit->id,
+            'name' => '更新前',
+        ]);
+        $this->assertDatabaseHas('outfit_items', [
+            'outfit_id' => $outfit->id,
+            'item_id' => $activeItem->id,
+        ]);
     }
 
     public function test_delete_outfit_deletes_only_owned_outfit(): void
