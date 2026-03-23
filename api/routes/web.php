@@ -218,6 +218,10 @@ Route::prefix('api')->middleware(['web'])->group(function () {
         return response()->json(OutfitsIndexQuery::build($request->user(), $request));
     });
 
+    Route::middleware('auth:web')->get('/outfits/invalid', function (Request $request) {
+        return response()->json(OutfitsIndexQuery::build($request->user(), $request, 'invalid'));
+    });
+
     Route::middleware('auth:web')->post('/outfits', function (Request $request) {
         $validated = $request->validate([
             'name' => ['nullable', 'string', 'max:255'],

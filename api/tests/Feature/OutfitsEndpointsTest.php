@@ -133,6 +133,59 @@ class OutfitsEndpointsTest extends TestCase
         ]);
     }
 
+    public function test_get_invalid_outfits_returns_only_current_users_invalid_outfits(): void
+    {
+        $user = User::factory()->create();
+        $otherUser = User::factory()->create();
+
+        Outfit::query()->create([
+            'user_id' => $user->id,
+            'status' => 'active',
+            'name' => '通常コーデ',
+            'memo' => null,
+            'seasons' => ['春'],
+            'tpos' => ['休日'],
+        ]);
+
+        $invalidOutfit = Outfit::query()->create([
+            'user_id' => $user->id,
+            'status' => 'invalid',
+            'name' => '無効コーデ',
+            'memo' => null,
+            'seasons' => ['秋'],
+            'tpos' => ['仕事'],
+        ]);
+
+        Outfit::query()->create([
+            'user_id' => $otherUser->id,
+            'status' => 'invalid',
+            'name' => '他人の無効コーデ',
+            'memo' => null,
+            'seasons' => ['冬'],
+            'tpos' => ['休日'],
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->getJson('/api/outfits/invalid', [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonCount(1, 'outfits')
+            ->assertJsonPath('outfits.0.id', $invalidOutfit->id)
+            ->assertJsonPath('outfits.0.name', '無効コーデ')
+            ->assertJsonPath('meta.total', 1)
+            ->assertJsonPath('meta.totalAll', 1);
+
+        $response->assertJsonMissing([
+            'name' => '通常コーデ',
+        ]);
+        $response->assertJsonMissing([
+            'name' => '他人の無効コーデ',
+        ]);
+    }
+
     public function test_post_outfits_creates_outfit_and_outfit_items(): void
     {
         $user = User::factory()->create();

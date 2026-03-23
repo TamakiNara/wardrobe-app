@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 
 class OutfitsIndexQuery
 {
-    public static function build(User $user, Request $request): array
+    public static function build(User $user, Request $request, string $status = 'active'): array
     {
         $keyword = trim((string) $request->query('keyword', ''));
         $season = trim((string) $request->query('season', ''));
@@ -18,7 +18,7 @@ class OutfitsIndexQuery
 
         $outfits = Outfit::query()
             ->where('user_id', $user->id)
-            ->where('status', 'active')
+            ->where('status', $status)
             ->with(['outfitItems.item'])
             ->latest()
             ->get();
