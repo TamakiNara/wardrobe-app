@@ -879,6 +879,7 @@ components:
       required:
         - id
         - user_id
+        - status
         - category
         - shape
         - colors
@@ -893,6 +894,12 @@ components:
         user_id:
           type: integer
           example: 1
+        status:
+          type: string
+          enum:
+            - active
+            - disposed
+          example: active
         name:
           type: string
           nullable: true
@@ -928,6 +935,14 @@ components:
 
     ItemUpsertRequest:
       type: object
+      description: |
+        Item の通常作成 / 更新 request。
+        通常の作成 / 更新 payload に status は含めない。
+        status は内部状態として管理し、disposed への変更は別導線で扱う想定とする。
+
+        disposed は「手放した / 現在所持していない」状態を表す。
+        disposed 変更時は、関連 outfit の invalid 化など副作用を伴うため、
+        通常の項目更新とは分けて扱う前提とする。
       required:
         - category
         - shape
@@ -961,6 +976,11 @@ components:
 
     ItemsResponse:
       type: object
+      description: |
+        アイテム一覧 response。
+        現在の実装では `items` 配列を返す形を採用している。
+        将来的には一覧共通仕様に合わせて、page / total / totalAll / lastPage を含む
+        共通レスポンス形式へ揃えることを検討する。
       required:
         - items
       properties:
