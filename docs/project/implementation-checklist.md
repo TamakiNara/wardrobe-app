@@ -1,6 +1,7 @@
 # 実装着手前チェックリスト
 
 このファイルは、ここまで整理した docs を、実装順と副作用の観点で見返しやすくするためのチェックリストです。  
+docs 上の整合確認は概ね完了しており、本書では「確認済み / 実装未着手」の観点を中心に整理します。  
 大きな仕様変更は行わず、正本として `docs/specs/` `docs/data/database.md` `docs/api/openapi.yaml` を優先して参照します。
 
 ---
@@ -31,6 +32,8 @@
 ---
 
 ## 未実装
+
+- docs 上の仕様・DB・OpenAPI 反映は概ね確認済みであり、以下は主に実装未着手の項目です
 
 - wear logs 本体は未実装
 - 対象: API、DB テーブル、UI、validation、transaction、一覧・詳細・登録・更新・削除
@@ -81,23 +84,19 @@
 
 ## 実装順候補
 
-1. item status の実装確認と OpenAPI 整合確認
-   - `active / disposed` の保存・更新・候補除外・削除方針を先に固定する
+1. item status の実装着手
+   - `active / disposed` の docs 整合確認は概ね完了しているため、保存・更新・候補除外・削除方針の実装へ進む
    - 理由: outfit invalid 化と wear logs 候補除外の前提になるため
-
-2. outfit status と invalid 化副作用の実装確認
-   - `active / invalid`、通常保存時の `status` 非包含、item `disposed` に伴う invalid 化を先に揃える
+2. outfit status と invalid 化副作用の実装着手
+   - `active / invalid`、通常保存時の `status` 非包含、item `disposed` に伴う invalid 化は docs に反映済みのため、実装を揃える
    - 理由: invalid outfit future API と wear logs の前提になるため
-
-3. invalid outfit future API の実装
+3. invalid outfit future API の実装着手
    - 対象: invalid 一覧、`restore`、`duplicate`
    - 理由: outfit status 運用が固まった後なら、再利用導線を独立して実装しやすいため
-
-4. wear logs の実装
+4. wear logs の実装着手
    - 対象: DB、API、UI、validation、一覧共通仕様との接続
    - 理由: `source_outfit_id`、`item_source_type`、候補除外、副作用の前提を利用するため
-
-5. event_logs の実装
+5. event_logs の実装着手
    - 対象: テーブル、発火ポイント、記録対象の絞り込み
    - 理由: item / outfit / wear logs の主要状態変化が固まってからの方が event_type と payload を固定しやすいため
 
