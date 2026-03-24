@@ -51,7 +51,8 @@ purchase_candidates の仕様正本を確認するときは `docs/specs/purchase
 
 - `purchase_candidates` の正本は `docs/specs/purchase-candidates.md` を参照する
 - MVP として candidate 保存・画像管理・item draft 導線まで実装済み
-- 比較ロジックの詳細、item 保存成功時の `purchased` 反映、item 側画像保存との最終接続は後続検討とする
+- item 側では `brand_name / price / purchase_url / purchased_at / size_* / is_rain_ok / item_images` の受け皿まで実装済み
+- 比較ロジックの詳細、item 保存成功時の `purchased` 反映、item 側画像 upload / delete UI は後続検討とする
 
 直近または中期 TODO:
 
@@ -60,7 +61,8 @@ purchase_candidates の仕様正本を確認するときは `docs/specs/purchase
    - item 保存成功時に candidate を `purchased` へ更新する責務を BFF / Laravel のどちらへ寄せるか決める
 2. 画像アップロード方針を整理する
    - candidate 側の複数画像 upload / delete は実装済み
-   - item 側画像保存との本接続、candidate -> item の保存後責務分離を整理する
+   - candidate -> item の保存時引き継ぎは実装済み
+   - item 側画像 upload / delete UI、保存後の編集責務分離を整理する
 3. 比較結果の扱いを整理する
    - 現時点では補助表示前提とし、比較ロジックの詳細や強い自動判定は後続検討とする
 4. 月次服飾費集計の前提を残す
@@ -376,31 +378,15 @@ UI/UX メモ:
   - `item_images` は `purchase_candidate_images` と別テーブルで管理する
   - DB には `disk + path` を保存し、表示用 URL は API / BFF 側で生成する
   - `is_primary` / `sort_order` を持ち、複数画像対応とする
-  - candidate -> item では全画像を初期値に引き継ぐが、保存後は item 側画像として別管理にする
+  - candidate -> item では全画像を初期値に引き継ぎ、item 作成時に `item_images` として保存する
+  - 保存後は item 側画像として別管理にし、自動同期しない
   - 優先画像がある場合は SVG ではなく画像をアイコン表示する
-
-仮案として想定している items テーブル追加項目:
-
-- `category_id`
-- `brand_name`
-- `memo`
-- `price`
-- `purchase_url`
-- `purchased_at`
-- `last_worn_at`
-- `wear_count`
-- `is_favorite`
-- `size_gender`
-- `size_label`
-- `size_note`
-- `is_rain_ok`
-- `size_details` （json）
-- `tags` / `item_tags` （別テーブル構成を想定）
 
 補足:
 
 - `last_worn_at` と `wear_count` だけでは履歴一覧を完全には表現できないため、カレンダー連携や着用履歴を本格対応する場合は `wear_logs` のような別テーブル案も検討する
 - 画像保存方針は `item_images` / `purchase_candidate_images` を別テーブルで持ち、DB には `disk + path` を保存し、URL は API / BFF 側で生成する方針で整理する
+- item 側の追加項目と `item_images` は purchase_candidates 受け皿として実装済みであり、残タスクは item 画像編集 UI と candidate `purchased` 自動反映である
 
 ### カラーパレット
 

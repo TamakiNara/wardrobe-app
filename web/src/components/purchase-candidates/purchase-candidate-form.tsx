@@ -549,14 +549,17 @@ export default function PurchaseCandidateForm({
             <label htmlFor="price" className="mb-1 block text-sm font-medium text-gray-700">
               想定価格
             </label>
-            <input
-              id="price"
-              type="number"
-              min="0"
-              value={price}
-              onChange={(event) => setPrice(event.target.value)}
-              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-            />
+            <div className="flex items-center rounded-lg border border-gray-300 bg-white pr-4 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100">
+              <input
+                id="price"
+                type="number"
+                min="0"
+                value={price}
+                onChange={(event) => setPrice(event.target.value)}
+                className="w-full rounded-lg bg-transparent px-4 py-3 text-gray-900 outline-none"
+              />
+              <span className="text-sm text-gray-500">円</span>
+            </div>
           </div>
         </div>
 
@@ -637,7 +640,7 @@ export default function PurchaseCandidateForm({
             />
           </div>
 
-          <label className="flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700">
+          <label className="inline-flex h-[50px] items-center gap-3 rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700">
             <input
               type="checkbox"
               checked={isRainOk}

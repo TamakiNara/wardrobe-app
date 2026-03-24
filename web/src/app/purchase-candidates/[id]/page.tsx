@@ -15,7 +15,7 @@ function formatPrice(price: number | null): string {
     return "未設定";
   }
 
-  return `¥${price.toLocaleString("ja-JP")}`;
+  return `${price.toLocaleString("ja-JP")}円`;
 }
 
 async function getPurchaseCandidate(id: string) {

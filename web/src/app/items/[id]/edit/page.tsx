@@ -19,7 +19,7 @@ import ColorChip from "@/components/items/color-chip";
 import ColorSelect from "@/components/items/color-select";
 import ItemPreviewCard from "@/components/items/item-preview-card";
 import { SEASON_OPTIONS, TPO_OPTIONS } from "@/lib/master-data/item-attributes";
-import type { CreateItemPayload, ItemFormColor, ItemRecord } from "@/types/items";
+import type { CreateItemPayload, ItemFormColor, ItemImageRecord, ItemRecord } from "@/types/items";
 import {
   buildTopsSpecLabels,
   buildTopsSpecRaw,
@@ -38,6 +38,7 @@ import {
   type TopsShapeValue,
   type TopsSleeveValue,
 } from "@/lib/master-data/item-tops";
+import { formatItemPrice, ITEM_SIZE_GENDER_LABELS } from "@/lib/items/metadata";
 
 
 
@@ -52,6 +53,16 @@ export default function EditItemPage({
   const [loading, setLoading] = useState(true);
 
   const [name, setName] = useState("");
+  const [brandName, setBrandName] = useState("");
+  const [price, setPrice] = useState("");
+  const [purchaseUrl, setPurchaseUrl] = useState("");
+  const [purchasedAt, setPurchasedAt] = useState("");
+  const [sizeGender, setSizeGender] = useState<"women" | "men" | "unisex" | "unknown" | "">("");
+  const [sizeLabel, setSizeLabel] = useState("");
+  const [sizeNote, setSizeNote] = useState("");
+  const [sizeDetailsNote, setSizeDetailsNote] = useState("");
+  const [isRainOk, setIsRainOk] = useState(false);
+  const [itemImages, setItemImages] = useState<ItemImageRecord[]>([]);
   const [category, setCategory] = useState<ItemCategory | "">("");
   const [categoryOptions, setCategoryOptions] = useState<CategoryOption[]>([...ITEM_CATEGORIES]);
   const [shape, setShape] = useState("");
@@ -193,6 +204,16 @@ export default function EditItemPage({
         const item: ItemRecord = data.item;
 
         setName(item.name ?? "");
+        setBrandName(item.brand_name ?? "");
+        setPrice(item.price === null ? "" : String(item.price));
+        setPurchaseUrl(item.purchase_url ?? "");
+        setPurchasedAt(item.purchased_at ? item.purchased_at.slice(0, 10) : "");
+        setSizeGender(item.size_gender ?? "");
+        setSizeLabel(item.size_label ?? "");
+        setSizeNote(item.size_note ?? "");
+        setSizeDetailsNote(item.size_details?.note ?? "");
+        setIsRainOk(item.is_rain_ok ?? false);
+        setItemImages(item.images ?? []);
         setCategory(item.category as ItemCategory);
         setShape(item.shape);
         setSelectedSeasons(item.seasons ?? []);
@@ -309,6 +330,15 @@ export default function EditItemPage({
 
     return {
       name,
+      brand_name: brandName.trim() || null,
+      price: price === "" ? null : Number(price),
+      purchase_url: purchaseUrl.trim() || null,
+      purchased_at: purchasedAt || null,
+      size_gender: sizeGender || null,
+      size_label: sizeLabel.trim() || null,
+      size_note: sizeNote.trim() || null,
+      size_details: sizeDetailsNote.trim() ? { note: sizeDetailsNote.trim() } : null,
+      is_rain_ok: isRainOk,
       category,
       shape,
       colors,
@@ -327,6 +357,15 @@ export default function EditItemPage({
               },
             }
           : null,
+      images: itemImages.map((image) => ({
+        disk: image.disk,
+        path: image.path,
+        original_filename: image.original_filename,
+        mime_type: image.mime_type,
+        file_size: image.file_size,
+        sort_order: image.sort_order,
+        is_primary: image.is_primary,
+      })),
     };
   }
 
@@ -439,6 +478,24 @@ export default function EditItemPage({
           <section className="space-y-4">
             <h2 className="text-lg font-semibold text-gray-900">基本情報</h2>
 
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <label htmlFor="brand-name" className="mb-1 block text-sm font-medium text-gray-700">ブランド名</label>
+                <input id="brand-name" type="text" value={brandName} onChange={(e) => setBrandName(e.target.value)} className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
+              </div>
+
+              <div>
+                <label htmlFor="price" className="mb-1 block text-sm font-medium text-gray-700">実購入価格</label>
+                <div className="flex items-center rounded-lg border border-gray-300 bg-white pr-4 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100">
+                  <input id="price" type="number" min="0" inputMode="numeric" value={price} onChange={(e) => setPrice(e.target.value)} className="w-full rounded-lg bg-transparent px-4 py-3 text-gray-900 outline-none" />
+                  <span className="text-sm text-gray-500">円</span>
+                </div>
+                {price !== "" && (
+                  <p className="mt-1 text-xs text-gray-500">表示: {formatItemPrice(Number(price))}</p>
+                )}
+              </div>
+            </div>
+
             <div>
               <label htmlFor="name" className="mb-1 block text-sm font-medium text-gray-700">名前</label>
               <input id="name" type="text" value={name} onChange={(e) => setName(e.target.value)} className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
@@ -465,7 +522,78 @@ export default function EditItemPage({
               </select>
               {errors.shape && <p className="mt-2 text-sm text-red-600">{errors.shape}</p>}
             </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <label htmlFor="purchase-url" className="mb-1 block text-sm font-medium text-gray-700">購入 URL</label>
+                <input id="purchase-url" type="url" value={purchaseUrl} onChange={(e) => setPurchaseUrl(e.target.value)} className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
+              </div>
+
+              <div>
+                <label htmlFor="purchased-at" className="mb-1 block text-sm font-medium text-gray-700">購入日</label>
+                <input id="purchased-at" type="date" value={purchasedAt} onChange={(e) => setPurchasedAt(e.target.value)} className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
+              </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <label htmlFor="size-gender" className="mb-1 block text-sm font-medium text-gray-700">サイズ区分</label>
+                <select id="size-gender" value={sizeGender} onChange={(e) => setSizeGender(e.target.value as "women" | "men" | "unisex" | "unknown" | "")} className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
+                  <option value="">選択してください</option>
+                  {Object.entries(ITEM_SIZE_GENDER_LABELS).map(([value, label]) => (
+                    <option key={value} value={value}>{label}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label htmlFor="size-label" className="mb-1 block text-sm font-medium text-gray-700">サイズ表記</label>
+                <input id="size-label" type="text" value={sizeLabel} onChange={(e) => setSizeLabel(e.target.value)} className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
+              </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-[1fr_auto] md:items-end">
+              <div>
+                <label htmlFor="size-note" className="mb-1 block text-sm font-medium text-gray-700">サイズ補足</label>
+                <input id="size-note" type="text" value={sizeNote} onChange={(e) => setSizeNote(e.target.value)} className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
+              </div>
+
+              <label className="inline-flex h-[50px] items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700">
+                <input type="checkbox" checked={isRainOk} onChange={(e) => setIsRainOk(e.target.checked)} className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                雨対応
+              </label>
+            </div>
+
+            <div>
+              <label htmlFor="size-details-note" className="mb-1 block text-sm font-medium text-gray-700">実寸メモ</label>
+              <textarea id="size-details-note" value={sizeDetailsNote} onChange={(e) => setSizeDetailsNote(e.target.value)} rows={3} className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
+            </div>
           </section>
+
+          {itemImages.length > 0 && (
+            <section className="space-y-4 rounded-xl border border-gray-200 bg-gray-50 p-4">
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900">画像</h2>
+                <p className="mt-1 text-sm text-gray-500">現在登録されている item 画像です。今回は確認のみとし、画像編集 UI は後続対応とします。</p>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                {itemImages.map((image, index) => (
+                  <article key={`${image.path ?? "image"}-${index}`} className="overflow-hidden rounded-xl border border-gray-200 bg-white">
+                    {image.url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={image.url} alt={image.original_filename ?? "item image"} className="aspect-[4/3] w-full object-cover" />
+                    ) : (
+                      <div className="flex aspect-[4/3] items-center justify-center bg-gray-100 text-sm text-gray-400">画像なし</div>
+                    )}
+                    <div className="p-3 text-sm text-gray-600">
+                      {image.sort_order}枚目{image.is_primary ? " / 代表画像" : ""}
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </section>
+          )}
 
           {isTopsCategory && (
             <section className="space-y-4 rounded-xl border border-gray-200 bg-gray-50 p-4">

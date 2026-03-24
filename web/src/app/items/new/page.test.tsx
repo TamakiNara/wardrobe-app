@@ -142,15 +142,15 @@ describe("NewItemPage", () => {
           source_category_id: "tops_tshirt",
           category: "tops",
           shape: "tshirt",
-          brand_name: null,
+          brand_name: "Sample Brand",
           price: 9800,
-          purchase_url: null,
+          purchase_url: "https://example.test/products/coat",
           memo: null,
-          size_gender: null,
-          size_label: null,
-          size_note: null,
+          size_gender: "women",
+          size_label: "M",
+          size_note: "厚手ニット込み",
           purchased_at: null,
-          size_details: null,
+          size_details: "裄丈 78cm",
           spec: null,
           is_rain_ok: true,
           colors: [],
@@ -177,8 +177,24 @@ describe("NewItemPage", () => {
     });
 
     const nameInput = container.querySelector<HTMLInputElement>("#name");
+    const brandNameInput = container.querySelector<HTMLInputElement>("#brand-name");
+    const priceInput = container.querySelector<HTMLInputElement>("#price");
+    const purchaseUrlInput = container.querySelector<HTMLInputElement>("#purchase-url");
+    const sizeGenderSelect = container.querySelector<HTMLSelectElement>("#size-gender");
+    const sizeLabelInput = container.querySelector<HTMLInputElement>("#size-label");
+    const sizeNoteInput = container.querySelector<HTMLInputElement>("#size-note");
+    const sizeDetailsTextarea = container.querySelector<HTMLTextAreaElement>("#size-details-note");
+    const rainCheckbox = container.querySelector<HTMLInputElement>('input[type="checkbox"][class*="text-blue-600"]');
     const categorySelect = container.querySelector<HTMLSelectElement>("#category");
     expect(nameInput?.value).toBe("レインコート候補");
+    expect(brandNameInput?.value).toBe("Sample Brand");
+    expect(priceInput?.value).toBe("9800");
+    expect(purchaseUrlInput?.value).toBe("https://example.test/products/coat");
+    expect(sizeGenderSelect?.value).toBe("women");
+    expect(sizeLabelInput?.value).toBe("M");
+    expect(sizeNoteInput?.value).toBe("厚手ニット込み");
+    expect(sizeDetailsTextarea?.value).toBe("裄丈 78cm");
+    expect(rainCheckbox?.checked).toBe(true);
     expect(categorySelect?.value).toBe("tops");
     expect(container.textContent).toContain("購入候補の内容を初期値として読み込みました。");
   });

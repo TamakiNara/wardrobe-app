@@ -75,6 +75,7 @@ describe("PurchaseCandidateDetailPage", () => {
     expect(markup).toContain("アイテム追加");
     expect(markup).toContain("保留中");
     expect(markup).toContain("優先度: 中");
+    expect(markup).toContain("14,800円");
     expect(markup).toContain("レディース");
     expect(markup).toContain("理由");
     expect(markup).toContain("厚手対応");

@@ -105,12 +105,37 @@ describe("EditItemPage", () => {
             id: 1,
             name: "サンプル",
             status: "active",
+            brand_name: "Sample Brand",
+            price: 19800,
+            purchase_url: "https://example.test/items/1",
+            purchased_at: "2026-03-24T00:00:00.000000Z",
+            size_gender: "women",
+            size_label: "M",
+            size_note: "厚手ニット込み",
+            size_details: {
+              note: "裄丈 78cm",
+            },
+            is_rain_ok: true,
             category: "tops",
             shape: "tshirt",
             colors: [],
             seasons: [],
             tpos: [],
             spec: null,
+            images: [
+              {
+                id: 1,
+                item_id: 1,
+                disk: "public",
+                path: "items/1/coat.png",
+                url: "https://example.test/storage/items/1/coat.png",
+                original_filename: "coat.png",
+                mime_type: "image/png",
+                file_size: 1000,
+                sort_order: 1,
+                is_primary: true,
+              },
+            ],
           },
         }),
       }),
@@ -148,5 +173,8 @@ describe("EditItemPage", () => {
       "ワンピース・オールインワン",
       "ルームウェア・インナー",
     ]);
+    expect((container.querySelector("#brand-name") as HTMLInputElement | null)?.value).toBe("Sample Brand");
+    expect((container.querySelector("#price") as HTMLInputElement | null)?.value).toBe("19800");
+    expect(container.textContent).toContain("画像");
   }, 20000);
 });

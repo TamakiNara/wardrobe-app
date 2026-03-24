@@ -56,11 +56,12 @@ item 詳細画面での status 操作 UI は `docs/specs/items/detail-status-ui.
 - 導入時の影響範囲: DB schema、API response、wear logs 一覧 / 編集 / 将来詳細 UI、集計ロジック
 
 - purchase_candidates の MVP は CRUD / 画像 / item-draft まで実装済み
+- item 側では purchase_candidates 由来の `brand_name / price / purchase_url / purchased_at / size_* / is_rain_ok / item_images` を受ける土台まで実装済み
 - 実装済み: 一覧・詳細・作成・更新・削除、画像追加 / 削除、`POST /api/purchase-candidates/{id}/item-draft`
 - `item-draft` は `source_category_id` を保持しつつ current item API 互換の `category` / `shape` と配列項目を返す
 - purchase_candidates は主要導線としてボトムナビへ追加済み
 - フォームでは必須表示、custom color code、季節 `オール` の排他制御を実装済み
-- 未実装: 比較ロジックの高度化、item 保存成功時の `purchased` 反映自動化、item 画像保存側との本接続
+- 未実装: 比較ロジックの高度化、item 保存成功時の `purchased` 反映自動化、item 画像 upload / delete UI
 - 正本: `docs/specs/purchase-candidates.md`, `docs/data/database.md`, `docs/api/openapi.yaml`
 
 
@@ -107,7 +108,7 @@ item 詳細画面での status 操作 UI は `docs/specs/items/detail-status-ui.
 - event_logs を実装する場合、`item_disposed` `item_reactivated` `outfit_invalidated` `outfit_restored` `outfit_duplicated` などのイベント種別設計が連動する
 - 正本: `docs/data/database.md`, `docs/specs/logging/logging-policy.md`
 
-- purchase_candidates の `item-draft` は item 作成初期値生成に留め、candidate の `purchased` 更新や item 画像保存との最終接続は別責務として扱う
+- purchase_candidates の `item-draft` は item 作成初期値生成に留め、candidate の `purchased` 更新は別責務として扱う
 - `category_id -> category / shape` の変換と DB 構造差の吸収は Laravel 側で行い、frontend / BFF へ分散させない
 - 正本: `docs/specs/purchase-candidates.md`, `docs/project/implementation-notes.md`
 
@@ -122,8 +123,8 @@ item 詳細画面での status 操作 UI は `docs/specs/items/detail-status-ui.
    - `active / invalid`、通常保存時の `status` 非包含、item `disposed` に伴う invalid 化は docs に反映済みのため、実装を揃える
    - 理由: invalid outfit 実装と wear logs の候補制約の前提になるため
 3. purchase_candidates 残タスクの実装着手
-   - 対象: 比較ロジック、item 保存成功時の `purchased` 反映、自動画像引き継ぎの本接続
-   - 理由: MVP の CRUD / 画像 / item-draft が揃ったため、item 側との責務境界を次に詰めやすいため
+   - 対象: 比較ロジック、item 保存成功時の `purchased` 反映、item 画像 upload / delete UI
+   - 理由: MVP の CRUD / 画像 / item-draft と item 側受け皿が揃ったため、残る責務境界を次に詰めやすいため
 4. wear logs 残タスクの実装着手
    - 対象: 候補 UI の補助改善、snapshot の採否整理
    - 理由: CRUD と責務分離は揃ったため、運用上不足する補助導線から詰めやすいため

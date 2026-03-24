@@ -340,6 +340,47 @@ class PurchaseCandidateEndpointsTest extends TestCase
             ->assertJsonPath('candidate_summary.id', $candidate->id);
     }
 
+    public function test_purchase_candidate_item_draft_can_flow_into_item_create(): void
+    {
+        $user = User::factory()->create();
+        $candidate = $this->createCandidate($user, [
+            'category_id' => 'outer_coat',
+            'name' => 'トレンチ候補',
+        ]);
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $draftResponse = $this->postJson("/api/purchase-candidates/{$candidate->id}/item-draft", [], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $draftResponse->assertOk()
+            ->assertJsonPath('item_draft.category', 'outer')
+            ->assertJsonPath('item_draft.shape', 'trench');
+
+        $payload = $draftResponse->json('item_draft');
+        $payload['images'] = [];
+
+        $createResponse = $this->postJson('/api/items', $payload, [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $createResponse->assertCreated()
+            ->assertJsonPath('item.category', 'outer')
+            ->assertJsonPath('item.shape', 'trench')
+            ->assertJsonPath('item.brand_name', $candidate->brand_name);
+
+        $this->assertDatabaseHas('items', [
+            'user_id' => $user->id,
+            'name' => 'トレンチ候補',
+            'category' => 'outer',
+            'shape' => 'trench',
+        ]);
+    }
+
     public function test_post_purchase_candidate_image_upload_and_delete_work_with_limit(): void
     {
         Storage::fake('public');

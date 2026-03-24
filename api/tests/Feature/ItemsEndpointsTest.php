@@ -16,6 +16,15 @@ class ItemsEndpointsTest extends TestCase
         return Item::query()->create(array_merge([
             'user_id' => $user->id,
             'name' => 'テストアイテム',
+            'brand_name' => null,
+            'price' => null,
+            'purchase_url' => null,
+            'purchased_at' => null,
+            'size_gender' => null,
+            'size_label' => null,
+            'size_note' => null,
+            'size_details' => null,
+            'is_rain_ok' => false,
             'category' => 'tops',
             'shape' => 'tshirt',
             'colors' => [[
@@ -127,6 +136,198 @@ class ItemsEndpointsTest extends TestCase
 
         $response->assertJsonMissing([
             'name' => '手放した白T',
+        ]);
+    }
+
+    public function test_post_items_stores_purchase_fields_and_images(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/items', [
+            'name' => 'レインコート',
+            'brand_name' => 'Sample Brand',
+            'price' => 14800,
+            'purchase_url' => 'https://example.test/products/coat',
+            'purchased_at' => '2026-03-24',
+            'size_gender' => 'women',
+            'size_label' => 'M',
+            'size_note' => '厚手ニット込み',
+            'size_details' => [
+                'note' => '裄丈 78cm',
+            ],
+            'is_rain_ok' => true,
+            'category' => 'outer',
+            'shape' => 'trench',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'navy',
+                'hex' => '#123456',
+                'label' => 'ネイビー',
+            ]],
+            'seasons' => ['春', '秋'],
+            'tpos' => ['仕事'],
+            'images' => [[
+                'disk' => 'public',
+                'path' => 'purchase-candidates/1/image-1.png',
+                'original_filename' => 'coat.png',
+                'mime_type' => 'image/png',
+                'file_size' => 2048,
+                'sort_order' => 1,
+                'is_primary' => true,
+            ]],
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('item.name', 'レインコート')
+            ->assertJsonPath('item.brand_name', 'Sample Brand')
+            ->assertJsonPath('item.price', 14800)
+            ->assertJsonPath('item.purchase_url', 'https://example.test/products/coat')
+            ->assertJsonPath('item.size_gender', 'women')
+            ->assertJsonPath('item.size_label', 'M')
+            ->assertJsonPath('item.size_note', '厚手ニット込み')
+            ->assertJsonPath('item.size_details.note', '裄丈 78cm')
+            ->assertJsonPath('item.is_rain_ok', true)
+            ->assertJsonPath('item.images.0.path', 'purchase-candidates/1/image-1.png')
+            ->assertJsonPath('item.images.0.is_primary', true);
+
+        $itemId = $response->json('item.id');
+
+        $this->assertDatabaseHas('items', [
+            'id' => $itemId,
+            'brand_name' => 'Sample Brand',
+            'price' => 14800,
+            'size_gender' => 'women',
+            'is_rain_ok' => 1,
+        ]);
+        $this->assertDatabaseHas('item_images', [
+            'item_id' => $itemId,
+            'path' => 'purchase-candidates/1/image-1.png',
+            'is_primary' => 1,
+        ]);
+    }
+
+    public function test_get_item_returns_purchase_fields_and_images(): void
+    {
+        $user = User::factory()->create();
+        $item = $this->createItem($user, [
+            'brand_name' => 'Detail Brand',
+            'price' => 22000,
+            'purchase_url' => 'https://example.test/detail',
+            'purchased_at' => '2026-03-20',
+            'size_gender' => 'unisex',
+            'size_label' => 'FREE',
+            'size_note' => '袖丈長め',
+            'size_details' => ['note' => '着丈 120cm'],
+            'is_rain_ok' => true,
+            'category' => 'outer',
+            'shape' => 'trench',
+        ]);
+        $item->images()->create([
+            'disk' => 'public',
+            'path' => 'items/1/coat.png',
+            'original_filename' => 'coat.png',
+            'mime_type' => 'image/png',
+            'file_size' => 1024,
+            'sort_order' => 1,
+            'is_primary' => true,
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->getJson("/api/items/{$item->id}", [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('item.brand_name', 'Detail Brand')
+            ->assertJsonPath('item.price', 22000)
+            ->assertJsonPath('item.purchase_url', 'https://example.test/detail')
+            ->assertJsonPath('item.size_details.note', '着丈 120cm')
+            ->assertJsonPath('item.is_rain_ok', true)
+            ->assertJsonPath('item.images.0.path', 'items/1/coat.png');
+    }
+
+    public function test_put_item_updates_purchase_fields_and_images(): void
+    {
+        $user = User::factory()->create();
+        $item = $this->createItem($user, [
+            'category' => 'outer',
+            'shape' => 'trench',
+        ]);
+        $item->images()->create([
+            'disk' => 'public',
+            'path' => 'items/original.png',
+            'original_filename' => 'original.png',
+            'mime_type' => 'image/png',
+            'file_size' => 1000,
+            'sort_order' => 1,
+            'is_primary' => true,
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->putJson("/api/items/{$item->id}", [
+            'name' => '更新後アイテム',
+            'brand_name' => 'Updated Brand',
+            'price' => 19800,
+            'purchase_url' => 'https://example.test/updated',
+            'purchased_at' => '2026-03-24',
+            'size_gender' => 'women',
+            'size_label' => 'L',
+            'size_note' => '袖丈確認済み',
+            'size_details' => [
+                'note' => '肩幅 42cm',
+            ],
+            'is_rain_ok' => true,
+            'category' => 'outer',
+            'shape' => 'trench',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'navy',
+                'hex' => '#123456',
+                'label' => 'ネイビー',
+            ]],
+            'seasons' => ['春'],
+            'tpos' => ['仕事'],
+            'images' => [[
+                'disk' => 'public',
+                'path' => 'items/updated.png',
+                'original_filename' => 'updated.png',
+                'mime_type' => 'image/png',
+                'file_size' => 1500,
+                'sort_order' => 1,
+                'is_primary' => true,
+            ]],
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('item.name', '更新後アイテム')
+            ->assertJsonPath('item.category', 'outer')
+            ->assertJsonPath('item.shape', 'trench')
+            ->assertJsonPath('item.brand_name', 'Updated Brand')
+            ->assertJsonPath('item.images.0.path', 'items/updated.png');
+
+        $this->assertDatabaseHas('items', [
+            'id' => $item->id,
+            'brand_name' => 'Updated Brand',
+            'price' => 19800,
+            'shape' => 'trench',
+        ]);
+        $this->assertDatabaseHas('item_images', [
+            'item_id' => $item->id,
+            'path' => 'items/updated.png',
+        ]);
+        $this->assertDatabaseMissing('item_images', [
+            'item_id' => $item->id,
+            'path' => 'items/original.png',
         ]);
     }
 }

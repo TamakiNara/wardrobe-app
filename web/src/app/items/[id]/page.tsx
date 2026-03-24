@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import DeleteItemButton from "@/components/items/delete-item-button";
 import ItemStatusAction from "@/components/items/item-status-action";
 import ItemPreviewCard from "@/components/items/item-preview-card";
+import { formatItemPrice, ITEM_SIZE_GENDER_LABELS } from "@/lib/items/metadata";
 import { buildTopsSpecLabels, buildTopsSpecRaw } from "@/lib/master-data/item-tops";
 import { findItemCategoryLabel, findItemShapeLabel } from "@/lib/master-data/item-shapes";
 import { fetchLaravelWithCookie } from "@/lib/server/laravel";
@@ -32,6 +33,7 @@ export default async function ItemPage({
   const topsSpecRaw = buildTopsSpecRaw(item.spec?.tops);
   const categoryLabel = findItemCategoryLabel(item.category);
   const shapeLabel = findItemShapeLabel(item.category, item.shape);
+  const itemImages = item.images ?? [];
 
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">
@@ -127,6 +129,79 @@ export default async function ItemPage({
             TPO： {item.tpos?.length ? item.tpos.join(" / ") : "未設定"}
           </p>
         </div>
+
+        {itemImages.length > 0 && (
+          <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+            <h2 className="text-lg font-semibold text-gray-900">画像</h2>
+            <div className="mt-4 grid gap-4 md:grid-cols-2">
+              {itemImages.map((image) => (
+                <article key={image.id ?? `${image.path}-${image.sort_order}`} className="overflow-hidden rounded-xl border border-gray-200">
+                  {image.url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={image.url} alt={image.original_filename ?? "item image"} className="aspect-[4/3] w-full object-cover" />
+                  ) : (
+                    <div className="flex aspect-[4/3] items-center justify-center bg-gray-100 text-sm text-gray-400">
+                      画像なし
+                    </div>
+                  )}
+                  <div className="p-3 text-sm text-gray-600">
+                    {image.sort_order}枚目{image.is_primary ? " / 代表画像" : ""}
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
+        )}
+
+        <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <h2 className="text-lg font-semibold text-gray-900">購入・サイズ情報</h2>
+          <dl className="mt-4 grid gap-4 md:grid-cols-2">
+            <div>
+              <dt className="text-sm font-medium text-gray-700">ブランド名</dt>
+              <dd className="mt-1 text-sm text-gray-600">{item.brand_name ?? "未設定"}</dd>
+            </div>
+            <div>
+              <dt className="text-sm font-medium text-gray-700">実購入価格</dt>
+              <dd className="mt-1 text-sm text-gray-600">{formatItemPrice(item.price ?? null)}</dd>
+            </div>
+            <div>
+              <dt className="text-sm font-medium text-gray-700">購入 URL</dt>
+              <dd className="mt-1 text-sm text-gray-600">
+                {item.purchase_url ? (
+                  <a href={item.purchase_url} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">
+                    開く
+                  </a>
+                ) : (
+                  "未設定"
+                )}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-sm font-medium text-gray-700">購入日</dt>
+              <dd className="mt-1 text-sm text-gray-600">{item.purchased_at ? item.purchased_at.slice(0, 10) : "未設定"}</dd>
+            </div>
+            <div>
+              <dt className="text-sm font-medium text-gray-700">サイズ区分</dt>
+              <dd className="mt-1 text-sm text-gray-600">{item.size_gender ? ITEM_SIZE_GENDER_LABELS[item.size_gender] : "未設定"}</dd>
+            </div>
+            <div>
+              <dt className="text-sm font-medium text-gray-700">サイズ表記</dt>
+              <dd className="mt-1 text-sm text-gray-600">{item.size_label ?? "未設定"}</dd>
+            </div>
+            <div>
+              <dt className="text-sm font-medium text-gray-700">サイズ補足</dt>
+              <dd className="mt-1 text-sm text-gray-600">{item.size_note ?? "未設定"}</dd>
+            </div>
+            <div>
+              <dt className="text-sm font-medium text-gray-700">雨対応</dt>
+              <dd className="mt-1 text-sm text-gray-600">{item.is_rain_ok ? "対応" : "未対応"}</dd>
+            </div>
+            <div className="md:col-span-2">
+              <dt className="text-sm font-medium text-gray-700">実寸メモ</dt>
+              <dd className="mt-1 text-sm text-gray-600">{item.size_details?.note ?? "未設定"}</dd>
+            </div>
+          </dl>
+        </section>
       </div>
     </main>
   );

@@ -727,6 +727,8 @@ item 保存成功時に candidate を `purchased` に更新する処理が必要
 - `brand_name / price / purchase_url / purchased_at` を保存できる
 - サイズ情報を保存できる
 - 複数画像を保存できる
+- 現在は item 作成時に candidate 由来画像を `item_images` として保存できる
+- 保存後の item 画像は candidate 側と自動同期しない
 
 ---
 

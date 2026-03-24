@@ -89,7 +89,7 @@ describe("PurchaseCandidatesPage", () => {
     expect(markup).toContain("コート");
     expect(markup).toContain("検討中");
     expect(markup).toContain("優先度: 高");
-    expect(markup).toContain("¥19,800");
+    expect(markup).toContain("19,800円");
     expect(markup).toContain("購入候補一覧");
     expect(markup).toContain('href="/purchase-candidates/1"');
   });

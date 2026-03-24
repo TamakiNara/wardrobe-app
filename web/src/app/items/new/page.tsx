@@ -44,12 +44,22 @@ import {
   mapPurchaseCandidateItemDraft,
 } from "@/lib/purchase-candidates/item-draft";
 import type { PurchaseCandidateImageRecord } from "@/types/purchase-candidates";
+import { formatItemPrice, ITEM_SIZE_GENDER_LABELS, mapPurchaseCandidateImagesToItemImages } from "@/lib/items/metadata";
 
 export default function NewItemPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const [name, setName] = useState("");
+  const [brandName, setBrandName] = useState("");
+  const [price, setPrice] = useState("");
+  const [purchaseUrl, setPurchaseUrl] = useState("");
+  const [purchasedAt, setPurchasedAt] = useState("");
+  const [sizeGender, setSizeGender] = useState<"women" | "men" | "unisex" | "unknown" | "">("");
+  const [sizeLabel, setSizeLabel] = useState("");
+  const [sizeNote, setSizeNote] = useState("");
+  const [sizeDetailsNote, setSizeDetailsNote] = useState("");
+  const [isRainOk, setIsRainOk] = useState(false);
   const [category, setCategory] = useState<ItemCategory | "">("");
   const [categoryOptions, setCategoryOptions] = useState<CategoryOption[]>([...ITEM_CATEGORIES]);
   const [shape, setShape] = useState("");
@@ -178,6 +188,15 @@ export default function NewItemPage() {
     const subDraftColor = draft.colors.find((color) => color.role === "sub");
 
     setName(draft.name);
+    setBrandName(draft.brandName ?? "");
+    setPrice(draft.price === null ? "" : String(draft.price));
+    setPurchaseUrl(draft.purchaseUrl ?? "");
+    setPurchasedAt(draft.purchasedAt ?? "");
+    setSizeGender(draft.sizeGender ?? "");
+    setSizeLabel(draft.sizeLabel ?? "");
+    setSizeNote(draft.sizeNote ?? "");
+    setSizeDetailsNote(draft.sizeDetails ?? "");
+    setIsRainOk(draft.isRainOk);
     setCategory(draft.category as ItemCategory);
     setShape(draft.shape);
     setSelectedSeasons(draft.seasons);
@@ -260,6 +279,19 @@ export default function NewItemPage() {
 
     return {
       name,
+      brand_name: brandName.trim() || null,
+      price: price === "" ? null : Number(price),
+      purchase_url: purchaseUrl.trim() || null,
+      purchased_at: purchasedAt || null,
+      size_gender: sizeGender || null,
+      size_label: sizeLabel.trim() || null,
+      size_note: sizeNote.trim() || null,
+      size_details: sizeDetailsNote.trim()
+        ? {
+            note: sizeDetailsNote.trim(),
+          }
+        : null,
+      is_rain_ok: isRainOk,
       category,
       shape,
       colors,
@@ -278,6 +310,7 @@ export default function NewItemPage() {
               },
             }
           : null,
+      images: mapPurchaseCandidateImagesToItemImages(draftImages),
     };
   }
 
@@ -396,6 +429,144 @@ export default function NewItemPage() {
               />
             </div>
 
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <label htmlFor="brand-name" className="mb-1 block text-sm font-medium text-gray-700">
+                  ブランド名
+                </label>
+                <input
+                  id="brand-name"
+                  type="text"
+                  value={brandName}
+                  onChange={(e) => setBrandName(e.target.value)}
+                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="price" className="mb-1 block text-sm font-medium text-gray-700">
+                  実購入価格
+                </label>
+                <div className="flex items-center rounded-lg border border-gray-300 bg-white pr-4 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100">
+                  <input
+                    id="price"
+                    type="number"
+                    min="0"
+                    inputMode="numeric"
+                    value={price}
+                    onChange={(e) => setPrice(e.target.value)}
+                    className="w-full rounded-lg bg-transparent px-4 py-3 text-gray-900 outline-none"
+                  />
+                  <span className="text-sm text-gray-500">円</span>
+                </div>
+                {price !== "" && (
+                  <p className="mt-1 text-xs text-gray-500">
+                    表示: {formatItemPrice(Number(price))}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <label htmlFor="purchase-url" className="mb-1 block text-sm font-medium text-gray-700">
+                  購入 URL
+                </label>
+                <input
+                  id="purchase-url"
+                  type="url"
+                  value={purchaseUrl}
+                  onChange={(e) => setPurchaseUrl(e.target.value)}
+                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="purchased-at" className="mb-1 block text-sm font-medium text-gray-700">
+                  購入日
+                </label>
+                <input
+                  id="purchased-at"
+                  type="date"
+                  value={purchasedAt}
+                  onChange={(e) => setPurchasedAt(e.target.value)}
+                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <label htmlFor="size-gender" className="mb-1 block text-sm font-medium text-gray-700">
+                  サイズ区分
+                </label>
+                <select
+                  id="size-gender"
+                  value={sizeGender}
+                  onChange={(e) => setSizeGender(e.target.value as "women" | "men" | "unisex" | "unknown" | "")}
+                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                >
+                  <option value="">選択してください</option>
+                  {Object.entries(ITEM_SIZE_GENDER_LABELS).map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label htmlFor="size-label" className="mb-1 block text-sm font-medium text-gray-700">
+                  サイズ表記
+                </label>
+                <input
+                  id="size-label"
+                  type="text"
+                  value={sizeLabel}
+                  onChange={(e) => setSizeLabel(e.target.value)}
+                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-[1fr_auto] md:items-end">
+              <div>
+                <label htmlFor="size-note" className="mb-1 block text-sm font-medium text-gray-700">
+                  サイズ補足
+                </label>
+                <input
+                  id="size-note"
+                  type="text"
+                  value={sizeNote}
+                  onChange={(e) => setSizeNote(e.target.value)}
+                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                />
+              </div>
+
+              <label className="inline-flex h-[50px] items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700">
+                <input
+                  type="checkbox"
+                  checked={isRainOk}
+                  onChange={(e) => setIsRainOk(e.target.checked)}
+                  className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                雨対応
+              </label>
+            </div>
+
+            <div>
+              <label htmlFor="size-details-note" className="mb-1 block text-sm font-medium text-gray-700">
+                実寸メモ
+              </label>
+              <textarea
+                id="size-details-note"
+                value={sizeDetailsNote}
+                onChange={(e) => setSizeDetailsNote(e.target.value)}
+                rows={3}
+                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              />
+            </div>
+
             <div>
               <label htmlFor="category" className="mb-1 block text-sm font-medium text-gray-700">
                 カテゴリ
@@ -443,7 +614,7 @@ export default function NewItemPage() {
               <div>
                 <h2 className="text-lg font-semibold text-gray-900">候補画像</h2>
                 <p className="mt-1 text-sm text-gray-500">
-                  purchase candidate から引き継いだ画像です。item 画像保存フローは後続整理とし、今回は参照情報として表示します。
+                  purchase candidate から引き継いだ画像です。保存時に item 画像として登録し、以降は item 側で別管理します。
                 </p>
               </div>
 

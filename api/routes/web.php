@@ -6,6 +6,8 @@ use App\Http\Controllers\Api\WearLogController;
 use App\Models\CategoryMaster;
 use App\Models\Item;
 use App\Models\Outfit;
+use App\Support\ItemImageSync;
+use App\Support\ItemPayloadBuilder;
 use App\Support\ItemsIndexQuery;
 use App\Support\OutfitsIndexQuery;
 use Illuminate\Http\Request;
@@ -109,6 +111,16 @@ Route::prefix('api')->middleware(['web'])->group(function () {
     Route::middleware('auth:web')->post('/items', function (Request $request) {
         $validated = $request->validate([
             'name' => ['nullable', 'string', 'max:255'],
+            'brand_name' => ['nullable', 'string', 'max:255'],
+            'price' => ['nullable', 'integer', 'min:0'],
+            'purchase_url' => ['nullable', 'url'],
+            'purchased_at' => ['nullable', 'date'],
+            'size_gender' => ['nullable', 'string', 'in:women,men,unisex,unknown'],
+            'size_label' => ['nullable', 'string', 'max:50'],
+            'size_note' => ['nullable', 'string'],
+            'size_details' => ['nullable', 'array'],
+            'size_details.note' => ['nullable', 'string'],
+            'is_rain_ok' => ['nullable', 'boolean'],
             'category' => ['required', 'string', 'max:100'],
             'shape' => ['required', 'string', 'max:100'],
             'colors' => ['required', 'array', 'min:1'],
@@ -129,32 +141,56 @@ Route::prefix('api')->middleware(['web'])->group(function () {
             'spec.tops.neck' => ['nullable', 'string', 'max:100'],
             'spec.tops.design' => ['nullable', 'string', 'max:100'],
             'spec.tops.fit' => ['nullable', 'string', 'max:100'],
+            'images' => ['nullable', 'array', 'max:5'],
+            'images.*.disk' => ['nullable', 'string', 'max:100'],
+            'images.*.path' => ['nullable', 'string'],
+            'images.*.original_filename' => ['nullable', 'string', 'max:255'],
+            'images.*.mime_type' => ['nullable', 'string', 'max:100'],
+            'images.*.file_size' => ['nullable', 'integer', 'min:0'],
+            'images.*.sort_order' => ['required', 'integer', 'min:1'],
+            'images.*.is_primary' => ['nullable', 'boolean'],
         ]);
 
-        $item = Item::create([
-            'user_id' => $request->user()->id,
-            'name' => $validated['name'] ?? null,
-            'category' => $validated['category'],
-            'shape' => $validated['shape'],
-            'colors' => $validated['colors'],
-            'seasons' => $validated['seasons'] ?? [],
-            'tpos' => $validated['tpos'] ?? [],
-            'spec' => $validated['spec'] ?? null,
-        ]);
+        $item = DB::transaction(function () use ($request, $validated) {
+            $item = Item::create([
+                'user_id' => $request->user()->id,
+                'name' => $validated['name'] ?? null,
+                'brand_name' => $validated['brand_name'] ?? null,
+                'price' => $validated['price'] ?? null,
+                'purchase_url' => $validated['purchase_url'] ?? null,
+                'purchased_at' => $validated['purchased_at'] ?? null,
+                'size_gender' => $validated['size_gender'] ?? null,
+                'size_label' => $validated['size_label'] ?? null,
+                'size_note' => $validated['size_note'] ?? null,
+                'size_details' => $validated['size_details'] ?? null,
+                'is_rain_ok' => (bool) ($validated['is_rain_ok'] ?? false),
+                'category' => $validated['category'],
+                'shape' => $validated['shape'],
+                'colors' => $validated['colors'],
+                'seasons' => $validated['seasons'] ?? [],
+                'tpos' => $validated['tpos'] ?? [],
+                'spec' => $validated['spec'] ?? null,
+            ]);
+
+            ItemImageSync::sync($item, $validated['images'] ?? []);
+
+            return $item->fresh()->load('images');
+        });
 
         return response()->json([
             'message' => 'created',
-            'item' => $item,
+            'item' => ItemPayloadBuilder::buildDetail($item),
         ], 201);
     });
 
     Route::middleware('auth:web')->get('/items/{id}', function (Request $request, int $id) {
         $item = Item::query()
             ->where('user_id', $request->user()->id)
+            ->with('images')
             ->findOrFail($id);
 
         return response()->json([
-            'item' => $item,
+            'item' => ItemPayloadBuilder::buildDetail($item),
         ]);
     });
 
@@ -165,6 +201,16 @@ Route::prefix('api')->middleware(['web'])->group(function () {
 
         $validated = $request->validate([
             'name' => ['nullable', 'string', 'max:255'],
+            'brand_name' => ['nullable', 'string', 'max:255'],
+            'price' => ['nullable', 'integer', 'min:0'],
+            'purchase_url' => ['nullable', 'url'],
+            'purchased_at' => ['nullable', 'date'],
+            'size_gender' => ['nullable', 'string', 'in:women,men,unisex,unknown'],
+            'size_label' => ['nullable', 'string', 'max:50'],
+            'size_note' => ['nullable', 'string'],
+            'size_details' => ['nullable', 'array'],
+            'size_details.note' => ['nullable', 'string'],
+            'is_rain_ok' => ['nullable', 'boolean'],
             'category' => ['required', 'string', 'max:100'],
             'shape' => ['required', 'string', 'max:100'],
             'colors' => ['required', 'array', 'min:1'],
@@ -185,21 +231,42 @@ Route::prefix('api')->middleware(['web'])->group(function () {
             'spec.tops.neck' => ['nullable', 'string', 'max:100'],
             'spec.tops.design' => ['nullable', 'string', 'max:100'],
             'spec.tops.fit' => ['nullable', 'string', 'max:100'],
+            'images' => ['nullable', 'array', 'max:5'],
+            'images.*.disk' => ['nullable', 'string', 'max:100'],
+            'images.*.path' => ['nullable', 'string'],
+            'images.*.original_filename' => ['nullable', 'string', 'max:255'],
+            'images.*.mime_type' => ['nullable', 'string', 'max:100'],
+            'images.*.file_size' => ['nullable', 'integer', 'min:0'],
+            'images.*.sort_order' => ['required', 'integer', 'min:1'],
+            'images.*.is_primary' => ['nullable', 'boolean'],
         ]);
 
-        $item->update([
-            'name' => $validated['name'] ?? null,
-            'category' => $validated['category'],
-            'shape' => $validated['shape'],
-            'colors' => $validated['colors'],
-            'seasons' => $validated['seasons'] ?? [],
-            'tpos' => $validated['tpos'] ?? [],
-            'spec' => $validated['spec'] ?? null,
-        ]);
+        DB::transaction(function () use ($item, $validated) {
+            $item->update([
+                'name' => $validated['name'] ?? null,
+                'brand_name' => $validated['brand_name'] ?? null,
+                'price' => $validated['price'] ?? null,
+                'purchase_url' => $validated['purchase_url'] ?? null,
+                'purchased_at' => $validated['purchased_at'] ?? null,
+                'size_gender' => $validated['size_gender'] ?? null,
+                'size_label' => $validated['size_label'] ?? null,
+                'size_note' => $validated['size_note'] ?? null,
+                'size_details' => $validated['size_details'] ?? null,
+                'is_rain_ok' => (bool) ($validated['is_rain_ok'] ?? false),
+                'category' => $validated['category'],
+                'shape' => $validated['shape'],
+                'colors' => $validated['colors'],
+                'seasons' => $validated['seasons'] ?? [],
+                'tpos' => $validated['tpos'] ?? [],
+                'spec' => $validated['spec'] ?? null,
+            ]);
+
+            ItemImageSync::sync($item, $validated['images'] ?? []);
+        });
 
         return response()->json([
             'message' => 'updated',
-            'item' => $item->fresh(),
+            'item' => ItemPayloadBuilder::buildDetail($item->fresh()->load('images')),
         ]);
     });
 

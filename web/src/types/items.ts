@@ -19,14 +19,39 @@ export type ItemSpec = {
   tops?: TopsSpec | null;
 };
 
+export type ItemImageRecord = {
+  id?: number;
+  item_id?: number;
+  disk: string | null;
+  path: string | null;
+  url?: string | null;
+  original_filename: string | null;
+  mime_type: string | null;
+  file_size: number | null;
+  sort_order: number;
+  is_primary: boolean;
+};
+
 export type CreateItemPayload = {
   name: string;
+  brand_name: string | null;
+  price: number | null;
+  purchase_url: string | null;
+  purchased_at: string | null;
+  size_gender: "women" | "men" | "unisex" | "unknown" | null;
+  size_label: string | null;
+  size_note: string | null;
+  size_details: {
+    note: string | null;
+  } | null;
+  is_rain_ok: boolean;
   category: string;
   shape: string;
   colors: ItemFormColor[];
   seasons: string[];
   tpos: string[];
   spec?: ItemSpec | null;
+  images: ItemImageRecord[];
 };
 
 export type ItemStatus = "active" | "disposed";
@@ -35,10 +60,22 @@ export type ItemRecord = {
   id: number;
   name: string | null;
   status: ItemStatus;
+  brand_name?: string | null;
+  price?: number | null;
+  purchase_url?: string | null;
+  purchased_at?: string | null;
+  size_gender?: "women" | "men" | "unisex" | "unknown" | null;
+  size_label?: string | null;
+  size_note?: string | null;
+  size_details?: {
+    note?: string | null;
+  } | null;
+  is_rain_ok?: boolean;
   category: string;
   shape: string;
   colors: ItemFormColor[];
   seasons: string[];
   tpos: string[];
   spec?: ItemSpec | null;
+  images?: ItemImageRecord[];
 };

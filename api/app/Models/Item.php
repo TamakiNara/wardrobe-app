@@ -15,6 +15,15 @@ class Item extends Model
         'user_id',
         'status',
         'name',
+        'brand_name',
+        'price',
+        'purchase_url',
+        'purchased_at',
+        'size_gender',
+        'size_label',
+        'size_note',
+        'size_details',
+        'is_rain_ok',
         'category',
         'shape',
         'colors',
@@ -24,6 +33,10 @@ class Item extends Model
     ];
 
     protected $casts = [
+        'price' => 'integer',
+        'purchased_at' => 'date',
+        'size_details' => 'array',
+        'is_rain_ok' => 'boolean',
         'colors' => 'array',
         'seasons' => 'array',
         'tpos' => 'array',
@@ -43,5 +56,10 @@ class Item extends Model
     public function wearLogItems(): HasMany
     {
         return $this->hasMany(WearLogItem::class, 'source_item_id');
+    }
+
+    public function images(): HasMany
+    {
+        return $this->hasMany(ItemImage::class)->orderBy('sort_order');
     }
 }
