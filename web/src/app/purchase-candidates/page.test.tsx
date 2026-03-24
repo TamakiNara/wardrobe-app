@@ -117,6 +117,8 @@ describe("PurchaseCandidatesPage", () => {
     expect(markup).toContain("購入候補一覧");
     expect(markup).toContain('href="/purchase-candidates/1"');
     expect(markup).toContain('src="http://localhost:8000/storage/purchase-candidates/1/front.png"');
+    expect(markup).toContain("詳細を見る");
     expect(markup).toContain("画像なし");
+    expect(markup).not.toContain('href="/purchase-candidates/1/edit"');
   });
 });

@@ -108,20 +108,25 @@ export default async function PurchaseCandidatesPage({
                 key={candidate.id}
                 className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm"
               >
-                <div className="flex aspect-[4/3] items-center justify-center bg-gray-50 p-3">
-                  {candidate.primary_image?.url ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={candidate.primary_image.url}
-                      alt={candidate.name}
-                      className="h-full w-full object-contain"
-                    />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center rounded-xl border border-dashed border-gray-300 bg-white text-sm text-gray-400">
-                      画像なし
-                    </div>
-                  )}
-                </div>
+                <Link
+                  href={`/purchase-candidates/${candidate.id}`}
+                  className="block outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2"
+                >
+                  <div className="flex aspect-[4/3] items-center justify-center bg-gray-50 p-3 transition hover:bg-gray-100">
+                    {candidate.primary_image?.url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={candidate.primary_image.url}
+                        alt={candidate.name}
+                        className="h-full w-full object-contain"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center rounded-xl border border-dashed border-gray-300 bg-white text-sm text-gray-400">
+                        画像なし
+                      </div>
+                    )}
+                  </div>
+                </Link>
 
                 <div className="space-y-4 p-5">
                   <div className="flex flex-wrap items-center gap-2">
@@ -138,14 +143,17 @@ export default async function PurchaseCandidatesPage({
                     )}
                   </div>
 
-                  <div>
+                  <Link
+                    href={`/purchase-candidates/${candidate.id}`}
+                    className="block rounded-lg outline-none transition hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-blue-400"
+                  >
                     <h2 className="text-lg font-semibold text-gray-900">
                       {candidate.name}
                     </h2>
                     <p className="mt-1 text-sm text-gray-500">
                       {candidate.category_name ?? candidate.category_id}
                     </p>
-                  </div>
+                  </Link>
 
                   <dl className="space-y-2 text-sm text-gray-600">
                     <div className="flex items-center justify-between gap-3">
@@ -163,13 +171,7 @@ export default async function PurchaseCandidatesPage({
                       href={`/purchase-candidates/${candidate.id}`}
                       className="text-sm font-medium text-blue-600 hover:underline"
                     >
-                      詳細
-                    </Link>
-                    <Link
-                      href={`/purchase-candidates/${candidate.id}/edit`}
-                      className="text-sm font-medium text-blue-600 hover:underline"
-                    >
-                      編集
+                      詳細を見る
                     </Link>
                   </div>
                 </div>

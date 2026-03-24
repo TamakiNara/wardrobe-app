@@ -55,6 +55,7 @@ purchase_candidates の仕様正本を確認するときは `docs/specs/purchase
 - candidate 由来画像は item 保存時に item 用保存先へ物理コピーし、`item_images` にはコピー先の `disk + path` を保存する
 - purchase_candidates の画像追加 UI は file select / drag & drop / paste に対応済み
 - purchase_candidates 一覧では代表画像、詳細・編集では画像全体確認を優先する表示へ整理済み
+- purchase_candidates でも一覧 → 詳細 → 編集 の責務分離を採用し、一覧は確認・遷移、編集は詳細画面からを主導線に整理済み
 - 比較ロジックの詳細、item 保存成功時の `purchased` 反映、item 側画像 upload / delete UI は後続検討とする
 
 直近または中期 TODO:
