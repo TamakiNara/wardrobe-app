@@ -173,6 +173,11 @@ describe("EditItemPage", () => {
       "ワンピース・オールインワン",
       "ルームウェア・インナー",
     ]);
+    expect(container.textContent).toContain("「必須」が付いた項目は更新に必要です。");
+    expect(container.textContent).toContain("カテゴリ");
+    expect(container.textContent).toContain("形");
+    expect(container.textContent).toContain("メインカラー");
+    expect(container.textContent?.match(/必須/g)?.length).toBe(4);
     expect((container.querySelector("#brand-name") as HTMLInputElement | null)?.value).toBe("Sample Brand");
     expect((container.querySelector("#price") as HTMLInputElement | null)?.value).toBe("19800");
     expect(container.textContent).toContain("画像");

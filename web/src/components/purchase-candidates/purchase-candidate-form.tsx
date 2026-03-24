@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
+import FieldLabel from "@/components/forms/field-label";
 import ColorChip from "@/components/items/color-chip";
 import ColorSelect from "@/components/items/color-select";
 import PurchaseCandidateImageUploader from "@/components/purchase-candidates/purchase-candidate-image-uploader";
@@ -95,27 +96,6 @@ function extractFirstErrorMessage(data: unknown, fallback: string): string {
   }
 
   return fallback;
-}
-
-function FieldLabel({
-  htmlFor,
-  label,
-  required = false,
-}: {
-  htmlFor?: string;
-  label: string;
-  required?: boolean;
-}) {
-  return (
-    <label htmlFor={htmlFor} className="mb-1 flex items-center gap-2 text-sm font-medium text-gray-700">
-      <span>{label}</span>
-      {required ? (
-        <span className="rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-semibold text-red-600">
-          必須
-        </span>
-      ) : null}
-    </label>
-  );
 }
 
 export default function PurchaseCandidateForm({

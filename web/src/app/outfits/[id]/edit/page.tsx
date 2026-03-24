@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import FieldLabel from "@/components/forms/field-label";
 import { isItemVisibleByCategorySettings } from "@/lib/api/categories";
 import { fetchCategoryVisibilitySettings } from "@/lib/api/settings";
 import type { CreateOutfitPayload } from "@/types/outfits";
@@ -311,6 +312,7 @@ export default function EditOutfitPage({
         >
           <section className="space-y-4">
             <h2 className="text-lg font-semibold text-gray-900">基本情報</h2>
+            <p className="text-sm text-gray-500">「必須」が付いた項目は更新に必要です。</p>
 
             <div>
               <label
@@ -408,7 +410,12 @@ export default function EditOutfitPage({
 
           <section className="space-y-4">
             <div className="flex items-center justify-between gap-4">
-              <h2 className="text-lg font-semibold text-gray-900">アイテム選択</h2>
+              <FieldLabel
+                as="div"
+                label="アイテム選択"
+                required
+                className="text-lg font-semibold text-gray-900"
+              />
 
               <span className="rounded-full border border-gray-300 bg-gray-50 px-3 py-1 text-sm text-gray-700">
                 選択中 {selectedItemIds.length} 件

@@ -96,6 +96,9 @@ describe("NewOutfitPage", () => {
 
     expect(container.textContent).toContain("白T");
     expect(container.textContent).not.toContain("登録済みアイテムがありません。");
+    expect(container.textContent).toContain("「必須」が付いた項目は登録に必要です。");
+    expect(container.textContent).toContain("アイテム選択");
+    expect(container.textContent?.match(/必須/g)?.length).toBe(2);
   });
 
   it("active outfit 由来の duplicate 初期値を反映する", async () => {

@@ -128,6 +128,9 @@ describe("EditOutfitPage", () => {
     expect(container.textContent).toContain("白T");
     expect(container.textContent).toContain("青シャツ");
     expect(container.textContent).not.toContain("登録済みアイテムがありません。");
+    expect(container.textContent).toContain("「必須」が付いた項目は更新に必要です。");
+    expect(container.textContent).toContain("アイテム選択");
+    expect(container.textContent?.match(/必須/g)?.length).toBe(2);
   }, 20000);
 
   it("既存構成の disposed item は表示しつつ、このままでは保存できないことを案内する", async () => {

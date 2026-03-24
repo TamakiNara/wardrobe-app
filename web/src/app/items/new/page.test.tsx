@@ -129,6 +129,11 @@ describe("NewItemPage", () => {
       "ワンピース・オールインワン",
       "ルームウェア・インナー",
     ]);
+    expect(container.textContent).toContain("「必須」が付いた項目は登録に必要です。");
+    expect(container.textContent).toContain("カテゴリ");
+    expect(container.textContent).toContain("形");
+    expect(container.textContent).toContain("メインカラー");
+    expect(container.textContent?.match(/必須/g)?.length).toBe(4);
   });
 
   it("purchase candidate draft から名前とカテゴリ初期値を読み込む", async () => {

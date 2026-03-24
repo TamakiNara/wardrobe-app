@@ -15,6 +15,7 @@ import {
   ITEM_COLORS,
   type ItemColorValue,
 } from "@/lib/master-data/item-colors";
+import FieldLabel from "@/components/forms/field-label";
 import ColorChip from "@/components/items/color-chip";
 import ColorSelect from "@/components/items/color-select";
 import type { CreateItemPayload, ItemFormColor } from "@/types/items";
@@ -415,11 +416,10 @@ export default function NewItemPage() {
         <form onSubmit={handleSubmit} className="space-y-6 rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
           <section className="space-y-4">
             <h2 className="text-lg font-semibold text-gray-900">基本情報</h2>
+            <p className="text-sm text-gray-500">「必須」が付いた項目は登録に必要です。</p>
 
             <div>
-              <label htmlFor="name" className="mb-1 block text-sm font-medium text-gray-700">
-                名前
-              </label>
+              <FieldLabel htmlFor="name" label="名前" />
               <input
                 id="name"
                 type="text"
@@ -568,9 +568,7 @@ export default function NewItemPage() {
             </div>
 
             <div>
-              <label htmlFor="category" className="mb-1 block text-sm font-medium text-gray-700">
-                カテゴリ
-              </label>
+              <FieldLabel htmlFor="category" label="カテゴリ" required />
               <select
                 id="category"
                 value={category}
@@ -588,9 +586,7 @@ export default function NewItemPage() {
             </div>
 
             <div>
-              <label htmlFor="shape" className="mb-1 block text-sm font-medium text-gray-700">
-                形
-              </label>
+              <FieldLabel htmlFor="shape" label="形" required />
               <select
                 id="shape"
                 value={shape}
@@ -783,7 +779,7 @@ export default function NewItemPage() {
 
             <div className="grid gap-6 md:grid-cols-2">
               <div className="space-y-3">
-                <label className="block text-sm font-medium text-gray-700">メインカラー</label>
+                <FieldLabel as="div" label="メインカラー" required className="" />
                 <label className="flex items-center gap-2 text-sm text-gray-700">
                   <input
                     type="checkbox"

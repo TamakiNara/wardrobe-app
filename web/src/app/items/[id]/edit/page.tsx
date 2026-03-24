@@ -15,6 +15,7 @@ import {
   ITEM_COLORS,
   type ItemColorValue,
 } from "@/lib/master-data/item-colors";
+import FieldLabel from "@/components/forms/field-label";
 import ColorChip from "@/components/items/color-chip";
 import ColorSelect from "@/components/items/color-select";
 import ItemPreviewCard from "@/components/items/item-preview-card";
@@ -477,6 +478,7 @@ export default function EditItemPage({
         <form onSubmit={handleSubmit} className="space-y-6 rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
           <section className="space-y-4">
             <h2 className="text-lg font-semibold text-gray-900">基本情報</h2>
+            <p className="text-sm text-gray-500">「必須」が付いた項目は更新に必要です。</p>
 
             <div className="grid gap-4 md:grid-cols-2">
               <div>
@@ -502,7 +504,7 @@ export default function EditItemPage({
             </div>
 
             <div>
-              <label htmlFor="category" className="mb-1 block text-sm font-medium text-gray-700">カテゴリ</label>
+              <FieldLabel htmlFor="category" label="カテゴリ" required />
               <select id="category" value={category} onChange={(e) => handleCategoryChange(e.target.value)} className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors.category ? "border-red-400" : "border-gray-300"}`}>
                 <option value="">選択してください</option>
                 {categoryOptions.map((item) => (
@@ -513,7 +515,7 @@ export default function EditItemPage({
             </div>
 
             <div>
-              <label htmlFor="shape" className="mb-1 block text-sm font-medium text-gray-700">形</label>
+              <FieldLabel htmlFor="shape" label="形" required />
               <select id="shape" value={shape} onChange={(e) => setShape(e.target.value)} disabled={!category || isTopsCategory} className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors.shape ? "border-red-400" : "border-gray-300"}`}>
                 <option value="">選択してください</option>
                 {shapeOptions.map((item) => (
@@ -672,7 +674,7 @@ export default function EditItemPage({
 
             <div className="grid gap-6 md:grid-cols-2">
               <div className="space-y-3">
-                <label className="block text-sm font-medium text-gray-700">メインカラー</label>
+                <FieldLabel as="div" label="メインカラー" required className="" />
                 <label className="flex items-center gap-2 text-sm text-gray-700">
                   <input type="checkbox" checked={useCustomMainColor} onChange={(e) => { setUseCustomMainColor(e.target.checked); if (e.target.checked) setMainColor(""); }} className="h-4 w-4" />
                   カスタムカラーを使う
