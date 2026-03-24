@@ -443,4 +443,57 @@ class WearLogEndpointsTest extends TestCase
             ->assertJsonPath('wearLog.items.0.source_item_id', $disposedItem->id)
             ->assertJsonPath('wearLog.items.0.source_item_status', 'disposed');
     }
+
+    public function test_delete_wear_log_deletes_owned_record_and_items(): void
+    {
+        $user = User::factory()->create();
+        $item = $this->createItem($user);
+        $wearLog = $this->createWearLog($user);
+
+        $wearLogItem = $wearLog->wearLogItems()->create([
+            'source_item_id' => $item->id,
+            'sort_order' => 1,
+            'item_source_type' => 'manual',
+        ]);
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $this->deleteJson("/api/wear-logs/{$wearLog->id}", [], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ])->assertOk()
+          ->assertJsonPath('message', 'deleted');
+
+        $this->assertDatabaseMissing('wear_logs', ['id' => $wearLog->id]);
+        $this->assertDatabaseMissing('wear_log_items', ['id' => $wearLogItem->id]);
+    }
+
+    public function test_delete_wear_log_returns_404_for_other_users_record(): void
+    {
+        $user = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $wearLog = $this->createWearLog($otherUser);
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $this->deleteJson("/api/wear-logs/{$wearLog->id}", [], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ])->assertStatus(404);
+    }
+
+    public function test_delete_wear_log_returns_404_for_missing_record(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $this->deleteJson('/api/wear-logs/999999', [], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ])->assertStatus(404);
+    }
 }

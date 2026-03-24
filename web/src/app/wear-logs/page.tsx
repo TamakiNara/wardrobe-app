@@ -82,6 +82,9 @@ export default async function WearLogsPage({
 }) {
   const resolvedSearchParams = await searchParams;
   const data = await getWearLogs(resolvedSearchParams);
+  const flashMessage = resolvedSearchParams.message === "deleted"
+    ? "着用履歴を削除しました。"
+    : null;
 
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">
@@ -110,6 +113,12 @@ export default async function WearLogsPage({
             着用履歴を追加
           </Link>
         </header>
+
+        {flashMessage && (
+          <section className="rounded-2xl border border-green-200 bg-green-50 px-5 py-4 text-sm text-green-700 shadow-sm">
+            {flashMessage}
+          </section>
+        )}
 
         <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
           <form className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">

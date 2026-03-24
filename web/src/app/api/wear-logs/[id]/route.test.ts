@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { GET, PUT } from "./route";
+import { DELETE, GET, PUT } from "./route";
 
 describe("/api/wear-logs/[id] route", () => {
   const originalFetch = global.fetch;
@@ -104,5 +104,51 @@ describe("/api/wear-logs/[id] route", () => {
       }),
     );
     expect(json.message).toBe("updated");
+  });
+
+  it("DELETE は Laravel の wear log 削除 API へ転送する", async () => {
+    global.fetch = vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response(null, {
+          status: 204,
+          headers: {
+            "set-cookie":
+              "XSRF-TOKEN=test_csrf_token; Path=/; SameSite=Lax, laravel-session=test_session; Path=/; HttpOnly; SameSite=Lax",
+          },
+        }),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            message: "deleted",
+          }),
+          {
+            status: 200,
+            headers: {
+              "content-type": "application/json",
+            },
+          },
+        ),
+      ) as typeof fetch;
+
+    const req = new Request("http://localhost:3000/api/wear-logs/1", {
+      method: "DELETE",
+      headers: {
+        Cookie: "laravel-session=old_session",
+      },
+    });
+
+    const res = await DELETE(req as any, { params: Promise.resolve({ id: "1" }) });
+    const json = await res.json();
+
+    expect(global.fetch).toHaveBeenNthCalledWith(
+      2,
+      "http://localhost:8000/api/wear-logs/1",
+      expect.objectContaining({
+        method: "DELETE",
+      }),
+    );
+    expect(json.message).toBe("deleted");
   });
 });

@@ -52,6 +52,15 @@ class WearLogController extends Controller
         ]);
     }
 
+    public function destroy(Request $request, int $id): JsonResponse
+    {
+        $this->wearLogService->delete($request->user(), $id);
+
+        return response()->json([
+            'message' => 'deleted',
+        ]);
+    }
+
     private function validateRequest(Request $request): array
     {
         return $request->validate([

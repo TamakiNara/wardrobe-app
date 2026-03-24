@@ -54,15 +54,16 @@ item 詳細画面での status 操作 UI を確認するときは `docs/specs/it
 - `invalid outfit` では `GET /api/outfits/invalid`、`POST /api/outfits/{id}/restore`、`POST /api/outfits/{id}/duplicate` は実装済み
   - 残タスクの中心は wear logs と event log
   - 正本: `docs/specs/outfits/create-edit.md`, `docs/api/openapi.yaml`
-- wear logs の API / DB / UI は一覧 / 詳細 / 登録 / 更新まで実装済み
-  - 未実装は delete、snapshot、専用詳細画面
+- wear logs の API / DB / UI は一覧 / 詳細 / 登録 / 更新 / 削除まで実装済み
+  - 削除導線は編集画面からのみとする
+  - 未実装は snapshot、専用詳細画面
   - 正本: `docs/specs/wears/wear-logs.md`, `docs/data/database.md`, `docs/api/openapi.yaml`
 - event log は `disposed / invalid / restore / duplicate` を優先対象としているが未実装
   - 正本: `docs/specs/logging/logging-policy.md`
 
 ### `future API`
 
-- `DELETE /api/wear-logs/{id}`
+- wear logs 関連の future API は現時点ではなし
 
 ### 副作用あり
 
@@ -77,6 +78,9 @@ item 詳細画面での status 操作 UI を確認するときは `docs/specs/it
   - 正本: `docs/specs/outfits/create-edit.md`, `docs/specs/outfits/item-candidate-rules.md`, `docs/api/openapi.yaml`
 - `disposed item` / `invalid outfit` は wear logs の新規登録・更新候補から除外する
   - 正本: `docs/specs/wears/wear-logs.md`, `docs/data/database.md`, `docs/api/openapi.yaml`
+- wear log の削除は編集画面からのみ行い、関連 `wear_log_items` も合わせて物理削除する
+  - 他レコードの `display_order` 自動再採番は行わない
+  - 正本: `docs/specs/wears/wear-logs.md`, `docs/api/openapi.yaml`
 
 ## 進行中
 
@@ -219,7 +223,7 @@ item 詳細画面での status 操作 UI を確認するときは `docs/specs/it
 - 手動復帰 `POST /api/outfits/{id}/restore` は実装済み
 - 複製初期値取得 `POST /api/outfits/{id}/duplicate` は実装済み
 - 現時点の残タスクの中心は以下
-  - wear logs の delete / snapshot / 補助 UI
+  - wear logs の snapshot / 補助 UI
   - event log
 - `restore` は手動復帰用の補助導線とし、対象 outfit が `invalid` で、構成 item がすべて active の場合のみ許可する
 - `duplicate` は active / invalid 共通機能だが、invalid outfit では再利用の主導線として扱う

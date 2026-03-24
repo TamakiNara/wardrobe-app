@@ -103,5 +103,29 @@ describe("WearLogsPage", () => {
     expect(markup).toContain("アイテム 1 件");
     expect(markup).toContain("一部アイテムは現在利用不可です。");
     expect(markup).toContain('href="/wear-logs/1/edit"');
+    expect(markup).not.toContain(">削除<");
+  });
+
+  it("削除完了メッセージを表示できる", async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        wearLogs: [],
+        meta: {
+          total: 0,
+          totalAll: 0,
+          page: 1,
+          lastPage: 1,
+        },
+      }),
+    });
+
+    const { default: WearLogsPage } = await import("./page");
+    const markup = renderToStaticMarkup(
+      await WearLogsPage({ searchParams: Promise.resolve({ message: "deleted" }) }),
+    );
+
+    expect(markup).toContain("着用履歴を削除しました。");
   });
 });

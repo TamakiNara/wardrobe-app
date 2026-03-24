@@ -756,8 +756,9 @@ paths:
         - Wear Logs
       summary: wear log 削除
       description: |
-        wear log 削除用の future API 設計です。
-        現時点では未実装です。
+        実装済みの wear log 削除 API。
+        対象の wear log と関連する `wear_log_items` を物理削除する。
+        item / outfit 側の record や他の wear log には影響を与えない。
       parameters:
         - name: wearLogId
           in: path
@@ -765,8 +766,18 @@ paths:
           schema:
             type: integer
       responses:
-        '204':
-          description: wear log 削除成功（未実装）
+        '200':
+          description: wear log 削除成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: deleted
+                required:
+                  - message
         '401':
           description: 未認証
         '404':

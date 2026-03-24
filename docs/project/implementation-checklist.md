@@ -20,7 +20,7 @@ item 詳細画面での status 操作 UI は `docs/specs/items/detail-status-ui.
 - `invalid` outfit は通常一覧と wear log の `source_outfit_id` 候補から除外する
 - 正本: `docs/specs/outfits/create-edit.md`, `docs/data/database.md`, `docs/api/openapi.yaml`
 
-- wear logs は一覧 / 詳細 / 登録 / 更新まで実装済みで、delete は未実装とする
+- wear logs は一覧 / 詳細 / 登録 / 更新 / 削除まで実装済み
 - `source_outfit_id` は「完全一致したコーデ」ではなく「ベースにした outfit」を表す
 - 最終的な item 構成は `items` / `wear_log_items` を正本とする
 - `item_source_type` は `outfit` / `manual`
@@ -38,8 +38,9 @@ item 詳細画面での status 操作 UI は `docs/specs/items/detail-status-ui.
 - docs 上の仕様・DB・OpenAPI 反映は概ね確認済みであり、以下は主に実装未着手の項目です
 
 - wear logs は最小実用フローまで実装済み
-- 実装済み: DB テーブル、一覧・詳細・登録・更新、status / candidate exclusion / `event_date + display_order`
-- 未実装: 削除、snapshot、高度な候補補助、専用詳細画面
+- 実装済み: DB テーブル、一覧・詳細・登録・更新・削除、status / candidate exclusion / `event_date + display_order`
+- 削除導線は編集画面からのみとし、一覧には出さない
+- 未実装: snapshot、高度な候補補助、専用詳細画面
 - 正本: `docs/specs/wears/wear-logs.md`, `docs/data/database.md`, `docs/api/openapi.yaml`
 
 - wear logs snapshot は **未実装の保留論点** として残す
@@ -62,7 +63,7 @@ item 詳細画面での status 操作 UI は `docs/specs/items/detail-status-ui.
 
 ## future API
 
-- `DELETE /api/wear-logs/{id}`
+- 現時点の wear logs 関連 future API はなし
 - 正本: `docs/api/openapi.yaml`
 
 ---
@@ -76,6 +77,10 @@ item 詳細画面での status 操作 UI は `docs/specs/items/detail-status-ui.
 
 - `disposed` item と `invalid` outfit は wear logs の新規登録・更新候補から除外する
 - wear logs では `current status` を補助表示に留め、履歴正本とは分けて扱う
+- 正本: `docs/specs/wears/wear-logs.md`, `docs/data/database.md`, `docs/api/openapi.yaml`
+
+- wear log の削除は編集画面からのみ行い、物理削除で扱う
+- 削除時に関連 `wear_log_items` は一緒に削除するが、別 record の `display_order` 自動再採番は行わない
 - 正本: `docs/specs/wears/wear-logs.md`, `docs/data/database.md`, `docs/api/openapi.yaml`
 
 - `duplicate` は `active` / `invalid` 共通機能だが、invalid outfit では再利用の主導線になる
@@ -97,8 +102,8 @@ item 詳細画面での status 操作 UI は `docs/specs/items/detail-status-ui.
    - `active / invalid`、通常保存時の `status` 非包含、item `disposed` に伴う invalid 化は docs に反映済みのため、実装を揃える
    - 理由: invalid outfit 実装と wear logs の候補制約の前提になるため
 3. wear logs 残タスクの実装着手
-   - 対象: 削除、専用詳細画面、候補 UI の補助改善、snapshot の採否整理
-   - 理由: 最小実用フローは通ったため、運用上不足する補助導線から詰めやすいため
+   - 対象: 専用詳細画面、候補 UI の補助改善、snapshot の採否整理
+   - 理由: CRUD は揃ったため、運用上不足する補助導線から詰めやすいため
 4. event_logs の実装着手
    - 対象: テーブル、発火ポイント、記録対象の絞り込み
    - 理由: item / outfit / wear logs の主要状態変化が固まってからの方が event_type と payload を固定しやすいため

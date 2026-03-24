@@ -61,6 +61,15 @@ class WearLogService
             ->findOrFail($wearLogId);
     }
 
+    public function delete(User $user, int $wearLogId): void
+    {
+        $wearLog = $this->findOwnedWearLog($user, $wearLogId);
+
+        DB::transaction(function () use ($wearLog) {
+            $wearLog->delete();
+        });
+    }
+
     private function validatePayload(User $user, array $validated, ?WearLog $wearLog): void
     {
         $items = collect($validated['items'] ?? [])

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import DeleteWearLogButton from "@/components/wear-logs/delete-wear-log-button";
 import WearLogForm from "@/components/wear-logs/wear-log-form";
 
 export default async function EditWearLogPage({
@@ -38,6 +39,10 @@ export default async function EditWearLogPage({
         </div>
 
         <WearLogForm mode="edit" wearLogId={id} />
+
+        <div className="flex justify-end">
+          <DeleteWearLogButton wearLogId={id} />
+        </div>
       </div>
     </main>
   );
