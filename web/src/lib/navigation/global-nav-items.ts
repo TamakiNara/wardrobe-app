@@ -47,7 +47,10 @@ export const globalNavItems: GlobalNavItem[] = [
 ];
 
 export function shouldShowGlobalNav(pathname: string): boolean {
-  return globalNavItems.some((item) => item.matches(pathname));
+  return (
+    globalNavItems.some((item) => item.matches(pathname)) ||
+    isNestedPath(pathname, "/wear-logs")
+  );
 }
 
 export function findActiveGlobalNavItem(pathname: string): GlobalNavItem | null {

@@ -88,6 +88,7 @@ describe("ItemPage", () => {
     const markup = renderToStaticMarkup(
       await ItemPage({
         params: Promise.resolve({ id: "1" }),
+        searchParams: Promise.resolve({}),
       }),
     );
 
@@ -99,5 +100,49 @@ describe("ItemPage", () => {
     expect(markup).toContain("対応");
     expect(markup).toContain("画像");
     expect(markup).toContain("coat.png");
+  });
+
+  it("return_to があるときだけ着用履歴フォームへの戻りリンクを表示する", async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        item: {
+          id: 1,
+          name: "レインコート",
+          status: "active",
+          brand_name: null,
+          price: null,
+          purchase_url: null,
+          purchased_at: null,
+          size_gender: null,
+          size_label: null,
+          size_note: null,
+          size_details: null,
+          is_rain_ok: false,
+          category: "outer",
+          shape: "trench",
+          colors: [],
+          seasons: [],
+          tpos: [],
+          spec: null,
+          images: [],
+        },
+      }),
+    });
+
+    const { default: ItemPage } = await import("./page");
+    const markup = renderToStaticMarkup(
+      await ItemPage({
+        params: Promise.resolve({ id: "1" }),
+        searchParams: Promise.resolve({
+          return_to: "/wear-logs/new",
+          return_label: "着用履歴フォーム",
+        }),
+      }),
+    );
+
+    expect(markup).toContain('href="/wear-logs/new"');
+    expect(markup).toContain("着用履歴フォームへ戻る");
   });
 });

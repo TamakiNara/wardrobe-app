@@ -112,11 +112,12 @@ purchase_candidates の仕様正本を確認するときは `docs/specs/purchase
 
 ## ナビゲーション TODO
 
-- 着用履歴配下のページでボトムナビが表示されない
 - ボトムナビに着用履歴を追加するか検討する
-- ボトムナビはホーム / items / outfits / purchase_candidates / settings 配下を表示対象とし、wear logs 配下は後続整理とする
+- ボトムナビはホーム / items / outfits / purchase_candidates / settings 配下に加え、wear logs 配下でも表示する
 - 主要機能追加時のボトムナビ再編方針を整理する
 - purchase_candidates は主要導線としてボトムナビへ追加済み
+- wear logs 配下でも既存ボトムナビは表示し、独立タブ化は引き続き保留とする
+- wear log form では item / outfit の中身確認を詳細画面への導線で補い、フォーム自体に詳細責務を持たせすぎない
 
 ## 実装着手前チェックリスト
 

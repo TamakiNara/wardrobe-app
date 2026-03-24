@@ -97,6 +97,12 @@ export default async function OutfitDetailPage({
     ? resolvedSearchParams.wear_log_id
     : null;
   const fromWearLog = resolvedSearchParams.from === "wear-log" && wearLogIdParam !== null;
+  const returnToParam = typeof resolvedSearchParams.return_to === "string"
+    ? resolvedSearchParams.return_to
+    : null;
+  const returnLabelParam = typeof resolvedSearchParams.return_label === "string"
+    ? resolvedSearchParams.return_label
+    : null;
 
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">
@@ -105,6 +111,14 @@ export default async function OutfitDetailPage({
           <Link href="/" className="hover:underline">
             ホーム
           </Link>
+          {returnToParam ? (
+            <>
+              {" / "}
+              <Link href={returnToParam} className="hover:underline">
+                {returnLabelParam ?? "戻る"}
+              </Link>
+            </>
+          ) : null}
           {fromWearLog && wearLogIdParam ? (
             <>
               {" / "}
@@ -143,6 +157,14 @@ export default async function OutfitDetailPage({
           </div>
 
           <div className="flex items-start gap-3">
+            {returnToParam ? (
+              <Link
+                href={returnToParam}
+                className="text-sm font-medium text-blue-600 hover:underline"
+              >
+                {returnLabelParam ?? "戻る"}へ戻る
+              </Link>
+            ) : null}
             {fromWearLog && wearLogIdParam ? (
               <Link
                 href={`/wear-logs/${wearLogIdParam}`}

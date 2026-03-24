@@ -153,4 +153,44 @@ describe("OutfitDetailPage", () => {
     expect(markup).not.toContain("着用履歴詳細へ戻る");
     expect(markup).not.toContain('href="/wear-logs/12"');
   });
+
+  it("return_to があるときは着用履歴フォームへの戻りリンクを表示する", async () => {
+    fetchMock
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          outfit: {
+            id: 11,
+            status: "active",
+            name: "休日コーデ",
+            memo: null,
+            seasons: [],
+            tpos: [],
+            outfitItems: [],
+          },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          visibleCategoryIds: null,
+        }),
+      });
+
+    const { default: OutfitDetailPage } = await import("./page");
+    const markup = renderToStaticMarkup(
+      await OutfitDetailPage({
+        params: Promise.resolve({ id: "11" }),
+        searchParams: Promise.resolve({
+          return_to: "/wear-logs/new",
+          return_label: "着用履歴フォーム",
+        }),
+      }),
+    );
+
+    expect(markup).toContain('href="/wear-logs/new"');
+    expect(markup).toContain("着用履歴フォームへ戻る");
+  });
 });

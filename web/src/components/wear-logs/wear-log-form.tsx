@@ -42,6 +42,7 @@ export default function WearLogForm({
   footerAction,
 }: WearLogFormProps) {
   const router = useRouter();
+  const returnToPath = mode === "edit" && wearLogId ? `/wear-logs/${wearLogId}/edit` : "/wear-logs/new";
 
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -176,6 +177,14 @@ export default function WearLogForm({
     (item) => item.status === "disposed",
   );
   const hasUnavailableSourceOutfit = currentSourceOutfit?.status === "invalid";
+
+  function buildItemDetailHref(itemId: number): string {
+    return `/items/${itemId}?return_to=${encodeURIComponent(returnToPath)}&return_label=${encodeURIComponent("着用履歴フォーム")}`;
+  }
+
+  function buildOutfitDetailHref(outfitId: number): string {
+    return `/outfits/${outfitId}?return_to=${encodeURIComponent(returnToPath)}&return_label=${encodeURIComponent("着用履歴フォーム")}`;
+  }
 
   function handleItemToggle(itemId: number) {
     setSelectedItems((prev) => {
@@ -392,6 +401,27 @@ export default function WearLogForm({
             </option>
           ))}
         </select>
+
+        {currentSourceOutfit && (
+          <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
+            <div className="flex flex-wrap items-center gap-3">
+              <p className="text-sm font-medium text-gray-900">
+                {currentSourceOutfit.name ?? "名称未設定"}
+              </p>
+              <Link
+                href={buildOutfitDetailHref(currentSourceOutfit.id)}
+                className="text-sm font-medium text-blue-600 hover:underline"
+              >
+                詳細
+              </Link>
+            </div>
+            {currentSourceOutfit.status === "invalid" && (
+              <p className="mt-2 text-sm text-amber-800">
+                現在は利用不可ですが、既存候補として確認できます。
+              </p>
+            )}
+          </div>
+        )}
       </section>
 
       <section className="space-y-4">
@@ -438,6 +468,12 @@ export default function WearLogForm({
                         <p className="font-medium text-gray-900">
                           {item.name ?? "名称未設定"}
                         </p>
+                        <Link
+                          href={buildItemDetailHref(item.id)}
+                          className="text-sm font-medium text-blue-600 hover:underline"
+                        >
+                          詳細
+                        </Link>
                         {item.status === "disposed" && (
                           <span className="rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800">
                             手放し済み
@@ -468,6 +504,12 @@ export default function WearLogForm({
               {selectedItemRecords.map((item, index) => (
                 <li key={item.id}>
                   {index + 1}. {item.name ?? "名称未設定"}
+                  <Link
+                    href={buildItemDetailHref(item.id)}
+                    className="ml-2 text-sm font-medium text-blue-600 hover:underline"
+                  >
+                    詳細
+                  </Link>
                   <span className="ml-2 text-gray-500">({item.itemSourceType})</span>
                 </li>
               ))}

@@ -21,11 +21,20 @@ async function getItem(id: string): Promise<ItemRecord> {
 
 export default async function ItemPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { id } = await params;
+  const resolvedSearchParams = await searchParams;
   const item = await getItem(id);
+  const returnToParam = typeof resolvedSearchParams.return_to === "string"
+    ? resolvedSearchParams.return_to
+    : null;
+  const returnLabelParam = typeof resolvedSearchParams.return_label === "string"
+    ? resolvedSearchParams.return_label
+    : null;
 
   const mainColor = item.colors.find((c) => c.role === "main");
   const subColor = item.colors.find((c) => c.role === "sub");
@@ -42,6 +51,14 @@ export default async function ItemPage({
           <Link href="/" className="hover:underline">
             ホーム
           </Link>
+          {returnToParam ? (
+            <>
+              {" / "}
+              <Link href={returnToParam} className="hover:underline">
+                {returnLabelParam ?? "戻る"}
+              </Link>
+            </>
+          ) : null}
           {" / "}
           <Link href="/items" className="hover:underline">
             アイテム一覧
@@ -64,6 +81,14 @@ export default async function ItemPage({
           </div>
 
           <div className="flex flex-wrap items-center gap-3 md:justify-end">
+            {returnToParam ? (
+              <Link
+                href={returnToParam}
+                className="text-sm font-medium text-blue-600 hover:underline"
+              >
+                {returnLabelParam ?? "戻る"}へ戻る
+              </Link>
+            ) : null}
             <ItemStatusAction itemId={item.id} status={item.status} />
 
             <Link

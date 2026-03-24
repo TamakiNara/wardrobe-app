@@ -76,4 +76,25 @@ describe("AppShell", () => {
 
     expect(container.querySelector('[data-testid="bottom-nav"]')).not.toBeNull();
   });
+
+  it("wear logs 配下でもボトムナビを表示する", async () => {
+    usePathnameMock.mockReturnValue("/wear-logs/12/edit");
+
+    const { default: AppShell } = await import("./app-shell");
+
+    await act(async () => {
+      root.render(
+        React.createElement(
+          AppShell,
+          {
+            hasSession: true,
+            children: React.createElement("main", null, "content"),
+          },
+          React.createElement("main", null, "content"),
+        ),
+      );
+    });
+
+    expect(container.querySelector('[data-testid="bottom-nav"]')).not.toBeNull();
+  });
 });

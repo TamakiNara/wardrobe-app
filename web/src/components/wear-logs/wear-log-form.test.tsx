@@ -99,6 +99,9 @@ describe("WearLogForm", () => {
     expect(container.textContent).toContain("日付");
     expect(container.textContent).toContain("アイテム");
     expect(container.textContent?.match(/必須/g)?.length).toBe(4);
+    expect(container.innerHTML).toContain(
+      'href="/items/1?return_to=%2Fwear-logs%2Fnew&amp;return_label=%E7%9D%80%E7%94%A8%E5%B1%A5%E6%AD%B4%E3%83%95%E3%82%A9%E3%83%BC%E3%83%A0"',
+    );
 
     const dateInput = container.querySelector<HTMLInputElement>('input[type="date"]');
     const checkbox = container.querySelector<HTMLInputElement>('input[type="checkbox"]');
@@ -203,6 +206,12 @@ describe("WearLogForm", () => {
     expect(container.textContent).toContain("手放し済みのアイテムが含まれています。");
     expect(container.textContent).toContain("手放し済みトップス");
     expect(container.textContent).toContain("（現在は利用不可）");
+    expect(container.innerHTML).toContain(
+      'href="/outfits/5?return_to=%2Fwear-logs%2F1%2Fedit&amp;return_label=%E7%9D%80%E7%94%A8%E5%B1%A5%E6%AD%B4%E3%83%95%E3%82%A9%E3%83%BC%E3%83%A0"',
+    );
+    expect(container.innerHTML).toContain(
+      'href="/items/7?return_to=%2Fwear-logs%2F1%2Fedit&amp;return_label=%E7%9D%80%E7%94%A8%E5%B1%A5%E6%AD%B4%E3%83%95%E3%82%A9%E3%83%BC%E3%83%A0"',
+    );
   });
 
   it("複数ページの候補を読み込み、後続ページの item も選択できる", async () => {
