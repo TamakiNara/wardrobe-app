@@ -42,11 +42,12 @@ export default async function EditWearLogPage({
           </Link>
         </div>
 
-        <WearLogForm mode="edit" wearLogId={id} />
-
-        <div className="flex justify-end">
-          <DeleteWearLogButton wearLogId={id} />
-        </div>
+        <WearLogForm
+          mode="edit"
+          wearLogId={id}
+          cancelHref={`/wear-logs/${id}`}
+          footerAction={<DeleteWearLogButton wearLogId={id} />}
+        />
       </div>
     </main>
   );

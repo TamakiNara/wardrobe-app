@@ -71,10 +71,13 @@ async function getCategoryVisibilitySettings(): Promise<string[] | null> {
 
 export default async function OutfitDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { id } = await params;
+  const resolvedSearchParams = await searchParams;
   const [outfit, visibleCategoryIds] = await Promise.all([
     getOutfit(id),
     getCategoryVisibilitySettings(),
@@ -90,6 +93,10 @@ export default async function OutfitDetailPage({
           isItemVisibleByCategorySettings(outfitItem.item, visibleCategoryIds),
         );
   const hiddenOutfitItemCount = outfitItems.length - visibleOutfitItems.length;
+  const wearLogIdParam = typeof resolvedSearchParams.wear_log_id === "string"
+    ? resolvedSearchParams.wear_log_id
+    : null;
+  const fromWearLog = resolvedSearchParams.from === "wear-log" && wearLogIdParam !== null;
 
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">
@@ -98,6 +105,14 @@ export default async function OutfitDetailPage({
           <Link href="/" className="hover:underline">
             ホーム
           </Link>
+          {fromWearLog && wearLogIdParam ? (
+            <>
+              {" / "}
+              <Link href={`/wear-logs/${wearLogIdParam}`} className="hover:underline">
+                着用履歴詳細
+              </Link>
+            </>
+          ) : null}
           {" / "}
           <Link href="/outfits" className="hover:underline">
             コーディネート一覧
@@ -128,6 +143,14 @@ export default async function OutfitDetailPage({
           </div>
 
           <div className="flex items-start gap-3">
+            {fromWearLog && wearLogIdParam ? (
+              <Link
+                href={`/wear-logs/${wearLogIdParam}`}
+                className="text-sm font-medium text-blue-600 hover:underline"
+              >
+                着用履歴詳細へ戻る
+              </Link>
+            ) : null}
             {outfit.status === "invalid" && (
               <OutfitRestoreAction outfitId={outfit.id} canRestore={canRestore} />
             )}

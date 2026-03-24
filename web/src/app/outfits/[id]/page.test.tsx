@@ -57,7 +57,7 @@ describe("OutfitDetailPage", () => {
     vi.stubGlobal("fetch", fetchMock);
   });
 
-  it("invalid outfit のとき状態説明を表示する", async () => {
+  it("wear log 由来のときだけ戻りリンクを表示する", async () => {
     fetchMock
       .mockResolvedValueOnce({
         ok: true,
@@ -100,7 +100,10 @@ describe("OutfitDetailPage", () => {
 
     const { default: OutfitDetailPage } = await import("./page");
     const markup = renderToStaticMarkup(
-      await OutfitDetailPage({ params: Promise.resolve({ id: "10" }) }),
+      await OutfitDetailPage({
+        params: Promise.resolve({ id: "10" }),
+        searchParams: Promise.resolve({ from: "wear-log", wear_log_id: "12" }),
+      }),
     );
 
     expect(markup).toContain("無効");
@@ -110,5 +113,44 @@ describe("OutfitDetailPage", () => {
     expect(markup).toContain("restore-disabled");
     expect(markup).toContain("duplicate-action");
     expect(markup).toContain('href="/outfits/10/edit"');
+    expect(markup).toContain('href="/wear-logs/12"');
+    expect(markup).toContain("着用履歴詳細へ戻る");
+  });
+
+  it("通常遷移では wear log 戻りリンクを表示しない", async () => {
+    fetchMock
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          outfit: {
+            id: 11,
+            status: "active",
+            name: "休日コーデ",
+            memo: null,
+            seasons: [],
+            tpos: [],
+            outfitItems: [],
+          },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          visibleCategoryIds: null,
+        }),
+      });
+
+    const { default: OutfitDetailPage } = await import("./page");
+    const markup = renderToStaticMarkup(
+      await OutfitDetailPage({
+        params: Promise.resolve({ id: "11" }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+
+    expect(markup).not.toContain("着用履歴詳細へ戻る");
+    expect(markup).not.toContain('href="/wear-logs/12"');
   });
 });

@@ -118,7 +118,7 @@ export default async function WearLogDetailPage({
                   {wearLog.source_outfit_name ?? "名称未設定"}
                 </p>
                 <Link
-                  href={`/outfits/${wearLog.source_outfit_id}`}
+                  href={`/outfits/${wearLog.source_outfit_id}?from=wear-log&wear_log_id=${wearLog.id}`}
                   className="text-sm font-medium text-blue-600 hover:underline"
                 >
                   コーディネート詳細

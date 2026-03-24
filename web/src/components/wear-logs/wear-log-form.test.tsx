@@ -132,6 +132,7 @@ describe("WearLogForm", () => {
         }),
       }),
     );
+    expect(container.textContent).toContain("キャンセル");
   });
 
   it("候補外データを含む既存レコードでも編集画面が壊れない", async () => {

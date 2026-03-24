@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import {
   buildSelectedWearLogItems,
@@ -23,6 +23,8 @@ import type {
 type WearLogFormProps = {
   mode: "create" | "edit";
   wearLogId?: string;
+  cancelHref?: string;
+  footerAction?: ReactNode;
 };
 
 type OutfitCandidate = {
@@ -34,6 +36,8 @@ type OutfitCandidate = {
 export default function WearLogForm({
   mode,
   wearLogId,
+  cancelHref = "/wear-logs",
+  footerAction,
 }: WearLogFormProps) {
   const router = useRouter();
 
@@ -472,21 +476,34 @@ export default function WearLogForm({
         />
       </section>
 
-      <div className="flex flex-col gap-3 pt-2 sm:flex-row">
-        <button
-          type="submit"
-          disabled={submitting}
-          className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-3 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {submitting ? "送信中..." : mode === "edit" ? "更新する" : "登録する"}
-        </button>
+      <div
+        className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-4"
+        data-testid="wear-log-form-actions"
+      >
+        <div className={`flex flex-col gap-3 sm:flex-row sm:items-center ${footerAction ? "sm:justify-between" : "sm:justify-end"}`}>
+          {footerAction ? (
+            <div className="flex items-center">
+              {footerAction}
+            </div>
+          ) : null}
 
-        <Link
-          href="/wear-logs"
-          className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
-        >
-          キャンセル
-        </Link>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <Link
+              href={cancelHref}
+              className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+            >
+              キャンセル
+            </Link>
+
+            <button
+              type="submit"
+              disabled={submitting}
+              className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-3 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {submitting ? "送信中..." : mode === "edit" ? "更新する" : "登録する"}
+            </button>
+          </div>
+        </div>
       </div>
 
       {submitError && (
