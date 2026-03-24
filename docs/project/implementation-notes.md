@@ -66,8 +66,8 @@ purchase_candidates の仕様正本を確認するときは `docs/specs/purchase
 4. 月次服飾費集計の前提を残す
    - `items.purchased_at` を持たせる案をベースに、item の `price` と組み合わせて集計できるようにする
 5. ナビゲーション整理
-   - purchase_candidates をホーム以外の主要導線へどう追加するか整理する
-   - major feature 追加時のボトムナビ再編方針と整合させる
+   - purchase_candidates はボトムナビへ追加済み
+   - wear logs を含む major feature 追加時のボトムナビ再編方針を引き続き整理する
 
 既存仕様との衝突確認メモ:
 
@@ -106,9 +106,9 @@ purchase_candidates の仕様正本を確認するときは `docs/specs/purchase
 
 - 着用履歴配下のページでボトムナビが表示されない
 - ボトムナビに着用履歴を追加するか検討する
-- ボトムナビの表示対象ページ範囲を整理する
+- ボトムナビはホーム / items / outfits / purchase_candidates / settings 配下を表示対象とし、wear logs 配下は後続整理とする
 - 主要機能追加時のボトムナビ再編方針を整理する
-- purchase_candidates を独立タブにするか、ホーム / 一覧導線中心にするかを後続整理する
+- purchase_candidates は主要導線としてボトムナビへ追加済み
 
 ## 実装着手前チェックリスト
 

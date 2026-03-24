@@ -57,7 +57,7 @@ describe("AppShell", () => {
   });
 
   it("認証済みかつ対象 path ではボトムナビを表示する", async () => {
-    usePathnameMock.mockReturnValue("/items");
+    usePathnameMock.mockReturnValue("/purchase-candidates");
 
     const { default: AppShell } = await import("./app-shell");
 

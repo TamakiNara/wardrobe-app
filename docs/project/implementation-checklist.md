@@ -58,6 +58,8 @@ item 詳細画面での status 操作 UI は `docs/specs/items/detail-status-ui.
 - purchase_candidates の MVP は CRUD / 画像 / item-draft まで実装済み
 - 実装済み: 一覧・詳細・作成・更新・削除、画像追加 / 削除、`POST /api/purchase-candidates/{id}/item-draft`
 - `item-draft` は `source_category_id` を保持しつつ current item API 互換の `category` / `shape` と配列項目を返す
+- purchase_candidates は主要導線としてボトムナビへ追加済み
+- フォームでは必須表示、custom color code、季節 `オール` の排他制御を実装済み
 - 未実装: 比較ロジックの高度化、item 保存成功時の `purchased` 反映自動化、item 画像保存側との本接続
 - 正本: `docs/specs/purchase-candidates.md`, `docs/data/database.md`, `docs/api/openapi.yaml`
 
@@ -136,4 +138,4 @@ item 詳細画面での status 操作 UI は `docs/specs/items/detail-status-ui.
 - 仕様確認は `docs/specs/` を優先し、保存方針は `docs/data/database.md`、API schema は `docs/api/openapi.yaml` を優先する
 - 実装時に docs と差異が出た場合は、このチェックリストではなく正本側を更新する
 - `docs/project/implementation-notes.md` は進捗共有と引き継ぎメモ、`implementation-checklist.md` は実装前確認の整理用として使い分ける
-- ボトムナビは major feature 追加時に都度見直し、現時点では wear logs / purchase_candidates の表示対象ページ範囲と独立タブ化を TODO として残す
+- ボトムナビは major feature 追加時に都度見直し、現時点では purchase_candidates を表示対象に含め、wear logs の表示対象追加は TODO として残す

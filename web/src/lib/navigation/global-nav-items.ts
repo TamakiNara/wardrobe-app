@@ -1,5 +1,5 @@
 export type GlobalNavItem = {
-  key: "home" | "items" | "outfits" | "settings";
+  key: "home" | "items" | "outfits" | "purchase-candidates" | "settings";
   label: string;
   href: string;
   matches: (pathname: string) => boolean;
@@ -31,6 +31,12 @@ export const globalNavItems: GlobalNavItem[] = [
     label: "コーディネート",
     href: "/outfits",
     matches: (pathname) => isNestedPath(pathname, "/outfits"),
+  },
+  {
+    key: "purchase-candidates",
+    label: "購入候補",
+    href: "/purchase-candidates",
+    matches: (pathname) => isNestedPath(pathname, "/purchase-candidates"),
   },
   {
     key: "settings",

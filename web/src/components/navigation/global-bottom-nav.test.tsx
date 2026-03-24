@@ -50,4 +50,19 @@ describe("GlobalBottomNav", () => {
     expect(activeLink?.getAttribute("href")).toBe("/items");
     expect(activeLink?.textContent).toContain("アイテム");
   });
+
+  it("purchase_candidates 配下では購入候補タブをアクティブにする", async () => {
+    usePathnameMock.mockReturnValue("/purchase-candidates/12/edit");
+
+    const { default: GlobalBottomNav } = await import("./global-bottom-nav");
+
+    await act(async () => {
+      root.render(React.createElement(GlobalBottomNav));
+    });
+
+    const activeLink = container.querySelector('[aria-current="page"]');
+
+    expect(activeLink?.getAttribute("href")).toBe("/purchase-candidates");
+    expect(activeLink?.textContent).toContain("購入候補");
+  });
 });

@@ -42,7 +42,7 @@ export default function PurchaseCandidateItemDraftAction({
       }
 
       if (!response.ok || !data || !("item_draft" in data)) {
-        setError(data?.message ?? "item 初期値の生成に失敗しました。");
+        setError(data?.message ?? "アイテム初期値の生成に失敗しました。");
         return;
       }
 
@@ -63,7 +63,7 @@ export default function PurchaseCandidateItemDraftAction({
         disabled={submitting}
         className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300"
       >
-        {convertedItemId === null ? "item に追加する" : "item 初期値を再生成する"}
+        {convertedItemId === null ? "アイテムに追加する" : "アイテム初期値を再生成する"}
       </button>
 
       {error && (

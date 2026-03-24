@@ -1,5 +1,9 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import {
+  PURCHASE_CANDIDATE_PRIORITY_LABELS,
+  PURCHASE_CANDIDATE_STATUS_LABELS,
+} from "@/lib/purchase-candidates/labels";
 import { fetchLaravelWithCookie } from "@/lib/server/laravel";
 import type { PurchaseCandidatesResponse } from "@/types/purchase-candidates";
 
@@ -122,14 +126,14 @@ export default async function PurchaseCandidatesPage({
                 <div className="space-y-4 p-5">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
-                      {candidate.status}
+                      {PURCHASE_CANDIDATE_STATUS_LABELS[candidate.status]}
                     </span>
                     <span className="rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-xs font-medium text-gray-600">
-                      {candidate.priority}
+                      優先度: {PURCHASE_CANDIDATE_PRIORITY_LABELS[candidate.priority]}
                     </span>
                     {candidate.converted_item_id !== null && (
                       <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
-                        item 化済み
+                        アイテム化済み
                       </span>
                     )}
                   </div>

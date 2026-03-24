@@ -13,6 +13,11 @@ import {
   ITEM_COLORS,
   type ItemColorValue,
 } from "@/lib/master-data/item-colors";
+import {
+  PURCHASE_CANDIDATE_PRIORITY_LABELS,
+  PURCHASE_CANDIDATE_SIZE_GENDER_LABELS,
+  PURCHASE_CANDIDATE_STATUS_LABELS,
+} from "@/lib/purchase-candidates/labels";
 import type {
   CategoryGroupRecord,
   CategoryOption,
@@ -63,6 +68,31 @@ function normalizeNullableString(value: string): string {
   return value.trim();
 }
 
+function isValidHexColor(value: string): boolean {
+  return /^#[0-9A-Fa-f]{6}$/.test(value.trim());
+}
+
+function FieldLabel({
+  htmlFor,
+  label,
+  required = false,
+}: {
+  htmlFor?: string;
+  label: string;
+  required?: boolean;
+}) {
+  return (
+    <label htmlFor={htmlFor} className="mb-1 flex items-center gap-2 text-sm font-medium text-gray-700">
+      <span>{label}</span>
+      {required ? (
+        <span className="rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-semibold text-red-600">
+          必須
+        </span>
+      ) : null}
+    </label>
+  );
+}
+
 export default function PurchaseCandidateForm({
   mode,
   candidateId,
@@ -90,6 +120,10 @@ export default function PurchaseCandidateForm({
 
   const [mainColor, setMainColor] = useState<ItemColorValue | "">("");
   const [subColor, setSubColor] = useState<ItemColorValue | "">("");
+  const [useCustomMainColor, setUseCustomMainColor] = useState(false);
+  const [useCustomSubColor, setUseCustomSubColor] = useState(false);
+  const [customMainHex, setCustomMainHex] = useState("#3B82F6");
+  const [customSubHex, setCustomSubHex] = useState("#9CA3AF");
   const [selectedSeasons, setSelectedSeasons] = useState<string[]>([]);
   const [selectedTpos, setSelectedTpos] = useState<string[]>([]);
 
@@ -103,12 +137,26 @@ export default function PurchaseCandidateForm({
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const selectedMainColor = useMemo(() => {
+    if (useCustomMainColor) {
+      return {
+        label: "カスタムカラー",
+        hex: customMainHex,
+      };
+    }
+
     return ITEM_COLORS.find((color) => color.value === mainColor) ?? null;
-  }, [mainColor]);
+  }, [customMainHex, mainColor, useCustomMainColor]);
 
   const selectedSubColor = useMemo(() => {
+    if (useCustomSubColor) {
+      return {
+        label: "カスタムカラー",
+        hex: customSubHex,
+      };
+    }
+
     return ITEM_COLORS.find((color) => color.value === subColor) ?? null;
-  }, [subColor]);
+  }, [customSubHex, subColor, useCustomSubColor]);
 
   useEffect(() => {
     async function loadInitialData() {
@@ -154,8 +202,27 @@ export default function PurchaseCandidateForm({
           setSizeLabel(candidate.size_label ?? "");
           setSizeNote(candidate.size_note ?? "");
           setIsRainOk(candidate.is_rain_ok);
-          setMainColor((candidate.colors.find((color) => color.role === "main")?.value as ItemColorValue | undefined) ?? "");
-          setSubColor((candidate.colors.find((color) => color.role === "sub")?.value as ItemColorValue | undefined) ?? "");
+          const main = candidate.colors.find((color) => color.role === "main");
+          const sub = candidate.colors.find((color) => color.role === "sub");
+
+          if (main?.mode === "custom") {
+            setUseCustomMainColor(true);
+            setCustomMainHex(main.hex);
+            setMainColor("");
+          } else {
+            setUseCustomMainColor(false);
+            setMainColor((main?.value as ItemColorValue | undefined) ?? "");
+          }
+
+          if (sub?.mode === "custom") {
+            setUseCustomSubColor(true);
+            setCustomSubHex(sub.hex);
+            setSubColor("");
+          } else {
+            setUseCustomSubColor(false);
+            setSubColor((sub?.value as ItemColorValue | undefined) ?? "");
+          }
+
           setSelectedSeasons(candidate.seasons);
           setSelectedTpos(candidate.tpos);
           setExistingImages(candidate.images);
@@ -174,14 +241,29 @@ export default function PurchaseCandidateForm({
     setter(current.includes(value) ? current.filter((item) => item !== value) : [...current, value]);
   }
 
+  function toggleSeason(season: string) {
+    setSelectedSeasons((prev) => {
+      const isSelected = prev.includes(season);
+
+      if (season === "オール") {
+        return isSelected ? [] : ["オール"];
+      }
+
+      const withoutAll = prev.filter((item) => item !== "オール");
+      return isSelected
+        ? withoutAll.filter((item) => item !== season)
+        : [...withoutAll, season];
+    });
+  }
+
   function buildPayload(): PurchaseCandidateUpsertPayload {
     const colors: PurchaseCandidateUpsertPayload["colors"] = [];
 
     if (selectedMainColor) {
       colors.push({
         role: "main" as const,
-        mode: "preset" as const,
-        value: mainColor,
+        mode: useCustomMainColor ? "custom" : "preset",
+        value: useCustomMainColor ? customMainHex : mainColor,
         hex: selectedMainColor.hex,
         label: selectedMainColor.label,
       });
@@ -190,8 +272,8 @@ export default function PurchaseCandidateForm({
     if (selectedSubColor) {
       colors.push({
         role: "sub" as const,
-        mode: "preset" as const,
-        value: subColor,
+        mode: useCustomSubColor ? "custom" : "preset",
+        value: useCustomSubColor ? customSubHex : subColor,
         hex: selectedSubColor.hex,
         label: selectedSubColor.label,
       });
@@ -230,6 +312,14 @@ export default function PurchaseCandidateForm({
 
     if (!selectedMainColor) {
       nextErrors.colors = "メインカラーを選択してください。";
+    }
+
+    if (useCustomMainColor && !isValidHexColor(customMainHex)) {
+      nextErrors.colors = "メインカラーのカラーコードを #RRGGBB 形式で入力してください。";
+    }
+
+    if (useCustomSubColor && !isValidHexColor(customSubHex)) {
+      nextErrors.sub_color = "サブカラーのカラーコードを #RRGGBB 形式で入力してください。";
     }
 
     setErrors(nextErrors);
@@ -374,46 +464,41 @@ export default function PurchaseCandidateForm({
     >
       <section className="space-y-4">
         <h2 className="text-lg font-semibold text-gray-900">基本情報</h2>
+        <p className="text-sm text-gray-500">「必須」が付いた項目は登録に必要です。</p>
 
         <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <label htmlFor="status" className="mb-1 block text-sm font-medium text-gray-700">
-              status
-            </label>
+            <FieldLabel htmlFor="status" label="ステータス" />
             <select
               id="status"
               value={status}
               onChange={(event) => setStatus(event.target.value as PurchaseCandidateStatus)}
               className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             >
-              <option value="considering">considering</option>
-              <option value="on_hold">on_hold</option>
-              <option value="purchased">purchased</option>
-              <option value="dropped">dropped</option>
+              <option value="considering">{PURCHASE_CANDIDATE_STATUS_LABELS.considering}</option>
+              <option value="on_hold">{PURCHASE_CANDIDATE_STATUS_LABELS.on_hold}</option>
+              <option value="purchased">{PURCHASE_CANDIDATE_STATUS_LABELS.purchased}</option>
+              <option value="dropped">{PURCHASE_CANDIDATE_STATUS_LABELS.dropped}</option>
             </select>
           </div>
 
           <div>
-            <label htmlFor="priority" className="mb-1 block text-sm font-medium text-gray-700">
-              priority
-            </label>
+            <FieldLabel htmlFor="priority" label="優先度" />
             <select
               id="priority"
               value={priority}
               onChange={(event) => setPriority(event.target.value as PurchaseCandidatePriority)}
               className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             >
-              <option value="high">high</option>
-              <option value="medium">medium</option>
-              <option value="low">low</option>
+              <option value="high">{PURCHASE_CANDIDATE_PRIORITY_LABELS.high}</option>
+              <option value="medium">{PURCHASE_CANDIDATE_PRIORITY_LABELS.medium}</option>
+              <option value="low">{PURCHASE_CANDIDATE_PRIORITY_LABELS.low}</option>
             </select>
           </div>
         </div>
 
         <div>
-          <label htmlFor="name" className="mb-1 block text-sm font-medium text-gray-700">
-            名前
-          </label>
+          <FieldLabel htmlFor="name" label="名前" required />
           <input
             id="name"
             type="text"
@@ -425,9 +510,7 @@ export default function PurchaseCandidateForm({
         </div>
 
         <div>
-          <label htmlFor="category_id" className="mb-1 block text-sm font-medium text-gray-700">
-            カテゴリ
-          </label>
+          <FieldLabel htmlFor="category_id" label="カテゴリ" required />
           <select
             id="category_id"
             value={categoryId}
@@ -526,9 +609,7 @@ export default function PurchaseCandidateForm({
 
         <div className="grid gap-4 md:grid-cols-3">
           <div>
-            <label htmlFor="size_gender" className="mb-1 block text-sm font-medium text-gray-700">
-              size_gender
-            </label>
+            <FieldLabel htmlFor="size_gender" label="サイズ区分" />
             <select
               id="size_gender"
               value={sizeGender}
@@ -536,10 +617,10 @@ export default function PurchaseCandidateForm({
               className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             >
               <option value="">未設定</option>
-              <option value="women">women</option>
-              <option value="men">men</option>
-              <option value="unisex">unisex</option>
-              <option value="unknown">unknown</option>
+              <option value="women">{PURCHASE_CANDIDATE_SIZE_GENDER_LABELS.women}</option>
+              <option value="men">{PURCHASE_CANDIDATE_SIZE_GENDER_LABELS.men}</option>
+              <option value="unisex">{PURCHASE_CANDIDATE_SIZE_GENDER_LABELS.unisex}</option>
+              <option value="unknown">{PURCHASE_CANDIDATE_SIZE_GENDER_LABELS.unknown}</option>
             </select>
           </div>
 
@@ -586,24 +667,99 @@ export default function PurchaseCandidateForm({
 
         <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">メインカラー</label>
-            <ColorSelect
-              value={mainColor}
-              onChange={setMainColor}
-              placeholder="メインカラーを選択"
-            />
+            <FieldLabel label="メインカラー" required />
+            <div className="space-y-3">
+              <label className="flex items-center gap-2 text-sm text-gray-700">
+                <input
+                  type="checkbox"
+                  aria-label="メインカラーをカラーコードで入力"
+                  checked={useCustomMainColor}
+                  onChange={(event) => {
+                    setUseCustomMainColor(event.target.checked);
+                    if (event.target.checked) {
+                      setMainColor("");
+                    }
+                  }}
+                  className="h-4 w-4 rounded border-gray-300 text-blue-600"
+                />
+                カラーコードを直接入力する
+              </label>
+
+              {useCustomMainColor ? (
+                <div className="flex gap-3">
+                  <input
+                    type="color"
+                    aria-label="メインカラーコードカラーピッカー"
+                    value={customMainHex}
+                    onChange={(event) => setCustomMainHex(event.target.value)}
+                    className="h-10 w-14 cursor-pointer rounded border border-gray-300 bg-white p-1"
+                  />
+                  <input
+                    type="text"
+                    aria-label="メインカラーコード"
+                    value={customMainHex}
+                    onChange={(event) => setCustomMainHex(event.target.value)}
+                    className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors.colors ? "border-red-400" : "border-gray-300"}`}
+                  />
+                </div>
+              ) : (
+                <ColorSelect
+                  value={mainColor}
+                  onChange={setMainColor}
+                  placeholder="メインカラーを選択"
+                />
+              )}
+            </div>
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">サブカラー</label>
-            <ColorSelect
-              value={subColor}
-              onChange={setSubColor}
-              placeholder="サブカラーを選択"
-              emptyOptionLabel="未設定"
-            />
+            <FieldLabel label="サブカラー" />
+            <div className="space-y-3">
+              <label className="flex items-center gap-2 text-sm text-gray-700">
+                <input
+                  type="checkbox"
+                  aria-label="サブカラーをカラーコードで入力"
+                  checked={useCustomSubColor}
+                  onChange={(event) => {
+                    setUseCustomSubColor(event.target.checked);
+                    if (event.target.checked) {
+                      setSubColor("");
+                    }
+                  }}
+                  className="h-4 w-4 rounded border-gray-300 text-blue-600"
+                />
+                カラーコードを直接入力する
+              </label>
+
+              {useCustomSubColor ? (
+                <div className="flex gap-3">
+                  <input
+                    type="color"
+                    aria-label="サブカラーコードカラーピッカー"
+                    value={customSubHex}
+                    onChange={(event) => setCustomSubHex(event.target.value)}
+                    className="h-10 w-14 cursor-pointer rounded border border-gray-300 bg-white p-1"
+                  />
+                  <input
+                    type="text"
+                    aria-label="サブカラーコード"
+                    value={customSubHex}
+                    onChange={(event) => setCustomSubHex(event.target.value)}
+                    className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors.sub_color ? "border-red-400" : "border-gray-300"}`}
+                  />
+                </div>
+              ) : (
+                <ColorSelect
+                  value={subColor}
+                  onChange={setSubColor}
+                  placeholder="サブカラーを選択"
+                  emptyOptionLabel="未設定"
+                />
+              )}
+            </div>
           </div>
         </div>
         {errors.colors && <p className="text-sm text-red-600">{errors.colors}</p>}
+        {errors.sub_color && <p className="text-sm text-red-600">{errors.sub_color}</p>}
 
         {(selectedMainColor || selectedSubColor) && (
           <div className="flex flex-wrap gap-2">
@@ -625,7 +781,8 @@ export default function PurchaseCandidateForm({
                 <button
                   key={option}
                   type="button"
-                  onClick={() => toggleValue(option, selectedSeasons, setSelectedSeasons)}
+                  aria-pressed={checked}
+                  onClick={() => toggleSeason(option)}
                   className={`rounded-lg border px-3 py-2 text-sm transition ${
                     checked
                       ? "border-blue-500 bg-blue-50 text-blue-700"
@@ -648,6 +805,7 @@ export default function PurchaseCandidateForm({
                 <button
                   key={option}
                   type="button"
+                  aria-pressed={checked}
                   onClick={() => toggleValue(option, selectedTpos, setSelectedTpos)}
                   className={`rounded-lg border px-3 py-2 text-sm transition ${
                     checked

@@ -72,7 +72,10 @@ describe("PurchaseCandidateDetailPage", () => {
     );
 
     expect(markup).toContain("ネイビーコート");
-    expect(markup).toContain("item 追加");
+    expect(markup).toContain("アイテム追加");
+    expect(markup).toContain("保留中");
+    expect(markup).toContain("優先度: 中");
+    expect(markup).toContain("レディース");
     expect(markup).toContain("理由");
     expect(markup).toContain("厚手対応");
     expect(markup).toContain("item-draft-action");

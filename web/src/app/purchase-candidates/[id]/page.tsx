@@ -1,6 +1,12 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import PurchaseCandidateItemDraftAction from "@/components/purchase-candidates/purchase-candidate-item-draft-action";
+import {
+  PURCHASE_CANDIDATE_COLOR_ROLE_LABELS,
+  PURCHASE_CANDIDATE_PRIORITY_LABELS,
+  PURCHASE_CANDIDATE_SIZE_GENDER_LABELS,
+  PURCHASE_CANDIDATE_STATUS_LABELS,
+} from "@/lib/purchase-candidates/labels";
 import { fetchLaravelWithCookie } from "@/lib/server/laravel";
 import type { PurchaseCandidateDetailResponse } from "@/types/purchase-candidates";
 
@@ -56,14 +62,14 @@ export default async function PurchaseCandidateDetailPage({
             <h1 className="text-2xl font-bold text-gray-900">{candidate.name}</h1>
             <div className="mt-3 flex flex-wrap items-center gap-2">
               <span className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-sm font-medium text-blue-700">
-                {candidate.status}
+                {PURCHASE_CANDIDATE_STATUS_LABELS[candidate.status]}
               </span>
               <span className="rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-sm font-medium text-gray-700">
-                {candidate.priority}
+                優先度: {PURCHASE_CANDIDATE_PRIORITY_LABELS[candidate.priority]}
               </span>
               {candidate.converted_item_id !== null && (
                 <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-sm font-medium text-emerald-700">
-                  item 化済み
+                  アイテム化済み
                 </span>
               )}
             </div>
@@ -121,9 +127,9 @@ export default async function PurchaseCandidateDetailPage({
 
           <div className="space-y-6">
             <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-              <h2 className="text-lg font-semibold text-gray-900">item 追加</h2>
+              <h2 className="text-lg font-semibold text-gray-900">アイテム追加</h2>
               <p className="mt-2 text-sm text-gray-600">
-                現在の候補内容から item 作成画面の初期値を生成します。
+                現在の候補内容からアイテム作成画面の初期値を生成します。
               </p>
               <div className="mt-4">
                 <PurchaseCandidateItemDraftAction
@@ -133,7 +139,7 @@ export default async function PurchaseCandidateDetailPage({
               </div>
               {candidate.converted_item_id !== null && (
                 <p className="mt-3 text-sm text-emerald-700">
-                  この候補は item 化済みです。必要なら初期値を再生成できます。
+                  この候補はアイテム化済みです。必要なら初期値を再生成できます。
                 </p>
               )}
             </section>
@@ -156,6 +162,10 @@ export default async function PurchaseCandidateDetailPage({
                 <div className="flex items-center justify-between gap-3">
                   <dt>雨対応</dt>
                   <dd>{candidate.is_rain_ok ? "対応" : "未対応"}</dd>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <dt>サイズ区分</dt>
+                  <dd>{candidate.size_gender ? PURCHASE_CANDIDATE_SIZE_GENDER_LABELS[candidate.size_gender] : "未設定"}</dd>
                 </div>
                 <div className="flex items-center justify-between gap-3">
                   <dt>購入 URL</dt>
@@ -190,7 +200,7 @@ export default async function PurchaseCandidateDetailPage({
                 ) : (
                   candidate.colors.map((color) => (
                     <li key={`${color.role}-${color.value}`}>
-                      {color.role}: {color.label}
+                      {PURCHASE_CANDIDATE_COLOR_ROLE_LABELS[color.role]}: {color.label}
                     </li>
                   ))
                 )}

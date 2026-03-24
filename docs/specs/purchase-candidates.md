@@ -22,7 +22,8 @@
 ## 機能の位置づけ
 
 - `purchase_candidates` は **準主要機能** とする
-- ボトムナビの独立タブ化は後続検討とし、MVP ではホーム / 一覧導線を優先する
+- purchase_candidates は主要導線としてボトムナビに含める
+- wear logs を含む全体再編は後続検討とし、MVP では purchase_candidates を既存主要導線へ追加する
 - 想定する主要ナビは以下
   - ホーム
   - items
@@ -581,6 +582,12 @@ item 保存成功時に candidate を `purchased` に更新する処理が必要
 - 雨対応
 - 色 / 季節 / TPO
 - 画像複数枚
+
+### 入力制御
+
+- `name` / `category_id` / メインカラーは必須項目として UI 上で明示する
+- 色は preset に加えて custom color code を入力可能とする
+- `オール` と個別季節は同時選択させず、どちらか一方だけを保持する
 
 ---
 
