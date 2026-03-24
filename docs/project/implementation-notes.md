@@ -54,17 +54,14 @@ item 詳細画面での status 操作 UI を確認するときは `docs/specs/it
 - `invalid outfit` では `GET /api/outfits/invalid`、`POST /api/outfits/{id}/restore`、`POST /api/outfits/{id}/duplicate` は実装済み
   - 残タスクの中心は wear logs と event log
   - 正本: `docs/specs/outfits/create-edit.md`, `docs/api/openapi.yaml`
-- wear logs の API / DB / UI は docs に反映済みだが未実装
+- wear logs の API / DB / UI は一覧 / 詳細 / 登録 / 更新まで実装済み
+  - 未実装は delete、snapshot、専用詳細画面
   - 正本: `docs/specs/wears/wear-logs.md`, `docs/data/database.md`, `docs/api/openapi.yaml`
 - event log は `disposed / invalid / restore / duplicate` を優先対象としているが未実装
   - 正本: `docs/specs/logging/logging-policy.md`
 
 ### `future API`
 
-- `GET /api/wear-logs`
-- `GET /api/wear-logs/{id}`
-- `POST /api/wear-logs`
-- `PUT /api/wear-logs/{id}`
 - `DELETE /api/wear-logs/{id}`
 
 ### 副作用あり
@@ -222,7 +219,7 @@ item 詳細画面での status 操作 UI を確認するときは `docs/specs/it
 - 手動復帰 `POST /api/outfits/{id}/restore` は実装済み
 - 複製初期値取得 `POST /api/outfits/{id}/duplicate` は実装済み
 - 現時点の残タスクの中心は以下
-  - wear logs
+  - wear logs の delete / snapshot / 補助 UI
   - event log
 - `restore` は手動復帰用の補助導線とし、対象 outfit が `invalid` で、構成 item がすべて active の場合のみ許可する
 - `duplicate` は active / invalid 共通機能だが、invalid outfit では再利用の主導線として扱う
@@ -428,10 +425,10 @@ UI/UX メモ:
 - 一覧系の URL クエリ / ページング / 状態別 UI の共通方針は `docs/specs/discovery/list-common-guidelines.md` を参照する
 - 詳細は `docs/specs/error-message-guidelines.md` と `docs/ui/empty-state.md` に整理
 
-## wear logs 実装メモ（未実装）
+## wear logs 実装メモ
 
-wear logs は現時点では **未実装**。  
-ただし、仕様・DB・API の正本は先に docs へ反映済みとする。
+wear logs は一覧 / 詳細 / 登録 / 更新の最小実用フローまで実装済み。  
+一方で、delete / snapshot / 専用詳細画面などは未実装。
 
 ### 正本として参照するファイル
 
@@ -456,9 +453,9 @@ wear logs は現時点では **未実装**。
 
 ### 実装時の補足
 
-- API は `future API` として `openapi.yaml` に記載済みだが、現時点では未実装
-- 実装時は Request / Response / validation / transaction を `openapi.yaml` と `wear-logs.md` に合わせる
+- Request / Response / validation / transaction は `openapi.yaml` と `wear-logs.md` に合わせて整理済み
 - 更新処理は差分更新ではなく、明細込み全体更新を前提とする
+- 編集時は現在の候補外データを表示責務として残し、新規候補の選択責務と分ける
 
 ## 現在の実装状況
 

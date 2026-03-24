@@ -7,27 +7,21 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Item extends Model
+class WearLog extends Model
 {
     use HasFactory;
 
     protected $fillable = [
         'user_id',
         'status',
-        'name',
-        'category',
-        'shape',
-        'colors',
-        'seasons',
-        'tpos',
-        'spec',
+        'event_date',
+        'display_order',
+        'source_outfit_id',
+        'memo',
     ];
 
     protected $casts = [
-        'colors' => 'array',
-        'seasons' => 'array',
-        'tpos' => 'array',
-        'spec' => 'array',
+        'event_date' => 'date:Y-m-d',
     ];
 
     public function user(): BelongsTo
@@ -35,13 +29,13 @@ class Item extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function outfitItems(): HasMany
+    public function sourceOutfit(): BelongsTo
     {
-        return $this->hasMany(OutfitItem::class);
+        return $this->belongsTo(Outfit::class, 'source_outfit_id');
     }
 
     public function wearLogItems(): HasMany
     {
-        return $this->hasMany(WearLogItem::class, 'source_item_id');
+        return $this->hasMany(WearLogItem::class)->orderBy('sort_order');
     }
 }

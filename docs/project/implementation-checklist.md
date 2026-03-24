@@ -20,7 +20,7 @@ item 詳細画面での status 操作 UI は `docs/specs/items/detail-status-ui.
 - `invalid` outfit は通常一覧と wear log の `source_outfit_id` 候補から除外する
 - 正本: `docs/specs/outfits/create-edit.md`, `docs/data/database.md`, `docs/api/openapi.yaml`
 
-- wear logs は future の対象だが、仕様方針自体は決定済みとする
+- wear logs は一覧 / 詳細 / 登録 / 更新まで実装済みで、delete は未実装とする
 - `source_outfit_id` は「完全一致したコーデ」ではなく「ベースにした outfit」を表す
 - 最終的な item 構成は `items` / `wear_log_items` を正本とする
 - `item_source_type` は `outfit` / `manual`
@@ -37,8 +37,9 @@ item 詳細画面での status 操作 UI は `docs/specs/items/detail-status-ui.
 
 - docs 上の仕様・DB・OpenAPI 反映は概ね確認済みであり、以下は主に実装未着手の項目です
 
-- wear logs 本体は未実装
-- 対象: API、DB テーブル、UI、validation、transaction、一覧・詳細・登録・更新・削除
+- wear logs は最小実用フローまで実装済み
+- 実装済み: DB テーブル、一覧・詳細・登録・更新、status / candidate exclusion / `event_date + display_order`
+- 未実装: 削除、snapshot、高度な候補補助、専用詳細画面
 - 正本: `docs/specs/wears/wear-logs.md`, `docs/data/database.md`, `docs/api/openapi.yaml`
 
 - invalid outfit 向けの補助導線は概ね実装済み
@@ -55,10 +56,6 @@ item 詳細画面での status 操作 UI は `docs/specs/items/detail-status-ui.
 
 ## future API
 
-- `GET /api/wear-logs`
-- `GET /api/wear-logs/{id}`
-- `POST /api/wear-logs`
-- `PUT /api/wear-logs/{id}`
 - `DELETE /api/wear-logs/{id}`
 - 正本: `docs/api/openapi.yaml`
 
@@ -92,10 +89,10 @@ item 詳細画面での status 操作 UI は `docs/specs/items/detail-status-ui.
    - 理由: outfit invalid 化と wear logs 候補除外の前提になるため
 2. outfit status と invalid 化副作用の実装着手
    - `active / invalid`、通常保存時の `status` 非包含、item `disposed` に伴う invalid 化は docs に反映済みのため、実装を揃える
-   - 理由: invalid outfit future API と wear logs の前提になるため
-3. wear logs の実装着手
-   - 対象: DB、API、UI、validation、一覧共通仕様との接続
-   - 理由: `source_outfit_id`、`item_source_type`、候補除外、副作用の前提を利用するため
+   - 理由: invalid outfit 実装と wear logs の候補制約の前提になるため
+3. wear logs 残タスクの実装着手
+   - 対象: 削除、専用詳細画面、候補 UI の補助改善、snapshot の採否整理
+   - 理由: 最小実用フローは通ったため、運用上不足する補助導線から詰めやすいため
 4. event_logs の実装着手
    - 対象: テーブル、発火ポイント、記録対象の絞り込み
    - 理由: item / outfit / wear logs の主要状態変化が固まってからの方が event_type と payload を固定しやすいため

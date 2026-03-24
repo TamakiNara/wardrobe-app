@@ -34,4 +34,9 @@ class Outfit extends Model
     {
         return $this->hasMany(OutfitItem::class)->orderBy('sort_order');
     }
+
+    public function sourceWearLogs(): HasMany
+    {
+        return $this->hasMany(WearLog::class, 'source_outfit_id');
+    }
 }

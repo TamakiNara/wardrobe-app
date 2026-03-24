@@ -30,6 +30,17 @@ type OutfitsResponse = {
   };
 };
 
+type WearLog = {
+  id: number;
+};
+
+type WearLogsResponse = {
+  wearLogs?: WearLog[];
+  meta?: {
+    totalAll?: number;
+  };
+};
+
 async function getUser(): Promise<User | null> {
   const res = await fetchLaravelWithCookie("/api/me");
 
@@ -60,6 +71,17 @@ async function getOutfitsCount(): Promise<number> {
 
   const data = (await res.json()) as OutfitsResponse;
   return data.meta?.totalAll ?? data.outfits?.length ?? 0;
+}
+
+async function getWearLogsCount(): Promise<number> {
+  const res = await fetchLaravelWithCookie("/api/wear-logs");
+
+  if (!res.ok) {
+    return 0;
+  }
+
+  const data = (await res.json()) as WearLogsResponse;
+  return data.meta?.totalAll ?? data.wearLogs?.length ?? 0;
 }
 
 export default async function Home() {
@@ -98,9 +120,10 @@ export default async function Home() {
     );
   }
 
-  const [itemsCount, outfitsCount] = await Promise.all([
+  const [itemsCount, outfitsCount, wearLogsCount] = await Promise.all([
     getItemsCount(),
     getOutfitsCount(),
+    getWearLogsCount(),
   ]);
 
   return (
@@ -122,7 +145,7 @@ export default async function Home() {
           </div>
         </section>
 
-        <section className="grid gap-4 md:grid-cols-2">
+        <section className="grid gap-4 md:grid-cols-3">
           <article className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
             <p className="text-sm text-gray-500">アイテム管理</p>
             <p className="mt-2 text-3xl font-bold text-gray-900">
@@ -162,6 +185,29 @@ export default async function Home() {
               </Link>
               <Link
                 href="/outfits/new"
+                className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+              >
+                追加する
+              </Link>
+            </div>
+          </article>
+
+          <article className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+            <p className="text-sm text-gray-500">着用履歴管理</p>
+            <p className="mt-2 text-3xl font-bold text-gray-900">
+              {wearLogsCount}
+            </p>
+            <p className="mt-2 text-sm text-gray-600">登録済み着用履歴数</p>
+
+            <div className="mt-6 flex gap-3">
+              <Link
+                href="/wear-logs"
+                className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
+              >
+                一覧を見る
+              </Link>
+              <Link
+                href="/wear-logs/new"
                 className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
               >
                 追加する

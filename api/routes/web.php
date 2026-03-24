@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Api\WearLogController;
 use App\Models\CategoryMaster;
 use App\Models\Item;
 use App\Models\Outfit;
@@ -436,6 +437,12 @@ Route::prefix('api')->middleware(['web'])->group(function () {
             'message' => 'deleted',
         ]);
     });
+
+    // Wear Logs
+    Route::middleware('auth:web')->get('/wear-logs', [WearLogController::class, 'index']);
+    Route::middleware('auth:web')->post('/wear-logs', [WearLogController::class, 'store']);
+    Route::middleware('auth:web')->get('/wear-logs/{id}', [WearLogController::class, 'show']);
+    Route::middleware('auth:web')->put('/wear-logs/{id}', [WearLogController::class, 'update']);
 
 });
 
