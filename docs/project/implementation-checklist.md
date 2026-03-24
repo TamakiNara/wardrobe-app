@@ -42,6 +42,12 @@ item 詳細画面での status 操作 UI は `docs/specs/items/detail-status-ui.
 - 未実装: 削除、snapshot、高度な候補補助、専用詳細画面
 - 正本: `docs/specs/wears/wear-logs.md`, `docs/data/database.md`, `docs/api/openapi.yaml`
 
+- wear logs snapshot は **未実装の保留論点** として残す
+- 現時点では current データ参照ベースで進め、snapshot なしでも一覧・登録・更新の最小実用は成立している
+- 未完了タスク: 保存タイミング、保存対象、表示用途、集計用途、既存データ移行の方針整理
+- 導入時の影響範囲: DB schema、API response、wear logs 一覧 / 編集 / 将来詳細 UI、集計ロジック
+
+
 - invalid outfit 向けの補助導線は概ね実装済み
 - 対象: invalid 一覧 / 詳細からの `restore` / `duplicate` と、新規作成画面への複製初期値適用
 - backend: `POST /api/outfits/{id}/duplicate` は実装済み
