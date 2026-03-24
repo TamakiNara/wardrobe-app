@@ -72,6 +72,30 @@ function isValidHexColor(value: string): boolean {
   return /^#[0-9A-Fa-f]{6}$/.test(value.trim());
 }
 
+function extractFirstErrorMessage(data: unknown, fallback: string): string {
+  if (data && typeof data === "object") {
+    const message = (data as { message?: unknown }).message;
+    if (typeof message === "string" && message.trim() !== "") {
+      const errors = (data as { errors?: Record<string, unknown> }).errors;
+      if (!errors || message !== "The given data was invalid.") {
+        return message;
+      }
+    }
+
+    const errors = (data as { errors?: Record<string, unknown> }).errors;
+    if (errors && typeof errors === "object") {
+      for (const value of Object.values(errors)) {
+        const first = Array.isArray(value) ? value[0] : value;
+        if (typeof first === "string" && first.trim() !== "") {
+          return first;
+        }
+      }
+    }
+  }
+
+  return fallback;
+}
+
 function FieldLabel({
   htmlFor,
   label,
@@ -343,7 +367,7 @@ export default function PurchaseCandidateForm({
 
       if (!uploadResponse.ok) {
         const uploadData = await uploadResponse.json().catch(() => null);
-        throw new Error(uploadData?.message ?? "画像の追加に失敗しました。");
+        throw new Error(extractFirstErrorMessage(uploadData, "画像の追加に失敗しました。"));
       }
     }
   }
@@ -860,12 +884,14 @@ export default function PurchaseCandidateForm({
                 </div>
 
                 {image.url && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={image.url}
-                    alt={image.original_filename ?? "candidate image"}
-                    className="mt-3 h-40 w-full rounded-lg object-cover"
-                  />
+                  <div className="mt-3 flex aspect-[3/4] items-center justify-center rounded-lg bg-gray-50 p-2">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={image.url}
+                      alt={image.original_filename ?? "candidate image"}
+                      className="h-full w-full object-contain"
+                    />
+                  </div>
                 )}
               </article>
             ))}

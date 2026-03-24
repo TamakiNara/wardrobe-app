@@ -63,11 +63,22 @@ class PurchaseCandidateController extends Controller
 
     public function uploadImage(Request $request, int $id): JsonResponse
     {
-        $validated = $request->validate([
-            'image' => ['required', 'image', 'mimes:jpeg,png,webp', 'max:5120'],
-            'sort_order' => ['nullable', 'integer', 'min:1'],
-            'is_primary' => ['nullable', 'boolean'],
-        ]);
+        $validated = $request->validate(
+            [
+                'image' => ['required', 'image', 'mimes:jpeg,png,webp', 'max:5120'],
+                'sort_order' => ['nullable', 'integer', 'min:1'],
+                'is_primary' => ['nullable', 'boolean'],
+            ],
+            [
+                'image.required' => '画像を選択してください。',
+                'image.image' => '対応していない画像形式です。JPEG / PNG / WebP を選んでください。',
+                'image.mimes' => '対応していない画像形式です。JPEG / PNG / WebP を選んでください。',
+                'image.max' => '画像サイズは5MB以下にしてください。',
+                'sort_order.integer' => '画像の並び順が不正です。',
+                'sort_order.min' => '画像の並び順が不正です。',
+                'is_primary.boolean' => '代表画像フラグが不正です。',
+            ],
+        );
 
         $image = $this->purchaseCandidateService->addImage(
             $request->user(),

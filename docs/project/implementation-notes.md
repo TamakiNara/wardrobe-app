@@ -52,6 +52,7 @@ purchase_candidates の仕様正本を確認するときは `docs/specs/purchase
 - `purchase_candidates` の正本は `docs/specs/purchase-candidates.md` を参照する
 - MVP として candidate 保存・画像管理・item draft 導線まで実装済み
 - item 側では `brand_name / price / purchase_url / purchased_at / size_* / is_rain_ok / item_images` の受け皿まで実装済み
+- candidate 由来画像は item 保存時に item 用保存先へ物理コピーし、`item_images` にはコピー先の `disk + path` を保存する
 - 比較ロジックの詳細、item 保存成功時の `purchased` 反映、item 側画像 upload / delete UI は後続検討とする
 
 直近または中期 TODO:
@@ -75,7 +76,8 @@ purchase_candidates の仕様正本を確認するときは `docs/specs/purchase
 
 - purchase_candidates は items / outfits / wear logs と責務を分け、candidate を outfits に直接混ぜない前提を維持する
 - `dropped` は見送り履歴を残す状態であり、DELETE は登録ミスや重複削除用として役割を分ける
-- candidate から item へ全画像を引き継ぐ方針は UX 上は自然だが、item 側画像と別管理である点を UI 上でも誤解されないよう整理が必要
+- candidate から item へ全画像を引き継ぐ方針は UX 上は自然で、保存時には item 用保存先へ物理コピーする
+- item 側画像と別管理である点を UI 上でも誤解されないよう整理が必要
 - `size_gender` の内部値は `women / men / unisex / unknown` を想定しており、カテゴリプリセットの `male / female / custom` 命名とズレるため、表示ラベル変換ルールを後続整理したい
 - items は現行 DB で `colors / seasons / tpos` を JSON で持つが、purchase_candidates 実装時は API / `item-draft` を配列で統一し、Laravel 側で構造差を吸収する
 - candidate は `category_id` を正本にしつつ、`item-draft` では current item API 用の `category` / `shape` を返す前提とする
@@ -87,7 +89,7 @@ purchase_candidates の仕様正本を確認するときは `docs/specs/purchase
 - `item-draft` は current `POST /api/items` に合わせた初期値 payload とし、frontend がそのまま item 作成画面へ流し込める形を優先する
 - candidate 側の正本カテゴリは `category_id` とし、item 作成用の `category` / `shape` へのマッピングは Laravel 側で行う
 - `colors` / `seasons` / `tpos` は DB 構造差があっても API と `item-draft` では配列で統一する
-- candidate 画像は item 作成初期値へ全件引き継ぐが、保存後は `item_images` として別管理にする
+- candidate 画像は item 作成初期値へ全件引き継ぐが、保存時に item 用保存先へ物理コピーし、保存後は `item_images` として別管理にする
 - `wanted_reason` は candidate 側の情報とし、item `memo` へ自動結合しない
 
 ### まだ保留でよい前提
@@ -378,7 +380,7 @@ UI/UX メモ:
   - `item_images` は `purchase_candidate_images` と別テーブルで管理する
   - DB には `disk + path` を保存し、表示用 URL は API / BFF 側で生成する
   - `is_primary` / `sort_order` を持ち、複数画像対応とする
-  - candidate -> item では全画像を初期値に引き継ぎ、item 作成時に `item_images` として保存する
+  - candidate -> item では全画像を初期値に引き継ぎ、item 作成時に item 用保存先へ物理コピーして `item_images` として保存する
   - 保存後は item 側画像として別管理にし、自動同期しない
   - 優先画像がある場合は SVG ではなく画像をアイコン表示する
 

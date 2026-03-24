@@ -625,12 +625,14 @@ export default function NewItemPage() {
                     className="overflow-hidden rounded-xl border border-gray-200 bg-white"
                   >
                     {image.url ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={image.url}
-                        alt={image.original_filename ?? "candidate image"}
-                        className="aspect-[4/3] w-full object-cover"
-                      />
+                      <div className="flex aspect-[3/4] items-center justify-center bg-gray-50 p-2">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={image.url}
+                          alt={image.original_filename ?? "candidate image"}
+                          className="h-full w-full object-contain"
+                        />
+                      </div>
                     ) : (
                       <div className="flex aspect-[4/3] items-center justify-center bg-gray-100 text-sm text-gray-400">
                         画像なし

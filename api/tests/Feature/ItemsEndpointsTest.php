@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Item;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class ItemsEndpointsTest extends TestCase
@@ -141,7 +142,10 @@ class ItemsEndpointsTest extends TestCase
 
     public function test_post_items_stores_purchase_fields_and_images(): void
     {
+        Storage::fake('public');
+
         $user = User::factory()->create();
+        Storage::disk('public')->put('purchase-candidates/1/image-1.png', 'candidate-image');
 
         $this->actingAs($user, 'web');
 
@@ -192,10 +196,15 @@ class ItemsEndpointsTest extends TestCase
             ->assertJsonPath('item.size_note', '厚手ニット込み')
             ->assertJsonPath('item.size_details.note', '裄丈 78cm')
             ->assertJsonPath('item.is_rain_ok', true)
-            ->assertJsonPath('item.images.0.path', 'purchase-candidates/1/image-1.png')
             ->assertJsonPath('item.images.0.is_primary', true);
 
         $itemId = $response->json('item.id');
+        $copiedPath = $response->json('item.images.0.path');
+
+        $this->assertNotSame('purchase-candidates/1/image-1.png', $copiedPath);
+        $this->assertStringStartsWith(sprintf('items/%d/', $itemId), $copiedPath);
+        Storage::disk('public')->assertExists('purchase-candidates/1/image-1.png');
+        Storage::disk('public')->assertExists($copiedPath);
 
         $this->assertDatabaseHas('items', [
             'id' => $itemId,
@@ -206,9 +215,53 @@ class ItemsEndpointsTest extends TestCase
         ]);
         $this->assertDatabaseHas('item_images', [
             'item_id' => $itemId,
-            'path' => 'purchase-candidates/1/image-1.png',
+            'path' => $copiedPath,
             'is_primary' => 1,
         ]);
+    }
+
+    public function test_item_image_remains_after_candidate_source_file_is_deleted(): void
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->create();
+        Storage::disk('public')->put('purchase-candidates/1/image-1.png', 'candidate-image');
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/items', [
+            'name' => '画像引き継ぎ確認',
+            'category' => 'tops',
+            'shape' => 'tshirt',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'white',
+                'hex' => '#eeeeee',
+                'label' => 'ホワイト',
+            ]],
+            'seasons' => ['夏'],
+            'tpos' => ['休日'],
+            'images' => [[
+                'disk' => 'public',
+                'path' => 'purchase-candidates/1/image-1.png',
+                'original_filename' => 'candidate.png',
+                'mime_type' => 'image/png',
+                'file_size' => 2048,
+                'sort_order' => 1,
+                'is_primary' => true,
+            ]],
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertCreated();
+        $itemImagePath = $response->json('item.images.0.path');
+
+        Storage::disk('public')->delete('purchase-candidates/1/image-1.png');
+
+        Storage::disk('public')->assertMissing('purchase-candidates/1/image-1.png');
+        Storage::disk('public')->assertExists($itemImagePath);
     }
 
     public function test_get_item_returns_purchase_fields_and_images(): void
@@ -254,14 +307,18 @@ class ItemsEndpointsTest extends TestCase
 
     public function test_put_item_updates_purchase_fields_and_images(): void
     {
+        Storage::fake('public');
+
         $user = User::factory()->create();
         $item = $this->createItem($user, [
             'category' => 'outer',
             'shape' => 'trench',
         ]);
+        Storage::disk('public')->put(sprintf('items/%d/original.png', $item->id), 'original-image');
+        Storage::disk('public')->put('purchase-candidates/1/updated.png', 'candidate-image');
         $item->images()->create([
             'disk' => 'public',
-            'path' => 'items/original.png',
+            'path' => sprintf('items/%d/original.png', $item->id),
             'original_filename' => 'original.png',
             'mime_type' => 'image/png',
             'file_size' => 1000,
@@ -297,7 +354,7 @@ class ItemsEndpointsTest extends TestCase
             'tpos' => ['仕事'],
             'images' => [[
                 'disk' => 'public',
-                'path' => 'items/updated.png',
+                'path' => 'purchase-candidates/1/updated.png',
                 'original_filename' => 'updated.png',
                 'mime_type' => 'image/png',
                 'file_size' => 1500,
@@ -312,8 +369,14 @@ class ItemsEndpointsTest extends TestCase
             ->assertJsonPath('item.name', '更新後アイテム')
             ->assertJsonPath('item.category', 'outer')
             ->assertJsonPath('item.shape', 'trench')
-            ->assertJsonPath('item.brand_name', 'Updated Brand')
-            ->assertJsonPath('item.images.0.path', 'items/updated.png');
+            ->assertJsonPath('item.brand_name', 'Updated Brand');
+
+        $updatedImagePath = $response->json('item.images.0.path');
+
+        $this->assertStringStartsWith(sprintf('items/%d/', $item->id), $updatedImagePath);
+        $this->assertNotSame('purchase-candidates/1/updated.png', $updatedImagePath);
+        Storage::disk('public')->assertExists('purchase-candidates/1/updated.png');
+        Storage::disk('public')->assertExists($updatedImagePath);
 
         $this->assertDatabaseHas('items', [
             'id' => $item->id,
@@ -323,11 +386,11 @@ class ItemsEndpointsTest extends TestCase
         ]);
         $this->assertDatabaseHas('item_images', [
             'item_id' => $item->id,
-            'path' => 'items/updated.png',
+            'path' => $updatedImagePath,
         ]);
         $this->assertDatabaseMissing('item_images', [
             'item_id' => $item->id,
-            'path' => 'items/original.png',
+            'path' => sprintf('items/%d/original.png', $item->id),
         ]);
     }
 }

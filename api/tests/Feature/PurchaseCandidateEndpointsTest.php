@@ -441,4 +441,25 @@ class PurchaseCandidateEndpointsTest extends TestCase
             'id' => $imageId,
         ]);
     }
+
+    public function test_post_purchase_candidate_image_upload_returns_japanese_message_for_unsupported_format(): void
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->create();
+        $candidate = $this->createCandidate($user);
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $response = $this->post("/api/purchase-candidates/{$candidate->id}/images", [
+            'image' => UploadedFile::fake()->create('front.avif', 100, 'image/avif'),
+        ], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonPath('errors.image.0', '対応していない画像形式です。JPEG / PNG / WebP を選んでください。');
+    }
 }
