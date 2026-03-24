@@ -47,11 +47,20 @@ class SampleOutfitSeeder extends Seeder
                 'tpos' => ['仕事', '休日'],
                 'items' => ['黒カーディガン', 'デニムパンツ', 'スニーカー', 'トートバッグ'],
             ],
+            [
+                'status' => 'invalid',
+                'name' => '旧通勤コーデ',
+                'memo' => '候補外データ確認用に残している過去のセット。',
+                'seasons' => ['秋', '冬'],
+                'tpos' => ['仕事'],
+                'items' => ['グレーパーカー', 'デニムパンツ', 'スニーカー'],
+            ],
         ];
 
         foreach ($definitions as $definition) {
             $outfit = Outfit::query()->create([
                 'user_id' => $user->id,
+                'status' => $definition['status'] ?? 'active',
                 'name' => $definition['name'],
                 'memo' => $definition['memo'],
                 'seasons' => $definition['seasons'],

@@ -69,6 +69,20 @@
 - レイアウト崩れ確認
 - 多件数データは Factory 併用で生成する
 
+### wear logs の確認用途
+
+- `empty-user@example.com`
+  - wear logs なし
+  - 空状態と初回導線の確認用
+- `standard-user@example.com`
+  - 標準確認用の wear logs を 5 件投入
+  - `planned` / `worn`、同日複数件、`display_order` 1 / 2、outfit のみ / item のみ / outfit + item を確認しやすい
+  - あわせて、`source_outfit_id` が現在 `invalid` の記録と、現在 `disposed` の item を含む既存記録を 1 件ずつ確認できる
+- `large-user@example.com`
+  - 多件数確認用の wear logs を 14 件以上投入
+  - ページング、status / date / keyword 絞り込み、日付の新しい順 / 古い順を確認しやすい
+
+
 ---
 
 ## サンプル Item の設計
@@ -126,6 +140,7 @@
 - `TestUserSeeder`
 - `SampleItemSeeder`
 - `SampleOutfitSeeder`
+- `SampleWearLogSeeder`
 - `SampleUserSettingSeeder`
 
 ---
@@ -155,9 +170,8 @@
 - 現行 schema で seed 対応している sample item の差分は category / color / seasons / tpos / spec まで
 - 季節 UI の表示順は `春 / 夏 / 秋 / 冬 / オール`、TPO の正規値は `仕事 / 休日 / フォーマル` を前提にそろえる
 - brand 名 / item メモ / 画像 URL などの将来項目は、テーブル追加後に sample data へ反映する
-- `standard-user@example.com` は手書き 7 件の Item と 3 件の Outfit、`large-user@example.com` は Factory 併用の 36 件の Item と 12 件の Outfit を持つ
+- `standard-user@example.com` は手書き 8 件の Item（うち `disposed` 1 件）と 4 件の Outfit（うち `invalid` 1 件）、5 件の wear logs を持ち、`large-user@example.com` は Factory 併用の 36 件の Item と 12 件の Outfit、14 件以上の wear logs を持つ
 - `php artisan migrate:fresh --seed` と `php artisan db:seed --class=TestDatasetSeeder` は実行確認済み
 
 
 - `TestDatasetSeeder` 単体実行時でも category 系 master とユーザーの `visible_category_ids` が整合するように修正済み
-

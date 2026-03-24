@@ -64,6 +64,8 @@ class WearLogController extends Controller
             'items.*.source_item_id' => ['required', 'integer'],
             'items.*.sort_order' => ['required', 'integer', 'min:1'],
             'items.*.item_source_type' => ['required', 'string', 'in:outfit,manual'],
+        ], [
+            'items.present' => 'items は空配列を含めて必ず指定してください。',
         ]);
     }
 }

@@ -32,7 +32,10 @@ describe("/api/wear-logs/[id] route", () => {
       ),
     ) as typeof fetch;
 
-    const req = new Request("http://localhost:3000/api/wear-logs/1");
+    const req = {
+      headers: new Headers(),
+      nextUrl: new URL("http://localhost:3000/api/wear-logs/1"),
+    };
     const res = await GET(req as any, { params: Promise.resolve({ id: "1" }) });
     const json = await res.json();
 

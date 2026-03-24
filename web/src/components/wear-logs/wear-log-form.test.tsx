@@ -7,6 +7,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const pushMock = vi.fn();
 const refreshMock = vi.fn();
+const fetchAllPaginatedCandidatesMock = vi.fn();
+const routerMock = {
+  push: pushMock,
+  refresh: refreshMock,
+};
 
 vi.mock("next/link", () => ({
   default: ({ children, href, ...props }: React.ComponentProps<"a">) =>
@@ -14,16 +19,17 @@ vi.mock("next/link", () => ({
 }));
 
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({
-    push: pushMock,
-    refresh: refreshMock,
-  }),
+  useRouter: () => routerMock,
+}));
+
+vi.mock("@/lib/wear-logs/candidates", () => ({
+  fetchAllPaginatedCandidates: fetchAllPaginatedCandidatesMock,
 }));
 
 async function waitForEffects() {
   await Promise.resolve();
   await Promise.resolve();
-  await new Promise((resolve) => setTimeout(resolve, 0));
+  await Promise.resolve();
 }
 
 describe("WearLogForm", () => {
@@ -48,29 +54,25 @@ describe("WearLogForm", () => {
   });
 
   it("通常導線の新規登録で item のみを送信できる", async () => {
+    fetchAllPaginatedCandidatesMock
+      .mockResolvedValueOnce({
+        status: 200,
+        entries: [
+          {
+            id: 1,
+            name: "白T",
+            status: "active",
+          },
+        ],
+      })
+      .mockResolvedValueOnce({
+        status: 200,
+        entries: [],
+      });
+
     vi.stubGlobal(
       "fetch",
       vi.fn()
-        .mockResolvedValueOnce({
-          ok: true,
-          status: 200,
-          json: async () => ({
-            items: [
-              {
-                id: 1,
-                name: "白T",
-                status: "active",
-              },
-            ],
-          }),
-        })
-        .mockResolvedValueOnce({
-          ok: true,
-          status: 200,
-          json: async () => ({
-            outfits: [],
-          }),
-        })
         .mockResolvedValueOnce({
           ok: true,
           status: 201,
@@ -87,6 +89,8 @@ describe("WearLogForm", () => {
 
     await act(async () => {
       root.render(React.createElement(WearLogForm, { mode: "create" }));
+    });
+    await act(async () => {
       await waitForEffects();
     });
 
@@ -131,6 +135,16 @@ describe("WearLogForm", () => {
   });
 
   it("候補外データを含む既存レコードでも編集画面が壊れない", async () => {
+    fetchAllPaginatedCandidatesMock
+      .mockResolvedValueOnce({
+        status: 200,
+        entries: [],
+      })
+      .mockResolvedValueOnce({
+        status: 200,
+        entries: [],
+      });
+
     vi.stubGlobal(
       "fetch",
       vi.fn()
@@ -161,20 +175,6 @@ describe("WearLogForm", () => {
               updated_at: "2026-03-24T00:00:00Z",
             },
           }),
-        })
-        .mockResolvedValueOnce({
-          ok: true,
-          status: 200,
-          json: async () => ({
-            items: [],
-          }),
-        })
-        .mockResolvedValueOnce({
-          ok: true,
-          status: 200,
-          json: async () => ({
-            outfits: [],
-          }),
         }),
     );
 
@@ -182,6 +182,8 @@ describe("WearLogForm", () => {
 
     await act(async () => {
       root.render(React.createElement(WearLogForm, { mode: "edit", wearLogId: "1" }));
+    });
+    await act(async () => {
       await waitForEffects();
     });
 
@@ -192,5 +194,94 @@ describe("WearLogForm", () => {
     expect(container.textContent).toContain("手放し済みのアイテムが含まれています。");
     expect(container.textContent).toContain("手放し済みトップス");
     expect(container.textContent).toContain("（現在は利用不可）");
+  });
+
+  it("複数ページの候補を読み込み、後続ページの item も選択できる", async () => {
+    fetchAllPaginatedCandidatesMock
+      .mockResolvedValueOnce({
+        status: 200,
+        entries: [
+          {
+            id: 1,
+            name: "白T",
+            status: "active",
+          },
+          {
+            id: 2,
+            name: "ネイビーパンツ",
+            status: "active",
+          },
+        ],
+      })
+      .mockResolvedValueOnce({
+        status: 200,
+        entries: [],
+      });
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn()
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 201,
+          json: async () => ({
+            message: "created",
+            wearLog: {
+              id: 1,
+            },
+          }),
+        }),
+    );
+
+    const { default: WearLogForm } = await import("./wear-log-form");
+
+    await act(async () => {
+      root.render(React.createElement(WearLogForm, { mode: "create" }));
+    });
+    await act(async () => {
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain("ネイビーパンツ");
+
+    const dateInput = container.querySelector<HTMLInputElement>('input[type="date"]');
+    const checkbox = Array.from(container.querySelectorAll<HTMLInputElement>('input[type="checkbox"]'))
+      .find((input) => input.parentElement?.textContent?.includes("ネイビーパンツ"));
+    const submitButton = Array.from(container.querySelectorAll("button")).find((button) =>
+      button.textContent?.includes("登録する"),
+    );
+
+    await act(async () => {
+      const setter = Object.getOwnPropertyDescriptor(
+        window.HTMLInputElement.prototype,
+        "value",
+      )?.set;
+      setter?.call(dateInput, "2026-03-24");
+      dateInput?.dispatchEvent(new Event("input", { bubbles: true }));
+      checkbox?.click();
+      submitButton?.click();
+      await waitForEffects();
+    });
+
+    expect(global.fetch).toHaveBeenLastCalledWith(
+      "/api/wear-logs",
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({
+          status: "planned",
+          event_date: "2026-03-24",
+          display_order: 1,
+          source_outfit_id: null,
+          memo: "",
+          items: [
+            {
+              source_item_id: 2,
+              sort_order: 1,
+              item_source_type: "manual",
+            },
+          ],
+        }),
+      }),
+    );
   });
 });

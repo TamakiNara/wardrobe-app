@@ -127,6 +127,27 @@ class SampleItemSeeder extends Seeder
                 'tpos' => ['仕事', '休日', 'フォーマル'],
                 'spec' => null,
             ],
+            [
+                'status' => 'disposed',
+                'name' => 'グレーパーカー',
+                'category' => 'tops',
+                'shape' => 'cardigan',
+                'colors' => [
+                    ['role' => 'main', 'mode' => 'preset', 'value' => 'gray', 'hex' => '#9AA0A6', 'label' => 'グレー'],
+                ],
+                'seasons' => ['秋', '冬'],
+                'tpos' => ['休日'],
+                'spec' => [
+                    'tops' => [
+                        'shape' => 'cardigan',
+                        'sleeve' => 'long',
+                        'length' => 'normal',
+                        'neck' => 'crew',
+                        'design' => null,
+                        'fit' => 'normal',
+                    ],
+                ],
+            ],
         ];
 
         foreach ($items as $item) {

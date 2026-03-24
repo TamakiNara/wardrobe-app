@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use App\Models\WearLog;
 use Database\Seeders\CategoryGroupSeeder;
 use Database\Seeders\CategoryMasterSeeder;
 use Database\Seeders\CategoryPresetSeeder;
@@ -38,15 +39,29 @@ class TestSeedUsersSeederTest extends TestCase
         $this->assertNull($emptyUser->visible_category_ids);
         $this->assertCount(0, $emptyUser->items);
         $this->assertCount(0, $emptyUser->outfits);
-        $this->assertDatabaseCount('items', 43);
+        $this->assertDatabaseCount('items', 44);
 
         $this->assertNotNull($standardUser->visible_category_ids);
         $this->assertCount(36, $standardUser->visible_category_ids);
-        $this->assertCount(3, $standardUser->outfits);
-        $this->assertCount(7, $standardUser->items);
+        $this->assertCount(4, $standardUser->outfits);
+        $this->assertCount(8, $standardUser->items);
+
+        $standardWearLogs = WearLog::query()
+            ->where('user_id', $standardUser->id)
+            ->orderByDesc('event_date')
+            ->orderBy('display_order')
+            ->get();
+
+        $this->assertCount(5, $standardWearLogs);
+        $this->assertSame('2026-03-24', $standardWearLogs->first()?->event_date?->format('Y-m-d'));
+        $this->assertTrue($standardWearLogs->contains(fn (WearLog $wearLog) => $wearLog->sourceOutfit?->status === 'invalid'));
+        $this->assertTrue($standardWearLogs->contains(
+            fn (WearLog $wearLog) => $wearLog->wearLogItems->contains(fn ($item) => $item->sourceItem?->status === 'disposed')
+        ));
 
         $this->assertNotNull($largeUser->visible_category_ids);
         $this->assertGreaterThanOrEqual(30, $largeUser->items->count());
         $this->assertGreaterThanOrEqual(10, $largeUser->outfits->count());
+        $this->assertGreaterThanOrEqual(14, WearLog::query()->where('user_id', $largeUser->id)->count());
     }
 }

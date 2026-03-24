@@ -104,6 +104,35 @@ class WearLogEndpointsTest extends TestCase
             ->assertJsonPath('meta.totalAll', 3);
     }
 
+    public function test_get_wear_logs_supports_date_asc_sort_with_same_day_display_order(): void
+    {
+        $user = User::factory()->create();
+
+        $older = $this->createWearLog($user, [
+            'event_date' => '2026-03-20',
+            'display_order' => 1,
+        ]);
+        $earlierSameDay = $this->createWearLog($user, [
+            'event_date' => '2026-03-25',
+            'display_order' => 1,
+        ]);
+        $laterSameDay = $this->createWearLog($user, [
+            'event_date' => '2026-03-25',
+            'display_order' => 2,
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->getJson('/api/wear-logs?sort=date_asc', [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('wearLogs.0.id', $older->id)
+            ->assertJsonPath('wearLogs.1.id', $earlierSameDay->id)
+            ->assertJsonPath('wearLogs.2.id', $laterSameDay->id);
+    }
+
     public function test_post_wear_log_can_create_with_outfit_only(): void
     {
         $user = User::factory()->create();
@@ -134,6 +163,29 @@ class WearLogEndpointsTest extends TestCase
             'source_outfit_id' => $outfit->id,
             'display_order' => 1,
         ]);
+    }
+
+    public function test_post_wear_log_returns_422_when_items_field_is_missing(): void
+    {
+        $user = User::factory()->create();
+        $outfit = $this->createOutfit($user);
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $response = $this->postJson('/api/wear-logs', [
+            'status' => 'planned',
+            'event_date' => '2026-03-24',
+            'display_order' => 1,
+            'source_outfit_id' => $outfit->id,
+            'memo' => 'outfit only',
+        ], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonPath('errors.items.0', 'items は空配列を含めて必ず指定してください。');
     }
 
     public function test_post_wear_log_can_create_with_items_only(): void

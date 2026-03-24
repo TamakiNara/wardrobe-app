@@ -12,6 +12,7 @@ import {
   type WearLogSelectableItem,
   type WearLogSelectableOutfit,
 } from "@/lib/wear-logs/form";
+import { fetchAllPaginatedCandidates } from "@/lib/wear-logs/candidates";
 import type { ItemRecord } from "@/types/items";
 import type {
   WearLogDetailResponse,
@@ -24,18 +25,10 @@ type WearLogFormProps = {
   wearLogId?: string;
 };
 
-type ItemListResponse = {
-  items: ItemRecord[];
-};
-
 type OutfitCandidate = {
   id: number;
   status?: "active" | "invalid";
   name: string | null;
-};
-
-type OutfitListResponse = {
-  outfits: OutfitCandidate[];
 };
 
 export default function WearLogForm({
@@ -53,7 +46,6 @@ export default function WearLogForm({
   const [sourceOutfitId, setSourceOutfitId] = useState<number | null>(null);
   const [memo, setMemo] = useState("");
 
-  const [wearLog, setWearLog] = useState<WearLogRecord | null>(null);
   const [candidateItems, setCandidateItems] = useState<WearLogSelectableItem[]>([]);
   const [candidateOutfits, setCandidateOutfits] = useState<WearLogSelectableOutfit[]>([]);
   const [selectedItems, setSelectedItems] = useState<SelectedWearLogItem[]>([]);
@@ -69,36 +61,18 @@ export default function WearLogForm({
       setLoadError(null);
 
       try {
-        const requests: Promise<Response>[] = [
-          fetch("/api/items", {
-            headers: { Accept: "application/json" },
-          }),
-          fetch("/api/outfits", {
-            headers: { Accept: "application/json" },
-          }),
-        ];
-
-        if (mode === "edit" && wearLogId) {
-          requests.unshift(
-            fetch(`/api/wear-logs/${wearLogId}`, {
-              headers: { Accept: "application/json" },
-            }),
-          );
-        }
-
-        const responses = await Promise.all(requests);
-
-        if (responses.some((response) => response.status === 401)) {
-          router.push("/login");
-          return;
-        }
-
         let wearLogData: WearLogRecord | null = null;
-        let itemsResponse: Response;
-        let outfitsResponse: Response;
 
         if (mode === "edit" && wearLogId) {
-          const [detailResponse, itemsRes, outfitsRes] = responses;
+          const detailResponse = await fetch(`/api/wear-logs/${wearLogId}`, {
+            headers: { Accept: "application/json" },
+          });
+
+          if (detailResponse.status === 401) {
+            router.push("/login");
+            return;
+          }
+
           if (!detailResponse.ok) {
             router.push("/wear-logs");
             return;
@@ -106,22 +80,25 @@ export default function WearLogForm({
 
           const detailData = (await detailResponse.json()) as WearLogDetailResponse;
           wearLogData = detailData.wearLog;
-          itemsResponse = itemsRes;
-          outfitsResponse = outfitsRes;
-        } else {
-          [itemsResponse, outfitsResponse] = responses;
         }
 
-        if (!itemsResponse.ok || !outfitsResponse.ok) {
+        const [itemsResult, outfitsResult] = await Promise.all([
+          fetchAllPaginatedCandidates<ItemRecord, "items">("/api/items", "items"),
+          fetchAllPaginatedCandidates<OutfitCandidate, "outfits">("/api/outfits", "outfits"),
+        ]);
+
+        if (itemsResult.status === 401 || outfitsResult.status === 401) {
+          router.push("/login");
+          return;
+        }
+
+        if (itemsResult.status !== 200 || outfitsResult.status !== 200) {
           setLoadError("着用履歴フォームの初期化に失敗しました。");
           return;
         }
 
-        const itemsData = (await itemsResponse.json()) as Partial<ItemListResponse>;
-        const outfitsData = (await outfitsResponse.json()) as Partial<OutfitListResponse>;
-
         const nextItems = mergeWearLogItemCandidates(
-          (itemsData.items ?? []).map((item) => ({
+          itemsResult.entries.map((item) => ({
             id: item.id,
             name: item.name,
             status: item.status,
@@ -129,7 +106,7 @@ export default function WearLogForm({
           wearLogData,
         );
         const nextOutfits = mergeWearLogOutfitCandidates(
-          (outfitsData.outfits ?? []).map((outfit) => ({
+          outfitsResult.entries.map((outfit) => ({
             id: outfit.id,
             name: outfit.name,
             status: outfit.status ?? "active",
@@ -139,8 +116,6 @@ export default function WearLogForm({
 
         setCandidateItems(nextItems);
         setCandidateOutfits(nextOutfits);
-        setWearLog(wearLogData);
-
         if (wearLogData) {
           setStatus(wearLogData.status);
           setEventDate(wearLogData.event_date);

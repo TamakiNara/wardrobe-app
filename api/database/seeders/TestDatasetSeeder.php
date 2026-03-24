@@ -16,6 +16,7 @@ class TestDatasetSeeder extends Seeder
             SampleUserSettingSeeder::class,
             SampleItemSeeder::class,
             SampleOutfitSeeder::class,
+            SampleWearLogSeeder::class,
         ]);
     }
 }
