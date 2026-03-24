@@ -272,15 +272,14 @@ wear logs も本資料の対象とし、その保存方針を定義します。
 | size_note | string nullable | 購入候補由来メモや補足サイズ |
 | size_details | json nullable | 実寸詳細 |
 
-### item_images / purchase_candidate_images (planned)
+### item_images (planned)
 
-画像管理用の `item_images` / `purchase_candidate_images` は、未採用の仮案ではなく `purchase_candidates` 仕様に合わせて今後整理する対象とする。
+item 側の画像管理は `purchase_candidate_images` と別テーブルで持つ。
 
 | column | type | description |
 | --- | --- | --- |
 | id | bigint | 主キー |
-| item_id | bigint nullable | 対象 item ID |
-| purchase_candidate_id | bigint nullable | 対象 candidate ID |
+| item_id | bigint | 対象 item ID |
 | disk | string | 保存先 disk |
 | path | string | 保存パス |
 | original_filename | string nullable | 元ファイル名 |
@@ -294,13 +293,23 @@ wear logs も本資料の対象とし、その保存方針を定義します。
 補足:
 
 - DB には `disk + path` を保存し、表示用 URL は API / BFF 側で生成する
-- item / candidate ともに複数画像対応とし、`is_primary` と `sort_order` を持つ
+- 複数画像対応とし、`is_primary` と `sort_order` を持つ
 - 上限は 5 枚を前提とする
 - candidate 画像を item に引き継ぐ場合も、保存先は item 側画像として別管理にする
-- `last_worn_at` と `wear_count` は軽量な集計用途の候補であり、履歴カレンダーまで扱う場合は `wear_logs` など別テーブル化も検討余地がある
-- tag 機能は別テーブルで持つ方針とし、`weather_tags` のような items 側 JSON 拡張は後回しにする
-- 視覚表現の仮案として、item の素材感や透け感を SVG の `opacity` で表現する案も未検討項目とする
-- 現行 items は `colors / seasons / tpos` を JSON で持っているため、candidate 側を別テーブルにする場合は items 側も含めた構造再整理が後続検討になる
+- `purchase_candidate_images` と共通テーブルにはせず、item 側専用テーブルとして持つ
+
+### purchase_candidate_images (planned)
+
+`purchase_candidate_images` の基本構造は、前半の「Planned Tables (`purchase_candidates`)」節にある定義を正本とする。
+
+補足:
+
+- `item_images` とは別テーブルで持つ
+- DB には `disk + path` を保存し、表示用 URL は API / BFF 側で生成する
+- 複数画像対応とし、`is_primary` と `sort_order` を持つ
+- 上限は 5 枚を前提とする
+- candidate -> item では全画像を初期値として引き継ぐが、保存後は item 側画像と自動同期しない
+- `item_images` と共通テーブルにはせず、candidate 側専用テーブルとして持つ
 
 ---
 

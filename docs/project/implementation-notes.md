@@ -334,6 +334,7 @@ UI/UX メモ:
 - `weather_tags`：天気対応の拡張タグ。必要になるまで後回し
 - `size_gender`：メンズ / ウィメンズ
 - `size_label`：S / M / L / FREE など
+- `size_note`：購入候補由来メモや補足サイズ
 - `size_details`：実寸の詳細
 - `price`：購入金額
 - `purchase_url`：商品ページなどの URL
@@ -342,8 +343,11 @@ UI/UX メモ:
 - `wear_count`：着用回数
 - `is_favorite`：お気に入り
 - 画像アップロード
-  - `item_images` テーブルを分ける案を想定
-  - `is_primary` を使い、優先画像がある場合は SVG ではなく画像をアイコン表示する
+  - `item_images` は `purchase_candidate_images` と別テーブルで管理する
+  - DB には `disk + path` を保存し、表示用 URL は API / BFF 側で生成する
+  - `is_primary` / `sort_order` を持ち、複数画像対応とする
+  - candidate -> item では全画像を初期値に引き継ぐが、保存後は item 側画像として別管理にする
+  - 優先画像がある場合は SVG ではなく画像をアイコン表示する
 
 仮案として想定している items テーブル追加項目:
 
@@ -358,22 +362,15 @@ UI/UX メモ:
 - `is_favorite`
 - `size_gender`
 - `size_label`
+- `size_note`
 - `is_rain_ok`
 - `size_details` （json）
 - `tags` / `item_tags` （別テーブル構成を想定）
-仮案として想定している item_images テーブル:
-
-- `id`
-- `item_id`
-- `url`
-- `is_primary`
-- `sort_order`
-- `created_at`
-- `updated_at`
 
 補足:
 
 - `last_worn_at` と `wear_count` だけでは履歴一覧を完全には表現できないため、カレンダー連携や着用履歴を本格対応する場合は `wear_logs` のような別テーブル案も検討する
+- 画像保存方針は `item_images` / `purchase_candidate_images` を別テーブルで持ち、DB には `disk + path` を保存し、URL は API / BFF 側で生成する方針で整理する
 
 ### カラーパレット
 
