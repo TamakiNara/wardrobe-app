@@ -27,6 +27,12 @@ item 詳細画面での status 操作 UI は `docs/specs/items/detail-status-ui.
 - `current status` は履歴の主表示ではなく補助情報として扱う
 - 正本: `docs/specs/wears/wear-logs.md`, `docs/data/database.md`, `docs/api/openapi.yaml`
 
+- 一覧画面は原則として「確認・遷移」を主責務とする
+- 削除導線は原則として一覧には置かず、詳細画面または編集画面に置く
+- 詳細画面が未実装の機能は、当面編集画面に削除導線を置く
+- 誤操作防止の confirm を前提とし、高頻度削除が必要な機能だけ例外扱いにする
+- 正本: `docs/project/implementation-notes.md`, `docs/specs/wears/wear-logs.md`
+
 - event_logs は future テーブル案として整理済み
 - MVP では重要な状態変化を優先対象とし、`disposed / invalid / restore / duplicate` を残す方針とする
 - 正本: `docs/data/database.md`, `docs/specs/logging/logging-policy.md`

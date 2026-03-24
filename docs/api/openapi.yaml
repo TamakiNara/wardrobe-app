@@ -212,8 +212,6 @@ paths:
         - Items
       summary: アイテム一覧取得
       description: |
-        実装済みのアイテム一覧取得 API。
-
         通常一覧に表示する `status=active` の item を返す。
         response 形式は `items` 配列と `meta.total` / `meta.totalAll` /
         `meta.page` / `meta.lastPage` を含む。
@@ -337,8 +335,6 @@ paths:
         - Items
       summary: アイテムを disposed に変更
       description: |
-        実装済みの item status 変更 API。
-
         item を `disposed` に変更し、「手放した / 現在所持していない」状態へ遷移させる。
         通常の `ItemUpsertRequest` とは分けて扱う。
         関連する `active` outfit がある場合は、それらを `invalid` にする副作用を伴う。
@@ -371,8 +367,6 @@ paths:
         - Items
       summary: アイテムを active に戻す
       description: |
-        実装済みの item status 変更 API。
-
         item を `active` に戻すが、関連 outfit は自動 `restore` しない。
         通常の `ItemUpsertRequest` とは分けて扱う。
       security:
@@ -404,8 +398,6 @@ paths:
         - Outfits
       summary: コーディネート一覧取得
       description: |
-        実装済みのコーディネート一覧取得 API。
-
         通常一覧に表示する `status=active` の outfit を返す。
         response 形式は `outfits` 配列と `meta.total` / `meta.totalAll` /
         `meta.page` / `meta.lastPage` を含む。
@@ -529,8 +521,6 @@ paths:
         - Outfits
       summary: invalid コーディネート一覧取得
       description: |
-        実装済みの invalid outfit 一覧取得 API。
-
         通常一覧には出さない `status=invalid` の outfit を返す。
         response 形式は通常一覧と同じ `OutfitsResponse` を使い、
         `meta.page` / `meta.lastPage` / `meta.total` / `meta.totalAll` を返す。
@@ -552,8 +542,6 @@ paths:
         - Outfits
       summary: invalid コーディネート手動復帰
       description: |
-        実装済みの invalid outfit 手動復帰 API。
-
         対象 outfit が `invalid` で、構成 item がすべて `active` の場合のみ
         `status=active` へ復帰できる。
         item や `outfit_items` 自体は書き換えない。
@@ -587,8 +575,6 @@ paths:
         - Outfits
       summary: コーディネート複製
       description: |
-        実装済みの outfit 複製用 API。
-
         active / invalid を問わず複製可能とする。
         invalid outfit の場合は再利用導線として特に重要とし、
         disposed item は通常選択状態にしない形で初期値生成する。
@@ -619,7 +605,6 @@ paths:
         - Wear Logs
       summary: wear logs 一覧取得
       description: |
-        実装済みの wear logs 一覧取得 API。
         `event_date desc, display_order asc` を初期並び順とし、
         `meta.total / totalAll / page / lastPage` を返す。
       parameters:
@@ -674,7 +659,6 @@ paths:
         - Wear Logs
       summary: wear log 作成
       description: |
-        実装済みの wear log 作成 API。
         `source_outfit_id` のみ、`items` のみ、両方指定のいずれも許可する。
       requestBody:
         required: true
@@ -698,7 +682,7 @@ paths:
       tags:
         - Wear Logs
       summary: wear log 詳細取得
-      description: 実装済みの wear log 詳細取得 API。
+      description: wear log の詳細を返す。
       parameters:
         - name: wearLogId
           in: path
@@ -722,7 +706,6 @@ paths:
         - Wear Logs
       summary: wear log 更新
       description: |
-        実装済みの wear log 更新 API。
         既存レコードに含まれる現在候補外の item / outfit は、
         同一 record の再保存に限り保持できる。
       parameters:
@@ -756,7 +739,6 @@ paths:
         - Wear Logs
       summary: wear log 削除
       description: |
-        実装済みの wear log 削除 API。
         対象の wear log と関連する `wear_log_items` を物理削除する。
         item / outfit 側の record や他の wear log には影響を与えない。
       parameters:

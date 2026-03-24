@@ -111,7 +111,7 @@ item 詳細画面で行う status 操作 UI の仕様を整理する。
 
 - 「手放す」は `POST /api/items/{id}/dispose` を想定する
 - 「所持品に戻す」は `POST /api/items/{id}/reactivate` を想定する
-- どちらも通常の `ItemUpsertRequest` とは分けて扱う future API である
+- どちらも通常の `ItemUpsertRequest` とは分けて扱う
 
 ---
 

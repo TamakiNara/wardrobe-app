@@ -267,7 +267,7 @@ MVP では、全体構成の重複禁止は行わない。
 
 - DB: `docs/data/database.md`
 - wear logs 連携: `docs/specs/wears/wear-logs.md`
-- `future API`: `docs/api/openapi.yaml`
+- API: `docs/api/openapi.yaml`
 
 ### payload 方針
 
