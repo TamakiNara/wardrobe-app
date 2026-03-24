@@ -52,7 +52,7 @@ describe("WearLogsPage", () => {
     expect(markup).toContain("着用履歴を追加");
   });
 
-  it("一覧に planned / worn と編集導線を表示する", async () => {
+  it("一覧に planned / worn と詳細導線を表示する", async () => {
     fetchMock.mockResolvedValueOnce({
       ok: true,
       status: 200,
@@ -102,7 +102,8 @@ describe("WearLogsPage", () => {
     expect(markup).toContain("通勤コーディネート");
     expect(markup).toContain("アイテム 1 件");
     expect(markup).toContain("一部アイテムは現在利用不可です。");
-    expect(markup).toContain('href="/wear-logs/1/edit"');
+    expect(markup).toContain('href="/wear-logs/1"');
+    expect(markup).not.toContain('href="/wear-logs/1/edit"');
     expect(markup).not.toContain(">削除<");
   });
 

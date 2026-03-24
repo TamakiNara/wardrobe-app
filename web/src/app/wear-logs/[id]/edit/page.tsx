@@ -21,6 +21,10 @@ export default async function EditWearLogPage({
             着用履歴一覧
           </Link>
           {" / "}
+          <Link href={`/wear-logs/${id}`} className="hover:underline">
+            詳細
+          </Link>
+          {" / "}
           <span className="text-gray-700">編集</span>
         </nav>
 
@@ -31,10 +35,10 @@ export default async function EditWearLogPage({
           </div>
 
           <Link
-            href="/wear-logs"
+            href={`/wear-logs/${id}`}
             className="text-sm font-medium text-blue-600 hover:underline"
           >
-            一覧に戻る
+            詳細へ戻る
           </Link>
         </div>
 

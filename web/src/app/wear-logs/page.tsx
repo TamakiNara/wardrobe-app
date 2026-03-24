@@ -252,10 +252,10 @@ export default async function WearLogsPage({
 
                   <div className="mt-4 flex items-center gap-3">
                     <Link
-                      href={`/wear-logs/${wearLog.id}/edit`}
+                      href={`/wear-logs/${wearLog.id}`}
                       className="text-sm font-medium text-blue-600 hover:underline"
                     >
-                      編集
+                      詳細
                     </Link>
                   </div>
                 </article>

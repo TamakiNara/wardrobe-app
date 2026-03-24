@@ -25,6 +25,7 @@ describe("EditWearLogPage", () => {
     );
 
     expect(markup).toContain("着用履歴編集");
+    expect(markup).toContain('href="/wear-logs/12"');
     expect(markup).toContain("wear-log-form:12");
     expect(markup).toContain("delete-wear-log-button:12");
   });
