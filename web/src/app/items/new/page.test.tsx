@@ -11,6 +11,7 @@ const refreshMock = vi.fn();
 const fetchCategoryGroupsMock = vi.fn();
 const fetchCategoryVisibilitySettingsMock = vi.fn();
 const routerMock = { push: pushMock, refresh: refreshMock };
+let searchParamsSourceValue = "";
 
 vi.mock("next/link", () => ({
   default: ({ children, href, ...props }: React.ComponentProps<"a">) =>
@@ -19,6 +20,9 @@ vi.mock("next/link", () => ({
 
 vi.mock("next/navigation", () => ({
   useRouter: () => routerMock,
+  useSearchParams: () => ({
+    get: (key: string) => (key === "source" ? searchParamsSourceValue : null),
+  }),
 }));
 
 vi.mock("@/lib/api/categories", async () => {
@@ -87,6 +91,8 @@ describe("NewItemPage", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    window.sessionStorage.clear();
+    searchParamsSourceValue = "";
     globalThis.IS_REACT_ACT_ENVIRONMENT = true;
     container = document.createElement("div");
     document.body.appendChild(container);
@@ -123,5 +129,57 @@ describe("NewItemPage", () => {
       "ワンピース・オールインワン",
       "ルームウェア・インナー",
     ]);
+  });
+
+  it("purchase candidate draft から名前とカテゴリ初期値を読み込む", async () => {
+    searchParamsSourceValue = "purchase-candidate";
+    window.sessionStorage.setItem(
+      "purchase-candidate-item-draft",
+      JSON.stringify({
+        message: "item_draft_ready",
+        item_draft: {
+          name: "レインコート候補",
+          source_category_id: "tops_tshirt",
+          category: "tops",
+          shape: "tshirt",
+          brand_name: null,
+          price: 9800,
+          purchase_url: null,
+          memo: null,
+          size_gender: null,
+          size_label: null,
+          size_note: null,
+          purchased_at: null,
+          size_details: null,
+          spec: null,
+          is_rain_ok: true,
+          colors: [],
+          seasons: ["春"],
+          tpos: ["休日"],
+        },
+        candidate_summary: {
+          id: 1,
+          status: "considering",
+          priority: "medium",
+          name: "レインコート候補",
+          converted_item_id: null,
+          converted_at: null,
+        },
+        images: [],
+      }),
+    );
+
+    const { default: NewItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(NewItemPage));
+      await waitForEffects();
+    });
+
+    const nameInput = container.querySelector<HTMLInputElement>("#name");
+    const categorySelect = container.querySelector<HTMLSelectElement>("#category");
+    expect(nameInput?.value).toBe("レインコート候補");
+    expect(categorySelect?.value).toBe("tops");
+    expect(container.textContent).toContain("購入候補の内容を初期値として読み込みました。");
   });
 });

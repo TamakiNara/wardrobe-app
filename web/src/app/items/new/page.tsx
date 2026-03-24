@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   ITEM_CATEGORIES,
   ITEM_SHAPES,
@@ -38,9 +38,16 @@ import {
   type TopsShapeValue,
   type TopsSleeveValue,
 } from "@/lib/master-data/item-tops";
+import {
+  clearPurchaseCandidateItemDraft,
+  loadPurchaseCandidateItemDraft,
+  mapPurchaseCandidateItemDraft,
+} from "@/lib/purchase-candidates/item-draft";
+import type { PurchaseCandidateImageRecord } from "@/types/purchase-candidates";
 
 export default function NewItemPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [name, setName] = useState("");
   const [category, setCategory] = useState<ItemCategory | "">("");
@@ -68,6 +75,8 @@ export default function NewItemPage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
+  const [draftInfoMessage, setDraftInfoMessage] = useState<string | null>(null);
+  const [draftImages, setDraftImages] = useState<PurchaseCandidateImageRecord[]>([]);
 
   const isTopsCategory = category === "tops";
 
@@ -152,6 +161,34 @@ export default function NewItemPage() {
       active = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (searchParams.get("source") !== "purchase-candidate") {
+      return;
+    }
+
+    const payload = loadPurchaseCandidateItemDraft();
+
+    if (!payload) {
+      return;
+    }
+
+    const draft = mapPurchaseCandidateItemDraft(payload);
+    const mainDraftColor = draft.colors.find((color) => color.role === "main");
+    const subDraftColor = draft.colors.find((color) => color.role === "sub");
+
+    setName(draft.name);
+    setCategory(draft.category as ItemCategory);
+    setShape(draft.shape);
+    setSelectedSeasons(draft.seasons);
+    setSelectedTpos(draft.tpos);
+    setMainColor((mainDraftColor?.value as ItemColorValue | undefined) ?? "");
+    setSubColor((subDraftColor?.value as ItemColorValue | undefined) ?? "");
+    setDraftImages(draft.images);
+    setDraftInfoMessage("購入候補の内容を初期値として読み込みました。");
+
+    clearPurchaseCandidateItemDraft();
+  }, [searchParams]);
 
   function resetTopsState() {
     setTopsShape("");
@@ -331,6 +368,17 @@ export default function NewItemPage() {
           </Link>
         </div>
 
+        {draftInfoMessage && (
+          <section className="rounded-2xl border border-blue-200 bg-blue-50 px-5 py-4 text-sm text-blue-700 shadow-sm">
+            <p>{draftInfoMessage}</p>
+            {draftImages.length > 0 && (
+              <p className="mt-1 text-blue-600">
+                候補画像 {draftImages.length} 枚もあわせて引き継ぎ対象として保持しています。
+              </p>
+            )}
+          </section>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-6 rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
           <section className="space-y-4">
             <h2 className="text-lg font-semibold text-gray-900">基本情報</h2>
@@ -389,6 +437,42 @@ export default function NewItemPage() {
               {errors.shape && <p className="mt-2 text-sm text-red-600">{errors.shape}</p>}
             </div>
           </section>
+
+          {draftImages.length > 0 && (
+            <section className="space-y-4 rounded-xl border border-gray-200 bg-gray-50 p-4">
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900">候補画像</h2>
+                <p className="mt-1 text-sm text-gray-500">
+                  purchase candidate から引き継いだ画像です。item 画像保存フローは後続整理とし、今回は参照情報として表示します。
+                </p>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                {draftImages.map((image) => (
+                  <article
+                    key={image.id}
+                    className="overflow-hidden rounded-xl border border-gray-200 bg-white"
+                  >
+                    {image.url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={image.url}
+                        alt={image.original_filename ?? "candidate image"}
+                        className="aspect-[4/3] w-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex aspect-[4/3] items-center justify-center bg-gray-100 text-sm text-gray-400">
+                        画像なし
+                      </div>
+                    )}
+                    <div className="p-3 text-sm text-gray-600">
+                      {image.sort_order}枚目{image.is_primary ? " / 代表画像" : ""}
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </section>
+          )}
 
           {isTopsCategory && (
             <section className="space-y-4 rounded-xl border border-gray-200 bg-gray-50 p-4">

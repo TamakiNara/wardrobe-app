@@ -52,6 +52,13 @@ describe("Home", () => {
           wearLogs: Array.from({ length: 12 }, (_, index) => ({ id: index + 1 })),
           meta: { totalAll: 14 },
         }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          purchaseCandidates: Array.from({ length: 8 }, (_, index) => ({ id: index + 1 })),
+          meta: { totalAll: 8 },
+        }),
       });
 
     const { default: Home } = await import("./page");
@@ -61,9 +68,11 @@ describe("Home", () => {
     expect(markup).toContain(">36<");
     expect(markup).toContain(">12<");
     expect(markup).toContain(">14<");
+    expect(markup).toContain(">8<");
     expect(fetchLaravelWithCookieMock).toHaveBeenNthCalledWith(1, "/api/me");
     expect(fetchLaravelWithCookieMock).toHaveBeenNthCalledWith(2, "/api/items");
     expect(fetchLaravelWithCookieMock).toHaveBeenNthCalledWith(3, "/api/outfits");
     expect(fetchLaravelWithCookieMock).toHaveBeenNthCalledWith(4, "/api/wear-logs");
+    expect(fetchLaravelWithCookieMock).toHaveBeenNthCalledWith(5, "/api/purchase-candidates");
   });
 });

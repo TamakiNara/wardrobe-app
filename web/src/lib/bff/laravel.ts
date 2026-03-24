@@ -59,12 +59,43 @@ function buildMergedCookie(
   incomingCookie: string,
   refreshedSetCookies: string[],
 ): string {
-  return [
-    incomingCookie,
-    ...refreshedSetCookies.map((cookie) => cookie.split(";")[0]),
-  ]
-    .filter(Boolean)
-    .join("; ");
+  const cookieMap = new Map<string, string>();
+
+  for (const rawCookie of incomingCookie.split(";")) {
+    const cookie = rawCookie.trim();
+
+    if (!cookie) {
+      continue;
+    }
+
+    const separatorIndex = cookie.indexOf("=");
+
+    if (separatorIndex <= 0) {
+      continue;
+    }
+
+    const name = cookie.slice(0, separatorIndex);
+    cookieMap.set(name, cookie);
+  }
+
+  for (const refreshedCookie of refreshedSetCookies) {
+    const pair = refreshedCookie.split(";")[0]?.trim() ?? "";
+
+    if (!pair) {
+      continue;
+    }
+
+    const separatorIndex = pair.indexOf("=");
+
+    if (separatorIndex <= 0) {
+      continue;
+    }
+
+    const name = pair.slice(0, separatorIndex);
+    cookieMap.set(name, pair);
+  }
+
+  return Array.from(cookieMap.values()).join("; ");
 }
 
 function shouldRetryWithFreshCsrf(response: Response): boolean {
@@ -191,9 +222,79 @@ export async function forwardPostWithCsrfAndCookie(
           Accept: "application/json",
           "Content-Type": "application/json",
           ...(xsrf ? { "X-CSRF-TOKEN": xsrf } : {}),
+          ...(xsrf ? { "X-XSRF-TOKEN": xsrf } : {}),
+          "X-Requested-With": "XMLHttpRequest",
           ...(mergedCookie ? { Cookie: mergedCookie } : {}),
         },
         body: JSON.stringify(body),
+        cache: "no-store",
+      });
+    };
+
+    let upstreamRes = await sendRequest();
+
+    if (shouldRetryWithFreshCsrf(upstreamRes) && !options?.forceRefreshCsrf) {
+      await refreshCsrf();
+      upstreamRes = await sendRequest();
+    }
+
+    const data = await upstreamRes.json().catch(() => ({}));
+    const final = NextResponse.json(data, { status: upstreamRes.status });
+
+    if (refreshedSetCookies.length > 0) {
+      appendCookieStrings(refreshedSetCookies, final);
+    }
+
+    appendSetCookies(upstreamRes, final);
+
+    return final;
+  } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Unexpected upstream communication error.";
+
+    return NextResponse.json({ error: message }, { status: 502 });
+  }
+}
+
+export async function forwardMultipartWithCsrfAndCookie(
+  req: NextRequest,
+  targetPath: string,
+  formData: FormData,
+  options?: { forceRefreshCsrf?: boolean; method?: "POST" | "PUT" }
+): Promise<NextResponse> {
+  try {
+    const incomingCookie = req.headers.get("cookie") ?? "";
+
+    let xsrf = readCookieValue(incomingCookie, "XSRF-TOKEN");
+    let refreshedSetCookies: string[] = [];
+
+    const refreshCsrf = async () => {
+      const fresh = await getFreshCsrf(incomingCookie);
+      xsrf = fresh.xsrf;
+      refreshedSetCookies = fresh.refreshedSetCookies;
+    };
+
+    if (options?.forceRefreshCsrf || !xsrf) {
+      await refreshCsrf();
+    }
+
+    const method = options?.method ?? "POST";
+
+    const sendRequest = () => {
+      const mergedCookie = buildMergedCookie(incomingCookie, refreshedSetCookies);
+
+      return fetch(`${LARAVEL_BASE_URL}${targetPath}`, {
+        method,
+        headers: {
+          Accept: "application/json",
+          ...(xsrf ? { "X-CSRF-TOKEN": xsrf } : {}),
+          ...(xsrf ? { "X-XSRF-TOKEN": xsrf } : {}),
+          "X-Requested-With": "XMLHttpRequest",
+          ...(mergedCookie ? { Cookie: mergedCookie } : {}),
+        },
+        body: formData,
         cache: "no-store",
       });
     };
@@ -255,6 +356,8 @@ export async function forwardPutWithCsrfAndCookie(
           Accept: "application/json",
           "Content-Type": "application/json",
           ...(xsrf ? { "X-CSRF-TOKEN": xsrf } : {}),
+          ...(xsrf ? { "X-XSRF-TOKEN": xsrf } : {}),
+          "X-Requested-With": "XMLHttpRequest",
           ...(mergedCookie ? { Cookie: mergedCookie } : {}),
         },
         body: JSON.stringify(body),
@@ -317,6 +420,8 @@ export async function forwardDeleteWithCookie(
         headers: {
           Accept: "application/json",
           ...(xsrf ? { "X-CSRF-TOKEN": xsrf } : {}),
+          ...(xsrf ? { "X-XSRF-TOKEN": xsrf } : {}),
+          "X-Requested-With": "XMLHttpRequest",
           ...(mergedCookie ? { Cookie: mergedCookie } : {}),
         },
         cache: "no-store",

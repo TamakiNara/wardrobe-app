@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Api\PurchaseCandidateController;
 use App\Http\Controllers\Api\WearLogController;
 use App\Models\CategoryMaster;
 use App\Models\Item;
@@ -212,6 +213,18 @@ Route::prefix('api')->middleware(['web'])->group(function () {
         return response()->json([
             'message' => 'deleted',
         ]);
+    });
+
+    // Purchase Candidates
+    Route::middleware('auth:web')->controller(PurchaseCandidateController::class)->group(function () {
+        Route::get('/purchase-candidates', 'index');
+        Route::post('/purchase-candidates', 'store');
+        Route::get('/purchase-candidates/{id}', 'show');
+        Route::put('/purchase-candidates/{id}', 'update');
+        Route::delete('/purchase-candidates/{id}', 'destroy');
+        Route::post('/purchase-candidates/{id}/images', 'uploadImage');
+        Route::delete('/purchase-candidates/{id}/images/{imageId}', 'deleteImage');
+        Route::post('/purchase-candidates/{id}/item-draft', 'itemDraft');
     });
 
     // Outfits

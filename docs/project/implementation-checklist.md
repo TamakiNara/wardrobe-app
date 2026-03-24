@@ -55,6 +55,12 @@ item 詳細画面での status 操作 UI は `docs/specs/items/detail-status-ui.
 - 未完了タスク: 保存タイミング、保存対象、表示用途、集計用途、既存データ移行の方針整理
 - 導入時の影響範囲: DB schema、API response、wear logs 一覧 / 編集 / 将来詳細 UI、集計ロジック
 
+- purchase_candidates の MVP は CRUD / 画像 / item-draft まで実装済み
+- 実装済み: 一覧・詳細・作成・更新・削除、画像追加 / 削除、`POST /api/purchase-candidates/{id}/item-draft`
+- `item-draft` は `source_category_id` を保持しつつ current item API 互換の `category` / `shape` と配列項目を返す
+- 未実装: 比較ロジックの高度化、item 保存成功時の `purchased` 反映自動化、item 画像保存側との本接続
+- 正本: `docs/specs/purchase-candidates.md`, `docs/data/database.md`, `docs/api/openapi.yaml`
+
 
 - invalid outfit 向けの補助導線は概ね実装済み
 - 対象: invalid 一覧 / 詳細からの `restore` / `duplicate` と、新規作成画面への複製初期値適用
@@ -71,6 +77,7 @@ item 詳細画面での status 操作 UI は `docs/specs/items/detail-status-ui.
 ## future API
 
 - 現時点の wear logs 関連 future API はなし
+- purchase_candidates 関連の future API は現時点ではなし
 - 正本: `docs/api/openapi.yaml`
 
 ---
@@ -98,6 +105,10 @@ item 詳細画面での status 操作 UI は `docs/specs/items/detail-status-ui.
 - event_logs を実装する場合、`item_disposed` `item_reactivated` `outfit_invalidated` `outfit_restored` `outfit_duplicated` などのイベント種別設計が連動する
 - 正本: `docs/data/database.md`, `docs/specs/logging/logging-policy.md`
 
+- purchase_candidates の `item-draft` は item 作成初期値生成に留め、candidate の `purchased` 更新や item 画像保存との最終接続は別責務として扱う
+- `category_id -> category / shape` の変換と DB 構造差の吸収は Laravel 側で行い、frontend / BFF へ分散させない
+- 正本: `docs/specs/purchase-candidates.md`, `docs/project/implementation-notes.md`
+
 ---
 
 ## 実装順候補
@@ -108,10 +119,13 @@ item 詳細画面での status 操作 UI は `docs/specs/items/detail-status-ui.
 2. outfit status と invalid 化副作用の実装着手
    - `active / invalid`、通常保存時の `status` 非包含、item `disposed` に伴う invalid 化は docs に反映済みのため、実装を揃える
    - 理由: invalid outfit 実装と wear logs の候補制約の前提になるため
-3. wear logs 残タスクの実装着手
+3. purchase_candidates 残タスクの実装着手
+   - 対象: 比較ロジック、item 保存成功時の `purchased` 反映、自動画像引き継ぎの本接続
+   - 理由: MVP の CRUD / 画像 / item-draft が揃ったため、item 側との責務境界を次に詰めやすいため
+4. wear logs 残タスクの実装着手
    - 対象: 候補 UI の補助改善、snapshot の採否整理
    - 理由: CRUD と責務分離は揃ったため、運用上不足する補助導線から詰めやすいため
-4. event_logs の実装着手
+5. event_logs の実装着手
    - 対象: テーブル、発火ポイント、記録対象の絞り込み
    - 理由: item / outfit / wear logs の主要状態変化が固まってからの方が event_type と payload を固定しやすいため
 
@@ -122,3 +136,4 @@ item 詳細画面での status 操作 UI は `docs/specs/items/detail-status-ui.
 - 仕様確認は `docs/specs/` を優先し、保存方針は `docs/data/database.md`、API schema は `docs/api/openapi.yaml` を優先する
 - 実装時に docs と差異が出た場合は、このチェックリストではなく正本側を更新する
 - `docs/project/implementation-notes.md` は進捗共有と引き継ぎメモ、`implementation-checklist.md` は実装前確認の整理用として使い分ける
+- ボトムナビは major feature 追加時に都度見直し、現時点では wear logs / purchase_candidates の表示対象ページ範囲と独立タブ化を TODO として残す

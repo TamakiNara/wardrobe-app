@@ -45,32 +45,29 @@ purchase_candidates の仕様正本を確認するときは `docs/specs/purchase
 6. tops SVG の見た目調整に戻る
    - tshirt / shirt / blouse の細部調整を再開する
 
-## purchase_candidates 着手メモ
+## purchase_candidates 実装メモ
 
 位置づけ:
 
-- `purchase_candidates` は今後の主要実装候補とし、正本は `docs/specs/purchase-candidates.md` を参照する
-- まずは candidate 保存・画像管理・item draft・item への昇格を優先し、比較ロジックの詳細は後続検討とする
+- `purchase_candidates` の正本は `docs/specs/purchase-candidates.md` を参照する
+- MVP として candidate 保存・画像管理・item draft 導線まで実装済み
+- 比較ロジックの詳細、item 保存成功時の `purchased` 反映、item 側画像保存との最終接続は後続検討とする
 
 直近または中期 TODO:
 
-1. DB 設計を整理する
-   - `purchase_candidates` / `purchase_candidate_images` の schema を確定する
-   - `colors / seasons / tpos` は API 配列統一の前提で実装し、items 側 migration 要否は後続判断にする
-   - `items` 側追加項目 (`brand_name / price / purchase_url / purchased_at / size_gender / size_label / size_note / size_details / is_rain_ok`) の影響範囲を確認する
-2. API 設計を整理する
-   - 一覧 / 詳細 / 作成 / 更新 / 削除
-   - candidate 画像追加 / 削除
-   - `POST /api/purchase-candidates/{id}/item-draft`
-3. item draft と item への昇格責務を整理する
+1. item draft と item への昇格責務を整理する
    - draft は保存済み item ではなく item 作成画面用の初期値 payload とする
    - item 保存成功時に candidate を `purchased` へ更新する責務を BFF / Laravel のどちらへ寄せるか決める
-4. 画像アップロード方針を整理する
-   - candidate / item ともに複数画像、上限 5 枚、全画像引き継ぎを前提に API 責務を分ける
-5. 比較結果の扱いを整理する
+2. 画像アップロード方針を整理する
+   - candidate 側の複数画像 upload / delete は実装済み
+   - item 側画像保存との本接続、candidate -> item の保存後責務分離を整理する
+3. 比較結果の扱いを整理する
    - 現時点では補助表示前提とし、比較ロジックの詳細や強い自動判定は後続検討とする
-6. 月次服飾費集計の前提を残す
+4. 月次服飾費集計の前提を残す
    - `items.purchased_at` を持たせる案をベースに、item の `price` と組み合わせて集計できるようにする
+5. ナビゲーション整理
+   - purchase_candidates をホーム以外の主要導線へどう追加するか整理する
+   - major feature 追加時のボトムナビ再編方針と整合させる
 
 既存仕様との衝突確認メモ:
 
@@ -104,6 +101,14 @@ purchase_candidates の仕様正本を確認するときは `docs/specs/purchase
 - OpenAPI には API 入出力と planned schema を書き、実装順・責務分担・保留事項は implementation-notes に寄せる
 - `planned` だが設計済みの API は OpenAPI に残し、実装済みかどうかの管理は implementation 系 docs で行う
 - DB 構造差を吸収する変換は Laravel 側 service / mapper に閉じ、画面側では配列 payload を正本として扱う
+
+## ナビゲーション TODO
+
+- 着用履歴配下のページでボトムナビが表示されない
+- ボトムナビに着用履歴を追加するか検討する
+- ボトムナビの表示対象ページ範囲を整理する
+- 主要機能追加時のボトムナビ再編方針を整理する
+- purchase_candidates を独立タブにするか、ホーム / 一覧導線中心にするかを後続整理する
 
 ## 実装着手前チェックリスト
 

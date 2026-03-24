@@ -41,6 +41,17 @@ type WearLogsResponse = {
   };
 };
 
+type PurchaseCandidate = {
+  id: number;
+};
+
+type PurchaseCandidatesResponse = {
+  purchaseCandidates?: PurchaseCandidate[];
+  meta?: {
+    totalAll?: number;
+  };
+};
+
 async function getUser(): Promise<User | null> {
   const res = await fetchLaravelWithCookie("/api/me");
 
@@ -84,6 +95,17 @@ async function getWearLogsCount(): Promise<number> {
   return data.meta?.totalAll ?? data.wearLogs?.length ?? 0;
 }
 
+async function getPurchaseCandidatesCount(): Promise<number> {
+  const res = await fetchLaravelWithCookie("/api/purchase-candidates");
+
+  if (!res.ok) {
+    return 0;
+  }
+
+  const data = (await res.json()) as PurchaseCandidatesResponse;
+  return data.meta?.totalAll ?? data.purchaseCandidates?.length ?? 0;
+}
+
 export default async function Home() {
   const user = await getUser();
 
@@ -120,10 +142,11 @@ export default async function Home() {
     );
   }
 
-  const [itemsCount, outfitsCount, wearLogsCount] = await Promise.all([
+  const [itemsCount, outfitsCount, wearLogsCount, purchaseCandidatesCount] = await Promise.all([
     getItemsCount(),
     getOutfitsCount(),
     getWearLogsCount(),
+    getPurchaseCandidatesCount(),
   ]);
 
   return (
@@ -145,7 +168,7 @@ export default async function Home() {
           </div>
         </section>
 
-        <section className="grid gap-4 md:grid-cols-3">
+        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           <article className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
             <p className="text-sm text-gray-500">アイテム管理</p>
             <p className="mt-2 text-3xl font-bold text-gray-900">
@@ -208,6 +231,29 @@ export default async function Home() {
               </Link>
               <Link
                 href="/wear-logs/new"
+                className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+              >
+                追加する
+              </Link>
+            </div>
+          </article>
+
+          <article className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+            <p className="text-sm text-gray-500">購入候補管理</p>
+            <p className="mt-2 text-3xl font-bold text-gray-900">
+              {purchaseCandidatesCount}
+            </p>
+            <p className="mt-2 text-sm text-gray-600">登録済み購入候補数</p>
+
+            <div className="mt-6 flex gap-3">
+              <Link
+                href="/purchase-candidates"
+                className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
+              >
+                一覧を見る
+              </Link>
+              <Link
+                href="/purchase-candidates/new"
                 className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
               >
                 追加する

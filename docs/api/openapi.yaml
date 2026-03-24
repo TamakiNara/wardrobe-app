@@ -28,7 +28,7 @@ tags:
   - name: Wear Logs
     description: wear logs 関連 API
   - name: Purchase Candidates
-    description: purchase_candidates 関連 API（planned）
+    description: purchase_candidates 関連 API
 
 paths:
   /csrf-cookie:
@@ -773,9 +773,8 @@ paths:
         - Purchase Candidates
       summary: 購入候補一覧取得
       description: |
-        planned API。
         `considering / on_hold / purchased / dropped` の purchase candidate を返す。
-        一覧は `purchaseCandidates` 配列と `meta.total / totalAll / page / lastPage` を返す前提とする。
+        一覧は `purchaseCandidates` 配列と `meta.total / totalAll / page / lastPage` を返す。
         比較結果は詳細ロジックを固定せず、現時点では補助表示向けの情報に留める。
       security:
         - SessionCookieAuth: []
@@ -826,7 +825,6 @@ paths:
         - Purchase Candidates
       summary: 購入候補作成
       description: |
-        planned API。
         purchase candidate を新規作成する。
         比較結果の詳細計算は行わず、候補の保存を主責務とする。
       security:
@@ -861,7 +859,6 @@ paths:
         - Purchase Candidates
       summary: 購入候補詳細取得
       description: |
-        planned API。
         purchase candidate の基本情報、画像、item 化状況を返す。
         比較結果は補助表示前提とし、詳細ロジックは後続検討とする。
       security:
@@ -884,7 +881,6 @@ paths:
         - Purchase Candidates
       summary: 購入候補更新
       description: |
-        planned API。
         purchase candidate の状態、優先度、比較用属性を更新する。
         `dropped` は見送り状態であり DELETE とは別に扱う。
       security:
@@ -920,7 +916,6 @@ paths:
         - Purchase Candidates
       summary: 購入候補削除
       description: |
-        planned API。
         登録ミスや重複など、record 自体が不要になった purchase candidate を削除する。
         見送り履歴を残したい場合は `dropped` を使い、DELETE とは役割を分ける。
       security:
@@ -946,7 +941,6 @@ paths:
         - Purchase Candidates
       summary: 購入候補画像追加
       description: |
-        planned API。
         purchase candidate に画像を追加する。
         画像は複数枚対応で、上限は 5 枚を前提とする。
         `sort_order` と `is_primary` は item 側への引き継ぎにも使う。
@@ -962,7 +956,7 @@ paths:
             schema:
               $ref: '#/components/schemas/PurchaseCandidateImageUploadRequest'
       responses:
-        '200':
+        '201':
           description: 追加成功
           content:
             application/json:
@@ -985,7 +979,6 @@ paths:
         - Purchase Candidates
       summary: 購入候補画像削除
       description: |
-        planned API。
         purchase candidate に紐づく画像を削除する。
         item 側画像とは別管理のため、candidate 側画像だけを対象にする。
       security:
@@ -1012,7 +1005,6 @@ paths:
         - Purchase Candidates
       summary: item 作成初期値生成
       description: |
-        planned API。
         purchase candidate から item 作成画面用の初期値 payload を生成する。
         保存済み item を返す API ではない。
         candidate に登録済みの全画像を引き継ぎ、`sort_order` と `is_primary` も維持する。
@@ -2030,7 +2022,6 @@ components:
       type: object
       required:
         - id
-        - user_id
         - status
         - priority
         - name
@@ -2046,9 +2037,6 @@ components:
         id:
           type: integer
           example: 10
-        user_id:
-          type: integer
-          example: 1
         status:
           $ref: '#/components/schemas/PurchaseCandidateStatus'
         priority:
@@ -2129,12 +2117,12 @@ components:
     PurchaseCandidateUpsertRequest:
       type: object
       description: |
-        planned request schema。
         `purchase_candidates` の通常作成 / 更新 payload。
         比較結果の詳細は request に含めず、候補の基本情報と比較用属性を保存する。
       required:
         - name
         - category_id
+        - colors
       properties:
         status:
           $ref: '#/components/schemas/PurchaseCandidateStatus'
@@ -2199,7 +2187,55 @@ components:
         purchaseCandidates:
           type: array
           items:
-            $ref: '#/components/schemas/PurchaseCandidateRecord'
+            type: object
+            required:
+              - id
+              - status
+              - priority
+              - name
+              - category_id
+              - converted_item_id
+              - converted_at
+              - primary_image
+              - updated_at
+            properties:
+              id:
+                type: integer
+                example: 10
+              status:
+                $ref: '#/components/schemas/PurchaseCandidateStatus'
+              priority:
+                $ref: '#/components/schemas/PurchaseCandidatePriority'
+              name:
+                type: string
+                example: ネイビーのレインコート
+              category_id:
+                type: string
+                example: outer_coat
+              category_name:
+                type: string
+                nullable: true
+                example: コート
+              price:
+                type: integer
+                nullable: true
+                example: 14800
+              converted_item_id:
+                type: integer
+                nullable: true
+                example: 201
+              converted_at:
+                type: string
+                format: date-time
+                nullable: true
+              primary_image:
+                allOf:
+                  - $ref: '#/components/schemas/PurchaseCandidateImageRecord'
+                nullable: true
+              updated_at:
+                type: string
+                format: date-time
+                nullable: true
         meta:
           type: object
           required:
@@ -2268,7 +2304,6 @@ components:
     PurchaseCandidateItemDraftPayload:
       type: object
       description: |
-        planned `item-draft` payload。
         current `POST /api/items` に合わせた初期値を返し、
         candidate 側の `category_id` は `source_category_id` として補助的に保持する。
       required:
@@ -2296,7 +2331,7 @@ components:
           description: current `POST /api/items` の `category` にそのまま渡す値。
         shape:
           type: string
-          example: coat
+          example: trench
           description: current `POST /api/items` の `shape` にそのまま渡す値。
         brand_name:
           type: string
