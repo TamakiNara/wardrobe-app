@@ -27,6 +27,8 @@ tags:
     description: コーディネート関連 API
   - name: Wear Logs
     description: wear logs 関連 API
+  - name: Purchase Candidates
+    description: purchase_candidates 関連 API（planned）
 
 paths:
   /csrf-cookie:
@@ -765,6 +767,273 @@ paths:
         '404':
           description: 対象データなし
 
+  /api/purchase-candidates:
+    get:
+      tags:
+        - Purchase Candidates
+      summary: 購入候補一覧取得
+      description: |
+        planned API。
+        `considering / on_hold / purchased / dropped` の purchase candidate を返す。
+        一覧は `purchaseCandidates` 配列と `meta.total / totalAll / page / lastPage` を返す前提とする。
+        比較結果は詳細ロジックを固定せず、現時点では補助表示向けの情報に留める。
+      security:
+        - SessionCookieAuth: []
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+        - name: keyword
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: status
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/PurchaseCandidateStatus'
+        - name: priority
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/PurchaseCandidatePriority'
+        - name: category
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: sort
+          in: query
+          required: false
+          schema:
+            type: string
+          description: 並び順の詳細は後続検討。
+      responses:
+        '200':
+          description: 取得成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseCandidateListResponse'
+        '401':
+          description: 未認証
+    post:
+      tags:
+        - Purchase Candidates
+      summary: 購入候補作成
+      description: |
+        planned API。
+        purchase candidate を新規作成する。
+        比較結果の詳細計算は行わず、候補の保存を主責務とする。
+      security:
+        - SessionCookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XCsrfTokenHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurchaseCandidateUpsertRequest'
+      responses:
+        '201':
+          description: 作成成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseCandidateResponseWithMessage'
+        '401':
+          description: 未認証
+        '422':
+          description: バリデーションエラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+
+  /api/purchase-candidates/{id}:
+    get:
+      tags:
+        - Purchase Candidates
+      summary: 購入候補詳細取得
+      description: |
+        planned API。
+        purchase candidate の基本情報、画像、item 化状況を返す。
+        比較結果は補助表示前提とし、詳細ロジックは後続検討とする。
+      security:
+        - SessionCookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PurchaseCandidateIdPath'
+      responses:
+        '200':
+          description: 取得成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseCandidateResponse'
+        '401':
+          description: 未認証
+        '404':
+          description: 未検出
+    put:
+      tags:
+        - Purchase Candidates
+      summary: 購入候補更新
+      description: |
+        planned API。
+        purchase candidate の状態、優先度、比較用属性を更新する。
+        `dropped` は見送り状態であり DELETE とは別に扱う。
+      security:
+        - SessionCookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PurchaseCandidateIdPath'
+        - $ref: '#/components/parameters/XCsrfTokenHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurchaseCandidateUpsertRequest'
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseCandidateResponseWithMessage'
+        '401':
+          description: 未認証
+        '404':
+          description: 未検出
+        '422':
+          description: バリデーションエラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+    delete:
+      tags:
+        - Purchase Candidates
+      summary: 購入候補削除
+      description: |
+        planned API。
+        登録ミスや重複など、record 自体が不要になった purchase candidate を削除する。
+        見送り履歴を残したい場合は `dropped` を使い、DELETE とは役割を分ける。
+      security:
+        - SessionCookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PurchaseCandidateIdPath'
+        - $ref: '#/components/parameters/XCsrfTokenHeader'
+      responses:
+        '200':
+          description: 削除成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageOnlyResponse'
+        '401':
+          description: 未認証
+        '404':
+          description: 未検出
+
+  /api/purchase-candidates/{id}/images:
+    post:
+      tags:
+        - Purchase Candidates
+      summary: 購入候補画像追加
+      description: |
+        planned API。
+        purchase candidate に画像を追加する。
+        画像は複数枚対応で、上限は 5 枚を前提とする。
+        `sort_order` と `is_primary` は item 側への引き継ぎにも使う。
+      security:
+        - SessionCookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PurchaseCandidateIdPath'
+        - $ref: '#/components/parameters/XCsrfTokenHeader'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PurchaseCandidateImageUploadRequest'
+      responses:
+        '200':
+          description: 追加成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseCandidateImageResponseWithMessage'
+        '401':
+          description: 未認証
+        '404':
+          description: 未検出
+        '422':
+          description: バリデーションエラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+
+  /api/purchase-candidates/{id}/images/{imageId}:
+    delete:
+      tags:
+        - Purchase Candidates
+      summary: 購入候補画像削除
+      description: |
+        planned API。
+        purchase candidate に紐づく画像を削除する。
+        item 側画像とは別管理のため、candidate 側画像だけを対象にする。
+      security:
+        - SessionCookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PurchaseCandidateIdPath'
+        - $ref: '#/components/parameters/PurchaseCandidateImageIdPath'
+        - $ref: '#/components/parameters/XCsrfTokenHeader'
+      responses:
+        '200':
+          description: 削除成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageOnlyResponse'
+        '401':
+          description: 未認証
+        '404':
+          description: 未検出
+
+  /api/purchase-candidates/{id}/item-draft:
+    post:
+      tags:
+        - Purchase Candidates
+      summary: item 作成初期値生成
+      description: |
+        planned API。
+        purchase candidate から item 作成画面用の初期値 payload を生成する。
+        保存済み item を返す API ではない。
+        candidate に登録済みの全画像を引き継ぎ、`sort_order` と `is_primary` も維持する。
+        item 保存成功時に candidate を `purchased` に更新する責務分割は後続整理とする。
+      security:
+        - SessionCookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PurchaseCandidateIdPath'
+        - $ref: '#/components/parameters/XCsrfTokenHeader'
+      responses:
+        '200':
+          description: 取得成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseCandidateItemDraftResponse'
+        '401':
+          description: 未認証
+        '404':
+          description: 未検出
+
 
 components:
   parameters:
@@ -788,6 +1057,20 @@ components:
         minimum: 1
     OutfitIdPath:
       name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+    PurchaseCandidateIdPath:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+    PurchaseCandidateImageIdPath:
+      name: imageId
       in: path
       required: true
       schema:
@@ -1642,6 +1925,11 @@ components:
             $ref: '#/components/schemas/WearLogListItem'
         meta:
           type: object
+          required:
+            - page
+            - lastPage
+            - total
+            - totalAll
           properties:
             page:
               type: integer
@@ -1655,7 +1943,6 @@ components:
             totalAll:
               type: integer
               example: 1
-          properties:
             first:
               type: string
               nullable: true
@@ -1668,6 +1955,440 @@ components:
             next:
               type: string
               nullable: true
+
+    PurchaseCandidateStatus:
+      type: string
+      enum:
+        - considering
+        - on_hold
+        - purchased
+        - dropped
+
+    PurchaseCandidatePriority:
+      type: string
+      enum:
+        - high
+        - medium
+        - low
+
+    PurchaseCandidateSizeGender:
+      type: string
+      enum:
+        - women
+        - men
+        - unisex
+        - unknown
+
+    PurchaseCandidateImageRecord:
+      type: object
+      required:
+        - id
+        - purchase_candidate_id
+        - disk
+        - path
+        - sort_order
+        - is_primary
+      properties:
+        id:
+          type: integer
+          example: 1
+        purchase_candidate_id:
+          type: integer
+          example: 10
+        disk:
+          type: string
+          example: public
+        path:
+          type: string
+          example: purchase-candidates/10/front.webp
+        url:
+          type: string
+          nullable: true
+          example: https://example.test/storage/purchase-candidates/10/front.webp
+          description: "`disk` と `path` から生成する表示用 URL。"
+        original_filename:
+          type: string
+          nullable: true
+          example: front.webp
+        mime_type:
+          type: string
+          nullable: true
+          example: image/webp
+        file_size:
+          type: integer
+          nullable: true
+          example: 245001
+        sort_order:
+          type: integer
+          minimum: 1
+          example: 1
+        is_primary:
+          type: boolean
+          example: true
+
+    PurchaseCandidateRecord:
+      type: object
+      required:
+        - id
+        - user_id
+        - status
+        - priority
+        - name
+        - category_id
+        - is_rain_ok
+        - colors
+        - seasons
+        - tpos
+        - images
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: integer
+          example: 10
+        user_id:
+          type: integer
+          example: 1
+        status:
+          $ref: '#/components/schemas/PurchaseCandidateStatus'
+        priority:
+          $ref: '#/components/schemas/PurchaseCandidatePriority'
+        name:
+          type: string
+          example: ネイビーのレインコート
+        category_id:
+          type: string
+          example: outer_coat
+        brand_name:
+          type: string
+          nullable: true
+          example: Sample Brand
+        price:
+          type: integer
+          nullable: true
+          example: 14800
+          description: 想定価格。実購入価格は item 側で確定する。
+        purchase_url:
+          type: string
+          nullable: true
+          example: https://example.test/products/10
+        memo:
+          type: string
+          nullable: true
+          example: 色違いも比較したい
+        wanted_reason:
+          type: string
+          nullable: true
+          example: 雨の日用の上着が不足しているため
+        size_gender:
+          allOf:
+            - $ref: '#/components/schemas/PurchaseCandidateSizeGender'
+          nullable: true
+        size_label:
+          type: string
+          nullable: true
+          example: M
+        size_note:
+          type: string
+          nullable: true
+          example: 厚手インナー込みで試したい
+        is_rain_ok:
+          type: boolean
+          example: true
+        colors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ItemColor'
+        seasons:
+          type: array
+          items:
+            type: string
+        tpos:
+          type: array
+          items:
+            type: string
+        converted_item_id:
+          type: integer
+          nullable: true
+          example: 201
+        converted_at:
+          type: string
+          format: date-time
+          nullable: true
+        images:
+          type: array
+          items:
+            $ref: '#/components/schemas/PurchaseCandidateImageRecord'
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    PurchaseCandidateUpsertRequest:
+      type: object
+      description: |
+        planned request schema。
+        `purchase_candidates` の通常作成 / 更新 payload。
+        比較結果の詳細は request に含めず、候補の基本情報と比較用属性を保存する。
+      required:
+        - name
+        - category_id
+      properties:
+        status:
+          $ref: '#/components/schemas/PurchaseCandidateStatus'
+        priority:
+          $ref: '#/components/schemas/PurchaseCandidatePriority'
+        name:
+          type: string
+          maxLength: 255
+        category_id:
+          type: string
+          maxLength: 100
+        brand_name:
+          type: string
+          nullable: true
+          maxLength: 255
+        price:
+          type: integer
+          nullable: true
+          minimum: 0
+        purchase_url:
+          type: string
+          nullable: true
+          format: uri
+        memo:
+          type: string
+          nullable: true
+        wanted_reason:
+          type: string
+          nullable: true
+        size_gender:
+          allOf:
+            - $ref: '#/components/schemas/PurchaseCandidateSizeGender'
+          nullable: true
+        size_label:
+          type: string
+          nullable: true
+          maxLength: 50
+        size_note:
+          type: string
+          nullable: true
+        is_rain_ok:
+          type: boolean
+        colors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ItemColor'
+        seasons:
+          type: array
+          items:
+            type: string
+        tpos:
+          type: array
+          items:
+            type: string
+
+    PurchaseCandidateListResponse:
+      type: object
+      required:
+        - purchaseCandidates
+        - meta
+      properties:
+        purchaseCandidates:
+          type: array
+          items:
+            $ref: '#/components/schemas/PurchaseCandidateRecord'
+        meta:
+          type: object
+          required:
+            - total
+            - totalAll
+            - page
+            - lastPage
+          properties:
+            total:
+              type: integer
+              example: 12
+            totalAll:
+              type: integer
+              example: 20
+            page:
+              type: integer
+              example: 1
+            lastPage:
+              type: integer
+              example: 2
+
+    PurchaseCandidateResponse:
+      type: object
+      required:
+        - purchaseCandidate
+      properties:
+        purchaseCandidate:
+          $ref: '#/components/schemas/PurchaseCandidateRecord'
+
+    PurchaseCandidateResponseWithMessage:
+      allOf:
+        - $ref: '#/components/schemas/MessageOnlyResponse'
+        - type: object
+          required:
+            - purchaseCandidate
+          properties:
+            purchaseCandidate:
+              $ref: '#/components/schemas/PurchaseCandidateRecord'
+
+    PurchaseCandidateImageUploadRequest:
+      type: object
+      required:
+        - image
+      properties:
+        image:
+          type: string
+          format: binary
+        sort_order:
+          type: integer
+          nullable: true
+          minimum: 1
+        is_primary:
+          type: boolean
+          nullable: true
+
+    PurchaseCandidateImageResponseWithMessage:
+      allOf:
+        - $ref: '#/components/schemas/MessageOnlyResponse'
+        - type: object
+          required:
+            - image
+          properties:
+            image:
+              $ref: '#/components/schemas/PurchaseCandidateImageRecord'
+
+    PurchaseCandidateItemDraftPayload:
+      type: object
+      required:
+        - name
+        - category_id
+        - colors
+        - seasons
+        - tpos
+        - is_rain_ok
+      properties:
+        name:
+          type: string
+          example: ネイビーのレインコート
+        category_id:
+          type: string
+          example: outer_coat
+          description: |
+            candidate 側のカテゴリID。
+            現行 `POST /api/items` の `category` / `shape` へのマッピングは後続整理。
+        brand_name:
+          type: string
+          nullable: true
+          example: Sample Brand
+        price:
+          type: integer
+          nullable: true
+          example: 14800
+          description: 想定価格を item 作成初期値へ引き継ぐ案。実購入価格として確定するかは保存前に確認する。
+        purchase_url:
+          type: string
+          nullable: true
+          example: https://example.test/products/10
+        memo:
+          type: string
+          nullable: true
+          example: 色違いも比較したい
+        size_gender:
+          allOf:
+            - $ref: '#/components/schemas/PurchaseCandidateSizeGender'
+          nullable: true
+        size_label:
+          type: string
+          nullable: true
+          example: M
+        size_note:
+          type: string
+          nullable: true
+          example: 厚手インナー込みで試したい
+        purchased_at:
+          type: string
+          format: date
+          nullable: true
+          example: null
+        size_details:
+          type: object
+          nullable: true
+          additionalProperties: true
+        spec:
+          allOf:
+            - $ref: '#/components/schemas/ItemSpec'
+          nullable: true
+        is_rain_ok:
+          type: boolean
+          example: true
+        colors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ItemColor'
+        seasons:
+          type: array
+          items:
+            type: string
+        tpos:
+          type: array
+          items:
+            type: string
+
+    PurchaseCandidateItemDraftSummary:
+      type: object
+      required:
+        - id
+        - status
+        - priority
+        - name
+      properties:
+        id:
+          type: integer
+          example: 10
+        status:
+          $ref: '#/components/schemas/PurchaseCandidateStatus'
+        priority:
+          $ref: '#/components/schemas/PurchaseCandidatePriority'
+        name:
+          type: string
+          example: ネイビーのレインコート
+        converted_item_id:
+          type: integer
+          nullable: true
+          example: 201
+        converted_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    PurchaseCandidateItemDraftResponse:
+      type: object
+      required:
+        - message
+        - item_draft
+        - candidate_summary
+        - images
+      properties:
+        message:
+          type: string
+          example: item_draft_ready
+        item_draft:
+          $ref: '#/components/schemas/PurchaseCandidateItemDraftPayload'
+        candidate_summary:
+          $ref: '#/components/schemas/PurchaseCandidateItemDraftSummary'
+        images:
+          type: array
+          description: item 作成画面へ引き継ぐ candidate 画像一覧。
+          items:
+            $ref: '#/components/schemas/PurchaseCandidateImageRecord'
 
   securitySchemes:
     SessionCookieAuth:

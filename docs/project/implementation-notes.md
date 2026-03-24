@@ -6,6 +6,7 @@
 実装着手前の確認観点を見返すときは `docs/project/implementation-checklist.md` を参照します。
 item status 変更仕様の正本を確認するときは `docs/specs/items/status-management.md` を参照します。
 item 詳細画面での status 操作 UI を確認するときは `docs/specs/items/detail-status-ui.md` を参照します。
+purchase_candidates の仕様正本を確認するときは `docs/specs/purchase-candidates.md` を参照します。
 
 ## 削除導線の共通方針
 
@@ -43,6 +44,41 @@ item 詳細画面での status 操作 UI を確認するときは `docs/specs/it
    - Safari 実機が必要なら追加確認する
 6. tops SVG の見た目調整に戻る
    - tshirt / shirt / blouse の細部調整を再開する
+
+## purchase_candidates 着手メモ
+
+位置づけ:
+
+- `purchase_candidates` は今後の主要実装候補とし、正本は `docs/specs/purchase-candidates.md` を参照する
+- まずは candidate 保存・画像管理・item draft・item への昇格を優先し、比較ロジックの詳細は後続検討とする
+
+直近または中期 TODO:
+
+1. DB 設計を整理する
+   - `purchase_candidates` / `purchase_candidate_images` / 色・季節・TPO の保持構造を確定する
+   - `items` 側追加項目 (`brand_name / price / purchase_url / purchased_at / size_gender / size_label / size_note / size_details / is_rain_ok`) の影響範囲を確認する
+2. API 設計を整理する
+   - 一覧 / 詳細 / 作成 / 更新 / 削除
+   - candidate 画像追加 / 削除
+   - `POST /api/purchase-candidates/{id}/item-draft`
+3. item draft と item への昇格責務を整理する
+   - draft は保存済み item ではなく item 作成画面用の初期値 payload とする
+   - item 保存成功時に candidate を `purchased` へ更新する責務を BFF / Laravel のどちらへ寄せるか決める
+4. 画像アップロード方針を整理する
+   - candidate / item ともに複数画像、上限 5 枚、全画像引き継ぎを前提に API 責務を分ける
+5. 比較結果の扱いを整理する
+   - 現時点では補助表示前提とし、比較ロジックの詳細や強い自動判定は後続検討とする
+6. 月次服飾費集計の前提を残す
+   - `items.purchased_at` を持たせる案をベースに、item の `price` と組み合わせて集計できるようにする
+
+既存仕様との衝突確認メモ:
+
+- purchase_candidates は items / outfits / wear logs と責務を分け、candidate を outfits に直接混ぜない前提を維持する
+- `dropped` は見送り履歴を残す状態であり、DELETE は登録ミスや重複削除用として役割を分ける
+- candidate から item へ全画像を引き継ぐ方針は UX 上は自然だが、item 側画像と別管理である点を UI 上でも誤解されないよう整理が必要
+- `size_gender` の内部値は `women / men / unisex / unknown` を想定しており、カテゴリプリセットの `male / female / custom` 命名とズレるため、表示ラベル変換ルールを後続整理したい
+- items は現行 DB で `colors / seasons / tpos` を JSON で持っているため、candidate 側の別テーブル案とどう揃えるかは後続検討
+- candidate は `category_id` を前提にしている一方、現行 item API は `category` / `shape` を使っているため、item-draft から item 作成 request へのマッピング整理が必要
 
 ## 実装着手前チェックリスト
 

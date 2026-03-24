@@ -28,6 +28,7 @@
 - アプリ全体の共通ナビ仕様を見たいときは `specs/navigation/global-navigation.md`
 - Outfit の作成・編集・invalid/複製方針を見たいときは `specs/outfits/create-edit.md`
 - wear logs の `source_outfit_id` / `item_source_type` / `current status` 方針を見たいときは `specs/wears/wear-logs.md`
+- purchase_candidates の仕様正本と item 昇格前提を見たいときは `specs/purchase-candidates.md`
 
 ---
 
@@ -196,6 +197,18 @@
 - `active / invalid` の状態管理、複製、invalid 一覧の扱いを定義する
 - `outfits` / `outfit_items` と API payload の前提をまとめる
 
+### `specs/purchase-candidates.md`
+
+役割:
+
+- 購入候補の責務、状態管理、item への昇格、画像方針を整理する
+- `purchase_candidate_images` / `item_images` の分離、`item-draft` API、比較結果の扱いをまとめる
+
+補足:
+
+- 比較ロジックの詳細は後続検討とする
+- `dropped` と DELETE の役割分離や、candidate から item への昇格前提を含む
+
 ### `specs/logging.md`
 
 役割:
@@ -258,6 +271,21 @@
 - `api/api-overview.md`
 - `data/database.md`
 - `project/implementation-notes.md`
+
+### purchase_candidates 仕様を変えたとき
+
+必ず確認する:
+
+- `specs/purchase-candidates.md`
+- `api/api-overview.md`
+- `api/openapi.yaml`
+- `data/database.md`
+- `project/implementation-notes.md`
+
+必要に応じて確認する:
+
+- `architecture/screen-flows.md`
+- `ui/empty-state.md`
 
 ### 認証まわりを変えたとき
 

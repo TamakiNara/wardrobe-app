@@ -1,0 +1,720 @@
+# Purchase Candidates Specification
+
+購入候補（`purchase_candidates`）機能の仕様を定義する。  
+この資料では、購入候補の役割、`items` との責務分離、状態管理、item への昇格、画像、画面、API、集計前提を整理する。
+
+---
+
+## 概要
+
+`purchase_candidates` は、クローゼット系 Web アプリにおける **「まだ所持していないが、購入を検討している服」** を管理するための機能とする。
+
+この機能は単なる欲しい物リストではなく、以下を目的とする。
+
+- 購入候補を保存する
+- 手持ち item と比較する
+- 優先度や保留状態を管理する
+- 購入後に item へ昇格させる
+- 購入前の判断材料を履歴として残す
+
+---
+
+## 機能の位置づけ
+
+- `purchase_candidates` は **MVP 後の準主要機能** とする
+- ボトムナビの **独立タブ** として扱う前提とする
+- 想定する主要ナビは以下
+  - ホーム
+  - items
+  - outfits
+  - purchase_candidates
+  - settings
+
+---
+
+## 今回やらないこと
+
+初期段階では、以下は対象外とする。
+
+- EC 連携
+- AI による自動推薦
+- 診断結果による強い自動判定
+- 天気 API 連動
+- candidate を使った仮コーデ保存
+- 比較ロジックの高度化
+
+補足:
+
+- 比較ロジックは後で追加検討する
+- 今は後から拡張しやすい構造にしておくことを優先する
+
+---
+
+## エンティティ責務
+
+### `purchase_candidates`
+
+まだ所持していない服の購入候補を管理する。
+
+責務:
+
+- 候補の保存
+- 候補の比較
+- 購入理由の保持
+- 検討状態の保持
+- item 昇格履歴の保持
+
+### `items`
+
+現在所持している服の正本を管理する。
+
+責務:
+
+- 所持状態の管理
+- outfit / wear logs の参照元
+- 実物情報の保持
+- 実際の購入情報の保持
+
+### `purchase_candidate_images`
+
+購入判断材料としての画像を管理する。
+
+責務:
+
+- EC 商品画像
+- 店頭写真
+- 色違い比較画像
+- 候補比較用画像
+
+### `item_images`
+
+所持品管理用の画像を管理する。
+
+責務:
+
+- 実物画像
+- 管理用画像
+- detail 表示用画像
+
+---
+
+## 基本方針
+
+- `purchase_candidates` は `items` と **別エンティティ** で管理する
+- item 化は「変換」ではなく **item 新規作成** とする
+- 購入候補と所持品は責務を混ぜない
+- ただし比較しやすいよう、共通項目はなるべく揃える
+- 画像は item / candidate ともに **複数枚対応** とする
+- candidate から item へは **登録済み全画像を初期値として引き継ぐ**
+- `dropped` は削除ではなく **見送り履歴を残す状態** として扱う
+
+---
+
+## DB 設計方針
+
+## `purchase_candidates`
+
+### カラム
+
+- `id`
+- `user_id`
+- `status`
+- `priority`
+- `name`
+- `category_id`
+- `brand_name` nullable
+- `price` nullable
+- `purchase_url` nullable
+- `memo` nullable
+- `wanted_reason` nullable
+- `size_gender` nullable
+- `size_label` nullable
+- `size_note` nullable
+- `is_rain_ok` boolean default false
+- `converted_item_id` nullable
+- `converted_at` nullable
+- `created_at`
+- `updated_at`
+
+### `status`
+
+- `considering`
+- `on_hold`
+- `purchased`
+- `dropped`
+
+### `priority`
+
+- `high`
+- `medium`
+- `low`
+
+### 各項目の意味
+
+- `price`: 想定価格
+- `wanted_reason`: 購入候補にした理由
+- `memo`: 自由メモ
+- `converted_item_id`: item 化された先の ID
+- `converted_at`: item 化日時
+
+---
+
+## `items`
+
+### 追加・整理したいカラム
+
+- `id`
+- `user_id`
+- `status`
+- `name`
+- `category_id`
+- `brand_name` nullable
+- `price` nullable
+- `purchase_url` nullable
+- `purchased_at` nullable
+- `memo` nullable
+- `size_gender` nullable
+- `size_label` nullable
+- `size_note` nullable
+- `size_details` nullable JSON
+- `is_rain_ok` boolean default false
+- `spec` nullable JSON
+- `created_at`
+- `updated_at`
+
+### `status`
+
+- `active`
+- `disposed`
+
+### 各項目の意味
+
+- `price`: 実購入価格
+- `purchased_at`: 実際の購入日
+- `size_details`: item のみ詳細化できるサイズ情報
+- `spec`: 既存の item 詳細仕様枠を継続利用する
+
+---
+
+## 多値項目
+
+items と purchase_candidates で構造を揃える。
+
+### item 側
+
+- `item_colors`
+- `item_seasons`
+- `item_tpos`
+
+### candidate 側
+
+- `purchase_candidate_colors`
+- `purchase_candidate_seasons`
+- `purchase_candidate_tpos`
+
+### 方針
+
+比較・集計・将来分析をしやすくするため、items と purchase_candidates で同系統の構造を持つ。
+
+---
+
+## 画像テーブル
+
+## `purchase_candidate_images`
+
+### カラム
+
+- `id`
+- `purchase_candidate_id`
+- `disk`
+- `path`
+- `original_filename` nullable
+- `mime_type` nullable
+- `file_size` nullable
+- `sort_order`
+- `is_primary`
+- `created_at`
+- `updated_at`
+
+## `item_images`
+
+### カラム
+
+- `id`
+- `item_id`
+- `disk`
+- `path`
+- `original_filename` nullable
+- `mime_type` nullable
+- `file_size` nullable
+- `sort_order`
+- `is_primary`
+- `created_at`
+- `updated_at`
+
+---
+
+## 画像保存方針
+
+- Laravel Storage 抽象を使う
+- 初期 `disk` は `public`
+- DB には `disk` と `path` を保存する
+- URL は表示時に生成する
+- item / candidate ともに複数画像対応とする
+- 上限は **5 枚**
+- 一覧表示は `is_primary = true` を優先する
+- 初回画像は自動で primary とする
+
+---
+
+## SVG の扱い
+
+- items は、画像があれば画像を優先表示する
+- item 画像未登録時のみ、必要に応じて既存 SVG / テキスト補助表示を許可する
+- purchase_candidates は画像主軸とし、SVG は主機能にしない
+
+---
+
+## candidate → item 昇格仕様
+
+## 基本方針
+
+昇格は「変換」ではなく、**item の新規作成** とする。
+
+## 流れ
+
+1. purchase_candidate 詳細で「item に追加」
+2. candidate の内容を item 作成画面の初期値として引き継ぐ
+3. ユーザーが必要に応じて補正する
+4. 保存で `items` を新規作成する
+5. candidate を `purchased` に更新する
+6. `converted_item_id` / `converted_at` を保存する
+
+---
+
+## 初期値として引き継ぐ項目
+
+- `name`
+- `category_id`
+- `brand_name`
+- `purchase_url`
+- `memo`
+- `size_gender`
+- `size_label`
+- `size_note`
+- `is_rain_ok`
+- `colors`
+- `seasons`
+- `tpos`
+
+---
+
+## 確認・修正前提の項目
+
+- `price`
+- `images`
+- `purchased_at`
+- `size_details`
+- `spec`
+
+理由:
+
+- 候補時点と購入後で値がズレやすいため
+
+---
+
+## 画像引き継ぎ仕様
+
+- candidate の登録済み画像は **全件** item 作成時の初期値として引き継ぐ
+- `sort_order` と `is_primary` も引き継ぐ
+- item 作成画面で画像の削除・追加・代表画像変更を許可する
+- item 保存時に `item_images` として別管理で確定する
+- candidate 側画像と item 側画像は自動同期しない
+- 同じ画像レコードを共有しない
+
+理由:
+
+- primary 1 枚のみ引き継ぐ仕様だと、ユーザーに不具合と誤認されやすいため
+
+---
+
+## 状態遷移
+
+## `purchase_candidates`
+
+### 基本遷移
+
+- `considering -> on_hold`
+- `considering -> purchased`
+- `considering -> dropped`
+- `on_hold -> considering`
+- `on_hold -> purchased`
+- `on_hold -> dropped`
+- `dropped -> considering`
+
+### 方針
+
+- `dropped` は「見送り履歴を残す状態」
+- DELETE とは別概念
+- `purchased` / `dropped` はフィルタで見られるようにする
+- 初期一覧では `considering / on_hold` を主表示でよい
+
+### DELETE との違い
+
+- `dropped`: 一度検討した記録を残したい
+- DELETE: 登録ミス、重複、記録自体が不要
+
+---
+
+## `items`
+
+### 基本遷移
+
+- `active -> disposed`
+- `disposed -> active`
+
+### 既存方針維持
+
+- item を `disposed` にすると関連 active outfit は invalid 化する既存方針を維持する
+
+---
+
+## API 方針
+
+## `purchase_candidates`
+
+### 一覧
+
+`GET /api/purchase-candidates`
+
+#### クエリ候補
+
+- `page`
+- `keyword`
+- `status`
+- `priority`
+- `category`
+- `sort`
+
+### 詳細
+
+`GET /api/purchase-candidates/{id}`
+
+### 作成
+
+`POST /api/purchase-candidates`
+
+### 更新
+
+`PUT /api/purchase-candidates/{id}`
+
+### 削除
+
+`DELETE /api/purchase-candidates/{id}`
+
+---
+
+## candidate 画像
+
+### 追加
+
+`POST /api/purchase-candidates/{id}/images`
+
+### 削除
+
+`DELETE /api/purchase-candidates/{id}/images/{imageId}`
+
+### 並び・代表画像
+
+初期は親更新 API に含めてもよい。  
+ただし、将来は分離しやすい形にしておく。
+
+---
+
+## item draft 生成
+
+### 推奨 API
+
+`POST /api/purchase-candidates/{id}/item-draft`
+
+### 返却したい内容
+
+- `item_draft`
+- `candidate_summary`
+- `images`
+
+### 役割
+
+保存済み item を直接作る API ではなく、item 作成画面用の **初期値生成 API** とする。
+
+---
+
+## item 側
+
+### 既存 item 作成
+
+`POST /api/items`
+
+item 保存成功時に candidate を `purchased` に更新する処理が必要。
+
+方針:
+
+- 責務は BFF / サーバのどちらか片側に寄せる
+- 二重管理しない
+
+### item 画像
+
+- `POST /api/items/{id}/images`
+- `DELETE /api/items/{id}/images/{imageId}`
+
+---
+
+## 画面要件
+
+## purchase_candidates 一覧
+
+### 表示項目
+
+- 代表画像
+- 名前
+- カテゴリ
+- status
+- priority
+- 想定価格
+- wanted_reason 要約
+- item 化済みか
+
+### フィルタ
+
+- status
+- priority
+- category
+- keyword
+
+---
+
+## purchase_candidate 詳細
+
+### 表示項目
+
+- 基本情報
+- 複数画像
+- wanted_reason
+- memo
+- サイズ情報
+- 雨対応
+- 手持ち比較結果
+- item に追加ボタン
+- 保留 / 見送り操作
+
+---
+
+## purchase_candidate 作成 / 編集
+
+### 入力項目
+
+- 名前
+- カテゴリ
+- ブランド
+- 想定価格
+- 購入 URL
+- wanted_reason
+- memo
+- priority
+- サイズ情報
+- 雨対応
+- 色 / 季節 / TPO
+- 画像複数枚
+
+---
+
+## item 作成（candidate 由来）
+
+### 初期表示
+
+- candidate 由来の基本情報
+- candidate 由来の全画像
+- `sort_order` / `is_primary` 反映済み
+- 画像の削除・追加・代表画像変更が可能
+
+### 追加で入力・修正する項目
+
+- 実購入価格
+- 購入日
+- 実際のサイズ
+- `size_details`
+- `spec`
+- 実物画像への差し替え
+
+---
+
+## 手持ち比較結果
+
+## 前提
+
+比較ロジックは今回は高度化しない。  
+ただし、後で拡張しやすい構造にはしておく。
+
+## 初期は欲しい観点
+
+- 重複
+- 不足補完
+- 合わせやすさ
+- 雨対応補完
+
+## 注意
+
+- 購入前 candidate を既存 outfits に直接混ぜない
+- 仮コーデ保存は今回やらない
+- 比較結果は詳細画面で補助的に出せるようにする
+
+補足:
+
+- 比較ロジックの具体化は後続で別途整理する
+
+---
+
+## 集計追加候補
+
+## 月単位の服飾費
+
+将来集計として追加したい候補。
+
+### やりたいこと
+
+- item の `price` と `purchased_at` を使って月別購入額を出す
+- カテゴリ別購入額も見られるようにする
+- purchase_candidates の想定価格との比較も将来的にはできるとよい
+
+### 今回やるべき最低限
+
+- item 側に `purchased_at` を持てるようにする
+- `price` の意味を candidate / item で明確に分ける
+
+---
+
+## バリデーション方針
+
+## `purchase_candidates`
+
+- `name`: 必須
+- `category_id`: 必須
+- `status`: 許可値のみ
+- `priority`: default `medium`
+- `price`: nullable / numeric / min 0
+- `purchase_url`: nullable / URL
+- `wanted_reason`: nullable / length 制限
+- `size_gender`: nullable / 許可値のみ
+- `size_label`: nullable / string
+- `size_note`: nullable / length 制限
+- `is_rain_ok`: boolean
+
+## `items`
+
+- 既存 validation に加えて以下を追加する
+- `brand_name`: nullable
+- `price`: nullable / numeric / min 0
+- `purchase_url`: nullable / URL
+- `purchased_at`: nullable / date
+- `size_gender`: nullable / 許可値のみ
+- `size_label`: nullable / string
+- `size_note`: nullable / length 制限
+- `size_details`: nullable / JSON
+
+## images
+
+- mime: `jpeg / png / webp`
+- 最大サイズ: `5MB`
+- 最大枚数: `5`
+- 画像は任意
+
+---
+
+## テスト観点
+
+## `purchase_candidates`
+
+- 自分の候補のみ見える
+- status / priority で絞れる
+- 作成できる
+- 更新できる
+- 削除できる
+- dropped にできる
+- dropped から considering に戻せる
+- purchased にできる
+
+## candidate 画像
+
+- 複数枚登録できる
+- primary が 1 件になる
+- `sort_order` が維持される
+- 上限超過でエラーになる
+
+## candidate -> item
+
+- item draft を生成できる
+- 候補情報が初期値に入る
+- 全画像が初期値に入る
+- `sort_order` / `is_primary` が引き継がれる
+- item 保存後に candidate が `purchased` になる
+- `converted_item_id` / `converted_at` が保存される
+
+## item
+
+- `brand_name / price / purchase_url / purchased_at` を保存できる
+- サイズ情報を保存できる
+- 複数画像を保存できる
+
+---
+
+## 命名・値の推奨
+
+## `size_gender`
+
+推奨内部値:
+
+- `women`
+- `men`
+- `unisex`
+- `unknown`
+
+## `priority`
+
+- `high`
+- `medium`
+- `low`
+
+## `purchase_candidates.status`
+
+- `considering`
+- `on_hold`
+- `purchased`
+- `dropped`
+
+## `items.status`
+
+- `active`
+- `disposed`
+
+---
+
+## docs 更新対象の想定
+
+- `docs/api/openapi.yaml`
+- `docs/api/api-overview.md`
+- `docs/data/database.md`
+- `docs/project/implementation-notes.md`
+
+必要に応じて以下の新規追加も検討する。
+
+- `docs/specs/purchase-candidates.md`
+
+---
+
+## 今後の追加検討ポイント
+
+- 比較ロジックの具体化
+- purchase_candidates と手持ち item の比較 UI
+- 月次服飾費集計の詳細
+- candidate -> item 更新責務を BFF / Laravel のどちらに置くか
+- 画像 upload API の責務分離

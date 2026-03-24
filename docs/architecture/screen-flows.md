@@ -6,6 +6,7 @@
 
 - ログイン 〜 ログアウト
 - 新規登録 〜 カテゴリ設定 〜 item 登録 〜 outfit 登録
+- purchase_candidates 一覧 〜 詳細 〜 item 作成初期値導線
 
 ---
 
@@ -88,6 +89,37 @@ flowchart TD
 - この図は、現在の実装と、docs で既に整理済みのカテゴリプリセット導線を含む
 - `Custom` ではすぐに確定せず、カテゴリ調整画面で保存する想定
 - items が 1 件もない場合は、outfits 新規作成で選択可能なアイテムがないため、先に item 登録が実質的な前提となる
+
+---
+
+## purchase_candidates 〜 item 作成
+
+```mermaid
+flowchart TD
+  Home["/ (ホーム)"]
+  CandidatesList["/purchase-candidates"]
+  CandidateNew["/purchase-candidates/new"]
+  CandidateDetail["/purchase-candidates/[id]"]
+  CandidateEdit["/purchase-candidates/[id]/edit"]
+  ItemDraft["item draft 生成"]
+  ItemNew["/items/new (candidate 初期値)"]
+  ItemsList["/items"]
+
+  Home --> CandidatesList
+  CandidatesList --> CandidateNew
+  CandidatesList --> CandidateDetail
+  CandidateDetail --> CandidateEdit
+  CandidateDetail --> ItemDraft
+  CandidateEdit --> CandidateDetail
+  ItemDraft --> ItemNew
+  ItemNew -->|create| ItemsList
+```
+
+補足:
+
+- この導線は `docs/specs/purchase-candidates.md` を前提にした planned flow
+- candidate から item へは保存済み item を直接作らず、item 作成画面に初期値を渡す前提とする
+- 比較結果の詳細表示や item 保存後の candidate 更新責務は後続整理とする
 
 ---
 
