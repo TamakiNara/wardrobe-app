@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
+import OutfitDuplicateAction from "@/components/outfits/outfit-duplicate-action";
 import { SEASON_OPTIONS, TPO_OPTIONS } from "@/lib/master-data/item-attributes";
 
 type Outfit = {
@@ -293,6 +294,7 @@ export default function InvalidOutfitsList({
                 >
                   編集
                 </Link>
+                <OutfitDuplicateAction outfitId={outfit.id} />
               </div>
             </article>
           ))}

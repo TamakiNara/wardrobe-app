@@ -36,6 +36,18 @@ vi.mock("@/components/outfits/outfit-restore-action", () => ({
     ),
 }));
 
+vi.mock("@/components/outfits/outfit-duplicate-action", () => ({
+  default: ({ outfitId }: { outfitId: number }) =>
+    React.createElement(
+      "div",
+      {
+        "data-testid": "outfit-duplicate-action",
+        "data-outfit-id": String(outfitId),
+      },
+      "duplicate-action",
+    ),
+}));
+
 describe("OutfitDetailPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -96,6 +108,7 @@ describe("OutfitDetailPage", () => {
     expect(markup).toContain("内容を見直してから保存してください。");
     expect(markup).toContain("手放し済み");
     expect(markup).toContain("restore-disabled");
+    expect(markup).toContain("duplicate-action");
     expect(markup).toContain('href="/outfits/10/edit"');
   });
 });

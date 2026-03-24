@@ -1,10 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { isItemVisibleByCategorySettings } from "@/lib/api/categories";
 import { fetchCategoryVisibilitySettings } from "@/lib/api/settings";
+import {
+  clearOutfitDuplicatePayload,
+  loadOutfitDuplicatePayload,
+  mapOutfitDuplicatePayloadToDraft,
+  type DuplicateUnavailableItem,
+} from "@/lib/outfits/duplicate";
 import type { CreateOutfitPayload } from "@/types/outfits";
 import { SEASON_OPTIONS, TPO_OPTIONS } from "@/lib/master-data/item-attributes";
 
@@ -26,6 +32,8 @@ type Item = {
 
 export default function NewOutfitPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const hasAppliedDuplicateDraftRef = useRef(false);
 
   const [name, setName] = useState("");
   const [memo, setMemo] = useState("");
@@ -35,6 +43,9 @@ export default function NewOutfitPage() {
 
   const [items, setItems] = useState<Item[]>([]);
   const [selectedItemIds, setSelectedItemIds] = useState<number[]>([]);
+  const [duplicateUnavailableItems, setDuplicateUnavailableItems] = useState<
+    DuplicateUnavailableItem[]
+  >([]);
 
   const [loadingItems, setLoadingItems] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -42,6 +53,10 @@ export default function NewOutfitPage() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
   const [submitPreview, setSubmitPreview] = useState("");
+  const [initializationSuccess, setInitializationSuccess] = useState<string | null>(
+    null,
+  );
+  const [initializationError, setInitializationError] = useState<string | null>(null);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -88,6 +103,42 @@ export default function NewOutfitPage() {
 
     loadItems();
   }, [router]);
+
+  useEffect(() => {
+    if (searchParams.get("source") !== "duplicate") {
+      return;
+    }
+
+    if (hasAppliedDuplicateDraftRef.current) {
+      return;
+    }
+
+    hasAppliedDuplicateDraftRef.current = true;
+
+    const payload = loadOutfitDuplicatePayload();
+    clearOutfitDuplicatePayload();
+    router.replace("/outfits/new");
+    setInitializationError(null);
+    setInitializationSuccess(null);
+
+    if (!payload) {
+      setInitializationError(
+        "複製の初期値を読み込めませんでした。通常の新規作成として続けてください。",
+      );
+      return;
+    }
+
+    const draft = mapOutfitDuplicatePayloadToDraft(payload);
+
+    setName(draft.name);
+    setMemo(draft.memo);
+    setSelectedSeasons(draft.seasons);
+    setSelectedTpos(draft.tpos);
+    setSelectedItemIds(draft.selectedItemIds);
+    setDuplicateUnavailableItems(draft.unavailableItems);
+    setErrors({});
+    setInitializationSuccess("複製元の内容を初期値として読み込みました。");
+  }, [router, searchParams]);
 
   function handleSeasonToggle(season: string) {
     setSelectedSeasons((prev) => {
@@ -141,7 +192,7 @@ export default function NewOutfitPage() {
       tpos: selectedTpos,
       items: selectedItemIds.map((itemId, index) => ({
         item_id: itemId,
-        sort_order: index,
+        sort_order: index + 1,
       })),
     };
   }
@@ -247,6 +298,18 @@ export default function NewOutfitPage() {
             一覧に戻る
           </Link>
         </div>
+
+        {initializationError && (
+          <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+            {initializationError}
+          </div>
+        )}
+
+        {initializationSuccess && (
+          <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
+            {initializationSuccess}
+          </div>
+        )}
 
         <form
           onSubmit={handleSubmit}
@@ -357,6 +420,21 @@ export default function NewOutfitPage() {
                 選択中 {selectedItemIds.length} 件
               </span>
             </div>
+
+            {duplicateUnavailableItems.length > 0 && (
+              <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+                <p className="text-sm font-medium text-amber-800">
+                  元のコーディネートで使われていた一部アイテムは現在利用できないため、初期選択から外しました。
+                </p>
+                <ul className="mt-2 space-y-1 text-sm text-amber-800">
+                  {duplicateUnavailableItems.map((item) => (
+                    <li key={`${item.itemId}-${item.sortOrder}`}>
+                      {item.sortOrder}番目のアイテム: {item.note}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
             {selectedItemIds.length === 0 && !loadingItems && items.length > 0 && (
               <p className="text-sm text-gray-500">

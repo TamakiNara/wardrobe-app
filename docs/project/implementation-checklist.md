@@ -41,10 +41,10 @@ item 詳細画面での status 操作 UI は `docs/specs/items/detail-status-ui.
 - 対象: API、DB テーブル、UI、validation、transaction、一覧・詳細・登録・更新・削除
 - 正本: `docs/specs/wears/wear-logs.md`, `docs/data/database.md`, `docs/api/openapi.yaml`
 
-- invalid outfit 向けの補助導線は一部未実装
-- 対象: invalid 一覧 / 詳細からの `duplicate` action と、新規作成画面への複製初期値適用
+- invalid outfit 向けの補助導線は概ね実装済み
+- 対象: invalid 一覧 / 詳細からの `restore` / `duplicate` と、新規作成画面への複製初期値適用
 - backend: `POST /api/outfits/{id}/duplicate` は実装済み
-- frontend: `duplicate` response を新規作成画面へ反映する導線は未実装
+- frontend: `duplicate` response を新規作成画面へ反映する導線は実装済み
 - 正本: `docs/specs/outfits/create-edit.md`, `docs/api/openapi.yaml`
 
 - event_logs は未実装
@@ -93,13 +93,10 @@ item 詳細画面での status 操作 UI は `docs/specs/items/detail-status-ui.
 2. outfit status と invalid 化副作用の実装着手
    - `active / invalid`、通常保存時の `status` 非包含、item `disposed` に伴う invalid 化は docs に反映済みのため、実装を揃える
    - 理由: invalid outfit future API と wear logs の前提になるため
-3. invalid outfit 残タスクの実装着手
-   - 対象: invalid 一覧 / 詳細での `duplicate` action と、新規作成画面への初期値適用
-   - 理由: `restore` / `duplicate` API は実装済みのため、残りの UI 反映へ絞って進めやすいため
-4. wear logs の実装着手
+3. wear logs の実装着手
    - 対象: DB、API、UI、validation、一覧共通仕様との接続
    - 理由: `source_outfit_id`、`item_source_type`、候補除外、副作用の前提を利用するため
-5. event_logs の実装着手
+4. event_logs の実装着手
    - 対象: テーブル、発火ポイント、記録対象の絞り込み
    - 理由: item / outfit / wear logs の主要状態変化が固まってからの方が event_type と payload を固定しやすいため
 

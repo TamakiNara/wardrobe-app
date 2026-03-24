@@ -7,6 +7,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const fetchCategoryVisibilitySettingsMock = vi.fn();
 const replaceMock = vi.fn();
+const pushMock = vi.fn();
 let searchParamsValue = "";
 
 vi.mock("next/link", () => ({
@@ -16,12 +17,17 @@ vi.mock("next/link", () => ({
 
 vi.mock("next/navigation", () => ({
   usePathname: () => "/outfits",
-  useRouter: () => ({ replace: replaceMock }),
+  useRouter: () => ({ replace: replaceMock, push: pushMock }),
   useSearchParams: () => new URLSearchParams(searchParamsValue),
 }));
 
 vi.mock("@/lib/api/settings", () => ({
   fetchCategoryVisibilitySettings: fetchCategoryVisibilitySettingsMock,
+}));
+
+vi.mock("@/components/outfits/outfit-duplicate-action", () => ({
+  default: ({ outfitId }: { outfitId: number }) =>
+    React.createElement("span", null, `duplicate-${outfitId}`),
 }));
 
 const sampleOutfits = [
@@ -119,6 +125,7 @@ describe("OutfitsList", () => {
 
     expect(container.textContent).toContain("表示アイテム数: 1");
     expect(container.textContent).toContain("現在の表示設定により 1 件を非表示にしています。");
+    expect(container.textContent).toContain("duplicate-1");
   });
 
   it("ページャ操作で page クエリを更新する", async () => {

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
+import OutfitDuplicateAction from "@/components/outfits/outfit-duplicate-action";
 import { isItemVisibleByCategorySettings } from "@/lib/api/categories";
 import { fetchCategoryVisibilitySettings } from "@/lib/api/settings";
 import { SEASON_OPTIONS, TPO_OPTIONS } from "@/lib/master-data/item-attributes";
@@ -307,8 +308,14 @@ export default function OutfitsList({
             const hiddenItemCount = outfitItems.length - visibleOutfitItems.length;
 
             return (
-              <Link href={`/outfits/${outfit.id}`} key={outfit.id}>
-                <article className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:bg-gray-50">
+              <article
+                key={outfit.id}
+                className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm"
+              >
+                <Link
+                  href={`/outfits/${outfit.id}`}
+                  className="block transition hover:text-blue-700"
+                >
                   <h2 className="min-h-6 text-lg font-semibold text-gray-900">
                     {outfit.name ?? ""}
                   </h2>
@@ -335,8 +342,18 @@ export default function OutfitsList({
                   <p className="mt-1 text-sm text-gray-600">
                     TPO: {outfit.tpos?.length ? outfit.tpos.join(" / ") : "未設定"}
                   </p>
-                </article>
-              </Link>
+                </Link>
+
+                <div className="mt-4 flex items-center gap-3">
+                  <Link
+                    href={`/outfits/${outfit.id}`}
+                    className="text-sm font-medium text-blue-600 hover:underline"
+                  >
+                    詳細
+                  </Link>
+                  <OutfitDuplicateAction outfitId={outfit.id} />
+                </div>
+              </article>
             );
           })}
         </section>

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import DeleteOutfitButton from "@/components/outfits/delete-outfit-button";
+import OutfitDuplicateAction from "@/components/outfits/outfit-duplicate-action";
 import OutfitRestoreAction from "@/components/outfits/outfit-restore-action";
 import { isItemVisibleByCategorySettings } from "@/lib/api/categories";
 import { fetchLaravelWithCookie } from "@/lib/server/laravel";
@@ -130,6 +131,7 @@ export default async function OutfitDetailPage({
             {outfit.status === "invalid" && (
               <OutfitRestoreAction outfitId={outfit.id} canRestore={canRestore} />
             )}
+            <OutfitDuplicateAction outfitId={outfit.id} />
             <Link
               href={`/outfits/${outfit.id}/edit`}
               className="text-sm font-medium text-blue-600 hover:underline"

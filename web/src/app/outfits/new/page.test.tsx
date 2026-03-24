@@ -4,11 +4,14 @@ import React from "react";
 import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { OutfitDuplicatePayload } from "@/types/outfits";
 
 const pushMock = vi.fn();
 const refreshMock = vi.fn();
+const replaceMock = vi.fn();
 const fetchCategoryVisibilitySettingsMock = vi.fn();
-const routerMock = { push: pushMock, refresh: refreshMock };
+const routerMock = { push: pushMock, refresh: refreshMock, replace: replaceMock };
+let searchParamsValue = "";
 
 vi.mock("next/link", () => ({
   default: ({ children, href, ...props }: React.ComponentProps<"a">) =>
@@ -17,6 +20,7 @@ vi.mock("next/link", () => ({
 
 vi.mock("next/navigation", () => ({
   useRouter: () => routerMock,
+  useSearchParams: () => new URLSearchParams(searchParamsValue),
 }));
 
 vi.mock("@/lib/api/settings", () => ({
@@ -36,6 +40,8 @@ describe("NewOutfitPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     globalThis.IS_REACT_ACT_ENVIRONMENT = true;
+    searchParamsValue = "";
+    window.sessionStorage.clear();
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
@@ -52,6 +58,15 @@ describe("NewOutfitPage", () => {
               name: "白T",
               category: "tops",
               shape: "tshirt",
+              colors: [],
+              seasons: [],
+              tpos: [],
+            },
+            {
+              id: 3,
+              name: "黒パンツ",
+              category: "bottoms",
+              shape: "pants",
               colors: [],
               seasons: [],
               tpos: [],
@@ -81,5 +96,97 @@ describe("NewOutfitPage", () => {
 
     expect(container.textContent).toContain("白T");
     expect(container.textContent).not.toContain("登録済みアイテムがありません。");
+  });
+
+  it("active outfit 由来の duplicate 初期値を反映する", async () => {
+    searchParamsValue = "source=duplicate";
+    const payload: OutfitDuplicatePayload = {
+      name: "通勤コーデ（コピー）",
+      memo: "朝会用",
+      seasons: ["春"],
+      tpos: ["仕事"],
+      items: [
+        {
+          item_id: 1,
+          sort_order: 1,
+          selectable: true,
+          note: null,
+        },
+      ],
+    };
+    window.sessionStorage.setItem("outfit-duplicate-payload", JSON.stringify(payload));
+
+    const { default: NewOutfitPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(NewOutfitPage));
+      await waitForEffects();
+    });
+
+    expect(container.querySelector<HTMLInputElement>("#name")?.value).toBe(
+      "通勤コーデ（コピー）",
+    );
+    expect(container.querySelector<HTMLTextAreaElement>("#memo")?.value).toBe("朝会用");
+    expect(container.textContent).toContain("複製元の内容を初期値として読み込みました。");
+    expect(container.textContent).toContain("選択中 1 件");
+    expect(container.textContent).toContain("1. 白T (tops / tshirt)");
+    expect(replaceMock).toHaveBeenCalledWith("/outfits/new");
+  });
+
+  it("invalid outfit 由来で selectable=false の item は初期選択せず、note を表示する", async () => {
+    searchParamsValue = "source=duplicate";
+    const payload: OutfitDuplicatePayload = {
+      name: "休日コーデ（コピー）",
+      memo: null,
+      seasons: ["夏"],
+      tpos: ["休日"],
+      items: [
+        {
+          item_id: 1,
+          sort_order: 1,
+          selectable: true,
+          note: null,
+        },
+        {
+          item_id: 2,
+          sort_order: 2,
+          selectable: false,
+          note: "手放したアイテムのため初期選択から除外",
+        },
+      ],
+    };
+    window.sessionStorage.setItem("outfit-duplicate-payload", JSON.stringify(payload));
+
+    const { default: NewOutfitPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(NewOutfitPage));
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain("選択中 1 件");
+    expect(container.textContent).toContain(
+      "元のコーディネートで使われていた一部アイテムは現在利用できないため、初期選択から外しました。",
+    );
+    expect(container.textContent).toContain(
+      "2番目のアイテム: 手放したアイテムのため初期選択から除外",
+    );
+    expect(container.textContent).toContain("1. 白T (tops / tshirt)");
+  });
+
+  it("duplicate 初期値が見つからない場合はエラーを表示し、通常新規作成として続けられる", async () => {
+    searchParamsValue = "source=duplicate";
+
+    const { default: NewOutfitPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(NewOutfitPage));
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain(
+      "複製の初期値を読み込めませんでした。通常の新規作成として続けてください。",
+    );
+    expect(container.textContent).toContain("白T");
   });
 });

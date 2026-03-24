@@ -6,6 +6,7 @@ import { createRoot } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const replaceMock = vi.fn();
+const pushMock = vi.fn();
 let searchParamsValue = "";
 
 vi.mock("next/link", () => ({
@@ -15,8 +16,13 @@ vi.mock("next/link", () => ({
 
 vi.mock("next/navigation", () => ({
   usePathname: () => "/outfits/invalid",
-  useRouter: () => ({ replace: replaceMock }),
+  useRouter: () => ({ replace: replaceMock, push: pushMock }),
   useSearchParams: () => new URLSearchParams(searchParamsValue),
+}));
+
+vi.mock("@/components/outfits/outfit-duplicate-action", () => ({
+  default: ({ outfitId }: { outfitId: number }) =>
+    React.createElement("span", null, `duplicate-${outfitId}`),
 }));
 
 const sampleOutfits = [
@@ -100,6 +106,7 @@ describe("InvalidOutfitsList", () => {
     expect((selects[0] as HTMLSelectElement).value).toBe("夏");
     expect((selects[2] as HTMLSelectElement).value).toBe("name_asc");
     expect(container.textContent).toContain("夏の無効コーデ");
+    expect(container.textContent).toContain("duplicate-2");
     expect(replaceMock).not.toHaveBeenCalled();
 
     await act(async () => {
