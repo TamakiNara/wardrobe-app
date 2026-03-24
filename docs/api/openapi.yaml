@@ -2267,9 +2267,15 @@ components:
 
     PurchaseCandidateItemDraftPayload:
       type: object
+      description: |
+        planned `item-draft` payload。
+        current `POST /api/items` に合わせた初期値を返し、
+        candidate 側の `category_id` は `source_category_id` として補助的に保持する。
       required:
         - name
-        - category_id
+        - source_category_id
+        - category
+        - shape
         - colors
         - seasons
         - tpos
@@ -2278,12 +2284,20 @@ components:
         name:
           type: string
           example: ネイビーのレインコート
-        category_id:
+        source_category_id:
           type: string
           example: outer_coat
           description: |
-            candidate 側のカテゴリID。
-            現行 `POST /api/items` の `category` / `shape` へのマッピングは後続整理。
+            candidate 側の正本カテゴリID。
+            item 作成用の `category` / `shape` とは分けて保持する。
+        category:
+          type: string
+          example: outer
+          description: current `POST /api/items` の `category` にそのまま渡す値。
+        shape:
+          type: string
+          example: coat
+          description: current `POST /api/items` の `shape` にそのまま渡す値。
         brand_name:
           type: string
           nullable: true
@@ -2331,14 +2345,17 @@ components:
           example: true
         colors:
           type: array
+          description: candidate 側の保存構造に関わらず、item 作成用の配列として正規化して返す。
           items:
             $ref: '#/components/schemas/ItemColor'
         seasons:
           type: array
+          description: candidate 側の保存構造に関わらず、item 作成用の配列として正規化して返す。
           items:
             type: string
         tpos:
           type: array
+          description: candidate 側の保存構造に関わらず、item 作成用の配列として正規化して返す。
           items:
             type: string
 

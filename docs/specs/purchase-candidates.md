@@ -167,7 +167,8 @@
 - `user_id`
 - `status`
 - `name`
-- `category_id`
+- `category`
+- `shape`
 - `brand_name` nullable
 - `price` nullable
 - `purchase_url` nullable
@@ -194,27 +195,35 @@
 - `size_details`: item のみ詳細化できるサイズ情報
 - `spec`: 既存の item 詳細仕様枠を継続利用する
 
+補足:
+
+- `category_id` は candidate 側の正本とし、items 側では current API の `category` / `shape` を優先する
+- items 側へ `category_id` を直ちに導入するかは後続検討とする
+
 ---
 
 ## 多値項目
 
-items と purchase_candidates で構造を揃える。
+current item 側と candidate 側で、**API で扱う配列形式** と **DB 保存構造** を分けて考える。
 
-### item 側
+### current item 側
 
-- `item_colors`
-- `item_seasons`
-- `item_tpos`
+- API / BFF の入出力は `colors` / `seasons` / `tpos` の配列を使う
+- 現行 DB は `items.colors` / `items.seasons` / `items.tpos` を JSON で持つ
 
-### candidate 側
+### planned candidate 側
 
 - `purchase_candidate_colors`
 - `purchase_candidate_seasons`
 - `purchase_candidate_tpos`
 
-### 方針
+### 今フェーズの方針
 
-比較・集計・将来分析をしやすくするため、items と purchase_candidates で同系統の構造を持つ。
+- DB 構造差は暫定で許容する
+- API と `item-draft` では `colors` / `seasons` / `tpos` を配列で統一する
+- 正規化テーブルと JSON の相互変換は Laravel 側で吸収し、frontend / BFF に持ち込まない
+- purchase_candidates 実装着手のために、items 側 DB 構造の即時移行は前提にしない
+- items 側を将来別テーブル化する場合も、API 契約はなるべく維持する
 
 ---
 
@@ -295,7 +304,9 @@ items と purchase_candidates で構造を揃える。
 ## 初期値として引き継ぐ項目
 
 - `name`
-- `category_id`
+- `source_category_id`
+- `category`
+- `shape`
 - `brand_name`
 - `purchase_url`
 - `memo`
@@ -320,6 +331,51 @@ items と purchase_candidates で構造を揃える。
 理由:
 
 - 候補時点と購入後で値がズレやすいため
+
+
+## item-draft -> item create マッピング
+
+### 基本方針
+
+- candidate 側の正本カテゴリは `category_id` とする
+- `item-draft` は current `POST /api/items` に合わせ、item 作成画面がそのまま使える初期値 payload を返す
+- frontend は `item-draft` を item 作成初期値として使い、`category_id` から `category` / `shape` への変換ロジックを持たない
+- `category_id` から `category` / `shape` への解決は、category master を参照できる Laravel 側を正本にする
+
+### マッピング表
+
+| purchase_candidate | item-draft | item create | 方針 |
+| --- | --- | --- | --- |
+| `category_id` | `source_category_id` | 直接は送らない | candidate 側の正本として保持する |
+| `category_id` | `category` / `shape` | `category` / `shape` | current item API 互換の値へ Laravel 側で解決する |
+| `name` | `name` | `name` | そのまま引き継ぐ |
+| `brand_name` | `brand_name` | `brand_name` | そのまま引き継ぐ |
+| `price` | `price` | `price` | 想定価格を初期値として入れるが、保存前に実購入価格として確認する |
+| `purchase_url` | `purchase_url` | `purchase_url` | そのまま引き継ぐ |
+| `memo` | `memo` | `memo` | そのまま引き継ぐ |
+| `size_gender` | `size_gender` | `size_gender` | そのまま引き継ぐ |
+| `size_label` | `size_label` | `size_label` | そのまま引き継ぐ |
+| `size_note` | `size_note` | `size_note` | そのまま引き継ぐ |
+| `size_details` | `size_details` | `size_details` | 初期は `null` を許容し、実測後の補完前提とする |
+| `purchased_at` | `purchased_at` | `purchased_at` | 初期は `null` を許容し、購入日入力前提とする |
+| `is_rain_ok` | `is_rain_ok` | `is_rain_ok` | そのまま引き継ぐ |
+| `colors` | `colors` | `colors` | API 契約は配列で統一する |
+| `seasons` | `seasons` | `seasons` | API 契約は配列で統一する |
+| `tpos` | `tpos` | `tpos` | API 契約は配列で統一する |
+| `images` | `images` | item 画像初期値 | 全件引き継ぎ、保存後は `item_images` として別管理にする |
+| `spec` | `spec` | `spec` | candidate 側で十分な情報がない場合は `null` とし、item 作成画面で補完する |
+
+### `category_id` と current item API
+
+- `category_id` は category master 側の中分類 ID とする
+- `item-draft` response では `source_category_id` を保持しつつ、current item API 用に `category` と `shape` を返す
+- `category_id` から current item API の値を一意に解決できない場合は、item API 拡張か category master 整理を先に行う
+- BFF は変換責務を持たず、Laravel が返した `item-draft` をそのまま中継する
+
+### 補足
+
+- `wanted_reason` は candidate 側の検討履歴として残し、item `memo` へ自動結合しない
+- `images` は current item create request と別導線でもよいが、item 作成画面初期値としては同時に解釈できる形を維持する
 
 ---
 

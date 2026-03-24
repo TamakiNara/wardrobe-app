@@ -55,7 +55,8 @@ purchase_candidates の仕様正本を確認するときは `docs/specs/purchase
 直近または中期 TODO:
 
 1. DB 設計を整理する
-   - `purchase_candidates` / `purchase_candidate_images` / 色・季節・TPO の保持構造を確定する
+   - `purchase_candidates` / `purchase_candidate_images` の schema を確定する
+   - `colors / seasons / tpos` は API 配列統一の前提で実装し、items 側 migration 要否は後続判断にする
    - `items` 側追加項目 (`brand_name / price / purchase_url / purchased_at / size_gender / size_label / size_note / size_details / is_rain_ok`) の影響範囲を確認する
 2. API 設計を整理する
    - 一覧 / 詳細 / 作成 / 更新 / 削除
@@ -77,8 +78,32 @@ purchase_candidates の仕様正本を確認するときは `docs/specs/purchase
 - `dropped` は見送り履歴を残す状態であり、DELETE は登録ミスや重複削除用として役割を分ける
 - candidate から item へ全画像を引き継ぐ方針は UX 上は自然だが、item 側画像と別管理である点を UI 上でも誤解されないよう整理が必要
 - `size_gender` の内部値は `women / men / unisex / unknown` を想定しており、カテゴリプリセットの `male / female / custom` 命名とズレるため、表示ラベル変換ルールを後続整理したい
-- items は現行 DB で `colors / seasons / tpos` を JSON で持っているため、candidate 側の別テーブル案とどう揃えるかは後続検討
-- candidate は `category_id` を前提にしている一方、現行 item API は `category` / `shape` を使っているため、item-draft から item 作成 request へのマッピング整理が必要
+- items は現行 DB で `colors / seasons / tpos` を JSON で持つが、purchase_candidates 実装時は API / `item-draft` を配列で統一し、Laravel 側で構造差を吸収する
+- candidate は `category_id` を正本にしつつ、`item-draft` では current item API 用の `category` / `shape` を返す前提とする
+
+## purchase_candidates 実装着手前メモ
+
+### 今回固定する前提
+
+- `item-draft` は current `POST /api/items` に合わせた初期値 payload とし、frontend がそのまま item 作成画面へ流し込める形を優先する
+- candidate 側の正本カテゴリは `category_id` とし、item 作成用の `category` / `shape` へのマッピングは Laravel 側で行う
+- `colors` / `seasons` / `tpos` は DB 構造差があっても API と `item-draft` では配列で統一する
+- candidate 画像は item 作成初期値へ全件引き継ぐが、保存後は `item_images` として別管理にする
+- `wanted_reason` は candidate 側の情報とし、item `memo` へ自動結合しない
+
+### まだ保留でよい前提
+
+- items 側を `item_colors` / `item_seasons` / `item_tpos` の別テーブルへ移行するか
+- `category_id` から current item API の `category` / `shape` を解決できないカテゴリが出た場合の API 拡張方針
+- item 保存成功時に candidate を `purchased` へ更新する責務を BFF / Laravel のどちらへ寄せるか
+- 比較ロジックの詳細と、比較結果をどの粒度で response に含めるか
+
+### 実装時の注意点
+
+- frontend / BFF にカテゴリ変換ロジックを分散させない
+- OpenAPI には API 入出力と planned schema を書き、実装順・責務分担・保留事項は implementation-notes に寄せる
+- `planned` だが設計済みの API は OpenAPI に残し、実装済みかどうかの管理は implementation 系 docs で行う
+- DB 構造差を吸収する変換は Laravel 側 service / mapper に閉じ、画面側では配列 payload を正本として扱う
 
 ## 実装着手前チェックリスト
 
