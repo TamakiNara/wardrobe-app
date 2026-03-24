@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
+import FieldLabel from "@/components/forms/field-label";
+import { WEAR_LOG_STATUS_LABELS } from "@/lib/wear-logs/labels";
 import {
   buildSelectedWearLogItems,
   buildWearLogPayload,
@@ -325,22 +327,25 @@ export default function WearLogForm({
 
       <section className="space-y-4">
         <h2 className="text-lg font-semibold text-gray-900">基本情報</h2>
+        <p className="text-sm text-gray-500">
+          「必須」が付いた項目は{mode === "edit" ? "更新" : "登録"}に必要です。
+        </p>
 
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">状態</label>
+          <FieldLabel as="div" label="状態" required />
           <select
             value={status}
             onChange={(event) => setStatus(event.target.value as WearLogStatus)}
             className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
           >
-            <option value="planned">planned</option>
-            <option value="worn">worn</option>
+            <option value="planned">{WEAR_LOG_STATUS_LABELS.planned}</option>
+            <option value="worn">{WEAR_LOG_STATUS_LABELS.worn}</option>
           </select>
         </div>
 
         <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">日付</label>
+            <FieldLabel as="div" label="日付" required />
             <input
               type="date"
               value={eventDate}
@@ -391,7 +396,12 @@ export default function WearLogForm({
 
       <section className="space-y-4">
         <div className="flex items-center justify-between gap-4">
-          <h2 className="text-lg font-semibold text-gray-900">アイテム</h2>
+          <FieldLabel
+            as="div"
+            label="アイテム"
+            required
+            className="text-lg font-semibold text-gray-900"
+          />
           <span className="rounded-full border border-gray-300 bg-gray-50 px-3 py-1 text-sm text-gray-700">
             選択中 {selectedItems.length} 件
           </span>

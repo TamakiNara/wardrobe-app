@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { fetchLaravelWithCookie } from "@/lib/server/laravel";
+import { WEAR_LOG_STATUS_LABELS, getWearLogStatusLabel } from "@/lib/wear-logs/labels";
 import type { WearLogsResponse } from "@/types/wear-logs";
 
 type WearLogsPageSearchParams = Record<string, string | string[] | undefined>;
@@ -102,7 +103,7 @@ export default async function WearLogsPage({
             <p className="text-sm text-gray-500">着用履歴管理</p>
             <h1 className="text-2xl font-bold text-gray-900">着用履歴一覧</h1>
             <p className="mt-1 text-sm text-gray-600">
-              planned / worn の履歴を日付順で確認します。
+              予定 / 着用済み の履歴を日付順で確認します。
             </p>
           </div>
 
@@ -141,8 +142,8 @@ export default async function WearLogsPage({
                 className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               >
                 <option value="">すべて</option>
-                <option value="planned">planned</option>
-                <option value="worn">worn</option>
+                <option value="planned">{WEAR_LOG_STATUS_LABELS.planned}</option>
+                <option value="worn">{WEAR_LOG_STATUS_LABELS.worn}</option>
               </select>
             </div>
 
@@ -201,7 +202,7 @@ export default async function WearLogsPage({
               着用履歴がまだありません
             </h2>
             <p className="mt-2 text-sm text-gray-600">
-              planned / worn を登録して、日々の記録を残していきましょう。
+              予定 / 着用済み を登録して、日々の記録を残していきましょう。
             </p>
           </section>
         ) : data.wearLogs.length === 0 ? (
@@ -227,7 +228,7 @@ export default async function WearLogsPage({
                         ? "border-emerald-300 bg-emerald-50 text-emerald-700"
                         : "border-blue-300 bg-blue-50 text-blue-700"
                     }`}>
-                      {wearLog.status}
+                      {getWearLogStatusLabel(wearLog.status)}
                     </span>
                     <span className="text-sm text-gray-500">
                       {wearLog.event_date} / {wearLog.display_order}件目

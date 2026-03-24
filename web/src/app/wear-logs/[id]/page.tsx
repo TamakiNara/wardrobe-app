@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { fetchLaravelWithCookie } from "@/lib/server/laravel";
+import { getWearLogStatusLabel } from "@/lib/wear-logs/labels";
 import type { WearLogRecord } from "@/types/wear-logs";
 
 function getWearLogStatusBadgeClass(status: WearLogRecord["status"]): string {
@@ -59,7 +60,7 @@ export default async function WearLogDetailPage({
               <span
                 className={`rounded-full border px-3 py-1 text-sm font-medium ${getWearLogStatusBadgeClass(wearLog.status)}`}
               >
-                {wearLog.status}
+                {getWearLogStatusLabel(wearLog.status)}
               </span>
               <span className="text-sm text-gray-500">
                 {wearLog.event_date} / {wearLog.display_order}件目
@@ -89,7 +90,7 @@ export default async function WearLogDetailPage({
           <dl className="mt-4 grid gap-4 md:grid-cols-2">
             <div>
               <dt className="text-sm font-medium text-gray-700">状態</dt>
-              <dd className="mt-1 text-sm text-gray-600">{wearLog.status}</dd>
+              <dd className="mt-1 text-sm text-gray-600">{getWearLogStatusLabel(wearLog.status)}</dd>
             </div>
             <div>
               <dt className="text-sm font-medium text-gray-700">日付</dt>

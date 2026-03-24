@@ -72,7 +72,7 @@ describe("WearLogDetailPage", () => {
     );
 
     expect(markup).toContain("着用履歴詳細");
-    expect(markup).toContain("worn");
+    expect(markup).toContain("着用済み");
     expect(markup).toContain("2026-03-24");
     expect(markup).toContain("2件目");
     expect(markup).toContain("通勤コーディネート");

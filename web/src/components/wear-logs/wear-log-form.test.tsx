@@ -94,6 +94,12 @@ describe("WearLogForm", () => {
       await waitForEffects();
     });
 
+    expect(container.textContent).toContain("「必須」が付いた項目は登録に必要です。");
+    expect(container.textContent).toContain("状態");
+    expect(container.textContent).toContain("日付");
+    expect(container.textContent).toContain("アイテム");
+    expect(container.textContent?.match(/必須/g)?.length).toBe(4);
+
     const dateInput = container.querySelector<HTMLInputElement>('input[type="date"]');
     const checkbox = container.querySelector<HTMLInputElement>('input[type="checkbox"]');
     const submitButton = Array.from(container.querySelectorAll("button")).find((button) =>
@@ -188,6 +194,8 @@ describe("WearLogForm", () => {
       await waitForEffects();
     });
 
+    expect(container.textContent).toContain("「必須」が付いた項目は更新に必要です。");
+    expect(container.textContent?.match(/必須/g)?.length).toBe(4);
     expect(container.textContent).toContain(
       "現在は候補に使えないデータが含まれていますが、この記録の内容確認と更新は続けられます。",
     );
