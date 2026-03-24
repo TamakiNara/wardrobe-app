@@ -108,16 +108,16 @@ export default async function PurchaseCandidatesPage({
                 key={candidate.id}
                 className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm"
               >
-                <div className="aspect-[4/3] bg-gray-100">
+                <div className="flex aspect-[4/3] items-center justify-center bg-gray-50 p-3">
                   {candidate.primary_image?.url ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={candidate.primary_image.url}
                       alt={candidate.name}
-                      className="h-full w-full object-cover"
+                      className="h-full w-full object-contain"
                     />
                   ) : (
-                    <div className="flex h-full items-center justify-center text-sm text-gray-400">
+                    <div className="flex h-full w-full items-center justify-center rounded-xl border border-dashed border-gray-300 bg-white text-sm text-gray-400">
                       画像なし
                     </div>
                   )}

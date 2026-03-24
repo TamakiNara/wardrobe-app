@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import ColorChip from "@/components/items/color-chip";
 import ColorSelect from "@/components/items/color-select";
+import PurchaseCandidateImageUploader from "@/components/purchase-candidates/purchase-candidate-image-uploader";
 import { fetchCategoryGroups } from "@/lib/api/categories";
 import { fetchCategoryVisibilitySettings } from "@/lib/api/settings";
 import { ITEM_CATEGORIES } from "@/lib/master-data/item-shapes";
@@ -459,12 +460,6 @@ export default function PurchaseCandidateForm({
     setExistingImages((current) => current.filter((image) => image.id !== imageId));
   }
 
-  function handlePendingImageChange(event: ChangeEvent<HTMLInputElement>) {
-    const nextFiles = Array.from(event.target.files ?? []);
-    const remaining = Math.max(0, 5 - existingImages.length);
-    setPendingImages(nextFiles.slice(0, remaining));
-  }
-
   if (loading) {
     return (
       <section className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
@@ -855,67 +850,14 @@ export default function PurchaseCandidateForm({
             5枚まで登録できます。作成 / 更新後に追加画像を反映します。
           </p>
         </div>
-
-        {existingImages.length > 0 && (
-          <div className="grid gap-4 md:grid-cols-2">
-            {existingImages.map((image) => (
-              <article
-                key={image.id}
-                className="rounded-xl border border-gray-200 p-4"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium text-gray-900">
-                      {image.original_filename ?? "画像"}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      {image.sort_order}枚目{image.is_primary ? " / 代表画像" : ""}
-                    </p>
-                  </div>
-                  {mode === "edit" && (
-                    <button
-                      type="button"
-                      onClick={() => void handleDeleteImage(image.id)}
-                      className="text-sm font-medium text-red-600 hover:underline"
-                    >
-                      削除
-                    </button>
-                  )}
-                </div>
-
-                {image.url && (
-                  <div className="mt-3 flex aspect-[3/4] items-center justify-center rounded-lg bg-gray-50 p-2">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={image.url}
-                      alt={image.original_filename ?? "candidate image"}
-                      className="h-full w-full object-contain"
-                    />
-                  </div>
-                )}
-              </article>
-            ))}
-          </div>
-        )}
-
-        <div>
-          <label htmlFor="images" className="mb-1 block text-sm font-medium text-gray-700">
-            追加画像
-          </label>
-          <input
-            id="images"
-            type="file"
-            accept="image/png,image/jpeg,image/webp"
-            multiple
-            onChange={handlePendingImageChange}
-            className="block w-full text-sm text-gray-700 file:mr-4 file:rounded-lg file:border-0 file:bg-blue-50 file:px-4 file:py-2 file:text-sm file:font-medium file:text-blue-700 hover:file:bg-blue-100"
-          />
-          {pendingImages.length > 0 && (
-            <p className="mt-2 text-sm text-gray-600">
-              {pendingImages.length}枚を次回保存時に追加します。
-            </p>
-          )}
-        </div>
+        <PurchaseCandidateImageUploader
+          existingImages={existingImages}
+          pendingImages={pendingImages}
+          onPendingImagesChange={setPendingImages}
+          onDeleteExistingImage={mode === "edit" ? (imageId) => void handleDeleteImage(imageId) : undefined}
+          disabled={submitting}
+          helperText="一覧では代表画像を表示し、詳細や編集では画像全体を見やすく表示します。"
+        />
       </section>
 
       {(submitError || submitSuccess) && (

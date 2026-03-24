@@ -67,13 +67,37 @@ describe("PurchaseCandidatesPage", () => {
             price: 19800,
             converted_item_id: null,
             converted_at: null,
+            primary_image: {
+              id: 10,
+              purchase_candidate_id: 1,
+              disk: "public",
+              path: "purchase-candidates/1/front.png",
+              url: "http://localhost:8000/storage/purchase-candidates/1/front.png",
+              original_filename: "front.png",
+              mime_type: "image/png",
+              file_size: 1024,
+              sort_order: 1,
+              is_primary: true,
+            },
+            updated_at: "2026-03-24T10:00:00+09:00",
+          },
+          {
+            id: 2,
+            status: "on_hold",
+            priority: "low",
+            name: "画像なし候補",
+            category_id: "tops_tshirt",
+            category_name: "Tシャツ",
+            price: null,
+            converted_item_id: null,
+            converted_at: null,
             primary_image: null,
             updated_at: "2026-03-24T10:00:00+09:00",
           },
         ],
         meta: {
-          total: 1,
-          totalAll: 1,
+          total: 2,
+          totalAll: 2,
           page: 1,
           lastPage: 1,
         },
@@ -92,5 +116,7 @@ describe("PurchaseCandidatesPage", () => {
     expect(markup).toContain("19,800円");
     expect(markup).toContain("購入候補一覧");
     expect(markup).toContain('href="/purchase-candidates/1"');
+    expect(markup).toContain('src="http://localhost:8000/storage/purchase-candidates/1/front.png"');
+    expect(markup).toContain("画像なし");
   });
 });

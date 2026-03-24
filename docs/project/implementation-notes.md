@@ -53,6 +53,8 @@ purchase_candidates の仕様正本を確認するときは `docs/specs/purchase
 - MVP として candidate 保存・画像管理・item draft 導線まで実装済み
 - item 側では `brand_name / price / purchase_url / purchased_at / size_* / is_rain_ok / item_images` の受け皿まで実装済み
 - candidate 由来画像は item 保存時に item 用保存先へ物理コピーし、`item_images` にはコピー先の `disk + path` を保存する
+- purchase_candidates の画像追加 UI は file select / drag & drop / paste に対応済み
+- purchase_candidates 一覧では代表画像、詳細・編集では画像全体確認を優先する表示へ整理済み
 - 比較ロジックの詳細、item 保存成功時の `purchased` 反映、item 側画像 upload / delete UI は後続検討とする
 
 直近または中期 TODO:
