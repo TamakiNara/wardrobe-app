@@ -1404,6 +1404,7 @@ components:
       description: |
         field 単位の `errors` を持たない 422 response。
         業務ルール違反や認証失敗など、message のみで補助説明を返す。
+        current API では競合系も原則 409 ではなく 422 に寄せ、この schema を使う。
       type: object
       required:
         - message
