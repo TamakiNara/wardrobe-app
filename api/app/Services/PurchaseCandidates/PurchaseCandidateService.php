@@ -48,6 +48,22 @@ class PurchaseCandidateService
     public function update(User $user, int $candidateId, array $validated): PurchaseCandidate
     {
         $candidate = $this->findOwnedCandidate($user, $candidateId);
+
+        if ($candidate->status === 'purchased') {
+            return DB::transaction(function () use ($candidate, $validated) {
+                $candidate->update([
+                    'priority' => $validated['priority'] ?? $candidate->priority,
+                    'sale_price' => array_key_exists('sale_price', $validated) ? $validated['sale_price'] : $candidate->sale_price,
+                    'sale_ends_at' => array_key_exists('sale_ends_at', $validated) ? $validated['sale_ends_at'] : $candidate->sale_ends_at,
+                    'purchase_url' => array_key_exists('purchase_url', $validated) ? $validated['purchase_url'] : $candidate->purchase_url,
+                    'memo' => array_key_exists('memo', $validated) ? $validated['memo'] : $candidate->memo,
+                    'wanted_reason' => array_key_exists('wanted_reason', $validated) ? $validated['wanted_reason'] : $candidate->wanted_reason,
+                ]);
+
+                return $candidate->fresh()->load(['category', 'colors', 'seasons', 'tpos', 'images']);
+            });
+        }
+
         $this->validatePayload($validated);
 
         return DB::transaction(function () use ($candidate, $validated) {
@@ -246,6 +262,13 @@ class PurchaseCandidateService
     public function buildItemDraft(User $user, int $candidateId): array
     {
         $candidate = $this->findOwnedCandidate($user, $candidateId);
+
+        if ($candidate->status === 'purchased') {
+            throw ValidationException::withMessages([
+                'status' => '購入済みの購入検討からはアイテム作成初期値を生成できません。',
+            ]);
+        }
+
         $draft = \App\Support\PurchaseCandidatePayloadBuilder::buildItemDraft($candidate);
 
         if ($draft === []) {

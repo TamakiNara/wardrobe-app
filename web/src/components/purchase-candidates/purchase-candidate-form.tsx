@@ -157,6 +157,7 @@ export default function PurchaseCandidateForm({
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const isPurchasedLocked = mode === "edit" && status === "purchased";
 
   const selectedMainColor = useMemo(() => {
     if (useCustomMainColor) {
@@ -281,6 +282,17 @@ export default function PurchaseCandidateForm({
   }
 
   function buildPayload(): PurchaseCandidateUpsertPayload {
+    if (isPurchasedLocked) {
+      return {
+        priority,
+        sale_price: salePrice === "" ? null : Number(salePrice),
+        sale_ends_at: saleEndsAt === "" ? null : saleEndsAt,
+        purchase_url: normalizeNullableString(purchaseUrl) || null,
+        memo: memo.trim() || null,
+        wanted_reason: wantedReason.trim() || null,
+      } as PurchaseCandidateUpsertPayload;
+    }
+
     const colors: PurchaseCandidateUpsertPayload["colors"] = [];
 
     if (selectedMainColor) {
@@ -328,23 +340,23 @@ export default function PurchaseCandidateForm({
   function validateForm() {
     const nextErrors: Record<string, string> = {};
 
-    if (!name.trim()) {
+    if (!isPurchasedLocked && !name.trim()) {
       nextErrors.name = "名前を入力してください。";
     }
 
-    if (!categoryId) {
+    if (!isPurchasedLocked && !categoryId) {
       nextErrors.category_id = "カテゴリを選択してください。";
     }
 
-    if (!selectedMainColor) {
+    if (!isPurchasedLocked && !selectedMainColor) {
       nextErrors.colors = "メインカラーを選択してください。";
     }
 
-    if (useCustomMainColor && !isValidHexColor(customMainHex)) {
+    if (!isPurchasedLocked && useCustomMainColor && !isValidHexColor(customMainHex)) {
       nextErrors.colors = "メインカラーのカラーコードを #RRGGBB 形式で入力してください。";
     }
 
-    if (useCustomSubColor && !isValidHexColor(customSubHex)) {
+    if (!isPurchasedLocked && useCustomSubColor && !isValidHexColor(customSubHex)) {
       nextErrors.sub_color = "サブカラーのカラーコードを #RRGGBB 形式で入力してください。";
     }
 
@@ -409,7 +421,7 @@ export default function PurchaseCandidateForm({
       }
 
       if (!response.ok) {
-        setSubmitError(data?.message ?? "保存に失敗しました。");
+        setSubmitError(extractFirstErrorMessage(data, "保存に失敗しました。"));
         if (data?.errors && typeof data.errors === "object") {
           const flattenedErrors: Record<string, string> = {};
           for (const [key, value] of Object.entries(data.errors)) {
@@ -485,6 +497,11 @@ export default function PurchaseCandidateForm({
       <section className="space-y-4">
         <h2 className="text-lg font-semibold text-gray-900">基本情報</h2>
         <p className="text-sm text-gray-500">「必須」が付いた項目は登録に必要です。</p>
+        {isPurchasedLocked && (
+          <p className="text-sm text-amber-700">
+            購入済みの購入検討では、メモ・欲しい理由・優先度・セール情報・購入 URL・画像のみ更新できます。アイテムには反映されません。
+          </p>
+        )}
 
         <div className="grid gap-4 md:grid-cols-2">
           <div>
@@ -493,6 +510,7 @@ export default function PurchaseCandidateForm({
               id="status"
               value={status}
               onChange={(event) => setStatus(event.target.value as PurchaseCandidateStatus)}
+              disabled={isPurchasedLocked}
               className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             >
               <option value="considering">{PURCHASE_CANDIDATE_STATUS_LABELS.considering}</option>
@@ -524,6 +542,7 @@ export default function PurchaseCandidateForm({
             type="text"
             value={name}
             onChange={(event) => setName(event.target.value)}
+            disabled={isPurchasedLocked}
             className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors.name ? "border-red-400" : "border-gray-300"}`}
           />
           {errors.name && <p className="mt-2 text-sm text-red-600">{errors.name}</p>}
@@ -535,6 +554,7 @@ export default function PurchaseCandidateForm({
             id="category_id"
             value={categoryId}
             onChange={(event) => setCategoryId(event.target.value)}
+            disabled={isPurchasedLocked}
             className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors.category_id ? "border-red-400" : "border-gray-300"}`}
           >
             <option value="">選択してください</option>
@@ -561,6 +581,7 @@ export default function PurchaseCandidateForm({
               type="text"
               value={brandName}
               onChange={(event) => setBrandName(event.target.value)}
+              disabled={isPurchasedLocked}
               className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             />
           </div>
@@ -576,6 +597,7 @@ export default function PurchaseCandidateForm({
                 min="0"
                 value={price}
                 onChange={(event) => setPrice(event.target.value)}
+                disabled={isPurchasedLocked}
                 className="w-full rounded-lg bg-transparent px-4 py-3 text-gray-900 outline-none"
               />
               <span className="text-sm text-gray-500">円</span>
@@ -667,6 +689,7 @@ export default function PurchaseCandidateForm({
               id="size_gender"
               value={sizeGender}
               onChange={(event) => setSizeGender(event.target.value as typeof sizeGender)}
+              disabled={isPurchasedLocked}
               className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             >
               <option value="">未設定</option>
@@ -686,6 +709,7 @@ export default function PurchaseCandidateForm({
               type="text"
               value={sizeLabel}
               onChange={(event) => setSizeLabel(event.target.value)}
+              disabled={isPurchasedLocked}
               className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             />
           </div>
@@ -695,6 +719,7 @@ export default function PurchaseCandidateForm({
               type="checkbox"
               checked={isRainOk}
               onChange={(event) => setIsRainOk(event.target.checked)}
+              disabled={isPurchasedLocked}
               className="h-4 w-4 rounded border-gray-300 text-blue-600"
             />
             雨対応
@@ -709,6 +734,7 @@ export default function PurchaseCandidateForm({
             id="size_note"
             value={sizeNote}
             onChange={(event) => setSizeNote(event.target.value)}
+            disabled={isPurchasedLocked}
             rows={3}
             className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
           />
@@ -727,6 +753,7 @@ export default function PurchaseCandidateForm({
                   type="checkbox"
                   aria-label="メインカラーをカラーコードで入力"
                   checked={useCustomMainColor}
+                  disabled={isPurchasedLocked}
                   onChange={(event) => {
                     setUseCustomMainColor(event.target.checked);
                     if (event.target.checked) {
@@ -745,6 +772,7 @@ export default function PurchaseCandidateForm({
                     aria-label="メインカラーコードカラーピッカー"
                     value={customMainHex}
                     onChange={(event) => setCustomMainHex(event.target.value)}
+                    disabled={isPurchasedLocked}
                     className="h-10 w-14 cursor-pointer rounded border border-gray-300 bg-white p-1"
                   />
                   <input
@@ -752,6 +780,7 @@ export default function PurchaseCandidateForm({
                     aria-label="メインカラーコード"
                     value={customMainHex}
                     onChange={(event) => setCustomMainHex(event.target.value)}
+                    disabled={isPurchasedLocked}
                     className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors.colors ? "border-red-400" : "border-gray-300"}`}
                   />
                 </div>
@@ -760,6 +789,7 @@ export default function PurchaseCandidateForm({
                   value={mainColor}
                   onChange={setMainColor}
                   placeholder="メインカラーを選択"
+                  disabled={isPurchasedLocked}
                 />
               )}
             </div>
@@ -772,6 +802,7 @@ export default function PurchaseCandidateForm({
                   type="checkbox"
                   aria-label="サブカラーをカラーコードで入力"
                   checked={useCustomSubColor}
+                  disabled={isPurchasedLocked}
                   onChange={(event) => {
                     setUseCustomSubColor(event.target.checked);
                     if (event.target.checked) {
@@ -790,6 +821,7 @@ export default function PurchaseCandidateForm({
                     aria-label="サブカラーコードカラーピッカー"
                     value={customSubHex}
                     onChange={(event) => setCustomSubHex(event.target.value)}
+                    disabled={isPurchasedLocked}
                     className="h-10 w-14 cursor-pointer rounded border border-gray-300 bg-white p-1"
                   />
                   <input
@@ -797,6 +829,7 @@ export default function PurchaseCandidateForm({
                     aria-label="サブカラーコード"
                     value={customSubHex}
                     onChange={(event) => setCustomSubHex(event.target.value)}
+                    disabled={isPurchasedLocked}
                     className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors.sub_color ? "border-red-400" : "border-gray-300"}`}
                   />
                 </div>
@@ -806,6 +839,7 @@ export default function PurchaseCandidateForm({
                   onChange={setSubColor}
                   placeholder="サブカラーを選択"
                   emptyOptionLabel="未設定"
+                  disabled={isPurchasedLocked}
                 />
               )}
             </div>
@@ -836,6 +870,7 @@ export default function PurchaseCandidateForm({
                   type="button"
                   aria-pressed={checked}
                   onClick={() => toggleSeason(option)}
+                  disabled={isPurchasedLocked}
                   className={`rounded-lg border px-3 py-2 text-sm transition ${
                     checked
                       ? "border-blue-500 bg-blue-50 text-blue-700"
@@ -860,6 +895,7 @@ export default function PurchaseCandidateForm({
                   type="button"
                   aria-pressed={checked}
                   onClick={() => toggleValue(option, selectedTpos, setSelectedTpos)}
+                  disabled={isPurchasedLocked}
                   className={`rounded-lg border px-3 py-2 text-sm transition ${
                     checked
                       ? "border-blue-500 bg-blue-50 text-blue-700"

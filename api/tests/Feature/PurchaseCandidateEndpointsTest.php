@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\CategoryMaster;
 use App\Models\CategoryGroup;
+use App\Models\Item;
 use App\Models\PurchaseCandidate;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -462,6 +463,143 @@ class PurchaseCandidateEndpointsTest extends TestCase
         $this->assertSame($beforeCount, PurchaseCandidate::query()->count());
         $this->assertSame(1, DB::table('purchase_candidates')->count());
         $this->assertSame(1, DB::table('purchase_candidate_images')->count());
+    }
+
+    public function test_put_purchased_purchase_candidate_updates_only_allowed_fields(): void
+    {
+        $user = User::factory()->create();
+        $candidate = $this->createCandidate($user, [
+            'status' => 'purchased',
+            'converted_at' => '2026-03-25 12:00:00',
+        ]);
+
+        $item = Item::factory()->create([
+            'user_id' => $user->id,
+            'name' => '変換済みアイテム',
+        ]);
+        $candidate->forceFill([
+            'converted_item_id' => $item->id,
+        ])->save();
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $response = $this->putJson("/api/purchase-candidates/{$candidate->id}", [
+            'priority' => 'low',
+            'sale_price' => 9900,
+            'sale_ends_at' => '2026-04-30T12:00:00+09:00',
+            'purchase_url' => 'https://example.test/products/purchased',
+            'memo' => '購入後メモ',
+            'wanted_reason' => '購入履歴の補足',
+        ], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('message', 'updated')
+            ->assertJsonPath('purchaseCandidate.status', 'purchased')
+            ->assertJsonPath('purchaseCandidate.priority', 'low')
+            ->assertJsonPath('purchaseCandidate.sale_price', 9900)
+            ->assertJsonPath('purchaseCandidate.memo', '購入後メモ')
+            ->assertJsonPath('purchaseCandidate.converted_item_id', $item->id);
+
+        $this->assertDatabaseHas('purchase_candidates', [
+            'id' => $candidate->id,
+            'status' => 'purchased',
+            'priority' => 'low',
+            'sale_price' => 9900,
+            'name' => 'ネイビーのレインコート',
+            'converted_item_id' => $item->id,
+        ]);
+    }
+
+    public function test_put_purchased_purchase_candidate_rejects_locked_fields(): void
+    {
+        $user = User::factory()->create();
+        $candidate = $this->createCandidate($user, [
+            'status' => 'purchased',
+        ]);
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $response = $this->putJson("/api/purchase-candidates/{$candidate->id}", [
+            'name' => '変更不可',
+            'category_id' => 'tops_shirt',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'gray',
+                'hex' => '#cccccc',
+                'label' => 'グレー',
+            ]],
+        ], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonPath('errors.name.0', '購入済みの購入検討では変更できません。')
+            ->assertJsonPath('errors.category_id.0', '購入済みの購入検討では変更できません。')
+            ->assertJsonPath('errors.colors.0', '購入済みの購入検討では変更できません。');
+
+        $this->assertDatabaseHas('purchase_candidates', [
+            'id' => $candidate->id,
+            'name' => 'ネイビーのレインコート',
+            'category_id' => 'outer_coat',
+        ]);
+    }
+
+    public function test_put_purchased_purchase_candidate_does_not_change_converted_item(): void
+    {
+        $user = User::factory()->create();
+        $item = Item::factory()->create([
+            'user_id' => $user->id,
+            'name' => '変換済みアイテム',
+            'brand_name' => 'Original Brand',
+        ]);
+        $candidate = $this->createCandidate($user, [
+            'status' => 'purchased',
+            'converted_item_id' => $item->id,
+            'converted_at' => '2026-03-25 12:00:00',
+        ]);
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $this->putJson("/api/purchase-candidates/{$candidate->id}", [
+            'memo' => 'candidate 側だけ更新',
+            'purchase_url' => 'https://example.test/purchased-only',
+        ], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ])->assertOk();
+
+        $item->refresh();
+        $this->assertSame('変換済みアイテム', $item->name);
+        $this->assertSame('Original Brand', $item->brand_name);
+        $this->assertSame($item->id, $candidate->fresh()->converted_item_id);
+        $this->assertNotNull($candidate->fresh()->converted_at);
+    }
+
+    public function test_post_purchase_candidate_item_draft_is_not_available_for_purchased_candidate(): void
+    {
+        $user = User::factory()->create();
+        $candidate = $this->createCandidate($user, [
+            'status' => 'purchased',
+        ]);
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $response = $this->postJson("/api/purchase-candidates/{$candidate->id}/item-draft", [], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonPath('errors.status.0', '購入済みの購入検討からはアイテム作成初期値を生成できません。');
     }
 
     public function test_purchase_candidate_item_draft_can_flow_into_item_create(): void

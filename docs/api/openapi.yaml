@@ -1102,6 +1102,9 @@ paths:
       description: |
         purchase candidate の状態、優先度、比較用属性を更新する。
         dropped は見送り状態であり DELETE とは別に扱う。
+        `purchased` の candidate は item 化済み履歴として扱い、
+        `memo` / `wanted_reason` / `priority` / `sale_price` / `sale_ends_at` / `purchase_url` だけ更新できる。
+        それ以外の項目を含む payload は 422 を返し、candidate 側の更新は item 正本へ逆流しない。
       security:
         - SessionCookieAuth: []
       parameters:
@@ -1125,7 +1128,7 @@ paths:
         '404':
           description: 未検出（対象なし・他人データ秘匿を含む）
         '422':
-          description: バリデーションエラー
+          description: バリデーションエラー。`purchased` の candidate に更新不可項目を含めた場合もこの response を返す
           content:
             application/json:
               schema:
@@ -1227,6 +1230,7 @@ paths:
         指定 purchase candidate を元に、新しい purchase candidate record を 1 件作成する。
         status は常に `considering` へ戻し、colors / seasons / tpos / images も引き継ぐ。
         画像は record 共有ではなく、新 candidate 用保存先へ物理コピーする。
+        元 candidate の status が `purchased` / `dropped` でも複製は許可する。
       security:
         - SessionCookieAuth: []
       parameters:
@@ -1260,6 +1264,7 @@ paths:
         保存済み item を返す API ではない。
         candidate に登録済みの全画像を引き継ぎ、sort_order と is_primary も維持する。
         item 保存成功時の candidate `purchased` 更新と converted 情報の保存は、item create 側で処理する。
+        `purchased` の candidate では item 化済み履歴として扱うため、この API は利用しない。
       security:
         - SessionCookieAuth: []
       parameters:
@@ -1276,6 +1281,12 @@ paths:
           description: 未認証
         '404':
           description: 未検出（対象なし・他人データ秘匿を含む）
+        '422':
+          description: item-draft を生成できないカテゴリ、または `purchased` candidate に対する生成要求
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
 
 
 components:
@@ -2653,6 +2664,8 @@ components:
       description: |
         purchase_candidates の通常作成 / 更新 payload。
         比較結果の詳細は request に含めず、候補の基本情報と比較用属性を保存する。
+        ただし `purchased` の candidate 更新では endpoint 側で許可項目を絞り、
+        `memo` / `wanted_reason` / `priority` / `sale_price` / `sale_ends_at` / `purchase_url` だけ受け付ける。
       required:
         - name
         - category_id

@@ -146,19 +146,32 @@ export default async function PurchaseCandidateDetailPage({
           <div className="space-y-6">
             <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
               <h2 className="text-lg font-semibold text-gray-900">アイテム追加</h2>
-              <p className="mt-2 text-sm text-gray-600">
-                現在の候補内容からアイテム作成画面の初期値を生成します。
-              </p>
-              <div className="mt-4">
-                <PurchaseCandidateItemDraftAction
-                  candidateId={candidate.id}
-                  convertedItemId={candidate.converted_item_id}
-                />
-              </div>
-              {candidate.converted_item_id !== null && (
-                <p className="mt-3 text-sm text-emerald-700">
-                  この候補はアイテム化済みです。必要なら初期値を再生成できます。
-                </p>
+              {candidate.status === "purchased" ? (
+                <>
+                  <p className="mt-2 text-sm text-gray-600">
+                    この購入検討はアイテム化済みの履歴です。購入検討側の更新はアイテムへ反映されません。
+                  </p>
+                  <p className="mt-3 text-sm text-emerald-700">
+                    新しく検討を続ける場合は「複製する」を使ってください。
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="mt-2 text-sm text-gray-600">
+                    現在の候補内容からアイテム作成画面の初期値を生成します。
+                  </p>
+                  <div className="mt-4">
+                    <PurchaseCandidateItemDraftAction
+                      candidateId={candidate.id}
+                      convertedItemId={candidate.converted_item_id}
+                    />
+                  </div>
+                  {candidate.converted_item_id !== null && (
+                    <p className="mt-3 text-sm text-emerald-700">
+                      この候補はアイテム化済みです。必要なら初期値を再生成できます。
+                    </p>
+                  )}
+                </>
               )}
             </section>
 

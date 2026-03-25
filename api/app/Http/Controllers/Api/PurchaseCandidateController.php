@@ -8,6 +8,7 @@ use App\Support\PurchaseCandidatePayloadBuilder;
 use App\Support\PurchaseCandidatesIndexQuery;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class PurchaseCandidateController extends Controller
 {
@@ -32,7 +33,7 @@ class PurchaseCandidateController extends Controller
 
     public function store(Request $request): JsonResponse
     {
-        $validated = $this->validateRequest($request);
+        $validated = $this->validateStoreRequest($request);
         $candidate = $this->purchaseCandidateService->store($request->user(), $validated);
 
         return response()->json([
@@ -43,7 +44,8 @@ class PurchaseCandidateController extends Controller
 
     public function update(Request $request, int $id): JsonResponse
     {
-        $validated = $this->validateRequest($request);
+        $candidate = $this->purchaseCandidateService->findOwnedCandidate($request->user(), $id);
+        $validated = $this->validateUpdateRequest($request, $candidate);
         $candidate = $this->purchaseCandidateService->update($request->user(), $id, $validated);
 
         return response()->json([
@@ -120,7 +122,7 @@ class PurchaseCandidateController extends Controller
         );
     }
 
-    private function validateRequest(Request $request): array
+    private function validateStoreRequest(Request $request): array
     {
         return $request->validate([
             'status' => ['nullable', 'string', 'in:considering,on_hold,purchased,dropped'],
@@ -149,5 +151,52 @@ class PurchaseCandidateController extends Controller
             'tpos' => ['nullable', 'array'],
             'tpos.*' => ['string', 'max:50'],
         ]);
+    }
+
+    private function validateUpdateRequest(Request $request, \App\Models\PurchaseCandidate $candidate): array
+    {
+        if ($candidate->status === 'purchased') {
+            $this->ensurePurchasedUpdatePayloadContainsOnlyEditableFields($request);
+
+            return $request->validate([
+                'priority' => ['nullable', 'string', 'in:high,medium,low'],
+                'sale_price' => ['nullable', 'integer', 'min:0'],
+                'sale_ends_at' => ['nullable', 'date'],
+                'purchase_url' => ['nullable', 'url'],
+                'memo' => ['nullable', 'string'],
+                'wanted_reason' => ['nullable', 'string'],
+            ]);
+        }
+
+        return $this->validateStoreRequest($request);
+    }
+
+    private function ensurePurchasedUpdatePayloadContainsOnlyEditableFields(Request $request): void
+    {
+        $forbiddenFields = [
+            'status',
+            'name',
+            'category_id',
+            'brand_name',
+            'price',
+            'size_gender',
+            'size_label',
+            'size_note',
+            'is_rain_ok',
+            'colors',
+            'seasons',
+            'tpos',
+        ];
+
+        $messages = [];
+        foreach ($forbiddenFields as $field) {
+            if ($request->exists($field)) {
+                $messages[$field] = '購入済みの購入検討では変更できません。';
+            }
+        }
+
+        if ($messages !== []) {
+            throw ValidationException::withMessages($messages);
+        }
     }
 }

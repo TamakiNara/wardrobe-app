@@ -92,4 +92,49 @@ describe("PurchaseCandidateDetailPage", () => {
     expect(markup).toContain("duplicate-action");
     expect(markup).toContain('href="/purchase-candidates/10/edit"');
   });
+
+  it("購入済みの購入検討では item-draft 導線を出さず複製導線を維持する", async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        purchaseCandidate: {
+          id: 11,
+          status: "purchased",
+          priority: "medium",
+          name: "購入済み候補",
+          category_id: "outer_coat",
+          category_name: "コート",
+          brand_name: "Brand",
+          price: 14800,
+          sale_price: null,
+          sale_ends_at: null,
+          purchase_url: "https://example.test",
+          memo: "メモ",
+          wanted_reason: "理由",
+          size_gender: "women",
+          size_label: "M",
+          size_note: "厚手対応",
+          is_rain_ok: true,
+          converted_item_id: 55,
+          converted_at: "2026-03-25T10:00:00+09:00",
+          colors: [{ role: "main", mode: "preset", value: "navy", hex: "#1F3A5F", label: "ネイビー" }],
+          seasons: ["春"],
+          tpos: ["仕事"],
+          images: [],
+          created_at: "2026-03-24T10:00:00+09:00",
+          updated_at: "2026-03-24T10:00:00+09:00",
+        },
+      }),
+    });
+
+    const { default: PurchaseCandidateDetailPage } = await import("./page");
+    const markup = renderToStaticMarkup(
+      await PurchaseCandidateDetailPage({ params: Promise.resolve({ id: "11" }) }),
+    );
+
+    expect(markup).toContain("購入済みの購入検討");
+    expect(markup).toContain("duplicate-action");
+    expect(markup).not.toContain("item-draft-action");
+  });
 });

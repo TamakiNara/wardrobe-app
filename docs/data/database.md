@@ -70,6 +70,7 @@ wear logs も本資料の対象とし、その保存方針を定義します。
 - candidate から item へは既存 record を変換せず、新規 item 作成で昇格する
 - current 実装では、`purchase_candidate_id` 付きの item 作成成功時に `status=purchased`、`converted_item_id`、`converted_at` を更新する
 - current 実装では、candidate 複製時に画像も新 candidate 用保存先へ物理コピーして別 record として保持する
+- current 実装では、`purchased` の candidate 更新は履歴メモ用途に限定し、item 側の正本は更新しない
 
 ### `purchase_candidate_colors`
 

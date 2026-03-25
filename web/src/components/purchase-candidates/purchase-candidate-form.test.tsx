@@ -72,11 +72,11 @@ describe("PurchaseCandidateForm", () => {
     vi.unstubAllGlobals();
   });
 
-  async function renderForm() {
+  async function renderForm(props?: { mode?: "create" | "edit"; candidateId?: string }) {
     const { default: PurchaseCandidateForm } = await import("./purchase-candidate-form");
 
     await act(async () => {
-      root.render(React.createElement(PurchaseCandidateForm, { mode: "create" }));
+      root.render(React.createElement(PurchaseCandidateForm, { mode: "create", ...props }));
     });
 
     await act(async () => {
@@ -85,12 +85,14 @@ describe("PurchaseCandidateForm", () => {
   }
 
   function setNativeValue(
-    element: HTMLInputElement | HTMLSelectElement,
+    element: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement,
     value: string,
   ) {
     const prototype = element instanceof HTMLSelectElement
       ? HTMLSelectElement.prototype
-      : HTMLInputElement.prototype;
+      : element instanceof HTMLTextAreaElement
+        ? HTMLTextAreaElement.prototype
+        : HTMLInputElement.prototype;
     const descriptor = Object.getOwnPropertyDescriptor(prototype, "value");
     descriptor?.set?.call(element, value);
     element.dispatchEvent(new Event("input", { bubbles: true }));
@@ -192,5 +194,102 @@ describe("PurchaseCandidateForm", () => {
 
     expect(summerButton.getAttribute("aria-pressed")).toBe("true");
     expect(allSeasonButton.getAttribute("aria-pressed")).toBe("false");
+  });
+
+  it("購入済みの購入検討では編集可能項目だけ送信する", async () => {
+    fetchMock
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          purchaseCandidate: {
+            id: 12,
+            status: "purchased",
+            priority: "medium",
+            name: "購入済み候補",
+            category_id: "outer_coat",
+            category_name: "コート",
+            brand_name: "Brand",
+            price: 14800,
+            sale_price: 12800,
+            sale_ends_at: "2026-03-31T18:00:00+09:00",
+            purchase_url: "https://example.test/products/1",
+            memo: "既存メモ",
+            wanted_reason: "既存理由",
+            size_gender: "women",
+            size_label: "M",
+            size_note: "厚手対応",
+            is_rain_ok: true,
+            converted_item_id: 99,
+            converted_at: "2026-03-25T10:00:00+09:00",
+            colors: [{ role: "main", mode: "preset", value: "navy", hex: "#1F3A5F", label: "ネイビー" }],
+            seasons: ["春"],
+            tpos: ["仕事"],
+            images: [],
+            created_at: "2026-03-24T10:00:00+09:00",
+            updated_at: "2026-03-24T10:00:00+09:00",
+          },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          purchaseCandidate: {
+            id: 12,
+          },
+        }),
+      });
+
+    await renderForm({ mode: "edit", candidateId: "12" });
+
+    const nameInput = container.querySelector("#name") as HTMLInputElement;
+    const categorySelect = container.querySelector("#category_id") as HTMLSelectElement;
+    const priceInput = container.querySelector("#price") as HTMLInputElement;
+    const salePriceInput = container.querySelector("#sale_price") as HTMLInputElement;
+    const saleEndsAtInput = container.querySelector("#sale_ends_at") as HTMLInputElement;
+    const purchaseUrlInput = container.querySelector("#purchase_url") as HTMLInputElement;
+    const wantedReasonTextarea = container.querySelector("#wanted_reason") as HTMLTextAreaElement;
+    const memoTextarea = container.querySelector("#memo") as HTMLTextAreaElement;
+
+    expect(container.textContent).toContain("購入済みの購入検討では、メモ・欲しい理由・優先度・セール情報・購入 URL・画像のみ更新できます。");
+    expect(nameInput.disabled).toBe(true);
+    expect(categorySelect.disabled).toBe(true);
+    expect(priceInput.disabled).toBe(true);
+    expect(salePriceInput.disabled).toBe(false);
+    expect(saleEndsAtInput.disabled).toBe(false);
+    expect(purchaseUrlInput.disabled).toBe(false);
+    expect(wantedReasonTextarea.disabled).toBe(false);
+    expect(memoTextarea.disabled).toBe(false);
+
+    await act(async () => {
+      setNativeValue(salePriceInput, "9900");
+      setNativeValue(saleEndsAtInput, "2026-04-30T12:00");
+      setNativeValue(purchaseUrlInput, "https://example.test/purchased");
+      setNativeValue(memoTextarea, "更新メモ");
+      setNativeValue(wantedReasonTextarea, "更新理由");
+    });
+
+    const form = container.querySelector("form") as HTMLFormElement;
+
+    await act(async () => {
+      form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    const [, requestInit] = fetchMock.mock.calls[1];
+    const payload = JSON.parse(requestInit.body as string);
+
+    expect(payload).toEqual({
+      priority: "medium",
+      sale_price: 9900,
+      sale_ends_at: "2026-04-30T12:00",
+      purchase_url: "https://example.test/purchased",
+      memo: "更新メモ",
+      wanted_reason: "更新理由",
+    });
+    expect(payload.name).toBeUndefined();
+    expect(payload.category_id).toBeUndefined();
+    expect(payload.colors).toBeUndefined();
   });
 });
