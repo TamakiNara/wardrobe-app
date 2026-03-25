@@ -698,6 +698,7 @@ MVP では snapshot を持たず、最終的な item 群と参照先 current dat
 - item を指定した場合、保存時は最終的な item 群を `wear_log_items` に持つ
 - MVP では snapshot カラムは持たない
 - `disposed` item や `invalid` outfit は新規登録・更新時の候補から除外する
+- 編集時は、既存 record に含まれる現在候補外の item / outfit を同一 record の再保存に限り保持できる
 - `current status` は履歴の主表示ではなく補助情報として扱う
 - 詳細は `docs/specs/wears/wear-logs.md` を参照
 

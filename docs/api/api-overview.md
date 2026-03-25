@@ -144,7 +144,9 @@
 
 - 一覧 / 詳細 / 登録 / 更新 / 削除を揃え、一覧 → 詳細 → 編集の責務分離で扱う
 - `source_outfit_id` は「ベースにした outfit」を表し、最終的な item 構成は `items` を正本とする
+- `items` は空配列を含めて常に送信し、保存時は UI 上の最終順序に従って `sort_order` を連番で再採番する
 - `item_source_type` は `outfit` / `manual`
+- `invalid outfit` / `disposed item` は新規候補から除外しつつ、編集時は既存 record に含まれる候補外データを同一 record の再保存に限り保持できる
 - `current status` は履歴の主表示ではなく補助情報として扱う
 - 詳細仕様は [`../specs/wears/wear-logs.md`](../specs/wears/wear-logs.md) を参照
 - DB 保存方針は [`../data/database.md`](../data/database.md) を参照

@@ -855,6 +855,7 @@ paths:
       summary: wear log 作成
       description: |
         source_outfit_id のみ、items のみ、両方指定のいずれも許可する。
+        items は空配列を含めて常に指定する。
       requestBody:
         required: true
         content:
@@ -2177,6 +2178,9 @@ components:
           example: 雨だったので1枚追加
         items:
           type: array
+          description: |
+            空配列を含めて必ず指定する。
+            保存時は UI 上の最終順序に従って sort_order を連番で扱う。
           items:
             $ref: '#/components/schemas/WearLogItemUpsert'
 
