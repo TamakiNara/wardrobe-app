@@ -204,11 +204,13 @@ paths:
               schema:
                 $ref: '#/components/schemas/LoginResponse'
         '422':
-          description: 認証失敗またはバリデーションエラー
+          description: 認証失敗またはバリデーションエラー。認証失敗は message only、入力不備は errors を含む
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ValidationErrorResponse'
+                oneOf:
+                  - $ref: '#/components/schemas/UnprocessableEntityMessageResponse'
+                  - $ref: '#/components/schemas/ValidationErrorResponse'
 
   /api/me:
     get:
@@ -301,11 +303,13 @@ paths:
         '401':
           description: 未認証
         '422':
-          description: バリデーションエラー
+          description: バリデーションエラーまたは業務ルール違反。field error がある場合は errors を含み、無効カテゴリなどの業務ルール違反は message only を返す
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ValidationErrorResponse'
+                oneOf:
+                  - $ref: '#/components/schemas/ValidationErrorResponse'
+                  - $ref: '#/components/schemas/UnprocessableEntityMessageResponse'
 
   /api/items:
     get:
@@ -356,11 +360,13 @@ paths:
         '401':
           description: 未認証
         '422':
-          description: バリデーションエラー
+          description: バリデーションエラーまたは業務ルール違反。更新項目なしは message only、field 単位の不備は errors を含む
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ValidationErrorResponse'
+                oneOf:
+                  - $ref: '#/components/schemas/ValidationErrorResponse'
+                  - $ref: '#/components/schemas/UnprocessableEntityMessageResponse'
 
   /api/items/{id}:
     get:
@@ -409,11 +415,13 @@ paths:
         '404':
           description: 未検出
         '422':
-          description: バリデーションエラー
+          description: バリデーションエラーまたは業務ルール違反。field 単位の不備は errors を含み、選択 item 不正などは message only を返す
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ValidationErrorResponse'
+                oneOf:
+                  - $ref: '#/components/schemas/ValidationErrorResponse'
+                  - $ref: '#/components/schemas/UnprocessableEntityMessageResponse'
     delete:
       tags:
         - Items
@@ -491,11 +499,13 @@ paths:
         '404':
           description: 未検出
         '422':
-          description: バリデーションエラー
+          description: バリデーションエラーまたは業務ルール違反。field 単位の不備は errors を含み、選択 item 不正などは message only を返す
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ValidationErrorResponse'
+                oneOf:
+                  - $ref: '#/components/schemas/ValidationErrorResponse'
+                  - $ref: '#/components/schemas/UnprocessableEntityMessageResponse'
 
   /api/items/{id}/images/{imageId}:
     delete:
@@ -767,11 +777,13 @@ paths:
         '404':
           description: 未検出
         '422':
-          description: 復帰不可またはバリデーションエラー
+          description: 復帰不可またはバリデーションエラー。復帰不可は message only、field 単位の不備がある場合は errors を含む
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ValidationErrorResponse'
+                oneOf:
+                  - $ref: '#/components/schemas/UnprocessableEntityMessageResponse'
+                  - $ref: '#/components/schemas/ValidationErrorResponse'
 
   /api/outfits/{id}/duplicate:
     post:
@@ -882,6 +894,10 @@ paths:
           description: 未認証
         '422':
           description: バリデーションエラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
   /api/wear-logs/{wearLogId}:
     get:
       tags:
@@ -938,6 +954,10 @@ paths:
           description: 対象データなし
         '422':
           description: バリデーションエラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
 
     delete:
       tags:
@@ -1362,6 +1382,9 @@ components:
           example: logged_out
 
     ValidationErrorResponse:
+      description: |
+        field 単位の validation error を返す response。
+        `message` は validation 全体の補助説明であり、正本は `errors` を読む。
       type: object
       required:
         - message
@@ -1376,6 +1399,18 @@ components:
             type: array
             items:
               type: string
+
+    UnprocessableEntityMessageResponse:
+      description: |
+        field 単位の `errors` を持たない 422 response。
+        業務ルール違反や認証失敗など、message のみで補助説明を返す。
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          example: このコーディネートは復帰できません。
 
     CategoriesResponse:
       type: object
