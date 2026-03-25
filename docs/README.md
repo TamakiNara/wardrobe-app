@@ -28,7 +28,7 @@
 - アプリ全体の共通ナビ仕様を見たいときは `specs/navigation/global-navigation.md`
 - Outfit の作成・編集・invalid/複製方針を見たいときは `specs/outfits/create-edit.md`
 - wear logs の `source_outfit_id` / `item_source_type` / `current status` 方針を見たいときは `specs/wears/wear-logs.md`
-- 購入検討(管理)の仕様正本と item 昇格前提を見たいときは `specs/purchase-candidates.md`
+- 購入検討の仕様正本と item 昇格前提を見たいときは `specs/purchase-candidates.md`
 - specs の索引から主要仕様へ辿りたいときは `specs/README.md`
 
 ---
@@ -202,7 +202,7 @@
 
 役割:
 
-- 購入検討(管理)の責務、状態管理、item への昇格、画像方針を整理する
+- 購入検討の責務、状態管理、item への昇格、画像方針を整理する
 - `purchase_candidate_images` / `item_images` の分離、`item-draft` API、比較結果の扱いをまとめる
 
 補足:
@@ -214,13 +214,13 @@
 
 役割:
 
-- items / outfits / wear logs / 購入検討(管理) など、主要 spec の入口をまとめる
+- items / outfits / wear logs / 購入検討 など、主要 spec の入口をまとめる
 - 別スレッドや git 履歴からでも仕様の正本へ辿りやすくする
 
 補足:
 
-- 購入検討(管理)の仕様確認は `specs/README.md` -> `specs/purchase-candidates.md` の順でも辿れる
-- 購入検討(管理)の API は `api/api-overview.md`、DB 保存方針は `data/database.md`、実装メモは `project/implementation-notes.md` を併せて確認する
+- 購入検討の仕様確認は `specs/README.md` -> `specs/purchase-candidates.md` の順でも辿れる
+- 購入検討の API は `api/api-overview.md`、DB 保存方針は `data/database.md`、実装メモは `project/implementation-notes.md` を併せて確認する
 
 
 ### `specs/logging.md`
@@ -286,7 +286,7 @@
 - `data/database.md`
 - `project/implementation-notes.md`
 
-### 購入検討(管理) 仕様を変えたとき
+### 購入検討 仕様を変えたとき
 
 必ず確認する:
 

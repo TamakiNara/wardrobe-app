@@ -8,7 +8,7 @@
 - [outfits: 作成・編集・invalid/duplicate](./outfits/create-edit.md)
 - [outfits: item 候補ルール](./outfits/item-candidate-rules.md)
 - [wear logs: 一覧・詳細・登録・更新・削除](./wears/wear-logs.md)
-- [購入検討(管理)（内部: `purchase_candidates`）: 画像・item 昇格](./purchase-candidates.md)
+- [購入検討（内部: `purchase_candidates`）: 画像・item 昇格](./purchase-candidates.md)
 
 使い分けの目安:
 

@@ -19,7 +19,7 @@ export default function NewPurchaseCandidatePage() {
 
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm text-gray-500">購入検討(管理)</p>
+            <p className="text-sm text-gray-500">購入検討管理</p>
             <h1 className="text-2xl font-bold text-gray-900">購入検討を追加</h1>
           </div>
 

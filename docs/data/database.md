@@ -24,9 +24,9 @@ wear logs も本資料の対象とし、その保存方針を定義します。
 - `category_presets`
 - `category_preset_categories`
 
-## Planned Tables (`purchase_candidates` / 購入検討(管理))
+## Planned Tables (`purchase_candidates` / 購入検討)
 
-`purchase_candidates` 系は購入検討(管理)用の schema で、`docs/specs/purchase-candidates.md` を正本とする planned schema です。  
+`purchase_candidates` 系は購入検討用の schema で、`docs/specs/purchase-candidates.md` を正本とする planned schema です。  
 比較ロジックの詳細は後続検討とし、まずは candidate 保存・画像管理・item 昇格を支える構造を先に整理します。
 
 ### `purchase_candidates`

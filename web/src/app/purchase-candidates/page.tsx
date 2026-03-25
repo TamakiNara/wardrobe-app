@@ -71,7 +71,7 @@ export default async function PurchaseCandidatesPage({
 
         <header className="flex flex-col gap-4 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm md:flex-row md:items-center md:justify-between">
           <div>
-            <p className="text-sm text-gray-500">購入検討(管理)</p>
+            <p className="text-sm text-gray-500">購入検討管理</p>
             <h1 className="text-2xl font-bold text-gray-900">購入検討一覧</h1>
             <p className="mt-1 text-sm text-gray-600">
               検討中・保留中・購入済み・見送りの候補をまとめて確認します。
