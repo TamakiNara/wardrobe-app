@@ -3,30 +3,26 @@
 namespace App\Services\Items;
 
 use App\Models\Item;
-use App\Models\PurchaseCandidate;
 use App\Models\User;
 use App\Services\Brands\UserBrandService;
 use App\Support\ItemImageSync;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
 use Throwable;
 
-class ItemStoreService
+class ItemUpdateService
 {
     public function __construct(
         private readonly UserBrandService $userBrandService,
     ) {
     }
 
-    public function store(User $user, array $validated): Item
+    public function update(User $user, Item $item, array $validated): Item
     {
-        $candidate = $this->resolveCandidate($user, $validated['purchase_candidate_id'] ?? null);
         $copiedFiles = [];
 
         try {
-            $item = DB::transaction(function () use ($user, $validated, $candidate, &$copiedFiles) {
-                $item = Item::create([
-                    'user_id' => $user->id,
+            return DB::transaction(function () use ($user, $item, $validated, &$copiedFiles) {
+                $item->update([
                     'name' => $validated['name'] ?? null,
                     'brand_name' => $validated['brand_name'] ?? null,
                     'price' => $validated['price'] ?? null,
@@ -46,15 +42,6 @@ class ItemStoreService
                 ]);
 
                 ItemImageSync::sync($item, $validated['images'] ?? [], $copiedFiles);
-
-                if ($candidate !== null) {
-                    $candidate->forceFill([
-                        'status' => 'purchased',
-                        'converted_item_id' => $item->id,
-                        'converted_at' => now(),
-                    ])->save();
-                }
-
                 $this->userBrandService->saveBrandFromItem(
                     $user,
                     $validated['brand_name'] ?? null,
@@ -67,26 +54,5 @@ class ItemStoreService
             ItemImageSync::cleanupCopied($copiedFiles);
             throw $e;
         }
-
-        return $item;
-    }
-
-    private function resolveCandidate(User $user, ?int $candidateId): ?PurchaseCandidate
-    {
-        if ($candidateId === null) {
-            return null;
-        }
-
-        $candidate = PurchaseCandidate::query()
-            ->where('user_id', $user->id)
-            ->find($candidateId);
-
-        if ($candidate === null) {
-            throw ValidationException::withMessages([
-                'purchase_candidate_id' => '紐付け元の購入検討が見つかりません。',
-            ]);
-        }
-
-        return $candidate;
     }
 }

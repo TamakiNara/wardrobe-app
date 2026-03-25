@@ -25,6 +25,7 @@ wear logs も本資料の対象とし、その保存方針を定義します。
 - `purchase_candidate_seasons`
 - `purchase_candidate_tpos`
 - `purchase_candidate_images`
+- `user_brands`
 - `category_groups`
 - `category_master`
 - `category_presets`
@@ -133,6 +134,30 @@ wear logs も本資料の対象とし、その保存方針を定義します。
 - item 側ではコピー先の `disk + path` を `item_images` に保存し、candidate 側画像削除の影響を受けないようにする
 - 保存後の candidate 画像と item 画像は自動同期しない
 - 代表画像切り替えと並び替え UI は後続対応とし、current 実装では `is_primary` と `sort_order` を保存済みデータとして扱う
+
+## user_brands
+
+ブランド候補をユーザー単位で保持するテーブルです。item の正本は `items.brand_name` のままとし、`user_brands` とは FK で結びません。
+
+仕様正本は `docs/specs/settings/brand-candidates.md` を参照します。
+
+| column | type | description |
+| --- | --- | --- |
+| id | bigint | 主キー |
+| user_id | bigint | 所有ユーザーID |
+| name | string | 候補ブランド名 |
+| kana | string nullable | 読み仮名 |
+| normalized_name | string | 重複判定用ブランド名 |
+| normalized_kana | string nullable | 読み仮名重複判定用 |
+| is_active | boolean default true | 候補有効フラグ |
+| created_at | timestamp | 作成日時 |
+| updated_at | timestamp | 更新日時 |
+
+補足:
+
+- 重複判定の基本は `user_id + normalized_name`
+- `kana` がある場合は `normalized_kana` も重複判定に利用する
+- 候補の変更や無効化で既存 `items.brand_name` は更新しない
 
 
 ---
@@ -285,6 +310,7 @@ wear logs も本資料の対象とし、その保存方針を定義します。
 補足:
 
 - `brand_name / price / purchase_url / purchased_at` は purchase_candidates 由来の初期値を item 側で確認・補正して保存できるようにした
+- `brand_name` は item の正本であり、候補保存時も `user_brands` への参照は持たない
 - `size_details` は当面 `note` を持つ JSON オブジェクトで保持し、実寸の詳細化は後続で拡張する
 
 ### item_images

@@ -36,6 +36,7 @@ export type CreateItemPayload = {
   name: string;
   purchase_candidate_id?: number | null;
   brand_name: string | null;
+  save_brand_as_candidate?: boolean;
   price: number | null;
   purchase_url: string | null;
   purchased_at: string | null;

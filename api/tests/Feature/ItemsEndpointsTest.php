@@ -7,6 +7,7 @@ use App\Models\CategoryMaster;
 use App\Models\Item;
 use App\Models\PurchaseCandidate;
 use App\Models\User;
+use App\Models\UserBrand;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -108,6 +109,18 @@ class ItemsEndpointsTest extends TestCase
             'seasons' => ['夏'],
             'tpos' => ['休日'],
             'spec' => null,
+        ], $overrides));
+    }
+
+    private function createUserBrand(User $user, array $overrides = []): UserBrand
+    {
+        return UserBrand::query()->create(array_merge([
+            'user_id' => $user->id,
+            'name' => 'UNIQLO',
+            'kana' => null,
+            'normalized_name' => 'uniqlo',
+            'normalized_kana' => null,
+            'is_active' => true,
         ], $overrides));
     }
 
@@ -298,6 +311,70 @@ class ItemsEndpointsTest extends TestCase
         $this->assertNotNull(
             PurchaseCandidate::query()->findOrFail($candidate->id)->converted_at
         );
+    }
+
+    public function test_post_items_can_save_brand_name_and_add_brand_candidate(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/items', [
+            'name' => 'ブランド付きトップス',
+            'brand_name' => 'UNIQLO',
+            'save_brand_as_candidate' => true,
+            'category' => 'tops',
+            'shape' => 'tshirt',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'white',
+                'hex' => '#eeeeee',
+                'label' => 'ホワイト',
+            ]],
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('item.brand_name', 'UNIQLO');
+
+        $this->assertDatabaseHas('user_brands', [
+            'user_id' => $user->id,
+            'name' => 'UNIQLO',
+            'normalized_name' => 'uniqlo',
+            'is_active' => 1,
+        ]);
+    }
+
+    public function test_post_items_skips_brand_candidate_creation_when_duplicate_exists(): void
+    {
+        $user = User::factory()->create();
+        $this->createUserBrand($user);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/items', [
+            'name' => '重複ブランド付きトップス',
+            'brand_name' => ' uniqlo ',
+            'save_brand_as_candidate' => true,
+            'category' => 'tops',
+            'shape' => 'tshirt',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'white',
+                'hex' => '#eeeeee',
+                'label' => 'ホワイト',
+            ]],
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('item.brand_name', 'uniqlo');
+
+        $this->assertSame(1, UserBrand::query()->where('user_id', $user->id)->count());
     }
 
     public function test_item_image_remains_after_candidate_source_file_is_deleted(): void
@@ -570,6 +647,43 @@ class ItemsEndpointsTest extends TestCase
             'path' => $retainedImagePath,
             'sort_order' => 2,
             'is_primary' => 0,
+        ]);
+    }
+
+    public function test_put_item_can_add_brand_candidate_without_failing_item_update(): void
+    {
+        $user = User::factory()->create();
+        $item = $this->createItem($user);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->putJson("/api/items/{$item->id}", [
+            'name' => '更新後トップス',
+            'brand_name' => 'GLOBAL WORK',
+            'save_brand_as_candidate' => true,
+            'category' => 'tops',
+            'shape' => 'tshirt',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'white',
+                'hex' => '#eeeeee',
+                'label' => 'ホワイト',
+            ]],
+            'seasons' => ['夏'],
+            'tpos' => ['休日'],
+            'images' => [],
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('item.brand_name', 'GLOBAL WORK');
+
+        $this->assertDatabaseHas('user_brands', [
+            'user_id' => $user->id,
+            'name' => 'GLOBAL WORK',
+            'normalized_name' => 'global work',
         ]);
     }
 

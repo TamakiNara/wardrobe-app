@@ -4,16 +4,16 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Api\ItemImageController;
 use App\Http\Controllers\Api\PurchaseCandidateController;
 use App\Http\Controllers\Api\WearLogController;
+use App\Services\Brands\UserBrandService;
 use App\Services\Items\ItemStoreService;
+use App\Services\Items\ItemUpdateService;
 use App\Models\CategoryMaster;
 use App\Models\Item;
 use App\Models\Outfit;
-use App\Support\ItemImageSync;
 use App\Support\ItemPayloadBuilder;
 use App\Support\ItemsIndexQuery;
 use App\Support\OutfitsIndexQuery;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/csrf-cookie', function (Request $request) {
@@ -105,6 +105,74 @@ Route::prefix('api')->middleware(['web'])->group(function () {
         ]);
     });
 
+    Route::middleware('auth:web')->get('/settings/brands', function (Request $request) {
+        $validated = $request->validate([
+            'active_only' => ['nullable', 'boolean'],
+            'keyword' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $brands = app(UserBrandService::class)->list($request->user(), $validated);
+
+        return response()->json([
+            'brands' => collect($brands)->map(fn ($brand) => [
+                'id' => $brand->id,
+                'name' => $brand->name,
+                'kana' => $brand->kana,
+                'is_active' => $brand->is_active,
+            ])->all(),
+        ]);
+    });
+
+    Route::middleware('auth:web')->post('/settings/brands', function (Request $request) {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'kana' => ['nullable', 'string', 'max:255'],
+            'is_active' => ['nullable', 'boolean'],
+        ], [
+            'name.required' => 'ブランド名を入力してください。',
+        ]);
+
+        $brand = app(UserBrandService::class)->create($request->user(), $validated);
+
+        return response()->json([
+            'message' => 'created',
+            'brand' => [
+                'id' => $brand->id,
+                'name' => $brand->name,
+                'kana' => $brand->kana,
+                'is_active' => $brand->is_active,
+            ],
+        ], 201);
+    });
+
+    Route::middleware('auth:web')->patch('/settings/brands/{id}', function (Request $request, int $id) {
+        $validated = $request->validate([
+            'name' => ['sometimes', 'required', 'string', 'max:255'],
+            'kana' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'is_active' => ['sometimes', 'boolean'],
+        ], [
+            'name.required' => 'ブランド名を入力してください。',
+        ]);
+
+        if ($validated === []) {
+            return response()->json([
+                'message' => '更新項目がありません。',
+            ], 422);
+        }
+
+        $brand = app(UserBrandService::class)->update($request->user(), $id, $validated);
+
+        return response()->json([
+            'message' => 'updated',
+            'brand' => [
+                'id' => $brand->id,
+                'name' => $brand->name,
+                'kana' => $brand->kana,
+                'is_active' => $brand->is_active,
+            ],
+        ]);
+    });
+
     // Items
     Route::middleware('auth:web')->get('/items', function (Request $request) {
         return response()->json(ItemsIndexQuery::build($request->user(), $request));
@@ -115,6 +183,7 @@ Route::prefix('api')->middleware(['web'])->group(function () {
             'name' => ['nullable', 'string', 'max:255'],
             'purchase_candidate_id' => ['nullable', 'integer'],
             'brand_name' => ['nullable', 'string', 'max:255'],
+            'save_brand_as_candidate' => ['nullable', 'boolean'],
             'price' => ['nullable', 'integer', 'min:0'],
             'purchase_url' => ['nullable', 'url'],
             'purchased_at' => ['nullable', 'date'],
@@ -181,6 +250,7 @@ Route::prefix('api')->middleware(['web'])->group(function () {
         $validated = $request->validate([
             'name' => ['nullable', 'string', 'max:255'],
             'brand_name' => ['nullable', 'string', 'max:255'],
+            'save_brand_as_candidate' => ['nullable', 'boolean'],
             'price' => ['nullable', 'integer', 'min:0'],
             'purchase_url' => ['nullable', 'url'],
             'purchased_at' => ['nullable', 'date'],
@@ -220,32 +290,11 @@ Route::prefix('api')->middleware(['web'])->group(function () {
             'images.*.is_primary' => ['nullable', 'boolean'],
         ]);
 
-        DB::transaction(function () use ($item, $validated) {
-            $item->update([
-                'name' => $validated['name'] ?? null,
-                'brand_name' => $validated['brand_name'] ?? null,
-                'price' => $validated['price'] ?? null,
-                'purchase_url' => $validated['purchase_url'] ?? null,
-                'purchased_at' => $validated['purchased_at'] ?? null,
-                'size_gender' => $validated['size_gender'] ?? null,
-                'size_label' => $validated['size_label'] ?? null,
-                'size_note' => $validated['size_note'] ?? null,
-                'size_details' => $validated['size_details'] ?? null,
-                'is_rain_ok' => (bool) ($validated['is_rain_ok'] ?? false),
-                'category' => $validated['category'],
-                'shape' => $validated['shape'],
-                'colors' => $validated['colors'],
-                'seasons' => $validated['seasons'] ?? [],
-                'tpos' => $validated['tpos'] ?? [],
-                'spec' => $validated['spec'] ?? null,
-            ]);
-
-            ItemImageSync::sync($item, $validated['images'] ?? []);
-        });
+        $item = app(ItemUpdateService::class)->update($request->user(), $item, $validated);
 
         return response()->json([
             'message' => 'updated',
-            'item' => ItemPayloadBuilder::buildDetail($item->fresh()->load('images')),
+            'item' => ItemPayloadBuilder::buildDetail($item),
         ]);
     });
 

@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   forwardDeleteWithCookie,
+  forwardPatchWithCsrfAndCookie,
   forwardPutWithCsrfAndCookie,
 } from "./laravel";
 
@@ -181,5 +182,61 @@ describe("BFF CSRF forwarding", () => {
     expect(json).toEqual({
       message: "deleted",
     });
+  });
+
+  it("retries PATCH once with refreshed csrf and session cookies after 419", async () => {
+    global.fetch = vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ message: "CSRF token mismatch." }), {
+          status: 419,
+          headers: {
+            "content-type": "application/json",
+          },
+        }),
+      )
+      .mockResolvedValueOnce(
+        new Response(null, {
+          status: 204,
+          headers: {
+            "set-cookie": "XSRF-TOKEN=patch_token; Path=/; SameSite=Lax, laravel-session=patch_session; Path=/; HttpOnly; SameSite=Lax",
+          },
+        }),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ message: "updated" }), {
+          status: 200,
+          headers: {
+            "content-type": "application/json",
+          },
+        }),
+      ) as typeof fetch;
+
+    const req = new Request("http://localhost:3000/api/settings/brands/1", {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Cookie: "laravel-session=old_session; XSRF-TOKEN=stale_token",
+      },
+      body: JSON.stringify({ is_active: false }),
+    });
+
+    const res = await forwardPatchWithCsrfAndCookie(req as any, "/api/settings/brands/1", {
+      is_active: false,
+    });
+
+    expect(global.fetch).toHaveBeenCalledTimes(3);
+    expect(global.fetch).toHaveBeenNthCalledWith(
+      3,
+      "http://localhost:8000/api/settings/brands/1",
+      expect.objectContaining({
+        method: "PATCH",
+        headers: expect.objectContaining({
+          "X-CSRF-TOKEN": "patch_token",
+          Cookie: expect.stringContaining("XSRF-TOKEN=patch_token"),
+        }),
+      }),
+    );
+    expect(res.status).toBe(200);
   });
 });

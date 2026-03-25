@@ -56,6 +56,7 @@ export default function EditItemPage({
 
   const [name, setName] = useState("");
   const [brandName, setBrandName] = useState("");
+  const [saveBrandAsCandidate, setSaveBrandAsCandidate] = useState(false);
   const [price, setPrice] = useState("");
   const [purchaseUrl, setPurchaseUrl] = useState("");
   const [purchasedAt, setPurchasedAt] = useState("");
@@ -334,6 +335,7 @@ export default function EditItemPage({
     return {
       name,
       brand_name: brandName.trim() || null,
+      save_brand_as_candidate: saveBrandAsCandidate,
       price: price === "" ? null : Number(price),
       purchase_url: purchaseUrl.trim() || null,
       purchased_at: purchasedAt || null,
@@ -568,6 +570,15 @@ export default function EditItemPage({
               <div>
                 <label htmlFor="brand-name" className="mb-1 block text-sm font-medium text-gray-700">ブランド名</label>
                 <input id="brand-name" type="text" value={brandName} onChange={(e) => setBrandName(e.target.value)} className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
+                <label className="mt-2 flex items-center gap-2 text-sm text-gray-600">
+                  <input
+                    type="checkbox"
+                    checked={saveBrandAsCandidate}
+                    onChange={(event) => setSaveBrandAsCandidate(event.target.checked)}
+                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  ブランド候補にも追加する
+                </label>
               </div>
 
               <div>

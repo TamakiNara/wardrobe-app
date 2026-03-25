@@ -197,6 +197,25 @@ export async function forwardPostWithCsrfAndCookie(
   body: unknown = {},
   options?: { forceRefreshCsrf?: boolean }
 ): Promise<NextResponse> {
+  return forwardMutationWithCsrfAndCookie(req, targetPath, "POST", body, options);
+}
+
+export async function forwardPatchWithCsrfAndCookie(
+  req: NextRequest,
+  targetPath: string,
+  body: unknown = {},
+  options?: { forceRefreshCsrf?: boolean }
+): Promise<NextResponse> {
+  return forwardMutationWithCsrfAndCookie(req, targetPath, "PATCH", body, options);
+}
+
+async function forwardMutationWithCsrfAndCookie(
+  req: NextRequest,
+  targetPath: string,
+  method: "POST" | "PATCH",
+  body: unknown = {},
+  options?: { forceRefreshCsrf?: boolean }
+): Promise<NextResponse> {
   try {
     const incomingCookie = req.headers.get("cookie") ?? "";
 
@@ -217,7 +236,7 @@ export async function forwardPostWithCsrfAndCookie(
       const mergedCookie = buildMergedCookie(incomingCookie, refreshedSetCookies);
 
       return fetch(`${LARAVEL_BASE_URL}${targetPath}`, {
-        method: "POST",
+        method,
         headers: {
           Accept: "application/json",
           "Content-Type": "application/json",

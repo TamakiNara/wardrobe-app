@@ -40,6 +40,25 @@
 
 ---
 
+## Settings
+
+- `GET /api/settings/categories`
+- `PUT /api/settings/categories`
+- `GET /api/settings/brands`
+- `POST /api/settings/brands`
+- `PATCH /api/settings/brands/{id}`
+
+### Notes
+
+- ブランド候補は `user_brands` をユーザー単位で管理する
+- item の正本は `items.brand_name`、候補の正本は `user_brands` とし、FK では結ばない
+- `POST /api/items` / `PUT /api/items/{id}` は `save_brand_as_candidate=true` のとき Laravel 側で候補追加を試行する
+- 既存候補との重複時は候補追加をスキップし、item 保存自体は失敗させない
+- brand 候補の正規化と重複判定は backend 側で扱う
+- 仕様正本は [`../specs/settings/brand-candidates.md`](../specs/settings/brand-candidates.md) を参照する
+
+---
+
 ## Items
 
 - `GET /api/items`
@@ -85,6 +104,7 @@
 - 現在の実装では `spec.tops` を利用
 - `spec.tops.*` は create / update の両方で受け付ける
 - `images` は `sort_order` と `is_primary` を含む配列として create / update で受け付け、item 編集画面の並び替え / 代表画像切り替えに利用する
+- `brand_name` は item の正本として保存し、`save_brand_as_candidate` は候補追加試行フラグとして扱う
 - DB 保存方針は [`../data/database.md`](../data/database.md) を参照
 - 詳細仕様は [`../specs/items/tops.md`](../specs/items/tops.md) を参照
 - item status の状態管理は [`../specs/items/status-management.md`](../specs/items/status-management.md) を参照

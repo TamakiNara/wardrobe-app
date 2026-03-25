@@ -24,6 +24,7 @@
 - item status の状態管理を見たいときは `specs/items/status-management.md`
 - item 詳細画面での status 操作 UI を見たいときは `specs/items/detail-status-ui.md`
 - カテゴリ表示設定の仕様を見たいときは `specs/settings/category-settings.md`
+- ブランド候補の仕様正本を見たいときは `specs/settings/brand-candidates.md`
 - 新規登録直後のカテゴリプリセット選択を見たいときは `specs/settings/category-preset-selection.md`
 - アプリ全体の共通ナビ仕様を見たいときは `specs/navigation/global-navigation.md`
 - Outfit の作成・編集・invalid/複製方針を見たいときは `specs/outfits/create-edit.md`

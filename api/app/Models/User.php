@@ -59,4 +59,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(Outfit::class);
     }
+
+    public function brands(): HasMany
+    {
+        return $this->hasMany(UserBrand::class);
+    }
 }

@@ -177,6 +177,7 @@ describe("EditItemPage", () => {
     expect(container.textContent).toContain("カテゴリ");
     expect(container.textContent).toContain("形");
     expect(container.textContent).toContain("メインカラー");
+    expect(container.textContent).toContain("ブランド候補にも追加する");
     expect(container.textContent?.match(/必須/g)?.length).toBe(4);
     expect((container.querySelector("#brand-name") as HTMLInputElement | null)?.value).toBe("Sample Brand");
     expect((container.querySelector("#price") as HTMLInputElement | null)?.value).toBe("19800");

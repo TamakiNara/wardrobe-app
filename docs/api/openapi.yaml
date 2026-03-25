@@ -80,6 +80,93 @@ paths:
               schema:
                 $ref: '#/components/schemas/ValidationErrorResponse'
 
+  /api/settings/brands:
+    get:
+      tags:
+        - Settings
+      summary: ブランド候補一覧取得
+      description: ユーザー単位のブランド候補を返す。`active_only` と `keyword` で絞り込みできる。
+      security:
+        - SessionCookieAuth: []
+      responses:
+        '200':
+          description: 取得成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserBrandsResponse'
+        '401':
+          description: 未認証
+    post:
+      tags:
+        - Settings
+      summary: ブランド候補追加
+      description: ブランド候補を user 単位で追加する。重複判定は backend 側で行う。
+      security:
+        - SessionCookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XCsrfTokenHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserBrandUpsertRequest'
+      responses:
+        '201':
+          description: 作成成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserBrandResponseWithMessage'
+        '401':
+          description: 未認証
+        '422':
+          description: バリデーションエラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+
+  /api/settings/brands/{id}:
+    patch:
+      tags:
+        - Settings
+      summary: ブランド候補更新
+      description: ブランド候補の名称・読み仮名・有効状態を更新する。
+      security:
+        - SessionCookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XCsrfTokenHeader'
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserBrandUpdateRequest'
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserBrandResponseWithMessage'
+        '401':
+          description: 未認証
+        '404':
+          description: 対象なし
+        '422':
+          description: バリデーションエラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+
   /api/login:
     post:
       tags:
@@ -1353,6 +1440,71 @@ components:
               items:
                 type: string
 
+    UserBrandRecord:
+      type: object
+      required:
+        - id
+        - name
+        - is_active
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        kana:
+          type: string
+          nullable: true
+        is_active:
+          type: boolean
+
+    UserBrandsResponse:
+      type: object
+      required:
+        - brands
+      properties:
+        brands:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserBrandRecord'
+
+    UserBrandUpsertRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          maxLength: 255
+        kana:
+          type: string
+          nullable: true
+          maxLength: 255
+        is_active:
+          type: boolean
+
+    UserBrandUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 255
+        kana:
+          type: string
+          nullable: true
+          maxLength: 255
+        is_active:
+          type: boolean
+
+    UserBrandResponseWithMessage:
+      allOf:
+        - $ref: '#/components/schemas/MessageOnlyResponse'
+        - type: object
+          required:
+            - brand
+          properties:
+            brand:
+              $ref: '#/components/schemas/UserBrandRecord'
+
     ItemColor:
       type: object
       required:
@@ -1514,6 +1666,9 @@ components:
           type: string
           nullable: true
           maxLength: 255
+        save_brand_as_candidate:
+          type: boolean
+          description: item 保存時にブランド候補への追加を試行するかどうか
         price:
           type: integer
           nullable: true

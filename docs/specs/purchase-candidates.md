@@ -843,5 +843,4 @@ current 実装では、`purchase_candidate_id` を受けた item 作成時に、
 - 比較ロジックの具体化
 - 購入検討と手持ち item の比較 UI
 - 月次服飾費集計の詳細
-- candidate -> item 更新責務を BFF / Laravel のどちらに置くか
 - 画像 upload API の責務分離

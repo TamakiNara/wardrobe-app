@@ -11,6 +11,7 @@ item 詳細画面での status 操作 UI を確認するときは `docs/specs/it
 購入検討の DB 保存方針と `purchase_candidate_images` / `item_images` の関係を確認するときは `docs/data/database.md` を参照します。
 主要 spec の索引から購入検討を含む資料一覧へ辿るときは `docs/specs/README.md` を参照します。
 購入検討の OpenAPI 定義は `docs/api/openapi.yaml` に反映済みで、current 実装との差分確認はこのファイルを起点に行います。
+ブランド候補の仕様正本を確認するときは `docs/specs/settings/brand-candidates.md` を参照します。
 
 ## 削除導線の共通方針
 
@@ -195,10 +196,14 @@ item 詳細画面での status 操作 UI を確認するときは `docs/specs/it
 - outfits 詳細では、OFF にしたカテゴリのアイテムを非表示にし、非表示件数を案内する
 - 新規登録完了後はカテゴリプリセット選択画面へ遷移し、`male / female / custom` の初期設定を完了してからホームへ進む
 - `custom` を選んだ場合は settings の onboarding モードで全カテゴリ ON から調整し、保存後にホームへ遷移する
+- ブランド候補基盤として `user_brands`、`BrandNormalizer`、`GET /api/settings/brands` / `POST /api/settings/brands` / `PATCH /api/settings/brands/{id}` を実装済み
+- item create / update は `save_brand_as_candidate` を受け取り、Laravel 側で候補追加を試行する
+- `items.brand_name` は item の正本、`user_brands` は入力補助候補の正本とし、FK では結ばない
 
 未完了:
 
 - ページ内遷移での未保存変更警告は未対応のため、必要に応じて今後整理する
+- ブランド候補のサジェスト UI、ブランド設定画面、DELETE API は未対応
 
 ### テスト用 seed ユーザー
 
