@@ -8,11 +8,15 @@ import { collectAllCategoryIds } from "@/lib/master-data/category-presets";
 import { fetchItems } from "@/lib/api/items";
 import { fetchCategoryGroups, findVisibleCategoryIdForItem } from "@/lib/api/categories";
 import {
+  createUserBrand,
   fetchCategoryVisibilitySettings,
+  fetchUserBrands,
+  updateUserBrand,
   updateCategoryVisibilitySettings,
 } from "@/lib/api/settings";
 import type { CategoryGroupRecord } from "@/types/categories";
 import type { ItemRecord } from "@/types/items";
+import type { UserBrandRecord } from "@/types/settings";
 
 function buildVisibilityFromIds(
   groups: CategoryGroupRecord[],
@@ -90,6 +94,19 @@ function SettingsPageContent() {
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [requiresInitialSave, setRequiresInitialSave] = useState(false);
+  const [brands, setBrands] = useState<UserBrandRecord[]>([]);
+  const [brandsLoading, setBrandsLoading] = useState(true);
+  const [brandsLoadError, setBrandsLoadError] = useState<string | null>(null);
+  const [brandSaveMessage, setBrandSaveMessage] = useState<string | null>(null);
+  const [brandSaveError, setBrandSaveError] = useState<string | null>(null);
+  const [newBrandName, setNewBrandName] = useState("");
+  const [newBrandKana, setNewBrandKana] = useState("");
+  const [addingBrand, setAddingBrand] = useState(false);
+  const [editingBrandId, setEditingBrandId] = useState<number | null>(null);
+  const [editBrandName, setEditBrandName] = useState("");
+  const [editBrandKana, setEditBrandKana] = useState("");
+  const [editBrandIsActive, setEditBrandIsActive] = useState(true);
+  const [updatingBrandId, setUpdatingBrandId] = useState<number | null>(null);
 
   const isOnboardingCustom =
     searchParams.get("mode") === "onboarding" &&
@@ -151,6 +168,32 @@ function SettingsPageContent() {
     };
   }, [isOnboardingCustom, router]);
 
+  useEffect(() => {
+    let active = true;
+
+    fetchUserBrands(undefined, false)
+      .then((response) => {
+        if (!active) return;
+        setBrands(response.brands);
+      })
+      .catch((error) => {
+        if (!active) return;
+        if (error instanceof ApiClientError && error.status === 401) {
+          router.push("/login");
+          return;
+        }
+        setBrandsLoadError("ブランド候補を読み込めませんでした。時間をおいて再度お試しください。");
+      })
+      .finally(() => {
+        if (!active) return;
+        setBrandsLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [router]);
+
   const currentVisibleCategoryIds = useMemo(
     () => collectVisibleCategoryIds(visibility),
     [visibility],
@@ -189,6 +232,15 @@ function SettingsPageContent() {
     () => buildRegisteredItemCountByCategoryId(registeredItems),
     [registeredItems],
   );
+
+  const sortedBrands = useMemo(() => {
+    return [...brands].sort((a, b) => {
+      if (a.is_active !== b.is_active) {
+        return a.is_active ? -1 : 1;
+      }
+      return a.name.localeCompare(b.name, "ja");
+    });
+  }, [brands]);
 
 
   function confirmGroupVisibilityChange(
@@ -312,6 +364,112 @@ function SettingsPageContent() {
       setSaveError("設定を保存できませんでした。時間をおいて再度お試しください。");
     } finally {
       setSaving(false);
+    }
+  }
+
+  function resetBrandMessages() {
+    setBrandSaveMessage(null);
+    setBrandSaveError(null);
+  }
+
+  async function refreshBrands() {
+    const response = await fetchUserBrands(undefined, false);
+    setBrands(response.brands);
+  }
+
+  async function handleCreateBrand() {
+    if (addingBrand) return;
+
+    resetBrandMessages();
+    setAddingBrand(true);
+
+    try {
+      await createUserBrand({
+        name: newBrandName,
+        kana: newBrandKana.trim() || null,
+        is_active: true,
+      });
+      await refreshBrands();
+      setNewBrandName("");
+      setNewBrandKana("");
+      setBrandSaveMessage("ブランド候補を追加しました。");
+    } catch (error) {
+      if (error instanceof ApiClientError) {
+        setBrandSaveError(
+          error.data?.errors?.name?.[0] ??
+            error.data?.errors?.kana?.[0] ??
+            error.message,
+        );
+      } else {
+        setBrandSaveError("ブランド候補を追加できませんでした。時間をおいて再度お試しください。");
+      }
+    } finally {
+      setAddingBrand(false);
+    }
+  }
+
+  function startEditingBrand(brand: UserBrandRecord) {
+    resetBrandMessages();
+    setEditingBrandId(brand.id);
+    setEditBrandName(brand.name);
+    setEditBrandKana(brand.kana ?? "");
+    setEditBrandIsActive(brand.is_active);
+  }
+
+  async function handleUpdateBrand(brandId: number) {
+    if (updatingBrandId !== null) return;
+
+    resetBrandMessages();
+    setUpdatingBrandId(brandId);
+
+    try {
+      await updateUserBrand(brandId, {
+        name: editBrandName,
+        kana: editBrandKana.trim() || null,
+        is_active: editBrandIsActive,
+      });
+      await refreshBrands();
+      setEditingBrandId(null);
+      setBrandSaveMessage("ブランド候補を更新しました。");
+    } catch (error) {
+      if (error instanceof ApiClientError) {
+        setBrandSaveError(
+          error.data?.errors?.name?.[0] ??
+            error.data?.errors?.kana?.[0] ??
+            error.message,
+        );
+      } else {
+        setBrandSaveError("ブランド候補を更新できませんでした。時間をおいて再度お試しください。");
+      }
+    } finally {
+      setUpdatingBrandId(null);
+    }
+  }
+
+  async function handleToggleBrandActive(brand: UserBrandRecord) {
+    if (updatingBrandId !== null) return;
+
+    resetBrandMessages();
+    setUpdatingBrandId(brand.id);
+
+    try {
+      await updateUserBrand(brand.id, {
+        is_active: !brand.is_active,
+      });
+      await refreshBrands();
+      setBrandSaveMessage(
+        !brand.is_active
+          ? "ブランド候補を有効にしました。"
+          : "ブランド候補を無効にしました。",
+      );
+    } catch (error) {
+      if (error instanceof ApiClientError) {
+        setBrandSaveError(error.message);
+      } else {
+        setBrandSaveError("ブランド候補の状態を更新できませんでした。時間をおいて再度お試しください。");
+      }
+    } finally {
+      setUpdatingBrandId(null);
     }
   }
 
@@ -473,6 +631,185 @@ function SettingsPageContent() {
                   {saveButtonLabel}
                 </button>
               </div>
+            </div>
+          )}
+        </section>
+
+        <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">ブランド候補設定</h2>
+              <p className="mt-2 text-sm text-gray-600">
+                アイテム入力で使うブランド候補を管理できます。既存 item のブランド名は自動更新しません。
+              </p>
+            </div>
+
+            <div className="flex flex-col items-start gap-2 md:items-end">
+              {brandSaveMessage ? (
+                <p className="text-sm text-emerald-700">{brandSaveMessage}</p>
+              ) : null}
+              {brandSaveError ? (
+                <p className="text-sm text-red-600">{brandSaveError}</p>
+              ) : null}
+            </div>
+          </div>
+
+          <div className="mt-6 rounded-2xl border border-gray-200 bg-gray-50 p-4">
+            <h3 className="text-base font-semibold text-gray-900">ブランド候補を追加</h3>
+            <div className="mt-4 grid gap-4 md:grid-cols-[2fr_2fr_auto]">
+              <div>
+                <label htmlFor="new-brand-name" className="mb-1 block text-sm font-medium text-gray-700">
+                  ブランド名
+                </label>
+                <input
+                  id="new-brand-name"
+                  type="text"
+                  value={newBrandName}
+                  onChange={(event) => setNewBrandName(event.target.value)}
+                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                />
+              </div>
+              <div>
+                <label htmlFor="new-brand-kana" className="mb-1 block text-sm font-medium text-gray-700">
+                  読み仮名
+                </label>
+                <input
+                  id="new-brand-kana"
+                  type="text"
+                  value={newBrandKana}
+                  onChange={(event) => setNewBrandKana(event.target.value)}
+                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                />
+              </div>
+              <div className="flex items-end">
+                <button
+                  type="button"
+                  onClick={handleCreateBrand}
+                  disabled={addingBrand}
+                  className="w-full rounded-lg bg-blue-600 px-4 py-3 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300"
+                >
+                  {addingBrand ? "追加中..." : "追加する"}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {brandsLoading ? (
+            <p className="mt-6 text-sm text-gray-600">ブランド候補を読み込み中です...</p>
+          ) : brandsLoadError ? (
+            <p className="mt-6 text-sm text-red-600">{brandsLoadError}</p>
+          ) : (
+            <div className="mt-6 space-y-3">
+              {sortedBrands.length === 0 ? (
+                <p className="rounded-xl border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-sm text-gray-500">
+                  ブランド候補はまだありません。
+                </p>
+              ) : (
+                sortedBrands.map((brand) => {
+                  const isEditing = editingBrandId === brand.id;
+                  const isUpdating = updatingBrandId === brand.id;
+
+                  return (
+                    <section
+                      key={brand.id}
+                      className="rounded-2xl border border-gray-200 bg-gray-50 p-4"
+                    >
+                      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <p className="text-base font-semibold text-gray-900">{brand.name}</p>
+                            <span
+                              className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                                brand.is_active
+                                  ? "bg-emerald-100 text-emerald-700"
+                                  : "bg-gray-200 text-gray-700"
+                              }`}
+                            >
+                              {brand.is_active ? "有効" : "無効"}
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-600">
+                            読み仮名: {brand.kana ?? "未設定"}
+                          </p>
+                        </div>
+
+                        <div className="flex flex-wrap gap-2">
+                          <button
+                            type="button"
+                            onClick={() => handleToggleBrandActive(brand)}
+                            disabled={isUpdating}
+                            className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400"
+                          >
+                            {brand.is_active ? "無効にする" : "有効にする"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => startEditingBrand(brand)}
+                            className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 transition hover:bg-gray-100"
+                          >
+                            編集する
+                          </button>
+                        </div>
+                      </div>
+
+                      {isEditing ? (
+                        <div className="mt-4 grid gap-4 md:grid-cols-[2fr_2fr_auto_auto]">
+                          <div>
+                            <label htmlFor={`brand-name-${brand.id}`} className="mb-1 block text-sm font-medium text-gray-700">
+                              ブランド名
+                            </label>
+                            <input
+                              id={`brand-name-${brand.id}`}
+                              type="text"
+                              value={editBrandName}
+                              onChange={(event) => setEditBrandName(event.target.value)}
+                              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                            />
+                          </div>
+                          <div>
+                            <label htmlFor={`brand-kana-${brand.id}`} className="mb-1 block text-sm font-medium text-gray-700">
+                              読み仮名
+                            </label>
+                            <input
+                              id={`brand-kana-${brand.id}`}
+                              type="text"
+                              value={editBrandKana}
+                              onChange={(event) => setEditBrandKana(event.target.value)}
+                              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                            />
+                          </div>
+                          <label className="inline-flex h-[50px] items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700 md:self-end">
+                            <input
+                              type="checkbox"
+                              checked={editBrandIsActive}
+                              onChange={(event) => setEditBrandIsActive(event.target.checked)}
+                              className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                            />
+                            有効
+                          </label>
+                          <div className="flex gap-2 md:self-end">
+                            <button
+                              type="button"
+                              onClick={() => setEditingBrandId(null)}
+                              className="rounded-lg border border-gray-300 bg-white px-3 py-3 text-sm text-gray-700 transition hover:bg-gray-100"
+                            >
+                              キャンセル
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleUpdateBrand(brand.id)}
+                              disabled={isUpdating}
+                              className="rounded-lg bg-blue-600 px-4 py-3 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300"
+                            >
+                              {isUpdating ? "更新中..." : "更新する"}
+                            </button>
+                          </div>
+                        </div>
+                      ) : null}
+                    </section>
+                  );
+                })
+              )}
             </div>
           )}
         </section>

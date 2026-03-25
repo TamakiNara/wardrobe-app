@@ -56,6 +56,7 @@
 - 既存候補との重複時は候補追加をスキップし、item 保存自体は失敗させない
 - brand 候補の正規化と重複判定は backend 側で扱う
 - item 新規作成 / 編集では `GET /api/settings/brands?active_only=1&keyword=...` をサジェスト取得に利用する
+- 設定画面では `GET /api/settings/brands` / `POST /api/settings/brands` / `PATCH /api/settings/brands/{id}` を使って候補管理する
 - 仕様正本は [`../specs/settings/brand-candidates.md`](../specs/settings/brand-candidates.md) を参照する
 
 ---

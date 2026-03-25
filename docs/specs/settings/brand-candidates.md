@@ -69,8 +69,6 @@
 - 候補削除 API の本実装
 - 候補変更時の既存 item 一括更新
 - 外部ブランドデータ連携
-- item 入力時のブランド候補サジェスト UI
-- ブランド設定画面
 - Seeder の充実
 
 ---
@@ -535,10 +533,10 @@ server behavior:
 - item create / update は `save_brand_as_candidate` を受け取り、Laravel 側で候補追加を試行する
 - `save_brand_as_candidate=true` かつ重複時は候補追加をスキップし、item 保存自体は成功させる
 - item 新規作成 / 編集画面では `GET /api/settings/brands` を使ったブランド候補サジェスト UI を実装済み
+- 設定画面ではブランド候補一覧 / 追加 / 編集 / 有効無効切替 UI を実装済み
 
 未対応:
 
-- ブランド設定画面
 - `DELETE /api/settings/brands/{id}`
 - Seeder の充実
 

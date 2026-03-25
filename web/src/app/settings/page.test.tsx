@@ -14,6 +14,9 @@ const fetchCategoryGroupsMock = vi.fn();
 const fetchCategoryVisibilitySettingsMock = vi.fn();
 const updateCategoryVisibilitySettingsMock = vi.fn();
 const fetchItemsMock = vi.fn();
+const fetchUserBrandsMock = vi.fn();
+const createUserBrandMock = vi.fn();
+const updateUserBrandMock = vi.fn();
 
 vi.mock("next/link", () => ({
   default: ({ children, href, ...props }: React.ComponentProps<"a">) =>
@@ -41,7 +44,10 @@ vi.mock("@/lib/api/items", () => ({
 }));
 
 vi.mock("@/lib/api/settings", () => ({
+  createUserBrand: createUserBrandMock,
   fetchCategoryVisibilitySettings: fetchCategoryVisibilitySettingsMock,
+  fetchUserBrands: fetchUserBrandsMock,
+  updateUserBrand: updateUserBrandMock,
   updateCategoryVisibilitySettings: updateCategoryVisibilitySettingsMock,
 }));
 
@@ -76,9 +82,20 @@ async function waitForEffects() {
   await new Promise((resolve) => setTimeout(resolve, 0));
 }
 
+function setInputValue(input: HTMLInputElement, value: string) {
+  const descriptor = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value");
+  descriptor?.set?.call(input, value);
+  input.dispatchEvent(new Event("input", { bubbles: true }));
+  input.dispatchEvent(new Event("change", { bubbles: true }));
+}
+
 function getSaveButtons(container: HTMLDivElement) {
-  return Array.from(
-    container.querySelectorAll<HTMLButtonElement>("button.bg-blue-600"),
+  return Array.from(container.querySelectorAll<HTMLButtonElement>("button")).filter(
+    (button) =>
+      button.textContent === "表示設定を保存" ||
+      button.textContent === "保存してはじめる" ||
+      button.textContent === "保存中..." ||
+      button.textContent === "変更なし",
   );
 }
 
@@ -93,6 +110,7 @@ describe("SettingsPage", () => {
     document.body.appendChild(container);
     root = createRoot(container);
     fetchItemsMock.mockResolvedValue(sampleItems);
+    fetchUserBrandsMock.mockResolvedValue({ brands: [] });
     searchParamsValue = "";
   });
 
@@ -397,6 +415,170 @@ describe("SettingsPage", () => {
       visibleCategoryIds: ["tops_shirt", "tops_tshirt"],
     });
     expect(pushMock).toHaveBeenCalledWith("/");
+  });
+
+  it("ブランド候補一覧を表示できる", async () => {
+    fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
+    fetchCategoryVisibilitySettingsMock.mockResolvedValue({
+      visibleCategoryIds: ["tops_tshirt"],
+    });
+    fetchUserBrandsMock.mockResolvedValue({
+      brands: [
+        { id: 2, name: "GU", kana: "じーゆー", is_active: false },
+        { id: 1, name: "UNIQLO", kana: "ゆにくろ", is_active: true },
+      ],
+    });
+
+    const { default: SettingsPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(SettingsPage));
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain("ブランド候補設定");
+    expect(container.textContent).toContain("UNIQLO");
+    expect(container.textContent).toContain("ゆにくろ");
+    expect(container.textContent).toContain("GU");
+    expect(container.textContent).toContain("無効");
+  });
+
+  it("ブランド候補を追加できる", async () => {
+    fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
+    fetchCategoryVisibilitySettingsMock.mockResolvedValue({
+      visibleCategoryIds: ["tops_tshirt"],
+    });
+    fetchUserBrandsMock
+      .mockResolvedValueOnce({ brands: [] })
+      .mockResolvedValueOnce({
+        brands: [{ id: 1, name: "UNIQLO", kana: "ゆにくろ", is_active: true }],
+      });
+    createUserBrandMock.mockResolvedValue({
+      message: "created",
+      brand: { id: 1, name: "UNIQLO", kana: "ゆにくろ", is_active: true },
+    });
+
+    const { default: SettingsPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(SettingsPage));
+      await waitForEffects();
+    });
+
+    const nameInput = container.querySelector<HTMLInputElement>("#new-brand-name");
+    const kanaInput = container.querySelector<HTMLInputElement>("#new-brand-kana");
+    const addButton = Array.from(container.querySelectorAll<HTMLButtonElement>("button")).find(
+      (button) => button.textContent === "追加する",
+    );
+
+    await act(async () => {
+      setInputValue(nameInput!, "UNIQLO");
+      setInputValue(kanaInput!, "ゆにくろ");
+      addButton!.click();
+      await waitForEffects();
+    });
+
+    expect(createUserBrandMock).toHaveBeenCalledWith({
+      name: "UNIQLO",
+      kana: "ゆにくろ",
+      is_active: true,
+    });
+    expect(container.textContent).toContain("ブランド候補を追加しました。");
+    expect(container.textContent).toContain("UNIQLO");
+  });
+
+  it("ブランド名と読み仮名を更新できる", async () => {
+    fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
+    fetchCategoryVisibilitySettingsMock.mockResolvedValue({
+      visibleCategoryIds: ["tops_tshirt"],
+    });
+    fetchUserBrandsMock
+      .mockResolvedValueOnce({
+        brands: [{ id: 1, name: "UNIQLO", kana: "ゆにくろ", is_active: true }],
+      })
+      .mockResolvedValueOnce({
+        brands: [{ id: 1, name: "GU", kana: "じーゆー", is_active: true }],
+      });
+    updateUserBrandMock.mockResolvedValue({
+      message: "updated",
+      brand: { id: 1, name: "GU", kana: "じーゆー", is_active: true },
+    });
+
+    const { default: SettingsPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(SettingsPage));
+      await waitForEffects();
+    });
+
+    const editButton = Array.from(container.querySelectorAll<HTMLButtonElement>("button")).find(
+      (button) => button.textContent === "編集する",
+    );
+
+    await act(async () => {
+      editButton!.click();
+      await waitForEffects();
+    });
+
+    const nameInput = container.querySelector<HTMLInputElement>("#brand-name-1");
+    const kanaInput = container.querySelector<HTMLInputElement>("#brand-kana-1");
+    const updateButton = Array.from(container.querySelectorAll<HTMLButtonElement>("button")).find(
+      (button) => button.textContent === "更新する",
+    );
+
+    await act(async () => {
+      setInputValue(nameInput!, "GU");
+      setInputValue(kanaInput!, "じーゆー");
+      updateButton!.click();
+      await waitForEffects();
+    });
+
+    expect(updateUserBrandMock).toHaveBeenCalledWith(1, {
+      name: "GU",
+      kana: "じーゆー",
+      is_active: true,
+    });
+    expect(container.textContent).toContain("ブランド候補を更新しました。");
+  });
+
+  it("有効 / 無効を切り替えられる", async () => {
+    fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
+    fetchCategoryVisibilitySettingsMock.mockResolvedValue({
+      visibleCategoryIds: ["tops_tshirt"],
+    });
+    fetchUserBrandsMock
+      .mockResolvedValueOnce({
+        brands: [{ id: 1, name: "UNIQLO", kana: "ゆにくろ", is_active: true }],
+      })
+      .mockResolvedValueOnce({
+        brands: [{ id: 1, name: "UNIQLO", kana: "ゆにくろ", is_active: false }],
+      });
+    updateUserBrandMock.mockResolvedValue({
+      message: "updated",
+      brand: { id: 1, name: "UNIQLO", kana: "ゆにくろ", is_active: false },
+    });
+
+    const { default: SettingsPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(SettingsPage));
+      await waitForEffects();
+    });
+
+    const toggleButton = Array.from(container.querySelectorAll<HTMLButtonElement>("button")).find(
+      (button) => button.textContent === "無効にする",
+    );
+
+    await act(async () => {
+      toggleButton!.click();
+      await waitForEffects();
+    });
+
+    expect(updateUserBrandMock).toHaveBeenCalledWith(1, {
+      is_active: false,
+    });
+    expect(container.textContent).toContain("ブランド候補を無効にしました。");
+    expect(container.textContent).toContain("無効");
   });
 
 });
