@@ -34,6 +34,7 @@ export type ItemImageRecord = {
 
 export type CreateItemPayload = {
   name: string;
+  purchase_candidate_id?: number | null;
   brand_name: string | null;
   price: number | null;
   purchase_url: string | null;

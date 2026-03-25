@@ -5,12 +5,13 @@ namespace App\Support;
 use App\Models\Item;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use RuntimeException;
+use Illuminate\Validation\ValidationException;
 
 class ItemImageSync
 {
-    public static function sync(Item $item, array $images): void
+    public static function sync(Item $item, array $images, ?array &$copiedFiles = null): void
     {
+        $copiedFiles ??= [];
         $item->images()->delete();
 
         if ($images === []) {
@@ -19,10 +20,10 @@ class ItemImageSync
 
         $item->images()->createMany(
             collect($images)
-                ->map(function (array $image) use ($item) {
+                ->map(function (array $image) use ($item, &$copiedFiles) {
                     return [
                         'disk' => $image['disk'] ?? null,
-                        'path' => self::resolveItemImagePath($item, $image),
+                        'path' => self::resolveItemImagePath($item, $image, $copiedFiles),
                         'original_filename' => $image['original_filename'] ?? null,
                         'mime_type' => $image['mime_type'] ?? null,
                         'file_size' => $image['file_size'] ?? null,
@@ -34,7 +35,21 @@ class ItemImageSync
         );
     }
 
-    private static function resolveItemImagePath(Item $item, array $image): ?string
+    public static function cleanupCopied(array $copiedFiles): void
+    {
+        foreach ($copiedFiles as $file) {
+            $disk = $file['disk'] ?? null;
+            $path = $file['path'] ?? null;
+
+            if ($disk === null || $path === null) {
+                continue;
+            }
+
+            Storage::disk($disk)->delete($path);
+        }
+    }
+
+    private static function resolveItemImagePath(Item $item, array $image, array &$copiedFiles): ?string
     {
         $disk = $image['disk'] ?? null;
         $path = $image['path'] ?? null;
@@ -49,7 +64,9 @@ class ItemImageSync
 
         $storage = Storage::disk($disk);
         if (! $storage->exists($path)) {
-            throw new RuntimeException('引き継ぎ元画像が見つかりません。');
+            throw ValidationException::withMessages([
+                'images' => '引き継ぎ元画像が見つかりません。',
+            ]);
         }
 
         $extension = pathinfo($path, PATHINFO_EXTENSION);
@@ -61,6 +78,10 @@ class ItemImageSync
         );
 
         $storage->put($destinationPath, $storage->get($path));
+        $copiedFiles[] = [
+            'disk' => $disk,
+            'path' => $destinationPath,
+        ];
 
         return $destinationPath;
     }

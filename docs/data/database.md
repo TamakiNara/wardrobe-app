@@ -15,19 +15,25 @@ wear logs も本資料の対象とし、その保存方針を定義します。
 
 - `users`
 - `items`
+- `item_images`
 - `outfits`
 - `outfit_items`
 - `wear_logs`
 - `wear_log_items`
+- `purchase_candidates`
+- `purchase_candidate_colors`
+- `purchase_candidate_seasons`
+- `purchase_candidate_tpos`
+- `purchase_candidate_images`
 - `category_groups`
 - `category_master`
 - `category_presets`
 - `category_preset_categories`
 
-## Planned Tables (`purchase_candidates` / 購入検討)
+## Purchase Review Tables (`purchase_candidates` / 購入検討)
 
-`purchase_candidates` 系は購入検討用の schema で、`docs/specs/purchase-candidates.md` を正本とする planned schema です。  
-比較ロジックの詳細は後続検討とし、まずは candidate 保存・画像管理・item 昇格を支える構造を先に整理します。
+`purchase_candidates` 系は購入検討用の schema で、`docs/specs/purchase-candidates.md` を正本とします。  
+比較ロジックの詳細は後続検討としつつ、current 実装では candidate 保存・画像管理・item 昇格を支える構造まで含みます。
 
 ### `purchase_candidates`
 
@@ -58,6 +64,7 @@ wear logs も本資料の対象とし、その保存方針を定義します。
 - `dropped` は見送り履歴を残す状態であり、DELETE とは別概念とする
 - candidate の `price` は想定価格、item の `price` は実購入価格として意味を分ける
 - candidate から item へは既存 record を変換せず、新規 item 作成で昇格する
+- current 実装では、`purchase_candidate_id` 付きの item 作成成功時に `status=purchased`、`converted_item_id`、`converted_at` を更新する
 
 ### `purchase_candidate_colors`
 

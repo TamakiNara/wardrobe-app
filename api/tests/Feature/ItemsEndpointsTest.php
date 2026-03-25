@@ -2,7 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Models\CategoryGroup;
+use App\Models\CategoryMaster;
 use App\Models\Item;
+use App\Models\PurchaseCandidate;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -12,6 +15,72 @@ use Tests\TestCase;
 class ItemsEndpointsTest extends TestCase
 {
     use RefreshDatabase;
+
+    private function createFakePng(string $filename): UploadedFile
+    {
+        $tmpPath = tempnam(sys_get_temp_dir(), 'item-img-');
+        file_put_contents(
+            $tmpPath,
+            base64_decode(
+                'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wn9nS8AAAAASUVORK5CYII='
+            )
+        );
+
+        return new UploadedFile(
+            $tmpPath,
+            $filename,
+            'image/png',
+            null,
+            true
+        );
+    }
+
+    private function createPurchaseCategory(string $id = 'outer_coat', string $groupId = 'outer', string $name = 'コート'): void
+    {
+        CategoryGroup::query()->updateOrCreate(
+            ['id' => $groupId],
+            [
+                'id' => $groupId,
+                'name' => $groupId,
+                'sort_order' => 1,
+                'is_active' => true,
+            ],
+        );
+
+        CategoryMaster::query()->updateOrCreate(
+            ['id' => $id],
+            [
+                'id' => $id,
+                'group_id' => $groupId,
+                'name' => $name,
+                'sort_order' => 1,
+                'is_active' => true,
+            ],
+        );
+    }
+
+    private function createPurchaseCandidate(User $user, array $overrides = []): PurchaseCandidate
+    {
+        $categoryId = $overrides['category_id'] ?? 'outer_coat';
+        $this->createPurchaseCategory($categoryId);
+
+        return PurchaseCandidate::query()->create(array_merge([
+            'user_id' => $user->id,
+            'status' => 'considering',
+            'priority' => 'medium',
+            'name' => 'レインコート候補',
+            'category_id' => $categoryId,
+            'brand_name' => 'Sample Brand',
+            'price' => 14800,
+            'purchase_url' => 'https://example.test/products/coat',
+            'memo' => null,
+            'wanted_reason' => '欲しい理由',
+            'size_gender' => 'women',
+            'size_label' => 'M',
+            'size_note' => '厚手ニット込み',
+            'is_rain_ok' => true,
+        ], $overrides));
+    }
 
     private function createItem(User $user, array $overrides = []): Item
     {
@@ -146,12 +215,14 @@ class ItemsEndpointsTest extends TestCase
         Storage::fake('public');
 
         $user = User::factory()->create();
+        $candidate = $this->createPurchaseCandidate($user);
         Storage::disk('public')->put('purchase-candidates/1/image-1.png', 'candidate-image');
 
         $this->actingAs($user, 'web');
 
         $response = $this->postJson('/api/items', [
             'name' => 'レインコート',
+            'purchase_candidate_id' => $candidate->id,
             'brand_name' => 'Sample Brand',
             'price' => 14800,
             'purchase_url' => 'https://example.test/products/coat',
@@ -219,6 +290,14 @@ class ItemsEndpointsTest extends TestCase
             'path' => $copiedPath,
             'is_primary' => 1,
         ]);
+        $this->assertDatabaseHas('purchase_candidates', [
+            'id' => $candidate->id,
+            'status' => 'purchased',
+            'converted_item_id' => $itemId,
+        ]);
+        $this->assertNotNull(
+            PurchaseCandidate::query()->findOrFail($candidate->id)->converted_at
+        );
     }
 
     public function test_item_image_remains_after_candidate_source_file_is_deleted(): void
@@ -263,6 +342,83 @@ class ItemsEndpointsTest extends TestCase
 
         Storage::disk('public')->assertMissing('purchase-candidates/1/image-1.png');
         Storage::disk('public')->assertExists($itemImagePath);
+    }
+
+    public function test_post_items_rejects_other_users_purchase_candidate_id(): void
+    {
+        $user = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $candidate = $this->createPurchaseCandidate($otherUser);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/items', [
+            'name' => '不正な昇格',
+            'purchase_candidate_id' => $candidate->id,
+            'category' => 'tops',
+            'shape' => 'tshirt',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'white',
+                'hex' => '#eeeeee',
+                'label' => 'ホワイト',
+            ]],
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonPath('errors.purchase_candidate_id.0', '紐付け元の購入検討が見つかりません。');
+    }
+
+    public function test_post_items_rolls_back_candidate_promotion_when_source_image_is_missing(): void
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->create();
+        $candidate = $this->createPurchaseCandidate($user);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/items', [
+            'name' => '画像欠落確認',
+            'purchase_candidate_id' => $candidate->id,
+            'category' => 'outer',
+            'shape' => 'trench',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'navy',
+                'hex' => '#123456',
+                'label' => 'ネイビー',
+            ]],
+            'images' => [[
+                'disk' => 'public',
+                'path' => 'purchase-candidates/999/missing.png',
+                'original_filename' => 'missing.png',
+                'mime_type' => 'image/png',
+                'file_size' => 2048,
+                'sort_order' => 1,
+                'is_primary' => true,
+            ]],
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonPath('errors.images.0', '引き継ぎ元画像が見つかりません。');
+
+        $this->assertDatabaseMissing('items', [
+            'user_id' => $user->id,
+            'name' => '画像欠落確認',
+        ]);
+        $this->assertDatabaseHas('purchase_candidates', [
+            'id' => $candidate->id,
+            'status' => 'considering',
+            'converted_item_id' => null,
+            'converted_at' => null,
+        ]);
     }
 
     public function test_get_item_returns_purchase_fields_and_images(): void
@@ -407,7 +563,7 @@ class ItemsEndpointsTest extends TestCase
         $response = $this->post(
             "/api/items/{$item->id}/images",
             [
-                'image' => UploadedFile::fake()->image('item.png', 600, 900)->size(500),
+                'image' => $this->createFakePng('item.png'),
                 'sort_order' => 1,
                 'is_primary' => true,
             ],
@@ -490,7 +646,7 @@ class ItemsEndpointsTest extends TestCase
         $response = $this->post(
             "/api/items/{$item->id}/images",
             [
-                'image' => UploadedFile::fake()->image('other.png', 600, 900)->size(500),
+                'image' => $this->createFakePng('other.png'),
             ],
             ['Accept' => 'application/json'],
         );

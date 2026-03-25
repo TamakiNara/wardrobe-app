@@ -6,6 +6,7 @@ import type {
 const ITEM_DRAFT_STORAGE_KEY = "purchase-candidate-item-draft";
 
 export type PurchaseCandidateItemDraft = {
+  sourceCandidateId: number;
   name: string;
   sourceCategoryId: string;
   category: string;
@@ -58,6 +59,7 @@ export function mapPurchaseCandidateItemDraft(
   payload: PurchaseCandidateItemDraftResponse,
 ): PurchaseCandidateItemDraft {
   return {
+    sourceCandidateId: payload.candidate_summary.id,
     name: payload.item_draft.name ?? "",
     sourceCategoryId: payload.item_draft.source_category_id,
     category: payload.item_draft.category,

@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Api\ItemImageController;
 use App\Http\Controllers\Api\PurchaseCandidateController;
 use App\Http\Controllers\Api\WearLogController;
+use App\Services\Items\ItemStoreService;
 use App\Models\CategoryMaster;
 use App\Models\Item;
 use App\Models\Outfit;
@@ -112,6 +113,7 @@ Route::prefix('api')->middleware(['web'])->group(function () {
     Route::middleware('auth:web')->post('/items', function (Request $request) {
         $validated = $request->validate([
             'name' => ['nullable', 'string', 'max:255'],
+            'purchase_candidate_id' => ['nullable', 'integer'],
             'brand_name' => ['nullable', 'string', 'max:255'],
             'price' => ['nullable', 'integer', 'min:0'],
             'purchase_url' => ['nullable', 'url'],
@@ -152,31 +154,7 @@ Route::prefix('api')->middleware(['web'])->group(function () {
             'images.*.is_primary' => ['nullable', 'boolean'],
         ]);
 
-        $item = DB::transaction(function () use ($request, $validated) {
-            $item = Item::create([
-                'user_id' => $request->user()->id,
-                'name' => $validated['name'] ?? null,
-                'brand_name' => $validated['brand_name'] ?? null,
-                'price' => $validated['price'] ?? null,
-                'purchase_url' => $validated['purchase_url'] ?? null,
-                'purchased_at' => $validated['purchased_at'] ?? null,
-                'size_gender' => $validated['size_gender'] ?? null,
-                'size_label' => $validated['size_label'] ?? null,
-                'size_note' => $validated['size_note'] ?? null,
-                'size_details' => $validated['size_details'] ?? null,
-                'is_rain_ok' => (bool) ($validated['is_rain_ok'] ?? false),
-                'category' => $validated['category'],
-                'shape' => $validated['shape'],
-                'colors' => $validated['colors'],
-                'seasons' => $validated['seasons'] ?? [],
-                'tpos' => $validated['tpos'] ?? [],
-                'spec' => $validated['spec'] ?? null,
-            ]);
-
-            ItemImageSync::sync($item, $validated['images'] ?? []);
-
-            return $item->fresh()->load('images');
-        });
+        $item = app(ItemStoreService::class)->store($request->user(), $validated);
 
         return response()->json([
             'message' => 'created',

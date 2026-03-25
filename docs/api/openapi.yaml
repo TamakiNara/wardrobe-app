@@ -232,6 +232,11 @@ paths:
       tags:
         - Items
       summary: アイテム作成
+      description: |
+        通常の item 作成に加えて、`purchase_candidate_id` を渡した場合は
+        Laravel 側で item 作成、candidate 由来画像の item 用保存先への物理コピー、
+        candidate の `status=purchased` 更新、`converted_item_id` / `converted_at` 更新を
+        同じ transaction で処理する。
       security:
         - SessionCookieAuth: []
       parameters:
@@ -241,7 +246,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ItemUpsertRequest'
+              $ref: '#/components/schemas/ItemCreateRequest'
       responses:
         '201':
           description: 作成成功
@@ -1570,6 +1575,19 @@ components:
           maxItems: 5
           items:
             $ref: '#/components/schemas/ItemImageUpsertPayload'
+
+    ItemCreateRequest:
+      allOf:
+        - $ref: '#/components/schemas/ItemUpsertRequest'
+        - type: object
+          properties:
+            purchase_candidate_id:
+              type: integer
+              nullable: true
+              description: |
+                購入検討から item へ昇格するときの source candidate ID。
+                指定した場合は、item 作成成功時に candidate の `status`、
+                `converted_item_id`、`converted_at` も更新する。
 
     ItemImageRecord:
       type: object

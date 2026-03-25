@@ -145,7 +145,7 @@
 - `item-draft` は保存済み item を返す API ではなく、item 作成画面へ渡す初期値 payload を返す
 - `item-draft` は candidate 側の `category_id` を source metadata として保持しつつ、current item API 互換の `category` / `shape` と配列項目を返す前提とする
 - candidate から item へは登録済み全画像を引き継ぎ、`sort_order` と `is_primary` も維持する前提とする
-- MVP では CRUD / 画像 / item-draft を優先し、item 保存成功時に candidate を `purchased` に更新する責務分割は後続整理とする
+- current 実装では、item create に `purchase_candidate_id` を渡した場合、Laravel 側で item 作成、画像コピー、candidate の `purchased` 反映、`converted_item_id` / `converted_at` 更新をまとめて処理する
 - 比較結果は詳細画面での補助表示前提とし、比較ロジックの詳細は後続検討とする
 - 詳細仕様は [`../specs/purchase-candidates.md`](../specs/purchase-candidates.md) を参照
 - DB 保存方針は [`../data/database.md`](../data/database.md) を参照

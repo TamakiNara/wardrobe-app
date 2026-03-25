@@ -87,6 +87,7 @@ export default function NewItemPage() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
   const [draftInfoMessage, setDraftInfoMessage] = useState<string | null>(null);
+  const [sourcePurchaseCandidateId, setSourcePurchaseCandidateId] = useState<number | null>(null);
   const [itemImages, setItemImages] = useState<ItemImageRecord[]>([]);
   const [pendingImages, setPendingImages] = useState<File[]>([]);
 
@@ -190,6 +191,7 @@ export default function NewItemPage() {
     const subDraftColor = draft.colors.find((color) => color.role === "sub");
 
     setName(draft.name);
+    setSourcePurchaseCandidateId(draft.sourceCandidateId);
     setBrandName(draft.brandName ?? "");
     setPrice(draft.price === null ? "" : String(draft.price));
     setPurchaseUrl(draft.purchaseUrl ?? "");
@@ -281,6 +283,7 @@ export default function NewItemPage() {
 
     return {
       name,
+      purchase_candidate_id: sourcePurchaseCandidateId,
       brand_name: brandName.trim() || null,
       price: price === "" ? null : Number(price),
       purchase_url: purchaseUrl.trim() || null,

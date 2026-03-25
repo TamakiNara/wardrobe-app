@@ -361,6 +361,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
             ->assertJsonPath('item_draft.shape', 'trench');
 
         $payload = $draftResponse->json('item_draft');
+        $payload['purchase_candidate_id'] = $candidate->id;
         $payload['images'] = [];
 
         $createResponse = $this->postJson('/api/items', $payload, [
@@ -379,6 +380,12 @@ class PurchaseCandidateEndpointsTest extends TestCase
             'category' => 'outer',
             'shape' => 'trench',
         ]);
+        $this->assertDatabaseHas('purchase_candidates', [
+            'id' => $candidate->id,
+            'status' => 'purchased',
+            'converted_item_id' => $createResponse->json('item.id'),
+        ]);
+        $this->assertNotNull($candidate->fresh()->converted_at);
     }
 
     public function test_post_purchase_candidate_image_upload_and_delete_work_with_limit(): void
