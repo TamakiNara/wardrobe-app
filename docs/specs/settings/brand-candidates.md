@@ -342,6 +342,7 @@ server behavior:
 - 表示はブランド名を主表示
 - 必要なら読み仮名を補助表示
 - 選択時に入力欄へ入るのはブランド名
+- current 実装では item 新規作成 / 編集画面で候補サジェスト UI を提供する
 
 保存ルール:
 
@@ -526,17 +527,17 @@ server behavior:
 
 ---
 
-## 17. current 実装メモ
+## 16. current 実装メモ
 
 - `items.brand_name` は DB / API / frontend payload に実装済み
 - `user_brands` と `BrandNormalizer` は実装済み
 - `GET /api/settings/brands` / `POST /api/settings/brands` / `PATCH /api/settings/brands/{id}` は実装済み
 - item create / update は `save_brand_as_candidate` を受け取り、Laravel 側で候補追加を試行する
 - `save_brand_as_candidate=true` かつ重複時は候補追加をスキップし、item 保存自体は成功させる
+- item 新規作成 / 編集画面では `GET /api/settings/brands` を使ったブランド候補サジェスト UI を実装済み
 
 未対応:
 
-- item 入力サジェスト UI
 - ブランド設定画面
 - `DELETE /api/settings/brands/{id}`
 - Seeder の充実
@@ -564,7 +565,7 @@ server behavior:
 
 ---
 
-## 16. 今は保留でよいこと
+## 17. 今は保留でよいこと
 
 - グローバル共通ブランドマスタ
 - soft delete
@@ -576,7 +577,7 @@ server behavior:
 
 ---
 
-## 17. 実務影響
+## 18. 実務影響
 
 ### 良い点
 
@@ -593,7 +594,7 @@ server behavior:
 
 ---
 
-## 18. 次に見るべき更新対象
+## 19. 次に見るべき更新対象
 
 - `docs/data/database.md`
 - `docs/api/openapi.yaml`

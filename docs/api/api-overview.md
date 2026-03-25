@@ -55,6 +55,7 @@
 - `POST /api/items` / `PUT /api/items/{id}` は `save_brand_as_candidate=true` のとき Laravel 側で候補追加を試行する
 - 既存候補との重複時は候補追加をスキップし、item 保存自体は失敗させない
 - brand 候補の正規化と重複判定は backend 側で扱う
+- item 新規作成 / 編集では `GET /api/settings/brands?active_only=1&keyword=...` をサジェスト取得に利用する
 - 仕様正本は [`../specs/settings/brand-candidates.md`](../specs/settings/brand-candidates.md) を参照する
 
 ---

@@ -199,11 +199,12 @@ item 詳細画面での status 操作 UI を確認するときは `docs/specs/it
 - ブランド候補基盤として `user_brands`、`BrandNormalizer`、`GET /api/settings/brands` / `POST /api/settings/brands` / `PATCH /api/settings/brands/{id}` を実装済み
 - item create / update は `save_brand_as_candidate` を受け取り、Laravel 側で候補追加を試行する
 - `items.brand_name` は item の正本、`user_brands` は入力補助候補の正本とし、FK では結ばない
+- item 新規作成 / 編集画面では、`GET /api/settings/brands` を使ったブランド候補サジェスト UI を実装済み
 
 未完了:
 
 - ページ内遷移での未保存変更警告は未対応のため、必要に応じて今後整理する
-- ブランド候補のサジェスト UI、ブランド設定画面、DELETE API は未対応
+- ブランド設定画面、DELETE API は未対応
 
 ### テスト用 seed ユーザー
 

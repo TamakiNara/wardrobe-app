@@ -58,7 +58,7 @@ describe("settings api helpers", () => {
 
     const result = await fetchUserBrands("uni");
 
-    expect(apiFetch).toHaveBeenCalledWith("/api/settings/brands?keyword=uni");
+    expect(apiFetch).toHaveBeenCalledWith("/api/settings/brands?keyword=uni&active_only=1");
     expect(result.brands[0].name).toBe("UNIQLO");
   });
 

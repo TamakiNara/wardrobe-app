@@ -85,9 +85,21 @@ paths:
       tags:
         - Settings
       summary: ブランド候補一覧取得
-      description: ユーザー単位のブランド候補を返す。`active_only` と `keyword` で絞り込みできる。
+      description: ユーザー単位のブランド候補を返す。`active_only` と `keyword` で絞り込みでき、item 新規作成 / 編集のブランド候補サジェストにも利用する。
       security:
         - SessionCookieAuth: []
+      parameters:
+        - in: query
+          name: active_only
+          schema:
+            type: boolean
+          description: `true` のとき有効な候補だけ返す
+        - in: query
+          name: keyword
+          schema:
+            type: string
+            maxLength: 255
+          description: ブランド名または読み仮名で候補を絞り込む
       responses:
         '200':
           description: 取得成功

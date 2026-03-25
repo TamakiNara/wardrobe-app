@@ -10,6 +10,7 @@ const pushMock = vi.fn();
 const refreshMock = vi.fn();
 const fetchCategoryGroupsMock = vi.fn();
 const fetchCategoryVisibilitySettingsMock = vi.fn();
+const fetchUserBrandsMock = vi.fn();
 const routerMock = { push: pushMock, refresh: refreshMock };
 let searchParamsSourceValue = "";
 
@@ -38,6 +39,7 @@ vi.mock("@/lib/api/categories", async () => {
 
 vi.mock("@/lib/api/settings", () => ({
   fetchCategoryVisibilitySettings: fetchCategoryVisibilitySettingsMock,
+  fetchUserBrands: fetchUserBrandsMock,
 }));
 
 vi.mock("@/components/items/color-chip", () => ({
@@ -101,6 +103,7 @@ describe("NewItemPage", () => {
     fetchCategoryVisibilitySettingsMock.mockResolvedValue({
       visibleCategoryIds: ["tops_tshirt", "dress_onepiece", "inner_roomwear"],
     });
+    fetchUserBrandsMock.mockResolvedValue({ brands: [] });
   });
 
   afterEach(() => {
@@ -191,7 +194,9 @@ describe("NewItemPage", () => {
     const sizeLabelInput = container.querySelector<HTMLInputElement>("#size-label");
     const sizeNoteInput = container.querySelector<HTMLInputElement>("#size-note");
     const sizeDetailsTextarea = container.querySelector<HTMLTextAreaElement>("#size-details-note");
-    const rainCheckbox = container.querySelector<HTMLInputElement>('input[type="checkbox"][class*="text-blue-600"]');
+    const rainCheckbox = Array.from(container.querySelectorAll("label")).find(
+      (element) => element.textContent?.includes("雨対応"),
+    )?.querySelector<HTMLInputElement>('input[type="checkbox"]');
     const categorySelect = container.querySelector<HTMLSelectElement>("#category");
     expect(nameInput?.value).toBe("レインコート候補");
     expect(brandNameInput?.value).toBe("Sample Brand");

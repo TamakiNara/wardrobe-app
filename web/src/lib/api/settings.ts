@@ -24,11 +24,18 @@ export async function updateCategoryVisibilitySettings(
   });
 }
 
-export async function fetchUserBrands(keyword?: string): Promise<UserBrandsResponse> {
+export async function fetchUserBrands(
+  keyword?: string,
+  activeOnly = true,
+): Promise<UserBrandsResponse> {
   const params = new URLSearchParams();
 
   if (keyword) {
     params.set("keyword", keyword);
+  }
+
+  if (activeOnly) {
+    params.set("active_only", "1");
   }
 
   const search = params.toString();

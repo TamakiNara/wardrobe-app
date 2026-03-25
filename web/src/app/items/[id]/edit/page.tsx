@@ -16,6 +16,7 @@ import {
   type ItemColorValue,
 } from "@/lib/master-data/item-colors";
 import FieldLabel from "@/components/forms/field-label";
+import BrandNameField from "@/components/items/brand-name-field";
 import ColorChip from "@/components/items/color-chip";
 import ColorSelect from "@/components/items/color-select";
 import ItemImageUploader from "@/components/items/item-image-uploader";
@@ -567,19 +568,14 @@ export default function EditItemPage({
             <p className="text-sm text-gray-500">「必須」が付いた項目は更新に必要です。</p>
 
             <div className="grid gap-4 md:grid-cols-2">
-              <div>
-                <label htmlFor="brand-name" className="mb-1 block text-sm font-medium text-gray-700">ブランド名</label>
-                <input id="brand-name" type="text" value={brandName} onChange={(e) => setBrandName(e.target.value)} className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
-                <label className="mt-2 flex items-center gap-2 text-sm text-gray-600">
-                  <input
-                    type="checkbox"
-                    checked={saveBrandAsCandidate}
-                    onChange={(event) => setSaveBrandAsCandidate(event.target.checked)}
-                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  />
-                  ブランド候補にも追加する
-                </label>
-              </div>
+              <BrandNameField
+                inputId="brand-name"
+                value={brandName}
+                onChange={setBrandName}
+                saveAsCandidate={saveBrandAsCandidate}
+                onSaveAsCandidateChange={setSaveBrandAsCandidate}
+                disabled={submitting}
+              />
 
               <div>
                 <label htmlFor="price" className="mb-1 block text-sm font-medium text-gray-700">実購入価格</label>

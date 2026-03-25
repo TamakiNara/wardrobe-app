@@ -10,6 +10,7 @@ const pushMock = vi.fn();
 const refreshMock = vi.fn();
 const fetchCategoryGroupsMock = vi.fn();
 const fetchCategoryVisibilitySettingsMock = vi.fn();
+const fetchUserBrandsMock = vi.fn();
 const routerMock = { push: pushMock, refresh: refreshMock };
 
 vi.mock("next/link", () => ({
@@ -34,6 +35,7 @@ vi.mock("@/lib/api/categories", async () => {
 
 vi.mock("@/lib/api/settings", () => ({
   fetchCategoryVisibilitySettings: fetchCategoryVisibilitySettingsMock,
+  fetchUserBrands: fetchUserBrandsMock,
 }));
 
 vi.mock("@/components/items/color-chip", () => ({
@@ -95,6 +97,7 @@ describe("EditItemPage", () => {
     fetchCategoryVisibilitySettingsMock.mockResolvedValue({
       visibleCategoryIds: ["tops_tshirt", "dress_onepiece", "inner_roomwear"],
     });
+    fetchUserBrandsMock.mockResolvedValue({ brands: [] });
     vi.stubGlobal(
       "fetch",
       vi.fn().mockResolvedValue({
