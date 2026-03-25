@@ -226,6 +226,7 @@ MVP では、`resource_type` は次を想定する。
 - `item`
 - `outfit`
 - `wear_log`
+- `purchase_candidate`
 
 `setting` などの追加は将来必要になった時点で検討する。  
 現時点では、重要な状態変化や副作用の中心となるリソースに絞る。
@@ -241,6 +242,7 @@ MVP では、まず次をイベントログの対象とする。
 - `outfit_invalidated`
 - `outfit_restored`
 - `outfit_duplicated`
+- `purchase_candidate_purchased`
 
 ### 将来追加候補
 
@@ -514,7 +516,7 @@ MVP では、次はイベントログに残さない。
 
 - アプリケーションログとイベントログは分ける
 - イベントログは状態変化中心にする
-- `disposed / invalid / restore / duplicate` は残す
+- `disposed / invalid / restore / duplicate / purchased` は残す
 - 軽微編集や閲覧は残さない
 - ログ記録はサービス層で行う
 
