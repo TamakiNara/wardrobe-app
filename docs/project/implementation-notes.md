@@ -11,6 +11,7 @@ item 詳細画面での status 操作 UI を確認するときは `docs/specs/it
 購入検討の DB 保存方針と `purchase_candidate_images` / `item_images` の関係を確認するときは `docs/data/database.md` を参照します。
 主要 spec の索引から購入検討を含む資料一覧へ辿るときは `docs/specs/README.md` を参照します。
 購入検討の OpenAPI 定義は `docs/api/openapi.yaml` に反映済みで、current 実装との差分確認はこのファイルを起点に行います。
+購入検討の後続設計メモを見返すときは `docs/project/purchase-candidate-handover.md` を参照します。
 ブランド候補の仕様正本を確認するときは `docs/specs/settings/brand-candidates.md` を参照します。
 
 ## 削除導線の共通方針
@@ -64,6 +65,8 @@ item 詳細画面での status 操作 UI を確認するときは `docs/specs/it
 - 購入検討で導入した `必須` バッジを items / outfits / wear logs の主要フォームにも揃え、必須項目をラベル上で事前判別できるようにした
 - item 作成時に `purchase_candidate_id` を受け取り、Laravel 側で candidate の `purchased` 反映と `converted_item_id` / `converted_at` 更新まで処理する
 - 比較ロジックの詳細は後続検討とする
+- sale 情報 (`sale_price` / `sale_ends_at`) と candidate 複製機能は未実装であり、現時点では current 仕様へ混ぜない
+- candidate `memo` を item 初期値へ引き継ぐ current 実装は残っているため、item に持ち込まない方針へ寄せるかは後続判断とする
 
 直近または中期 TODO:
 
@@ -83,6 +86,11 @@ item 詳細画面での status 操作 UI を確認するときは `docs/specs/it
 5. ナビゲーション整理
    - 購入検討はボトムナビへ追加済み
    - wear logs を含む major feature 追加時のボトムナビ再編方針を引き続き整理する
+6. sale / 複製差分整理
+   - `sale_price` / `sale_ends_at` の schema, API, UI 導入範囲を設計する
+   - 一覧 / 詳細での sale 表示を次段階の planned とし、ホーム sale 表示は将来検討として切り分ける
+   - candidate 複製機能の API 形式と画像複製方針を整理する
+   - `purchased` 後 candidate の編集範囲と、current の `memo` 引き継ぎ方針を再確認する
 
 既存仕様との衝突確認メモ:
 
