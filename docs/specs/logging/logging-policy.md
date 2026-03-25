@@ -329,6 +329,187 @@ MVP では、次はイベントログに残さない。
 
 ---
 
+## event log の目的整理
+
+### 目的の候補
+
+- **監査目的**
+  - 誰がいつ何を変えたかを厳密に追う用途
+- **ユーザー向け履歴**
+  - UI 上で「最近何をしたか」を見せる用途
+- **開発 / 保守向け内部ログ**
+  - 障害調査や不具合解析の補助
+- **ドメインイベント記録**
+  - 重要な状態変化や副作用を後から追えるようにする用途
+
+### このアプリでの推奨位置づけ
+
+現時点で優先度が高いのは、**監査ログの厳密保存** や **ユーザー向け履歴 UI** ではなく、
+**ドメインイベント記録としての最小 event log** である。
+
+理由:
+
+- item `disposed` が outfit `invalid` を引き起こすなど、副作用を伴う状態変化がある
+- restore / duplicate / purchased 化のように、「何が起きたか」を後から確認したい操作がある
+- 一方で、全編集履歴や UI 向けタイムラインを今入れるには DB / API / 画面コストが重い
+
+---
+
+## 対象候補の整理
+
+### 価値が高い候補
+
+#### item
+
+- create / update
+  - MVP では不要
+- `dispose`
+- `reactivate`
+
+#### outfit
+
+- create / update
+  - MVP では不要
+- `invalid`
+- `restore`
+- `duplicate`
+
+#### wear logs
+
+- create / update / delete
+  - MVP では将来拡張で十分
+- `planned -> worn`
+- `worn -> planned`
+
+#### 購入検討
+
+- create / update
+  - MVP では不要
+- item 作成成功に伴う `purchased` 化
+
+#### settings
+
+- category visibility 更新
+- brand 候補追加 / 編集 / 有効無効切替
+  - MVP では不要
+
+### 整理の考え方
+
+- **今ログを残す価値が高いもの**
+  - 状態変化そのものが他機能へ影響する操作
+  - 自動副作用の起点になる操作
+- **MVP では不要なもの**
+  - 頻度が高くノイズになりやすい軽微更新
+  - 画面で再現しやすい通常 CRUD
+- **将来拡張で十分なもの**
+  - ユーザー向け履歴 UI を前提にした操作履歴
+  - 差分監査や全文変更履歴
+
+---
+
+## 比較
+
+### 1. event log なし
+
+#### メリット
+
+- current MVP をそのまま維持できる
+- DB / API / UI の追加コストがない
+
+#### デメリット
+
+- `disposed -> invalid` や `purchased` 化のような副作用を後から追いにくい
+- 重要な状態変化の因果関係が docs / 推測頼りになる
+
+### 2. 内部向け最小 event log
+
+#### メリット
+
+- 重要な状態変化と副作用だけを記録できる
+- UI を追加しなくても、保守判断の材料になる
+- サービス層での明示記録方針と相性がよい
+
+#### デメリット
+
+- event_logs 相当の table 設計は必要
+- payload 設計の最小ルールを先に決める必要がある
+
+### 3. ユーザーに見せる履歴も含む event log
+
+#### メリット
+
+- 将来の活動履歴 UI に直結しやすい
+- 変更の見える化をしやすい
+
+#### デメリット
+
+- 監査用途と UI 用途が混ざりやすい
+- DB / API / UI / 文言設計コストが一気に増える
+- current MVP には過剰
+
+---
+
+## 推奨案
+
+現時点の推奨は **「今すぐ実装しない。ただし、将来入れるなら内部向け最小 event log を第一候補にする」** である。
+
+### 推奨理由
+
+- current MVP は event log なしで成立している
+- まず必要なのは履歴 UI ではなく、重要な状態変化の因果関係を後から確認できること
+- snapshot や event log を同時に広げると、wear logs / purchase_candidates / outfits の責務整理が重くなる
+
+### 第一候補の対象
+
+- `item_disposed`
+- `item_reactivated`
+- `outfit_invalidated`
+- `outfit_restored`
+- `outfit_duplicated`
+- `purchase_candidate_purchased`
+
+### 現時点で保留にする対象
+
+- wear log の create / update / delete 全件記録
+- settings 更新全件記録
+- ユーザー向け event timeline
+
+---
+
+## 影響範囲
+
+### DB
+
+- `event_logs` または同等 table の追加
+- 最小項目は既存方針どおり `event_type / user_id / resource_type / resource_id / payload_json / created_at`
+
+### API
+
+- MVP では event log API は不要
+- 後で管理 UI を作る場合にだけ一覧 API を検討する
+
+### UI
+
+- 現時点では不要
+- 将来、管理画面または内部確認画面が必要になったら検討する
+
+### 既存データ移行
+
+- 原則 backfill なしでよい
+- 導入時点以後のイベントだけを残す想定で十分
+
+---
+
+## 今やるなら先に決めるべきこと
+
+1. event log を内部向けに限定するか
+2. MVP の対象 event_type をどこまで絞るか
+3. `purchase_candidate_purchased` を対象に含めるか
+4. wear logs の状態変更を event log 対象に入れるか
+5. event log の参照 UI を当面作らない前提で進めるか
+
+---
+
 ## 今決めるべきこと
 
 - アプリケーションログとイベントログは分ける

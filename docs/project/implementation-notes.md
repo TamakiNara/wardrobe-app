@@ -457,6 +457,11 @@ UI/UX メモ:
 - 軽微な編集や閲覧操作は原則としてイベントログに残さない
 - ログ記録はモデルイベントではなく、サービス層 / ユースケース層で明示的に行う方針とする
 
+- current MVP に対する推奨は「今すぐ実装しない。ただし、将来入れるなら内部向け最小 event log を第一候補にする」
+- 優先候補は `item_disposed` / `item_reactivated` / `outfit_invalidated` / `outfit_restored` / `outfit_duplicated` / `purchase_candidate_purchased`
+- wear logs の create / update / delete 全件記録や、ユーザー向け履歴 UI は当面保留とする
+
+
 ### タグ / 雨対応フラグ構想
 
 将来仕様メモ:
