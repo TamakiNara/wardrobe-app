@@ -110,6 +110,7 @@
 - `spec.tops.*` は create / update の両方で受け付ける
 - `images` は `sort_order` と `is_primary` を含む配列として create / update で受け付け、item 編集画面の並び替え / 代表画像切り替えに利用する
 - `brand_name` は item の正本として保存し、`save_brand_as_candidate` は候補追加試行フラグとして扱う
+- create / update / status 変更 API の `message` は action keyword を返し、実際の item 状態は `item` record 側を正本として読む
 - `dispose` は item を `disposed` に変更し、その item を含む `active outfit` を `invalid` にする副作用を伴う
 - `reactivate` は item を `active` に戻すが、関連 outfit は自動 `restore` しない
 - DB 保存方針は [`../data/database.md`](../data/database.md) を参照
@@ -135,7 +136,9 @@
 - `status` は通常の create / update payload に含めず、内部状態として `active` / `invalid` を管理する
 - `invalid outfit` 一覧、`restore`、`duplicate` は current 実装として利用できる
 - `restore` は対象 outfit が `invalid` で、構成 item がすべて `active` の場合のみ成功する
+- create / update / restore API の `message` は action keyword を返し、実際の outfit 状態は `outfit` record 側を正本として読む
 - `duplicate` は保存済み outfit を直接複製作成する API ではなく、新規作成画面へ渡す初期値 payload を返す
+- `duplicate` の `message` は状態変更結果ではなく、payload 準備完了を表す
 - invalid outfit 由来の duplicate では、disposed item を `selectable=false` と `note` 付きで返す
 - 保存条件と invalid 運用は [`../specs/outfits/create-edit.md`](../specs/outfits/create-edit.md) を参照
 - DB 保存方針は [`../data/database.md`](../data/database.md) を参照

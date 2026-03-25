@@ -348,7 +348,7 @@ paths:
               $ref: '#/components/schemas/ItemCreateRequest'
       responses:
         '201':
-          description: 作成成功
+          description: 作成成功。message は `created`、item には作成後 record を含む
           content:
             application/json:
               schema:
@@ -399,7 +399,7 @@ paths:
               $ref: '#/components/schemas/ItemUpsertRequest'
       responses:
         '200':
-          description: 更新成功
+          description: 更新成功。message は `updated`、item には更新後 record を含む
           content:
             application/json:
               schema:
@@ -541,7 +541,7 @@ paths:
         - $ref: '#/components/parameters/XCsrfTokenHeader'
       responses:
         '200':
-          description: 変更成功
+          description: 変更成功。message は `disposed`、item には状態変更後 record を含む
           content:
             application/json:
               schema:
@@ -573,7 +573,7 @@ paths:
         - $ref: '#/components/parameters/XCsrfTokenHeader'
       responses:
         '200':
-          description: 変更成功
+          description: 変更成功。message は `reactivated`、item には状態変更後 record を含む
           content:
             application/json:
               schema:
@@ -625,7 +625,7 @@ paths:
               $ref: '#/components/schemas/OutfitUpsertRequest'
       responses:
         '201':
-          description: 作成成功
+          description: 作成成功。message は `created`、outfit には作成後 record を含む
           content:
             application/json:
               schema:
@@ -676,7 +676,7 @@ paths:
               $ref: '#/components/schemas/OutfitUpsertRequest'
       responses:
         '200':
-          description: 更新成功
+          description: 更新成功。message は `updated`、outfit には更新後 record を含む
           content:
             application/json:
               schema:
@@ -751,7 +751,7 @@ paths:
         - $ref: '#/components/parameters/XCsrfTokenHeader'
       responses:
         '200':
-          description: 復帰成功
+          description: 復帰成功。message は `restored`、outfit には復帰後 record を含む
           content:
             application/json:
               schema:
@@ -1349,6 +1349,9 @@ components:
           example: logged_in
 
     MessageOnlyResponse:
+      description: |
+        action 完了を表す最小 response。
+        `message` には `deleted` / `logged_out` などの action keyword を入れる。
       type: object
       required:
         - message
@@ -1878,8 +1881,9 @@ components:
 
     ItemResponseWithMessage:
       description: |
-        message と更新後 item をまとめて返す response。
-        `dispose` / `reactivate` では、状態変更後の item を含む。
+        action keyword の `message` と item record をまとめて返す response。
+        create / update では作成後または更新後 record、
+        `dispose` / `reactivate` では状態変更後の item を含む。
       allOf:
         - $ref: '#/components/schemas/MessageOnlyResponse'
         - type: object
@@ -2055,8 +2059,9 @@ components:
 
     OutfitResponseWithMessage:
       description: |
-        message と更新後 outfit をまとめて返す response。
-        `restore` では、復帰後の outfit を含む。
+        action keyword の `message` と outfit record をまとめて返す response。
+        create / update では作成後または更新後 record、
+        `restore` では復帰後の outfit を含む。
       allOf:
         - $ref: '#/components/schemas/MessageOnlyResponse'
         - type: object
@@ -2120,6 +2125,7 @@ components:
       description: |
         outfit 複製用の初期値 payload を返す response。
         保存済み outfit を新規作成せず、フォームへ流し込む前提の payload を返す。
+        `message` は状態変更結果ではなく、payload 準備完了を表す action keyword を返す。
       required:
         - message
         - outfit
