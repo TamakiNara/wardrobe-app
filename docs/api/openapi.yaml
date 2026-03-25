@@ -171,7 +171,7 @@ paths:
         '401':
           description: 未認証
         '404':
-          description: 対象なし
+          description: 未検出（対象なし・他人データ秘匿を含む）
         '422':
           description: バリデーションエラー
           content:
@@ -387,7 +387,7 @@ paths:
         '401':
           description: 未認証
         '404':
-          description: 未検出
+          description: 未検出（対象なし・他人データ秘匿を含む）
     put:
       tags:
         - Items
@@ -413,7 +413,7 @@ paths:
         '401':
           description: 未認証
         '404':
-          description: 未検出
+          description: 未検出（対象なし・他人データ秘匿を含む）
         '422':
           description: バリデーションエラーまたは業務ルール違反。field 単位の不備は errors を含み、選択 item 不正などは message only を返す
           content:
@@ -444,7 +444,7 @@ paths:
         '401':
           description: 未認証
         '404':
-          description: 未検出
+          description: 未検出（対象なし・他人データ秘匿を含む）
 
   /api/items/{id}/images:
     post:
@@ -497,7 +497,7 @@ paths:
         '401':
           description: 未認証
         '404':
-          description: 未検出
+          description: 未検出（対象なし・他人データ秘匿を含む）
         '422':
           description: バリデーションエラーまたは業務ルール違反。field 単位の不備は errors を含み、選択 item 不正などは message only を返す
           content:
@@ -535,7 +535,7 @@ paths:
         '401':
           description: 未認証
         '404':
-          description: 未検出
+          description: 未検出（対象なし・他人データ秘匿を含む）
 
   /api/items/{id}/dispose:
     post:
@@ -562,7 +562,7 @@ paths:
         '401':
           description: 未認証
         '404':
-          description: 未検出
+          description: 未検出（対象なし・他人データ秘匿を含む）
         '422':
           description: 変更不可またはバリデーションエラー
           content:
@@ -594,7 +594,7 @@ paths:
         '401':
           description: 未認証
         '404':
-          description: 未検出
+          description: 未検出（対象なし・他人データ秘匿を含む）
         '422':
           description: 変更不可またはバリデーションエラー
           content:
@@ -671,7 +671,7 @@ paths:
         '401':
           description: 未認証
         '404':
-          description: 未検出
+          description: 未検出（対象なし・他人データ秘匿を含む）
     put:
       tags:
         - Outfits
@@ -697,7 +697,7 @@ paths:
         '401':
           description: 未認証
         '404':
-          description: 未検出
+          description: 未検出（対象なし・他人データ秘匿を含む）
         '422':
           description: バリデーションエラー
           content:
@@ -726,7 +726,7 @@ paths:
         '401':
           description: 未認証
         '404':
-          description: 未検出
+          description: 未検出（対象なし・他人データ秘匿を含む）
 
   /api/outfits/invalid:
     get:
@@ -775,7 +775,7 @@ paths:
         '401':
           description: 未認証
         '404':
-          description: 未検出
+          description: 未検出（対象なし・他人データ秘匿を含む）
         '422':
           description: 復帰不可またはバリデーションエラー。復帰不可は message only、field 単位の不備がある場合は errors を含む
           content:
@@ -813,7 +813,7 @@ paths:
         '401':
           description: 未認証
         '404':
-          description: 未検出
+          description: 未検出（対象なし・他人データ秘匿を含む）
 
   /api/wear-logs:
     get:
@@ -920,7 +920,7 @@ paths:
         '401':
           description: 未認証
         '404':
-          description: 対象データなし
+          description: 未検出（対象なし・他人データ秘匿を含む）
 
     put:
       tags:
@@ -951,7 +951,7 @@ paths:
         '401':
           description: 未認証
         '404':
-          description: 対象データなし
+          description: 未検出（対象なし・他人データ秘匿を含む）
         '422':
           description: バリデーションエラー
           content:
@@ -983,7 +983,7 @@ paths:
         '401':
           description: 未認証
         '404':
-          description: 対象データなし
+          description: 未検出（対象なし・他人データ秘匿を含む）
 
   /api/purchase-candidates:
     get:
@@ -1093,7 +1093,7 @@ paths:
         '401':
           description: 未認証
         '404':
-          description: 未検出
+          description: 未検出（対象なし・他人データ秘匿を含む）
     put:
       tags:
         - Purchase Candidates
@@ -1122,7 +1122,7 @@ paths:
         '401':
           description: 未認証
         '404':
-          description: 未検出
+          description: 未検出（対象なし・他人データ秘匿を含む）
         '422':
           description: バリデーションエラー
           content:
@@ -1151,7 +1151,7 @@ paths:
         '401':
           description: 未認証
         '404':
-          description: 未検出
+          description: 未検出（対象なし・他人データ秘匿を含む）
 
   /api/purchase-candidates/{id}/images:
     post:
@@ -1183,7 +1183,7 @@ paths:
         '401':
           description: 未認証
         '404':
-          description: 未検出
+          description: 未検出（対象なし・他人データ秘匿を含む）
         '422':
           description: バリデーションエラー
           content:
@@ -1215,7 +1215,7 @@ paths:
         '401':
           description: 未認証
         '404':
-          description: 未検出
+          description: 未検出（対象なし・他人データ秘匿を含む）
 
   /api/purchase-candidates/{id}/item-draft:
     post:
@@ -1242,7 +1242,7 @@ paths:
         '401':
           description: 未認証
         '404':
-          description: 未検出
+          description: 未検出（対象なし・他人データ秘匿を含む）
 
 
 components:
