@@ -60,6 +60,70 @@ class SettingsBrandsEndpointsTest extends TestCase
         ]);
     }
 
+    public function test_get_settings_brands_filters_by_name_prefix(): void
+    {
+        $user = User::factory()->create();
+
+        $this->createBrand($user, [
+            'name' => 'GU',
+            'kana' => 'じーゆー',
+            'normalized_name' => 'gu',
+            'normalized_kana' => 'じーゆー',
+        ]);
+        $this->createBrand($user, [
+            'name' => 'ABC-MART',
+            'kana' => 'えーびーしーまーと',
+            'normalized_name' => 'abc-mart',
+            'normalized_kana' => 'えーびーしーまーと',
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->getJson('/api/settings/brands?keyword=GU', [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonCount(1, 'brands')
+            ->assertJsonPath('brands.0.name', 'GU');
+
+        $response->assertJsonMissing([
+            'name' => 'ABC-MART',
+        ]);
+    }
+
+    public function test_get_settings_brands_filters_by_kana_prefix(): void
+    {
+        $user = User::factory()->create();
+
+        $this->createBrand($user, [
+            'name' => 'GU',
+            'kana' => 'じーゆー',
+            'normalized_name' => 'gu',
+            'normalized_kana' => 'じーゆー',
+        ]);
+        $this->createBrand($user, [
+            'name' => 'ABC-MART',
+            'kana' => 'えーびーしーまーと',
+            'normalized_name' => 'abc-mart',
+            'normalized_kana' => 'えーびーしーまーと',
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->getJson('/api/settings/brands?keyword=じー', [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonCount(1, 'brands')
+            ->assertJsonPath('brands.0.name', 'GU');
+
+        $response->assertJsonMissing([
+            'name' => 'ABC-MART',
+        ]);
+    }
+
     public function test_post_settings_brands_prevents_duplicate_normalized_name(): void
     {
         $user = User::factory()->create();

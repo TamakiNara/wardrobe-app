@@ -15,6 +15,7 @@ class TestDatasetSeeder extends Seeder
             TestUserSeeder::class,
             SampleUserSettingSeeder::class,
             SampleItemSeeder::class,
+            SampleUserBrandSeeder::class,
             SampleOutfitSeeder::class,
             SampleWearLogSeeder::class,
         ]);

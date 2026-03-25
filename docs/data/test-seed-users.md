@@ -82,6 +82,19 @@
   - 多件数確認用の wear logs を 14 件以上投入
   - ページング、status / date / keyword 絞り込み、日付の新しい順 / 古い順を確認しやすい
 
+### ブランド候補の確認用途
+
+- `empty-user@example.com`
+  - ブランド候補 0 件
+  - 設定画面の空状態と、item ブランド入力の自由入力確認用
+- `standard-user@example.com`
+  - 標準確認用のブランド候補を 8 件投入
+  - `kana` あり / なし、`is_active=false` を少数含める
+  - item 側の `brand_name` と候補名を揃え、サジェスト確認がしやすい状態にする
+- `large-user@example.com`
+  - 多件数確認用のブランド候補を 20 件以上投入
+  - 絞り込み、無効候補折りたたみ、一覧の見やすさを確認しやすい
+
 
 ---
 
@@ -167,10 +180,11 @@
 
 ## 現在の実装メモ
 
-- 現行 schema で seed 対応している sample item の差分は category / color / seasons / tpos / spec まで
+- 現行 schema で seed 対応している sample item の差分は category / color / seasons / tpos / spec に加え、`brand_name` まで
 - 季節 UI の表示順は `春 / 夏 / 秋 / 冬 / オール`、TPO の正規値は `仕事 / 休日 / フォーマル` を前提にそろえる
 - brand 名 / item メモ / 画像 URL などの将来項目は、テーブル追加後に sample data へ反映する
 - `standard-user@example.com` は手書き 8 件の Item（うち `disposed` 1 件）と 4 件の Outfit（うち `invalid` 1 件）、5 件の wear logs を持ち、`large-user@example.com` は Factory 併用の 36 件の Item と 12 件の Outfit、14 件以上の wear logs を持つ
+- ブランド候補は `empty-user@example.com` 0 件、`standard-user@example.com` 8 件、`large-user@example.com` 24 件を投入し、標準 / 多件数 / inactive 混在の確認ができる
 - `php artisan migrate:fresh --seed` と `php artisan db:seed --class=TestDatasetSeeder` は実行確認済み
 
 

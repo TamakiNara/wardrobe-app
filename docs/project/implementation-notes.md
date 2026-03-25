@@ -216,13 +216,15 @@ item 詳細画面での status 操作 UI を確認するときは `docs/specs/it
 - デフォルトパスワードは `password123` 、env は `TEST_SEED_USER_PASSWORD` で上書きできる
 - `TestDatasetSeeder` で、テスト用ユーザーと sample data だけを再投入できる
 - `TestDatasetSeeder` 単体実行でも category group / master / preset を含めて再投入できる
-- `standard-user` には手書き 7 件の items と 3 件の outfits を紐づける
+- `standard-user` には手書き 8 件の items と 4 件の outfits を紐づける
 - `large-user` には Factory 併用の 36 件の items と 12 件の outfits を紐づける
 - `empty-user` は items / outfits 0 件の初期状態として再生成する
+- ブランド候補用 `SampleUserBrandSeeder` を追加し、`empty-user` 0 件、`standard-user` 標準件数、`large-user` 多件数の `user_brands` を再投入できる
+- `standard-user` は item 側の `brand_name` と揃えた候補を中心に持ち、`large-user` は絞り込み・無効候補折りたたみ確認向けに inactive 候補も含める
 
 補足:
 
-- 現行 schema では item の brand / memo / image URL までは持てないため、sample data では category / colors / seasons / tpos / spec を中心に再現している
+- sample data では category / colors / seasons / tpos / spec に加え、brand 候補確認用の `items.brand_name` と `user_brands` も反映済み
 
 ### 認証
 

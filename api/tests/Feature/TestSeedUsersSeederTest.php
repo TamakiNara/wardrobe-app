@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use App\Models\UserBrand;
 use App\Models\WearLog;
 use Database\Seeders\CategoryGroupSeeder;
 use Database\Seeders\CategoryMasterSeeder;
@@ -39,12 +40,30 @@ class TestSeedUsersSeederTest extends TestCase
         $this->assertNull($emptyUser->visible_category_ids);
         $this->assertCount(0, $emptyUser->items);
         $this->assertCount(0, $emptyUser->outfits);
+        $this->assertCount(0, UserBrand::query()->where('user_id', $emptyUser->id)->get());
         $this->assertDatabaseCount('items', 44);
 
         $this->assertNotNull($standardUser->visible_category_ids);
         $this->assertCount(36, $standardUser->visible_category_ids);
         $this->assertCount(4, $standardUser->outfits);
         $this->assertCount(8, $standardUser->items);
+        $standardBrands = UserBrand::query()
+            ->where('user_id', $standardUser->id)
+            ->orderBy('name')
+            ->get();
+        $this->assertCount(8, $standardBrands);
+        $this->assertTrue($standardBrands->contains(fn (UserBrand $brand) => $brand->is_active === false));
+        $this->assertTrue($standardBrands->contains(fn (UserBrand $brand) => $brand->kana !== null));
+
+        $standardItemBrandNames = $standardUser->items
+            ->pluck('brand_name')
+            ->filter()
+            ->unique()
+            ->values();
+        $standardBrandNames = $standardBrands->pluck('name');
+        $this->assertTrue($standardItemBrandNames->every(
+            fn (string $brandName) => $standardBrandNames->contains($brandName)
+        ));
 
         $standardWearLogs = WearLog::query()
             ->where('user_id', $standardUser->id)
@@ -63,5 +82,12 @@ class TestSeedUsersSeederTest extends TestCase
         $this->assertGreaterThanOrEqual(30, $largeUser->items->count());
         $this->assertGreaterThanOrEqual(10, $largeUser->outfits->count());
         $this->assertGreaterThanOrEqual(14, WearLog::query()->where('user_id', $largeUser->id)->count());
+        $largeBrands = UserBrand::query()
+            ->where('user_id', $largeUser->id)
+            ->orderBy('name')
+            ->get();
+        $this->assertGreaterThanOrEqual(20, $largeBrands->count());
+        $this->assertTrue($largeBrands->contains(fn (UserBrand $brand) => $brand->is_active === false));
+        $this->assertTrue($largeBrands->contains(fn (UserBrand $brand) => $brand->kana !== null));
     }
 }

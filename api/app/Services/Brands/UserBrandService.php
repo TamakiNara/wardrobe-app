@@ -23,15 +23,15 @@ class UserBrandService
             ->when($activeOnly, fn (Builder $query) => $query->where('is_active', true))
             ->when($keyword !== '', function (Builder $query) use ($keyword, $normalizedKeyword, $normalizedKanaKeyword) {
                 $query->where(function (Builder $inner) use ($keyword, $normalizedKeyword, $normalizedKanaKeyword) {
-                    $inner->where('name', 'like', '%' . $keyword . '%');
+                    $inner->where('name', 'like', $keyword . '%');
 
                     if ($normalizedKeyword !== null) {
-                        $inner->orWhere('normalized_name', 'like', '%' . $normalizedKeyword . '%');
+                        $inner->orWhere('normalized_name', 'like', $normalizedKeyword . '%');
                     }
 
                     if ($normalizedKanaKeyword !== null) {
-                        $inner->orWhere('kana', 'like', '%' . $keyword . '%')
-                            ->orWhere('normalized_kana', 'like', '%' . $normalizedKanaKeyword . '%');
+                        $inner->orWhere('kana', 'like', $keyword . '%')
+                            ->orWhere('normalized_kana', 'like', $normalizedKanaKeyword . '%');
                     }
                 });
             })

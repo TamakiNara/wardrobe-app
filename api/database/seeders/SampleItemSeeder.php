@@ -24,6 +24,7 @@ class SampleItemSeeder extends Seeder
         $items = [
             [
                 'name' => '白Tシャツ',
+                'brand_name' => 'UNIQLO',
                 'category' => 'tops',
                 'shape' => 'tshirt',
                 'colors' => [
@@ -44,6 +45,7 @@ class SampleItemSeeder extends Seeder
             ],
             [
                 'name' => '黒カーディガン',
+                'brand_name' => 'GU',
                 'category' => 'tops',
                 'shape' => 'cardigan',
                 'colors' => [
@@ -64,6 +66,7 @@ class SampleItemSeeder extends Seeder
             ],
             [
                 'name' => 'ブルーシャツ',
+                'brand_name' => 'GLOBAL WORK',
                 'category' => 'tops',
                 'shape' => 'shirt',
                 'colors' => [
@@ -84,6 +87,7 @@ class SampleItemSeeder extends Seeder
             ],
             [
                 'name' => 'デニムパンツ',
+                'brand_name' => '無印良品',
                 'category' => 'bottoms',
                 'shape' => 'straight',
                 'colors' => [
@@ -106,6 +110,7 @@ class SampleItemSeeder extends Seeder
             ],
             [
                 'name' => 'スニーカー',
+                'brand_name' => 'ABC-MART',
                 'category' => 'shoes',
                 'shape' => 'sneakers',
                 'colors' => [
@@ -118,6 +123,7 @@ class SampleItemSeeder extends Seeder
             ],
             [
                 'name' => 'トートバッグ',
+                'brand_name' => 'ZARA',
                 'category' => 'accessories',
                 'shape' => 'tote',
                 'colors' => [
