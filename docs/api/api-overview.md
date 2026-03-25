@@ -173,6 +173,7 @@
 - candidate から item へは登録済み全画像を引き継ぎ、`sort_order` と `is_primary` も維持する前提とする
 - current 実装では、item create に `purchase_candidate_id` を渡した場合、Laravel 側で item 作成、画像コピー、candidate の `purchased` 反映、`converted_item_id` / `converted_at` 更新をまとめて処理する
 - 比較結果は詳細画面での補助表示前提とし、比較ロジックの詳細は後続検討とする
+- sale 情報と candidate 複製機能は未実装であり、current API 一覧には含めていない
 - 詳細仕様は [`../specs/purchase-candidates.md`](../specs/purchase-candidates.md) を参照
 - DB 保存方針は [`../data/database.md`](../data/database.md) を参照
 - `docs/specs/README.md` からも購入検討を含む主要 spec 一覧へ辿れる

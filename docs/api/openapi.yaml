@@ -740,7 +740,7 @@ paths:
         対象 outfit が invalid で、構成 item がすべて active の場合のみ
         status=active へ復帰できる。
         item や outfit_items 自体は書き換えない。
-        主な利用箇所は invalid outfit 一覧または詳細画面の補助導線を想定する。
+        invalid outfit 一覧または詳細画面の補助導線として扱う。
       security:
         - SessionCookieAuth: []
       parameters:
@@ -1202,7 +1202,7 @@ paths:
         purchase candidate から item 作成画面用の初期値 payload を生成する。
         保存済み item を返す API ではない。
         candidate に登録済みの全画像を引き継ぎ、sort_order と is_primary も維持する。
-        item 保存成功時に candidate を purchased に更新する責務分割は後続整理とする。
+        item 保存成功時の candidate `purchased` 更新と converted 情報の保存は、item create 側で処理する。
       security:
         - SessionCookieAuth: []
       parameters:
@@ -1665,7 +1665,7 @@ components:
       description: |
         Item の通常作成 / 更新 request。
         通常の作成 / 更新 payload に status は含めない。
-        status は内部状態として管理し、disposed への変更は別導線で扱う想定とする。
+        status は内部状態として管理し、disposed への変更は別導線で扱う。
 
         disposed は「手放した / 現在所持していない」状態を表す。
         disposed 変更時は、関連 outfit の invalid 化など副作用を伴うため、
@@ -2767,7 +2767,7 @@ components:
           type: integer
           nullable: true
           example: 14800
-          description: 想定価格を item 作成初期値へ引き継ぐ案。実購入価格として確定するかは保存前に確認する。
+          description: 想定価格を item 作成初期値へ引き継ぐ。実購入価格として確定するかは保存前に確認する。
         purchase_url:
           type: string
           nullable: true
