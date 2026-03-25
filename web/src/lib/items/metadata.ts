@@ -19,7 +19,7 @@ export function formatItemPrice(price: number | null): string {
 export function mapPurchaseCandidateImagesToItemImages(
   images: PurchaseCandidateImageRecord[],
 ): ItemImageRecord[] {
-  return images.map((image) => ({
+  return normalizeItemImages(images.map((image) => ({
     disk: image.disk,
     path: image.path,
     url: image.url,
@@ -28,5 +28,16 @@ export function mapPurchaseCandidateImagesToItemImages(
     file_size: image.file_size,
     sort_order: image.sort_order,
     is_primary: image.is_primary,
+  })));
+}
+
+export function normalizeItemImages(images: ItemImageRecord[]): ItemImageRecord[] {
+  const primaryIndex = images.findIndex((image) => image.is_primary);
+  const resolvedPrimaryIndex = primaryIndex >= 0 ? primaryIndex : 0;
+
+  return images.map((image, index) => ({
+    ...image,
+    sort_order: index + 1,
+    is_primary: images.length === 0 ? false : index === resolvedPrimaryIndex,
   }));
 }

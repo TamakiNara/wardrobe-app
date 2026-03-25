@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Api\ItemImageController;
 use App\Http\Controllers\Api\PurchaseCandidateController;
 use App\Http\Controllers\Api\WearLogController;
 use App\Models\CategoryMaster;
@@ -280,6 +281,11 @@ Route::prefix('api')->middleware(['web'])->group(function () {
         return response()->json([
             'message' => 'deleted',
         ]);
+    });
+
+    Route::middleware('auth:web')->controller(ItemImageController::class)->group(function () {
+        Route::post('/items/{id}/images', 'store');
+        Route::delete('/items/{id}/images/{imageId}', 'destroy');
     });
 
     // Purchase Candidates

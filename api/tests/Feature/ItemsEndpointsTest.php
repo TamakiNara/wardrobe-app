@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Item;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -392,5 +393,108 @@ class ItemsEndpointsTest extends TestCase
             'item_id' => $item->id,
             'path' => sprintf('items/%d/original.png', $item->id),
         ]);
+    }
+
+    public function test_post_item_image_uploads_to_item_storage(): void
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->create();
+        $item = $this->createItem($user);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->post(
+            "/api/items/{$item->id}/images",
+            [
+                'image' => UploadedFile::fake()->image('item.png', 600, 900)->size(500),
+                'sort_order' => 1,
+                'is_primary' => true,
+            ],
+            ['Accept' => 'application/json'],
+        );
+
+        $response->assertCreated()
+            ->assertJsonPath('image.item_id', $item->id)
+            ->assertJsonPath('image.is_primary', true);
+
+        $path = $response->json('image.path');
+        $this->assertStringStartsWith(sprintf('items/%d/', $item->id), $path);
+        Storage::disk('public')->assertExists($path);
+        $this->assertDatabaseHas('item_images', [
+            'item_id' => $item->id,
+            'path' => $path,
+            'is_primary' => 1,
+        ]);
+    }
+
+    public function test_delete_item_image_removes_file_and_reassigns_primary(): void
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->create();
+        $item = $this->createItem($user);
+
+        Storage::disk('public')->put(sprintf('items/%d/first.png', $item->id), 'first');
+        Storage::disk('public')->put(sprintf('items/%d/second.png', $item->id), 'second');
+
+        $first = $item->images()->create([
+            'disk' => 'public',
+            'path' => sprintf('items/%d/first.png', $item->id),
+            'original_filename' => 'first.png',
+            'mime_type' => 'image/png',
+            'file_size' => 1000,
+            'sort_order' => 1,
+            'is_primary' => true,
+        ]);
+        $second = $item->images()->create([
+            'disk' => 'public',
+            'path' => sprintf('items/%d/second.png', $item->id),
+            'original_filename' => 'second.png',
+            'mime_type' => 'image/png',
+            'file_size' => 1000,
+            'sort_order' => 2,
+            'is_primary' => false,
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->deleteJson("/api/items/{$item->id}/images/{$first->id}", [], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('message', 'deleted');
+
+        Storage::disk('public')->assertMissing(sprintf('items/%d/first.png', $item->id));
+        Storage::disk('public')->assertExists(sprintf('items/%d/second.png', $item->id));
+        $this->assertDatabaseMissing('item_images', [
+            'id' => $first->id,
+        ]);
+        $this->assertDatabaseHas('item_images', [
+            'id' => $second->id,
+            'is_primary' => 1,
+        ]);
+    }
+
+    public function test_post_item_image_returns_404_for_other_users_item(): void
+    {
+        Storage::fake('public');
+
+        $owner = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $item = $this->createItem($owner);
+
+        $this->actingAs($otherUser, 'web');
+
+        $response = $this->post(
+            "/api/items/{$item->id}/images",
+            [
+                'image' => UploadedFile::fake()->image('other.png', 600, 900)->size(500),
+            ],
+            ['Accept' => 'application/json'],
+        );
+
+        $response->assertNotFound();
     }
 }

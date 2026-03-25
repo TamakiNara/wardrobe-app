@@ -181,5 +181,7 @@ describe("EditItemPage", () => {
     expect((container.querySelector("#brand-name") as HTMLInputElement | null)?.value).toBe("Sample Brand");
     expect((container.querySelector("#price") as HTMLInputElement | null)?.value).toBe("19800");
     expect(container.textContent).toContain("画像");
+    expect(container.textContent).toContain("クリックして画像を選択");
+    expect(container.textContent).toContain("削除");
   }, 20000);
 });

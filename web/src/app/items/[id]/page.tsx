@@ -155,9 +155,9 @@ export default async function ItemPage({
           </p>
         </div>
 
-        {itemImages.length > 0 && (
-          <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-gray-900">画像</h2>
+        <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <h2 className="text-lg font-semibold text-gray-900">画像</h2>
+          {itemImages.length > 0 ? (
             <div className="mt-4 grid gap-4 md:grid-cols-2">
               {itemImages.map((image) => (
                 <article key={image.id ?? `${image.path}-${image.sort_order}`} className="overflow-hidden rounded-xl border border-gray-200">
@@ -177,8 +177,10 @@ export default async function ItemPage({
                 </article>
               ))}
             </div>
-          </section>
-        )}
+          ) : (
+            <p className="mt-3 text-sm text-gray-600">画像はまだありません。</p>
+          )}
+        </section>
 
         <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-gray-900">購入・サイズ情報</h2>

@@ -331,6 +331,94 @@ paths:
         '404':
           description: 未検出
 
+  /api/items/{id}/images:
+    post:
+      tags:
+        - Items
+      summary: アイテム画像追加
+      description: |
+        item に画像を追加する。
+        画像は item 用保存先へ保存し、`item_images` として candidate 側とは別管理にする。
+        現時点では JPEG / PNG / WebP、5MB 以下、最大 5 枚を想定する。
+      security:
+        - SessionCookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ItemIdPath'
+        - $ref: '#/components/parameters/XCsrfTokenHeader'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - image
+              properties:
+                image:
+                  type: string
+                  format: binary
+                sort_order:
+                  type: integer
+                  minimum: 1
+                is_primary:
+                  type: boolean
+      responses:
+        '201':
+          description: 追加成功
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                  - image
+                properties:
+                  message:
+                    type: string
+                    example: created
+                  image:
+                    $ref: '#/components/schemas/ItemImageRecord'
+        '401':
+          description: 未認証
+        '404':
+          description: 未検出
+        '422':
+          description: バリデーションエラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+
+  /api/items/{id}/images/{imageId}:
+    delete:
+      tags:
+        - Items
+      summary: アイテム画像削除
+      description: |
+        item に紐づく画像を削除する。
+        candidate 側画像とは別管理のため、自動同期は行わない。
+      security:
+        - SessionCookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ItemIdPath'
+        - name: imageId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - $ref: '#/components/parameters/XCsrfTokenHeader'
+      responses:
+        '200':
+          description: 削除成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageOnlyResponse'
+        '401':
+          description: 未認証
+        '404':
+          description: 未検出
+
   /api/items/{id}/dispose:
     post:
       tags:

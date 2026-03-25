@@ -18,7 +18,8 @@ import {
 import FieldLabel from "@/components/forms/field-label";
 import ColorChip from "@/components/items/color-chip";
 import ColorSelect from "@/components/items/color-select";
-import type { CreateItemPayload, ItemFormColor } from "@/types/items";
+import ItemImageUploader from "@/components/items/item-image-uploader";
+import type { CreateItemPayload, ItemFormColor, ItemImageRecord } from "@/types/items";
 import ItemPreviewCard from "@/components/items/item-preview-card";
 import { SEASON_OPTIONS, TPO_OPTIONS } from "@/lib/master-data/item-attributes";
 import {
@@ -44,8 +45,7 @@ import {
   loadPurchaseCandidateItemDraft,
   mapPurchaseCandidateItemDraft,
 } from "@/lib/purchase-candidates/item-draft";
-import type { PurchaseCandidateImageRecord } from "@/types/purchase-candidates";
-import { formatItemPrice, ITEM_SIZE_GENDER_LABELS, mapPurchaseCandidateImagesToItemImages } from "@/lib/items/metadata";
+import { formatItemPrice, ITEM_SIZE_GENDER_LABELS, mapPurchaseCandidateImagesToItemImages, normalizeItemImages } from "@/lib/items/metadata";
 
 export default function NewItemPage() {
   const router = useRouter();
@@ -87,7 +87,8 @@ export default function NewItemPage() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
   const [draftInfoMessage, setDraftInfoMessage] = useState<string | null>(null);
-  const [draftImages, setDraftImages] = useState<PurchaseCandidateImageRecord[]>([]);
+  const [itemImages, setItemImages] = useState<ItemImageRecord[]>([]);
+  const [pendingImages, setPendingImages] = useState<File[]>([]);
 
   const isTopsCategory = category === "tops";
 
@@ -204,7 +205,7 @@ export default function NewItemPage() {
     setSelectedTpos(draft.tpos);
     setMainColor((mainDraftColor?.value as ItemColorValue | undefined) ?? "");
     setSubColor((subDraftColor?.value as ItemColorValue | undefined) ?? "");
-    setDraftImages(draft.images);
+    setItemImages(mapPurchaseCandidateImagesToItemImages(draft.images));
     setDraftInfoMessage("購入候補の内容を初期値として読み込みました。");
 
     clearPurchaseCandidateItemDraft();
@@ -311,8 +312,30 @@ export default function NewItemPage() {
               },
             }
           : null,
-      images: mapPurchaseCandidateImagesToItemImages(draftImages),
+      images: itemImages,
     };
+  }
+
+  async function uploadPendingImages(targetItemId: number) {
+    for (let index = 0; index < pendingImages.length; index += 1) {
+      const image = pendingImages[index];
+      const formData = new FormData();
+      formData.set("image", image);
+      formData.set("sort_order", String(itemImages.length + index + 1));
+      if (itemImages.length === 0 && index === 0) {
+        formData.set("is_primary", "1");
+      }
+
+      const uploadResponse = await fetch(`/api/items/${targetItemId}/images`, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!uploadResponse.ok) {
+        const uploadData = await uploadResponse.json().catch(() => null);
+        throw new Error(uploadData?.message ?? uploadData?.errors?.image?.[0] ?? "画像の追加に失敗しました。");
+      }
+    }
   }
 
   function validateForm() {
@@ -334,6 +357,7 @@ export default function NewItemPage() {
     if (!validateForm()) return;
 
     setSubmitting(true);
+    let createdItemId: number | null = null;
 
     try {
       const response = await fetch("/api/items", {
@@ -355,12 +379,31 @@ export default function NewItemPage() {
         return;
       }
 
+      createdItemId = typeof data?.item?.id === "number" ? data.item.id : null;
+
+      if (createdItemId !== null && pendingImages.length > 0) {
+        await uploadPendingImages(createdItemId);
+      }
+
       setSubmitSuccess("登録に成功しました。");
       setTimeout(() => {
         router.push("/items");
         router.refresh();
       }, 800);
-    } catch {
+    } catch (error) {
+      if (createdItemId !== null) {
+        setSubmitError(
+          error instanceof Error
+            ? `アイテム本体は登録しましたが、${error.message}`
+            : "アイテム本体は登録しましたが、画像の追加に失敗しました。",
+        );
+        setTimeout(() => {
+          router.push(`/items/${createdItemId}/edit`);
+          router.refresh();
+        }, 1200);
+        return;
+      }
+
       setSubmitError("通信に失敗しました。時間をおいて再度お試しください。");
     } finally {
       setSubmitting(false);
@@ -405,9 +448,9 @@ export default function NewItemPage() {
         {draftInfoMessage && (
           <section className="rounded-2xl border border-blue-200 bg-blue-50 px-5 py-4 text-sm text-blue-700 shadow-sm">
             <p>{draftInfoMessage}</p>
-            {draftImages.length > 0 && (
+            {itemImages.length > 0 && (
               <p className="mt-1 text-blue-600">
-                候補画像 {draftImages.length} 枚もあわせて引き継ぎ対象として保持しています。
+                候補画像 {itemImages.length} 枚もあわせて引き継ぎ対象として保持しています。
               </p>
             )}
           </section>
@@ -605,43 +648,36 @@ export default function NewItemPage() {
             </div>
           </section>
 
-          {draftImages.length > 0 && (
-            <section className="space-y-4 rounded-xl border border-gray-200 bg-gray-50 p-4">
-              <div>
-                <h2 className="text-lg font-semibold text-gray-900">候補画像</h2>
-                <p className="mt-1 text-sm text-gray-500">
-                  purchase candidate から引き継いだ画像です。保存時に item 画像として登録し、以降は item 側で別管理します。
-                </p>
-              </div>
+          <section className="space-y-4 rounded-xl border border-gray-200 bg-gray-50 p-4">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">画像</h2>
+              <p className="mt-1 text-sm text-gray-500">
+                {draftInfoMessage
+                  ? "購入候補から引き継いだ画像を確認しながら、追加画像も一緒に登録できます。保存後は item 側で別管理します。"
+                  : "保存時に item 画像として登録します。"}
+              </p>
+            </div>
 
-              <div className="grid gap-4 md:grid-cols-2">
-                {draftImages.map((image) => (
-                  <article
-                    key={image.id}
-                    className="overflow-hidden rounded-xl border border-gray-200 bg-white"
-                  >
-                    {image.url ? (
-                      <div className="flex aspect-[3/4] items-center justify-center bg-gray-50 p-2">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={image.url}
-                          alt={image.original_filename ?? "candidate image"}
-                          className="h-full w-full object-contain"
-                        />
-                      </div>
-                    ) : (
-                      <div className="flex aspect-[4/3] items-center justify-center bg-gray-100 text-sm text-gray-400">
-                        画像なし
-                      </div>
-                    )}
-                    <div className="p-3 text-sm text-gray-600">
-                      {image.sort_order}枚目{image.is_primary ? " / 代表画像" : ""}
-                    </div>
-                  </article>
-                ))}
-              </div>
-            </section>
-          )}
+            <ItemImageUploader
+              existingImages={itemImages}
+              pendingImages={pendingImages}
+              onPendingImagesChange={setPendingImages}
+              onDeleteExistingImage={(image) => {
+                setItemImages((current) =>
+                  normalizeItemImages(
+                    current.filter((currentImage) => !(
+                      currentImage.path === image.path &&
+                      currentImage.sort_order === image.sort_order &&
+                      currentImage.original_filename === image.original_filename
+                    )),
+                  ),
+                );
+              }}
+              disabled={submitting}
+              helperText="購入候補由来画像も保存前に取り除けます。"
+              existingHeading={itemImages.length > 0 ? "保存対象の画像" : undefined}
+            />
+          </section>
 
           {isTopsCategory && (
             <section className="space-y-4 rounded-xl border border-gray-200 bg-gray-50 p-4">

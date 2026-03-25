@@ -18,6 +18,7 @@ import {
 import FieldLabel from "@/components/forms/field-label";
 import ColorChip from "@/components/items/color-chip";
 import ColorSelect from "@/components/items/color-select";
+import ItemImageUploader from "@/components/items/item-image-uploader";
 import ItemPreviewCard from "@/components/items/item-preview-card";
 import { SEASON_OPTIONS, TPO_OPTIONS } from "@/lib/master-data/item-attributes";
 import type { CreateItemPayload, ItemFormColor, ItemImageRecord, ItemRecord } from "@/types/items";
@@ -39,7 +40,7 @@ import {
   type TopsShapeValue,
   type TopsSleeveValue,
 } from "@/lib/master-data/item-tops";
-import { formatItemPrice, ITEM_SIZE_GENDER_LABELS } from "@/lib/items/metadata";
+import { formatItemPrice, ITEM_SIZE_GENDER_LABELS, normalizeItemImages } from "@/lib/items/metadata";
 
 
 
@@ -64,6 +65,7 @@ export default function EditItemPage({
   const [sizeDetailsNote, setSizeDetailsNote] = useState("");
   const [isRainOk, setIsRainOk] = useState(false);
   const [itemImages, setItemImages] = useState<ItemImageRecord[]>([]);
+  const [pendingImages, setPendingImages] = useState<File[]>([]);
   const [category, setCategory] = useState<ItemCategory | "">("");
   const [categoryOptions, setCategoryOptions] = useState<CategoryOption[]>([...ITEM_CATEGORIES]);
   const [shape, setShape] = useState("");
@@ -370,6 +372,49 @@ export default function EditItemPage({
     };
   }
 
+  async function uploadPendingImages(targetItemId: number) {
+    for (let index = 0; index < pendingImages.length; index += 1) {
+      const image = pendingImages[index];
+      const formData = new FormData();
+      formData.set("image", image);
+      formData.set("sort_order", String(itemImages.length + index + 1));
+      if (itemImages.length === 0 && index === 0) {
+        formData.set("is_primary", "1");
+      }
+
+      const uploadResponse = await fetch(`/api/items/${targetItemId}/images`, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!uploadResponse.ok) {
+        const uploadData = await uploadResponse.json().catch(() => null);
+        throw new Error(uploadData?.message ?? uploadData?.errors?.image?.[0] ?? "画像の追加に失敗しました。");
+      }
+    }
+  }
+
+  async function handleDeleteImage(imageId: number) {
+    if (!itemId) {
+      return;
+    }
+
+    const response = await fetch(`/api/items/${itemId}/images/${imageId}`, {
+      method: "DELETE",
+    });
+
+    const data = await response.json().catch(() => null);
+
+    if (!response.ok) {
+      setSubmitError(data?.message ?? "画像の削除に失敗しました。");
+      return;
+    }
+
+    setItemImages((current) =>
+      normalizeItemImages(current.filter((currentImage) => currentImage.id !== imageId)),
+    );
+  }
+
   function validateForm() {
     const nextErrors: Record<string, string> = {};
 
@@ -410,13 +455,21 @@ export default function EditItemPage({
         return;
       }
 
+      if (pendingImages.length > 0) {
+        await uploadPendingImages(itemId);
+      }
+
       setSubmitSuccess("更新に成功しました。");
       setTimeout(() => {
         router.push(`/items/${itemId}`);
         router.refresh();
       }, 800);
-    } catch {
-      setSubmitError("通信に失敗しました。時間をおいて再度お試しください。");
+    } catch (error) {
+      setSubmitError(
+        error instanceof Error
+          ? error.message
+          : "通信に失敗しました。時間をおいて再度お試しください。",
+      );
     } finally {
       setSubmitting(false);
     }
@@ -572,32 +625,28 @@ export default function EditItemPage({
             </div>
           </section>
 
-          {itemImages.length > 0 && (
-            <section className="space-y-4 rounded-xl border border-gray-200 bg-gray-50 p-4">
-              <div>
-                <h2 className="text-lg font-semibold text-gray-900">画像</h2>
-                <p className="mt-1 text-sm text-gray-500">現在登録されている item 画像です。今回は確認のみとし、画像編集 UI は後続対応とします。</p>
-              </div>
+          <section className="space-y-4 rounded-xl border border-gray-200 bg-gray-50 p-4">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">画像</h2>
+              <p className="mt-1 text-sm text-gray-500">既存画像の削除と、新しい item 画像の追加ができます。保存後は candidate 側と別管理です。</p>
+            </div>
 
-              <div className="grid gap-4 md:grid-cols-2">
-                {itemImages.map((image, index) => (
-                  <article key={`${image.path ?? "image"}-${index}`} className="overflow-hidden rounded-xl border border-gray-200 bg-white">
-                    {image.url ? (
-                      <div className="flex aspect-[3/4] items-center justify-center bg-gray-50 p-2">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={image.url} alt={image.original_filename ?? "item image"} className="h-full w-full object-contain" />
-                      </div>
-                    ) : (
-                      <div className="flex aspect-[4/3] items-center justify-center bg-gray-100 text-sm text-gray-400">画像なし</div>
-                    )}
-                    <div className="p-3 text-sm text-gray-600">
-                      {image.sort_order}枚目{image.is_primary ? " / 代表画像" : ""}
-                    </div>
-                  </article>
-                ))}
-              </div>
-            </section>
-          )}
+            <ItemImageUploader
+              existingImages={itemImages}
+              pendingImages={pendingImages}
+              onPendingImagesChange={setPendingImages}
+              onDeleteExistingImage={(image) => {
+                if (!image.id) {
+                  return;
+                }
+
+                void handleDeleteImage(image.id);
+              }}
+              disabled={submitting}
+              helperText="保存前の追加画像はまとめて反映されます。"
+              existingHeading={itemImages.length > 0 ? "現在登録されている画像" : undefined}
+            />
+          </section>
 
           {isTopsCategory && (
             <section className="space-y-4 rounded-xl border border-gray-200 bg-gray-50 p-4">

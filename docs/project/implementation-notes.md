@@ -57,7 +57,7 @@ purchase_candidates の仕様正本を確認するときは `docs/specs/purchase
 - purchase_candidates 一覧では代表画像、詳細・編集では画像全体確認を優先する表示へ整理済み
 - purchase_candidates でも一覧 → 詳細 → 編集 の責務分離を採用し、一覧は確認・遷移、編集は詳細画面からを主導線に整理済み
 - purchase_candidates で導入した `必須` バッジを items / outfits / wear logs の主要フォームにも揃え、必須項目をラベル上で事前判別できるようにした
-- 比較ロジックの詳細、item 保存成功時の `purchased` 反映、item 側画像 upload / delete UI は後続検討とする
+- 比較ロジックの詳細、item 保存成功時の `purchased` 反映、item 側画像の並び替え / 代表画像切り替え UI は後続検討とする
 
 直近または中期 TODO:
 
@@ -67,7 +67,8 @@ purchase_candidates の仕様正本を確認するときは `docs/specs/purchase
 2. 画像アップロード方針を整理する
    - candidate 側の複数画像 upload / delete は実装済み
    - candidate -> item の保存時引き継ぎは実装済み
-   - item 側画像 upload / delete UI、保存後の編集責務分離を整理する
+   - item 側画像 upload / delete UI は実装済み
+   - 並び替え / 代表画像切り替え UI と保存後の編集責務分離を整理する
 3. 比較結果の扱いを整理する
    - 現時点では補助表示前提とし、比較ロジックの詳細や強い自動判定は後続検討とする
 4. 月次服飾費集計の前提を残す
@@ -393,7 +394,7 @@ UI/UX メモ:
 
 - `last_worn_at` と `wear_count` だけでは履歴一覧を完全には表現できないため、カレンダー連携や着用履歴を本格対応する場合は `wear_logs` のような別テーブル案も検討する
 - 画像保存方針は `item_images` / `purchase_candidate_images` を別テーブルで持ち、DB には `disk + path` を保存し、URL は API / BFF 側で生成する方針で整理する
-- item 側の追加項目と `item_images` は purchase_candidates 受け皿として実装済みであり、残タスクは item 画像編集 UI と candidate `purchased` 自動反映である
+- item 側の追加項目と `item_images` は purchase_candidates 受け皿として実装済みであり、残タスクは item 画像の並び替え / 代表画像切り替え UI と candidate `purchased` 自動反映である
 
 ### カラーパレット
 

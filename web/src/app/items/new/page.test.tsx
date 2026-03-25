@@ -133,6 +133,7 @@ describe("NewItemPage", () => {
     expect(container.textContent).toContain("カテゴリ");
     expect(container.textContent).toContain("形");
     expect(container.textContent).toContain("メインカラー");
+    expect(container.textContent).toContain("クリックして画像を選択");
     expect(container.textContent?.match(/必須/g)?.length).toBe(4);
   });
 
@@ -202,5 +203,6 @@ describe("NewItemPage", () => {
     expect(rainCheckbox?.checked).toBe(true);
     expect(categorySelect?.value).toBe("tops");
     expect(container.textContent).toContain("購入候補の内容を初期値として読み込みました。");
+    expect(container.textContent).toContain("購入候補由来画像も保存前に取り除けます。");
   });
 });
