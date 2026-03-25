@@ -252,6 +252,8 @@ describe("WearLogForm", () => {
             colors: [
               { role: "main", mode: "preset", value: "white", hex: "#FFFFFF", label: "白" },
             ],
+            seasons: ["春"],
+            tpos: ["仕事"],
           },
           {
             id: 2,
@@ -262,6 +264,8 @@ describe("WearLogForm", () => {
             colors: [
               { role: "main", mode: "preset", value: "navy", hex: "#1F3A5F", label: "ネイビー" },
             ],
+            seasons: ["秋"],
+            tpos: ["休日"],
           },
         ],
       })
@@ -455,5 +459,171 @@ describe("WearLogForm", () => {
         }),
       }),
     );
+  });
+
+  it("コーディネート候補を名前や季節・TPOで絞り込める", async () => {
+    fetchAllPaginatedCandidatesMock
+      .mockResolvedValueOnce({
+        status: 200,
+        entries: [],
+      })
+      .mockResolvedValueOnce({
+        status: 200,
+        entries: [
+          {
+            id: 5,
+            name: "通勤コーデ",
+            status: "active",
+            seasons: ["春"],
+            tpos: ["仕事"],
+            outfit_items: [{}, {}],
+          },
+          {
+            id: 6,
+            name: "休日コーデ",
+            status: "active",
+            seasons: ["夏"],
+            tpos: ["休日"],
+            outfit_items: [{}],
+          },
+        ],
+      });
+
+    vi.stubGlobal("fetch", vi.fn());
+
+    const { default: WearLogForm } = await import("./wear-log-form");
+
+    await act(async () => {
+      root.render(React.createElement(WearLogForm, { mode: "create" }));
+    });
+    await act(async () => {
+      await waitForEffects();
+    });
+
+    const searchInput = container.querySelector<HTMLInputElement>('[data-testid="wear-log-outfit-search"]');
+    const seasonSelect = container.querySelector<HTMLSelectElement>('[data-testid="wear-log-outfit-season-filter"]');
+    const tpoSelect = container.querySelector<HTMLSelectElement>('[data-testid="wear-log-outfit-tpo-filter"]');
+
+    await act(async () => {
+      const setter = Object.getOwnPropertyDescriptor(
+        window.HTMLInputElement.prototype,
+        "value",
+      )?.set;
+      setter?.call(searchInput, "休日");
+      searchInput?.dispatchEvent(new Event("input", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain("休日コーデ");
+    expect(container.textContent).not.toContain("通勤コーデ");
+
+    await act(async () => {
+      const setter = Object.getOwnPropertyDescriptor(
+        window.HTMLSelectElement.prototype,
+        "value",
+      )?.set;
+      setter?.call(seasonSelect, "春");
+      seasonSelect?.dispatchEvent(new Event("change", { bubbles: true }));
+      setter?.call(tpoSelect, "仕事");
+      tpoSelect?.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain("条件に一致するコーディネート候補がありません。");
+  });
+
+  it("アイテム候補を名前やカテゴリ・季節・TPOで絞り込めて、0件表示もできる", async () => {
+    fetchAllPaginatedCandidatesMock
+      .mockResolvedValueOnce({
+        status: 200,
+        entries: [
+          {
+            id: 1,
+            name: "白T",
+            status: "active",
+            category: "tops",
+            shape: "tshirt",
+            colors: [
+              { role: "main", mode: "preset", value: "white", hex: "#FFFFFF", label: "白" },
+            ],
+            seasons: ["春"],
+            tpos: ["仕事"],
+          },
+          {
+            id: 2,
+            name: "ネイビーパンツ",
+            status: "active",
+            category: "bottoms",
+            shape: "wide",
+            colors: [
+              { role: "main", mode: "preset", value: "navy", hex: "#1F3A5F", label: "ネイビー" },
+            ],
+            seasons: ["秋"],
+            tpos: ["休日"],
+          },
+        ],
+      })
+      .mockResolvedValueOnce({
+        status: 200,
+        entries: [],
+      });
+
+    vi.stubGlobal("fetch", vi.fn());
+
+    const { default: WearLogForm } = await import("./wear-log-form");
+
+    await act(async () => {
+      root.render(React.createElement(WearLogForm, { mode: "create" }));
+    });
+    await act(async () => {
+      await waitForEffects();
+    });
+
+    const searchInput = container.querySelector<HTMLInputElement>('[data-testid="wear-log-item-search"]');
+    const categorySelect = container.querySelector<HTMLSelectElement>('[data-testid="wear-log-item-category-filter"]');
+    const seasonSelect = container.querySelector<HTMLSelectElement>('[data-testid="wear-log-item-season-filter"]');
+    const tpoSelect = container.querySelector<HTMLSelectElement>('[data-testid="wear-log-item-tpo-filter"]');
+
+    await act(async () => {
+      const setter = Object.getOwnPropertyDescriptor(
+        window.HTMLInputElement.prototype,
+        "value",
+      )?.set;
+      setter?.call(searchInput, "ボトムス");
+      searchInput?.dispatchEvent(new Event("input", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain("ネイビーパンツ");
+    expect(container.textContent).not.toContain("白T");
+
+    await act(async () => {
+      const setter = Object.getOwnPropertyDescriptor(
+        window.HTMLSelectElement.prototype,
+        "value",
+      )?.set;
+      setter?.call(categorySelect, "tops");
+      categorySelect?.dispatchEvent(new Event("change", { bubbles: true }));
+      setter?.call(seasonSelect, "春");
+      seasonSelect?.dispatchEvent(new Event("change", { bubbles: true }));
+      setter?.call(tpoSelect, "仕事");
+      tpoSelect?.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain("白T");
+    expect(container.textContent).not.toContain("ネイビーパンツ");
+
+    await act(async () => {
+      const setter = Object.getOwnPropertyDescriptor(
+        window.HTMLInputElement.prototype,
+        "value",
+      )?.set;
+      setter?.call(searchInput, "該当なし");
+      searchInput?.dispatchEvent(new Event("input", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain("条件に一致するアイテム候補がありません。");
   });
 });

@@ -13,6 +13,8 @@ export type WearLogSelectableItem = {
   category?: string | null;
   shape?: string | null;
   colors?: ItemFormColor[];
+  seasons?: string[];
+  tpos?: string[];
 };
 
 export type WearLogSelectableOutfit = {
@@ -46,6 +48,8 @@ export function mergeWearLogItemCandidates(
       category: null,
       shape: null,
       colors: [],
+      seasons: [],
+      tpos: [],
     })), ...candidates].reduce<WearLogSelectableItem[]>((carry, item) => {
     if (carry.some((current) => current.id === item.id)) {
       return carry;

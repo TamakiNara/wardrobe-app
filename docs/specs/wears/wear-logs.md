@@ -532,6 +532,7 @@ wear log 自体の仕様ではないが、`source_outfit_id` の再利用や inv
 - `invalid` outfit は不可
 - form 上では、選択判断のために `name`、構成 item 件数、季節、TPO などの最小限の補助情報を表示してよい
 - ただし form は選択画面であり、詳細責務を持たせすぎない
+- candidate 数が多い場合に備え、name / season / TPO ベースの軽い frontend 絞り込みを持ってよい
 
 ### `items`
 
@@ -552,6 +553,7 @@ wear log 自体の仕様ではないが、`source_outfit_id` の再利用や inv
 - `disposed` item は不可
 - form 上では、選択判断のためにカテゴリ、形、色などの最小限の補助情報を表示してよい
 - 詳細確認が必要な場合は item 詳細画面へ遷移する
+- candidate 数が多い場合に備え、name / カテゴリ / season / TPO の軽い frontend 絞り込みを持ってよい
 
 ### 重複制御
 

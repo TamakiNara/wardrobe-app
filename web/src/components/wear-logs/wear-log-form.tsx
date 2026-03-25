@@ -7,7 +7,9 @@ import FieldLabel from "@/components/forms/field-label";
 import {
   findItemCategoryLabel,
   findItemShapeLabel,
+  ITEM_CATEGORIES,
 } from "@/lib/master-data/item-shapes";
+import { SEASON_OPTIONS, TPO_OPTIONS } from "@/lib/master-data/item-attributes";
 import { WEAR_LOG_STATUS_LABELS } from "@/lib/wear-logs/labels";
 import {
   buildSelectedWearLogItems,
@@ -43,6 +45,8 @@ type OutfitCandidate = {
   outfitItems?: Array<unknown>;
 };
 
+const WEAR_LOG_FILTER_SEASONS = SEASON_OPTIONS.filter((season) => season !== "オール");
+
 export default function WearLogForm({
   mode,
   wearLogId,
@@ -60,6 +64,13 @@ export default function WearLogForm({
   const [displayOrder, setDisplayOrder] = useState(1);
   const [sourceOutfitId, setSourceOutfitId] = useState<number | null>(null);
   const [memo, setMemo] = useState("");
+  const [outfitKeyword, setOutfitKeyword] = useState("");
+  const [outfitSeasonFilter, setOutfitSeasonFilter] = useState("");
+  const [outfitTpoFilter, setOutfitTpoFilter] = useState("");
+  const [itemKeyword, setItemKeyword] = useState("");
+  const [itemCategoryFilter, setItemCategoryFilter] = useState("");
+  const [itemSeasonFilter, setItemSeasonFilter] = useState("");
+  const [itemTpoFilter, setItemTpoFilter] = useState("");
 
   const [candidateItems, setCandidateItems] = useState<WearLogSelectableItem[]>([]);
   const [candidateOutfits, setCandidateOutfits] = useState<WearLogSelectableOutfit[]>([]);
@@ -120,6 +131,8 @@ export default function WearLogForm({
             category: item.category,
             shape: item.shape,
             colors: item.colors ?? [],
+            seasons: item.seasons ?? [],
+            tpos: item.tpos ?? [],
           })),
           wearLogData,
         );
@@ -191,6 +204,52 @@ export default function WearLogForm({
     (item) => item.status === "disposed",
   );
   const hasUnavailableSourceOutfit = currentSourceOutfit?.status === "invalid";
+
+  const availableItemCategoryValues = useMemo(() => {
+    return Array.from(
+      new Set(
+        candidateItems
+          .map((item) => item.category)
+          .filter((category): category is string => typeof category === "string" && category !== ""),
+      ),
+    );
+  }, [candidateItems]);
+
+  const filteredOutfits = useMemo(() => {
+    const keyword = outfitKeyword.trim().toLowerCase();
+
+    return candidateOutfits.filter((outfit) => {
+      const matchKeyword = !keyword || (outfit.name ?? "名称未設定").toLowerCase().includes(keyword);
+      const seasons = outfit.seasons ?? [];
+      const tpos = outfit.tpos ?? [];
+      const isAllSeason = seasons.length === 0 || seasons.includes("オール");
+      const matchSeason = outfitSeasonFilter === ""
+        || (outfitSeasonFilter === "オール"
+          ? isAllSeason
+          : seasons.includes(outfitSeasonFilter) || isAllSeason);
+      const matchTpo = outfitTpoFilter === "" || tpos.includes(outfitTpoFilter);
+
+      return matchKeyword && matchSeason && matchTpo;
+    });
+  }, [candidateOutfits, outfitKeyword, outfitSeasonFilter, outfitTpoFilter]);
+
+  const filteredItems = useMemo(() => {
+    const keyword = itemKeyword.trim().toLowerCase();
+
+    return candidateItems.filter((item) => {
+      const name = (item.name ?? "名称未設定").toLowerCase();
+      const category = (findItemCategoryLabel(item.category) ?? "").toLowerCase();
+      const shape = (findItemShapeLabel(item.category, item.shape) ?? "").toLowerCase();
+      const seasons = item.seasons ?? [];
+      const tpos = item.tpos ?? [];
+      const matchKeyword = !keyword || name.includes(keyword) || category.includes(keyword) || shape.includes(keyword);
+      const matchCategory = itemCategoryFilter === "" || item.category === itemCategoryFilter;
+      const matchSeason = itemSeasonFilter === "" || seasons.includes(itemSeasonFilter);
+      const matchTpo = itemTpoFilter === "" || tpos.includes(itemTpoFilter);
+
+      return matchKeyword && matchCategory && matchSeason && matchTpo;
+    });
+  }, [candidateItems, itemKeyword, itemCategoryFilter, itemSeasonFilter, itemTpoFilter]);
 
   function buildItemDetailHref(itemId: number): string {
     return `/items/${itemId}?return_to=${encodeURIComponent(returnToPath)}&return_label=${encodeURIComponent("着用履歴フォーム")}`;
@@ -450,6 +509,51 @@ export default function WearLogForm({
         <p className="text-sm text-gray-500">
           名前、構成数、季節、TPOを見ながらベースにするコーディネートを選べます。
         </p>
+        <div>
+          <label className="mb-1 block text-sm font-medium text-gray-700">キーワードで絞り込む</label>
+          <input
+            data-testid="wear-log-outfit-search"
+            type="search"
+            value={outfitKeyword}
+            onChange={(event) => setOutfitKeyword(event.target.value)}
+            placeholder="コーディネート名で検索"
+            className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+          />
+        </div>
+        <div className="grid gap-4 md:grid-cols-2">
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">季節</label>
+            <select
+              data-testid="wear-log-outfit-season-filter"
+              value={outfitSeasonFilter}
+              onChange={(event) => setOutfitSeasonFilter(event.target.value)}
+              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            >
+              <option value="">指定なし</option>
+              {WEAR_LOG_FILTER_SEASONS.map((season) => (
+                <option key={season} value={season}>
+                  {season}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">TPO</label>
+            <select
+              data-testid="wear-log-outfit-tpo-filter"
+              value={outfitTpoFilter}
+              onChange={(event) => setOutfitTpoFilter(event.target.value)}
+              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            >
+              <option value="">指定なし</option>
+              {TPO_OPTIONS.map((tpo) => (
+                <option key={tpo} value={tpo}>
+                  {tpo}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
 
         <div className="grid gap-3 md:grid-cols-2">
           <button
@@ -476,7 +580,7 @@ export default function WearLogForm({
             </div>
           </button>
 
-          {candidateOutfits.map((outfit) => {
+          {filteredOutfits.map((outfit) => {
             const isSelected = sourceOutfitId === outfit.id;
 
             return (
@@ -532,6 +636,12 @@ export default function WearLogForm({
           })}
         </div>
 
+        {filteredOutfits.length === 0 && (
+          <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-6 text-sm text-gray-600">
+            条件に一致するコーディネート候補がありません。
+          </div>
+        )}
+
         {currentSourceOutfit?.status === "invalid" && (
           <p className="text-sm text-amber-800">
             現在は利用不可ですが、既存候補として確認できます。
@@ -552,13 +662,79 @@ export default function WearLogForm({
           </span>
         </div>
 
+        <div>
+          <label className="mb-1 block text-sm font-medium text-gray-700">キーワードで絞り込む</label>
+          <input
+            data-testid="wear-log-item-search"
+            type="search"
+            value={itemKeyword}
+            onChange={(event) => setItemKeyword(event.target.value)}
+            placeholder="アイテム名・カテゴリ・形で検索"
+            className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+          />
+        </div>
+        <div className="grid gap-4 md:grid-cols-3">
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">カテゴリ</label>
+            <select
+              data-testid="wear-log-item-category-filter"
+              value={itemCategoryFilter}
+              onChange={(event) => setItemCategoryFilter(event.target.value)}
+              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            >
+              <option value="">指定なし</option>
+              {ITEM_CATEGORIES.filter((category) => availableItemCategoryValues.includes(category.value)).map((category) => (
+                <option key={category.value} value={category.value}>
+                  {category.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">季節</label>
+            <select
+              data-testid="wear-log-item-season-filter"
+              value={itemSeasonFilter}
+              onChange={(event) => setItemSeasonFilter(event.target.value)}
+              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            >
+              <option value="">指定なし</option>
+              {WEAR_LOG_FILTER_SEASONS.map((season) => (
+                <option key={season} value={season}>
+                  {season}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">TPO</label>
+            <select
+              data-testid="wear-log-item-tpo-filter"
+              value={itemTpoFilter}
+              onChange={(event) => setItemTpoFilter(event.target.value)}
+              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            >
+              <option value="">指定なし</option>
+              {TPO_OPTIONS.map((tpo) => (
+                <option key={tpo} value={tpo}>
+                  {tpo}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
         {candidateItems.length === 0 ? (
           <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-6 text-sm text-gray-600">
             候補に表示できるアイテムがありません。
           </div>
+        ) : filteredItems.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-6 text-sm text-gray-600">
+            条件に一致するアイテム候補がありません。
+          </div>
         ) : (
           <div className="grid gap-3 md:grid-cols-2">
-            {candidateItems.map((item) => {
+            {filteredItems.map((item) => {
               const checked = selectedItemIds.includes(item.id);
               const checkboxId = `wear-log-item-${item.id}`;
 
