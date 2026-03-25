@@ -9,6 +9,7 @@ info:
     このAPIは Cookie ベースのセッション認証を使用する。
     CSRF 保護が必要な POST / PUT / DELETE では X-CSRF-TOKEN ヘッダが必要。
     docs 上では認証系 API / 設定系 API / 参照マスタ API を軸に整理しつつ、Items / Outfits も実装単位で記載する。
+    `400` / `429` / `500` は、アプリ独自の契約がある場合を除き framework default に委ね、通常の endpoint 定義では過剰に明示しない。
 
 servers:
   - url: http://localhost:8000
