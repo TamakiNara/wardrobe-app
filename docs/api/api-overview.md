@@ -7,6 +7,11 @@
 - `POST /api/logout`
 - `GET /api/me`
 
+### Notes
+
+- `logout` は `MessageOnlyResponse` を返し、`message` は action keyword として `logged_out` を返す
+- 認証状態の正本は response 本文ではなく、Cookie と後続の `GET /api/me` で確認する
+
 ---
 
 ## Categories
@@ -52,6 +57,7 @@
 
 - ブランド候補は `user_brands` をユーザー単位で管理する
 - item の正本は `items.brand_name`、候補の正本は `user_brands` とし、FK では結ばない
+- settings 更新系は `MessageOnlyResponse` ではなく、更新後の設定値や record を含む response を返す
 - `POST /api/items` / `PUT /api/items/{id}` は `save_brand_as_candidate=true` のとき Laravel 側で候補追加を試行する
 - 既存候補との重複時は候補追加をスキップし、item 保存自体は失敗させない
 - brand 候補の正規化と重複判定は backend 側で扱う
@@ -71,6 +77,8 @@
 - `DELETE /api/items/{id}`
 - `POST /api/items/{id}/dispose`
 - `POST /api/items/{id}/reactivate`
+- `POST /api/items/{id}/images`
+- `DELETE /api/items/{id}/images/{imageId}`
 
 ### Item payload
 
@@ -111,6 +119,7 @@
 - `images` は `sort_order` と `is_primary` を含む配列として create / update で受け付け、item 編集画面の並び替え / 代表画像切り替えに利用する
 - `brand_name` は item の正本として保存し、`save_brand_as_candidate` は候補追加試行フラグとして扱う
 - create / update / status 変更 API の `message` は action keyword を返し、実際の item 状態は `item` record 側を正本として読む
+- delete / 画像 delete は `MessageOnlyResponse` を返し、削除結果の正本は後続の一覧 / 詳細取得結果で確認する
 - `dispose` は item を `disposed` に変更し、その item を含む `active outfit` を `invalid` にする副作用を伴う
 - `reactivate` は item を `active` に戻すが、関連 outfit は自動 `restore` しない
 - DB 保存方針は [`../data/database.md`](../data/database.md) を参照
@@ -137,6 +146,7 @@
 - `invalid outfit` 一覧、`restore`、`duplicate` は current 実装として利用できる
 - `restore` は対象 outfit が `invalid` で、構成 item がすべて `active` の場合のみ成功する
 - create / update / restore API の `message` は action keyword を返し、実際の outfit 状態は `outfit` record 側を正本として読む
+- delete は `MessageOnlyResponse` を返し、削除結果の正本は後続の一覧 / 詳細取得結果で確認する
 - `duplicate` は保存済み outfit を直接複製作成する API ではなく、新規作成画面へ渡す初期値 payload を返す
 - `duplicate` の `message` は状態変更結果ではなく、payload 準備完了を表す
 - invalid outfit 由来の duplicate では、disposed item を `selectable=false` と `note` 付きで返す
@@ -159,6 +169,7 @@
 - `source_outfit_id` は「ベースにした outfit」を表し、最終的な item 構成は `items` を正本とする
 - `items` は空配列を含めて常に送信し、保存時は UI 上の最終順序に従って `sort_order` を連番で再採番する
 - `item_source_type` は `outfit` / `manual`
+- delete は `MessageOnlyResponse` を返し、削除結果の正本は後続の一覧 / 詳細取得結果で確認する
 - `invalid outfit` / `disposed item` は新規候補から除外しつつ、編集時は既存 record に含まれる候補外データを同一 record の再保存に限り保持できる
 - `current status` は履歴の主表示ではなく補助情報として扱う
 - 詳細仕様は [`../specs/wears/wear-logs.md`](../specs/wears/wear-logs.md) を参照
@@ -181,6 +192,7 @@
 
 - 購入検討は items と別エンティティで管理し、outfits や wear logs の候補へ直接混ぜない
 - 一覧 / 詳細 / 作成 / 更新 / 削除に加え、candidate 画像追加 / 削除と item 作成初期値生成を分けて扱う
+- delete / 画像 delete は `MessageOnlyResponse` を返し、削除結果の正本は後続の詳細取得結果で確認する
 - `item-draft` は保存済み item を返す API ではなく、item 作成画面へ渡す初期値 payload を返す
 - `item-draft` は candidate 側の `category_id` を source metadata として保持しつつ、current item API 互換の `category` / `shape` と配列項目を返す前提とする
 - candidate から item へは登録済み全画像を引き継ぎ、`sort_order` と `is_primary` も維持する前提とする

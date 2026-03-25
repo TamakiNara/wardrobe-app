@@ -241,7 +241,7 @@ paths:
         - $ref: '#/components/parameters/XCsrfTokenHeader'
       responses:
         '200':
-          description: ログアウト成功
+          description: ログアウト成功。message は `logged_out`、認証状態の正本は Cookie と後続の `/api/me` で確認する
           content:
             application/json:
               schema:
@@ -418,6 +418,9 @@ paths:
       tags:
         - Items
       summary: アイテム削除
+      description: |
+        item record を物理削除する。
+        response は message のみを返し、削除結果の正本は後続の一覧 / 詳細取得結果で確認する。
       security:
         - SessionCookieAuth: []
       parameters:
@@ -425,7 +428,7 @@ paths:
         - $ref: '#/components/parameters/XCsrfTokenHeader'
       responses:
         '200':
-          description: 削除成功
+          description: 削除成功。message は `deleted`
           content:
             application/json:
               schema:
@@ -514,7 +517,7 @@ paths:
         - $ref: '#/components/parameters/XCsrfTokenHeader'
       responses:
         '200':
-          description: 削除成功
+          description: 削除成功。message は `deleted`。画像一覧の正本は後続の item 詳細取得結果で確認する
           content:
             application/json:
               schema:
@@ -695,6 +698,9 @@ paths:
       tags:
         - Outfits
       summary: コーディネート削除
+      description: |
+        outfit record を物理削除する。
+        response は message のみを返し、削除結果の正本は後続の一覧 / 詳細取得結果で確認する。
       security:
         - SessionCookieAuth: []
       parameters:
@@ -702,7 +708,7 @@ paths:
         - $ref: '#/components/parameters/XCsrfTokenHeader'
       responses:
         '200':
-          description: 削除成功
+          description: 削除成功。message は `deleted`
           content:
             application/json:
               schema:
@@ -940,6 +946,7 @@ paths:
       description: |
         対象の wear log と関連する wear_log_items を物理削除する。
         item / outfit 側の record や他の wear log には影響を与えない。
+        response は message のみを返し、削除結果の正本は後続の一覧 / 詳細取得結果で確認する。
       parameters:
         - name: wearLogId
           in: path
@@ -948,17 +955,11 @@ paths:
             type: integer
       responses:
         '200':
-          description: wear log 削除成功
+          description: wear log 削除成功。message は `deleted`
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: deleted
-                required:
-                  - message
+                $ref: '#/components/schemas/MessageOnlyResponse'
         '401':
           description: 未認証
         '404':
@@ -1122,7 +1123,7 @@ paths:
         - $ref: '#/components/parameters/XCsrfTokenHeader'
       responses:
         '200':
-          description: 削除成功
+          description: 削除成功。message は `deleted`
           content:
             application/json:
               schema:
@@ -1186,7 +1187,7 @@ paths:
         - $ref: '#/components/parameters/XCsrfTokenHeader'
       responses:
         '200':
-          description: 削除成功
+          description: 削除成功。message は `deleted`。画像一覧の正本は後続の購入候補詳細取得結果で確認する
           content:
             application/json:
               schema:
