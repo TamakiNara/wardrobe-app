@@ -51,7 +51,7 @@ describe("GlobalBottomNav", () => {
     expect(activeLink?.textContent).toContain("アイテム");
   });
 
-  it("purchase_candidates 配下では購入候補タブをアクティブにする", async () => {
+  it("purchase_candidates 配下では購入検討タブをアクティブにする", async () => {
     usePathnameMock.mockReturnValue("/purchase-candidates/12/edit");
 
     const { default: GlobalBottomNav } = await import("./global-bottom-nav");
@@ -63,6 +63,6 @@ describe("GlobalBottomNav", () => {
     const activeLink = container.querySelector('[aria-current="page"]');
 
     expect(activeLink?.getAttribute("href")).toBe("/purchase-candidates");
-    expect(activeLink?.textContent).toContain("購入候補");
+    expect(activeLink?.textContent).toContain("購入検討");
   });
 });

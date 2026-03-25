@@ -127,7 +127,7 @@
 
 ---
 
-## Purchase Candidates
+## 購入検討(管理) / `purchase_candidates`
 
 - `GET /api/purchase-candidates`
 - `GET /api/purchase-candidates/{id}`
@@ -140,7 +140,7 @@
 
 ### Notes
 
-- `purchase_candidates` は items と別エンティティで管理し、outfits や wear logs の候補へ直接混ぜない
+- 購入検討(管理)は items と別エンティティで管理し、outfits や wear logs の候補へ直接混ぜない
 - 一覧 / 詳細 / 作成 / 更新 / 削除に加え、candidate 画像追加 / 削除と item 作成初期値生成を分けて扱う
 - `item-draft` は保存済み item を返す API ではなく、item 作成画面へ渡す初期値 payload を返す
 - `item-draft` は candidate 側の `category_id` を source metadata として保持しつつ、current item API 互換の `category` / `shape` と配列項目を返す前提とする
@@ -149,3 +149,11 @@
 - 比較結果は詳細画面での補助表示前提とし、比較ロジックの詳細は後続検討とする
 - 詳細仕様は [`../specs/purchase-candidates.md`](../specs/purchase-candidates.md) を参照
 - DB 保存方針は [`../data/database.md`](../data/database.md) を参照
+- `docs/specs/README.md` からも購入検討(管理)を含む主要 spec 一覧へ辿れる
+
+### 入口メモ
+
+- 仕様の正本: [`../specs/purchase-candidates.md`](../specs/purchase-candidates.md)
+- DB / 画像保存方針: [`../data/database.md`](../data/database.md)
+- 実装メモと未対応事項: [`../project/implementation-notes.md`](../project/implementation-notes.md)
+- OpenAPI の request / response schema は [`./openapi.yaml`](./openapi.yaml) を参照

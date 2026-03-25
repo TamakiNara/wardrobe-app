@@ -24,9 +24,9 @@ wear logs も本資料の対象とし、その保存方針を定義します。
 - `category_presets`
 - `category_preset_categories`
 
-## Planned Tables (`purchase_candidates`)
+## Planned Tables (`purchase_candidates` / 購入検討(管理))
 
-`purchase_candidates` 系はまだ未実装で、`docs/specs/purchase-candidates.md` を正本とする planned schema です。  
+`purchase_candidates` 系は購入検討(管理)用の schema で、`docs/specs/purchase-candidates.md` を正本とする planned schema です。  
 比較ロジックの詳細は後続検討とし、まずは candidate 保存・画像管理・item 昇格を支える構造を先に整理します。
 
 ### `purchase_candidates`
@@ -117,6 +117,16 @@ wear logs も本資料の対象とし、その保存方針を定義します。
 - `purchase_candidate_images` と `item_images` は別テーブルで持ち、同一 image record を共有しない
 - candidate から item へは全画像を初期値として引き継ぐが、item 保存時に item 用保存先へ物理コピーし、item 側画像とは別管理で確定する
 - 画像上限は item / candidate ともに 5 枚を前提とする
+
+### purchase_candidate_images と item_images の関係
+
+- `purchase_candidate_images` は購入判断材料を保持するための画像テーブル
+- `item_images` は所持品管理用の画像テーブル
+- candidate -> item 昇格時は、candidate 側画像の `disk + path` をそのまま使い回さず、item 保存時に item 用保存先へ物理コピーする
+- item 側ではコピー先の `disk + path` を `item_images` に保存し、candidate 側画像削除の影響を受けないようにする
+- 保存後の candidate 画像と item 画像は自動同期しない
+- 代表画像切り替えと並び替え UI は後続対応とし、current 実装では `is_primary` と `sort_order` を保存済みデータとして扱う
+
 
 ---
 

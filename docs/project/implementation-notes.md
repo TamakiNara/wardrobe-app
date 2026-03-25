@@ -6,7 +6,11 @@
 実装着手前の確認観点を見返すときは `docs/project/implementation-checklist.md` を参照します。
 item status 変更仕様の正本を確認するときは `docs/specs/items/status-management.md` を参照します。
 item 詳細画面での status 操作 UI を確認するときは `docs/specs/items/detail-status-ui.md` を参照します。
-purchase_candidates の仕様正本を確認するときは `docs/specs/purchase-candidates.md` を参照します。
+購入検討(管理)の仕様正本を確認するときは `docs/specs/purchase-candidates.md` を参照します。
+購入検討(管理)の API 入口を確認するときは `docs/api/api-overview.md` を参照します。
+購入検討(管理)の DB 保存方針と `purchase_candidate_images` / `item_images` の関係を確認するときは `docs/data/database.md` を参照します。
+主要 spec の索引から購入検討(管理)を含む資料一覧へ辿るときは `docs/specs/README.md` を参照します。
+購入検討(管理)の OpenAPI 定義は `docs/api/openapi.yaml` に反映済みで、current 実装との差分確認はこのファイルを起点に行います。
 
 ## 削除導線の共通方針
 
@@ -45,18 +49,18 @@ purchase_candidates の仕様正本を確認するときは `docs/specs/purchase
 6. tops SVG の見た目調整に戻る
    - tshirt / shirt / blouse の細部調整を再開する
 
-## purchase_candidates 実装メモ
+## 購入検討(管理) 実装メモ
 
 位置づけ:
 
-- `purchase_candidates` の正本は `docs/specs/purchase-candidates.md` を参照する
+- 購入検討(管理)の正本は `docs/specs/purchase-candidates.md` を参照する
 - MVP として candidate 保存・画像管理・item draft 導線まで実装済み
 - item 側では `brand_name / price / purchase_url / purchased_at / size_* / is_rain_ok / item_images` の受け皿まで実装済み
 - candidate 由来画像は item 保存時に item 用保存先へ物理コピーし、`item_images` にはコピー先の `disk + path` を保存する
-- purchase_candidates の画像追加 UI は file select / drag & drop / paste に対応済み
-- purchase_candidates 一覧では代表画像、詳細・編集では画像全体確認を優先する表示へ整理済み
-- purchase_candidates でも一覧 → 詳細 → 編集 の責務分離を採用し、一覧は確認・遷移、編集は詳細画面からを主導線に整理済み
-- purchase_candidates で導入した `必須` バッジを items / outfits / wear logs の主要フォームにも揃え、必須項目をラベル上で事前判別できるようにした
+- 購入検討(管理)の画像追加 UI は file select / drag & drop / paste に対応済み
+- 購入検討(管理)一覧では代表画像、詳細・編集では画像全体確認を優先する表示へ整理済み
+- 購入検討(管理)でも一覧 → 詳細 → 編集 の責務分離を採用し、一覧は確認・遷移、編集は詳細画面からを主導線に整理済み
+- 購入検討(管理)で導入した `必須` バッジを items / outfits / wear logs の主要フォームにも揃え、必須項目をラベル上で事前判別できるようにした
 - 比較ロジックの詳細、item 保存成功時の `purchased` 反映、item 側画像の並び替え / 代表画像切り替え UI は後続検討とする
 
 直近または中期 TODO:
@@ -74,12 +78,12 @@ purchase_candidates の仕様正本を確認するときは `docs/specs/purchase
 4. 月次服飾費集計の前提を残す
    - `items.purchased_at` を持たせる案をベースに、item の `price` と組み合わせて集計できるようにする
 5. ナビゲーション整理
-   - purchase_candidates はボトムナビへ追加済み
+- 購入検討(管理)はボトムナビへ追加済み
    - wear logs を含む major feature 追加時のボトムナビ再編方針を引き続き整理する
 
 既存仕様との衝突確認メモ:
 
-- purchase_candidates は items / outfits / wear logs と責務を分け、candidate を outfits に直接混ぜない前提を維持する
+- 購入検討(管理)は items / outfits / wear logs と責務を分け、candidate を outfits に直接混ぜない前提を維持する
 - `dropped` は見送り履歴を残す状態であり、DELETE は登録ミスや重複削除用として役割を分ける
 - candidate から item へ全画像を引き継ぐ方針は UX 上は自然で、保存時には item 用保存先へ物理コピーする
 - item 側画像と別管理である点を UI 上でも誤解されないよう整理が必要
@@ -116,7 +120,7 @@ purchase_candidates の仕様正本を確認するときは `docs/specs/purchase
 - ボトムナビに着用履歴を追加するか検討する
 - ボトムナビはホーム / items / outfits / purchase_candidates / settings 配下に加え、wear logs 配下でも表示する
 - 主要機能追加時のボトムナビ再編方針を整理する
-- purchase_candidates は主要導線としてボトムナビへ追加済み
+- 購入検討(管理)は主要導線としてボトムナビへ追加済み
 - wear logs 配下でも既存ボトムナビは表示し、独立タブ化は引き続き保留とする
 - wear log form では item / outfit の中身確認を詳細画面への導線で補い、フォーム自体に詳細責務を持たせすぎない
 

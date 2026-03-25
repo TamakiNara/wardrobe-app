@@ -50,7 +50,7 @@ export default async function PurchaseCandidateDetailPage({
           </Link>
           {" / "}
           <Link href="/purchase-candidates" className="hover:underline">
-            購入候補一覧
+            購入検討一覧
           </Link>
           {" / "}
           <span className="text-gray-700">詳細</span>
@@ -58,7 +58,7 @@ export default async function PurchaseCandidateDetailPage({
 
         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div>
-            <p className="text-sm text-gray-500">購入候補管理</p>
+            <p className="text-sm text-gray-500">購入検討(管理)</p>
             <h1 className="text-2xl font-bold text-gray-900">{candidate.name}</h1>
             <div className="mt-3 flex flex-wrap items-center gap-2">
               <span className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-sm font-medium text-blue-700">

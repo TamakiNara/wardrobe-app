@@ -55,7 +55,7 @@ export default async function PurchaseCandidatesPage({
   const resolvedSearchParams = await searchParams;
   const data = await getPurchaseCandidates();
   const flashMessage = resolvedSearchParams.message === "deleted"
-    ? "購入候補を削除しました。"
+    ? "購入検討を削除しました。"
     : null;
 
   return (
@@ -66,13 +66,13 @@ export default async function PurchaseCandidatesPage({
             ホーム
           </Link>
           {" / "}
-          <span className="text-gray-700">購入候補一覧</span>
+          <span className="text-gray-700">購入検討一覧</span>
         </nav>
 
         <header className="flex flex-col gap-4 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm md:flex-row md:items-center md:justify-between">
           <div>
-            <p className="text-sm text-gray-500">購入候補管理</p>
-            <h1 className="text-2xl font-bold text-gray-900">購入候補一覧</h1>
+            <p className="text-sm text-gray-500">購入検討(管理)</p>
+            <h1 className="text-2xl font-bold text-gray-900">購入検討一覧</h1>
             <p className="mt-1 text-sm text-gray-600">
               検討中・保留中・購入済み・見送りの候補をまとめて確認します。
             </p>
@@ -82,7 +82,7 @@ export default async function PurchaseCandidatesPage({
             href="/purchase-candidates/new"
             className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
           >
-            購入候補を追加
+            購入検討を追加
           </Link>
         </header>
 
@@ -95,7 +95,7 @@ export default async function PurchaseCandidatesPage({
         {data.meta.totalAll === 0 ? (
           <section className="rounded-2xl border border-dashed border-gray-300 bg-white p-10 text-center shadow-sm">
             <h2 className="text-lg font-semibold text-gray-900">
-              購入候補がまだありません
+              購入検討がまだありません
             </h2>
             <p className="mt-2 text-sm text-gray-600">
               気になるアイテムを候補として登録して比較や item 化の準備を進めましょう。

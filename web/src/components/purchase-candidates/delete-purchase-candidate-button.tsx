@@ -15,7 +15,7 @@ export default function DeletePurchaseCandidateButton({
   const [error, setError] = useState<string | null>(null);
 
   async function handleDelete() {
-    const confirmed = window.confirm("この購入候補を削除しますか？");
+    const confirmed = window.confirm("この購入検討を削除しますか？");
 
     if (!confirmed) {
       return;

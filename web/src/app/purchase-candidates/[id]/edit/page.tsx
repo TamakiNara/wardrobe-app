@@ -18,7 +18,7 @@ export default async function EditPurchaseCandidatePage({
           </Link>
           {" / "}
           <Link href="/purchase-candidates" className="hover:underline">
-            購入候補一覧
+            購入検討一覧
           </Link>
           {" / "}
           <Link href={`/purchase-candidates/${id}`} className="hover:underline">
@@ -30,8 +30,8 @@ export default async function EditPurchaseCandidatePage({
 
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm text-gray-500">購入候補管理</p>
-            <h1 className="text-2xl font-bold text-gray-900">購入候補編集</h1>
+            <p className="text-sm text-gray-500">購入検討(管理)</p>
+            <h1 className="text-2xl font-bold text-gray-900">購入検討編集</h1>
           </div>
 
           <Link

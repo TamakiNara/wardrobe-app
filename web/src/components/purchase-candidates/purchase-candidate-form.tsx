@@ -233,7 +233,7 @@ export default function PurchaseCandidateForm({
           setExistingImages(candidate.images);
         }
       } catch {
-        setLoadError("購入候補フォームの初期化に失敗しました。");
+        setLoadError("購入検討フォームの初期化に失敗しました。");
       } finally {
         setLoading(false);
       }

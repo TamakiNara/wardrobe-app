@@ -11,7 +11,7 @@ export default function NewPurchaseCandidatePage() {
           </Link>
           {" / "}
           <Link href="/purchase-candidates" className="hover:underline">
-            購入候補一覧
+            購入検討一覧
           </Link>
           {" / "}
           <span className="text-gray-700">新規作成</span>
@@ -19,8 +19,8 @@ export default function NewPurchaseCandidatePage() {
 
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm text-gray-500">購入候補管理</p>
-            <h1 className="text-2xl font-bold text-gray-900">購入候補を追加</h1>
+            <p className="text-sm text-gray-500">購入検討(管理)</p>
+            <h1 className="text-2xl font-bold text-gray-900">購入検討を追加</h1>
           </div>
 
           <Link

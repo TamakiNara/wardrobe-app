@@ -202,7 +202,7 @@ describe("NewItemPage", () => {
     expect(sizeDetailsTextarea?.value).toBe("裄丈 78cm");
     expect(rainCheckbox?.checked).toBe(true);
     expect(categorySelect?.value).toBe("tops");
-    expect(container.textContent).toContain("購入候補の内容を初期値として読み込みました。");
-    expect(container.textContent).toContain("購入候補由来画像も保存前に取り除けます。");
+    expect(container.textContent).toContain("購入検討の内容を初期値として読み込みました。");
+    expect(container.textContent).toContain("購入検討由来画像も保存前に取り除けます。");
   });
 });

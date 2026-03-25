@@ -239,11 +239,11 @@ export default async function Home() {
           </article>
 
           <article className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-            <p className="text-sm text-gray-500">購入候補管理</p>
+            <p className="text-sm text-gray-500">購入検討(管理)</p>
             <p className="mt-2 text-3xl font-bold text-gray-900">
               {purchaseCandidatesCount}
             </p>
-            <p className="mt-2 text-sm text-gray-600">登録済み購入候補数</p>
+            <p className="mt-2 text-sm text-gray-600">登録済み購入検討数</p>
 
             <div className="mt-6 flex gap-3">
               <Link

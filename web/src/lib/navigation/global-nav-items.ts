@@ -34,7 +34,7 @@ export const globalNavItems: GlobalNavItem[] = [
   },
   {
     key: "purchase-candidates",
-    label: "購入候補",
+    label: "購入検討",
     href: "/purchase-candidates",
     matches: (pathname) => isNestedPath(pathname, "/purchase-candidates"),
   },
