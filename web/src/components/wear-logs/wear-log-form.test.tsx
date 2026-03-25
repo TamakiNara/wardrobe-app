@@ -336,4 +336,124 @@ describe("WearLogForm", () => {
       }),
     );
   });
+
+  it("selected item を上下移動して保存順を調整できる", async () => {
+    fetchAllPaginatedCandidatesMock
+      .mockResolvedValueOnce({
+        status: 200,
+        entries: [
+          {
+            id: 1,
+            name: "白T",
+            status: "active",
+            category: "tops",
+            shape: "tshirt",
+            colors: [
+              { role: "main", mode: "preset", value: "white", hex: "#FFFFFF", label: "白" },
+            ],
+          },
+          {
+            id: 2,
+            name: "ネイビーパンツ",
+            status: "active",
+            category: "bottoms",
+            shape: "wide",
+            colors: [
+              { role: "main", mode: "preset", value: "navy", hex: "#1F3A5F", label: "ネイビー" },
+            ],
+          },
+        ],
+      })
+      .mockResolvedValueOnce({
+        status: 200,
+        entries: [],
+      });
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 201,
+        json: async () => ({
+          message: "created",
+          wearLog: {
+            id: 1,
+          },
+        }),
+      }),
+    );
+
+    const { default: WearLogForm } = await import("./wear-log-form");
+
+    await act(async () => {
+      root.render(React.createElement(WearLogForm, { mode: "create" }));
+    });
+    await act(async () => {
+      await waitForEffects();
+    });
+
+    const checkboxes = Array.from(container.querySelectorAll<HTMLInputElement>('input[type="checkbox"]'));
+    const dateInput = container.querySelector<HTMLInputElement>('input[type="date"]');
+    const submitButton = Array.from(container.querySelectorAll("button")).find((button) =>
+      button.textContent?.includes("登録する"),
+    );
+
+    await act(async () => {
+      checkboxes[0]?.click();
+      checkboxes[1]?.click();
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain("1. 白T");
+    expect(container.textContent).toContain("2. ネイビーパンツ");
+
+    const moveUpButton = Array.from(container.querySelectorAll("button")).find((button) =>
+      button.textContent === "上へ" && button.parentElement?.parentElement?.textContent?.includes("2. ネイビーパンツ"),
+    );
+
+    await act(async () => {
+      moveUpButton?.click();
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain("1. ネイビーパンツ");
+    expect(container.textContent).toContain("2. 白T");
+
+    await act(async () => {
+      const setter = Object.getOwnPropertyDescriptor(
+        window.HTMLInputElement.prototype,
+        "value",
+      )?.set;
+      setter?.call(dateInput, "2026-03-24");
+      dateInput?.dispatchEvent(new Event("input", { bubbles: true }));
+      submitButton?.click();
+      await waitForEffects();
+    });
+
+    expect(global.fetch).toHaveBeenLastCalledWith(
+      "/api/wear-logs",
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({
+          status: "planned",
+          event_date: "2026-03-24",
+          display_order: 1,
+          source_outfit_id: null,
+          memo: "",
+          items: [
+            {
+              source_item_id: 2,
+              sort_order: 1,
+              item_source_type: "manual",
+            },
+            {
+              source_item_id: 1,
+              sort_order: 2,
+              item_source_type: "manual",
+            },
+          ],
+        }),
+      }),
+    );
+  });
 });

@@ -218,6 +218,22 @@ export default function WearLogForm({
     });
   }
 
+  function moveSelectedItem(sourceIndex: number, direction: -1 | 1) {
+    setSelectedItems((prev) => {
+      const targetIndex = sourceIndex + direction;
+
+      if (targetIndex < 0 || targetIndex >= prev.length) {
+        return prev;
+      }
+
+      const next = [...prev];
+      const [moved] = next.splice(sourceIndex, 1);
+      next.splice(targetIndex, 0, moved);
+
+      return next;
+    });
+  }
+
   function renderColorSummary(item: WearLogSelectableItem) {
     const colors = item.colors ?? [];
     const mainColor = colors.find((color) => color.role === "main");
@@ -609,24 +625,50 @@ export default function WearLogForm({
             <p className="mb-3 text-sm font-medium text-gray-700">選択中の順序</p>
             <ol className="space-y-2 text-sm text-gray-700">
               {selectedItemRecords.map((item, index) => (
-                <li key={item.id}>
-                  {index + 1}. {item.name ?? "名称未設定"}
-                  <Link
-                    href={buildItemDetailHref(item.id)}
-                    className="ml-2 text-sm font-medium text-blue-600 hover:underline"
-                  >
-                    詳細
-                  </Link>
-                  <span className="ml-2 text-gray-500">
-                    (
-                    {item.itemSourceType === "outfit" ? "コーデ由来" : "手動追加"}
-                    )
-                  </span>
-                  <span className="ml-2 text-gray-500">
-                    {findItemCategoryLabel(item.category) || "カテゴリ未設定"}
-                    {" / "}
-                    {findItemShapeLabel(item.category, item.shape) || "形未設定"}
-                  </span>
+                <li
+                  key={item.id}
+                  className="flex flex-col gap-2 rounded-lg border border-gray-200 bg-white px-3 py-3 sm:flex-row sm:items-center sm:justify-between"
+                >
+                  <div className="min-w-0">
+                    <p className="font-medium text-gray-900">
+                      {index + 1}. {item.name ?? "名称未設定"}
+                    </p>
+                    <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-gray-500">
+                      <Link
+                        href={buildItemDetailHref(item.id)}
+                        className="font-medium text-blue-600 hover:underline"
+                      >
+                        詳細
+                      </Link>
+                      <span>
+                        {item.itemSourceType === "outfit" ? "コーデ由来" : "手動追加"}
+                      </span>
+                      <span>
+                        {findItemCategoryLabel(item.category) || "カテゴリ未設定"}
+                        {" / "}
+                        {findItemShapeLabel(item.category, item.shape) || "形未設定"}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 sm:shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => moveSelectedItem(index, -1)}
+                      disabled={index === 0}
+                      className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:text-gray-400"
+                    >
+                      上へ
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => moveSelectedItem(index, 1)}
+                      disabled={index === selectedItemRecords.length - 1}
+                      className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:text-gray-400"
+                    >
+                      下へ
+                    </button>
+                  </div>
                 </li>
               ))}
             </ol>

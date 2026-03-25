@@ -560,6 +560,8 @@ wear log 自体の仕様ではないが、`source_outfit_id` の再利用や inv
 ### sort_order
 
 - `1, 2, 3...` の連番を前提とする
+- form 上では、selected item 一覧の並び替え UI から最終順序を調整できる
+- 保存時は UI 上の並び順に従って `sort_order` を連番で再採番する
 
 ### display_order
 
