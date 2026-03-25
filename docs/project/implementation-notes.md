@@ -8,6 +8,7 @@ item status 変更仕様の正本を確認するときは `docs/specs/items/stat
 item 詳細画面での status 操作 UI を確認するときは `docs/specs/items/detail-status-ui.md` を参照します。
 購入検討の仕様正本を確認するときは `docs/specs/purchase-candidates.md` を参照します。
 購入検討の API 入口を確認するときは `docs/api/api-overview.md` を参照します。
+action keyword と response schema の命名ルールを確認するときも `docs/api/api-overview.md` を参照します。
 購入検討の DB 保存方針と `purchase_candidate_images` / `item_images` の関係を確認するときは `docs/data/database.md` を参照します。
 主要 spec の索引から購入検討を含む資料一覧へ辿るときは `docs/specs/README.md` を参照します。
 購入検討の OpenAPI 定義は `docs/api/openapi.yaml` に反映済みで、current 実装との差分確認はこのファイルを起点に行います。
