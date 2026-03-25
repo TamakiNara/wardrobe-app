@@ -1449,6 +1449,9 @@ components:
             - bottoms_denim_pants
 
     CategoryVisibilitySettingsUpdatedResponse:
+      description: |
+        action keyword の `message` と更新後の visibleCategoryIds を返す response。
+        `message` は `updated`、正本は同時に返す設定値と後続の設定取得結果で読む。
       allOf:
         - $ref: '#/components/schemas/MessageOnlyResponse'
         - type: object
@@ -1520,6 +1523,9 @@ components:
           type: boolean
 
     UserBrandResponseWithMessage:
+      description: |
+        action keyword の `message` と brand record をまとめて返す response。
+        create / update のいずれでも `message` は `created` または `updated` を返す。
       allOf:
         - $ref: '#/components/schemas/MessageOnlyResponse'
         - type: object
@@ -2339,6 +2345,9 @@ components:
           $ref: '#/components/schemas/WearLogDetail'
 
     WearLogMutationResponse:
+      description: |
+        action keyword の `message` と wear log record をまとめて返す response。
+        create / update で `created` または `updated` を返し、正本は wearLog record 側を読む。
       type: object
       required:
         - message
@@ -2711,6 +2720,9 @@ components:
           $ref: '#/components/schemas/PurchaseCandidateRecord'
 
     PurchaseCandidateResponseWithMessage:
+      description: |
+        action keyword の `message` と purchase candidate record をまとめて返す response。
+        create / update で `created` または `updated` を返す。
       allOf:
         - $ref: '#/components/schemas/MessageOnlyResponse'
         - type: object
@@ -2737,6 +2749,9 @@ components:
           nullable: true
 
     PurchaseCandidateImageResponseWithMessage:
+      description: |
+        action keyword の `message` と purchase candidate image record をまとめて返す response。
+        現在の実装では画像追加時に `created` を返す。
       allOf:
         - $ref: '#/components/schemas/MessageOnlyResponse'
         - type: object

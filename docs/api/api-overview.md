@@ -1,5 +1,29 @@
 # API
 
+## Action Keywords
+
+action keyword は、成功時 response の `message` に入る短い状態語です。
+record を返すかどうかで読み方が変わるため、以下を共通ルールとします。
+
+| keyword | 主な schema | 主な endpoint | record 返却 | 成功結果の正本 |
+| --- | --- | --- | --- | --- |
+| `created` | `ItemResponseWithMessage`, `OutfitResponseWithMessage`, `WearLogMutationResponse`, `PurchaseCandidateResponseWithMessage`, `PurchaseCandidateImageResponseWithMessage`, `UserBrandResponseWithMessage` | `POST /api/items`, `POST /api/outfits`, `POST /api/wear-logs`, `POST /api/purchase-candidates`, `POST /api/purchase-candidates/{id}/images`, `POST /api/settings/brands` | あり | response に含まれる作成後 record |
+| `updated` | `ItemResponseWithMessage`, `OutfitResponseWithMessage`, `WearLogMutationResponse`, `PurchaseCandidateResponseWithMessage`, `UserBrandResponseWithMessage`, `CategoryVisibilitySettingsUpdatedResponse` | `PUT /api/items/{id}`, `PUT /api/outfits/{id}`, `PUT /api/wear-logs/{id}`, `PUT /api/purchase-candidates/{id}`, `PATCH /api/settings/brands/{id}`, `PUT /api/settings/categories` | あり | response に含まれる更新後 record / 設定値 |
+| `deleted` | `MessageOnlyResponse` | `DELETE /api/items/{id}`, `DELETE /api/items/{id}/images/{imageId}`, `DELETE /api/outfits/{id}`, `DELETE /api/wear-logs/{id}`, `DELETE /api/purchase-candidates/{id}`, `DELETE /api/purchase-candidates/{id}/images/{imageId}` | なし | 後続の一覧 / 詳細取得結果 |
+| `logged_out` | `MessageOnlyResponse` | `POST /api/logout` | なし | Cookie と後続の `GET /api/me` |
+| `disposed` | `ItemResponseWithMessage` | `POST /api/items/{id}/dispose` | あり | response に含まれる状態変更後 item |
+| `reactivated` | `ItemResponseWithMessage` | `POST /api/items/{id}/reactivate` | あり | response に含まれる状態変更後 item |
+| `restored` | `OutfitResponseWithMessage` | `POST /api/outfits/{id}/restore` | あり | response に含まれる復帰後 outfit |
+| `duplicated_payload_ready` | `OutfitDuplicateResponse` | `POST /api/outfits/{id}/duplicate` | payload のみ | response に含まれる新規作成用初期値 payload |
+
+補足:
+
+- `created` / `updated` は、後続処理の action keyword であり、作成・更新結果そのものは record 側を正本として読む
+- `deleted` / `logged_out` は record を返さないため、message は完了通知に留まり、正本は後続状態確認で読む
+- `duplicated_payload_ready` は状態変更結果ではなく、初期値 payload 準備完了を表す
+
+---
+
 ## Auth
 
 - `POST /api/register`
