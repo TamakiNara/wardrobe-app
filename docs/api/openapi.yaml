@@ -533,6 +533,7 @@ paths:
         item を disposed に変更し、「手放した / 現在所持していない」状態へ遷移させる。
         通常の ItemUpsertRequest とは分けて扱う。
         関連する active outfit がある場合は、それらを invalid にする副作用を伴う。
+        response には更新後の item を含む。
       security:
         - SessionCookieAuth: []
       parameters:
@@ -564,6 +565,7 @@ paths:
       description: |
         item を active に戻すが、関連 outfit は自動 restore しない。
         通常の ItemUpsertRequest とは分けて扱う。
+        response には更新後の item を含む。
       security:
         - SessionCookieAuth: []
       parameters:
@@ -741,6 +743,7 @@ paths:
         status=active へ復帰できる。
         item や outfit_items 自体は書き換えない。
         invalid outfit 一覧または詳細画面の補助導線として扱う。
+        response には復帰後の outfit を含む。
       security:
         - SessionCookieAuth: []
       parameters:
@@ -1874,6 +1877,9 @@ components:
           $ref: '#/components/schemas/ItemRecord'
 
     ItemResponseWithMessage:
+      description: |
+        message と更新後 item をまとめて返す response。
+        `dispose` / `reactivate` では、状態変更後の item を含む。
       allOf:
         - $ref: '#/components/schemas/MessageOnlyResponse'
         - type: object
@@ -2048,6 +2054,9 @@ components:
           $ref: '#/components/schemas/OutfitRecord'
 
     OutfitResponseWithMessage:
+      description: |
+        message と更新後 outfit をまとめて返す response。
+        `restore` では、復帰後の outfit を含む。
       allOf:
         - $ref: '#/components/schemas/MessageOnlyResponse'
         - type: object
@@ -2108,6 +2117,9 @@ components:
 
     OutfitDuplicateResponse:
       type: object
+      description: |
+        outfit 複製用の初期値 payload を返す response。
+        保存済み outfit を新規作成せず、フォームへ流し込む前提の payload を返す。
       required:
         - message
         - outfit

@@ -32,13 +32,13 @@ item 詳細画面での status 操作 UI を確認するときは `docs/specs/it
    - `docs/data/database.md`
    - `docs/api/openapi.yaml`
    の間で、仕様 / DB / API のズレがないか確認する
-   - wear logs / outfits は概ね整理済みのため、次は Item API の `disposed` 前提と invalid outfit 実装済み API が OpenAPI に十分反映されているかを確認する
+   - wear logs / outfits / item status 変更系の OpenAPI 表現は current 実装に合わせて整理済みのため、次は周辺 response schema の過不足を必要に応じて見直す
 2. `docs/api/openapi.yaml` の Item / Outfit 関連を引き続き確認する
    - `ItemRecord.status`
    - `ItemUpsertRequest` の `status` 非包含方針
    - `disposed` と delete の役割分担
    - outfits / wear logs の候補除外前提との整合
-   - invalid outfit の実装済み API（一覧 / `restore` / `duplicate`）の description / schema / response の過不足確認
+   - invalid outfit の実装済み API（一覧 / `restore` / `duplicate`）の description / schema / response は current 実装と整合済み。今後は変更時の追従確認を続ける
 3. 各画面のエラーメッセージと空状態を整理する
    - login / register / items / outfits / settings に初期文言を反映済み
    - 未反映画面と細かな文言差分を引き続き詰める
