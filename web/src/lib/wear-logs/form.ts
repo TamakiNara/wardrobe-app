@@ -1,4 +1,5 @@
 import type { ItemStatus } from "@/types/items";
+import type { ItemFormColor } from "@/types/items";
 import type {
   WearLogItemSourceType,
   WearLogRecord,
@@ -9,12 +10,18 @@ export type WearLogSelectableItem = {
   id: number;
   name: string | null;
   status: ItemStatus;
+  category?: string | null;
+  shape?: string | null;
+  colors?: ItemFormColor[];
 };
 
 export type WearLogSelectableOutfit = {
   id: number;
   name: string | null;
   status: "active" | "invalid";
+  seasons?: string[];
+  tpos?: string[];
+  itemCount?: number;
 };
 
 export type SelectedWearLogItem = {
@@ -36,6 +43,9 @@ export function mergeWearLogItemCandidates(
       id: item.source_item_id as number,
       name: item.item_name,
       status: item.source_item_status ?? "active",
+      category: null,
+      shape: null,
+      colors: [],
     })), ...candidates].reduce<WearLogSelectableItem[]>((carry, item) => {
     if (carry.some((current) => current.id === item.id)) {
       return carry;
@@ -60,6 +70,9 @@ export function mergeWearLogOutfitCandidates(
     id: wearLog.source_outfit_id,
     name: wearLog.source_outfit_name,
     status: wearLog.source_outfit_status ?? "active",
+    seasons: [],
+    tpos: [],
+    itemCount: 0,
   };
 
   if (candidates.some((candidate) => candidate.id === currentSourceOutfit.id)) {

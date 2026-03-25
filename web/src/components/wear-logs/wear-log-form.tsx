@@ -4,6 +4,10 @@ import Link from "next/link";
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import FieldLabel from "@/components/forms/field-label";
+import {
+  findItemCategoryLabel,
+  findItemShapeLabel,
+} from "@/lib/master-data/item-shapes";
 import { WEAR_LOG_STATUS_LABELS } from "@/lib/wear-logs/labels";
 import {
   buildSelectedWearLogItems,
@@ -33,6 +37,10 @@ type OutfitCandidate = {
   id: number;
   status?: "active" | "invalid";
   name: string | null;
+  seasons?: string[];
+  tpos?: string[];
+  outfit_items?: Array<unknown>;
+  outfitItems?: Array<unknown>;
 };
 
 export default function WearLogForm({
@@ -109,6 +117,9 @@ export default function WearLogForm({
             id: item.id,
             name: item.name,
             status: item.status,
+            category: item.category,
+            shape: item.shape,
+            colors: item.colors ?? [],
           })),
           wearLogData,
         );
@@ -117,6 +128,9 @@ export default function WearLogForm({
             id: outfit.id,
             name: outfit.name,
             status: outfit.status ?? "active",
+            seasons: outfit.seasons ?? [],
+            tpos: outfit.tpos ?? [],
+            itemCount: (outfit.outfitItems ?? outfit.outfit_items ?? []).length,
           })),
           wearLogData,
         );
@@ -202,6 +216,39 @@ export default function WearLogForm({
         },
       ];
     });
+  }
+
+  function renderColorSummary(item: WearLogSelectableItem) {
+    const colors = item.colors ?? [];
+    const mainColor = colors.find((color) => color.role === "main");
+    const subColor = colors.find((color) => color.role === "sub");
+
+    if (!mainColor && !subColor) {
+      return null;
+    }
+
+    return (
+      <div className="mt-2 flex flex-wrap gap-2">
+        {mainColor && (
+          <span className="inline-flex items-center gap-2 rounded-full border border-gray-300 bg-white px-2.5 py-1 text-xs text-gray-700">
+            <span
+              className="h-3 w-3 rounded-full border border-gray-300"
+              style={{ backgroundColor: mainColor.hex }}
+            />
+            {mainColor.label}
+          </span>
+        )}
+        {subColor && (
+          <span className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs text-gray-700">
+            <span
+              className="h-3 w-3 rounded-full border border-gray-300"
+              style={{ backgroundColor: subColor.hex }}
+            />
+            {subColor.label}
+          </span>
+        )}
+      </div>
+    );
   }
 
   function validateForm() {
@@ -384,43 +431,95 @@ export default function WearLogForm({
 
       <section className="space-y-4">
         <h2 className="text-lg font-semibold text-gray-900">元のコーディネート</h2>
+        <p className="text-sm text-gray-500">
+          名前、構成数、季節、TPOを見ながらベースにするコーディネートを選べます。
+        </p>
 
-        <select
-          value={sourceOutfitId ?? ""}
-          onChange={(event) => {
-            const value = event.target.value;
-            setSourceOutfitId(value ? Number(value) : null);
-          }}
-          className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-        >
-          <option value="">指定しない</option>
-          {candidateOutfits.map((outfit) => (
-            <option key={outfit.id} value={outfit.id}>
-              {(outfit.name ?? "名称未設定")}
-              {outfit.status === "invalid" ? "（現在は利用不可）" : ""}
-            </option>
-          ))}
-        </select>
-
-        {currentSourceOutfit && (
-          <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
-            <div className="flex flex-wrap items-center gap-3">
-              <p className="text-sm font-medium text-gray-900">
-                {currentSourceOutfit.name ?? "名称未設定"}
-              </p>
-              <Link
-                href={buildOutfitDetailHref(currentSourceOutfit.id)}
-                className="text-sm font-medium text-blue-600 hover:underline"
-              >
-                詳細
-              </Link>
+        <div className="grid gap-3 md:grid-cols-2">
+          <button
+            type="button"
+            onClick={() => setSourceOutfitId(null)}
+            className={`rounded-xl border px-4 py-4 text-left transition ${
+              sourceOutfitId === null
+                ? "border-blue-500 bg-blue-50"
+                : "border-gray-300 bg-white hover:bg-gray-50"
+            }`}
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="font-medium text-gray-900">指定しない</p>
+                <p className="mt-1 text-sm text-gray-600">
+                  アイテムのみで着用履歴を記録します。
+                </p>
+              </div>
+              {sourceOutfitId === null ? (
+                <span className="rounded-full border border-blue-200 bg-white px-2 py-0.5 text-xs font-medium text-blue-700">
+                  選択中
+                </span>
+              ) : null}
             </div>
-            {currentSourceOutfit.status === "invalid" && (
-              <p className="mt-2 text-sm text-amber-800">
-                現在は利用不可ですが、既存候補として確認できます。
-              </p>
-            )}
-          </div>
+          </button>
+
+          {candidateOutfits.map((outfit) => {
+            const isSelected = sourceOutfitId === outfit.id;
+
+            return (
+              <div
+                key={outfit.id}
+                className={`rounded-xl border p-4 transition ${
+                  isSelected
+                    ? "border-blue-500 bg-blue-50"
+                    : "border-gray-300 bg-white"
+                }`}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setSourceOutfitId(outfit.id)}
+                    className="min-w-0 flex-1 text-left"
+                  >
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="font-medium text-gray-900">
+                        {outfit.name ?? "名称未設定"}
+                      </p>
+                      {isSelected ? (
+                        <span className="rounded-full border border-blue-200 bg-white px-2 py-0.5 text-xs font-medium text-blue-700">
+                          選択中
+                        </span>
+                      ) : null}
+                      {outfit.status === "invalid" ? (
+                        <span className="rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800">
+                          現在は利用不可
+                        </span>
+                      ) : null}
+                    </div>
+                    <p className="mt-2 text-sm text-gray-600">
+                      構成アイテム {outfit.itemCount ?? 0} 件
+                    </p>
+                    <p className="mt-1 text-sm text-gray-600">
+                      季節: {outfit.seasons?.length ? outfit.seasons.join(" / ") : "未設定"}
+                    </p>
+                    <p className="mt-1 text-sm text-gray-600">
+                      TPO: {outfit.tpos?.length ? outfit.tpos.join(" / ") : "未設定"}
+                    </p>
+                  </button>
+
+                  <Link
+                    href={buildOutfitDetailHref(outfit.id)}
+                    className="shrink-0 text-sm font-medium text-blue-600 hover:underline"
+                  >
+                    詳細
+                  </Link>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {currentSourceOutfit?.status === "invalid" && (
+          <p className="text-sm text-amber-800">
+            現在は利用不可ですが、既存候補として確認できます。
+          </p>
         )}
       </section>
 
@@ -445,9 +544,10 @@ export default function WearLogForm({
           <div className="grid gap-3 md:grid-cols-2">
             {candidateItems.map((item) => {
               const checked = selectedItemIds.includes(item.id);
+              const checkboxId = `wear-log-item-${item.id}`;
 
               return (
-                <label
+                <div
                   key={item.id}
                   className={`rounded-xl border p-4 transition ${
                     checked
@@ -457,6 +557,7 @@ export default function WearLogForm({
                 >
                   <div className="flex items-start gap-3">
                     <input
+                      id={checkboxId}
                       type="checkbox"
                       className="mt-1 h-4 w-4"
                       checked={checked}
@@ -465,9 +566,9 @@ export default function WearLogForm({
 
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <p className="font-medium text-gray-900">
+                        <label htmlFor={checkboxId} className="cursor-pointer font-medium text-gray-900">
                           {item.name ?? "名称未設定"}
-                        </p>
+                        </label>
                         <Link
                           href={buildItemDetailHref(item.id)}
                           className="text-sm font-medium text-blue-600 hover:underline"
@@ -480,6 +581,12 @@ export default function WearLogForm({
                           </span>
                         )}
                       </div>
+                      <p className="mt-2 text-sm text-gray-600">
+                        {findItemCategoryLabel(item.category) || "カテゴリ未設定"}
+                        {" / "}
+                        {findItemShapeLabel(item.category, item.shape) || "形未設定"}
+                      </p>
+                      {renderColorSummary(item)}
                       {item.status === "disposed" && (
                         <p className="mt-1 text-sm text-amber-800">
                           このアイテムは現在の候補には使えません。
@@ -487,7 +594,7 @@ export default function WearLogForm({
                       )}
                     </div>
                   </div>
-                </label>
+                </div>
               );
             })}
           </div>
@@ -510,7 +617,16 @@ export default function WearLogForm({
                   >
                     詳細
                   </Link>
-                  <span className="ml-2 text-gray-500">({item.itemSourceType})</span>
+                  <span className="ml-2 text-gray-500">
+                    (
+                    {item.itemSourceType === "outfit" ? "コーデ由来" : "手動追加"}
+                    )
+                  </span>
+                  <span className="ml-2 text-gray-500">
+                    {findItemCategoryLabel(item.category) || "カテゴリ未設定"}
+                    {" / "}
+                    {findItemShapeLabel(item.category, item.shape) || "形未設定"}
+                  </span>
                 </li>
               ))}
             </ol>

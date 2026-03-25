@@ -530,6 +530,8 @@ wear log 自体の仕様ではないが、`source_outfit_id` の再利用や inv
 - 指定時は自分の outfit のみ
 - `status=active` の outfit のみ選択可
 - `invalid` outfit は不可
+- form 上では、選択判断のために `name`、構成 item 件数、季節、TPO などの最小限の補助情報を表示してよい
+- ただし form は選択画面であり、詳細責務を持たせすぎない
 
 ### `items`
 
@@ -548,6 +550,8 @@ wear log 自体の仕様ではないが、`source_outfit_id` の再利用や inv
 - 自分の item のみ
 - `status=active` の item のみ選択可
 - `disposed` item は不可
+- form 上では、選択判断のためにカテゴリ、形、色などの最小限の補助情報を表示してよい
+- 詳細確認が必要な場合は item 詳細画面へ遷移する
 
 ### 重複制御
 

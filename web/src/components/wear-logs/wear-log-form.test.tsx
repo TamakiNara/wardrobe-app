@@ -62,12 +62,26 @@ describe("WearLogForm", () => {
             id: 1,
             name: "白T",
             status: "active",
+            category: "tops",
+            shape: "tshirt",
+            colors: [
+              { role: "main", mode: "preset", value: "white", hex: "#FFFFFF", label: "白" },
+            ],
           },
         ],
       })
       .mockResolvedValueOnce({
         status: 200,
-        entries: [],
+        entries: [
+          {
+            id: 5,
+            name: "通勤コーデ",
+            status: "active",
+            seasons: ["春", "秋"],
+            tpos: ["仕事"],
+            outfit_items: [{}, {}],
+          },
+        ],
       });
 
     vi.stubGlobal(
@@ -99,8 +113,17 @@ describe("WearLogForm", () => {
     expect(container.textContent).toContain("日付");
     expect(container.textContent).toContain("アイテム");
     expect(container.textContent?.match(/必須/g)?.length).toBe(4);
+    expect(container.textContent).toContain("通勤コーデ");
+    expect(container.textContent).toContain("構成アイテム 2 件");
+    expect(container.textContent).toContain("季節: 春 / 秋");
+    expect(container.textContent).toContain("TPO: 仕事");
+    expect(container.textContent).toContain("トップス / Tシャツ/カットソー");
+    expect(container.textContent).toContain("白");
     expect(container.innerHTML).toContain(
       'href="/items/1?return_to=%2Fwear-logs%2Fnew&amp;return_label=%E7%9D%80%E7%94%A8%E5%B1%A5%E6%AD%B4%E3%83%95%E3%82%A9%E3%83%BC%E3%83%A0"',
+    );
+    expect(container.innerHTML).toContain(
+      'href="/outfits/5?return_to=%2Fwear-logs%2Fnew&amp;return_label=%E7%9D%80%E7%94%A8%E5%B1%A5%E6%AD%B4%E3%83%95%E3%82%A9%E3%83%BC%E3%83%A0"',
     );
 
     const dateInput = container.querySelector<HTMLInputElement>('input[type="date"]');
@@ -205,7 +228,8 @@ describe("WearLogForm", () => {
     expect(container.textContent).toContain("元のコーディネートは現在利用できません。");
     expect(container.textContent).toContain("手放し済みのアイテムが含まれています。");
     expect(container.textContent).toContain("手放し済みトップス");
-    expect(container.textContent).toContain("（現在は利用不可）");
+    expect(container.textContent).toContain("構成アイテム 0 件");
+    expect(container.textContent).toContain("現在は利用不可");
     expect(container.innerHTML).toContain(
       'href="/outfits/5?return_to=%2Fwear-logs%2F1%2Fedit&amp;return_label=%E7%9D%80%E7%94%A8%E5%B1%A5%E6%AD%B4%E3%83%95%E3%82%A9%E3%83%BC%E3%83%A0"',
     );
@@ -223,11 +247,21 @@ describe("WearLogForm", () => {
             id: 1,
             name: "白T",
             status: "active",
+            category: "tops",
+            shape: "tshirt",
+            colors: [
+              { role: "main", mode: "preset", value: "white", hex: "#FFFFFF", label: "白" },
+            ],
           },
           {
             id: 2,
             name: "ネイビーパンツ",
             status: "active",
+            category: "bottoms",
+            shape: "wide",
+            colors: [
+              { role: "main", mode: "preset", value: "navy", hex: "#1F3A5F", label: "ネイビー" },
+            ],
           },
         ],
       })
