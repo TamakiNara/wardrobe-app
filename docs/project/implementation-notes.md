@@ -9,6 +9,7 @@ item 詳細画面での status 操作 UI を確認するときは `docs/specs/it
 購入検討の仕様正本を確認するときは `docs/specs/purchase-candidates.md` を参照します。
 購入検討の API 入口を確認するときは `docs/api/api-overview.md` を参照します。
 action keyword と response schema の命名ルールを確認するときも `docs/api/api-overview.md` を参照します。
+OpenAPI に明示する error response の基準を短く見返すときも `docs/api/api-overview.md` を参照します。
 422 response と `ValidationErrorResponse` の使い分けを確認するときも `docs/api/api-overview.md` を参照します。
 401 / 404 の読み分けルールを確認するときも `docs/api/api-overview.md` を参照します。
 409 と業務ルール違反系 422 の使い分けを確認するときも `docs/api/api-overview.md` を参照します。
