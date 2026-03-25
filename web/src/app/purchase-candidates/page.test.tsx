@@ -65,6 +65,8 @@ describe("PurchaseCandidatesPage", () => {
             category_id: "outer_coat",
             category_name: "コート",
             price: 19800,
+            sale_price: 14800,
+            sale_ends_at: "2026-03-31T18:00:00+09:00",
             converted_item_id: null,
             converted_at: null,
             primary_image: {
@@ -89,6 +91,8 @@ describe("PurchaseCandidatesPage", () => {
             category_id: "tops_tshirt",
             category_name: "Tシャツ",
             price: null,
+            sale_price: null,
+            sale_ends_at: null,
             converted_item_id: null,
             converted_at: null,
             primary_image: null,
@@ -114,6 +118,8 @@ describe("PurchaseCandidatesPage", () => {
     expect(markup).toContain("検討中");
     expect(markup).toContain("優先度: 高");
     expect(markup).toContain("19,800円");
+    expect(markup).toContain("14,800円");
+    expect(markup).toContain("セール価格");
     expect(markup).toContain("購入検討一覧");
     expect(markup).toContain('href="/purchase-candidates/1"');
     expect(markup).toContain('src="http://localhost:8000/storage/purchase-candidates/1/front.png"');

@@ -8,6 +8,7 @@ use App\Models\PurchaseCandidate;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -58,6 +59,8 @@ class PurchaseCandidateEndpointsTest extends TestCase
             'category_id' => $categoryId,
             'brand_name' => 'Sample Brand',
             'price' => 14800,
+            'sale_price' => 12800,
+            'sale_ends_at' => '2026-04-01 12:00:00',
             'purchase_url' => 'https://example.test/products/1',
             'memo' => 'メモ',
             'wanted_reason' => '欲しい理由',
@@ -124,6 +127,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
             ->assertJsonCount(1, 'purchaseCandidates')
             ->assertJsonPath('purchaseCandidates.0.id', $candidate->id)
             ->assertJsonPath('purchaseCandidates.0.name', '自分の候補')
+            ->assertJsonPath('purchaseCandidates.0.sale_price', 12800)
             ->assertJsonPath('meta.total', 1)
             ->assertJsonPath('meta.totalAll', 1);
     }
@@ -142,6 +146,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
         $response->assertOk()
             ->assertJsonPath('purchaseCandidate.id', $candidate->id)
             ->assertJsonPath('purchaseCandidate.category_id', 'outer_coat')
+            ->assertJsonPath('purchaseCandidate.sale_price', 12800)
             ->assertJsonPath('purchaseCandidate.colors.0.value', 'navy')
             ->assertJsonPath('purchaseCandidate.seasons.0', '春')
             ->assertJsonPath('purchaseCandidate.tpos.0', '休日');
@@ -162,6 +167,8 @@ class PurchaseCandidateEndpointsTest extends TestCase
             'category_id' => 'tops_shirt',
             'brand_name' => 'Brand',
             'price' => 9800,
+            'sale_price' => 8800,
+            'sale_ends_at' => '2026-03-31T18:00:00+09:00',
             'purchase_url' => 'https://example.test/products/2',
             'memo' => '試着したい',
             'wanted_reason' => '仕事用を補充したい',
@@ -187,6 +194,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
             ->assertJsonPath('message', 'created')
             ->assertJsonPath('purchaseCandidate.name', '白シャツ候補')
             ->assertJsonPath('purchaseCandidate.category_id', 'tops_shirt')
+            ->assertJsonPath('purchaseCandidate.sale_price', 8800)
             ->assertJsonPath('purchaseCandidate.colors.0.value', 'white')
             ->assertJsonPath('purchaseCandidate.seasons.1', '秋');
 
@@ -194,6 +202,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
             'user_id' => $user->id,
             'name' => '白シャツ候補',
             'category_id' => 'tops_shirt',
+            'sale_price' => 8800,
         ]);
         $this->assertDatabaseHas('purchase_candidate_colors', [
             'purchase_candidate_id' => $response->json('purchaseCandidate.id'),
@@ -225,6 +234,8 @@ class PurchaseCandidateEndpointsTest extends TestCase
             'category_id' => 'tops_knit',
             'brand_name' => null,
             'price' => 12000,
+            'sale_price' => 9800,
+            'sale_ends_at' => '2026-04-15T12:00:00+09:00',
             'purchase_url' => null,
             'memo' => '更新メモ',
             'wanted_reason' => null,
@@ -250,12 +261,14 @@ class PurchaseCandidateEndpointsTest extends TestCase
             ->assertJsonPath('message', 'updated')
             ->assertJsonPath('purchaseCandidate.status', 'on_hold')
             ->assertJsonPath('purchaseCandidate.category_id', 'tops_knit')
+            ->assertJsonPath('purchaseCandidate.sale_price', 9800)
             ->assertJsonPath('purchaseCandidate.colors.0.value', 'gray');
 
         $this->assertDatabaseHas('purchase_candidates', [
             'id' => $candidate->id,
             'status' => 'on_hold',
             'category_id' => 'tops_knit',
+            'sale_price' => 9800,
         ]);
         $this->assertDatabaseMissing('purchase_candidate_colors', [
             'purchase_candidate_id' => $candidate->id,
@@ -338,6 +351,117 @@ class PurchaseCandidateEndpointsTest extends TestCase
             ->assertJsonPath('item_draft.shape', 'trench')
             ->assertJsonPath('item_draft.colors.0.value', 'navy')
             ->assertJsonPath('candidate_summary.id', $candidate->id);
+    }
+
+    public function test_post_purchase_candidate_duplicate_creates_new_candidate_with_copied_fields_and_files(): void
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->create();
+        $candidate = $this->createCandidate($user, [
+            'status' => 'purchased',
+            'priority' => 'high',
+            'category_id' => 'tops_shirt',
+        ]);
+        $sourcePath = "purchase-candidates/{$candidate->id}/source.png";
+
+        $candidate->images()->create([
+            'disk' => 'public',
+            'path' => $sourcePath,
+            'original_filename' => 'source.png',
+            'mime_type' => 'image/png',
+            'file_size' => 1234,
+            'sort_order' => 1,
+            'is_primary' => true,
+        ]);
+        Storage::disk('public')->put(
+            $sourcePath,
+            base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wn9nS8AAAAASUVORK5CYII=')
+        );
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $response = $this->postJson("/api/purchase-candidates/{$candidate->id}/duplicate", [], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('message', 'created')
+            ->assertJsonPath('purchaseCandidate.status', 'considering')
+            ->assertJsonPath('purchaseCandidate.priority', 'high')
+            ->assertJsonPath('purchaseCandidate.name', $candidate->name)
+            ->assertJsonPath('purchaseCandidate.sale_price', 12800)
+            ->assertJsonPath('purchaseCandidate.converted_item_id', null)
+            ->assertJsonPath('purchaseCandidate.converted_at', null)
+            ->assertJsonPath('purchaseCandidate.colors.0.value', 'navy')
+            ->assertJsonPath('purchaseCandidate.seasons.0', '春')
+            ->assertJsonPath('purchaseCandidate.tpos.0', '休日')
+            ->assertJsonCount(1, 'purchaseCandidate.images');
+
+        $duplicatedId = $response->json('purchaseCandidate.id');
+        $duplicatedPath = $response->json('purchaseCandidate.images.0.path');
+
+        $this->assertNotSame($candidate->id, $duplicatedId);
+        $this->assertStringStartsWith("purchase-candidates/{$duplicatedId}/", $duplicatedPath);
+        $this->assertDatabaseHas('purchase_candidates', [
+            'id' => $duplicatedId,
+            'status' => 'considering',
+            'converted_item_id' => null,
+            'sale_price' => 12800,
+        ]);
+        Storage::disk('public')->assertExists($sourcePath);
+        Storage::disk('public')->assertExists($duplicatedPath);
+    }
+
+    public function test_post_purchase_candidate_duplicate_is_not_available_for_other_users_candidate(): void
+    {
+        $user = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $candidate = $this->createCandidate($otherUser);
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $this->postJson("/api/purchase-candidates/{$candidate->id}/duplicate", [], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ])->assertStatus(404);
+    }
+
+    public function test_post_purchase_candidate_duplicate_rolls_back_when_source_image_is_missing(): void
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->create();
+        $candidate = $this->createCandidate($user);
+        $candidate->images()->create([
+            'disk' => 'public',
+            'path' => "purchase-candidates/{$candidate->id}/missing.png",
+            'original_filename' => 'missing.png',
+            'mime_type' => 'image/png',
+            'file_size' => 1234,
+            'sort_order' => 1,
+            'is_primary' => true,
+        ]);
+
+        $beforeCount = PurchaseCandidate::query()->count();
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $response = $this->postJson("/api/purchase-candidates/{$candidate->id}/duplicate", [], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonPath('errors.images.0', '複製元画像が見つかりません。');
+
+        $this->assertSame($beforeCount, PurchaseCandidate::query()->count());
+        $this->assertSame(1, DB::table('purchase_candidates')->count());
+        $this->assertSame(1, DB::table('purchase_candidate_images')->count());
     }
 
     public function test_purchase_candidate_item_draft_can_flow_into_item_create(): void

@@ -10,6 +10,7 @@ use App\Support\PurchaseCandidateCategoryMap;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class PurchaseCandidateService
@@ -27,6 +28,8 @@ class PurchaseCandidateService
                 'category_id' => $validated['category_id'],
                 'brand_name' => $validated['brand_name'] ?? null,
                 'price' => $validated['price'] ?? null,
+                'sale_price' => $validated['sale_price'] ?? null,
+                'sale_ends_at' => $validated['sale_ends_at'] ?? null,
                 'purchase_url' => $validated['purchase_url'] ?? null,
                 'memo' => $validated['memo'] ?? null,
                 'wanted_reason' => $validated['wanted_reason'] ?? null,
@@ -55,6 +58,8 @@ class PurchaseCandidateService
                 'category_id' => $validated['category_id'],
                 'brand_name' => $validated['brand_name'] ?? null,
                 'price' => $validated['price'] ?? null,
+                'sale_price' => $validated['sale_price'] ?? null,
+                'sale_ends_at' => $validated['sale_ends_at'] ?? null,
                 'purchase_url' => $validated['purchase_url'] ?? null,
                 'memo' => $validated['memo'] ?? null,
                 'wanted_reason' => $validated['wanted_reason'] ?? null,
@@ -85,6 +90,97 @@ class PurchaseCandidateService
 
             $candidate->delete();
         });
+    }
+
+    public function duplicate(User $user, int $candidateId): PurchaseCandidate
+    {
+        $sourceCandidate = $this->findOwnedCandidate($user, $candidateId);
+        $copiedFiles = [];
+
+        try {
+            return DB::transaction(function () use ($sourceCandidate, &$copiedFiles) {
+                $duplicatedCandidate = PurchaseCandidate::query()->create([
+                    'user_id' => $sourceCandidate->user_id,
+                    'status' => 'considering',
+                    'priority' => $sourceCandidate->priority,
+                    'name' => $sourceCandidate->name,
+                    'category_id' => $sourceCandidate->category_id,
+                    'brand_name' => $sourceCandidate->brand_name,
+                    'price' => $sourceCandidate->price,
+                    'sale_price' => $sourceCandidate->sale_price,
+                    'sale_ends_at' => $sourceCandidate->sale_ends_at,
+                    'purchase_url' => $sourceCandidate->purchase_url,
+                    'memo' => $sourceCandidate->memo,
+                    'wanted_reason' => $sourceCandidate->wanted_reason,
+                    'size_gender' => $sourceCandidate->size_gender,
+                    'size_label' => $sourceCandidate->size_label,
+                    'size_note' => $sourceCandidate->size_note,
+                    'is_rain_ok' => $sourceCandidate->is_rain_ok,
+                    'converted_item_id' => null,
+                    'converted_at' => null,
+                ]);
+
+                $duplicatedCandidate->colors()->createMany(
+                    $sourceCandidate->colors
+                        ->sortBy('sort_order')
+                        ->values()
+                        ->map(fn ($color) => [
+                            'role' => $color->role,
+                            'mode' => $color->mode,
+                            'value' => $color->value,
+                            'hex' => $color->hex,
+                            'label' => $color->label,
+                            'sort_order' => $color->sort_order,
+                        ])
+                        ->all()
+                );
+
+                $duplicatedCandidate->seasons()->createMany(
+                    $sourceCandidate->seasons
+                        ->sortBy('sort_order')
+                        ->values()
+                        ->map(fn ($season) => [
+                            'season' => $season->season,
+                            'sort_order' => $season->sort_order,
+                        ])
+                        ->all()
+                );
+
+                $duplicatedCandidate->tpos()->createMany(
+                    $sourceCandidate->tpos
+                        ->sortBy('sort_order')
+                        ->values()
+                        ->map(fn ($tpo) => [
+                            'tpo' => $tpo->tpo,
+                            'sort_order' => $tpo->sort_order,
+                        ])
+                        ->all()
+                );
+
+                $duplicatedCandidate->images()->createMany(
+                    $sourceCandidate->images
+                        ->sortBy('sort_order')
+                        ->values()
+                        ->map(function (PurchaseCandidateImage $image) use ($duplicatedCandidate, &$copiedFiles) {
+                            return [
+                                'disk' => $image->disk,
+                                'path' => $this->copyPurchaseCandidateImage($duplicatedCandidate, $image, $copiedFiles),
+                                'original_filename' => $image->original_filename,
+                                'mime_type' => $image->mime_type,
+                                'file_size' => $image->file_size,
+                                'sort_order' => $image->sort_order,
+                                'is_primary' => $image->is_primary,
+                            ];
+                        })
+                        ->all()
+                );
+
+                return $duplicatedCandidate->fresh()->load(['category', 'colors', 'seasons', 'tpos', 'images']);
+            });
+        } catch (\Throwable $exception) {
+            $this->cleanupCopiedImages($copiedFiles);
+            throw $exception;
+        }
     }
 
     public function addImage(User $user, int $candidateId, UploadedFile $image, ?int $sortOrder = null, ?bool $isPrimary = null): PurchaseCandidateImage
@@ -228,6 +324,53 @@ class PurchaseCandidateService
     {
         if ($image->disk && $image->path) {
             Storage::disk($image->disk)->delete($image->path);
+        }
+    }
+
+    private function copyPurchaseCandidateImage(
+        PurchaseCandidate $candidate,
+        PurchaseCandidateImage $image,
+        array &$copiedFiles,
+    ): ?string {
+        if ($image->disk === null || $image->path === null) {
+            return $image->path;
+        }
+
+        $storage = Storage::disk($image->disk);
+        if (! $storage->exists($image->path)) {
+            throw ValidationException::withMessages([
+                'images' => '複製元画像が見つかりません。',
+            ]);
+        }
+
+        $extension = pathinfo($image->path, PATHINFO_EXTENSION);
+        $destinationPath = sprintf(
+            'purchase-candidates/%d/%s%s',
+            $candidate->id,
+            Str::uuid()->toString(),
+            $extension !== '' ? '.' . $extension : ''
+        );
+
+        $storage->put($destinationPath, $storage->get($image->path));
+        $copiedFiles[] = [
+            'disk' => $image->disk,
+            'path' => $destinationPath,
+        ];
+
+        return $destinationPath;
+    }
+
+    private function cleanupCopiedImages(array $copiedFiles): void
+    {
+        foreach ($copiedFiles as $file) {
+            $disk = $file['disk'] ?? null;
+            $path = $file['path'] ?? null;
+
+            if ($disk === null || $path === null) {
+                continue;
+            }
+
+            Storage::disk($disk)->delete($path);
         }
     }
 }

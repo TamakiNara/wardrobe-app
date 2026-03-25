@@ -24,6 +24,11 @@ vi.mock("@/components/purchase-candidates/purchase-candidate-item-draft-action",
     React.createElement("div", { "data-testid": "item-draft-action", "data-candidate-id": candidateId }, "item-draft-action"),
 }));
 
+vi.mock("@/components/purchase-candidates/purchase-candidate-duplicate-action", () => ({
+  default: ({ candidateId }: { candidateId: number }) =>
+    React.createElement("div", { "data-testid": "duplicate-action", "data-candidate-id": candidateId }, "duplicate-action"),
+}));
+
 describe("PurchaseCandidateDetailPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -47,6 +52,8 @@ describe("PurchaseCandidateDetailPage", () => {
           category_name: "コート",
           brand_name: "Brand",
           price: 14800,
+          sale_price: 12800,
+          sale_ends_at: "2026-03-31T18:00:00+09:00",
           purchase_url: "https://example.test",
           memo: "メモ",
           wanted_reason: "理由",
@@ -76,10 +83,13 @@ describe("PurchaseCandidateDetailPage", () => {
     expect(markup).toContain("保留中");
     expect(markup).toContain("優先度: 中");
     expect(markup).toContain("14,800円");
+    expect(markup).toContain("12,800円");
+    expect(markup).toContain("セール終了予定");
     expect(markup).toContain("レディース");
     expect(markup).toContain("理由");
     expect(markup).toContain("厚手対応");
     expect(markup).toContain("item-draft-action");
+    expect(markup).toContain("duplicate-action");
     expect(markup).toContain('href="/purchase-candidates/10/edit"');
   });
 });

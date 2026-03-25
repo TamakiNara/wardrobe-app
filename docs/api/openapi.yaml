@@ -1218,6 +1218,38 @@ paths:
         '404':
           description: 未検出（対象なし・他人データ秘匿を含む）
 
+  /api/purchase-candidates/{id}/duplicate:
+    post:
+      tags:
+        - Purchase Candidates
+      summary: 購入候補複製
+      description: |
+        指定 purchase candidate を元に、新しい purchase candidate record を 1 件作成する。
+        status は常に `considering` へ戻し、colors / seasons / tpos / images も引き継ぐ。
+        画像は record 共有ではなく、新 candidate 用保存先へ物理コピーする。
+      security:
+        - SessionCookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PurchaseCandidateIdPath'
+        - $ref: '#/components/parameters/XCsrfTokenHeader'
+      responses:
+        '201':
+          description: 作成成功。message は `created`。purchaseCandidate には複製後の新しい record を返す
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseCandidateResponseWithMessage'
+        '401':
+          description: 未認証
+        '404':
+          description: 未検出（対象なし・他人データ秘匿を含む）
+        '422':
+          description: 画像コピー失敗などのバリデーションエラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+
   /api/purchase-candidates/{id}/item-draft:
     post:
       tags:
@@ -2547,6 +2579,17 @@ components:
           nullable: true
           example: 14800
           description: 想定価格。実購入価格は item 側で確定する。
+        sale_price:
+          type: integer
+          nullable: true
+          example: 12800
+          description: セール時の参考価格。candidate 専用で、item 側には保存しない。
+        sale_ends_at:
+          type: string
+          format: date-time
+          nullable: true
+          example: 2026-03-31T18:00:00+09:00
+          description: セール終了予定日時。candidate 専用で、item-draft には含めない。
         purchase_url:
           type: string
           nullable: true
@@ -2633,6 +2676,14 @@ components:
           type: integer
           nullable: true
           minimum: 0
+        sale_price:
+          type: integer
+          nullable: true
+          minimum: 0
+        sale_ends_at:
+          type: string
+          format: date-time
+          nullable: true
         purchase_url:
           type: string
           nullable: true
@@ -2711,6 +2762,14 @@ components:
                 type: integer
                 nullable: true
                 example: 14800
+              sale_price:
+                type: integer
+                nullable: true
+                example: 12800
+              sale_ends_at:
+                type: string
+                format: date-time
+                nullable: true
               converted_item_id:
                 type: integer
                 nullable: true
@@ -2759,7 +2818,7 @@ components:
     PurchaseCandidateResponseWithMessage:
       description: |
         action keyword の `message` と purchase candidate record をまとめて返す response。
-        create / update で `created` または `updated` を返す。
+        create / update / duplicate で `created` または `updated` を返す。
       allOf:
         - $ref: '#/components/schemas/MessageOnlyResponse'
         - type: object

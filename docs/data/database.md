@@ -48,6 +48,8 @@ wear logs も本資料の対象とし、その保存方針を定義します。
 | category_id | string | category master の中分類ID |
 | brand_name | string nullable | ブランド名 |
 | price | integer nullable | 想定価格 |
+| sale_price | integer nullable | セール時の参考価格 |
+| sale_ends_at | timestamp nullable | セール終了予定日時 |
 | purchase_url | text nullable | 商品ページ URL |
 | memo | text nullable | 自由メモ |
 | wanted_reason | text nullable | 欲しい理由 |
@@ -64,8 +66,10 @@ wear logs も本資料の対象とし、その保存方針を定義します。
 
 - `dropped` は見送り履歴を残す状態であり、DELETE とは別概念とする
 - candidate の `price` は想定価格、item の `price` は実購入価格として意味を分ける
+- `sale_price` / `sale_ends_at` は candidate 専用であり、item には保存しない
 - candidate から item へは既存 record を変換せず、新規 item 作成で昇格する
 - current 実装では、`purchase_candidate_id` 付きの item 作成成功時に `status=purchased`、`converted_item_id`、`converted_at` を更新する
+- current 実装では、candidate 複製時に画像も新 candidate 用保存先へ物理コピーして別 record として保持する
 
 ### `purchase_candidate_colors`
 

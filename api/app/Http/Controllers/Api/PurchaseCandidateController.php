@@ -52,6 +52,16 @@ class PurchaseCandidateController extends Controller
         ]);
     }
 
+    public function duplicate(Request $request, int $id): JsonResponse
+    {
+        $candidate = $this->purchaseCandidateService->duplicate($request->user(), $id);
+
+        return response()->json([
+            'message' => 'created',
+            'purchaseCandidate' => PurchaseCandidatePayloadBuilder::buildDetail($candidate),
+        ], 201);
+    }
+
     public function destroy(Request $request, int $id): JsonResponse
     {
         $this->purchaseCandidateService->delete($request->user(), $id);
@@ -119,6 +129,8 @@ class PurchaseCandidateController extends Controller
             'category_id' => ['required', 'string', 'exists:category_master,id'],
             'brand_name' => ['nullable', 'string', 'max:255'],
             'price' => ['nullable', 'integer', 'min:0'],
+            'sale_price' => ['nullable', 'integer', 'min:0'],
+            'sale_ends_at' => ['nullable', 'date'],
             'purchase_url' => ['nullable', 'url'],
             'memo' => ['nullable', 'string'],
             'wanted_reason' => ['nullable', 'string'],

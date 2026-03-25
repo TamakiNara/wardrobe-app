@@ -35,6 +35,8 @@ export type PurchaseCandidateListItem = {
   category_id: string;
   category_name: string | null;
   price: number | null;
+  sale_price: number | null;
+  sale_ends_at: string | null;
   converted_item_id: number | null;
   converted_at: string | null;
   primary_image: PurchaseCandidateImageRecord | null;
@@ -50,6 +52,8 @@ export type PurchaseCandidateRecord = {
   category_name: string | null;
   brand_name: string | null;
   price: number | null;
+  sale_price: number | null;
+  sale_ends_at: string | null;
   purchase_url: string | null;
   memo: string | null;
   wanted_reason: string | null;
@@ -88,6 +92,8 @@ export type PurchaseCandidateUpsertPayload = {
   category_id: string;
   brand_name: string | null;
   price: number | null;
+  sale_price: number | null;
+  sale_ends_at: string | null;
   purchase_url: string | null;
   memo: string | null;
   wanted_reason: string | null;

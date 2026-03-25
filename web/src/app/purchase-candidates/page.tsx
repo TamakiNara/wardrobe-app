@@ -47,6 +47,20 @@ function formatPrice(price: number | null): string {
   return `${price.toLocaleString("ja-JP")}円`;
 }
 
+function formatDateTime(value: string | null): string {
+  if (!value) {
+    return "未設定";
+  }
+
+  return new Intl.DateTimeFormat("ja-JP", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(value));
+}
+
 export default async function PurchaseCandidatesPage({
   searchParams,
 }: {
@@ -160,6 +174,20 @@ export default async function PurchaseCandidatesPage({
                       <dt>想定価格</dt>
                       <dd>{formatPrice(candidate.price)}</dd>
                     </div>
+                    {(candidate.sale_price !== null || candidate.sale_ends_at !== null) && (
+                      <>
+                        {candidate.sale_price !== null && (
+                          <div className="flex items-center justify-between gap-3 text-rose-700">
+                            <dt>セール価格</dt>
+                            <dd>{formatPrice(candidate.sale_price)}</dd>
+                          </div>
+                        )}
+                        <div className="flex items-center justify-between gap-3">
+                          <dt>終了予定</dt>
+                          <dd>{formatDateTime(candidate.sale_ends_at)}</dd>
+                        </div>
+                      </>
+                    )}
                     <div className="flex items-center justify-between gap-3">
                       <dt>更新日</dt>
                       <dd>{candidate.updated_at?.slice(0, 10) ?? "未設定"}</dd>

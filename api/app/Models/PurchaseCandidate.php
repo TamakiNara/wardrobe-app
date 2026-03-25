@@ -19,6 +19,8 @@ class PurchaseCandidate extends Model
         'category_id',
         'brand_name',
         'price',
+        'sale_price',
+        'sale_ends_at',
         'purchase_url',
         'memo',
         'wanted_reason',
@@ -32,6 +34,8 @@ class PurchaseCandidate extends Model
 
     protected $casts = [
         'price' => 'integer',
+        'sale_price' => 'integer',
+        'sale_ends_at' => 'datetime',
         'is_rain_ok' => 'boolean',
         'converted_at' => 'datetime',
     ];

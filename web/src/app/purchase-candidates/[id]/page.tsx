@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import PurchaseCandidateDuplicateAction from "@/components/purchase-candidates/purchase-candidate-duplicate-action";
 import PurchaseCandidateItemDraftAction from "@/components/purchase-candidates/purchase-candidate-item-draft-action";
 import {
   PURCHASE_CANDIDATE_COLOR_ROLE_LABELS,
@@ -16,6 +17,20 @@ function formatPrice(price: number | null): string {
   }
 
   return `${price.toLocaleString("ja-JP")}円`;
+}
+
+function formatDateTime(value: string | null): string {
+  if (!value) {
+    return "未設定";
+  }
+
+  return new Intl.DateTimeFormat("ja-JP", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(value));
 }
 
 async function getPurchaseCandidate(id: string) {
@@ -76,6 +91,7 @@ export default async function PurchaseCandidateDetailPage({
           </div>
 
           <div className="flex flex-wrap items-center gap-3 md:justify-end">
+            <PurchaseCandidateDuplicateAction candidateId={candidate.id} />
             <Link
               href={`/purchase-candidates/${candidate.id}/edit`}
               className="text-sm font-medium text-blue-600 hover:underline"
@@ -161,6 +177,20 @@ export default async function PurchaseCandidateDetailPage({
                   <dt>想定価格</dt>
                   <dd>{formatPrice(candidate.price)}</dd>
                 </div>
+                {(candidate.sale_price !== null || candidate.sale_ends_at !== null) && (
+                  <>
+                    {candidate.sale_price !== null && (
+                      <div className="flex items-center justify-between gap-3 text-rose-700">
+                        <dt>セール価格</dt>
+                        <dd>{formatPrice(candidate.sale_price)}</dd>
+                      </div>
+                    )}
+                    <div className="flex items-center justify-between gap-3">
+                      <dt>セール終了予定</dt>
+                      <dd>{formatDateTime(candidate.sale_ends_at)}</dd>
+                    </div>
+                  </>
+                )}
                 <div className="flex items-center justify-between gap-3">
                   <dt>雨対応</dt>
                   <dd>{candidate.is_rain_ok ? "対応" : "未対応"}</dd>

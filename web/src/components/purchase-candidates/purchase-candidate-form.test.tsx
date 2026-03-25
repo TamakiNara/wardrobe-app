@@ -123,11 +123,15 @@ describe("PurchaseCandidateForm", () => {
 
     const nameInput = container.querySelector("#name") as HTMLInputElement;
     const categorySelect = container.querySelector("#category_id") as HTMLSelectElement;
+    const salePriceInput = container.querySelector("#sale_price") as HTMLInputElement;
+    const saleEndsAtInput = container.querySelector("#sale_ends_at") as HTMLInputElement;
     const customMainCheckbox = container.querySelector('input[aria-label="メインカラーをカラーコードで入力"]') as HTMLInputElement;
 
     await act(async () => {
       setNativeValue(nameInput, "レインコート候補");
       setNativeValue(categorySelect, "outer_coat");
+      setNativeValue(salePriceInput, "12800");
+      setNativeValue(saleEndsAtInput, "2026-03-31T18:00");
       customMainCheckbox.click();
     });
 
@@ -156,6 +160,8 @@ describe("PurchaseCandidateForm", () => {
         label: "カスタムカラー",
       },
     ]);
+    expect(payload.sale_price).toBe(12800);
+    expect(payload.sale_ends_at).toBe("2026-03-31T18:00");
   });
 
   it("季節のオールを個別季節と排他的に切り替える", async () => {

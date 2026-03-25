@@ -74,6 +74,21 @@ function isValidHexColor(value: string): boolean {
   return /^#[0-9A-Fa-f]{6}$/.test(value.trim());
 }
 
+function toDateTimeLocalValue(value: string | null): string {
+  if (!value) {
+    return "";
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  const offsetMinutes = date.getTimezoneOffset();
+  const localDate = new Date(date.getTime() - offsetMinutes * 60 * 1000);
+  return localDate.toISOString().slice(0, 16);
+}
+
 function extractFirstErrorMessage(data: unknown, fallback: string): string {
   if (data && typeof data === "object") {
     const message = (data as { message?: unknown }).message;
@@ -115,6 +130,8 @@ export default function PurchaseCandidateForm({
   const [categoryId, setCategoryId] = useState("");
   const [brandName, setBrandName] = useState("");
   const [price, setPrice] = useState("");
+  const [salePrice, setSalePrice] = useState("");
+  const [saleEndsAt, setSaleEndsAt] = useState("");
   const [purchaseUrl, setPurchaseUrl] = useState("");
   const [wantedReason, setWantedReason] = useState("");
   const [memo, setMemo] = useState("");
@@ -200,6 +217,8 @@ export default function PurchaseCandidateForm({
           setCategoryId(candidate.category_id);
           setBrandName(candidate.brand_name ?? "");
           setPrice(candidate.price === null ? "" : String(candidate.price));
+          setSalePrice(candidate.sale_price === null ? "" : String(candidate.sale_price));
+          setSaleEndsAt(toDateTimeLocalValue(candidate.sale_ends_at));
           setPurchaseUrl(candidate.purchase_url ?? "");
           setWantedReason(candidate.wanted_reason ?? "");
           setMemo(candidate.memo ?? "");
@@ -291,6 +310,8 @@ export default function PurchaseCandidateForm({
       category_id: categoryId,
       brand_name: normalizeNullableString(brandName) || null,
       price: price === "" ? null : Number(price),
+      sale_price: salePrice === "" ? null : Number(salePrice),
+      sale_ends_at: saleEndsAt === "" ? null : saleEndsAt,
       purchase_url: normalizeNullableString(purchaseUrl) || null,
       memo: memo.trim() || null,
       wanted_reason: wantedReason.trim() || null,
@@ -559,6 +580,36 @@ export default function PurchaseCandidateForm({
               />
               <span className="text-sm text-gray-500">円</span>
             </div>
+          </div>
+
+          <div>
+            <label htmlFor="sale_price" className="mb-1 block text-sm font-medium text-gray-700">
+              セール価格
+            </label>
+            <div className="flex items-center rounded-lg border border-gray-300 bg-white pr-4 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100">
+              <input
+                id="sale_price"
+                type="number"
+                min="0"
+                value={salePrice}
+                onChange={(event) => setSalePrice(event.target.value)}
+                className="w-full rounded-lg bg-transparent px-4 py-3 text-gray-900 outline-none"
+              />
+              <span className="text-sm text-gray-500">円</span>
+            </div>
+          </div>
+
+          <div>
+            <label htmlFor="sale_ends_at" className="mb-1 block text-sm font-medium text-gray-700">
+              セール終了予定
+            </label>
+            <input
+              id="sale_ends_at"
+              type="datetime-local"
+              value={saleEndsAt}
+              onChange={(event) => setSaleEndsAt(event.target.value)}
+              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            />
           </div>
         </div>
 
