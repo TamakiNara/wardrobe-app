@@ -61,13 +61,13 @@ item 詳細画面での status 操作 UI を確認するときは `docs/specs/it
 - 購入検討一覧では代表画像、詳細・編集では画像全体確認を優先する表示へ整理済み
 - 購入検討でも一覧 → 詳細 → 編集 の責務分離を採用し、一覧は確認・遷移、編集は詳細画面からを主導線に整理済み
 - 購入検討で導入した `必須` バッジを items / outfits / wear logs の主要フォームにも揃え、必須項目をラベル上で事前判別できるようにした
-- 比較ロジックの詳細、item 保存成功時の `purchased` 反映、item 側画像の並び替え / 代表画像切り替え UI は後続検討とする
+- 比較ロジックの詳細、item 保存成功時の `purchased` 反映、`converted_item_id` / `converted_at` 更新、item 側画像の並び替え / 代表画像切り替え UI は後続検討とする
 
 直近または中期 TODO:
 
 1. item draft と item への昇格責務を整理する
    - draft は保存済み item ではなく item 作成画面用の初期値 payload とする
-   - item 保存成功時に candidate を `purchased` へ更新する責務を BFF / Laravel のどちらへ寄せるか決める
+   - item 保存成功時に candidate を `purchased` へ更新し、`converted_item_id` / `converted_at` を保存する責務を BFF / Laravel のどちらへ寄せるか決める
 2. 画像アップロード方針を整理する
    - candidate 側の複数画像 upload / delete は実装済み
    - candidate -> item の保存時引き継ぎは実装済み
@@ -78,7 +78,7 @@ item 詳細画面での status 操作 UI を確認するときは `docs/specs/it
 4. 月次服飾費集計の前提を残す
    - `items.purchased_at` を持たせる案をベースに、item の `price` と組み合わせて集計できるようにする
 5. ナビゲーション整理
-- 購入検討はボトムナビへ追加済み
+   - 購入検討はボトムナビへ追加済み
    - wear logs を含む major feature 追加時のボトムナビ再編方針を引き続き整理する
 
 既存仕様との衝突確認メモ:
@@ -105,7 +105,7 @@ item 詳細画面での status 操作 UI を確認するときは `docs/specs/it
 
 - items 側を `item_colors` / `item_seasons` / `item_tpos` の別テーブルへ移行するか
 - `category_id` から current item API の `category` / `shape` を解決できないカテゴリが出た場合の API 拡張方針
-- item 保存成功時に candidate を `purchased` へ更新する責務を BFF / Laravel のどちらへ寄せるか
+- item 保存成功時に candidate を `purchased` へ更新し、`converted_item_id` / `converted_at` を保存する責務を BFF / Laravel のどちらへ寄せるか
 - 比較ロジックの詳細と、比較結果をどの粒度で response に含めるか
 
 ### 実装時の注意点
@@ -398,7 +398,7 @@ UI/UX メモ:
 
 - `last_worn_at` と `wear_count` だけでは履歴一覧を完全には表現できないため、カレンダー連携や着用履歴を本格対応する場合は `wear_logs` のような別テーブル案も検討する
 - 画像保存方針は `item_images` / `purchase_candidate_images` を別テーブルで持ち、DB には `disk + path` を保存し、URL は API / BFF 側で生成する方針で整理する
-- item 側の追加項目と `item_images` は purchase_candidates 受け皿として実装済みであり、残タスクは item 画像の並び替え / 代表画像切り替え UI と candidate `purchased` 自動反映である
+- item 側の追加項目と `item_images` は purchase_candidates 受け皿として実装済みであり、残タスクは item 画像の並び替え / 代表画像切り替え UI と candidate `purchased` 自動反映、`converted_item_id` / `converted_at` 更新である
 
 ### カラーパレット
 
