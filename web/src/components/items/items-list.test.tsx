@@ -73,6 +73,20 @@ const sampleItems: ItemRecord[] = [
     seasons: ["夏"],
     tpos: ["休日"],
     spec: { tops: { shape: "tshirt", sleeve: "short" } },
+    images: [
+      {
+        id: 11,
+        item_id: 1,
+        disk: "public",
+        path: "items/1/main.png",
+        url: "https://example.test/storage/items/1/main.png",
+        original_filename: "main.png",
+        mime_type: "image/png",
+        file_size: 1000,
+        sort_order: 1,
+        is_primary: true,
+      },
+    ],
   },
   {
     id: 2,
@@ -92,6 +106,7 @@ const sampleItems: ItemRecord[] = [
     seasons: ["春"],
     tpos: ["仕事"],
     spec: { tops: { shape: "shirt", sleeve: "long" } },
+    images: [],
   },
 ];
 
@@ -160,6 +175,8 @@ describe("ItemsList", () => {
     expect(container.textContent).toContain("表示件数: 1 / 1");
     expect(container.textContent).toContain("白T");
     expect(container.textContent).not.toContain("青シャツ");
+    const image = container.querySelector('img[alt="main.png"]');
+    expect(image?.getAttribute("src")).toBe("https://example.test/storage/items/1/main.png");
   });
 
   it("季節は定義順で表示し、TPO は共通の候補だけを表示する", async () => {

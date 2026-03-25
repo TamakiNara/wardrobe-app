@@ -203,6 +203,6 @@ describe("NewItemPage", () => {
     expect(rainCheckbox?.checked).toBe(true);
     expect(categorySelect?.value).toBe("tops");
     expect(container.textContent).toContain("購入検討の内容を初期値として読み込みました。");
-    expect(container.textContent).toContain("購入検討由来画像も保存前に取り除けます。");
+    expect(container.textContent).toContain("引き継いだ画像も保存前に取り除けます。");
   });
 });

@@ -24,6 +24,7 @@ class ItemsIndexQuery
         $visibleItems = Item::query()
             ->where('user_id', $user->id)
             ->where('status', 'active')
+            ->with('images')
             ->latest()
             ->get()
             ->filter(fn (Item $item) => ListQuerySupport::isItemVisibleForList($item, $visibleCategoryIds))
@@ -54,7 +55,10 @@ class ItemsIndexQuery
         $pagination = ListQuerySupport::paginate($filteredItems, $page);
 
         return [
-            'items' => $pagination['items'],
+            'items' => $pagination['items']
+                ->map(fn (Item $item) => ItemPayloadBuilder::buildDetail($item))
+                ->values()
+                ->all(),
             'meta' => [
                 'total' => $pagination['total'],
                 'totalAll' => $visibleItems->count(),

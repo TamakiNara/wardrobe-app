@@ -18,8 +18,10 @@ class ItemImageSync
             return;
         }
 
+        $normalizedImages = self::normalizeImages($images);
+
         $item->images()->createMany(
-            collect($images)
+            collect($normalizedImages)
                 ->map(function (array $image) use ($item, &$copiedFiles) {
                     return [
                         'disk' => $image['disk'] ?? null,
@@ -28,7 +30,7 @@ class ItemImageSync
                         'mime_type' => $image['mime_type'] ?? null,
                         'file_size' => $image['file_size'] ?? null,
                         'sort_order' => $image['sort_order'],
-                        'is_primary' => (bool) ($image['is_primary'] ?? false),
+                        'is_primary' => $image['is_primary'],
                     ];
                 })
                 ->all()
@@ -89,5 +91,29 @@ class ItemImageSync
     private static function isOwnedItemPath(Item $item, string $path): bool
     {
         return str_starts_with($path, sprintf('items/%d/', $item->id));
+    }
+
+    private static function normalizeImages(array $images): array
+    {
+        $orderedImages = collect($images)
+            ->sortBy(fn (array $image) => (int) ($image['sort_order'] ?? PHP_INT_MAX))
+            ->values();
+
+        $primaryIndex = $orderedImages->search(
+            fn (array $image) => (bool) ($image['is_primary'] ?? false)
+        );
+
+        if (! is_int($primaryIndex)) {
+            $primaryIndex = 0;
+        }
+
+        return $orderedImages
+            ->map(function (array $image, int $index) use ($primaryIndex) {
+                $image['sort_order'] = $index + 1;
+                $image['is_primary'] = $index === $primaryIndex;
+
+                return $image;
+            })
+            ->all();
     }
 }

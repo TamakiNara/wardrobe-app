@@ -656,8 +656,8 @@ export default function NewItemPage() {
               <h2 className="text-lg font-semibold text-gray-900">画像</h2>
               <p className="mt-1 text-sm text-gray-500">
                 {draftInfoMessage
-                  ? "購入検討から引き継いだ画像を確認しながら、追加画像も一緒に登録できます。保存後は item 側で別管理します。"
-                  : "保存時に item 画像として登録します。"}
+                  ? "購入検討から引き継いだ画像を確認しながら、追加画像も一緒に登録できます。"
+                  : "保存対象の画像を追加できます。"}
               </p>
             </div>
 
@@ -677,7 +677,7 @@ export default function NewItemPage() {
                 );
               }}
               disabled={submitting}
-              helperText="購入検討由来画像も保存前に取り除けます。"
+              helperText="引き継いだ画像も保存前に取り除けます。"
               existingHeading={itemImages.length > 0 ? "保存対象の画像" : undefined}
             />
           </section>

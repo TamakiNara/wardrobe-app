@@ -216,7 +216,7 @@ export default function EditItemPage({
         setSizeNote(item.size_note ?? "");
         setSizeDetailsNote(item.size_details?.note ?? "");
         setIsRainOk(item.is_rain_ok ?? false);
-        setItemImages(item.images ?? []);
+        setItemImages(normalizeItemImages(item.images ?? []));
         setCategory(item.category as ItemCategory);
         setShape(item.shape);
         setSelectedSeasons(item.seasons ?? []);
@@ -412,6 +412,37 @@ export default function EditItemPage({
 
     setItemImages((current) =>
       normalizeItemImages(current.filter((currentImage) => currentImage.id !== imageId)),
+    );
+  }
+
+  function handleMoveImage(targetImage: ItemImageRecord, direction: "up" | "down") {
+    setItemImages((current) => {
+      const currentIndex = current.findIndex((image) => image.id === targetImage.id);
+      if (currentIndex < 0) {
+        return current;
+      }
+
+      const nextIndex = direction === "up" ? currentIndex - 1 : currentIndex + 1;
+      if (nextIndex < 0 || nextIndex >= current.length) {
+        return current;
+      }
+
+      const nextImages = [...current];
+      const [movedImage] = nextImages.splice(currentIndex, 1);
+      nextImages.splice(nextIndex, 0, movedImage);
+
+      return normalizeItemImages(nextImages);
+    });
+  }
+
+  function handleMakePrimaryImage(targetImage: ItemImageRecord) {
+    setItemImages((current) =>
+      normalizeItemImages(
+        current.map((image) => ({
+          ...image,
+          is_primary: image.id === targetImage.id,
+        })),
+      ),
     );
   }
 
@@ -628,13 +659,15 @@ export default function EditItemPage({
           <section className="space-y-4 rounded-xl border border-gray-200 bg-gray-50 p-4">
             <div>
               <h2 className="text-lg font-semibold text-gray-900">画像</h2>
-              <p className="mt-1 text-sm text-gray-500">既存画像の削除と、新しい item 画像の追加ができます。保存後は candidate 側と別管理です。</p>
+              <p className="mt-1 text-sm text-gray-500">既存画像の削除と、新しい item 画像の追加ができます。</p>
             </div>
 
             <ItemImageUploader
               existingImages={itemImages}
               pendingImages={pendingImages}
               onPendingImagesChange={setPendingImages}
+              onMoveExistingImage={handleMoveImage}
+              onMakePrimaryExistingImage={handleMakePrimaryImage}
               onDeleteExistingImage={(image) => {
                 if (!image.id) {
                   return;
@@ -643,7 +676,7 @@ export default function EditItemPage({
                 void handleDeleteImage(image.id);
               }}
               disabled={submitting}
-              helperText="保存前の追加画像はまとめて反映されます。"
+              helperText="既存画像は並び替えと代表画像の切り替えができます。保存前の追加画像はまとめて反映されます。"
               existingHeading={itemImages.length > 0 ? "現在登録されている画像" : undefined}
             />
           </section>

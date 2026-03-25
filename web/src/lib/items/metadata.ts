@@ -32,12 +32,19 @@ export function mapPurchaseCandidateImagesToItemImages(
 }
 
 export function normalizeItemImages(images: ItemImageRecord[]): ItemImageRecord[] {
-  const primaryIndex = images.findIndex((image) => image.is_primary);
+  const sortedImages = [...images].sort((left, right) => {
+    if (left.sort_order !== right.sort_order) {
+      return left.sort_order - right.sort_order;
+    }
+
+    return (left.id ?? 0) - (right.id ?? 0);
+  });
+  const primaryIndex = sortedImages.findIndex((image) => image.is_primary);
   const resolvedPrimaryIndex = primaryIndex >= 0 ? primaryIndex : 0;
 
-  return images.map((image, index) => ({
+  return sortedImages.map((image, index) => ({
     ...image,
     sort_order: index + 1,
-    is_primary: images.length === 0 ? false : index === resolvedPrimaryIndex,
+    is_primary: sortedImages.length === 0 ? false : index === resolvedPrimaryIndex,
   }));
 }

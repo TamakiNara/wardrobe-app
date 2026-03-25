@@ -2,28 +2,12 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import ItemsList from "@/components/items/items-list";
 import { fetchLaravelWithCookie } from "@/lib/server/laravel";
-
-type Item = {
-  id: number;
-  name: string | null;
-  status: "active" | "disposed";
-  category: string;
-  shape: string;
-  colors: {
-    role: "main" | "sub";
-    mode: "preset" | "custom";
-    value: string;
-    hex: string;
-    label: string;
-  }[];
-  seasons: string[];
-  tpos: string[];
-};
+import type { ItemRecord } from "@/types/items";
 
 type ItemsPageSearchParams = Record<string, string | string[] | undefined>;
 
 type ItemsResponse = {
-  items: Item[];
+  items: ItemRecord[];
   meta: {
     total: number;
     totalAll: number;

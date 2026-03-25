@@ -462,7 +462,7 @@ class ItemsEndpointsTest extends TestCase
             ->assertJsonPath('item.images.0.path', 'items/1/coat.png');
     }
 
-    public function test_put_item_updates_purchase_fields_and_images(): void
+    public function test_put_item_updates_purchase_fields_and_image_ordering(): void
     {
         Storage::fake('public');
 
@@ -509,15 +509,26 @@ class ItemsEndpointsTest extends TestCase
             ]],
             'seasons' => ['春'],
             'tpos' => ['仕事'],
-            'images' => [[
-                'disk' => 'public',
-                'path' => 'purchase-candidates/1/updated.png',
-                'original_filename' => 'updated.png',
-                'mime_type' => 'image/png',
-                'file_size' => 1500,
-                'sort_order' => 1,
-                'is_primary' => true,
-            ]],
+            'images' => [
+                [
+                    'disk' => 'public',
+                    'path' => 'purchase-candidates/1/updated.png',
+                    'original_filename' => 'updated.png',
+                    'mime_type' => 'image/png',
+                    'file_size' => 1500,
+                    'sort_order' => 1,
+                    'is_primary' => true,
+                ],
+                [
+                    'disk' => 'public',
+                    'path' => sprintf('items/%d/original.png', $item->id),
+                    'original_filename' => 'original.png',
+                    'mime_type' => 'image/png',
+                    'file_size' => 1000,
+                    'sort_order' => 2,
+                    'is_primary' => false,
+                ],
+            ],
         ], [
             'Accept' => 'application/json',
         ]);
@@ -526,14 +537,21 @@ class ItemsEndpointsTest extends TestCase
             ->assertJsonPath('item.name', '更新後アイテム')
             ->assertJsonPath('item.category', 'outer')
             ->assertJsonPath('item.shape', 'trench')
-            ->assertJsonPath('item.brand_name', 'Updated Brand');
+            ->assertJsonPath('item.brand_name', 'Updated Brand')
+            ->assertJsonPath('item.images.0.sort_order', 1)
+            ->assertJsonPath('item.images.0.is_primary', true)
+            ->assertJsonPath('item.images.1.sort_order', 2)
+            ->assertJsonPath('item.images.1.is_primary', false);
 
         $updatedImagePath = $response->json('item.images.0.path');
+        $retainedImagePath = $response->json('item.images.1.path');
 
         $this->assertStringStartsWith(sprintf('items/%d/', $item->id), $updatedImagePath);
         $this->assertNotSame('purchase-candidates/1/updated.png', $updatedImagePath);
+        $this->assertSame(sprintf('items/%d/original.png', $item->id), $retainedImagePath);
         Storage::disk('public')->assertExists('purchase-candidates/1/updated.png');
         Storage::disk('public')->assertExists($updatedImagePath);
+        Storage::disk('public')->assertExists($retainedImagePath);
 
         $this->assertDatabaseHas('items', [
             'id' => $item->id,
@@ -544,10 +562,14 @@ class ItemsEndpointsTest extends TestCase
         $this->assertDatabaseHas('item_images', [
             'item_id' => $item->id,
             'path' => $updatedImagePath,
+            'sort_order' => 1,
+            'is_primary' => 1,
         ]);
-        $this->assertDatabaseMissing('item_images', [
+        $this->assertDatabaseHas('item_images', [
             'item_id' => $item->id,
-            'path' => sprintf('items/%d/original.png', $item->id),
+            'path' => $retainedImagePath,
+            'sort_order' => 2,
+            'is_primary' => 0,
         ]);
     }
 

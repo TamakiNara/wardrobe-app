@@ -16,6 +16,8 @@ type EntityImageUploaderProps = {
   pendingImages: File[];
   onPendingImagesChange: (files: File[]) => void;
   onDeleteExistingImage?: (image: UploadableImageRecord) => void;
+  onMoveExistingImage?: (image: UploadableImageRecord, direction: "up" | "down") => void;
+  onMakePrimaryExistingImage?: (image: UploadableImageRecord) => void;
   disabled?: boolean;
   error?: string | null;
   helperText?: string;
@@ -51,6 +53,8 @@ export default function EntityImageUploader({
   pendingImages,
   onPendingImagesChange,
   onDeleteExistingImage,
+  onMoveExistingImage,
+  onMakePrimaryExistingImage,
   disabled = false,
   error,
   helperText,
@@ -219,15 +223,47 @@ export default function EntityImageUploader({
                       {image.sort_order}枚目{image.is_primary ? " / 代表画像" : ""}
                     </p>
                   </div>
-                  {onDeleteExistingImage ? (
-                    <button
-                      type="button"
-                      onClick={() => onDeleteExistingImage(image)}
-                      className="text-sm font-medium text-red-600 hover:underline"
-                    >
-                      削除
-                    </button>
-                  ) : null}
+                  <div className="flex flex-wrap items-center justify-end gap-3">
+                    {onMoveExistingImage ? (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => onMoveExistingImage(image, "up")}
+                          disabled={disabled || index === 0}
+                          className="text-sm font-medium text-gray-600 hover:underline disabled:cursor-not-allowed disabled:text-gray-300"
+                        >
+                          上へ
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => onMoveExistingImage(image, "down")}
+                          disabled={disabled || index === existingImages.length - 1}
+                          className="text-sm font-medium text-gray-600 hover:underline disabled:cursor-not-allowed disabled:text-gray-300"
+                        >
+                          下へ
+                        </button>
+                      </>
+                    ) : null}
+                    {onMakePrimaryExistingImage ? (
+                      <button
+                        type="button"
+                        onClick={() => onMakePrimaryExistingImage(image)}
+                        disabled={disabled || image.is_primary}
+                        className="text-sm font-medium text-blue-600 hover:underline disabled:cursor-not-allowed disabled:text-gray-300"
+                      >
+                        {image.is_primary ? "代表画像" : "代表にする"}
+                      </button>
+                    ) : null}
+                    {onDeleteExistingImage ? (
+                      <button
+                        type="button"
+                        onClick={() => onDeleteExistingImage(image)}
+                        className="text-sm font-medium text-red-600 hover:underline"
+                      >
+                        削除
+                      </button>
+                    ) : null}
+                  </div>
                 </div>
 
                 {image.url ? (

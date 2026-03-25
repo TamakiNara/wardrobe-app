@@ -62,7 +62,7 @@ item 詳細画面での status 操作 UI を確認するときは `docs/specs/it
 - 購入検討でも一覧 → 詳細 → 編集 の責務分離を採用し、一覧は確認・遷移、編集は詳細画面からを主導線に整理済み
 - 購入検討で導入した `必須` バッジを items / outfits / wear logs の主要フォームにも揃え、必須項目をラベル上で事前判別できるようにした
 - item 作成時に `purchase_candidate_id` を受け取り、Laravel 側で candidate の `purchased` 反映と `converted_item_id` / `converted_at` 更新まで処理する
-- 比較ロジックの詳細と item 側画像の並び替え / 代表画像切り替え UI は後続検討とする
+- 比較ロジックの詳細は後続検討とする
 
 直近または中期 TODO:
 
@@ -73,7 +73,8 @@ item 詳細画面での status 操作 UI を確認するときは `docs/specs/it
    - candidate 側の複数画像 upload / delete は実装済み
    - candidate -> item の保存時引き継ぎは実装済み
    - item 側画像 upload / delete UI は実装済み
-   - 並び替え / 代表画像切り替え UI と保存後の編集責務分離を整理する
+   - item 側では並び替え / 代表画像切り替え UI まで実装済み
+   - candidate 側の並び替え / 代表画像切り替え UI と保存後の編集責務分離を整理する
 3. 比較結果の扱いを整理する
    - 現時点では補助表示前提とし、比較ロジックの詳細や強い自動判定は後続検討とする
 4. 月次服飾費集計の前提を残す
@@ -398,7 +399,8 @@ UI/UX メモ:
 
 - `last_worn_at` と `wear_count` だけでは履歴一覧を完全には表現できないため、カレンダー連携や着用履歴を本格対応する場合は `wear_logs` のような別テーブル案も検討する
 - 画像保存方針は `item_images` / `purchase_candidate_images` を別テーブルで持ち、DB には `disk + path` を保存し、URL は API / BFF 側で生成する方針で整理する
-- item 側の追加項目と `item_images` は purchase_candidates 受け皿として実装済みであり、残タスクは item 画像の並び替え / 代表画像切り替え UI と、昇格後の戻り導線・重複昇格ガード整理である
+- item 側の追加項目と `item_images` は purchase_candidates 受け皿として実装済みであり、item 画像の並び替え / 代表画像切り替え UI も反映済みである
+- 残タスクは candidate 側画像 UI の拡張と、昇格後の戻り導線・重複昇格ガード整理である
 
 ### カラーパレット
 

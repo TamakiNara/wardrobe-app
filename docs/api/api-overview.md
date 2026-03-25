@@ -84,6 +84,7 @@
 - `spec` は nullable
 - 現在の実装では `spec.tops` を利用
 - `spec.tops.*` は create / update の両方で受け付ける
+- `images` は `sort_order` と `is_primary` を含む配列として create / update で受け付け、item 編集画面の並び替え / 代表画像切り替えに利用する
 - DB 保存方針は [`../data/database.md`](../data/database.md) を参照
 - 詳細仕様は [`../specs/items/tops.md`](../specs/items/tops.md) を参照
 - item status の状態管理は [`../specs/items/status-management.md`](../specs/items/status-management.md) を参照

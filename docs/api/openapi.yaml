@@ -345,6 +345,7 @@ paths:
         item に画像を追加する。
         画像は item 用保存先へ保存し、`item_images` として candidate 側とは別管理にする。
         現時点では JPEG / PNG / WebP、5MB 以下、最大 5 枚を想定する。
+        既存画像の並び替えと代表画像切り替えは `PUT /api/items/{id}` の `images` payload で更新する。
       security:
         - SessionCookieAuth: []
       parameters:
@@ -1630,6 +1631,9 @@ components:
 
     ItemImageUpsertPayload:
       type: object
+      description: |
+        item 編集時に送る画像 payload。
+        `sort_order` を正本とし、`is_primary=true` は常に 1 件だけになるよう backend 側でも正規化する。
       required:
         - sort_order
       properties:

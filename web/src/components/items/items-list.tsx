@@ -108,6 +108,21 @@ function PreviewThumb({
   subColorHex?: string;
 }) {
   const topsSpec = item.spec?.tops;
+  const primaryImage = item.images?.find((image) => image.is_primary)
+    ?? item.images?.[0];
+
+  if (primaryImage?.url) {
+    return (
+      <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl border border-gray-200 bg-gray-50 p-2">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={primaryImage.url}
+          alt={primaryImage.original_filename ?? item.name ?? "item image"}
+          className="h-full w-full object-contain"
+        />
+      </div>
+    );
+  }
 
   if (item.category === "tops" && topsSpec?.shape) {
     return (
