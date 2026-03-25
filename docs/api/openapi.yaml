@@ -7,7 +7,7 @@ info:
     Wardrobe App のAPI仕様。
 
     このAPIは Cookie ベースのセッション認証を使用する。
-    CSRF 保護が必要な POST / PUT / DELETE では `X-CSRF-TOKEN` ヘッダが必要。
+    CSRF 保護が必要な POST / PUT / DELETE では X-CSRF-TOKEN ヘッダが必要。
     docs 上では認証系 API / 設定系 API / 参照マスタ API を軸に整理しつつ、Items / Outfits も実装単位で記載する。
 
 servers:
@@ -56,7 +56,7 @@ paths:
       summary: ユーザー登録
       description: |
         新規ユーザーを登録し、成功時はそのままログイン状態にする。
-        Cookie ベース認証のため、事前に `/csrf-cookie` を呼び出し `X-CSRF-TOKEN` を付与する。
+        Cookie ベース認証のため、事前に /csrf-cookie を呼び出し X-CSRF-TOKEN を付与する。
       operationId: register
       parameters:
         - $ref: '#/components/parameters/XCsrfTokenHeader'
@@ -85,7 +85,7 @@ paths:
       tags:
         - Settings
       summary: ブランド候補一覧取得
-      description: ユーザー単位のブランド候補を返す。`active_only` と `keyword` で絞り込みでき、item 新規作成 / 編集のブランド候補サジェストにも利用する。
+      description: ユーザー単位のブランド候補を返す。active_only と keyword で絞り込みでき、item 新規作成 / 編集のブランド候補サジェストにも利用する。
       security:
         - SessionCookieAuth: []
       parameters:
@@ -93,7 +93,7 @@ paths:
           name: active_only
           schema:
             type: boolean
-          description: `true` のとき有効な候補だけ返す
+          description: true のとき有効な候補だけ返す
         - in: query
           name: keyword
           schema:
@@ -186,7 +186,7 @@ paths:
       summary: ログイン
       description: |
         メールアドレスとパスワードでログインする。
-        Cookie ベース認証のため、事前に `/csrf-cookie` を呼び出し `X-CSRF-TOKEN` を付与する。
+        Cookie ベース認証のため、事前に /csrf-cookie を呼び出し X-CSRF-TOKEN を付与する。
       operationId: login
       parameters:
         - $ref: '#/components/parameters/XCsrfTokenHeader'
@@ -234,8 +234,8 @@ paths:
         - Auth
       summary: ログアウト
       description: |
-        ルート定義は `auth:web` 配下に置くが、未認証で `/api/logout` を呼んだ場合も例外ハンドラ側で `logged_out` を返す。
-        POST のため `X-CSRF-TOKEN` ヘッダが必要。
+        ルート定義は auth:web 配下に置くが、未認証で /api/logout を呼んだ場合も例外ハンドラ側で logged_out を返す。
+        POST のため X-CSRF-TOKEN ヘッダが必要。
       operationId: logout
       parameters:
         - $ref: '#/components/parameters/XCsrfTokenHeader'
@@ -252,7 +252,7 @@ paths:
       tags:
         - ReferenceMasters
       summary: カテゴリ一覧取得
-      description: 参照マスタとしてカテゴリ一覧を返す。実装は `api/routes/api.php` 側に定義されている。
+      description: 参照マスタとしてカテゴリ一覧を返す。実装は api/routes/api.php 側に定義されている。
       responses:
         '200':
           description: 取得成功
@@ -313,9 +313,9 @@ paths:
         - Items
       summary: アイテム一覧取得
       description: |
-        通常一覧に表示する `status=active` の item を返す。
-        response 形式は `items` 配列と `meta.total` / `meta.totalAll` /
-        `meta.page` / `meta.lastPage` を含む。
+        通常一覧に表示する status=active の item を返す。
+        response 形式は items 配列と meta.total / meta.totalAll /
+        meta.page / meta.lastPage を含む。
       security:
         - SessionCookieAuth: []
       responses:
@@ -332,9 +332,9 @@ paths:
         - Items
       summary: アイテム作成
       description: |
-        通常の item 作成に加えて、`purchase_candidate_id` を渡した場合は
+        通常の item 作成に加えて、purchase_candidate_id を渡した場合は
         Laravel 側で item 作成、candidate 由来画像の item 用保存先への物理コピー、
-        candidate の `status=purchased` 更新、`converted_item_id` / `converted_at` 更新を
+        candidate の status=purchased 更新、converted_item_id / converted_at 更新を
         同じ transaction で処理する。
       security:
         - SessionCookieAuth: []
@@ -442,9 +442,9 @@ paths:
       summary: アイテム画像追加
       description: |
         item に画像を追加する。
-        画像は item 用保存先へ保存し、`item_images` として candidate 側とは別管理にする。
+        画像は item 用保存先へ保存し、item_images として candidate 側とは別管理にする。
         現時点では JPEG / PNG / WebP、5MB 以下、最大 5 枚を想定する。
-        既存画像の並び替えと代表画像切り替えは `PUT /api/items/{id}` の `images` payload で更新する。
+        既存画像の並び替えと代表画像切り替えは PUT /api/items/{id} の images payload で更新する。
       security:
         - SessionCookieAuth: []
       parameters:
@@ -530,9 +530,9 @@ paths:
         - Items
       summary: アイテムを disposed に変更
       description: |
-        item を `disposed` に変更し、「手放した / 現在所持していない」状態へ遷移させる。
-        通常の `ItemUpsertRequest` とは分けて扱う。
-        関連する `active` outfit がある場合は、それらを `invalid` にする副作用を伴う。
+        item を disposed に変更し、「手放した / 現在所持していない」状態へ遷移させる。
+        通常の ItemUpsertRequest とは分けて扱う。
+        関連する active outfit がある場合は、それらを invalid にする副作用を伴う。
       security:
         - SessionCookieAuth: []
       parameters:
@@ -562,8 +562,8 @@ paths:
         - Items
       summary: アイテムを active に戻す
       description: |
-        item を `active` に戻すが、関連 outfit は自動 `restore` しない。
-        通常の `ItemUpsertRequest` とは分けて扱う。
+        item を active に戻すが、関連 outfit は自動 restore しない。
+        通常の ItemUpsertRequest とは分けて扱う。
       security:
         - SessionCookieAuth: []
       parameters:
@@ -593,9 +593,9 @@ paths:
         - Outfits
       summary: コーディネート一覧取得
       description: |
-        通常一覧に表示する `status=active` の outfit を返す。
-        response 形式は `outfits` 配列と `meta.total` / `meta.totalAll` /
-        `meta.page` / `meta.lastPage` を含む。
+        通常一覧に表示する status=active の outfit を返す。
+        response 形式は outfits 配列と meta.total / meta.totalAll /
+        meta.page / meta.lastPage を含む。
       security:
         - SessionCookieAuth: []
       responses:
@@ -716,9 +716,9 @@ paths:
         - Outfits
       summary: invalid コーディネート一覧取得
       description: |
-        通常一覧には出さない `status=invalid` の outfit を返す。
-        response 形式は通常一覧と同じ `OutfitsResponse` を使い、
-        `meta.page` / `meta.lastPage` / `meta.total` / `meta.totalAll` を返す。
+        通常一覧には出さない status=invalid の outfit を返す。
+        response 形式は通常一覧と同じ OutfitsResponse を使い、
+        meta.page / meta.lastPage / meta.total / meta.totalAll を返す。
       security:
         - SessionCookieAuth: []
       responses:
@@ -737,9 +737,9 @@ paths:
         - Outfits
       summary: invalid コーディネート手動復帰
       description: |
-        対象 outfit が `invalid` で、構成 item がすべて `active` の場合のみ
-        `status=active` へ復帰できる。
-        item や `outfit_items` 自体は書き換えない。
+        対象 outfit が invalid で、構成 item がすべて active の場合のみ
+        status=active へ復帰できる。
+        item や outfit_items 自体は書き換えない。
         主な利用箇所は invalid outfit 一覧または詳細画面の補助導線を想定する。
       security:
         - SessionCookieAuth: []
@@ -773,9 +773,9 @@ paths:
         active / invalid を問わず複製可能とする。
         invalid outfit の場合は再利用導線として特に重要とし、
         disposed item は通常選択状態にしない形で初期値生成する。
-        response の `outfit` は保存済み record ではなく、
+        response の outfit は保存済み record ではなく、
         新規作成画面へ渡す初期値 payload を返す。
-        `items[*].selectable=false` と `note` により、
+        items[*].selectable=false と note により、
         現在は使えない item を補助表示できる。
       security:
         - SessionCookieAuth: []
@@ -800,8 +800,8 @@ paths:
         - Wear Logs
       summary: wear logs 一覧取得
       description: |
-        `event_date desc, display_order asc` を初期並び順とし、
-        `meta.total / totalAll / page / lastPage` を返す。
+        event_date desc, display_order asc を初期並び順とし、
+        meta.total / totalAll / page / lastPage を返す。
       parameters:
         - name: page
           in: query
@@ -854,7 +854,7 @@ paths:
         - Wear Logs
       summary: wear log 作成
       description: |
-        `source_outfit_id` のみ、`items` のみ、両方指定のいずれも許可する。
+        source_outfit_id のみ、items のみ、両方指定のいずれも許可する。
       requestBody:
         required: true
         content:
@@ -934,7 +934,7 @@ paths:
         - Wear Logs
       summary: wear log 削除
       description: |
-        対象の wear log と関連する `wear_log_items` を物理削除する。
+        対象の wear log と関連する wear_log_items を物理削除する。
         item / outfit 側の record や他の wear log には影響を与えない。
       parameters:
         - name: wearLogId
@@ -966,8 +966,8 @@ paths:
         - Purchase Candidates
       summary: 購入候補一覧取得
       description: |
-        `considering / on_hold / purchased / dropped` の purchase candidate を返す。
-        一覧は `purchaseCandidates` 配列と `meta.total / totalAll / page / lastPage` を返す。
+        considering / on_hold / purchased / dropped の purchase candidate を返す。
+        一覧は purchaseCandidates 配列と meta.total / totalAll / page / lastPage を返す。
         比較結果は詳細ロジックを固定せず、現時点では補助表示向けの情報に留める。
       security:
         - SessionCookieAuth: []
@@ -1075,7 +1075,7 @@ paths:
       summary: 購入候補更新
       description: |
         purchase candidate の状態、優先度、比較用属性を更新する。
-        `dropped` は見送り状態であり DELETE とは別に扱う。
+        dropped は見送り状態であり DELETE とは別に扱う。
       security:
         - SessionCookieAuth: []
       parameters:
@@ -1110,7 +1110,7 @@ paths:
       summary: 購入候補削除
       description: |
         登録ミスや重複など、record 自体が不要になった purchase candidate を削除する。
-        見送り履歴を残したい場合は `dropped` を使い、DELETE とは役割を分ける。
+        見送り履歴を残したい場合は dropped を使い、DELETE とは役割を分ける。
       security:
         - SessionCookieAuth: []
       parameters:
@@ -1136,7 +1136,7 @@ paths:
       description: |
         purchase candidate に画像を追加する。
         画像は複数枚対応で、上限は 5 枚を前提とする。
-        `sort_order` と `is_primary` は item 側への引き継ぎにも使う。
+        sort_order と is_primary は item 側への引き継ぎにも使う。
       security:
         - SessionCookieAuth: []
       parameters:
@@ -1200,8 +1200,8 @@ paths:
       description: |
         purchase candidate から item 作成画面用の初期値 payload を生成する。
         保存済み item を返す API ではない。
-        candidate に登録済みの全画像を引き継ぎ、`sort_order` と `is_primary` も維持する。
-        item 保存成功時に candidate を `purchased` に更新する責務分割は後続整理とする。
+        candidate に登録済みの全画像を引き継ぎ、sort_order と is_primary も維持する。
+        item 保存成功時に candidate を purchased に更新する責務分割は後続整理とする。
       security:
         - SessionCookieAuth: []
       parameters:
@@ -1228,7 +1228,7 @@ components:
       required: false
       description: |
         CSRF対策用ヘッダ。
-        `/csrf-cookie` 実行後に取得した `XSRF-TOKEN` と同じ値を指定する。
+        /csrf-cookie 実行後に取得した XSRF-TOKEN と同じ値を指定する。
         実運用では必須。
         Swagger UI では requestInterceptor により自動付与する。
       schema:
@@ -1458,6 +1458,7 @@ components:
         - id
         - name
         - is_active
+        - updated_at
       properties:
         id:
           type: integer
@@ -1468,6 +1469,9 @@ components:
           nullable: true
         is_active:
           type: boolean
+        updated_at:
+          type: string
+          format: date-time
 
     UserBrandsResponse:
       type: object
@@ -1754,8 +1758,8 @@ components:
               nullable: true
               description: |
                 購入検討から item へ昇格するときの source candidate ID。
-                指定した場合は、item 作成成功時に candidate の `status`、
-                `converted_item_id`、`converted_at` も更新する。
+                指定した場合は、item 作成成功時に candidate の status、
+                converted_item_id、converted_at も更新する。
 
     ItemImageRecord:
       type: object
@@ -1800,7 +1804,7 @@ components:
       type: object
       description: |
         item 編集時に送る画像 payload。
-        `sort_order` を正本とし、`is_primary=true` は常に 1 件だけになるよう backend 側でも正規化する。
+        sort_order を正本とし、is_primary=true は常に 1 件だけになるよう backend 側でも正規化する。
       required:
         - sort_order
       properties:
@@ -1829,8 +1833,8 @@ components:
       type: object
       description: |
         アイテム一覧 response。
-        現在の実装では `items` 配列に加えて、
-        `meta.total` / `meta.totalAll` / `meta.page` / `meta.lastPage` を返す。
+        現在の実装では items 配列に加えて、
+        meta.total / meta.totalAll / meta.page / meta.lastPage を返す。
       required:
         - items
         - meta
@@ -2003,8 +2007,8 @@ components:
       type: object
       description: |
         コーディネート一覧 response。
-        現在の実装では `outfits` 配列に加えて、
-        `meta.total` / `meta.totalAll` / `meta.page` / `meta.lastPage` を返す。
+        現在の実装では outfits 配列に加えて、
+        meta.total / meta.totalAll / meta.page / meta.lastPage を返す。
       required:
         - outfits
         - meta
@@ -2415,7 +2419,7 @@ components:
           type: string
           nullable: true
           example: https://example.test/storage/purchase-candidates/10/front.webp
-          description: "`disk` と `path` から生成する表示用 URL。"
+          description: "disk と path から生成する表示用 URL。"
         original_filename:
           type: string
           nullable: true
@@ -2535,7 +2539,7 @@ components:
     PurchaseCandidateUpsertRequest:
       type: object
       description: |
-        `purchase_candidates` の通常作成 / 更新 payload。
+        purchase_candidates の通常作成 / 更新 payload。
         比較結果の詳細は request に含めず、候補の基本情報と比較用属性を保存する。
       required:
         - name
@@ -2722,8 +2726,8 @@ components:
     PurchaseCandidateItemDraftPayload:
       type: object
       description: |
-        current `POST /api/items` に合わせた初期値を返し、
-        candidate 側の `category_id` は `source_category_id` として補助的に保持する。
+        current POST /api/items に合わせた初期値を返し、
+        candidate 側の category_id は source_category_id として補助的に保持する。
       required:
         - name
         - source_category_id
@@ -2742,15 +2746,15 @@ components:
           example: outer_coat
           description: |
             candidate 側の正本カテゴリID。
-            item 作成用の `category` / `shape` とは分けて保持する。
+            item 作成用の category / shape とは分けて保持する。
         category:
           type: string
           example: outer
-          description: current `POST /api/items` の `category` にそのまま渡す値。
+          description: current POST /api/items の category にそのまま渡す値。
         shape:
           type: string
           example: trench
-          description: current `POST /api/items` の `shape` にそのまま渡す値。
+          description: current POST /api/items の shape にそのまま渡す値。
         brand_name:
           type: string
           nullable: true

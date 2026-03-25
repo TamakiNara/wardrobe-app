@@ -119,6 +119,7 @@ Route::prefix('api')->middleware(['web'])->group(function () {
                 'name' => $brand->name,
                 'kana' => $brand->kana,
                 'is_active' => $brand->is_active,
+                'updated_at' => optional($brand->updated_at)?->toISOString(),
             ])->all(),
         ]);
     });
@@ -141,6 +142,7 @@ Route::prefix('api')->middleware(['web'])->group(function () {
                 'name' => $brand->name,
                 'kana' => $brand->kana,
                 'is_active' => $brand->is_active,
+                'updated_at' => optional($brand->updated_at)?->toISOString(),
             ],
         ], 201);
     });
@@ -169,6 +171,7 @@ Route::prefix('api')->middleware(['web'])->group(function () {
                 'name' => $brand->name,
                 'kana' => $brand->kana,
                 'is_active' => $brand->is_active,
+                'updated_at' => optional($brand->updated_at)?->toISOString(),
             ],
         ]);
     });

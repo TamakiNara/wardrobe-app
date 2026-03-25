@@ -11,6 +11,7 @@ export type UserBrandRecord = {
   name: string;
   kana: string | null;
   is_active: boolean;
+  updated_at: string;
 };
 
 export type UserBrandsResponse = {

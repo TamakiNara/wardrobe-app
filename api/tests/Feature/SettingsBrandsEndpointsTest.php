@@ -53,6 +53,8 @@ class SettingsBrandsEndpointsTest extends TestCase
             ->assertJsonCount(1, 'brands')
             ->assertJsonPath('brands.0.name', 'UNIQLO');
 
+        $this->assertNotNull($response->json('brands.0.updated_at'));
+
         $response->assertJsonMissing([
             'name' => 'GU',
         ]);
@@ -116,6 +118,8 @@ class SettingsBrandsEndpointsTest extends TestCase
             ->assertJsonPath('brand.kana', null)
             ->assertJsonPath('brand.is_active', true);
 
+        $this->assertNotNull($response->json('brand.updated_at'));
+
         $this->assertDatabaseHas('user_brands', [
             'user_id' => $user->id,
             'name' => 'GLOBAL WORK',
@@ -147,6 +151,8 @@ class SettingsBrandsEndpointsTest extends TestCase
             ->assertJsonPath('message', 'updated')
             ->assertJsonPath('brand.name', 'GU')
             ->assertJsonPath('brand.is_active', false);
+
+        $this->assertNotNull($response->json('brand.updated_at'));
 
         $this->assertDatabaseHas('user_brands', [
             'id' => $brand->id,
