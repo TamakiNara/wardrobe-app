@@ -7,13 +7,14 @@ use App\Http\Controllers\Api\WearLogController;
 use App\Services\Brands\UserBrandService;
 use App\Services\Items\ItemStoreService;
 use App\Services\Items\ItemUpdateService;
+use App\Services\Settings\UserPreferenceService;
 use App\Models\CategoryMaster;
 use App\Models\Item;
 use App\Models\Outfit;
-use App\Models\UserPreference;
 use App\Support\ItemPayloadBuilder;
 use App\Support\ItemsIndexQuery;
 use App\Support\OutfitsIndexQuery;
+use App\Support\UserPreferencePayloadBuilder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -178,18 +179,10 @@ Route::prefix('api')->middleware(['web'])->group(function () {
     });
 
     Route::middleware('auth:web')->get('/settings/preferences', function (Request $request) {
-        $preference = $request->user()->preference;
-        $currentSeason = $preference?->current_season;
-
-        if ($currentSeason === 'all') {
-            $currentSeason = null;
-        }
+        $preference = app(UserPreferenceService::class)->get($request->user());
 
         return response()->json([
-            'preferences' => [
-                'currentSeason' => $currentSeason,
-                'defaultWearLogStatus' => $preference?->default_wear_log_status,
-            ],
+            'preferences' => UserPreferencePayloadBuilder::build($preference),
         ]);
     });
 
@@ -199,23 +192,11 @@ Route::prefix('api')->middleware(['web'])->group(function () {
             'defaultWearLogStatus' => ['nullable', 'string', 'in:planned,worn'],
         ]);
 
-        $user = $request->user();
-        $preference = UserPreference::query()->firstOrNew([
-            'user_id' => $user->id,
-        ]);
-
-        $preference->fill([
-            'current_season' => $validated['currentSeason'] ?? null,
-            'default_wear_log_status' => $validated['defaultWearLogStatus'] ?? null,
-        ]);
-        $preference->save();
+        $preference = app(UserPreferenceService::class)->update($request->user(), $validated);
 
         return response()->json([
             'message' => 'updated',
-            'preferences' => [
-                'currentSeason' => $preference->current_season === 'all' ? null : $preference->current_season,
-                'defaultWearLogStatus' => $preference->default_wear_log_status,
-            ],
+            'preferences' => UserPreferencePayloadBuilder::build($preference),
         ]);
     });
 

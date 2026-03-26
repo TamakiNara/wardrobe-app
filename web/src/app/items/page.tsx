@@ -2,8 +2,8 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import ItemsList from "@/components/items/items-list";
 import { fetchLaravelWithCookie } from "@/lib/server/laravel";
+import { mapPreferenceSeasonToFilterValue } from "@/lib/settings/preferences";
 import type { ItemRecord } from "@/types/items";
-import type { UserPreferences } from "@/types/settings";
 
 type ItemsPageSearchParams = Record<string, string | string[] | undefined>;
 
@@ -25,23 +25,6 @@ type PreferencesResponse = {
     currentSeason?: "spring" | "summer" | "autumn" | "winter" | null;
   };
 };
-
-function mapPreferenceSeasonToFilterValue(
-  value: UserPreferences["currentSeason"],
-): string {
-  switch (value) {
-    case "spring":
-      return "春";
-    case "summer":
-      return "夏";
-    case "autumn":
-      return "秋";
-    case "winter":
-      return "冬";
-    default:
-      return "";
-  }
-}
 
 function buildQueryString(searchParams: ItemsPageSearchParams): string {
   const params = new URLSearchParams();
