@@ -243,6 +243,11 @@ export default function WearLogCalendar({
                   type="button"
                   onClick={() => openDayDetails(cell.date!)}
                   className={cellClassName}
+                  data-date={cell.date}
+                  data-current-month={cell.isCurrentMonth ? "true" : "false"}
+                  data-selected={isSelected ? "true" : "false"}
+                  data-today={isToday ? "true" : "false"}
+                  data-past={isPastDate ? "true" : "false"}
                 >
                   <div className="flex items-center justify-between gap-2">
                     <span className={dayNumberClassName}>{cell.dayNumber}</span>

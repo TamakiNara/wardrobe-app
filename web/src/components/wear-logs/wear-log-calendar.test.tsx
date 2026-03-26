@@ -42,12 +42,9 @@ async function waitForEffects() {
 }
 
 function findCurrentMonthDayButton(container: HTMLDivElement, day: number) {
-  return Array.from(container.querySelectorAll("button")).find((button) => {
-    const label = button.querySelector("span")?.textContent?.trim();
-    const className = button.className;
-
-    return label === String(day) && !className.includes("text-gray-300");
-  });
+  return container.querySelector<HTMLButtonElement>(
+    `button[data-date="2026-03-${String(day).padStart(2, "0")}"]`,
+  );
 }
 
 describe("WearLogCalendar", () => {
@@ -157,6 +154,94 @@ describe("WearLogCalendar", () => {
 
     expect(container.textContent).toContain("この日の着用履歴はまだありません");
     expect(container.innerHTML).toContain('href="/wear-logs/new?event_date=2026-03-08&amp;display_order=1"');
+  });
+
+  it("選択日 / 今日 / 他月日 / 過去日の状態差を崩さず表示する", async () => {
+    apiFetchMock.mockResolvedValue({
+      event_date: "2026-03-05",
+      wearLogs: [],
+    });
+
+    vi.setSystemTime(new Date("2026-03-26T09:00:00+09:00"));
+
+    const { default: WearLogCalendar } = await import("./wear-log-calendar");
+
+    await act(async () => {
+      root.render(
+        React.createElement(WearLogCalendar, {
+          month: "2026-03",
+          weekStart: "monday",
+          days: [],
+        }),
+      );
+      await waitForEffects();
+    });
+
+    const todayButton = container.querySelector<HTMLButtonElement>('button[data-date="2026-03-26"]');
+    const pastButton = container.querySelector<HTMLButtonElement>('button[data-date="2026-03-05"]');
+    const otherMonthButton = container.querySelector<HTMLButtonElement>('button[data-date="2026-02-23"]');
+
+    expect(todayButton?.getAttribute("data-today")).toBe("true");
+    expect(todayButton?.innerHTML).toContain("border-blue-200");
+    expect(pastButton?.className).toContain("bg-gray-100");
+    expect(otherMonthButton?.getAttribute("data-current-month")).toBe("false");
+    expect(otherMonthButton?.className).toContain("text-gray-300");
+
+    await act(async () => {
+      pastButton?.click();
+      await waitForEffects();
+    });
+
+    expect(pastButton?.getAttribute("data-selected")).toBe("true");
+    expect(pastButton?.className).toContain("border-blue-500");
+  });
+
+  it("過去 planned は日詳細で補助表示する", async () => {
+    apiFetchMock.mockResolvedValue({
+      event_date: "2026-03-05",
+      wearLogs: [
+        {
+          id: 21,
+          status: "planned",
+          event_date: "2026-03-05",
+          display_order: 1,
+          source_outfit_name: "通勤コーデ",
+          items_count: 2,
+          memo: null,
+        },
+      ],
+    });
+
+    const { default: WearLogCalendar } = await import("./wear-log-calendar");
+
+    await act(async () => {
+      root.render(
+        React.createElement(WearLogCalendar, {
+          month: "2026-03",
+          weekStart: "monday",
+          days: [
+            {
+              date: "2026-03-05",
+              plannedCount: 1,
+              wornCount: 0,
+              dots: [{ status: "planned" }],
+              overflowCount: 0,
+            },
+          ],
+        }),
+      );
+      await waitForEffects();
+    });
+
+    const dayButton = findCurrentMonthDayButton(container, 5);
+
+    await act(async () => {
+      dayButton?.click();
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain("過去の未完了予定です。");
+    expect(container.innerHTML).toContain("bg-gray-100");
   });
 
   it("月送りで month query を更新する", async () => {

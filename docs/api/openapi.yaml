@@ -957,6 +957,7 @@ paths:
       description: |
         月カレンダー表示専用の軽量 API。
         日付ごとの planned / worn 件数と、dot 表示用の最小情報を返す。
+        dot は `planned / worn` のみを表し、警告状態やクリーニング中のような補助状態は含めない。
       parameters:
         - name: month
           in: query
@@ -986,7 +987,7 @@ paths:
         - Wear Logs
       summary: wear log 日別詳細取得
       description: |
-        日付クリック後の日詳細シート表示専用 API。
+        日付クリック後の日詳細モーダル表示専用 API。
         当日の wear log を `display_order asc` で返す。
       parameters:
         - name: event_date
@@ -2606,6 +2607,9 @@ components:
           $ref: '#/components/schemas/WearLogStatus'
 
     WearLogCalendarDaySummary:
+      description: |
+        月カレンダーの 1 日分集約。
+        `dots` は `wear log 1件 = 1個` で、`display_order asc` 順に最大 3 件まで返す。
       type: object
       required:
         - date
@@ -2678,6 +2682,9 @@ components:
           nullable: true
 
     WearLogByDateResponse:
+      description: |
+        日詳細モーダル用の最小一覧 response。
+        空の日でも `event_date` と空の `wearLogs` 配列を返す。
       type: object
       required:
         - event_date

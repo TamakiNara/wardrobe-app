@@ -333,6 +333,7 @@ wear logs 一覧は、一覧共通仕様に従う。
 - 月単位の planned / worn 件数は `GET /api/wear-logs/calendar?month=YYYY-MM` を正本とする
 - 月集約 API は軽量性を優先し、日付ごとの件数と dot 表示用の最小情報だけを返す
 - `wear log 1件 = dot 1個` とし、dot は `planned / worn` のみを表す
+- 過去日、警告状態、クリーニング中などの補助状態は dot に載せない
 - dot は `display_order asc` 順に最大 3 件分とし、4 件以上は `+n` で省略表示する
 - 月セル上では `planned / worn` の文字は出さず、dot の濃淡で状態を見分ける
 - カレンダーの週開始は current 実装では月曜始まりを既定とし、settings の `calendarWeekStart` で日曜始まりへ切り替えられる
@@ -348,7 +349,14 @@ wear logs 一覧は、一覧共通仕様に従う。
 - モーダルでは当日の wear log を最小情報で表示し、各 row から個別詳細画面へ遷移できるようにする
 - 空の日でも日詳細モーダルは開き、空状態と `この日で新規作成` 導線を表示する
 - `この日で新規作成` は wear log 新規作成画面へ遷移し、`event_date` と末尾候補の `display_order` を初期値として渡す
+- `status` は画面遷移先で `defaultWearLogStatus` を優先し、未設定時は現行の新規作成デフォルトに従う
 - 日詳細モーダルは確認導線であり、詳細画面の代替にはしない
+
+### 過去 planned の扱い
+
+- 過去日の `planned` は自動削除せず、そのまま保持する
+- current 実装では、日詳細モーダルで `過去の未完了予定です。` を補助表示する
+- 過去 planned は弱い補助表現に留め、編集や `worn` 化は引き続き可能とする
 
 ### 空状態 / エラー状態
 
