@@ -8,11 +8,12 @@ vi.mock("next/link", () => ({
 }));
 
 vi.mock("@/components/wear-logs/wear-log-form", () => ({
-  default: ({ wearLogId, cancelHref, footerAction }: { wearLogId: string; cancelHref?: string; footerAction?: React.ReactNode }) =>
+  default: ({ wearLogId, cancelHref, footerAction, initialStatus }: { wearLogId: string; cancelHref?: string; footerAction?: React.ReactNode; initialStatus?: string }) =>
     React.createElement(
       "div",
       {
         "data-cancel-href": cancelHref,
+        "data-initial-status": initialStatus ?? "",
       },
       `wear-log-form:${wearLogId}`,
       footerAction,
@@ -34,6 +35,7 @@ describe("EditWearLogPage", () => {
     expect(markup).toContain("着用履歴編集");
     expect(markup).toContain('href="/wear-logs/12"');
     expect(markup).toContain('data-cancel-href="/wear-logs/12"');
+    expect(markup).toContain('data-initial-status=""');
     expect(markup).toContain("wear-log-form:12");
     expect(markup).toContain("delete-wear-log-button:12");
   });

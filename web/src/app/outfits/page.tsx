@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import OutfitsList from "@/components/outfits/outfits-list";
 import { fetchLaravelWithCookie } from "@/lib/server/laravel";
+import type { UserPreferences } from "@/types/settings";
 
 type OutfitItem = {
   id: number;
@@ -50,6 +51,29 @@ type ItemCountResponse = {
   };
 };
 
+type PreferencesResponse = {
+  preferences?: {
+    currentSeason?: "spring" | "summer" | "autumn" | "winter" | null;
+  };
+};
+
+function mapPreferenceSeasonToFilterValue(
+  value: UserPreferences["currentSeason"],
+): string {
+  switch (value) {
+    case "spring":
+      return "春";
+    case "summer":
+      return "夏";
+    case "autumn":
+      return "秋";
+    case "winter":
+      return "冬";
+    default:
+      return "";
+  }
+}
+
 function buildQueryString(searchParams: OutfitsPageSearchParams): string {
   const params = new URLSearchParams();
 
@@ -68,6 +92,16 @@ function buildQueryString(searchParams: OutfitsPageSearchParams): string {
   }
 
   return params.toString();
+}
+
+function resolveCurrentSeason(searchParams: OutfitsPageSearchParams): string {
+  const value = searchParams.season;
+
+  if (Array.isArray(value)) {
+    return value[0] ?? "";
+  }
+
+  return value ?? "";
 }
 
 async function getOutfits(searchParams: OutfitsPageSearchParams): Promise<OutfitsResponse> {
@@ -121,7 +155,32 @@ export default async function OutfitsPage({
   searchParams: Promise<OutfitsPageSearchParams>;
 }) {
   const resolvedSearchParams = await searchParams;
-  const data = await getOutfits(resolvedSearchParams);
+  const currentSeason = resolveCurrentSeason(resolvedSearchParams);
+  let initialSeasonFilter = "";
+
+  if (!currentSeason) {
+    const preferencesRes = await fetchLaravelWithCookie("/api/settings/preferences");
+
+    if (preferencesRes.status === 401) {
+      redirect("/login");
+    }
+
+    if (preferencesRes.ok) {
+      const preferencesData = (await preferencesRes.json()) as PreferencesResponse;
+      initialSeasonFilter = mapPreferenceSeasonToFilterValue(
+        preferencesData.preferences?.currentSeason ?? null,
+      );
+    }
+  }
+
+  const effectiveSearchParams =
+    !currentSeason && initialSeasonFilter
+      ? {
+          ...resolvedSearchParams,
+          season: initialSeasonFilter,
+        }
+      : resolvedSearchParams;
+  const data = await getOutfits(effectiveSearchParams);
   const itemCount = data.meta.totalAll === 0 ? await getItemCount() : 0;
   const outfits = data.outfits;
 
@@ -188,6 +247,7 @@ export default async function OutfitsPage({
             totalAllCount={data.meta.totalAll}
             currentPage={data.meta.page}
             lastPage={data.meta.lastPage}
+            initialSeasonFilter={currentSeason ? "" : initialSeasonFilter}
           />
         )}
       </div>

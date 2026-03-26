@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import OutfitDuplicateAction from "@/components/outfits/outfit-duplicate-action";
 import { isItemVisibleByCategorySettings } from "@/lib/api/categories";
 import { fetchCategoryVisibilitySettings } from "@/lib/api/settings";
@@ -43,6 +43,7 @@ type OutfitsListProps = {
   totalAllCount: number;
   currentPage: number;
   lastPage: number;
+  initialSeasonFilter?: string;
 };
 
 type OutfitSortValue = "updated_at_desc" | "name_asc";
@@ -117,6 +118,7 @@ export default function OutfitsList({
   totalCount,
   currentPage,
   lastPage,
+  initialSeasonFilter = "",
 }: OutfitsListProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -131,6 +133,7 @@ export default function OutfitsList({
   const [isComposingKeyword, setIsComposingKeyword] = useState(false);
   const [draftKeyword, setDraftKeyword] = useState(keyword);
   const [visibleCategoryIds, setVisibleCategoryIds] = useState<string[] | null>(null);
+  const initialSeasonAppliedRef = useRef(false);
 
   useEffect(() => {
     setDraftKeyword(keyword);
@@ -155,6 +158,19 @@ export default function OutfitsList({
       scroll: false,
     });
   }, [keyword, page, pathname, router, seasonFilter, sort, tpoFilter]);
+
+  useEffect(() => {
+    if (initialSeasonAppliedRef.current) {
+      return;
+    }
+
+    if (!initialSeasonFilter || seasonFilter) {
+      return;
+    }
+
+    initialSeasonAppliedRef.current = true;
+    updateQuery({ season: initialSeasonFilter, page: 1 });
+  }, [initialSeasonFilter, seasonFilter, updateQuery]);
 
   useEffect(() => {
     let active = true;

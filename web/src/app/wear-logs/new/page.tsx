@@ -1,7 +1,30 @@
 import Link from "next/link";
 import WearLogForm from "@/components/wear-logs/wear-log-form";
+import { fetchLaravelWithCookie } from "@/lib/server/laravel";
+import { redirect } from "next/navigation";
 
-export default function NewWearLogPage() {
+type PreferencesResponse = {
+  preferences?: {
+    defaultWearLogStatus?: "planned" | "worn" | null;
+  };
+};
+
+export default async function NewWearLogPage() {
+  let initialStatus: "planned" | "worn" = "planned";
+
+  const preferencesRes = await fetchLaravelWithCookie("/api/settings/preferences");
+
+  if (preferencesRes.status === 401) {
+    redirect("/login");
+  }
+
+  if (preferencesRes.ok) {
+    const data = (await preferencesRes.json()) as PreferencesResponse;
+    if (data.preferences?.defaultWearLogStatus === "worn") {
+      initialStatus = "worn";
+    }
+  }
+
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">
       <div className="mx-auto max-w-4xl space-y-6">
@@ -31,7 +54,7 @@ export default function NewWearLogPage() {
           </Link>
         </div>
 
-        <WearLogForm mode="create" />
+        <WearLogForm mode="create" initialStatus={initialStatus} />
       </div>
     </main>
   );

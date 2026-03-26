@@ -3,6 +3,7 @@ import Link from "next/link";
 import ItemsList from "@/components/items/items-list";
 import { fetchLaravelWithCookie } from "@/lib/server/laravel";
 import type { ItemRecord } from "@/types/items";
+import type { UserPreferences } from "@/types/settings";
 
 type ItemsPageSearchParams = Record<string, string | string[] | undefined>;
 
@@ -18,6 +19,29 @@ type ItemsResponse = {
     availableTpos: string[];
   };
 };
+
+type PreferencesResponse = {
+  preferences?: {
+    currentSeason?: "spring" | "summer" | "autumn" | "winter" | null;
+  };
+};
+
+function mapPreferenceSeasonToFilterValue(
+  value: UserPreferences["currentSeason"],
+): string {
+  switch (value) {
+    case "spring":
+      return "春";
+    case "summer":
+      return "夏";
+    case "autumn":
+      return "秋";
+    case "winter":
+      return "冬";
+    default:
+      return "";
+  }
+}
 
 function buildQueryString(searchParams: ItemsPageSearchParams): string {
   const params = new URLSearchParams();
@@ -37,6 +61,16 @@ function buildQueryString(searchParams: ItemsPageSearchParams): string {
   }
 
   return params.toString();
+}
+
+function resolveCurrentSeason(searchParams: ItemsPageSearchParams): string {
+  const value = searchParams.season;
+
+  if (Array.isArray(value)) {
+    return value[0] ?? "";
+  }
+
+  return value ?? "";
 }
 
 async function getItems(searchParams: ItemsPageSearchParams): Promise<ItemsResponse> {
@@ -85,7 +119,32 @@ export default async function ItemsPage({
   searchParams: Promise<ItemsPageSearchParams>;
 }) {
   const resolvedSearchParams = await searchParams;
-  const data = await getItems(resolvedSearchParams);
+  const currentSeason = resolveCurrentSeason(resolvedSearchParams);
+  let initialSeasonFilter = "";
+
+  if (!currentSeason) {
+    const preferencesRes = await fetchLaravelWithCookie("/api/settings/preferences");
+
+    if (preferencesRes.status === 401) {
+      redirect("/login");
+    }
+
+    if (preferencesRes.ok) {
+      const preferencesData = (await preferencesRes.json()) as PreferencesResponse;
+      initialSeasonFilter = mapPreferenceSeasonToFilterValue(
+        preferencesData.preferences?.currentSeason ?? null,
+      );
+    }
+  }
+
+  const effectiveSearchParams =
+    !currentSeason && initialSeasonFilter
+      ? {
+          ...resolvedSearchParams,
+          season: initialSeasonFilter,
+        }
+      : resolvedSearchParams;
+  const data = await getItems(effectiveSearchParams);
   const items = data.items;
 
   return (
@@ -143,6 +202,7 @@ export default async function ItemsPage({
             availableCategoryValues={data.meta.availableCategories}
             availableSeasons={data.meta.availableSeasons}
             availableTpos={data.meta.availableTpos}
+            initialSeasonFilter={currentSeason ? "" : initialSeasonFilter}
           />
         )}
       </div>

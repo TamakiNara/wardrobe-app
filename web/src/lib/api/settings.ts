@@ -2,8 +2,10 @@ import { apiFetch } from "@/lib/api/client";
 import type {
   CategoryVisibilitySettings,
   CreateUserBrandPayload,
+  UpdateUserPreferencesPayload,
   UpdateUserBrandPayload,
   UpdateCategoryVisibilitySettingsPayload,
+  UserPreferencesResponse,
   UserBrandRecord,
   UserBrandsResponse,
 } from "@/types/settings";
@@ -22,6 +24,25 @@ export async function updateCategoryVisibilitySettings(
     },
     body: JSON.stringify(payload),
   });
+}
+
+export async function fetchUserPreferences(): Promise<UserPreferencesResponse> {
+  return apiFetch<UserPreferencesResponse>("/api/settings/preferences");
+}
+
+export async function updateUserPreferences(
+  payload: UpdateUserPreferencesPayload,
+): Promise<{ message: string; preferences: UserPreferencesResponse["preferences"] }> {
+  return apiFetch<{ message: string; preferences: UserPreferencesResponse["preferences"] }>(
+    "/api/settings/preferences",
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    },
+  );
 }
 
 export async function fetchUserBrands(

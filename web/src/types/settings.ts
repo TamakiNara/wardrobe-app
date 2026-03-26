@@ -6,6 +6,20 @@ export type UpdateCategoryVisibilitySettingsPayload = {
   visibleCategoryIds: string[];
 };
 
+export type UserPreferences = {
+  currentSeason: "spring" | "summer" | "autumn" | "winter" | null;
+  defaultWearLogStatus: "planned" | "worn" | null;
+};
+
+export type UserPreferencesResponse = {
+  preferences: UserPreferences;
+};
+
+export type UpdateUserPreferencesPayload = {
+  currentSeason: "spring" | "summer" | "autumn" | "winter" | null;
+  defaultWearLogStatus: "planned" | "worn" | null;
+};
+
 export type UserBrandRecord = {
   id: number;
   name: string;

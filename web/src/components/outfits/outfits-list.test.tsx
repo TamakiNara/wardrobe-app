@@ -264,4 +264,45 @@ describe("OutfitsList", () => {
       scroll: false,
     });
   });
+
+  it("URL に season がない場合は初期季節を 1 回だけ query に反映する", async () => {
+    fetchCategoryVisibilitySettingsMock.mockResolvedValue({
+      visibleCategoryIds: ["tops_tshirt", "tops_shirt"],
+    });
+
+    const { default: OutfitsList } = await import("./outfits-list");
+
+    await act(async () => {
+      root.render(
+        React.createElement(OutfitsList, {
+          ...defaultListProps,
+          initialSeasonFilter: "秋",
+        }),
+      );
+      await waitForEffects();
+    });
+
+    expect(replaceMock).toHaveBeenCalledWith("/outfits?season=%E7%A7%8B", { scroll: false });
+  });
+
+  it("URL に season がある場合は初期季節を上書きしない", async () => {
+    searchParamsValue = "season=summer";
+    fetchCategoryVisibilitySettingsMock.mockResolvedValue({
+      visibleCategoryIds: ["tops_tshirt", "tops_shirt"],
+    });
+
+    const { default: OutfitsList } = await import("./outfits-list");
+
+    await act(async () => {
+      root.render(
+        React.createElement(OutfitsList, {
+          ...defaultListProps,
+          initialSeasonFilter: "秋",
+        }),
+      );
+      await waitForEffects();
+    });
+
+    expect(replaceMock).not.toHaveBeenCalledWith("/outfits?season=%E7%A7%8B", { scroll: false });
+  });
 });

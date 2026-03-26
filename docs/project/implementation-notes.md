@@ -196,13 +196,19 @@ OpenAPI に明示する error response の基準を短く見返すときも `doc
 
 - `GET /api/settings/categories` で現在のカテゴリ表示設定を取得できる
 - `PUT /api/settings/categories` で `visible_category_ids` を保存できる
+- `GET /api/settings/preferences` / `PUT /api/settings/preferences` を実装済み
+- `user_preferences` に `currentSeason` / `defaultWearLogStatus` を保存できる
 - settings 画面でカテゴリ表示設定の取得・保存ができる
+- settings 画面で `currentSeason` / `defaultWearLogStatus` の取得・保存ができる
 - create / edit / list のカテゴリ候補は、保存済みのカテゴリ表示設定を考慮する
   - 新規作成では ON の大分類だけをカテゴリ候補に出す
   - 一覧では ON の大分類だけをカテゴリ絞り込みに出す
   - 編集では基本は ON の大分類だけを出す
   - ただし編集中のアイテムが現在 OFF のカテゴリだった場合は、そのカテゴリだけは残す
 - items 一覧では、OFF にしたカテゴリのアイテム自体も一覧表示から外す
+- item 一覧 / outfits 一覧では、URL に季節条件がない場合のみ `currentSeason` を初期値として適用する
+- `currentSeason` の保存値は英語 enum だが、一覧 UI / URL の季節 filter 値は既存どおり日本語を維持し、初期適用時だけ変換する
+- wear log 新規作成では `defaultWearLogStatus` を初期値として使い、edit では既存 record の `status` を優先する
 - outfits 新規作成では、OFF にしたカテゴリのアイテムは選択候補に出さない
 - outfits 編集では、OFF にしたカテゴリのアイテムは候補から外す
   - ただし現在そのコーディネートに含まれているアイテムは、編集不能にしないため候補へ残す

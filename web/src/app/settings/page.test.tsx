@@ -13,6 +13,8 @@ let searchParamsValue = "";
 const fetchCategoryGroupsMock = vi.fn();
 const fetchCategoryVisibilitySettingsMock = vi.fn();
 const updateCategoryVisibilitySettingsMock = vi.fn();
+const fetchUserPreferencesMock = vi.fn();
+const updateUserPreferencesMock = vi.fn();
 const fetchItemsMock = vi.fn();
 const fetchUserBrandsMock = vi.fn();
 const createUserBrandMock = vi.fn();
@@ -63,9 +65,11 @@ vi.mock("@/lib/api/items", () => ({
 vi.mock("@/lib/api/settings", () => ({
   createUserBrand: createUserBrandMock,
   fetchCategoryVisibilitySettings: fetchCategoryVisibilitySettingsMock,
+  fetchUserPreferences: fetchUserPreferencesMock,
   fetchUserBrands: fetchUserBrandsMock,
   updateUserBrand: updateUserBrandMock,
   updateCategoryVisibilitySettings: updateCategoryVisibilitySettingsMock,
+  updateUserPreferences: updateUserPreferencesMock,
 }));
 
 const sampleGroups: CategoryGroupRecord[] = [
@@ -133,6 +137,12 @@ describe("SettingsPage", () => {
     document.body.appendChild(container);
     root = createRoot(container);
     fetchItemsMock.mockResolvedValue(sampleItems);
+    fetchUserPreferencesMock.mockResolvedValue({
+      preferences: {
+        currentSeason: null,
+        defaultWearLogStatus: null,
+      },
+    });
     fetchUserBrandsMock.mockResolvedValue({ brands: [] });
     searchParamsValue = "";
   });
@@ -438,6 +448,79 @@ describe("SettingsPage", () => {
       visibleCategoryIds: ["tops_shirt", "tops_tshirt"],
     });
     expect(pushMock).toHaveBeenCalledWith("/");
+  });
+
+  it("preference の初期表示を描画できる", async () => {
+    fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
+    fetchCategoryVisibilitySettingsMock.mockResolvedValue({
+      visibleCategoryIds: ["tops_tshirt"],
+    });
+    fetchUserPreferencesMock.mockResolvedValue({
+      preferences: {
+        currentSeason: "spring",
+        defaultWearLogStatus: "worn",
+      },
+    });
+
+    const { default: SettingsPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(SettingsPage));
+      await waitForEffects();
+    });
+
+    const currentSeasonSelect = container.querySelector<HTMLSelectElement>("#preferences-current-season");
+    const defaultStatusSelect = container.querySelector<HTMLSelectElement>("#preferences-default-wear-log-status");
+
+    expect(container.textContent).toContain("表示・初期値設定");
+    expect(currentSeasonSelect?.value).toBe("spring");
+    expect(defaultStatusSelect?.value).toBe("worn");
+  });
+
+  it("preference を保存できる", async () => {
+    fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
+    fetchCategoryVisibilitySettingsMock.mockResolvedValue({
+      visibleCategoryIds: ["tops_tshirt"],
+    });
+    updateUserPreferencesMock.mockResolvedValue({
+      message: "updated",
+      preferences: {
+        currentSeason: "winter",
+        defaultWearLogStatus: "planned",
+      },
+    });
+
+    const { default: SettingsPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(SettingsPage));
+      await waitForEffects();
+    });
+
+    const currentSeasonSelect = container.querySelector<HTMLSelectElement>("#preferences-current-season");
+    const defaultStatusSelect = container.querySelector<HTMLSelectElement>("#preferences-default-wear-log-status");
+    const saveButton = Array.from(container.querySelectorAll<HTMLButtonElement>("button")).find(
+      (button) => button.textContent === "個人設定を保存",
+    );
+
+    await act(async () => {
+      currentSeasonSelect!.value = "winter";
+      currentSeasonSelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      defaultStatusSelect!.value = "planned";
+      defaultStatusSelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    await act(async () => {
+      saveButton!.click();
+      await waitForEffects();
+    });
+
+    expect(updateUserPreferencesMock).toHaveBeenCalledWith({
+      currentSeason: "winter",
+      defaultWearLogStatus: "planned",
+    });
+    expect(container.textContent).toContain("表示・初期値設定を保存しました。");
   });
 
   it("ブランド候補一覧を表示できる", async () => {

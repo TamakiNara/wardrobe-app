@@ -20,7 +20,8 @@ vi.mock("next/link", () => ({
 }));
 
 vi.mock("@/components/outfits/outfits-list", () => ({
-  default: () => React.createElement("div", null, "outfits-list"),
+  default: ({ initialSeasonFilter }: { initialSeasonFilter?: string }) =>
+    React.createElement("div", { "data-initial-season": initialSeasonFilter ?? "" }, "outfits-list"),
 }));
 
 describe("OutfitsPage", () => {
@@ -34,6 +35,15 @@ describe("OutfitsPage", () => {
 
   it("アイテム未登録時は先に item 追加を案内する", async () => {
     fetchMock
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          preferences: {
+            currentSeason: null,
+            defaultWearLogStatus: null,
+          },
+        }),
+      })
       .mockResolvedValueOnce({
         ok: true,
         json: async () => ({
@@ -75,6 +85,15 @@ describe("OutfitsPage", () => {
       .mockResolvedValueOnce({
         ok: true,
         json: async () => ({
+          preferences: {
+            currentSeason: null,
+            defaultWearLogStatus: null,
+          },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
           outfits: [],
           meta: {
             total: 0,
@@ -103,5 +122,69 @@ describe("OutfitsPage", () => {
     expect(markup).toContain("無効コーディネート一覧");
     expect(markup).toContain('href="/outfits/new"');
     expect(markup).toContain("コーディネートを作成する");
+  });
+
+  it("URL に season がない場合は preference を初期季節として使う", async () => {
+    fetchMock
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          preferences: {
+            currentSeason: "autumn",
+            defaultWearLogStatus: null,
+          },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          outfits: [{ id: 1, name: "秋コーデ" }],
+          meta: {
+            total: 1,
+            totalAll: 1,
+            page: 1,
+            lastPage: 1,
+          },
+        }),
+      });
+
+    const { default: OutfitsPage } = await import("./page");
+    const markup = renderToStaticMarkup(
+      await OutfitsPage({ searchParams: Promise.resolve({}) }),
+    );
+
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
+      "http://localhost:8000/api/outfits?season=%E7%A7%8B",
+      expect.any(Object),
+    );
+    expect(markup).toContain('data-initial-season="秋"');
+  });
+
+  it("URL に season がある場合は preference より URL を優先する", async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        outfits: [{ id: 1, name: "夏コーデ" }],
+        meta: {
+          total: 1,
+          totalAll: 1,
+          page: 1,
+          lastPage: 1,
+        },
+      }),
+    });
+
+    const { default: OutfitsPage } = await import("./page");
+    const markup = renderToStaticMarkup(
+      await OutfitsPage({ searchParams: Promise.resolve({ season: "夏" }) }),
+    );
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenCalledWith(
+      "http://localhost:8000/api/outfits?season=%E5%A4%8F",
+      expect.any(Object),
+    );
+    expect(markup).toContain('data-initial-season=""');
   });
 });

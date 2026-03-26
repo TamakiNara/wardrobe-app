@@ -33,6 +33,7 @@ type WearLogFormProps = {
   wearLogId?: string;
   cancelHref?: string;
   footerAction?: ReactNode;
+  initialStatus?: WearLogStatus;
 };
 
 type OutfitCandidate = {
@@ -52,6 +53,7 @@ export default function WearLogForm({
   wearLogId,
   cancelHref = "/wear-logs",
   footerAction,
+  initialStatus = "planned",
 }: WearLogFormProps) {
   const router = useRouter();
   const returnToPath = mode === "edit" && wearLogId ? `/wear-logs/${wearLogId}/edit` : "/wear-logs/new";
@@ -59,7 +61,7 @@ export default function WearLogForm({
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
-  const [status, setStatus] = useState<WearLogStatus>("planned");
+  const [status, setStatus] = useState<WearLogStatus>(initialStatus);
   const [eventDate, setEventDate] = useState("");
   const [displayOrder, setDisplayOrder] = useState(1);
   const [sourceOutfitId, setSourceOutfitId] = useState<number | null>(null);
@@ -158,6 +160,7 @@ export default function WearLogForm({
           setMemo(wearLogData.memo ?? "");
           setSelectedItems(buildSelectedWearLogItems(wearLogData));
         } else {
+          setStatus(initialStatus);
           setEventDate(new Date().toISOString().slice(0, 10));
           setSelectedItems([]);
         }
@@ -169,7 +172,7 @@ export default function WearLogForm({
     }
 
     loadInitialData();
-  }, [mode, router, wearLogId]);
+  }, [initialStatus, mode, router, wearLogId]);
 
   const selectedItemIds = useMemo(() => {
     return selectedItems.map((item) => item.sourceItemId);

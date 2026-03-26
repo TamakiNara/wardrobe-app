@@ -342,4 +342,47 @@ describe("ItemsList", () => {
 
     expect(replaceMock).toHaveBeenCalledWith("/items?keyword=%E7%99%BDT", { scroll: false });
   });
+
+  it("URL に season がない場合は初期季節を 1 回だけ query に反映する", async () => {
+    fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
+    fetchCategoryVisibilitySettingsMock.mockResolvedValue({
+      visibleCategoryIds: ["tops_tshirt", "tops_shirt"],
+    });
+
+    const { default: ItemsList } = await import("./items-list");
+
+    await act(async () => {
+      root.render(
+        React.createElement(ItemsList, {
+          ...defaultListProps,
+          initialSeasonFilter: "春",
+        }),
+      );
+      await waitForEffects();
+    });
+
+    expect(replaceMock).toHaveBeenCalledWith("/items?season=%E6%98%A5", { scroll: false });
+  });
+
+  it("URL に season がある場合は初期季節を上書きしない", async () => {
+    searchParamsValue = "season=summer";
+    fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
+    fetchCategoryVisibilitySettingsMock.mockResolvedValue({
+      visibleCategoryIds: ["tops_tshirt", "tops_shirt"],
+    });
+
+    const { default: ItemsList } = await import("./items-list");
+
+    await act(async () => {
+      root.render(
+        React.createElement(ItemsList, {
+          ...defaultListProps,
+          initialSeasonFilter: "春",
+        }),
+      );
+      await waitForEffects();
+    });
+
+    expect(replaceMock).not.toHaveBeenCalledWith("/items?season=%E6%98%A5", { scroll: false });
+  });
 });

@@ -244,7 +244,7 @@ paths:
         - $ref: '#/components/parameters/XCsrfTokenHeader'
       responses:
         '200':
-          description: ログアウト成功。message は `logged_out`、認証状態の正本は Cookie と後続の `/api/me` で確認する
+          description: "ログアウト成功。message は `logged_out`、認証状態の正本は Cookie と後続の `/api/me` で確認する"
           content:
             application/json:
               schema:
@@ -312,6 +312,56 @@ paths:
                   - $ref: '#/components/schemas/ValidationErrorResponse'
                   - $ref: '#/components/schemas/UnprocessableEntityMessageResponse'
 
+  /api/settings/preferences:
+    get:
+      tags:
+        - Settings
+      summary: 表示・初期値設定取得
+      description: "`currentSeason` と `defaultWearLogStatus` を返す。未設定時は null を返す。"
+      security:
+        - SessionCookieAuth: []
+      responses:
+        '200':
+          description: 取得成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPreferencesResponse'
+        '401':
+          description: 未認証
+    put:
+      tags:
+        - Settings
+      summary: 表示・初期値設定更新
+      description: |
+        item / outfit 一覧の初期季節と、wear log 新規作成時の初期 status を更新する。
+        一覧では URL の季節条件が優先され、URL に季節指定がない場合のみ `currentSeason` を初期値として使う。
+      security:
+        - SessionCookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XCsrfTokenHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserPreferencesRequest'
+      responses:
+        '200':
+          description: "更新成功。message は `updated`、正本は同時に返す preferences と後続の設定取得結果で読む"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPreferencesUpdatedResponse'
+        '401':
+          description: 未認証
+        '422':
+          description: バリデーションエラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+
   /api/items:
     get:
       tags:
@@ -353,7 +403,7 @@ paths:
               $ref: '#/components/schemas/ItemCreateRequest'
       responses:
         '201':
-          description: 作成成功。message は `created`、item には作成後 record を含む
+          description: "作成成功。message は `created`、item には作成後 record を含む"
           content:
             application/json:
               schema:
@@ -406,7 +456,7 @@ paths:
               $ref: '#/components/schemas/ItemUpsertRequest'
       responses:
         '200':
-          description: 更新成功。message は `updated`、item には更新後 record を含む
+          description: "更新成功。message は `updated`、item には更新後 record を含む"
           content:
             application/json:
               schema:
@@ -437,7 +487,7 @@ paths:
         - $ref: '#/components/parameters/XCsrfTokenHeader'
       responses:
         '200':
-          description: 削除成功。message は `deleted`
+          description: "削除成功。message は `deleted`"
           content:
             application/json:
               schema:
@@ -528,7 +578,7 @@ paths:
         - $ref: '#/components/parameters/XCsrfTokenHeader'
       responses:
         '200':
-          description: 削除成功。message は `deleted`。画像一覧の正本は後続の item 詳細取得結果で確認する
+          description: "削除成功。message は `deleted`。画像一覧の正本は後続の item 詳細取得結果で確認する"
           content:
             application/json:
               schema:
@@ -555,7 +605,7 @@ paths:
         - $ref: '#/components/parameters/XCsrfTokenHeader'
       responses:
         '200':
-          description: 変更成功。message は `disposed`、item には状態変更後 record を含む
+          description: "変更成功。message は `disposed`、item には状態変更後 record を含む"
           content:
             application/json:
               schema:
@@ -587,7 +637,7 @@ paths:
         - $ref: '#/components/parameters/XCsrfTokenHeader'
       responses:
         '200':
-          description: 変更成功。message は `reactivated`、item には状態変更後 record を含む
+          description: "変更成功。message は `reactivated`、item には状態変更後 record を含む"
           content:
             application/json:
               schema:
@@ -639,7 +689,7 @@ paths:
               $ref: '#/components/schemas/OutfitUpsertRequest'
       responses:
         '201':
-          description: 作成成功。message は `created`、outfit には作成後 record を含む
+          description: "作成成功。message は `created`、outfit には作成後 record を含む"
           content:
             application/json:
               schema:
@@ -690,7 +740,7 @@ paths:
               $ref: '#/components/schemas/OutfitUpsertRequest'
       responses:
         '200':
-          description: 更新成功。message は `updated`、outfit には更新後 record を含む
+          description: "更新成功。message は `updated`、outfit には更新後 record を含む"
           content:
             application/json:
               schema:
@@ -719,7 +769,7 @@ paths:
         - $ref: '#/components/parameters/XCsrfTokenHeader'
       responses:
         '200':
-          description: 削除成功。message は `deleted`
+          description: "削除成功。message は `deleted`"
           content:
             application/json:
               schema:
@@ -768,7 +818,7 @@ paths:
         - $ref: '#/components/parameters/XCsrfTokenHeader'
       responses:
         '200':
-          description: 復帰成功。message は `restored`、outfit には復帰後 record を含む
+          description: "復帰成功。message は `restored`、outfit には復帰後 record を含む"
           content:
             application/json:
               schema:
@@ -976,7 +1026,7 @@ paths:
             type: integer
       responses:
         '200':
-          description: wear log 削除成功。message は `deleted`
+          description: "wear log 削除成功。message は `deleted`"
           content:
             application/json:
               schema:
@@ -1128,7 +1178,7 @@ paths:
         '404':
           description: 未検出（対象なし・他人データ秘匿を含む）
         '422':
-          description: バリデーションエラー。`purchased` の candidate に更新不可項目を含めた場合もこの response を返す
+          description: "バリデーションエラー。`purchased` の candidate に更新不可項目を含めた場合もこの response を返す"
           content:
             application/json:
               schema:
@@ -1147,7 +1197,7 @@ paths:
         - $ref: '#/components/parameters/XCsrfTokenHeader'
       responses:
         '200':
-          description: 削除成功。message は `deleted`
+          description: "削除成功。message は `deleted`"
           content:
             application/json:
               schema:
@@ -1211,7 +1261,7 @@ paths:
         - $ref: '#/components/parameters/XCsrfTokenHeader'
       responses:
         '200':
-          description: 削除成功。message は `deleted`。画像一覧の正本は後続の購入候補詳細取得結果で確認する
+          description: "削除成功。message は `deleted`。画像一覧の正本は後続の購入候補詳細取得結果で確認する"
           content:
             application/json:
               schema:
@@ -1238,7 +1288,7 @@ paths:
         - $ref: '#/components/parameters/XCsrfTokenHeader'
       responses:
         '201':
-          description: 作成成功。message は `created`。purchaseCandidate には複製後の新しい record を返す
+          description: "作成成功。message は `created`。purchaseCandidate には複製後の新しい record を返す"
           content:
             application/json:
               schema:
@@ -1283,7 +1333,7 @@ paths:
         '404':
           description: 未検出（対象なし・他人データ秘匿を含む）
         '422':
-          description: item-draft を生成できないカテゴリ、または `purchased` candidate に対する生成要求
+          description: "item-draft を生成できないカテゴリ、または `purchased` candidate に対する生成要求"
           content:
             application/json:
               schema:
@@ -1543,6 +1593,54 @@ components:
               type: array
               items:
                 type: string
+
+    UserPreferencesRecord:
+      type: object
+      required:
+        - currentSeason
+        - defaultWearLogStatus
+      properties:
+        currentSeason:
+          type: string
+          nullable: true
+          enum: [spring, summer, autumn, winter]
+        defaultWearLogStatus:
+          type: string
+          nullable: true
+          enum: [planned, worn]
+
+    UserPreferencesResponse:
+      type: object
+      required:
+        - preferences
+      properties:
+        preferences:
+          $ref: '#/components/schemas/UserPreferencesRecord'
+
+    UpdateUserPreferencesRequest:
+      type: object
+      properties:
+        currentSeason:
+          type: string
+          nullable: true
+          enum: [spring, summer, autumn, winter]
+        defaultWearLogStatus:
+          type: string
+          nullable: true
+          enum: [planned, worn]
+
+    UserPreferencesUpdatedResponse:
+      description: |
+        action keyword の `message` と更新後の preferences を返す response。
+        `message` は `updated`、正本は同時に返す preferences と後続の設定取得結果で読む。
+      allOf:
+        - $ref: '#/components/schemas/MessageOnlyResponse'
+        - type: object
+          required:
+            - preferences
+          properties:
+            preferences:
+              $ref: '#/components/schemas/UserPreferencesRecord'
 
     UserBrandRecord:
       type: object

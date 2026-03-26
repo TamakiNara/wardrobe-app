@@ -3,9 +3,11 @@ import { apiFetch } from "@/lib/api/client";
 import {
   createUserBrand,
   fetchCategoryVisibilitySettings,
+  fetchUserPreferences,
   fetchUserBrands,
   updateUserBrand,
   updateCategoryVisibilitySettings,
+  updateUserPreferences,
 } from "@/lib/api/settings";
 
 vi.mock("@/lib/api/client", () => ({
@@ -60,6 +62,45 @@ describe("settings api helpers", () => {
 
     expect(apiFetch).toHaveBeenCalledWith("/api/settings/brands?keyword=uni&active_only=1");
     expect(result.brands[0].name).toBe("UNIQLO");
+  });
+
+  it("fetchUserPreferences calls the preferences endpoint", async () => {
+    vi.mocked(apiFetch).mockResolvedValueOnce({
+      preferences: {
+        currentSeason: "spring",
+        defaultWearLogStatus: "planned",
+      },
+    });
+
+    const result = await fetchUserPreferences();
+
+    expect(apiFetch).toHaveBeenCalledWith("/api/settings/preferences");
+    expect(result.preferences.currentSeason).toBe("spring");
+  });
+
+  it("updateUserPreferences sends a PUT request", async () => {
+    vi.mocked(apiFetch).mockResolvedValueOnce({
+      message: "updated",
+      preferences: {
+        currentSeason: "winter",
+        defaultWearLogStatus: null,
+      },
+    });
+
+    const payload = {
+      currentSeason: "winter" as const,
+      defaultWearLogStatus: null,
+    };
+
+    await updateUserPreferences(payload);
+
+    expect(apiFetch).toHaveBeenCalledWith("/api/settings/preferences", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
   });
 
   it("createUserBrand sends a POST request", async () => {

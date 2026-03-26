@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import TopsPreviewSvg from "@/components/items/preview-svg/tops-preview-svg";
 import { buildSupportedCategoryOptions, fetchCategoryGroups } from "@/lib/api/categories";
 import { fetchCategoryVisibilitySettings } from "@/lib/api/settings";
@@ -23,6 +23,7 @@ type ItemsListProps = {
   availableCategoryValues: string[];
   availableSeasons: string[];
   availableTpos: string[];
+  initialSeasonFilter?: string;
 };
 
 type ItemSortValue = "updated_at_desc" | "name_asc";
@@ -158,6 +159,7 @@ export default function ItemsList({
   availableCategoryValues,
   availableSeasons,
   availableTpos,
+  initialSeasonFilter = "",
 }: ItemsListProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -175,6 +177,7 @@ export default function ItemsList({
   const [apiCategoryOptions, setApiCategoryOptions] = useState<CategoryOption[]>([
     ...ITEM_CATEGORIES,
   ]);
+  const initialSeasonAppliedRef = useRef(false);
 
   useEffect(() => {
     setDraftKeyword(keyword);
@@ -201,6 +204,19 @@ export default function ItemsList({
       scroll: false,
     });
   }, [categoryFilter, keyword, page, pathname, router, seasonFilter, sort, tpoFilter]);
+
+  useEffect(() => {
+    if (initialSeasonAppliedRef.current) {
+      return;
+    }
+
+    if (!initialSeasonFilter || seasonFilter) {
+      return;
+    }
+
+    initialSeasonAppliedRef.current = true;
+    updateQuery({ season: initialSeasonFilter, page: 1 });
+  }, [initialSeasonFilter, seasonFilter, updateQuery]);
 
   useEffect(() => {
     let active = true;

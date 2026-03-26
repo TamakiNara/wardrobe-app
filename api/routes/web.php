@@ -10,6 +10,7 @@ use App\Services\Items\ItemUpdateService;
 use App\Models\CategoryMaster;
 use App\Models\Item;
 use App\Models\Outfit;
+use App\Models\UserPreference;
 use App\Support\ItemPayloadBuilder;
 use App\Support\ItemsIndexQuery;
 use App\Support\OutfitsIndexQuery;
@@ -172,6 +173,48 @@ Route::prefix('api')->middleware(['web'])->group(function () {
                 'kana' => $brand->kana,
                 'is_active' => $brand->is_active,
                 'updated_at' => optional($brand->updated_at)?->toISOString(),
+            ],
+        ]);
+    });
+
+    Route::middleware('auth:web')->get('/settings/preferences', function (Request $request) {
+        $preference = $request->user()->preference;
+        $currentSeason = $preference?->current_season;
+
+        if ($currentSeason === 'all') {
+            $currentSeason = null;
+        }
+
+        return response()->json([
+            'preferences' => [
+                'currentSeason' => $currentSeason,
+                'defaultWearLogStatus' => $preference?->default_wear_log_status,
+            ],
+        ]);
+    });
+
+    Route::middleware('auth:web')->put('/settings/preferences', function (Request $request) {
+        $validated = $request->validate([
+            'currentSeason' => ['nullable', 'string', 'in:spring,summer,autumn,winter'],
+            'defaultWearLogStatus' => ['nullable', 'string', 'in:planned,worn'],
+        ]);
+
+        $user = $request->user();
+        $preference = UserPreference::query()->firstOrNew([
+            'user_id' => $user->id,
+        ]);
+
+        $preference->fill([
+            'current_season' => $validated['currentSeason'] ?? null,
+            'default_wear_log_status' => $validated['defaultWearLogStatus'] ?? null,
+        ]);
+        $preference->save();
+
+        return response()->json([
+            'message' => 'updated',
+            'preferences' => [
+                'currentSeason' => $preference->current_season === 'all' ? null : $preference->current_season,
+                'defaultWearLogStatus' => $preference->default_wear_log_status,
             ],
         ]);
     });
