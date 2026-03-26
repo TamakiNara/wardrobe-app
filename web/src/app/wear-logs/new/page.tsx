@@ -9,8 +9,33 @@ type PreferencesResponse = {
   };
 };
 
-export default async function NewWearLogPage() {
+type NewWearLogPageSearchParams = Record<string, string | string[] | undefined>;
+
+function getSearchParam(searchParams: NewWearLogPageSearchParams, key: string): string | null {
+  const value = searchParams[key];
+
+  if (Array.isArray(value)) {
+    return value[0] ?? null;
+  }
+
+  return value ?? null;
+}
+
+export default async function NewWearLogPage({
+  searchParams,
+}: {
+  searchParams?: Promise<NewWearLogPageSearchParams>;
+}) {
+  const resolvedSearchParams = (await searchParams) ?? {};
   let initialStatus: "planned" | "worn" = "planned";
+  const initialEventDate = (() => {
+    const value = getSearchParam(resolvedSearchParams, "event_date");
+    return value && /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : undefined;
+  })();
+  const initialDisplayOrder = (() => {
+    const value = Number(getSearchParam(resolvedSearchParams, "display_order") ?? "1");
+    return Number.isInteger(value) && value > 0 ? value : 1;
+  })();
 
   const preferencesRes = await fetchLaravelWithCookie("/api/settings/preferences");
 
@@ -54,7 +79,12 @@ export default async function NewWearLogPage() {
           </Link>
         </div>
 
-        <WearLogForm mode="create" initialStatus={initialStatus} />
+        <WearLogForm
+          mode="create"
+          initialStatus={initialStatus}
+          initialEventDate={initialEventDate}
+          initialDisplayOrder={initialDisplayOrder}
+        />
       </div>
     </main>
   );

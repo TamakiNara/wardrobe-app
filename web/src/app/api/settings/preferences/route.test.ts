@@ -22,6 +22,7 @@ describe("/api/settings/preferences route", () => {
           preferences: {
             currentSeason: "spring",
             defaultWearLogStatus: "planned",
+            calendarWeekStart: "monday",
           },
         }),
         {
@@ -68,6 +69,7 @@ describe("/api/settings/preferences route", () => {
             preferences: {
               currentSeason: "winter",
               defaultWearLogStatus: "worn",
+              calendarWeekStart: "sunday",
             },
           }),
           {
@@ -88,6 +90,7 @@ describe("/api/settings/preferences route", () => {
       body: JSON.stringify({
         currentSeason: "winter",
         defaultWearLogStatus: "worn",
+        calendarWeekStart: "sunday",
       }),
     });
 

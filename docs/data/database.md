@@ -25,6 +25,7 @@ wear logs も本資料の対象とし、その保存方針を定義します。
 - `purchase_candidate_seasons`
 - `purchase_candidate_tpos`
 - `purchase_candidate_images`
+- `user_preferences`
 - `user_brands`
 - `category_groups`
 - `category_master`
@@ -116,6 +117,7 @@ wear logs も本資料の対象とし、その保存方針を定義します。
 | user_id | bigint | 主キー兼 user FK |
 | current_season | string nullable | item / outfit 一覧の初期季節 |
 | default_wear_log_status | string nullable | wear log 新規作成時の初期 status |
+| calendar_week_start | string nullable | wear log カレンダーの週開始 |
 | created_at | timestamp | 作成日時 |
 | updated_at | timestamp | 更新日時 |
 
@@ -124,8 +126,10 @@ wear logs も本資料の対象とし、その保存方針を定義します。
 - 1 user = 1 record を前提とする
 - `current_season` は `spring / summer / autumn / winter / null`
 - `default_wear_log_status` は `planned / worn / null`
+- `calendar_week_start` は `monday / sunday / null`
 - `current_season` は URL に季節条件がないときの item 一覧 / コーディネート一覧初期表示にのみ使う
 - `default_wear_log_status` は wear log 新規作成画面の初期値にのみ使い、edit 画面では使わない
+- `calendar_week_start` は wear log カレンダーの週開始にのみ使い、未設定時は月曜始まりを既定とする
 
 ### `purchase_candidate_images`
 

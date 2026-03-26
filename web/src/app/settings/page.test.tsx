@@ -141,6 +141,7 @@ describe("SettingsPage", () => {
       preferences: {
         currentSeason: null,
         defaultWearLogStatus: null,
+        calendarWeekStart: null,
       },
     });
     fetchUserBrandsMock.mockResolvedValue({ brands: [] });
@@ -459,6 +460,7 @@ describe("SettingsPage", () => {
       preferences: {
         currentSeason: "spring",
         defaultWearLogStatus: "worn",
+        calendarWeekStart: "sunday",
       },
     });
 
@@ -471,10 +473,12 @@ describe("SettingsPage", () => {
 
     const currentSeasonSelect = container.querySelector<HTMLSelectElement>("#preferences-current-season");
     const defaultStatusSelect = container.querySelector<HTMLSelectElement>("#preferences-default-wear-log-status");
+    const weekStartSelect = container.querySelector<HTMLSelectElement>("#preferences-calendar-week-start");
 
     expect(container.textContent).toContain("表示・初期値設定");
     expect(currentSeasonSelect?.value).toBe("spring");
     expect(defaultStatusSelect?.value).toBe("worn");
+    expect(weekStartSelect?.value).toBe("sunday");
   });
 
   it("preference を保存できる", async () => {
@@ -487,6 +491,7 @@ describe("SettingsPage", () => {
       preferences: {
         currentSeason: "winter",
         defaultWearLogStatus: "planned",
+        calendarWeekStart: "sunday",
       },
     });
 
@@ -499,6 +504,7 @@ describe("SettingsPage", () => {
 
     const currentSeasonSelect = container.querySelector<HTMLSelectElement>("#preferences-current-season");
     const defaultStatusSelect = container.querySelector<HTMLSelectElement>("#preferences-default-wear-log-status");
+    const weekStartSelect = container.querySelector<HTMLSelectElement>("#preferences-calendar-week-start");
     const saveButton = Array.from(container.querySelectorAll<HTMLButtonElement>("button")).find(
       (button) => button.textContent === "個人設定を保存",
     );
@@ -508,6 +514,8 @@ describe("SettingsPage", () => {
       currentSeasonSelect!.dispatchEvent(new Event("change", { bubbles: true }));
       defaultStatusSelect!.value = "planned";
       defaultStatusSelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      weekStartSelect!.value = "sunday";
+      weekStartSelect!.dispatchEvent(new Event("change", { bubbles: true }));
       await waitForEffects();
     });
 
@@ -519,6 +527,7 @@ describe("SettingsPage", () => {
     expect(updateUserPreferencesMock).toHaveBeenCalledWith({
       currentSeason: "winter",
       defaultWearLogStatus: "planned",
+      calendarWeekStart: "sunday",
     });
     expect(container.textContent).toContain("表示・初期値設定を保存しました。");
   });

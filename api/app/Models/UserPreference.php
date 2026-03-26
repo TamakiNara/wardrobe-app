@@ -19,6 +19,7 @@ class UserPreference extends Model
         'user_id',
         'current_season',
         'default_wear_log_status',
+        'calendar_week_start',
     ];
 
     public function user(): BelongsTo

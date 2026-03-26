@@ -99,10 +99,12 @@ function SettingsPageContent() {
   const [preferences, setPreferences] = useState<UserPreferences>({
     currentSeason: null,
     defaultWearLogStatus: null,
+    calendarWeekStart: null,
   });
   const [savedPreferences, setSavedPreferences] = useState<UserPreferences>({
     currentSeason: null,
     defaultWearLogStatus: null,
+    calendarWeekStart: null,
   });
   const [preferencesSaving, setPreferencesSaving] = useState(false);
   const [preferencesSaveMessage, setPreferencesSaveMessage] = useState<string | null>(null);
@@ -233,7 +235,8 @@ function SettingsPageContent() {
   const hasPreferenceChanges = useMemo(() => {
     return (
       preferences.currentSeason !== savedPreferences.currentSeason ||
-      preferences.defaultWearLogStatus !== savedPreferences.defaultWearLogStatus
+      preferences.defaultWearLogStatus !== savedPreferences.defaultWearLogStatus ||
+      preferences.calendarWeekStart !== savedPreferences.calendarWeekStart
     );
   }, [preferences, savedPreferences]);
   const preferencesButtonDisabled = loading || preferencesSaving || !hasPreferenceChanges;
@@ -731,7 +734,7 @@ function SettingsPageContent() {
             </div>
           </div>
 
-          <div className="mt-6 grid gap-4 md:grid-cols-2">
+          <div className="mt-6 grid gap-4 md:grid-cols-3">
             <div>
               <label
                 htmlFor="preferences-current-season"
@@ -789,6 +792,34 @@ function SettingsPageContent() {
               </select>
               <p className="mt-2 text-xs text-gray-500">
                 着用履歴の新規登録画面でのみ初期値として使います。
+              </p>
+            </div>
+
+            <div>
+              <label
+                htmlFor="preferences-calendar-week-start"
+                className="mb-1 block text-sm font-medium text-gray-700"
+              >
+                カレンダーの週開始
+              </label>
+              <select
+                id="preferences-calendar-week-start"
+                value={preferences.calendarWeekStart === "sunday" ? "sunday" : ""}
+                onChange={(event) => {
+                  setPreferencesSaveMessage(null);
+                  setPreferencesSaveError(null);
+                  setPreferences((current) => ({
+                    ...current,
+                    calendarWeekStart: (event.target.value === "sunday" ? "sunday" : null) as UserPreferences["calendarWeekStart"],
+                  }));
+                }}
+                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              >
+                <option value="">月曜始まり</option>
+                <option value="sunday">日曜始まり</option>
+              </select>
+              <p className="mt-2 text-xs text-gray-500">
+                着用履歴カレンダーの曜日並びに使います。未設定時は月曜始まりです。
               </p>
             </div>
           </div>

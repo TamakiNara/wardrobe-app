@@ -6,6 +6,8 @@ use App\Models\Item;
 use App\Models\Outfit;
 use App\Models\User;
 use App\Models\WearLog;
+use App\Support\WearLogPayloadBuilder;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -59,6 +61,46 @@ class WearLogService
             ->where('user_id', $user->id)
             ->with(['sourceOutfit', 'wearLogItems.sourceItem'])
             ->findOrFail($wearLogId);
+    }
+
+    public function buildCalendarMonthSummary(User $user, string $month): array
+    {
+        $startOfMonth = CarbonImmutable::createFromFormat('Y-m', $month)->startOfMonth();
+        $endOfMonth = $startOfMonth->endOfMonth();
+
+        $wearLogs = WearLog::query()
+            ->where('user_id', $user->id)
+            ->whereBetween('event_date', [$startOfMonth->format('Y-m-d'), $endOfMonth->format('Y-m-d')])
+            ->orderBy('event_date')
+            ->orderBy('display_order')
+            ->get(['id', 'status', 'event_date', 'display_order']);
+
+        return [
+            'month' => $startOfMonth->format('Y-m'),
+            'days' => $wearLogs
+                ->groupBy(fn (WearLog $wearLog) => $wearLog->event_date?->format('Y-m-d'))
+                ->map(fn (Collection $entries, string $date) => WearLogPayloadBuilder::buildCalendarDaySummary($date, $entries))
+                ->values()
+                ->all(),
+        ];
+    }
+
+    public function buildByDateResponse(User $user, string $eventDate): array
+    {
+        $wearLogs = WearLog::query()
+            ->where('user_id', $user->id)
+            ->whereDate('event_date', $eventDate)
+            ->with('sourceOutfit')
+            ->withCount('wearLogItems')
+            ->orderBy('display_order')
+            ->get();
+
+        return [
+            'event_date' => $eventDate,
+            'wearLogs' => $wearLogs
+                ->map(fn (WearLog $wearLog) => WearLogPayloadBuilder::buildByDateListItem($wearLog))
+                ->all(),
+        ];
     }
 
     public function delete(User $user, int $wearLogId): void

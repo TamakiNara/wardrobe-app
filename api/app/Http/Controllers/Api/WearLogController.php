@@ -21,6 +21,28 @@ class WearLogController extends Controller
         return response()->json(WearLogsIndexQuery::build($request->user(), $request));
     }
 
+    public function calendar(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'month' => ['required', 'date_format:Y-m'],
+        ]);
+
+        return response()->json(
+            $this->wearLogService->buildCalendarMonthSummary($request->user(), $validated['month'])
+        );
+    }
+
+    public function byDate(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'event_date' => ['required', 'date'],
+        ]);
+
+        return response()->json(
+            $this->wearLogService->buildByDateResponse($request->user(), $validated['event_date'])
+        );
+    }
+
     public function show(Request $request, int $id): JsonResponse
     {
         $wearLog = $this->wearLogService->findOwnedWearLog($request->user(), $id);

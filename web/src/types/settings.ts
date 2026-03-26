@@ -9,6 +9,7 @@ export type UpdateCategoryVisibilitySettingsPayload = {
 export type UserPreferences = {
   currentSeason: "spring" | "summer" | "autumn" | "winter" | null;
   defaultWearLogStatus: "planned" | "worn" | null;
+  calendarWeekStart: "monday" | "sunday" | null;
 };
 
 export type UserPreferencesResponse = {
@@ -18,6 +19,7 @@ export type UserPreferencesResponse = {
 export type UpdateUserPreferencesPayload = {
   currentSeason: "spring" | "summer" | "autumn" | "winter" | null;
   defaultWearLogStatus: "planned" | "worn" | null;
+  calendarWeekStart: "monday" | "sunday" | null;
 };
 
 export type UserBrandRecord = {

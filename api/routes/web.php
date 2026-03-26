@@ -190,6 +190,7 @@ Route::prefix('api')->middleware(['web'])->group(function () {
         $validated = $request->validate([
             'currentSeason' => ['nullable', 'string', 'in:spring,summer,autumn,winter'],
             'defaultWearLogStatus' => ['nullable', 'string', 'in:planned,worn'],
+            'calendarWeekStart' => ['nullable', 'string', 'in:monday,sunday'],
         ]);
 
         $preference = app(UserPreferenceService::class)->update($request->user(), $validated);
@@ -584,6 +585,8 @@ Route::prefix('api')->middleware(['web'])->group(function () {
     // Wear Logs
     Route::middleware('auth:web')->get('/wear-logs', [WearLogController::class, 'index']);
     Route::middleware('auth:web')->post('/wear-logs', [WearLogController::class, 'store']);
+    Route::middleware('auth:web')->get('/wear-logs/calendar', [WearLogController::class, 'calendar']);
+    Route::middleware('auth:web')->get('/wear-logs/by-date', [WearLogController::class, 'byDate']);
     Route::middleware('auth:web')->get('/wear-logs/{id}', [WearLogController::class, 'show']);
     Route::middleware('auth:web')->put('/wear-logs/{id}', [WearLogController::class, 'update']);
     Route::middleware('auth:web')->delete('/wear-logs/{id}', [WearLogController::class, 'destroy']);

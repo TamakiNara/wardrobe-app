@@ -29,7 +29,8 @@ class SettingsPreferencesEndpointsTest extends TestCase
 
         $response->assertOk()
             ->assertJsonPath('preferences.currentSeason', null)
-            ->assertJsonPath('preferences.defaultWearLogStatus', null);
+            ->assertJsonPath('preferences.defaultWearLogStatus', null)
+            ->assertJsonPath('preferences.calendarWeekStart', null);
     }
 
     public function test_put_settings_preferences_stores_values(): void
@@ -42,6 +43,7 @@ class SettingsPreferencesEndpointsTest extends TestCase
         $response = $this->putJson('/api/settings/preferences', [
             'currentSeason' => 'spring',
             'defaultWearLogStatus' => 'worn',
+            'calendarWeekStart' => 'sunday',
         ], [
             'Accept' => 'application/json',
             'X-CSRF-TOKEN' => $token,
@@ -50,12 +52,14 @@ class SettingsPreferencesEndpointsTest extends TestCase
         $response->assertOk()
             ->assertJsonPath('message', 'updated')
             ->assertJsonPath('preferences.currentSeason', 'spring')
-            ->assertJsonPath('preferences.defaultWearLogStatus', 'worn');
+            ->assertJsonPath('preferences.defaultWearLogStatus', 'worn')
+            ->assertJsonPath('preferences.calendarWeekStart', 'sunday');
 
         $this->assertDatabaseHas('user_preferences', [
             'user_id' => $user->id,
             'current_season' => 'spring',
             'default_wear_log_status' => 'worn',
+            'calendar_week_start' => 'sunday',
         ]);
     }
 
@@ -69,6 +73,7 @@ class SettingsPreferencesEndpointsTest extends TestCase
         $response = $this->putJson('/api/settings/preferences', [
             'currentSeason' => null,
             'defaultWearLogStatus' => null,
+            'calendarWeekStart' => null,
         ], [
             'Accept' => 'application/json',
             'X-CSRF-TOKEN' => $token,
@@ -76,12 +81,14 @@ class SettingsPreferencesEndpointsTest extends TestCase
 
         $response->assertOk()
             ->assertJsonPath('preferences.currentSeason', null)
-            ->assertJsonPath('preferences.defaultWearLogStatus', null);
+            ->assertJsonPath('preferences.defaultWearLogStatus', null)
+            ->assertJsonPath('preferences.calendarWeekStart', null);
 
         $this->assertDatabaseHas('user_preferences', [
             'user_id' => $user->id,
             'current_season' => null,
             'default_wear_log_status' => null,
+            'calendar_week_start' => null,
         ]);
     }
 
@@ -101,5 +108,24 @@ class SettingsPreferencesEndpointsTest extends TestCase
         ])
             ->assertStatus(422)
             ->assertJsonValidationErrors(['currentSeason']);
+    }
+
+    public function test_put_settings_preferences_rejects_invalid_calendar_week_start(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $this->putJson('/api/settings/preferences', [
+            'currentSeason' => null,
+            'defaultWearLogStatus' => 'planned',
+            'calendarWeekStart' => 'friday',
+        ], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['calendarWeekStart']);
     }
 }

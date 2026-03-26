@@ -133,6 +133,164 @@ class WearLogEndpointsTest extends TestCase
             ->assertJsonPath('wearLogs.2.id', $laterSameDay->id);
     }
 
+    public function test_get_wear_log_calendar_returns_monthly_day_summaries_with_dots_and_overflow(): void
+    {
+        $user = User::factory()->create();
+        $otherUser = User::factory()->create();
+
+        $first = $this->createWearLog($user, [
+            'status' => 'planned',
+            'event_date' => '2026-03-05',
+            'display_order' => 1,
+        ]);
+        $second = $this->createWearLog($user, [
+            'status' => 'worn',
+            'event_date' => '2026-03-05',
+            'display_order' => 2,
+        ]);
+        $third = $this->createWearLog($user, [
+            'status' => 'planned',
+            'event_date' => '2026-03-05',
+            'display_order' => 3,
+        ]);
+        $fourth = $this->createWearLog($user, [
+            'status' => 'worn',
+            'event_date' => '2026-03-05',
+            'display_order' => 4,
+        ]);
+        $otherDay = $this->createWearLog($user, [
+            'status' => 'planned',
+            'event_date' => '2026-03-10',
+            'display_order' => 1,
+        ]);
+        $this->createWearLog($user, [
+            'status' => 'planned',
+            'event_date' => '2026-04-01',
+            'display_order' => 1,
+        ]);
+        $this->createWearLog($otherUser, [
+            'status' => 'worn',
+            'event_date' => '2026-03-05',
+            'display_order' => 1,
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->getJson('/api/wear-logs/calendar?month=2026-03', [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('month', '2026-03')
+            ->assertJsonCount(2, 'days')
+            ->assertJsonPath('days.0.date', '2026-03-05')
+            ->assertJsonPath('days.0.plannedCount', 2)
+            ->assertJsonPath('days.0.wornCount', 2)
+            ->assertJsonCount(3, 'days.0.dots')
+            ->assertJsonPath('days.0.dots.0.status', $first->status)
+            ->assertJsonPath('days.0.dots.1.status', $second->status)
+            ->assertJsonPath('days.0.dots.2.status', $third->status)
+            ->assertJsonPath('days.0.overflowCount', 1)
+            ->assertJsonPath('days.1.date', '2026-03-10')
+            ->assertJsonPath('days.1.plannedCount', 1)
+            ->assertJsonPath('days.1.wornCount', 0)
+            ->assertJsonPath('days.1.overflowCount', 0);
+    }
+
+    public function test_get_wear_log_calendar_returns_422_when_month_is_invalid(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user, 'web');
+
+        $response = $this->getJson('/api/wear-logs/calendar?month=2026/03', [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['month']);
+    }
+
+    public function test_get_wear_logs_by_date_returns_day_details_in_display_order(): void
+    {
+        $user = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $outfit = $this->createOutfit($user, ['name' => '通勤コーデ']);
+        $itemA = $this->createItem($user, ['name' => '白T']);
+        $itemB = $this->createItem($user, ['name' => 'ネイビーパンツ']);
+
+        $later = $this->createWearLog($user, [
+            'status' => 'worn',
+            'event_date' => '2026-03-05',
+            'display_order' => 2,
+            'source_outfit_id' => null,
+            'memo' => '2件目',
+        ]);
+        $later->wearLogItems()->createMany([
+            [
+                'source_item_id' => $itemA->id,
+                'sort_order' => 1,
+                'item_source_type' => 'manual',
+            ],
+            [
+                'source_item_id' => $itemB->id,
+                'sort_order' => 2,
+                'item_source_type' => 'manual',
+            ],
+        ]);
+
+        $earlier = $this->createWearLog($user, [
+            'status' => 'planned',
+            'event_date' => '2026-03-05',
+            'display_order' => 1,
+            'source_outfit_id' => $outfit->id,
+            'memo' => '1件目',
+        ]);
+        $earlier->wearLogItems()->create([
+            'source_item_id' => $itemA->id,
+            'sort_order' => 1,
+            'item_source_type' => 'outfit',
+        ]);
+
+        $this->createWearLog($otherUser, [
+            'status' => 'planned',
+            'event_date' => '2026-03-05',
+            'display_order' => 1,
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->getJson('/api/wear-logs/by-date?event_date=2026-03-05', [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('event_date', '2026-03-05')
+            ->assertJsonCount(2, 'wearLogs')
+            ->assertJsonPath('wearLogs.0.id', $earlier->id)
+            ->assertJsonPath('wearLogs.0.display_order', 1)
+            ->assertJsonPath('wearLogs.0.source_outfit_name', '通勤コーデ')
+            ->assertJsonPath('wearLogs.0.items_count', 1)
+            ->assertJsonPath('wearLogs.0.memo', '1件目')
+            ->assertJsonPath('wearLogs.1.id', $later->id)
+            ->assertJsonPath('wearLogs.1.display_order', 2)
+            ->assertJsonPath('wearLogs.1.source_outfit_name', null)
+            ->assertJsonPath('wearLogs.1.items_count', 2)
+            ->assertJsonPath('wearLogs.1.memo', '2件目');
+    }
+
+    public function test_get_wear_logs_by_date_returns_422_when_event_date_is_invalid(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user, 'web');
+
+        $response = $this->getJson('/api/wear-logs/by-date?event_date=not-a-date', [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['event_date']);
+    }
+
     public function test_post_wear_log_can_create_with_outfit_only(): void
     {
         $user = User::factory()->create();

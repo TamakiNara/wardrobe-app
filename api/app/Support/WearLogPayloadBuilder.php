@@ -6,6 +6,41 @@ use App\Models\WearLog;
 
 class WearLogPayloadBuilder
 {
+    public static function buildCalendarDaySummary(string $date, iterable $wearLogs): array
+    {
+        $entries = collect($wearLogs)->values();
+
+        return [
+            'date' => $date,
+            'plannedCount' => $entries->where('status', 'planned')->count(),
+            'wornCount' => $entries->where('status', 'worn')->count(),
+            'dots' => $entries
+                ->take(3)
+                ->map(fn ($wearLog) => [
+                    'status' => $wearLog->status,
+                ])
+                ->values()
+                ->all(),
+            'overflowCount' => max($entries->count() - 3, 0),
+        ];
+    }
+
+    public static function buildByDateListItem(WearLog $wearLog): array
+    {
+        $wearLog->loadMissing('sourceOutfit');
+        $wearLog->loadCount('wearLogItems');
+
+        return [
+            'id' => $wearLog->id,
+            'status' => $wearLog->status,
+            'event_date' => $wearLog->event_date?->format('Y-m-d'),
+            'display_order' => $wearLog->display_order,
+            'source_outfit_name' => $wearLog->sourceOutfit?->name,
+            'items_count' => $wearLog->wear_log_items_count ?? $wearLog->wearLogItems()->count(),
+            'memo' => $wearLog->memo,
+        ];
+    }
+
     public static function buildListItem(WearLog $wearLog): array
     {
         $wearLog->loadMissing(['sourceOutfit', 'wearLogItems.sourceItem']);

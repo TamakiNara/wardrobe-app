@@ -317,7 +317,7 @@ paths:
       tags:
         - Settings
       summary: 表示・初期値設定取得
-      description: "`currentSeason` と `defaultWearLogStatus` を返す。未設定時は null を返す。"
+      description: "`currentSeason` と `defaultWearLogStatus` と `calendarWeekStart` を返す。未設定時は null を返す。"
       security:
         - SessionCookieAuth: []
       responses:
@@ -334,7 +334,7 @@ paths:
         - Settings
       summary: 表示・初期値設定更新
       description: |
-        item / outfit 一覧の初期季節と、wear log 新規作成時の初期 status を更新する。
+        item / outfit 一覧の初期季節と、wear log 新規作成時の初期 status と、wear log カレンダーの週開始を更新する。
         一覧では URL の季節条件が優先され、URL に季節指定がない場合のみ `currentSeason` を初期値として使う。
       security:
         - SessionCookieAuth: []
@@ -941,6 +941,67 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/WearLogMutationResponse'
+        '401':
+          description: 未認証
+        '422':
+          description: バリデーションエラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+  /api/wear-logs/calendar:
+    get:
+      tags:
+        - Wear Logs
+      summary: wear log 月カレンダー集約取得
+      description: |
+        月カレンダー表示専用の軽量 API。
+        日付ごとの planned / worn 件数と、dot 表示用の最小情報を返す。
+      parameters:
+        - name: month
+          in: query
+          required: true
+          schema:
+            type: string
+            format: year-month
+            example: 2026-03
+      responses:
+        '200':
+          description: wear log 月カレンダー集約
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WearLogCalendarResponse'
+        '401':
+          description: 未認証
+        '422':
+          description: バリデーションエラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+  /api/wear-logs/by-date:
+    get:
+      tags:
+        - Wear Logs
+      summary: wear log 日別詳細取得
+      description: |
+        日付クリック後の日詳細シート表示専用 API。
+        当日の wear log を `display_order asc` で返す。
+      parameters:
+        - name: event_date
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: wear log 日別詳細
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WearLogByDateResponse'
         '401':
           description: 未認証
         '422':
@@ -1599,6 +1660,7 @@ components:
       required:
         - currentSeason
         - defaultWearLogStatus
+        - calendarWeekStart
       properties:
         currentSeason:
           type: string
@@ -1608,6 +1670,10 @@ components:
           type: string
           nullable: true
           enum: [planned, worn]
+        calendarWeekStart:
+          type: string
+          nullable: true
+          enum: [monday, sunday]
 
     UserPreferencesResponse:
       type: object
@@ -1628,6 +1694,10 @@ components:
           type: string
           nullable: true
           enum: [planned, worn]
+        calendarWeekStart:
+          type: string
+          nullable: true
+          enum: [monday, sunday]
 
     UserPreferencesUpdatedResponse:
       description: |
@@ -2526,6 +2596,100 @@ components:
       properties:
         wearLog:
           $ref: '#/components/schemas/WearLogDetail'
+
+    WearLogCalendarDot:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          $ref: '#/components/schemas/WearLogStatus'
+
+    WearLogCalendarDaySummary:
+      type: object
+      required:
+        - date
+        - plannedCount
+        - wornCount
+        - dots
+        - overflowCount
+      properties:
+        date:
+          type: string
+          format: date
+        plannedCount:
+          type: integer
+          example: 1
+        wornCount:
+          type: integer
+          example: 2
+        dots:
+          type: array
+          maxItems: 3
+          items:
+            $ref: '#/components/schemas/WearLogCalendarDot'
+        overflowCount:
+          type: integer
+          example: 1
+
+    WearLogCalendarResponse:
+      type: object
+      required:
+        - month
+        - days
+      properties:
+        month:
+          type: string
+          format: year-month
+          example: 2026-03
+        days:
+          type: array
+          items:
+            $ref: '#/components/schemas/WearLogCalendarDaySummary'
+
+    WearLogByDateItem:
+      type: object
+      required:
+        - id
+        - status
+        - event_date
+        - display_order
+        - items_count
+      properties:
+        id:
+          type: integer
+          example: 1
+        status:
+          $ref: '#/components/schemas/WearLogStatus'
+        event_date:
+          type: string
+          format: date
+        display_order:
+          type: integer
+          example: 1
+        source_outfit_name:
+          type: string
+          nullable: true
+        items_count:
+          type: integer
+          example: 2
+        memo:
+          type: string
+          nullable: true
+
+    WearLogByDateResponse:
+      type: object
+      required:
+        - event_date
+        - wearLogs
+      properties:
+        event_date:
+          type: string
+          format: date
+        wearLogs:
+          type: array
+          items:
+            $ref: '#/components/schemas/WearLogByDateItem'
 
     WearLogMutationResponse:
       description: |

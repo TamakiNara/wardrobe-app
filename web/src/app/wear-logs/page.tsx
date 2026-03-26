@@ -1,10 +1,27 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import WearLogCalendar from "@/components/wear-logs/wear-log-calendar";
 import { fetchLaravelWithCookie } from "@/lib/server/laravel";
 import { WEAR_LOG_STATUS_LABELS, getWearLogStatusLabel } from "@/lib/wear-logs/labels";
-import type { WearLogsResponse } from "@/types/wear-logs";
+import type { WearLogCalendarResponse, WearLogsResponse } from "@/types/wear-logs";
 
 type WearLogsPageSearchParams = Record<string, string | string[] | undefined>;
+type PreferencesResponse = {
+  preferences?: {
+    calendarWeekStart?: "monday" | "sunday" | null;
+  };
+};
+
+function normalizeMonth(value: string | string[] | undefined): string {
+  const rawValue = Array.isArray(value) ? value[0] : value;
+
+  if (rawValue && /^\d{4}-\d{2}$/.test(rawValue)) {
+    return rawValue;
+  }
+
+  const today = new Date();
+  return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`;
+}
 
 function buildQueryString(searchParams: WearLogsPageSearchParams): string {
   const params = new URLSearchParams();
@@ -76,13 +93,55 @@ async function getWearLogs(
   };
 }
 
+async function getWearLogCalendar(month: string): Promise<WearLogCalendarResponse> {
+  const response = await fetchLaravelWithCookie(`/api/wear-logs/calendar?month=${encodeURIComponent(month)}`);
+
+  if (response.status === 401) {
+    redirect("/login");
+  }
+
+  if (!response.ok) {
+    return {
+      month,
+      days: [],
+    };
+  }
+
+  const data = (await response.json()) as Partial<WearLogCalendarResponse>;
+
+  return {
+    month: data.month ?? month,
+    days: data.days ?? [],
+  };
+}
+
+async function getCalendarWeekStart(): Promise<"monday" | "sunday"> {
+  const response = await fetchLaravelWithCookie("/api/settings/preferences");
+
+  if (response.status === 401) {
+    redirect("/login");
+  }
+
+  if (!response.ok) {
+    return "monday";
+  }
+
+  const data = (await response.json()) as PreferencesResponse;
+  return data.preferences?.calendarWeekStart === "sunday" ? "sunday" : "monday";
+}
+
 export default async function WearLogsPage({
   searchParams,
 }: {
   searchParams: Promise<WearLogsPageSearchParams>;
 }) {
   const resolvedSearchParams = await searchParams;
-  const data = await getWearLogs(resolvedSearchParams);
+  const selectedMonth = normalizeMonth(resolvedSearchParams.month);
+  const [data, calendarData, calendarWeekStart] = await Promise.all([
+    getWearLogs(resolvedSearchParams),
+    getWearLogCalendar(selectedMonth),
+    getCalendarWeekStart(),
+  ]);
   const flashMessage = resolvedSearchParams.message === "deleted"
     ? "着用履歴を削除しました。"
     : null;
@@ -123,6 +182,7 @@ export default async function WearLogsPage({
 
         <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
           <form className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+            <input type="hidden" name="month" value={selectedMonth} />
             <div className="xl:col-span-2">
               <label className="mb-1 block text-sm font-medium text-gray-700">キーワード</label>
               <input
@@ -195,6 +255,12 @@ export default async function WearLogsPage({
             </div>
           </form>
         </section>
+
+        <WearLogCalendar
+          month={calendarData.month}
+          days={calendarData.days}
+          weekStart={calendarWeekStart}
+        />
 
         {data.meta.totalAll === 0 ? (
           <section className="rounded-2xl border border-dashed border-gray-300 bg-white p-10 text-center shadow-sm">

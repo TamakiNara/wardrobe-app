@@ -5,6 +5,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const headersMock = vi.fn();
 const redirectMock = vi.fn();
 const fetchMock = vi.fn();
+const replaceMock = vi.fn();
+const pushMock = vi.fn();
 
 vi.mock("next/headers", () => ({
   headers: headersMock,
@@ -12,6 +14,9 @@ vi.mock("next/headers", () => ({
 
 vi.mock("next/navigation", () => ({
   redirect: redirectMock,
+  usePathname: () => "/wear-logs",
+  useRouter: () => ({ replace: replaceMock, push: pushMock }),
+  useSearchParams: () => new URLSearchParams(),
 }));
 
 vi.mock("next/link", () => ({
@@ -41,6 +46,21 @@ describe("WearLogsPage", () => {
           lastPage: 1,
         },
       }),
+    }).mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        month: "2026-03",
+        days: [],
+      }),
+    }).mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        preferences: {
+          calendarWeekStart: "monday",
+        },
+      }),
     });
 
     const { default: WearLogsPage } = await import("./page");
@@ -50,6 +70,7 @@ describe("WearLogsPage", () => {
 
     expect(markup).toContain("着用履歴がまだありません");
     expect(markup).toContain("着用履歴を追加");
+    expect(markup).toContain("カレンダー");
   });
 
   it("一覧に予定 / 着用済み と詳細導線を表示する", async () => {
@@ -90,6 +111,29 @@ describe("WearLogsPage", () => {
           lastPage: 1,
         },
       }),
+    }).mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        month: "2026-03",
+        days: [
+          {
+            date: "2026-03-24",
+            plannedCount: 1,
+            wornCount: 0,
+            dots: [{ status: "planned" }],
+            overflowCount: 0,
+          },
+        ],
+      }),
+    }).mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        preferences: {
+          calendarWeekStart: "monday",
+        },
+      }),
     });
 
     const { default: WearLogsPage } = await import("./page");
@@ -103,6 +147,7 @@ describe("WearLogsPage", () => {
     expect(markup).toContain("アイテム 1 件");
     expect(markup).toContain("一部アイテムは現在利用不可です。");
     expect(markup).toContain('href="/wear-logs/1"');
+    expect(markup).toContain("2026年3月");
     expect(markup).not.toContain('href="/wear-logs/1/edit"');
     expect(markup).not.toContain(">削除<");
   });
@@ -118,6 +163,21 @@ describe("WearLogsPage", () => {
           totalAll: 0,
           page: 1,
           lastPage: 1,
+        },
+      }),
+    }).mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        month: "2026-03",
+        days: [],
+      }),
+    }).mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        preferences: {
+          calendarWeekStart: "monday",
         },
       }),
     });

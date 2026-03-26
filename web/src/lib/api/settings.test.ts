@@ -69,6 +69,7 @@ describe("settings api helpers", () => {
       preferences: {
         currentSeason: "spring",
         defaultWearLogStatus: "planned",
+        calendarWeekStart: "monday",
       },
     });
 
@@ -84,12 +85,14 @@ describe("settings api helpers", () => {
       preferences: {
         currentSeason: "winter",
         defaultWearLogStatus: null,
+        calendarWeekStart: "sunday",
       },
     });
 
     const payload = {
       currentSeason: "winter" as const,
       defaultWearLogStatus: null,
+      calendarWeekStart: "sunday" as const,
     };
 
     await updateUserPreferences(payload);

@@ -21,6 +21,7 @@ class UserPreferenceService
         $preference->fill([
             'current_season' => $validated['currentSeason'] ?? null,
             'default_wear_log_status' => $validated['defaultWearLogStatus'] ?? null,
+            'calendar_week_start' => $validated['calendarWeekStart'] ?? null,
         ]);
         $preference->save();
 

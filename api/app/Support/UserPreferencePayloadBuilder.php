@@ -17,6 +17,7 @@ class UserPreferencePayloadBuilder
         return [
             'currentSeason' => $currentSeason,
             'defaultWearLogStatus' => $preference?->default_wear_log_status,
+            'calendarWeekStart' => $preference?->calendar_week_start,
         ];
     }
 }

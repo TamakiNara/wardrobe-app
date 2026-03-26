@@ -37,6 +37,7 @@
 - `user_id`
 - `current_season` nullable
 - `default_wear_log_status` nullable
+- `calendar_week_start` nullable
 - `created_at`
 - `updated_at`
 
@@ -68,11 +69,18 @@
 - `worn`
 - `null`
 
+#### `calendar_week_start`
+
+- `monday`
+- `sunday`
+- `null`
+
 ### 方針
 
 - `null` は「未設定」を表す
 - user 登録時に preferences record を同時作成してもよいし、初回 settings 保存時作成でもよい
 - MVP では 1 record 集約のシンプル構成を優先する
+- `calendar_week_start = null` の場合は、wear log カレンダーを月曜始まりで扱う
 
 ---
 
@@ -145,6 +153,7 @@ settings には「重い設定」と「軽い設定」を分けて置くが、AP
 
 - `currentSeason`
 - `defaultWearLogStatus`
+- `calendarWeekStart`
 
 ### API 第一候補
 
@@ -157,7 +166,8 @@ settings には「重い設定」と「軽い設定」を分けて置くが、AP
 {
   "preferences": {
     "currentSeason": "spring",
-    "defaultWearLogStatus": "planned"
+    "defaultWearLogStatus": "planned",
+    "calendarWeekStart": "monday"
   }
 }
 ```
@@ -167,7 +177,8 @@ settings には「重い設定」と「軽い設定」を分けて置くが、AP
 ```json
 {
   "currentSeason": "spring",
-  "defaultWearLogStatus": "planned"
+  "defaultWearLogStatus": "planned",
+  "calendarWeekStart": "monday"
 }
 ```
 
@@ -175,12 +186,14 @@ settings には「重い設定」と「軽い設定」を分けて置くが、AP
 
 - `currentSeason`: nullable + 許可値のみ
 - `defaultWearLogStatus`: nullable + 許可値のみ
+- `calendarWeekStart`: nullable + `monday|sunday`
 
 ### UI 方針
 
 - settings 画面の軽い設定セクションに置く
 - `currentSeason` は単一選択
 - `defaultWearLogStatus` も単一選択
+- `calendarWeekStart` は `月曜始まり / 日曜始まり` の2択で表示し、`月曜始まり` を既定とする
 - 未設定に戻せる導線を持つ
 
 ---
@@ -378,11 +391,14 @@ current:
 
 カレンダーAPI + 月表示 / 日詳細シート
 
+current:
+
 - `GET /api/wear-logs/calendar`
 - `GET /api/wear-logs/by-date`
 - 月カレンダー表示
 - 日詳細シート
 - 個別詳細への遷移導線
+- 空日でも日詳細シートを開き、`この日で新規作成` 導線を出す
 
 ### 第3弾
 

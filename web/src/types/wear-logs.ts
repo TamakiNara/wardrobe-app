@@ -71,3 +71,35 @@ export type WearLogMutationResponse = {
   message: string;
   wearLog: WearLogRecord;
 };
+
+export type WearLogCalendarDot = {
+  status: WearLogStatus;
+};
+
+export type WearLogCalendarDaySummary = {
+  date: string;
+  plannedCount: number;
+  wornCount: number;
+  dots: WearLogCalendarDot[];
+  overflowCount: number;
+};
+
+export type WearLogCalendarResponse = {
+  month: string;
+  days: WearLogCalendarDaySummary[];
+};
+
+export type WearLogByDateItem = {
+  id: number;
+  status: WearLogStatus;
+  event_date: string;
+  display_order: number;
+  source_outfit_name: string | null;
+  items_count: number;
+  memo: string | null;
+};
+
+export type WearLogByDateResponse = {
+  event_date: string;
+  wearLogs: WearLogByDateItem[];
+};
