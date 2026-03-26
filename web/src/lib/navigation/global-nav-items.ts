@@ -1,5 +1,11 @@
 export type GlobalNavItem = {
-  key: "home" | "items" | "outfits" | "purchase-candidates" | "settings";
+  key:
+    | "home"
+    | "items"
+    | "outfits"
+    | "purchase-candidates"
+    | "wear-logs"
+    | "settings";
   label: string;
   href: string;
   matches: (pathname: string) => boolean;
@@ -39,6 +45,12 @@ export const globalNavItems: GlobalNavItem[] = [
     matches: (pathname) => isNestedPath(pathname, "/purchase-candidates"),
   },
   {
+    key: "wear-logs",
+    label: "着用履歴",
+    href: "/wear-logs",
+    matches: (pathname) => isNestedPath(pathname, "/wear-logs"),
+  },
+  {
     key: "settings",
     label: "設定",
     href: "/settings",
@@ -47,10 +59,7 @@ export const globalNavItems: GlobalNavItem[] = [
 ];
 
 export function shouldShowGlobalNav(pathname: string): boolean {
-  return (
-    globalNavItems.some((item) => item.matches(pathname)) ||
-    isNestedPath(pathname, "/wear-logs")
-  );
+  return globalNavItems.some((item) => item.matches(pathname));
 }
 
 export function findActiveGlobalNavItem(pathname: string): GlobalNavItem | null {

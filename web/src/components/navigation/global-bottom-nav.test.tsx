@@ -65,4 +65,21 @@ describe("GlobalBottomNav", () => {
     expect(activeLink?.getAttribute("href")).toBe("/purchase-candidates");
     expect(activeLink?.textContent).toContain("購入検討");
   });
+
+  it("wear logs 配下では一覧・詳細・新規作成・編集のいずれでも着用履歴タブをアクティブにする", async () => {
+    const { default: GlobalBottomNav } = await import("./global-bottom-nav");
+
+    for (const pathname of ["/wear-logs", "/wear-logs/12", "/wear-logs/new", "/wear-logs/12/edit"]) {
+      usePathnameMock.mockReturnValue(pathname);
+
+      await act(async () => {
+        root.render(React.createElement(GlobalBottomNav));
+      });
+
+      const activeLink = container.querySelector('[aria-current="page"]');
+
+      expect(activeLink?.getAttribute("href")).toBe("/wear-logs");
+      expect(activeLink?.textContent).toContain("着用履歴");
+    }
+  });
 });

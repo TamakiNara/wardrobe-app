@@ -1,7 +1,14 @@
 "use client";
 
 import type { LucideIcon } from "lucide-react";
-import { House, Settings, Shirt, ShoppingBag, Sparkles } from "lucide-react";
+import {
+  CalendarDays,
+  House,
+  Settings,
+  Shirt,
+  ShoppingBag,
+  Sparkles,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -14,6 +21,7 @@ const navIcons: Record<string, LucideIcon> = {
   items: Shirt,
   outfits: Sparkles,
   "purchase-candidates": ShoppingBag,
+  "wear-logs": CalendarDays,
   settings: Settings,
 };
 
@@ -31,7 +39,7 @@ export default function GlobalBottomNav() {
       className="fixed right-0 bottom-0 left-0 z-50"
     >
       <div className="mx-auto max-w-screen-sm px-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)]">
-        <div className="grid h-16 grid-cols-5 rounded-2xl border border-gray-200 bg-white/95 p-1 shadow-lg shadow-gray-200/70 backdrop-blur">
+        <div className="grid h-16 grid-cols-6 rounded-2xl border border-gray-200 bg-white/95 p-1 shadow-lg shadow-gray-200/70 backdrop-blur">
           {globalNavItems.map((item) => {
             const isActive = activeItem?.key === item.key;
             const Icon = navIcons[item.key];
