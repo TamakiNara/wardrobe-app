@@ -53,7 +53,7 @@ wear logs も本資料の対象とし、その保存方針を定義します。
 | purchase_url | text nullable | 商品ページ URL |
 | memo | text nullable | 自由メモ |
 | wanted_reason | text nullable | 欲しい理由 |
-| size_gender | string nullable | `women` / `men` / `unisex` / `unknown` |
+| size_gender | string nullable | `women` / `men` / `unisex` |
 | size_label | string nullable | S / M / L / FREE など |
 | size_note | string nullable | サイズ補足 |
 | is_rain_ok | boolean default false | 雨対応フラグ |

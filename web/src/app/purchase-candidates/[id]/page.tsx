@@ -210,7 +210,7 @@ export default async function PurchaseCandidateDetailPage({
                 </div>
                 <div className="flex items-center justify-between gap-3">
                   <dt>サイズ区分</dt>
-                  <dd>{candidate.size_gender ? PURCHASE_CANDIDATE_SIZE_GENDER_LABELS[candidate.size_gender] : "未設定"}</dd>
+                  <dd>{candidate.size_gender ? (PURCHASE_CANDIDATE_SIZE_GENDER_LABELS[candidate.size_gender] ?? "未設定") : "未設定"}</dd>
                 </div>
                 <div className="flex items-center justify-between gap-3">
                   <dt>購入 URL</dt>

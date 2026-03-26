@@ -59,7 +59,7 @@ export default function NewItemPage() {
   const [purchaseUrl, setPurchaseUrl] = useState("");
   const [memo, setMemo] = useState("");
   const [purchasedAt, setPurchasedAt] = useState("");
-  const [sizeGender, setSizeGender] = useState<"women" | "men" | "unisex" | "unknown" | "">("");
+  const [sizeGender, setSizeGender] = useState<"women" | "men" | "unisex" | "">("");
   const [sizeLabel, setSizeLabel] = useState("");
   const [sizeNote, setSizeNote] = useState("");
   const [sizeDetailsNote, setSizeDetailsNote] = useState("");
@@ -564,10 +564,10 @@ export default function NewItemPage() {
                 <select
                   id="size-gender"
                   value={sizeGender}
-                  onChange={(e) => setSizeGender(e.target.value as "women" | "men" | "unisex" | "unknown" | "")}
+                  onChange={(e) => setSizeGender(e.target.value as "women" | "men" | "unisex" | "")}
                   className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                 >
-                  <option value="">選択してください</option>
+                  <option value=""></option>
                   {Object.entries(ITEM_SIZE_GENDER_LABELS).map(([value, label]) => (
                     <option key={value} value={value}>
                       {label}
@@ -583,6 +583,7 @@ export default function NewItemPage() {
                 <input
                   id="size-label"
                   type="text"
+                  placeholder="例: M / 23.5cm"
                   value={sizeLabel}
                   onChange={(e) => setSizeLabel(e.target.value)}
                   className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
@@ -590,7 +591,7 @@ export default function NewItemPage() {
               </div>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-[1fr_auto] md:items-end">
+            <div className="grid gap-4 md:grid-cols-[1fr_auto]">
               <div>
                 <label htmlFor="size-note" className="mb-1 block text-sm font-medium text-gray-700">
                   サイズ補足
@@ -604,15 +605,20 @@ export default function NewItemPage() {
                 />
               </div>
 
-              <label className="inline-flex h-[50px] items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700">
-                <input
-                  type="checkbox"
-                  checked={isRainOk}
-                  onChange={(e) => setIsRainOk(e.target.checked)}
-                  className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                />
-                雨対応
-              </label>
+              <div>
+                <div className="mb-1 block text-sm font-medium text-transparent" aria-hidden="true">
+                  雨対応
+                </div>
+                <label className="inline-flex h-[50px] w-full items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700">
+                  <input
+                    type="checkbox"
+                    checked={isRainOk}
+                    onChange={(e) => setIsRainOk(e.target.checked)}
+                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  雨対応
+                </label>
+              </div>
             </div>
 
             <div>

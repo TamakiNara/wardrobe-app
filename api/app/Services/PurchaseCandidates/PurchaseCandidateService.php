@@ -374,7 +374,14 @@ class PurchaseCandidateService
             $extension !== '' ? '.' . $extension : ''
         );
 
-        $storage->put($destinationPath, $storage->get($image->path));
+        $contents = $storage->get($image->path);
+        if (! is_string($contents)) {
+            throw ValidationException::withMessages([
+                'images' => '複製元画像が読み込めません。',
+            ]);
+        }
+
+        $storage->put($destinationPath, $contents);
         $copiedFiles[] = [
             'disk' => $image->disk,
             'path' => $destinationPath,

@@ -5,7 +5,6 @@ export const ITEM_SIZE_GENDER_LABELS = {
   women: "レディース",
   men: "メンズ",
   unisex: "ユニセックス",
-  unknown: "未指定",
 } as const;
 
 export function formatItemPrice(price: number | null): string {

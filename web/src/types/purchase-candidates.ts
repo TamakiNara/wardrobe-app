@@ -57,7 +57,7 @@ export type PurchaseCandidateRecord = {
   purchase_url: string | null;
   memo: string | null;
   wanted_reason: string | null;
-  size_gender: "women" | "men" | "unisex" | "unknown" | null;
+  size_gender: "women" | "men" | "unisex" | null;
   size_label: string | null;
   size_note: string | null;
   is_rain_ok: boolean;
@@ -97,7 +97,7 @@ export type PurchaseCandidateUpsertPayload = {
   purchase_url: string | null;
   memo: string | null;
   wanted_reason: string | null;
-  size_gender: "women" | "men" | "unisex" | "unknown" | null;
+  size_gender: "women" | "men" | "unisex" | null;
   size_label: string | null;
   size_note: string | null;
   is_rain_ok: boolean;
@@ -120,7 +120,7 @@ export type PurchaseCandidateItemDraftPayload = {
   price: number | null;
   purchase_url: string | null;
   memo: string | null;
-  size_gender: "women" | "men" | "unisex" | "unknown" | null;
+  size_gender: "women" | "men" | "unisex" | null;
   size_label: string | null;
   size_note: string | null;
   purchased_at: string | null;

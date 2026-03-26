@@ -12,6 +12,7 @@ type ColorSelectProps = {
   onChange: (value: ItemColorValue | "") => void;
   placeholder: string;
   emptyOptionLabel?: string;
+  disabled?: boolean;
 };
 
 export default function ColorSelect({
@@ -19,6 +20,7 @@ export default function ColorSelect({
   onChange,
   placeholder,
   emptyOptionLabel,
+  disabled = false,
 }: ColorSelectProps) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement | null>(null);
@@ -54,8 +56,9 @@ export default function ColorSelect({
     <div ref={rootRef} className="relative">
       <button
         type="button"
+        disabled={disabled}
         onClick={() => setOpen((current) => !current)}
-        className="flex w-full items-center justify-between gap-3 rounded-lg border border-gray-300 bg-white px-4 py-3 text-left text-gray-900 outline-none transition hover:border-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+        className="flex w-full items-center justify-between gap-3 rounded-lg border border-gray-300 bg-white px-4 py-3 text-left text-gray-900 outline-none transition hover:border-gray-400 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
         aria-haspopup="listbox"
         aria-expanded={open}
       >
@@ -78,7 +81,7 @@ export default function ColorSelect({
         <span className="shrink-0 text-xs text-gray-500">{open ? "閉じる" : "選択"}</span>
       </button>
 
-      {open && (
+      {open && !disabled && (
         <div className="absolute z-20 mt-2 max-h-96 w-full overflow-y-auto rounded-xl border border-gray-200 bg-white p-2 shadow-lg">
           {emptyOptionLabel && (
             <button

@@ -133,7 +133,7 @@ describe("PurchaseCandidateDetailPage", () => {
       await PurchaseCandidateDetailPage({ params: Promise.resolve({ id: "11" }) }),
     );
 
-    expect(markup).toContain("購入済みの購入検討");
+    expect(markup).toContain("この購入検討はアイテム化済みの履歴です。");
     expect(markup).toContain("duplicate-action");
     expect(markup).not.toContain("item-draft-action");
   });

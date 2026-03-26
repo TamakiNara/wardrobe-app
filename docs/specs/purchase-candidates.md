@@ -855,7 +855,6 @@ current 実装では、`purchase_candidate_id` を受けた item 作成時に、
 - `women`
 - `men`
 - `unisex`
-- `unknown`
 
 ## `priority`
 

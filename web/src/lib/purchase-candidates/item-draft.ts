@@ -15,7 +15,7 @@ export type PurchaseCandidateItemDraft = {
   price: number | null;
   purchaseUrl: string | null;
   memo: string | null;
-  sizeGender: "women" | "men" | "unisex" | "unknown" | null;
+  sizeGender: "women" | "men" | "unisex" | null;
   sizeLabel: string | null;
   sizeNote: string | null;
   purchasedAt: string | null;

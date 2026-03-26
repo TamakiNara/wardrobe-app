@@ -1714,7 +1714,6 @@ components:
             - women
             - men
             - unisex
-            - unknown
         size_label:
           type: string
           nullable: true
@@ -1805,7 +1804,6 @@ components:
             - women
             - men
             - unisex
-            - unknown
         size_label:
           type: string
           nullable: true
@@ -2510,7 +2508,6 @@ components:
         - women
         - men
         - unisex
-        - unknown
 
     PurchaseCandidateImageRecord:
       type: object

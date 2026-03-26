@@ -510,12 +510,22 @@ describe("WearLogForm", () => {
         "value",
       )?.set;
       setter?.call(searchInput, "休日");
-      searchInput?.dispatchEvent(new Event("input", { bubbles: true }));
+      searchInput?.dispatchEvent(new Event("change", { bubbles: true }));
       await waitForEffects();
     });
 
     expect(container.textContent).toContain("休日コーデ");
     expect(container.textContent).not.toContain("通勤コーデ");
+
+    await act(async () => {
+      const setter = Object.getOwnPropertyDescriptor(
+        window.HTMLInputElement.prototype,
+        "value",
+      )?.set;
+      setter?.call(searchInput, "");
+      searchInput?.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
 
     await act(async () => {
       const setter = Object.getOwnPropertyDescriptor(
@@ -529,7 +539,8 @@ describe("WearLogForm", () => {
       await waitForEffects();
     });
 
-    expect(container.textContent).toContain("条件に一致するコーディネート候補がありません。");
+    expect(container.textContent).toContain("通勤コーデ");
+    expect(container.textContent).not.toContain("休日コーデ");
   });
 
   it("アイテム候補を名前やカテゴリ・季節・TPOで絞り込めて、0件表示もできる", async () => {
@@ -590,12 +601,22 @@ describe("WearLogForm", () => {
         "value",
       )?.set;
       setter?.call(searchInput, "ボトムス");
-      searchInput?.dispatchEvent(new Event("input", { bubbles: true }));
+      searchInput?.dispatchEvent(new Event("change", { bubbles: true }));
       await waitForEffects();
     });
 
     expect(container.textContent).toContain("ネイビーパンツ");
     expect(container.textContent).not.toContain("白T");
+
+    await act(async () => {
+      const setter = Object.getOwnPropertyDescriptor(
+        window.HTMLInputElement.prototype,
+        "value",
+      )?.set;
+      setter?.call(searchInput, "");
+      searchInput?.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
 
     await act(async () => {
       const setter = Object.getOwnPropertyDescriptor(
@@ -620,7 +641,7 @@ describe("WearLogForm", () => {
         "value",
       )?.set;
       setter?.call(searchInput, "該当なし");
-      searchInput?.dispatchEvent(new Event("input", { bubbles: true }));
+      searchInput?.dispatchEvent(new Event("change", { bubbles: true }));
       await waitForEffects();
     });
 

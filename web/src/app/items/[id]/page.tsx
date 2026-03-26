@@ -211,7 +211,7 @@ export default async function ItemPage({
             </div>
             <div>
               <dt className="text-sm font-medium text-gray-700">サイズ区分</dt>
-              <dd className="mt-1 text-sm text-gray-600">{item.size_gender ? ITEM_SIZE_GENDER_LABELS[item.size_gender] : "未設定"}</dd>
+              <dd className="mt-1 text-sm text-gray-600">{item.size_gender ? (ITEM_SIZE_GENDER_LABELS[item.size_gender] ?? "未設定") : "未設定"}</dd>
             </div>
             <div>
               <dt className="text-sm font-medium text-gray-700">サイズ表記</dt>

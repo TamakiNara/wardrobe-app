@@ -105,7 +105,7 @@ OpenAPI に明示する error response の基準を短く見返すときも `doc
 - `dropped` は見送り履歴を残す状態であり、DELETE は登録ミスや重複削除用として役割を分ける
 - candidate から item へ全画像を引き継ぐ方針は UX 上は自然で、保存時には item 用保存先へ物理コピーする
 - item 側画像と別管理である点を UI 上でも誤解されないよう整理が必要
-- `size_gender` の内部値は `women / men / unisex / unknown` を想定しており、カテゴリプリセットの `male / female / custom` 命名とズレるため、表示ラベル変換ルールを後続整理したい
+- `size_gender` の内部値は `women / men / unisex` を想定しており、カテゴリプリセットの `male / female / custom` 命名とズレるため、表示ラベル変換ルールを後続整理したい
 - items は現行 DB で `colors / seasons / tpos` を JSON で持つが、purchase_candidates 実装時は API / `item-draft` を配列で統一し、Laravel 側で構造差を吸収する
 - candidate は `category_id` を正本にしつつ、`item-draft` では current item API 用の `category` / `shape` を返す前提とする
 

@@ -320,6 +320,34 @@ class ItemsEndpointsTest extends TestCase
         );
     }
 
+    public function test_post_items_rejects_unknown_size_gender(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/items', [
+            'name' => 'サイズ区分テスト',
+            'category' => 'tops',
+            'shape' => 'tshirt',
+            'size_gender' => 'unknown',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'white',
+                'hex' => '#eeeeee',
+                'label' => 'ホワイト',
+            ]],
+            'seasons' => [],
+            'tpos' => [],
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['size_gender']);
+    }
+
     public function test_post_items_can_save_brand_name_and_add_brand_candidate(): void
     {
         $user = User::factory()->create();

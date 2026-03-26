@@ -219,6 +219,38 @@ class PurchaseCandidateEndpointsTest extends TestCase
         ]);
     }
 
+    public function test_post_purchase_candidate_rejects_unknown_size_gender(): void
+    {
+        $user = User::factory()->create();
+        $this->createCategory('tops_shirt', 'tops', 'シャツ / ブラウス');
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $response = $this->postJson('/api/purchase-candidates', [
+            'status' => 'considering',
+            'priority' => 'medium',
+            'name' => '白シャツ候補',
+            'category_id' => 'tops_shirt',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'white',
+                'hex' => '#ffffff',
+                'label' => 'ホワイト',
+            ]],
+            'seasons' => [],
+            'tpos' => [],
+            'size_gender' => 'unknown',
+        ], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['size_gender']);
+    }
+
     public function test_put_purchase_candidate_updates_candidate(): void
     {
         $user = User::factory()->create();

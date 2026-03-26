@@ -136,7 +136,7 @@ class PurchaseCandidateController extends Controller
             'purchase_url' => ['nullable', 'url'],
             'memo' => ['nullable', 'string'],
             'wanted_reason' => ['nullable', 'string'],
-            'size_gender' => ['nullable', 'string', 'in:women,men,unisex,unknown'],
+            'size_gender' => ['nullable', 'string', 'in:women,men,unisex'],
             'size_label' => ['nullable', 'string', 'max:50'],
             'size_note' => ['nullable', 'string'],
             'is_rain_ok' => ['nullable', 'boolean'],

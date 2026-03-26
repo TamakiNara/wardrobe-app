@@ -20,7 +20,6 @@ export const PURCHASE_CANDIDATE_SIZE_GENDER_LABELS = {
   women: "レディース",
   men: "メンズ",
   unisex: "ユニセックス",
-  unknown: "未指定",
 } as const;
 
 export const PURCHASE_CANDIDATE_COLOR_ROLE_LABELS = {

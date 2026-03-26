@@ -135,7 +135,7 @@ export default function PurchaseCandidateForm({
   const [purchaseUrl, setPurchaseUrl] = useState("");
   const [wantedReason, setWantedReason] = useState("");
   const [memo, setMemo] = useState("");
-  const [sizeGender, setSizeGender] = useState<"women" | "men" | "unisex" | "unknown" | "">("");
+  const [sizeGender, setSizeGender] = useState<"women" | "men" | "unisex" | "">("");
   const [sizeLabel, setSizeLabel] = useState("");
   const [sizeNote, setSizeNote] = useState("");
   const [isRainOk, setIsRainOk] = useState(false);
@@ -695,11 +695,10 @@ export default function PurchaseCandidateForm({
               disabled={isPurchasedLocked}
               className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             >
-              <option value="">未設定</option>
+              <option value=""></option>
               <option value="women">{PURCHASE_CANDIDATE_SIZE_GENDER_LABELS.women}</option>
               <option value="men">{PURCHASE_CANDIDATE_SIZE_GENDER_LABELS.men}</option>
               <option value="unisex">{PURCHASE_CANDIDATE_SIZE_GENDER_LABELS.unisex}</option>
-              <option value="unknown">{PURCHASE_CANDIDATE_SIZE_GENDER_LABELS.unknown}</option>
             </select>
           </div>
 
@@ -710,6 +709,7 @@ export default function PurchaseCandidateForm({
             <input
               id="size_label"
               type="text"
+              placeholder="例: M / 23.5cm"
               value={sizeLabel}
               onChange={(event) => setSizeLabel(event.target.value)}
               disabled={isPurchasedLocked}
@@ -717,16 +717,21 @@ export default function PurchaseCandidateForm({
             />
           </div>
 
-          <label className="inline-flex h-[50px] items-center gap-3 rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700">
-            <input
-              type="checkbox"
-              checked={isRainOk}
-              onChange={(event) => setIsRainOk(event.target.checked)}
-              disabled={isPurchasedLocked}
-              className="h-4 w-4 rounded border-gray-300 text-blue-600"
-            />
-            雨対応
-          </label>
+          <div>
+            <div className="mb-1 block text-sm font-medium text-transparent" aria-hidden="true">
+              雨対応
+            </div>
+            <label className="inline-flex h-[50px] w-full items-center gap-3 rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700">
+              <input
+                type="checkbox"
+                checked={isRainOk}
+                onChange={(event) => setIsRainOk(event.target.checked)}
+                disabled={isPurchasedLocked}
+                className="h-4 w-4 rounded border-gray-300 text-blue-600"
+              />
+              雨対応
+            </label>
+          </div>
         </div>
 
         <div>

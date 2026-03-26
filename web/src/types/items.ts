@@ -41,7 +41,7 @@ export type CreateItemPayload = {
   purchase_url: string | null;
   memo: string | null;
   purchased_at: string | null;
-  size_gender: "women" | "men" | "unisex" | "unknown" | null;
+  size_gender: "women" | "men" | "unisex" | null;
   size_label: string | null;
   size_note: string | null;
   size_details: {
@@ -68,7 +68,7 @@ export type ItemRecord = {
   purchase_url?: string | null;
   memo?: string | null;
   purchased_at?: string | null;
-  size_gender?: "women" | "men" | "unisex" | "unknown" | null;
+  size_gender?: "women" | "men" | "unisex" | null;
   size_label?: string | null;
   size_note?: string | null;
   size_details?: {
