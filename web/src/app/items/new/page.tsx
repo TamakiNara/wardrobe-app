@@ -57,6 +57,7 @@ export default function NewItemPage() {
   const [saveBrandAsCandidate, setSaveBrandAsCandidate] = useState(false);
   const [price, setPrice] = useState("");
   const [purchaseUrl, setPurchaseUrl] = useState("");
+  const [memo, setMemo] = useState("");
   const [purchasedAt, setPurchasedAt] = useState("");
   const [sizeGender, setSizeGender] = useState<"women" | "men" | "unisex" | "unknown" | "">("");
   const [sizeLabel, setSizeLabel] = useState("");
@@ -197,6 +198,7 @@ export default function NewItemPage() {
     setBrandName(draft.brandName ?? "");
     setPrice(draft.price === null ? "" : String(draft.price));
     setPurchaseUrl(draft.purchaseUrl ?? "");
+    setMemo(draft.memo ?? "");
     setPurchasedAt(draft.purchasedAt ?? "");
     setSizeGender(draft.sizeGender ?? "");
     setSizeLabel(draft.sizeLabel ?? "");
@@ -290,6 +292,7 @@ export default function NewItemPage() {
       save_brand_as_candidate: saveBrandAsCandidate,
       price: price === "" ? null : Number(price),
       purchase_url: purchaseUrl.trim() || null,
+      memo: memo.trim() || null,
       purchased_at: purchasedAt || null,
       size_gender: sizeGender || null,
       size_label: sizeLabel.trim() || null,
@@ -538,6 +541,19 @@ export default function NewItemPage() {
                   className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                 />
               </div>
+            </div>
+
+            <div>
+              <label htmlFor="memo" className="mb-1 block text-sm font-medium text-gray-700">
+                メモ
+              </label>
+              <textarea
+                id="memo"
+                value={memo}
+                onChange={(e) => setMemo(e.target.value)}
+                rows={4}
+                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              />
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">

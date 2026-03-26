@@ -155,7 +155,7 @@ describe("NewItemPage", () => {
           brand_name: "Sample Brand",
           price: 9800,
           purchase_url: "https://example.test/products/coat",
-          memo: null,
+          memo: "候補メモ",
           size_gender: "women",
           size_label: "M",
           size_note: "厚手ニット込み",
@@ -190,6 +190,7 @@ describe("NewItemPage", () => {
     const brandNameInput = container.querySelector<HTMLInputElement>("#brand-name");
     const priceInput = container.querySelector<HTMLInputElement>("#price");
     const purchaseUrlInput = container.querySelector<HTMLInputElement>("#purchase-url");
+    const memoTextarea = container.querySelector<HTMLTextAreaElement>("#memo");
     const sizeGenderSelect = container.querySelector<HTMLSelectElement>("#size-gender");
     const sizeLabelInput = container.querySelector<HTMLInputElement>("#size-label");
     const sizeNoteInput = container.querySelector<HTMLInputElement>("#size-note");
@@ -202,6 +203,7 @@ describe("NewItemPage", () => {
     expect(brandNameInput?.value).toBe("Sample Brand");
     expect(priceInput?.value).toBe("9800");
     expect(purchaseUrlInput?.value).toBe("https://example.test/products/coat");
+    expect(memoTextarea?.value).toBe("候補メモ");
     expect(sizeGenderSelect?.value).toBe("women");
     expect(sizeLabelInput?.value).toBe("M");
     expect(sizeNoteInput?.value).toBe("厚手ニット込み");

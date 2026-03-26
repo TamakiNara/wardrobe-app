@@ -666,9 +666,12 @@ export default function PurchaseCandidateForm({
         </div>
 
         <div>
-          <label htmlFor="memo" className="mb-1 block text-sm font-medium text-gray-700">
-            メモ
-          </label>
+          <div className="mb-1 flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
+            <label htmlFor="memo" className="block text-sm font-medium text-gray-700">
+              メモ
+            </label>
+            <p className="text-xs text-gray-500">このメモは購入後アイテムに引き継がれます。</p>
+          </div>
           <textarea
             id="memo"
             value={memo}

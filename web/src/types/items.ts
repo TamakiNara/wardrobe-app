@@ -39,6 +39,7 @@ export type CreateItemPayload = {
   save_brand_as_candidate?: boolean;
   price: number | null;
   purchase_url: string | null;
+  memo: string | null;
   purchased_at: string | null;
   size_gender: "women" | "men" | "unisex" | "unknown" | null;
   size_label: string | null;
@@ -65,6 +66,7 @@ export type ItemRecord = {
   brand_name?: string | null;
   price?: number | null;
   purchase_url?: string | null;
+  memo?: string | null;
   purchased_at?: string | null;
   size_gender?: "women" | "men" | "unisex" | "unknown" | null;
   size_label?: string | null;

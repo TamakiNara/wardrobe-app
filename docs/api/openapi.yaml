@@ -1263,6 +1263,7 @@ paths:
         purchase candidate から item 作成画面用の初期値 payload を生成する。
         保存済み item を返す API ではない。
         candidate に登録済みの全画像を引き継ぎ、sort_order と is_primary も維持する。
+        `memo` は item 作成画面の初期値として含めるが、`wanted_reason` は item へ持ち込まない。
         item 保存成功時の candidate `purchased` 更新と converted 情報の保存は、item create 側で処理する。
         `purchased` の candidate では item 化済み履歴として扱うため、この API は利用しない。
       security:
@@ -1699,6 +1700,9 @@ components:
           type: string
           nullable: true
           format: uri
+        memo:
+          type: string
+          nullable: true
         purchased_at:
           type: string
           nullable: true
@@ -1787,6 +1791,9 @@ components:
           type: string
           nullable: true
           format: uri
+        memo:
+          type: string
+          nullable: true
         purchased_at:
           type: string
           nullable: true
@@ -2609,6 +2616,9 @@ components:
           type: string
           nullable: true
           example: 色違いも比較したい
+          description: |
+            item 作成画面の `memo` 初期値として引き継ぐ。
+            `wanted_reason` は item へ含めず、item 保存後も candidate と同期しない。
         wanted_reason:
           type: string
           nullable: true

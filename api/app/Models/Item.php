@@ -18,6 +18,7 @@ class Item extends Model
         'brand_name',
         'price',
         'purchase_url',
+        'memo',
         'purchased_at',
         'size_gender',
         'size_label',

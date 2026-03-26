@@ -19,6 +19,7 @@ class ItemPayloadBuilder
             'brand_name' => $item->brand_name,
             'price' => $item->price,
             'purchase_url' => $item->purchase_url,
+            'memo' => $item->memo,
             'purchased_at' => $item->purchased_at?->toISOString(),
             'size_gender' => $item->size_gender,
             'size_label' => $item->size_label,

@@ -111,6 +111,7 @@ describe("EditItemPage", () => {
             brand_name: "Sample Brand",
             price: 19800,
             purchase_url: "https://example.test/items/1",
+            memo: "既存メモ",
             purchased_at: "2026-03-24T00:00:00.000000Z",
             size_gender: "women",
             size_label: "M",
@@ -184,6 +185,7 @@ describe("EditItemPage", () => {
     expect(container.textContent?.match(/必須/g)?.length).toBe(4);
     expect((container.querySelector("#brand-name") as HTMLInputElement | null)?.value).toBe("Sample Brand");
     expect((container.querySelector("#price") as HTMLInputElement | null)?.value).toBe("19800");
+    expect((container.querySelector("#memo") as HTMLTextAreaElement | null)?.value).toBe("既存メモ");
     expect(container.textContent).toContain("画像");
     expect(container.textContent).toContain("クリックして画像を選択");
     expect(container.textContent).toContain("代表画像");

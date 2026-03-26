@@ -52,6 +52,7 @@ describe("ItemPage", () => {
           brand_name: "Sample Brand",
           price: 19800,
           purchase_url: "https://example.test/items/1",
+          memo: "購入後メモ",
           purchased_at: "2026-03-24T00:00:00.000000Z",
           size_gender: "women",
           size_label: "M",
@@ -97,6 +98,7 @@ describe("ItemPage", () => {
     expect(markup).toContain("レディース");
     expect(markup).toContain("厚手ニット込み");
     expect(markup).toContain("裄丈 78cm");
+    expect(markup).toContain("購入後メモ");
     expect(markup).toContain("対応");
     expect(markup).toContain("画像");
     expect(markup).toContain("coat.png");
@@ -114,6 +116,7 @@ describe("ItemPage", () => {
           brand_name: null,
           price: null,
           purchase_url: null,
+          memo: null,
           purchased_at: null,
           size_gender: null,
           size_label: null,

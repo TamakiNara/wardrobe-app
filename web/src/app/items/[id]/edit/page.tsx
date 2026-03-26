@@ -60,6 +60,7 @@ export default function EditItemPage({
   const [saveBrandAsCandidate, setSaveBrandAsCandidate] = useState(false);
   const [price, setPrice] = useState("");
   const [purchaseUrl, setPurchaseUrl] = useState("");
+  const [memo, setMemo] = useState("");
   const [purchasedAt, setPurchasedAt] = useState("");
   const [sizeGender, setSizeGender] = useState<"women" | "men" | "unisex" | "unknown" | "">("");
   const [sizeLabel, setSizeLabel] = useState("");
@@ -212,6 +213,7 @@ export default function EditItemPage({
         setBrandName(item.brand_name ?? "");
         setPrice(item.price === null ? "" : String(item.price));
         setPurchaseUrl(item.purchase_url ?? "");
+        setMemo(item.memo ?? "");
         setPurchasedAt(item.purchased_at ? item.purchased_at.slice(0, 10) : "");
         setSizeGender(item.size_gender ?? "");
         setSizeLabel(item.size_label ?? "");
@@ -339,6 +341,7 @@ export default function EditItemPage({
       save_brand_as_candidate: saveBrandAsCandidate,
       price: price === "" ? null : Number(price),
       purchase_url: purchaseUrl.trim() || null,
+      memo: memo.trim() || null,
       purchased_at: purchasedAt || null,
       size_gender: sizeGender || null,
       size_label: sizeLabel.trim() || null,
@@ -626,6 +629,17 @@ export default function EditItemPage({
                 <label htmlFor="purchased-at" className="mb-1 block text-sm font-medium text-gray-700">購入日</label>
                 <input id="purchased-at" type="date" value={purchasedAt} onChange={(e) => setPurchasedAt(e.target.value)} className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
               </div>
+            </div>
+
+            <div>
+              <label htmlFor="memo" className="mb-1 block text-sm font-medium text-gray-700">メモ</label>
+              <textarea
+                id="memo"
+                value={memo}
+                onChange={(e) => setMemo(e.target.value)}
+                rows={4}
+                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              />
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">

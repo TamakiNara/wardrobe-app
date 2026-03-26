@@ -91,6 +91,7 @@ class ItemsEndpointsTest extends TestCase
             'brand_name' => null,
             'price' => null,
             'purchase_url' => null,
+            'memo' => null,
             'purchased_at' => null,
             'size_gender' => null,
             'size_label' => null,
@@ -229,7 +230,10 @@ class ItemsEndpointsTest extends TestCase
 
         $user = User::factory()->create();
         $candidate = $this->createPurchaseCandidate($user);
-        Storage::disk('public')->put('purchase-candidates/1/image-1.png', 'candidate-image');
+        Storage::disk('public')->put(
+            'purchase-candidates/1/image-1.png',
+            base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wn9nS8AAAAASUVORK5CYII=')
+        );
 
         $this->actingAs($user, 'web');
 
@@ -239,6 +243,7 @@ class ItemsEndpointsTest extends TestCase
             'brand_name' => 'Sample Brand',
             'price' => 14800,
             'purchase_url' => 'https://example.test/products/coat',
+            'memo' => '購入検討メモ',
             'purchased_at' => '2026-03-24',
             'size_gender' => 'women',
             'size_label' => 'M',
@@ -276,6 +281,7 @@ class ItemsEndpointsTest extends TestCase
             ->assertJsonPath('item.brand_name', 'Sample Brand')
             ->assertJsonPath('item.price', 14800)
             ->assertJsonPath('item.purchase_url', 'https://example.test/products/coat')
+            ->assertJsonPath('item.memo', '購入検討メモ')
             ->assertJsonPath('item.size_gender', 'women')
             ->assertJsonPath('item.size_label', 'M')
             ->assertJsonPath('item.size_note', '厚手ニット込み')
@@ -295,6 +301,7 @@ class ItemsEndpointsTest extends TestCase
             'id' => $itemId,
             'brand_name' => 'Sample Brand',
             'price' => 14800,
+            'memo' => '購入検討メモ',
             'size_gender' => 'women',
             'is_rain_ok' => 1,
         ]);
@@ -505,6 +512,7 @@ class ItemsEndpointsTest extends TestCase
             'brand_name' => 'Detail Brand',
             'price' => 22000,
             'purchase_url' => 'https://example.test/detail',
+            'memo' => 'detail memo',
             'purchased_at' => '2026-03-20',
             'size_gender' => 'unisex',
             'size_label' => 'FREE',
@@ -534,6 +542,7 @@ class ItemsEndpointsTest extends TestCase
             ->assertJsonPath('item.brand_name', 'Detail Brand')
             ->assertJsonPath('item.price', 22000)
             ->assertJsonPath('item.purchase_url', 'https://example.test/detail')
+            ->assertJsonPath('item.memo', 'detail memo')
             ->assertJsonPath('item.size_details.note', '着丈 120cm')
             ->assertJsonPath('item.is_rain_ok', true)
             ->assertJsonPath('item.images.0.path', 'items/1/coat.png');
@@ -567,6 +576,7 @@ class ItemsEndpointsTest extends TestCase
             'brand_name' => 'Updated Brand',
             'price' => 19800,
             'purchase_url' => 'https://example.test/updated',
+            'memo' => '更新メモ',
             'purchased_at' => '2026-03-24',
             'size_gender' => 'women',
             'size_label' => 'L',
@@ -615,6 +625,7 @@ class ItemsEndpointsTest extends TestCase
             ->assertJsonPath('item.category', 'outer')
             ->assertJsonPath('item.shape', 'trench')
             ->assertJsonPath('item.brand_name', 'Updated Brand')
+            ->assertJsonPath('item.memo', '更新メモ')
             ->assertJsonPath('item.images.0.sort_order', 1)
             ->assertJsonPath('item.images.0.is_primary', true)
             ->assertJsonPath('item.images.1.sort_order', 2)
@@ -634,6 +645,7 @@ class ItemsEndpointsTest extends TestCase
             'id' => $item->id,
             'brand_name' => 'Updated Brand',
             'price' => 19800,
+            'memo' => '更新メモ',
             'shape' => 'trench',
         ]);
         $this->assertDatabaseHas('item_images', [

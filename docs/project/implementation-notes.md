@@ -75,7 +75,7 @@ OpenAPI に明示する error response の基準を短く見返すときも `doc
 - `purchased` の購入検討は item 化済み履歴として扱い、candidate 側更新を item へ逆流させない
 - `purchased` の購入検討では `memo` / `wanted_reason` / `priority` / `sale_price` / `sale_ends_at` / `purchase_url` / 画像のみ更新可とし、item-draft 導線は表示しない
 - 比較ロジックの詳細は後続検討とする
-- candidate `memo` を item 初期値へ引き継ぐ current 実装は残っているため、item に持ち込まない方針へ寄せるかは後続判断とする
+- candidate `memo` は current で item 作成画面の `memo` 初期値へ引き継ぎ、保存後は candidate / item で独立管理とする
 
 直近または中期 TODO:
 
@@ -97,7 +97,6 @@ OpenAPI に明示する error response の基準を短く見返すときも `doc
    - wear logs を含む major feature 追加時のボトムナビ再編方針を引き続き整理する
 6. 購入検討の残課題整理
    - ホーム sale 表示は将来検討として切り分ける
-   - current の `memo` 引き継ぎ方針を再確認する
    - candidate 側の並び替え / 代表画像切り替え UI を後続整理する
 
 既存仕様との衝突確認メモ:

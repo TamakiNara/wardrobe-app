@@ -229,6 +229,10 @@ export default async function ItemPage({
               <dt className="text-sm font-medium text-gray-700">実寸メモ</dt>
               <dd className="mt-1 text-sm text-gray-600">{item.size_details?.note ?? "未設定"}</dd>
             </div>
+            <div className="md:col-span-2">
+              <dt className="text-sm font-medium text-gray-700">メモ</dt>
+              <dd className="mt-1 whitespace-pre-wrap text-sm text-gray-600">{item.memo ?? "未設定"}</dd>
+            </div>
           </dl>
         </section>
       </div>

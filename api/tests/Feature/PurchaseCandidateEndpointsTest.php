@@ -350,7 +350,9 @@ class PurchaseCandidateEndpointsTest extends TestCase
             ->assertJsonPath('item_draft.source_category_id', 'outer_coat')
             ->assertJsonPath('item_draft.category', 'outer')
             ->assertJsonPath('item_draft.shape', 'trench')
+            ->assertJsonPath('item_draft.memo', 'メモ')
             ->assertJsonPath('item_draft.colors.0.value', 'navy')
+            ->assertJsonMissingPath('item_draft.wanted_reason')
             ->assertJsonPath('candidate_summary.id', $candidate->id);
     }
 
@@ -579,6 +581,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
         $item->refresh();
         $this->assertSame('変換済みアイテム', $item->name);
         $this->assertSame('Original Brand', $item->brand_name);
+        $this->assertNull($item->memo);
         $this->assertSame($item->id, $candidate->fresh()->converted_item_id);
         $this->assertNotNull($candidate->fresh()->converted_at);
     }
@@ -634,13 +637,15 @@ class PurchaseCandidateEndpointsTest extends TestCase
         $createResponse->assertCreated()
             ->assertJsonPath('item.category', 'outer')
             ->assertJsonPath('item.shape', 'trench')
-            ->assertJsonPath('item.brand_name', $candidate->brand_name);
+            ->assertJsonPath('item.brand_name', $candidate->brand_name)
+            ->assertJsonPath('item.memo', $candidate->memo);
 
         $this->assertDatabaseHas('items', [
             'user_id' => $user->id,
             'name' => 'トレンチ候補',
             'category' => 'outer',
             'shape' => 'trench',
+            'memo' => 'メモ',
         ]);
         $this->assertDatabaseHas('purchase_candidates', [
             'id' => $candidate->id,

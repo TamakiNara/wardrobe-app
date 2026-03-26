@@ -31,6 +31,7 @@ class ItemStoreService
                     'brand_name' => $validated['brand_name'] ?? null,
                     'price' => $validated['price'] ?? null,
                     'purchase_url' => $validated['purchase_url'] ?? null,
+                    'memo' => $validated['memo'] ?? null,
                     'purchased_at' => $validated['purchased_at'] ?? null,
                     'size_gender' => $validated['size_gender'] ?? null,
                     'size_label' => $validated['size_label'] ?? null,
