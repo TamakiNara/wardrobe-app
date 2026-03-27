@@ -150,7 +150,7 @@ export default async function OutfitDetailPage({
                   このコーディネートには現在利用できないアイテムが含まれています。
                 </p>
                 <p className="text-sm text-gray-600">
-                  内容を見直してから保存してください。
+                  詳細を確認し、必要に応じて複製または復旧を検討してください。
                 </p>
               </div>
             )}

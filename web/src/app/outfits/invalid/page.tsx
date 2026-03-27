@@ -108,7 +108,7 @@ export default async function InvalidOutfitsPage({
             <p className="text-sm text-gray-500">コーディネート管理</p>
             <h1 className="text-2xl font-bold text-gray-900">無効コーディネート一覧</h1>
             <p className="mt-1 text-sm text-gray-600">
-              現在利用できないアイテムを含むコーディネートを確認します。
+              通常一覧から分けて保持し、詳細確認や再利用判断を行います。
             </p>
           </div>
 

@@ -64,6 +64,7 @@ describe("InvalidOutfitsPage", () => {
     expect(markup).toContain("無効コーディネート一覧");
     expect(markup).toContain('href="/outfits"');
     expect(markup).toContain("コーディネート一覧に戻る");
+    expect(markup).toContain("通常一覧から分けて保持し、詳細確認や再利用判断を行います。");
     expect(markup).toContain("invalid-outfits-list");
   });
 });

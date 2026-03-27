@@ -258,7 +258,7 @@ export default function InvalidOutfitsList({
           {outfits.map((outfit) => (
             <article
               key={outfit.id}
-              className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm"
+              className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm"
             >
               <div className="flex flex-wrap items-center gap-2">
                 <h2 className="min-h-6 text-lg font-semibold text-gray-900">
@@ -273,7 +273,11 @@ export default function InvalidOutfitsList({
                 <p className="mt-2 text-sm text-gray-600">{outfit.memo}</p>
               )}
 
-              <p className="mt-4 text-sm text-gray-600">
+              <p className="mt-3 rounded-lg border border-amber-100 bg-amber-50/60 px-3 py-1.5 text-xs text-amber-800">
+                利用不可のアイテムを含むため、通常一覧から分けています。
+              </p>
+
+              <p className="mt-3 text-sm text-gray-600">
                 季節: {outfit.seasons?.length ? outfit.seasons.join(" / ") : "未設定"}
               </p>
 
@@ -281,18 +285,12 @@ export default function InvalidOutfitsList({
                 TPO: {outfit.tpos?.length ? outfit.tpos.join(" / ") : "未設定"}
               </p>
 
-              <div className="mt-4 flex items-center gap-3">
+              <div className="mt-3 flex items-center gap-3">
                 <Link
                   href={`/outfits/${outfit.id}`}
                   className="text-sm font-medium text-blue-600 hover:underline"
                 >
                   詳細
-                </Link>
-                <Link
-                  href={`/outfits/${outfit.id}/edit`}
-                  className="text-sm font-medium text-blue-600 hover:underline"
-                >
-                  編集
                 </Link>
                 <OutfitDuplicateAction outfitId={outfit.id} />
               </div>

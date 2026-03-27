@@ -107,6 +107,7 @@ describe("InvalidOutfitsList", () => {
     expect((selects[2] as HTMLSelectElement).value).toBe("name_asc");
     expect(container.textContent).toContain("夏の無効コーデ");
     expect(container.textContent).toContain("duplicate-2");
+    expect(container.textContent).toContain("利用不可のアイテムを含むため、通常一覧から分けています。");
     expect(replaceMock).not.toHaveBeenCalled();
 
     await act(async () => {
@@ -166,5 +167,20 @@ describe("InvalidOutfitsList", () => {
     expect(container.textContent).toContain("無効なコーディネートはありません");
     expect(container.textContent).toContain("現在は通常利用できないコーディネートはありません。");
     expect(container.textContent).toContain("条件をクリア");
+  });
+
+  it("invalid 一覧では確認導線と複製導線を表示し、編集導線は出さない", async () => {
+    const { default: InvalidOutfitsList } = await import("./invalid-outfits-list");
+
+    await act(async () => {
+      root.render(React.createElement(InvalidOutfitsList, defaultListProps));
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain("利用不可のアイテムを含むため、通常一覧から分けています。");
+    expect(container.innerHTML).toContain('href="/outfits/1"');
+    expect(container.innerHTML).not.toContain('/outfits/1/edit');
+    expect(container.textContent).toContain("duplicate-1");
+    expect(container.textContent).not.toContain("詳細で利用不可の項目を確認し、必要に応じて複製または復旧を検討します。");
   });
 });
