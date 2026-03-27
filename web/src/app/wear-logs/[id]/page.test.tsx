@@ -91,12 +91,9 @@ describe("WearLogDetailPage", () => {
     expect(markup).toContain("着用済み");
     expect(markup).toContain("2026-03-24");
     expect(markup).toContain("2件目");
-    expect(markup).toContain("操作");
-    expect(markup).toContain("状態変更はこの画面で行い、日付・表示順・元のコーディネート・アイテム構成の変更は編集画面で行います。");
+    expect(markup).toContain("編集");
     expect(markup).toContain("wear-log-status-action:12:worn");
     expect(markup).toContain("delete-wear-log-button:12");
-    expect(markup).toContain("確認事項");
-    expect(markup).toContain("通勤コーディネート");
     expect(markup).toContain("元のコーディネートは現在候補外ですが、既存の記録として保持しています。");
     expect(markup).toContain("白シャツ");
     expect(markup).toContain("手放し済み");
@@ -106,6 +103,7 @@ describe("WearLogDetailPage", () => {
     expect(markup).toContain("クリーニング中ですが、予定・着用履歴ともに保持できます。");
     expect(markup).toContain("元コーディネート");
     expect(markup).toContain("手動追加");
+    expect(markup).not.toContain(">元のコーディネート<");
     expect(markup).toContain('href="/wear-logs/12/edit"');
     expect(markup).toContain('href="/outfits/8?from=wear-log&amp;wear_log_id=12"');
     expect(markup).toContain('href="/items/33"');

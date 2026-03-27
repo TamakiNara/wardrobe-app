@@ -101,32 +101,29 @@ export default async function WearLogDetailPage({
         </div>
 
         <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-gray-900">操作</h2>
-          <p className="mt-2 text-sm text-gray-600">
-            状態変更はこの画面で行い、日付・表示順・元のコーディネート・アイテム構成の変更は編集画面で行います。
-          </p>
-
-          <div className="mt-4 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-            <WearLogStatusAction wearLog={wearLog} />
-
-            <div className="flex flex-wrap items-center gap-3 md:justify-end">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="min-w-0 flex-1">
+              {isPastPlanned ? (
+                <p className="text-sm text-gray-600">
+                  この記録は過去の未完了予定です。着用済みへ変更できます。
+                </p>
+              ) : null}
+            </div>
+            <div className="flex w-full shrink-0 flex-wrap items-center justify-start gap-3 md:ml-auto md:w-auto md:justify-end">
+              <WearLogStatusAction wearLog={wearLog} />
               <Link
                 href={`/wear-logs/${wearLog.id}/edit`}
-                className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+                className="inline-flex rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
               >
-                編集する
+                編集
               </Link>
               <DeleteWearLogButton wearLogId={String(wearLog.id)} />
             </div>
           </div>
-        </section>
 
-        {(wearLog.source_outfit_status === "invalid" ||
-          disposedItems.length > 0 ||
-          cleaningItems.length > 0 ||
-          isPastPlanned) && (
-          <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-gray-900">確認事項</h2>
+          {(wearLog.source_outfit_status === "invalid" ||
+            disposedItems.length > 0 ||
+            cleaningItems.length > 0) && (
             <div className="mt-4 space-y-3">
               {wearLog.source_outfit_status === "invalid" && (
                 <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
@@ -177,58 +174,29 @@ export default async function WearLogDetailPage({
                 </div>
               )}
 
-              {isPastPlanned && (
-                <p className="rounded-xl border border-gray-200 bg-gray-100 px-4 py-3 text-sm text-gray-700">
-                  この記録は過去の未完了予定です。必要に応じて内容確認後に着用済みへ変更できます。
-                </p>
-              )}
-            </div>
-          </section>
-        )}
-
-        <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-gray-900">基本情報</h2>
-
-          <dl className="mt-4 grid gap-4 md:grid-cols-2">
-            <div>
-              <dt className="text-sm font-medium text-gray-700">状態</dt>
-              <dd className="mt-1 text-sm text-gray-600">{getWearLogStatusLabel(wearLog.status)}</dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-700">日付</dt>
-              <dd className="mt-1 text-sm text-gray-600">{wearLog.event_date}</dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-700">表示順</dt>
-              <dd className="mt-1 text-sm text-gray-600">{wearLog.display_order}件目</dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-700">メモ</dt>
-              <dd className="mt-1 text-sm text-gray-600">{wearLog.memo || "未設定"}</dd>
-            </div>
-          </dl>
-        </section>
-
-        <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-gray-900">元のコーディネート</h2>
-
-          {wearLog.source_outfit_id === null ? (
-            <p className="mt-3 text-sm text-gray-600">未指定</p>
-          ) : (
-            <div className="mt-4 space-y-3">
-              <div className="flex flex-wrap items-center gap-3">
-                <p className="text-sm font-medium text-gray-900">
-                  {wearLog.source_outfit_name ?? "名称未設定"}
-                </p>
-                <Link
-                  href={`/outfits/${wearLog.source_outfit_id}?from=wear-log&wear_log_id=${wearLog.id}`}
-                  className="text-sm font-medium text-blue-600 hover:underline"
-                >
-                  コーディネート詳細
-                </Link>
-              </div>
             </div>
           )}
+
+          <div className="mt-6 border-t border-gray-100 pt-5">
+            <dl className="grid gap-4 md:grid-cols-2">
+              <div>
+                <dt className="text-sm font-medium text-gray-700">状態</dt>
+                <dd className="mt-1 text-sm text-gray-600">{getWearLogStatusLabel(wearLog.status)}</dd>
+              </div>
+              <div>
+                <dt className="text-sm font-medium text-gray-700">日付</dt>
+                <dd className="mt-1 text-sm text-gray-600">{wearLog.event_date}</dd>
+              </div>
+              <div>
+                <dt className="text-sm font-medium text-gray-700">表示順</dt>
+                <dd className="mt-1 text-sm text-gray-600">{wearLog.display_order}件目</dd>
+              </div>
+              <div>
+                <dt className="text-sm font-medium text-gray-700">メモ</dt>
+                <dd className="mt-1 text-sm text-gray-600">{wearLog.memo || "未設定"}</dd>
+              </div>
+            </dl>
+          </div>
         </section>
 
         <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
@@ -241,7 +209,7 @@ export default async function WearLogDetailPage({
               {wearLog.items.map((item) => (
                 <article
                   key={item.id}
-                  className="rounded-xl border border-gray-200 p-4"
+                  className="rounded-xl border border-gray-200 p-3"
                 >
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
@@ -261,7 +229,18 @@ export default async function WearLogDetailPage({
                         )}
                       </div>
                       <p className="mt-1 text-sm text-gray-500">
-                        {item.sort_order}番目 / {getItemSourceTypeLabel(item.item_source_type)}
+                        {item.sort_order}番目
+                        {" / "}
+                        {item.item_source_type === "outfit" && wearLog.source_outfit_id !== null ? (
+                          <Link
+                            href={`/outfits/${wearLog.source_outfit_id}?from=wear-log&wear_log_id=${wearLog.id}`}
+                            className="font-medium text-blue-600 hover:underline"
+                          >
+                            元コーディネート
+                          </Link>
+                        ) : (
+                          getItemSourceTypeLabel(item.item_source_type)
+                        )}
                       </p>
                     </div>
 
