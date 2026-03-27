@@ -51,12 +51,14 @@ item 画像の代わりではなく、構成色を補助表示するための「
 - sub color は右端の細帯で表現する
 - sub color がない場合は単色で描画する
 - item の現在の `main / sub` 色情報を使う
+- current 実装では outfit / wear logs ともに共通の segment helper を使うが、正本の取り方は機能ごとに分ける
 
 ---
 
 ## フォールバック色
 
 - 色が取得できない item は `#E5E7EB` で描画する
+- main color 欠損と無効な色コードは、どちらも同じフォールバック色として扱う
 
 ---
 
@@ -67,5 +69,7 @@ item 画像の代わりではなく、構成色を補助表示するための「
 - wear logs 一覧
   - `wear_log_items` を正本にして描画する
   - `source_outfit_id` は描画正本として使わない
+- クローゼットビュー
+  - item の current 色情報を正本にし、図形の main / sub 表現にも同じフォールバック色を使う
 - wear log 日詳細モーダルにはまだ表示しない
 - outfit 詳細 / wear log 個別詳細への展開もまだ行わない

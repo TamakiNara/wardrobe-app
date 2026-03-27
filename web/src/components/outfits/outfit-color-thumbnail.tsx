@@ -89,7 +89,7 @@ export default function OutfitColorThumbnail({
 
   return (
     <div
-      className="flex h-24 w-24 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white"
+      className="flex h-20 w-20 flex-col overflow-hidden rounded-xl border border-gray-200 bg-gray-50"
       data-testid="outfit-color-thumbnail"
       aria-hidden="true"
     >
@@ -112,7 +112,7 @@ export default function OutfitColorThumbnail({
           </div>
 
           {layout.hasOthersBar ? (
-            <div className="h-4 border-t border-white/50">
+            <div className="h-3 border-t border-white/40">
               <SegmentRow segments={layout.others} testId="thumbnail-others" />
             </div>
           ) : null}

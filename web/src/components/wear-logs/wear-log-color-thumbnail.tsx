@@ -67,7 +67,7 @@ export default function WearLogColorThumbnail({
 
   return (
     <div
-      className="flex h-16 w-16 shrink-0 flex-col overflow-hidden rounded-xl border border-gray-200 bg-white"
+      className="flex h-14 w-14 shrink-0 flex-col overflow-hidden rounded-lg border border-gray-200 bg-gray-50"
       data-testid="wear-log-color-thumbnail"
       aria-hidden="true"
     >
@@ -90,7 +90,7 @@ export default function WearLogColorThumbnail({
           </div>
 
           {layout.hasOthersBar ? (
-            <div className="h-3 border-t border-white/50">
+            <div className="h-2 border-t border-white/40">
               <SegmentRow segments={layout.others} testId="wear-log-thumbnail-others" />
             </div>
           ) : null}

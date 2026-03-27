@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import TopsPreviewSvg from "@/components/items/preview-svg/tops-preview-svg";
 import { buildSupportedCategoryOptions, fetchCategoryGroups } from "@/lib/api/categories";
+import { COLOR_THUMBNAIL_FALLBACK_COLOR } from "@/lib/color-thumbnails/shared";
 import { buildClosetViewGroups } from "@/lib/items/closet-view";
 import { fetchCategoryVisibilitySettings } from "@/lib/api/settings";
 import { ITEM_CARE_STATUS_LABELS } from "@/lib/items/metadata";
@@ -150,7 +151,7 @@ function PreviewThumb({
     <div className="flex h-20 w-20 items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-white">
       <div
         className="h-12 w-12 rounded-2xl border border-gray-300"
-        style={{ backgroundColor: mainColorHex ?? "#E5E7EB" }}
+        style={{ backgroundColor: mainColorHex ?? COLOR_THUMBNAIL_FALLBACK_COLOR }}
       />
     </div>
   );
@@ -456,18 +457,18 @@ export default function ItemsList({
           {closetGroups.map((group) => (
             <section
               key={group.category}
-              className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm"
+              className="rounded-2xl border border-gray-200 bg-white px-4 py-3 shadow-sm"
             >
               <h2 className="text-base font-semibold text-gray-900">{group.label}</h2>
-              <div className="mt-3 flex flex-wrap items-start gap-x-6 gap-y-4">
+              <div className="mt-2.5 flex flex-wrap items-start gap-x-5 gap-y-3">
                 {group.shapeGroups.map((shapeGroup) => (
                   <section
                     key={`${group.category}-${shapeGroup.shape}`}
-                    className={`min-w-fit space-y-2 ${
+                    className={`min-w-fit space-y-1.5 ${
                       shapeGroup.items.length === 1 ? "text-center" : "text-left"
                     }`}
                   >
-                    <h3 className="text-xs font-medium text-gray-500">{shapeGroup.label}</h3>
+                    <h3 className="text-[11px] font-medium text-gray-500">{shapeGroup.label}</h3>
                     <div
                       className={`flex flex-wrap gap-2 ${
                         shapeGroup.items.length === 1 ? "justify-center" : "justify-start"
@@ -489,12 +490,13 @@ export default function ItemsList({
                             <span className="sr-only">
                               {itemName} / {shapeGroup.label} / {mainColorLabel}
                             </span>
-                            <span className="relative block h-24 w-12 overflow-hidden rounded-2xl border border-gray-200 bg-white transition hover:border-blue-300 hover:shadow-sm">
+                            <span className="relative block h-[5.5rem] w-[2.75rem] overflow-hidden rounded-xl border border-gray-200 bg-gray-50 transition hover:border-blue-300 hover:shadow-sm">
                               <span
                                 className="absolute inset-y-0 left-0"
                                 style={{
                                   width: subColor?.hex ? "90%" : "100%",
-                                  backgroundColor: mainColor?.hex ?? "#E5E7EB",
+                                  backgroundColor:
+                                    mainColor?.hex ?? COLOR_THUMBNAIL_FALLBACK_COLOR,
                                 }}
                               />
                               {subColor?.hex ? (

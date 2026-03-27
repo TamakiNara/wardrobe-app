@@ -67,11 +67,13 @@ item 一覧の表示バリエーションとして使う「クローゼットビ
 - sub color があれば右端の細い帯 10% で表示する
 - sub color がなければ単色とする
 - main / sub は item の現在の色情報を使う
+- main color が取れない item は `#E5E7EB` を使う
 
 ---
 
 ## 色順
 
+- main color の hex を HSL に正規化して並び順を決める
 - color code が取れない item は末尾
 - HSL 変換で `saturation <= 0.1` は無彩色扱い
 - 無彩色は `lightness asc`
@@ -80,7 +82,8 @@ item 一覧の表示バリエーションとして使う「クローゼットビ
 
 補足:
 
-- current 実装では、無彩色を彩色より先に並べる
+- current 実装では shared utility で正規化し、無彩色を彩色より先に並べる
+- 無効な hex や main color 欠損は「色が取れない item」として同列に扱う
 
 ---
 
