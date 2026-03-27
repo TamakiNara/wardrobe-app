@@ -362,6 +362,39 @@ class WearLogEndpointsTest extends TestCase
             ->assertJsonValidationErrors(['event_date']);
     }
 
+    public function test_get_wear_log_detail_returns_current_status_helpers_for_items(): void
+    {
+        $user = User::factory()->create();
+        $outfit = $this->createOutfit($user, ['name' => '通勤コーデ', 'status' => 'invalid']);
+        $cleaningItem = $this->createItem($user, [
+            'name' => '白シャツ',
+            'care_status' => 'in_cleaning',
+        ]);
+        $wearLog = $this->createWearLog($user, [
+            'status' => 'planned',
+            'event_date' => '2026-03-24',
+            'display_order' => 1,
+            'source_outfit_id' => $outfit->id,
+        ]);
+        $wearLog->wearLogItems()->create([
+            'source_item_id' => $cleaningItem->id,
+            'sort_order' => 1,
+            'item_source_type' => 'outfit',
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->getJson("/api/wear-logs/{$wearLog->id}", [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('wearLog.source_outfit_status', 'invalid')
+            ->assertJsonPath('wearLog.items.0.source_item_id', $cleaningItem->id)
+            ->assertJsonPath('wearLog.items.0.source_item_status', 'active')
+            ->assertJsonPath('wearLog.items.0.source_item_care_status', 'in_cleaning');
+    }
+
     public function test_post_wear_log_can_create_with_outfit_only(): void
     {
         $user = User::factory()->create();

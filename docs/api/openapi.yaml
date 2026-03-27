@@ -2626,6 +2626,7 @@ components:
         - id
         - source_item_id
         - item_name
+        - source_item_care_status
         - sort_order
         - item_source_type
       properties:
@@ -2645,6 +2646,11 @@ components:
           enum:
             - active
             - disposed
+        source_item_care_status:
+          type: string
+          nullable: true
+          enum:
+            - in_cleaning
         sort_order:
           type: integer
           example: 1

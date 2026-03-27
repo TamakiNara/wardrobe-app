@@ -115,6 +115,7 @@ class WearLogPayloadBuilder
                         'source_item_id' => $wearLogItem->source_item_id,
                         'item_name' => $wearLogItem->sourceItem?->name,
                         'source_item_status' => $wearLogItem->sourceItem?->status,
+                        'source_item_care_status' => $wearLogItem->sourceItem?->care_status,
                         'sort_order' => $wearLogItem->sort_order,
                         'item_source_type' => $wearLogItem->item_source_type,
                     ];

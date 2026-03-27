@@ -1,5 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import DeleteWearLogButton from "@/components/wear-logs/delete-wear-log-button";
+import WearLogStatusAction from "@/components/wear-logs/wear-log-status-action";
+import { ITEM_CARE_STATUS_LABELS } from "@/lib/items/metadata";
 import { fetchLaravelWithCookie } from "@/lib/server/laravel";
 import { getWearLogStatusLabel } from "@/lib/wear-logs/labels";
 import type { WearLogRecord } from "@/types/wear-logs";
@@ -12,6 +15,21 @@ function getWearLogStatusBadgeClass(status: WearLogRecord["status"]): string {
 
 function getItemSourceTypeLabel(itemSourceType: "outfit" | "manual"): string {
   return itemSourceType === "outfit" ? "元コーディネート" : "手動追加";
+}
+
+function getTodayYmd(): string {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Tokyo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date());
+
+  const year = parts.find((part) => part.type === "year")?.value;
+  const month = parts.find((part) => part.type === "month")?.value;
+  const day = parts.find((part) => part.type === "day")?.value;
+
+  return `${year}-${month}-${day}`;
 }
 
 async function getWearLog(id: string): Promise<WearLogRecord> {
@@ -36,6 +54,10 @@ export default async function WearLogDetailPage({
 }) {
   const { id } = await params;
   const wearLog = await getWearLog(id);
+  const today = getTodayYmd();
+  const isPastPlanned = wearLog.status === "planned" && wearLog.event_date < today;
+  const disposedItems = wearLog.items.filter((item) => item.source_item_status === "disposed");
+  const cleaningItems = wearLog.items.filter((item) => item.source_item_care_status === "in_cleaning");
 
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">
@@ -70,12 +92,6 @@ export default async function WearLogDetailPage({
 
           <div className="flex flex-wrap items-center gap-3 md:justify-end">
             <Link
-              href={`/wear-logs/${wearLog.id}/edit`}
-              className="text-sm font-medium text-blue-600 hover:underline"
-            >
-              編集する
-            </Link>
-            <Link
               href="/wear-logs"
               className="text-sm font-medium text-blue-600 hover:underline"
             >
@@ -83,6 +99,92 @@ export default async function WearLogDetailPage({
             </Link>
           </div>
         </div>
+
+        <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <h2 className="text-lg font-semibold text-gray-900">操作</h2>
+          <p className="mt-2 text-sm text-gray-600">
+            状態変更はこの画面で行い、日付・表示順・元のコーディネート・アイテム構成の変更は編集画面で行います。
+          </p>
+
+          <div className="mt-4 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+            <WearLogStatusAction wearLog={wearLog} />
+
+            <div className="flex flex-wrap items-center gap-3 md:justify-end">
+              <Link
+                href={`/wear-logs/${wearLog.id}/edit`}
+                className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+              >
+                編集する
+              </Link>
+              <DeleteWearLogButton wearLogId={String(wearLog.id)} />
+            </div>
+          </div>
+        </section>
+
+        {(wearLog.source_outfit_status === "invalid" ||
+          disposedItems.length > 0 ||
+          cleaningItems.length > 0 ||
+          isPastPlanned) && (
+          <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+            <h2 className="text-lg font-semibold text-gray-900">確認事項</h2>
+            <div className="mt-4 space-y-3">
+              {wearLog.source_outfit_status === "invalid" && (
+                <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                  元のコーディネートは現在候補外ですが、既存の記録として保持しています。
+                </p>
+              )}
+
+              {disposedItems.length > 0 && (
+                <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                  手放し済みのアイテムが含まれています。履歴確認はできますが、候補としては現在使えません。
+                </p>
+              )}
+
+              {cleaningItems.length > 0 && (
+                <div
+                  className={`rounded-xl border px-4 py-3 ${
+                    wearLog.status === "worn"
+                      ? "border-amber-300 bg-amber-50"
+                      : "border-sky-200 bg-sky-50"
+                  }`}
+                >
+                  <p
+                    className={`text-sm font-medium ${
+                      wearLog.status === "worn" ? "text-amber-900" : "text-sky-900"
+                    }`}
+                  >
+                    {wearLog.status === "worn"
+                      ? "クリーニング中のアイテムが含まれています。着用済みとして登録する前に内容を確認してください。"
+                      : "クリーニング中のアイテムが含まれています。予定として保存はできますが、必要なら先に状態を確認してください。"}
+                  </p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {cleaningItems.map((item) =>
+                      item.source_item_id !== null ? (
+                        <Link
+                          key={`detail-cleaning-${item.id}`}
+                          href={`/items/${item.source_item_id}`}
+                          className={`rounded-full border px-3 py-1 text-xs font-medium ${
+                            wearLog.status === "worn"
+                              ? "border-amber-300 bg-white text-amber-900"
+                              : "border-sky-300 bg-white text-sky-800"
+                          }`}
+                        >
+                          {(item.item_name ?? "名称未設定")}を確認
+                        </Link>
+                      ) : null,
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {isPastPlanned && (
+                <p className="rounded-xl border border-gray-200 bg-gray-100 px-4 py-3 text-sm text-gray-700">
+                  この記録は過去の未完了予定です。必要に応じて内容確認後に着用済みへ変更できます。
+                </p>
+              )}
+            </div>
+          </section>
+        )}
 
         <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-gray-900">基本情報</h2>
@@ -125,12 +227,6 @@ export default async function WearLogDetailPage({
                   コーディネート詳細
                 </Link>
               </div>
-
-              {wearLog.source_outfit_status === "invalid" && (
-                <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-                  元のコーディネートは現在候補外ですが、既存の記録として表示しています。
-                </p>
-              )}
             </div>
           )}
         </section>
@@ -158,6 +254,11 @@ export default async function WearLogDetailPage({
                             手放し済み
                           </span>
                         )}
+                        {item.source_item_care_status === "in_cleaning" && (
+                          <span className="rounded-full border border-sky-300 bg-sky-50 px-2 py-0.5 text-xs font-medium text-sky-800">
+                            {ITEM_CARE_STATUS_LABELS.in_cleaning}
+                          </span>
+                        )}
                       </div>
                       <p className="mt-1 text-sm text-gray-500">
                         {item.sort_order}番目 / {getItemSourceTypeLabel(item.item_source_type)}
@@ -177,6 +278,11 @@ export default async function WearLogDetailPage({
                   {item.source_item_status === "disposed" && (
                     <p className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
                       このアイテムは現在候補外ですが、既存の記録として表示しています。
+                    </p>
+                  )}
+                  {item.source_item_care_status === "in_cleaning" && (
+                    <p className="mt-3 rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-800">
+                      クリーニング中ですが、予定・着用履歴ともに保持できます。
                     </p>
                   )}
                 </article>

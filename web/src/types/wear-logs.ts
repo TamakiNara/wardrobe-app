@@ -33,6 +33,7 @@ export type WearLogItemDetail = {
   source_item_id: number | null;
   item_name: string | null;
   source_item_status: "active" | "disposed" | null;
+  source_item_care_status: "in_cleaning" | null;
   sort_order: number;
   item_source_type: WearLogItemSourceType;
 };
