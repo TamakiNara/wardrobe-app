@@ -107,8 +107,11 @@ describe("OutfitDetailPage", () => {
     );
 
     expect(markup).toContain("無効");
-    expect(markup).toContain("このコーディネートには現在利用できないアイテムが含まれています。");
-    expect(markup).toContain("詳細を確認し、必要に応じて複製または復旧を検討してください。");
+    expect(markup).toContain("無効の理由");
+    expect(markup).toContain("現在利用できないアイテムを含むため、通常一覧とは分けて保持しています。");
+    expect(markup).toContain("再利用する場合は複製して新しく作成してください。");
+    expect(markup).toContain("復旧できる条件が揃っている場合のみ、有効に戻せます。");
+    expect(markup).toContain("基本情報");
     expect(markup).toContain("手放し済み");
     expect(markup).toContain("restore-disabled");
     expect(markup).toContain("duplicate-action");

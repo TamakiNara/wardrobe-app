@@ -142,17 +142,9 @@ export default async function OutfitDetailPage({
               {outfit.name ?? ""}
             </h1>
             {outfit.status === "invalid" && (
-              <div className="mt-3 space-y-2">
-                <p className="inline-flex rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-sm font-medium text-amber-800">
-                  無効
-                </p>
-                <p className="text-sm text-amber-800">
-                  このコーディネートには現在利用できないアイテムが含まれています。
-                </p>
-                <p className="text-sm text-gray-600">
-                  詳細を確認し、必要に応じて複製または復旧を検討してください。
-                </p>
-              </div>
+              <p className="mt-3 inline-flex rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-sm font-medium text-amber-800">
+                無効
+              </p>
             )}
           </div>
 
@@ -173,10 +165,7 @@ export default async function OutfitDetailPage({
                 着用履歴詳細へ戻る
               </Link>
             ) : null}
-            {outfit.status === "invalid" && (
-              <OutfitRestoreAction outfitId={outfit.id} canRestore={canRestore} />
-            )}
-            <OutfitDuplicateAction outfitId={outfit.id} />
+            {outfit.status !== "invalid" && <OutfitDuplicateAction outfitId={outfit.id} />}
             <Link
               href={`/outfits/${outfit.id}/edit`}
               className="text-sm font-medium text-blue-600 hover:underline"
@@ -195,7 +184,33 @@ export default async function OutfitDetailPage({
           </div>
         </div>
 
+        {outfit.status === "invalid" && (
+          <section className="rounded-2xl border border-amber-200 bg-white p-6 shadow-sm">
+            <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+              <div className="space-y-2">
+                <h2 className="text-lg font-semibold text-gray-900">無効の理由</h2>
+                <p className="text-sm text-amber-800">
+                  現在利用できないアイテムを含むため、通常一覧とは分けて保持しています。
+                </p>
+                <p className="text-sm text-gray-600">
+                  再利用する場合は複製して新しく作成してください。
+                </p>
+                <p className="text-sm text-gray-600">
+                  復旧できる条件が揃っている場合のみ、有効に戻せます。
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3 md:justify-end">
+                <OutfitDuplicateAction outfitId={outfit.id} />
+                <OutfitRestoreAction outfitId={outfit.id} canRestore={canRestore} />
+              </div>
+            </div>
+          </section>
+        )}
+
         <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <h2 className="mb-4 text-lg font-semibold text-gray-900">基本情報</h2>
+
           {outfit.memo && (
             <div className="mb-4">
               <p className="mb-1 text-sm font-medium text-gray-700">メモ</p>
