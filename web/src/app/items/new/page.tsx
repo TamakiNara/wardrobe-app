@@ -20,7 +20,7 @@ import BrandNameField from "@/components/items/brand-name-field";
 import ColorChip from "@/components/items/color-chip";
 import ColorSelect from "@/components/items/color-select";
 import ItemImageUploader from "@/components/items/item-image-uploader";
-import type { CreateItemPayload, ItemFormColor, ItemImageRecord } from "@/types/items";
+import type { CreateItemPayload, ItemCareStatus, ItemFormColor, ItemImageRecord } from "@/types/items";
 import ItemPreviewCard from "@/components/items/item-preview-card";
 import { SEASON_OPTIONS, TPO_OPTIONS } from "@/lib/master-data/item-attributes";
 import {
@@ -46,7 +46,13 @@ import {
   loadPurchaseCandidateItemDraft,
   mapPurchaseCandidateItemDraft,
 } from "@/lib/purchase-candidates/item-draft";
-import { formatItemPrice, ITEM_SIZE_GENDER_LABELS, mapPurchaseCandidateImagesToItemImages, normalizeItemImages } from "@/lib/items/metadata";
+import {
+  formatItemPrice,
+  ITEM_CARE_STATUS_LABELS,
+  ITEM_SIZE_GENDER_LABELS,
+  mapPurchaseCandidateImagesToItemImages,
+  normalizeItemImages,
+} from "@/lib/items/metadata";
 
 export default function NewItemPage() {
   const router = useRouter();
@@ -58,6 +64,7 @@ export default function NewItemPage() {
   const [price, setPrice] = useState("");
   const [purchaseUrl, setPurchaseUrl] = useState("");
   const [memo, setMemo] = useState("");
+  const [careStatus, setCareStatus] = useState<ItemCareStatus | "">("");
   const [purchasedAt, setPurchasedAt] = useState("");
   const [sizeGender, setSizeGender] = useState<"women" | "men" | "unisex" | "">("");
   const [sizeLabel, setSizeLabel] = useState("");
@@ -293,6 +300,7 @@ export default function NewItemPage() {
       price: price === "" ? null : Number(price),
       purchase_url: purchaseUrl.trim() || null,
       memo: memo.trim() || null,
+      care_status: careStatus || null,
       purchased_at: purchasedAt || null,
       size_gender: sizeGender || null,
       size_label: sizeLabel.trim() || null,
@@ -554,6 +562,28 @@ export default function NewItemPage() {
                 rows={4}
                 className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               />
+            </div>
+
+            <div>
+              <label htmlFor="care-status" className="mb-1 block text-sm font-medium text-gray-700">
+                ケア状態
+              </label>
+              <select
+                id="care-status"
+                value={careStatus}
+                onChange={(e) => setCareStatus(e.target.value as ItemCareStatus | "")}
+                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              >
+                <option value=""></option>
+                {Object.entries(ITEM_CARE_STATUS_LABELS).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-1 text-xs text-gray-500">
+                クリーニング中でもコーデ候補や着用履歴候補からは除外されません。
+              </p>
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">

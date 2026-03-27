@@ -18,6 +18,8 @@ item 詳細画面で行う status 操作 UI の仕様を整理する。
 - 通常編集フォームに status を混ぜない
 - status 変更は通常の create / update とは別導線で扱う
 - UI は現在の status に応じて 1 つだけ主要アクションを表示する
+- `care_status` は item 詳細から付与 / 解除する
+- `care_status` は主 status と別導線で扱い、通常編集フォームには混ぜても主 status の代替にはしない
 
 ---
 
@@ -75,6 +77,31 @@ item 詳細画面で行う status 操作 UI の仕様を整理する。
 
 ---
 
+## `care_status` 操作
+
+### current 実装
+
+- item 詳細画面から `in_cleaning` の付与 / 解除を行う
+- `care_status` は通常の create / update payload に含めてもよいが、詳細画面には即時切替導線も置く
+
+### 表示する操作
+
+#### `care_status` 未設定の場合
+
+- 「クリーニング中にする」を表示する
+
+#### `care_status = in_cleaning` の場合
+
+- 「クリーニング解除」を表示する
+
+### 意味づけ
+
+- `care_status` は補助状態であり、`disposed` のように候補除外や invalid 化の主制御には使わない
+- 解除しても outfit や wear logs を自動更新しない
+- wear logs 側では保存可のまま警告表示だけを行う
+
+---
+
 ## 一覧との関係
 
 - `disposed` item は通常一覧に出さない
@@ -111,6 +138,7 @@ item 詳細画面で行う status 操作 UI の仕様を整理する。
 
 - 「手放す」は `POST /api/items/{id}/dispose` を想定する
 - 「所持品に戻す」は `POST /api/items/{id}/reactivate` を想定する
+- `care_status` の付与 / 解除は `POST /api/items/{id}/care-status` を想定する
 - どちらも通常の `ItemUpsertRequest` とは分けて扱う
 
 ---
@@ -125,3 +153,5 @@ item 詳細画面で行う status 操作 UI の仕様を整理する。
 - `disposed` item は通常一覧に出さない
 - MVP では「手放したアイテム一覧」は作らない
 - 成功 / 失敗メッセージは丁寧語で簡潔に案内する
+- `care_status` は item 詳細から `in_cleaning` の付与 / 解除を行う
+- `care_status` は候補除外や invalid 化の主制御には使わない

@@ -135,6 +135,7 @@ describe("NewItemPage", () => {
     expect(container.textContent).toContain("「必須」が付いた項目は登録に必要です。");
     expect(container.textContent).toContain("カテゴリ");
     expect(container.textContent).toContain("形");
+    expect(container.textContent).toContain("ケア状態");
     expect(container.textContent).toContain("メインカラー");
     expect(container.textContent).toContain("ブランド候補にも追加する");
     expect(container.textContent).toContain("クリックして画像を選択");
@@ -199,6 +200,7 @@ describe("NewItemPage", () => {
       (element) => element.textContent?.includes("雨対応"),
     )?.querySelector<HTMLInputElement>('input[type="checkbox"]');
     const categorySelect = container.querySelector<HTMLSelectElement>("#category");
+    const careStatusSelect = container.querySelector<HTMLSelectElement>("#care-status");
     expect(nameInput?.value).toBe("レインコート候補");
     expect(brandNameInput?.value).toBe("Sample Brand");
     expect(priceInput?.value).toBe("9800");
@@ -210,6 +212,7 @@ describe("NewItemPage", () => {
     expect(sizeDetailsTextarea?.value).toBe("裄丈 78cm");
     expect(rainCheckbox?.checked).toBe(true);
     expect(categorySelect?.value).toBe("tops");
+    expect(careStatusSelect?.value).toBe("");
     expect(container.textContent).toContain("購入検討の内容を初期値として読み込みました。");
     expect(container.textContent).toContain("引き継いだ画像も保存前に取り除けます。");
     expect(container.textContent).toContain("ブランド候補にも追加する");

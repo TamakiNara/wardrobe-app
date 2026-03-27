@@ -167,6 +167,89 @@ describe("WearLogForm", () => {
     expect(container.textContent).toContain("キャンセル");
   });
 
+  it("クリーニング中の item を含んでも警告のみで保存できる", async () => {
+    fetchAllPaginatedCandidatesMock
+      .mockResolvedValueOnce({
+        status: 200,
+        entries: [
+          {
+            id: 1,
+            name: "白T",
+            status: "active",
+            care_status: "in_cleaning",
+            category: "tops",
+            shape: "tshirt",
+            colors: [],
+            seasons: ["春"],
+            tpos: ["休日"],
+          },
+        ],
+      })
+      .mockResolvedValueOnce({
+        status: 200,
+        entries: [],
+      });
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 201,
+        json: async () => ({
+          message: "created",
+          wearLog: { id: 10 },
+        }),
+      }),
+    );
+
+    const { default: WearLogForm } = await import("./wear-log-form");
+
+    await act(async () => {
+      root.render(React.createElement(WearLogForm, { mode: "create" }));
+      await waitForEffects();
+    });
+
+    const checkbox = container.querySelector<HTMLInputElement>('input[type="checkbox"]');
+    const dateInput = container.querySelector<HTMLInputElement>('input[type="date"]');
+    const statusSelect = container.querySelector<HTMLSelectElement>("select");
+    const submitButton = Array.from(container.querySelectorAll("button")).find((button) =>
+      button.textContent?.includes("登録する"),
+    );
+
+    await act(async () => {
+      checkbox?.click();
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain("クリーニング中");
+    expect(container.textContent).toContain("予定として保存はできますが、必要なら先に状態を確認してください。");
+
+    await act(async () => {
+      const inputSetter = Object.getOwnPropertyDescriptor(
+        window.HTMLInputElement.prototype,
+        "value",
+      )?.set;
+      inputSetter?.call(dateInput, "2026-03-24");
+      dateInput?.dispatchEvent(new Event("input", { bubbles: true }));
+      submitButton?.click();
+      await waitForEffects();
+    });
+
+    expect(global.fetch).toHaveBeenCalled();
+
+    await act(async () => {
+      const selectSetter = Object.getOwnPropertyDescriptor(
+        window.HTMLSelectElement.prototype,
+        "value",
+      )?.set;
+      selectSetter?.call(statusSelect, "worn");
+      statusSelect?.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain("着用済みとして登録する前に内容を確認してください。");
+  });
+
   it("候補外データを含む既存レコードでも編集画面が壊れない", async () => {
     fetchAllPaginatedCandidatesMock
       .mockResolvedValueOnce({

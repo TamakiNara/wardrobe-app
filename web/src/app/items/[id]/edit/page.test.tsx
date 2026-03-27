@@ -108,6 +108,7 @@ describe("EditItemPage", () => {
             id: 1,
             name: "サンプル",
             status: "active",
+            care_status: "in_cleaning",
             brand_name: "Sample Brand",
             price: 19800,
             purchase_url: "https://example.test/items/1",
@@ -180,6 +181,7 @@ describe("EditItemPage", () => {
     expect(container.textContent).toContain("「必須」が付いた項目は更新に必要です。");
     expect(container.textContent).toContain("カテゴリ");
     expect(container.textContent).toContain("形");
+    expect(container.textContent).toContain("ケア状態");
     expect(container.textContent).toContain("メインカラー");
     expect(container.textContent).toContain("ブランド候補にも追加する");
     expect(container.textContent?.match(/必須/g)?.length).toBe(4);
@@ -190,5 +192,6 @@ describe("EditItemPage", () => {
     expect(container.textContent).toContain("クリックして画像を選択");
     expect(container.textContent).toContain("代表画像");
     expect(container.textContent).toContain("削除");
+    expect((container.querySelector("#care-status") as HTMLSelectElement | null)?.value).toBe("in_cleaning");
   }, 20000);
 });

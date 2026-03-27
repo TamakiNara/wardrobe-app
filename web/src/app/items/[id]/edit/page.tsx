@@ -22,7 +22,7 @@ import ColorSelect from "@/components/items/color-select";
 import ItemImageUploader from "@/components/items/item-image-uploader";
 import ItemPreviewCard from "@/components/items/item-preview-card";
 import { SEASON_OPTIONS, TPO_OPTIONS } from "@/lib/master-data/item-attributes";
-import type { CreateItemPayload, ItemFormColor, ItemImageRecord, ItemRecord } from "@/types/items";
+import type { CreateItemPayload, ItemCareStatus, ItemFormColor, ItemImageRecord, ItemRecord } from "@/types/items";
 import {
   buildTopsSpecLabels,
   buildTopsSpecRaw,
@@ -41,7 +41,7 @@ import {
   type TopsShapeValue,
   type TopsSleeveValue,
 } from "@/lib/master-data/item-tops";
-import { formatItemPrice, ITEM_SIZE_GENDER_LABELS, normalizeItemImages } from "@/lib/items/metadata";
+import { formatItemPrice, ITEM_CARE_STATUS_LABELS, ITEM_SIZE_GENDER_LABELS, normalizeItemImages } from "@/lib/items/metadata";
 
 
 
@@ -61,6 +61,7 @@ export default function EditItemPage({
   const [price, setPrice] = useState("");
   const [purchaseUrl, setPurchaseUrl] = useState("");
   const [memo, setMemo] = useState("");
+  const [careStatus, setCareStatus] = useState<ItemCareStatus | "">("");
   const [purchasedAt, setPurchasedAt] = useState("");
   const [sizeGender, setSizeGender] = useState<"women" | "men" | "unisex" | "">("");
   const [sizeLabel, setSizeLabel] = useState("");
@@ -214,6 +215,7 @@ export default function EditItemPage({
         setPrice(item.price === null ? "" : String(item.price));
         setPurchaseUrl(item.purchase_url ?? "");
         setMemo(item.memo ?? "");
+        setCareStatus(item.care_status ?? "");
         setPurchasedAt(item.purchased_at ? item.purchased_at.slice(0, 10) : "");
         setSizeGender(item.size_gender ?? "");
         setSizeLabel(item.size_label ?? "");
@@ -342,6 +344,7 @@ export default function EditItemPage({
       price: price === "" ? null : Number(price),
       purchase_url: purchaseUrl.trim() || null,
       memo: memo.trim() || null,
+      care_status: careStatus || null,
       purchased_at: purchasedAt || null,
       size_gender: sizeGender || null,
       size_label: sizeLabel.trim() || null,
@@ -640,6 +643,22 @@ export default function EditItemPage({
                 rows={4}
                 className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               />
+            </div>
+
+            <div>
+              <label htmlFor="care-status" className="mb-1 block text-sm font-medium text-gray-700">ケア状態</label>
+              <select
+                id="care-status"
+                value={careStatus}
+                onChange={(e) => setCareStatus(e.target.value as ItemCareStatus | "")}
+                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              >
+                <option value=""></option>
+                {Object.entries(ITEM_CARE_STATUS_LABELS).map(([value, label]) => (
+                  <option key={value} value={value}>{label}</option>
+                ))}
+              </select>
+              <p className="mt-1 text-xs text-gray-500">クリーニング中でもコーデ候補や着用履歴候補からは除外されません。</p>
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">

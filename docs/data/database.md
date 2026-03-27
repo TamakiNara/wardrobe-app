@@ -229,6 +229,7 @@ wear logs も本資料の対象とし、その保存方針を定義します。
 | id | bigint | 主キー |
 | user_id | bigint | 所有ユーザーID |
 | status | string default 'active' | アイテム状態 (`active` / `disposed`) |
+| care_status | string nullable | 補助ケア状態 (`in_cleaning`) |
 | name | string nullable | アイテム名 |
 | category | string | カテゴリ |
 | shape | string | 形 |
@@ -315,8 +316,10 @@ wear logs も本資料の対象とし、その保存方針を定義します。
 - item status の状態管理の正本は `docs/specs/items/status-management.md` を参照
 - カテゴリ設定の仕様は `docs/specs/settings/category-settings.md` を参照
 - `status` は `active` / `disposed` を持つ
+- `care_status` は nullable で、current 実装では `in_cleaning` のみを持つ
 - `disposed` は「手放した / 現在所持していない」状態を表す
 - `disposed` item は通常一覧や wear log / outfit の選択候補から除外する
+- `care_status` は補助状態であり、候補除外や invalid 化の主制御には使わない
 - wear logs や過去の参照の都合上、物理削除より `disposed` を優先する
 - API schema は `docs/api/openapi.yaml` の `ItemRecord` / `ItemUpsertRequest` を参照
 

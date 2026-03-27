@@ -22,6 +22,11 @@ MVP では、item status に次の 2 値を持つ。
 - `active`
 - `disposed`
 
+補助状態として、別カラム `care_status` を持つ。
+
+- `null`
+- `in_cleaning`
+
 ---
 
 ## `disposed` の意味
@@ -29,6 +34,16 @@ MVP では、item status に次の 2 値を持つ。
 - `disposed` は「手放した / 現在所持していない」状態を表す
 - wear logs や過去の参照を残す都合上、物理削除より `disposed` を優先する
 - 単なる軽微編集とは異なり、outfit / wear logs に影響する状態変更として扱う
+
+---
+
+## `care_status` の意味
+
+- `care_status` は主 status ではなく補助状態として扱う
+- current 実装の許可値は `in_cleaning` のみ
+- `in_cleaning` は「クリーニング中」を表す
+- 主制御ではなく、バッジ表示・警告・解除導線などの補助 UI に使う
+- `disposed` と同列の強い状態にはしない
 
 ---
 
@@ -66,6 +81,13 @@ MVP では、item status に次の 2 値を持つ。
 
 - `disposed` item は wear logs の新規登録・更新時の候補から除外する
 - wear logs で `disposed` item を指定することは不可とする
+
+### `in_cleaning` item の扱い
+
+- `in_cleaning` item は通常一覧から除外しない
+- `in_cleaning` item は outfit の新規作成・更新候補から除外しない
+- `in_cleaning` item は wear logs の新規登録・更新候補から除外しない
+- wear logs では planned / worn ともに保存可能とし、UI 上で警告だけを出す
 
 ---
 
@@ -119,9 +141,12 @@ MVP では、item status に次の 2 値を持つ。
 ## 現時点のまとめ
 
 - item status は `active` / `disposed`
+- 補助状態として `care_status = in_cleaning | null` を持つ
 - `disposed` は「手放した / 現在所持していない」状態
+- `care_status` は主制御には使わず、補助表示・警告・解除導線に使う
 - 通常 update payload に `status` は含めない
 - `disposed` item は通常一覧 / outfit 候補 / wear logs 候補から除外する
+- `in_cleaning` item は通常一覧 / outfit 候補 / wear logs 候補から除外しない
 - item を `disposed` にした時、関連 `active` outfit を `invalid` にする
 - item が `active` に戻っても outfit は自動 `restore` しない
 - delete と `disposed` は役割を分け、MVP では `disposed` を優先する

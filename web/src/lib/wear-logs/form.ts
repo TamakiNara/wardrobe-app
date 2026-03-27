@@ -1,4 +1,4 @@
-import type { ItemStatus } from "@/types/items";
+import type { ItemCareStatus, ItemStatus } from "@/types/items";
 import type { ItemFormColor } from "@/types/items";
 import type {
   WearLogItemSourceType,
@@ -10,6 +10,7 @@ export type WearLogSelectableItem = {
   id: number;
   name: string | null;
   status: ItemStatus;
+  care_status?: ItemCareStatus | null;
   category?: string | null;
   shape?: string | null;
   colors?: ItemFormColor[];
@@ -45,6 +46,7 @@ export function mergeWearLogItemCandidates(
       id: item.source_item_id as number,
       name: item.item_name,
       status: item.source_item_status ?? "active",
+      care_status: null,
       category: null,
       shape: null,
       colors: [],

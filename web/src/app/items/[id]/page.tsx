@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import DeleteItemButton from "@/components/items/delete-item-button";
+import ItemCareStatusAction from "@/components/items/item-care-status-action";
 import ItemStatusAction from "@/components/items/item-status-action";
 import ItemPreviewCard from "@/components/items/item-preview-card";
-import { formatItemPrice, ITEM_SIZE_GENDER_LABELS } from "@/lib/items/metadata";
+import { formatItemPrice, ITEM_CARE_STATUS_LABELS, ITEM_SIZE_GENDER_LABELS } from "@/lib/items/metadata";
 import { buildTopsSpecLabels, buildTopsSpecRaw } from "@/lib/master-data/item-tops";
 import { findItemCategoryLabel, findItemShapeLabel } from "@/lib/master-data/item-shapes";
 import { fetchLaravelWithCookie } from "@/lib/server/laravel";
@@ -73,10 +74,19 @@ export default async function ItemPage({
             <h1 className="min-h-8 text-2xl font-bold text-gray-900">
               {item.name ?? "名称未設定"}
             </h1>
-            {item.status === "disposed" && (
-              <p className="mt-2 inline-flex rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-sm font-medium text-amber-800">
-                手放し済み
-              </p>
+            {(item.status === "disposed" || item.care_status) && (
+              <div className="mt-2 flex flex-wrap gap-2">
+                {item.status === "disposed" && (
+                  <p className="inline-flex rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-sm font-medium text-amber-800">
+                    手放し済み
+                  </p>
+                )}
+                {item.care_status && (
+                  <p className="inline-flex rounded-full border border-sky-300 bg-sky-50 px-3 py-1 text-sm font-medium text-sky-800">
+                    {ITEM_CARE_STATUS_LABELS[item.care_status]}
+                  </p>
+                )}
+              </div>
             )}
           </div>
 
@@ -89,6 +99,7 @@ export default async function ItemPage({
                 {returnLabelParam ?? "戻る"}へ戻る
               </Link>
             ) : null}
+            <ItemCareStatusAction itemId={item.id} careStatus={item.care_status} />
             <ItemStatusAction itemId={item.id} status={item.status} />
 
             <Link
@@ -192,6 +203,12 @@ export default async function ItemPage({
             <div>
               <dt className="text-sm font-medium text-gray-700">実購入価格</dt>
               <dd className="mt-1 text-sm text-gray-600">{formatItemPrice(item.price ?? null)}</dd>
+            </div>
+            <div>
+              <dt className="text-sm font-medium text-gray-700">ケア状態</dt>
+              <dd className="mt-1 text-sm text-gray-600">
+                {item.care_status ? ITEM_CARE_STATUS_LABELS[item.care_status] : "未設定"}
+              </dd>
             </div>
             <div>
               <dt className="text-sm font-medium text-gray-700">購入 URL</dt>

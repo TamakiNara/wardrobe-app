@@ -9,6 +9,7 @@ import {
   findItemShapeLabel,
   ITEM_CATEGORIES,
 } from "@/lib/master-data/item-shapes";
+import { ITEM_CARE_STATUS_LABELS } from "@/lib/items/metadata";
 import { SEASON_OPTIONS, TPO_OPTIONS } from "@/lib/master-data/item-attributes";
 import { WEAR_LOG_STATUS_LABELS } from "@/lib/wear-logs/labels";
 import {
@@ -134,6 +135,7 @@ export default function WearLogForm({
             id: item.id,
             name: item.name,
             status: item.status,
+            care_status: item.care_status,
             category: item.category,
             shape: item.shape,
             colors: item.colors ?? [],
@@ -212,6 +214,9 @@ export default function WearLogForm({
     (item) => item.status === "disposed",
   );
   const hasUnavailableSourceOutfit = currentSourceOutfit?.status === "invalid";
+  const selectedCleaningItems = selectedItemRecords.filter(
+    (item) => item.care_status === "in_cleaning",
+  );
 
   const availableItemCategoryValues = useMemo(() => {
     return Array.from(
@@ -461,6 +466,37 @@ export default function WearLogForm({
               手放し済みのアイテムが含まれています。
             </p>
           )}
+        </div>
+      )}
+
+      {selectedCleaningItems.length > 0 && (
+        <div className={`rounded-xl border px-4 py-3 ${
+          status === "worn"
+            ? "border-amber-300 bg-amber-50"
+            : "border-sky-200 bg-sky-50"
+        }`}>
+          <p className={`text-sm font-medium ${
+            status === "worn" ? "text-amber-900" : "text-sky-900"
+          }`}>
+            {status === "worn"
+              ? "クリーニング中のアイテムが含まれています。着用済みとして登録する前に内容を確認してください。"
+              : "クリーニング中のアイテムが含まれています。予定として保存はできますが、必要なら先に状態を確認してください。"}
+          </p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {selectedCleaningItems.map((item) => (
+              <Link
+                key={`cleaning-${item.id}`}
+                href={buildItemDetailHref(item.id)}
+                className={`rounded-full border px-3 py-1 text-xs font-medium ${
+                  status === "worn"
+                    ? "border-amber-300 bg-white text-amber-900"
+                    : "border-sky-300 bg-white text-sky-800"
+                }`}
+              >
+                {item.name ?? "名称未設定"}を確認
+              </Link>
+            ))}
+          </div>
         </div>
       )}
 
@@ -780,6 +816,11 @@ export default function WearLogForm({
                             手放し済み
                           </span>
                         )}
+                        {item.care_status === "in_cleaning" && (
+                          <span className="rounded-full border border-sky-300 bg-sky-50 px-2 py-0.5 text-xs font-medium text-sky-800">
+                            {ITEM_CARE_STATUS_LABELS.in_cleaning}
+                          </span>
+                        )}
                       </div>
                       <p className="mt-2 text-sm text-gray-600">
                         {findItemCategoryLabel(item.category) || "カテゴリ未設定"}
@@ -790,6 +831,11 @@ export default function WearLogForm({
                       {item.status === "disposed" && (
                         <p className="mt-1 text-sm text-amber-800">
                           このアイテムは現在の候補には使えません。
+                        </p>
+                      )}
+                      {item.care_status === "in_cleaning" && (
+                        <p className="mt-1 text-sm text-sky-800">
+                          クリーニング中ですが、予定・着用履歴ともに保存はできます。
                         </p>
                       )}
                     </div>
@@ -827,6 +873,11 @@ export default function WearLogForm({
                       <span>
                         {item.itemSourceType === "outfit" ? "コーデ由来" : "手動追加"}
                       </span>
+                      {item.care_status === "in_cleaning" ? (
+                        <span className="rounded-full border border-sky-300 bg-sky-50 px-2 py-0.5 text-xs font-medium text-sky-800">
+                          {ITEM_CARE_STATUS_LABELS.in_cleaning}
+                        </span>
+                      ) : null}
                       <span>
                         {findItemCategoryLabel(item.category) || "カテゴリ未設定"}
                         {" / "}

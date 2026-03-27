@@ -16,6 +16,7 @@ class ItemPayloadBuilder
             'id' => $item->id,
             'name' => $item->name,
             'status' => $item->status,
+            'care_status' => $item->care_status,
             'brand_name' => $item->brand_name,
             'price' => $item->price,
             'purchase_url' => $item->purchase_url,

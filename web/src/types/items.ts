@@ -6,6 +6,8 @@ export type ItemFormColor = {
   label: string;
 };
 
+export type ItemCareStatus = "in_cleaning";
+
 export type TopsSpec = {
   shape: string;
   sleeve?: string | null;
@@ -35,6 +37,7 @@ export type ItemImageRecord = {
 export type CreateItemPayload = {
   name: string;
   purchase_candidate_id?: number | null;
+  care_status?: ItemCareStatus | null;
   brand_name: string | null;
   save_brand_as_candidate?: boolean;
   price: number | null;
@@ -63,6 +66,7 @@ export type ItemRecord = {
   id: number;
   name: string | null;
   status: ItemStatus;
+  care_status?: ItemCareStatus | null;
   brand_name?: string | null;
   price?: number | null;
   purchase_url?: string | null;

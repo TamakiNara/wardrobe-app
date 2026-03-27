@@ -59,6 +59,7 @@ const sampleItems: ItemRecord[] = [
     id: 1,
     name: "白T",
     status: "active",
+    care_status: "in_cleaning",
     category: "tops",
     shape: "tshirt",
     colors: [
@@ -174,6 +175,7 @@ describe("ItemsList", () => {
 
     expect(container.textContent).toContain("表示件数: 1 / 1");
     expect(container.textContent).toContain("白T");
+    expect(container.textContent).toContain("クリーニング中");
     expect(container.textContent).not.toContain("青シャツ");
     const image = container.querySelector('img[alt="main.png"]');
     expect(image?.getAttribute("src")).toBe("https://example.test/storage/items/1/main.png");

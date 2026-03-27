@@ -210,6 +210,7 @@ Route::prefix('api')->middleware(['web'])->group(function () {
         $validated = $request->validate([
             'name' => ['nullable', 'string', 'max:255'],
             'purchase_candidate_id' => ['nullable', 'integer'],
+            'care_status' => ['nullable', 'string', 'in:in_cleaning'],
             'brand_name' => ['nullable', 'string', 'max:255'],
             'save_brand_as_candidate' => ['nullable', 'boolean'],
             'price' => ['nullable', 'integer', 'min:0'],
@@ -278,6 +279,7 @@ Route::prefix('api')->middleware(['web'])->group(function () {
 
         $validated = $request->validate([
             'name' => ['nullable', 'string', 'max:255'],
+            'care_status' => ['nullable', 'string', 'in:in_cleaning'],
             'brand_name' => ['nullable', 'string', 'max:255'],
             'save_brand_as_candidate' => ['nullable', 'boolean'],
             'price' => ['nullable', 'integer', 'min:0'],
@@ -325,6 +327,25 @@ Route::prefix('api')->middleware(['web'])->group(function () {
         return response()->json([
             'message' => 'updated',
             'item' => ItemPayloadBuilder::buildDetail($item),
+        ]);
+    });
+
+    Route::middleware('auth:web')->post('/items/{id}/care-status', function (Request $request, int $id) {
+        $item = Item::query()
+            ->where('user_id', $request->user()->id)
+            ->findOrFail($id);
+
+        $validated = $request->validate([
+            'care_status' => ['nullable', 'string', 'in:in_cleaning'],
+        ]);
+
+        $item->update([
+            'care_status' => $validated['care_status'] ?? null,
+        ]);
+
+        return response()->json([
+            'message' => 'updated',
+            'item' => ItemPayloadBuilder::buildDetail($item->fresh()->load('images')),
         ]);
     });
 

@@ -27,6 +27,7 @@ class ItemStoreService
             $item = DB::transaction(function () use ($user, $validated, $candidate, &$copiedFiles) {
                 $item = Item::create([
                     'user_id' => $user->id,
+                    'care_status' => $validated['care_status'] ?? null,
                     'name' => $validated['name'] ?? null,
                     'brand_name' => $validated['brand_name'] ?? null,
                     'price' => $validated['price'] ?? null,

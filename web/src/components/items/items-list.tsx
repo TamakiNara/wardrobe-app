@@ -6,8 +6,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import TopsPreviewSvg from "@/components/items/preview-svg/tops-preview-svg";
 import { buildSupportedCategoryOptions, fetchCategoryGroups } from "@/lib/api/categories";
 import { fetchCategoryVisibilitySettings } from "@/lib/api/settings";
+import { ITEM_CARE_STATUS_LABELS } from "@/lib/items/metadata";
 import {
-  ITEM_CATEGORIES,
+  ITEM_CATEGORIES as ITEM_CATEGORY_OPTIONS,
   findItemCategoryLabel,
   findItemShapeLabel,
 } from "@/lib/master-data/item-shapes";
@@ -175,7 +176,7 @@ export default function ItemsList({
   const [isComposingKeyword, setIsComposingKeyword] = useState(false);
   const [draftKeyword, setDraftKeyword] = useState(keyword);
   const [apiCategoryOptions, setApiCategoryOptions] = useState<CategoryOption[]>([
-    ...ITEM_CATEGORIES,
+    ...ITEM_CATEGORY_OPTIONS,
   ]);
   const initialSeasonAppliedRef = useRef(false);
 
@@ -417,6 +418,12 @@ export default function ItemsList({
                       <h2 className="text-lg font-semibold text-gray-900">
                         {item.name || "名称未設定"}
                       </h2>
+
+                      {item.care_status ? (
+                        <p className="mt-2 inline-flex rounded-full border border-sky-300 bg-sky-50 px-3 py-1 text-xs font-medium text-sky-800">
+                          {ITEM_CARE_STATUS_LABELS[item.care_status]}
+                        </p>
+                      ) : null}
 
                       <p className="mt-2 text-sm text-gray-600">
                         {categoryLabel} / {shapeLabel}

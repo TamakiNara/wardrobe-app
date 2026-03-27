@@ -88,6 +88,8 @@ class ItemsEndpointsTest extends TestCase
         return Item::query()->create(array_merge([
             'user_id' => $user->id,
             'name' => 'テストアイテム',
+            'status' => 'active',
+            'care_status' => null,
             'brand_name' => null,
             'price' => null,
             'purchase_url' => null,
@@ -382,6 +384,40 @@ class ItemsEndpointsTest extends TestCase
         ]);
     }
 
+    public function test_post_items_can_save_care_status(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/items', [
+            'name' => 'クリーニング予定コート',
+            'care_status' => 'in_cleaning',
+            'category' => 'outer',
+            'shape' => 'trench',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'navy',
+                'hex' => '#123456',
+                'label' => 'ネイビー',
+            ]],
+            'seasons' => ['春'],
+            'tpos' => ['仕事'],
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('item.care_status', 'in_cleaning');
+
+        $this->assertDatabaseHas('items', [
+            'user_id' => $user->id,
+            'name' => 'クリーニング予定コート',
+            'care_status' => 'in_cleaning',
+        ]);
+    }
+
     public function test_post_items_skips_brand_candidate_creation_when_duplicate_exists(): void
     {
         $user = User::factory()->create();
@@ -538,6 +574,7 @@ class ItemsEndpointsTest extends TestCase
         $user = User::factory()->create();
         $item = $this->createItem($user, [
             'brand_name' => 'Detail Brand',
+            'care_status' => 'in_cleaning',
             'price' => 22000,
             'purchase_url' => 'https://example.test/detail',
             'memo' => 'detail memo',
@@ -568,6 +605,7 @@ class ItemsEndpointsTest extends TestCase
 
         $response->assertOk()
             ->assertJsonPath('item.brand_name', 'Detail Brand')
+            ->assertJsonPath('item.care_status', 'in_cleaning')
             ->assertJsonPath('item.price', 22000)
             ->assertJsonPath('item.purchase_url', 'https://example.test/detail')
             ->assertJsonPath('item.memo', 'detail memo')
@@ -602,6 +640,7 @@ class ItemsEndpointsTest extends TestCase
         $response = $this->putJson("/api/items/{$item->id}", [
             'name' => '更新後アイテム',
             'brand_name' => 'Updated Brand',
+            'care_status' => 'in_cleaning',
             'price' => 19800,
             'purchase_url' => 'https://example.test/updated',
             'memo' => '更新メモ',
@@ -653,6 +692,7 @@ class ItemsEndpointsTest extends TestCase
             ->assertJsonPath('item.category', 'outer')
             ->assertJsonPath('item.shape', 'trench')
             ->assertJsonPath('item.brand_name', 'Updated Brand')
+            ->assertJsonPath('item.care_status', 'in_cleaning')
             ->assertJsonPath('item.memo', '更新メモ')
             ->assertJsonPath('item.images.0.sort_order', 1)
             ->assertJsonPath('item.images.0.is_primary', true)
@@ -674,6 +714,7 @@ class ItemsEndpointsTest extends TestCase
             'brand_name' => 'Updated Brand',
             'price' => 19800,
             'memo' => '更新メモ',
+            'care_status' => 'in_cleaning',
             'shape' => 'trench',
         ]);
         $this->assertDatabaseHas('item_images', [
@@ -828,5 +869,43 @@ class ItemsEndpointsTest extends TestCase
         );
 
         $response->assertNotFound();
+    }
+
+    public function test_post_item_care_status_updates_and_clears_care_status(): void
+    {
+        $user = User::factory()->create();
+        $item = $this->createItem($user);
+
+        $this->actingAs($user, 'web');
+
+        $setResponse = $this->postJson("/api/items/{$item->id}/care-status", [
+            'care_status' => 'in_cleaning',
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $setResponse->assertOk()
+            ->assertJsonPath('message', 'updated')
+            ->assertJsonPath('item.care_status', 'in_cleaning');
+
+        $this->assertDatabaseHas('items', [
+            'id' => $item->id,
+            'care_status' => 'in_cleaning',
+        ]);
+
+        $clearResponse = $this->postJson("/api/items/{$item->id}/care-status", [
+            'care_status' => null,
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $clearResponse->assertOk()
+            ->assertJsonPath('message', 'updated')
+            ->assertJsonPath('item.care_status', null);
+
+        $this->assertDatabaseHas('items', [
+            'id' => $item->id,
+            'care_status' => null,
+        ]);
     }
 }

@@ -404,8 +404,10 @@ current:
 
 `care_status` 導入
 
+current:
+
 - `items.care_status` 追加
-- item create / edit / detail / list / filter
+- item create / edit / detail / list
 - wear log 保存時警告
 - item 詳細から `in_cleaning` の付与 / 解除
 
@@ -414,6 +416,7 @@ current:
 ## 9. 今回まだ保留でよいこと
 
 - `care_status` の将来値追加
+- item 一覧で `in_cleaning` の絞り込みを追加するか
 - カレンダーセル上の dot デザイン詳細
 - 月集約APIの dots にラベルまで入れるか
 - 日詳細シート内の memo 表示文字数

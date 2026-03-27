@@ -27,6 +27,10 @@ vi.mock("@/components/items/item-status-action", () => ({
   default: () => React.createElement("div", null, "status-action"),
 }));
 
+vi.mock("@/components/items/item-care-status-action", () => ({
+  default: () => React.createElement("div", null, "care-status-action"),
+}));
+
 vi.mock("@/components/items/item-preview-card", () => ({
   default: () => React.createElement("div", null, "preview-card"),
 }));
@@ -49,6 +53,7 @@ describe("ItemPage", () => {
           id: 1,
           name: "レインコート",
           status: "active",
+          care_status: "in_cleaning",
           brand_name: "Sample Brand",
           price: 19800,
           purchase_url: "https://example.test/items/1",
@@ -100,6 +105,7 @@ describe("ItemPage", () => {
     expect(markup).toContain("裄丈 78cm");
     expect(markup).toContain("購入後メモ");
     expect(markup).toContain("対応");
+    expect(markup).toContain("クリーニング中");
     expect(markup).toContain("画像");
     expect(markup).toContain("coat.png");
   });
@@ -113,6 +119,7 @@ describe("ItemPage", () => {
           id: 1,
           name: "レインコート",
           status: "active",
+          care_status: null,
           brand_name: null,
           price: null,
           purchase_url: null,

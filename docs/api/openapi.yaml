@@ -10,6 +10,7 @@ info:
     CSRF 保護が必要な POST / PUT / DELETE では X-CSRF-TOKEN ヘッダが必要。
     docs 上では認証系 API / 設定系 API / 参照マスタ API を軸に整理しつつ、Items / Outfits も実装単位で記載する。
     `400` / `429` / `500` は、アプリ独自の契約がある場合を除き framework default に委ね、通常の endpoint 定義では過剰に明示しない。
+    `care_status` のような補助状態は、主 status と別カラムで扱い、候補除外や invalid 化の主制御には使わない。
 
 servers:
   - url: http://localhost:8000
@@ -648,6 +649,53 @@ paths:
           description: 未検出（対象なし・他人データ秘匿を含む）
         '422':
           description: 変更不可またはバリデーションエラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+
+  /api/items/{id}/care-status:
+    post:
+      tags:
+        - Items
+      summary: アイテムのケア状態を更新
+      description: |
+        item の補助状態 `care_status` を更新する。
+        current 実装の許可値は `in_cleaning` のみで、`null` は補助状態なしを表す。
+        `care_status` はバッジ表示・警告・解除導線に使い、候補除外や invalid 化の主制御には使わない。
+        response には更新後の item を含む。
+      security:
+        - SessionCookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ItemIdPath'
+        - $ref: '#/components/parameters/XCsrfTokenHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - care_status
+              properties:
+                care_status:
+                  type: string
+                  nullable: true
+                  enum:
+                    - in_cleaning
+      responses:
+        '200':
+          description: "更新成功。message は `updated`、item には更新後 record を含む"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ItemResponseWithMessage'
+        '401':
+          description: 未認証
+        '404':
+          description: 未検出（対象なし・他人データ秘匿を含む）
+        '422':
+          description: バリデーションエラー
           content:
             application/json:
               schema:
@@ -1855,6 +1903,11 @@ components:
             - active
             - disposed
           example: active
+        care_status:
+          type: string
+          nullable: true
+          enum:
+            - in_cleaning
         name:
           type: string
           nullable: true
@@ -1872,6 +1925,11 @@ components:
         memo:
           type: string
           nullable: true
+        care_status:
+          type: string
+          nullable: true
+          enum:
+            - in_cleaning
         purchased_at:
           type: string
           nullable: true
