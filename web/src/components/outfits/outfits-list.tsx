@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
+import OutfitColorThumbnail from "@/components/outfits/outfit-color-thumbnail";
 import OutfitDuplicateAction from "@/components/outfits/outfit-duplicate-action";
 import { isItemVisibleByCategorySettings } from "@/lib/api/categories";
 import { fetchCategoryVisibilitySettings } from "@/lib/api/settings";
@@ -332,32 +333,38 @@ export default function OutfitsList({
                   href={`/outfits/${outfit.id}`}
                   className="block transition hover:text-blue-700"
                 >
-                  <h2 className="min-h-6 text-lg font-semibold text-gray-900">
-                    {outfit.name ?? ""}
-                  </h2>
+                  <div className="flex items-start gap-4">
+                    <OutfitColorThumbnail outfitItems={visibleOutfitItems} />
 
-                  {outfit.memo && (
-                    <p className="mt-2 text-sm text-gray-600">{outfit.memo}</p>
-                  )}
+                    <div className="min-w-0 flex-1">
+                      <h2 className="min-h-6 text-lg font-semibold text-gray-900">
+                        {outfit.name ?? ""}
+                      </h2>
 
-                  <p className="mt-4 text-sm text-gray-600">
-                    表示アイテム数: {itemCount}
-                  </p>
+                      {outfit.memo && (
+                        <p className="mt-2 text-sm text-gray-600">{outfit.memo}</p>
+                      )}
 
-                  {hiddenItemCount > 0 && (
-                    <p className="mt-1 text-sm text-amber-700">
-                      現在の表示設定により {hiddenItemCount} 件を非表示にしています。
-                    </p>
-                  )}
+                      <p className="mt-4 text-sm text-gray-600">
+                        表示アイテム数: {itemCount}
+                      </p>
 
-                  <p className="mt-2 text-sm text-gray-600">
-                    季節:{" "}
-                    {outfit.seasons?.length ? outfit.seasons.join(" / ") : "未設定"}
-                  </p>
+                      {hiddenItemCount > 0 && (
+                        <p className="mt-1 text-sm text-amber-700">
+                          現在の表示設定により {hiddenItemCount} 件を非表示にしています。
+                        </p>
+                      )}
 
-                  <p className="mt-1 text-sm text-gray-600">
-                    TPO: {outfit.tpos?.length ? outfit.tpos.join(" / ") : "未設定"}
-                  </p>
+                      <p className="mt-2 text-sm text-gray-600">
+                        季節:{" "}
+                        {outfit.seasons?.length ? outfit.seasons.join(" / ") : "未設定"}
+                      </p>
+
+                      <p className="mt-1 text-sm text-gray-600">
+                        TPO: {outfit.tpos?.length ? outfit.tpos.join(" / ") : "未設定"}
+                      </p>
+                    </div>
+                  </div>
                 </Link>
 
                 <div className="mt-4 flex items-center gap-3">

@@ -7,6 +7,7 @@
 - [items: detail status UI](./items/detail-status-ui.md)
 - [items: クローゼットビュー](./items/closet-view.md)
 - [outfits: 作成・編集・invalid/duplicate](./outfits/create-edit.md)
+- [outfits: 配色サムネイル](./outfits/color-thumbnail.md)
 - [outfits: item 候補ルール](./outfits/item-candidate-rules.md)
 - [wear logs: 一覧・詳細・登録・更新・削除](./wears/wear-logs.md)
 - [購入検討（内部: `purchase_candidates`）: 画像・item 昇格](./purchase-candidates.md)

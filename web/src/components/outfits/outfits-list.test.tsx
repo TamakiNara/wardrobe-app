@@ -47,7 +47,15 @@ const sampleOutfits = [
           name: "白T",
           category: "tops",
           shape: "tshirt",
-          colors: [],
+          colors: [
+            {
+              role: "main",
+              mode: "preset",
+              value: "white",
+              hex: "#eeeeee",
+              label: "ホワイト",
+            },
+          ],
         },
       },
       {
@@ -59,7 +67,15 @@ const sampleOutfits = [
           name: "シャツ",
           category: "tops",
           shape: "shirt",
-          colors: [],
+          colors: [
+            {
+              role: "main",
+              mode: "preset",
+              value: "blue",
+              hex: "#0077D9",
+              label: "ブルー",
+            },
+          ],
         },
       },
     ],
@@ -126,6 +142,7 @@ describe("OutfitsList", () => {
     expect(container.textContent).toContain("表示アイテム数: 1");
     expect(container.textContent).toContain("現在の表示設定により 1 件を非表示にしています。");
     expect(container.textContent).toContain("duplicate-1");
+    expect(container.querySelector('[data-testid="outfit-color-thumbnail"]')).not.toBeNull();
   });
 
   it("ページャ操作で page クエリを更新する", async () => {
