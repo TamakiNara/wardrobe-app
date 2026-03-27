@@ -85,6 +85,7 @@ describe("WearLogDetailPage", () => {
     expect(markup).toContain('href="/wear-logs/12/edit"');
     expect(markup).toContain('href="/outfits/8?from=wear-log&amp;wear_log_id=12"');
     expect(markup).not.toContain("wear-log-color-thumbnail");
+    expect(markup).not.toContain("wear-log-modal-color-thumbnail");
     expect(markup).not.toContain("wear-log-form:");
     expect(markup).not.toContain(">削除<");
   });

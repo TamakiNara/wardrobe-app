@@ -279,7 +279,10 @@ class WearLogEndpointsTest extends TestCase
         $otherUser = User::factory()->create();
         $outfit = $this->createOutfit($user, ['name' => '通勤コーデ']);
         $itemA = $this->createItem($user, ['name' => '白T']);
-        $itemB = $this->createItem($user, ['name' => 'ネイビーパンツ']);
+        $itemB = $this->createItem($user, [
+            'name' => 'ネイビーパンツ',
+            'category' => 'bottoms',
+        ]);
 
         $later = $this->createWearLog($user, [
             'status' => 'worn',
@@ -334,11 +337,16 @@ class WearLogEndpointsTest extends TestCase
             ->assertJsonPath('wearLogs.0.source_outfit_name', '通勤コーデ')
             ->assertJsonPath('wearLogs.0.items_count', 1)
             ->assertJsonPath('wearLogs.0.memo', '1件目')
+            ->assertJsonCount(1, 'wearLogs.0.thumbnail_items')
+            ->assertJsonPath('wearLogs.0.thumbnail_items.0.category', 'tops')
             ->assertJsonPath('wearLogs.1.id', $later->id)
             ->assertJsonPath('wearLogs.1.display_order', 2)
             ->assertJsonPath('wearLogs.1.source_outfit_name', null)
             ->assertJsonPath('wearLogs.1.items_count', 2)
-            ->assertJsonPath('wearLogs.1.memo', '2件目');
+            ->assertJsonPath('wearLogs.1.memo', '2件目')
+            ->assertJsonCount(2, 'wearLogs.1.thumbnail_items')
+            ->assertJsonPath('wearLogs.1.thumbnail_items.0.category', 'tops')
+            ->assertJsonPath('wearLogs.1.thumbnail_items.1.category', 'bottoms');
     }
 
     public function test_get_wear_logs_by_date_returns_422_when_event_date_is_invalid(): void

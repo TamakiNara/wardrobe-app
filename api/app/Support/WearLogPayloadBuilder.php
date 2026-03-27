@@ -49,7 +49,7 @@ class WearLogPayloadBuilder
 
     public static function buildByDateListItem(WearLog $wearLog): array
     {
-        $wearLog->loadMissing('sourceOutfit');
+        $wearLog->loadMissing(['sourceOutfit', 'wearLogItems.sourceItem']);
         $wearLog->loadCount('wearLogItems');
 
         return [
@@ -60,6 +60,11 @@ class WearLogPayloadBuilder
             'source_outfit_name' => $wearLog->sourceOutfit?->name,
             'items_count' => $wearLog->wear_log_items_count ?? $wearLog->wearLogItems()->count(),
             'memo' => $wearLog->memo,
+            'thumbnail_items' => $wearLog->wearLogItems
+                ->sortBy('sort_order')
+                ->values()
+                ->map(fn ($wearLogItem) => self::buildThumbnailItem($wearLogItem))
+                ->all(),
         ];
     }
 

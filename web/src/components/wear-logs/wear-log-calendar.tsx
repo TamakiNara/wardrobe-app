@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import WearLogModalColorThumbnail from "@/components/wear-logs/wear-log-modal-color-thumbnail";
 import { ApiClientError, apiFetch } from "@/lib/api/client";
 import { getWearLogStatusLabel } from "@/lib/wear-logs/labels";
 import type {
@@ -316,13 +317,16 @@ export default function WearLogCalendar({
                     }`}
                   >
                     <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">
-                          {wearLog.display_order}件目 / {getWearLogStatusLabel(wearLog.status)}
-                        </p>
-                        <p className="mt-1 text-sm text-gray-600">
-                          {wearLog.source_outfit_name ?? `アイテム ${wearLog.items_count} 件`}
-                        </p>
+                      <div className="flex min-w-0 flex-1 items-start gap-3">
+                        <WearLogModalColorThumbnail items={wearLog.thumbnail_items ?? []} />
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-gray-900">
+                            {wearLog.display_order}件目 / {getWearLogStatusLabel(wearLog.status)}
+                          </p>
+                          <p className="mt-1 text-sm text-gray-600">
+                            {wearLog.source_outfit_name ?? `アイテム ${wearLog.items_count} 件`}
+                          </p>
+                        </div>
                       </div>
                       <Link
                         href={`/wear-logs/${wearLog.id}`}

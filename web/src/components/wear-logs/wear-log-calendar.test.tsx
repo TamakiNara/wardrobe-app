@@ -82,6 +82,18 @@ describe("WearLogCalendar", () => {
           source_outfit_name: "通勤コーデ",
           items_count: 2,
           memo: "朝会あり",
+          thumbnail_items: [
+            {
+              source_item_id: 1,
+              category: "tops",
+              colors: [{ role: "main", hex: "#ffffff", label: "白" }],
+            },
+            {
+              source_item_id: 2,
+              category: "bottoms",
+              colors: [{ role: "main", hex: "#111111", label: "黒" }],
+            },
+          ],
         },
       ],
     });
@@ -124,6 +136,7 @@ describe("WearLogCalendar", () => {
     expect(container.textContent).toContain("通勤コーデ");
     expect(container.textContent).toContain("朝会あり");
     expect(container.innerHTML).toContain('href="/wear-logs/11"');
+    expect(container.innerHTML).toContain("wear-log-modal-color-thumbnail");
     expect(container.innerHTML).not.toContain("wear-log-color-thumbnail");
   });
 
@@ -209,6 +222,13 @@ describe("WearLogCalendar", () => {
           source_outfit_name: "通勤コーデ",
           items_count: 2,
           memo: null,
+          thumbnail_items: [
+            {
+              source_item_id: 1,
+              category: "tops",
+              colors: [{ role: "main", hex: "#ffffff", label: "白" }],
+            },
+          ],
         },
       ],
     });

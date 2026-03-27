@@ -71,8 +71,9 @@ item 画像の代わりではなく、構成色を補助表示するための「
 - wear logs 一覧
   - `wear_log_items` を正本にして描画する
   - `source_outfit_id` は描画正本として使わない
+- wear log 日詳細モーダル
+  - `wear_log_items` を正本にした簡略版サムネイルを表示する
+  - 一覧用 helper を土台にしつつ、component はモーダル用に分ける
 - クローゼットビュー
   - item の current 色情報を正本にし、図形の main / sub 表現にも同じフォールバック色を使う
-- wear log 日詳細モーダルにはまだ表示しない
-  - ただし次の第一候補は、`wear_log_items` 正本を維持した簡略版サムネイルの展開
 - outfit 詳細 / wear log 個別詳細への展開もまだ行わない

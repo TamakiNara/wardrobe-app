@@ -110,6 +110,7 @@ export type WearLogByDateItem = {
   source_outfit_name: string | null;
   items_count: number;
   memo: string | null;
+  thumbnail_items: WearLogThumbnailItem[];
 };
 
 export type WearLogByDateResponse = {

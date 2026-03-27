@@ -1041,6 +1041,8 @@ paths:
       description: |
         日付クリック後の日詳細モーダル表示専用 API。
         当日の wear log を `display_order asc` で返す。
+        モーダル用の簡略版配色サムネイル描画に使う `thumbnail_items` も返し、
+        描画正本は `source_outfit_id` ではなく `wear_log_items` のままとする。
       parameters:
         - name: event_date
           in: query
@@ -2768,6 +2770,7 @@ components:
         - event_date
         - display_order
         - items_count
+        - thumbnail_items
       properties:
         id:
           type: integer
@@ -2789,6 +2792,13 @@ components:
         memo:
           type: string
           nullable: true
+        thumbnail_items:
+          type: array
+          description: |
+            wear log 日詳細モーダルの簡略版配色サムネイル描画用の最小 item 情報。
+            正本は `source_outfit_id` ではなく `wear_log_items`。
+          items:
+            $ref: '#/components/schemas/WearLogThumbnailItem'
 
     WearLogByDateResponse:
       description: |
