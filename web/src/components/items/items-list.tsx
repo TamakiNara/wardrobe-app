@@ -389,7 +389,7 @@ export default function ItemsList({
 
           <div className="flex items-center gap-3">
             <div
-              className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 p-1"
+              className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-gray-50 p-1"
               role="group"
               aria-label="アイテム一覧の表示切替"
             >
@@ -398,10 +398,10 @@ export default function ItemsList({
                 onClick={() => setViewMode("list")}
                 aria-label="通常一覧に切り替え"
                 aria-pressed={viewMode === "list"}
-                className={`inline-flex h-9 w-9 items-center justify-center rounded-full border text-gray-700 transition ${
+                className={`inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm font-medium transition ${
                   viewMode === "list"
-                    ? "border-blue-200 bg-blue-50 text-blue-700"
-                    : "border-transparent bg-white hover:border-gray-200 hover:bg-gray-100"
+                    ? "border-blue-600 bg-blue-600 text-white shadow-sm"
+                    : "border-transparent bg-white text-gray-600 hover:border-gray-200 hover:bg-gray-100"
                 }`}
               >
                 <svg aria-hidden="true" viewBox="0 0 20 20" className="h-4 w-4 fill-current">
@@ -409,22 +409,24 @@ export default function ItemsList({
                   <rect x="3" y="9" width="14" height="3" rx="1.5" />
                   <rect x="3" y="14" width="14" height="3" rx="1.5" />
                 </svg>
+                <span>一覧</span>
               </button>
               <button
                 type="button"
                 onClick={() => setViewMode("closet")}
                 aria-label="クローゼットビューに切り替え"
                 aria-pressed={viewMode === "closet"}
-                className={`inline-flex h-9 w-9 items-center justify-center rounded-full border text-gray-700 transition ${
+                className={`inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm font-medium transition ${
                   viewMode === "closet"
-                    ? "border-blue-200 bg-blue-50 text-blue-700"
-                    : "border-transparent bg-white hover:border-gray-200 hover:bg-gray-100"
+                    ? "border-blue-600 bg-blue-600 text-white shadow-sm"
+                    : "border-transparent bg-white text-gray-600 hover:border-gray-200 hover:bg-gray-100"
                 }`}
               >
                 <svg aria-hidden="true" viewBox="0 0 20 20" className="h-4 w-4 stroke-current">
                   <rect x="4" y="3" width="5" height="14" rx="1.5" fill="none" strokeWidth="1.6" />
                   <rect x="11" y="3" width="5" height="14" rx="1.5" fill="none" strokeWidth="1.6" />
                 </svg>
+                <span>クローゼット</span>
               </button>
             </div>
 
@@ -454,14 +456,23 @@ export default function ItemsList({
           {closetGroups.map((group) => (
             <section
               key={group.category}
-              className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm"
+              className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm"
             >
               <h2 className="text-base font-semibold text-gray-900">{group.label}</h2>
-              <div className="mt-4 space-y-5">
+              <div className="mt-3 flex flex-wrap items-start gap-x-6 gap-y-4">
                 {group.shapeGroups.map((shapeGroup) => (
-                  <section key={`${group.category}-${shapeGroup.shape}`} className="space-y-3">
-                    <h3 className="text-sm font-medium text-gray-600">{shapeGroup.label}</h3>
-                    <div className="flex flex-wrap gap-3">
+                  <section
+                    key={`${group.category}-${shapeGroup.shape}`}
+                    className={`min-w-fit space-y-2 ${
+                      shapeGroup.items.length === 1 ? "text-center" : "text-left"
+                    }`}
+                  >
+                    <h3 className="text-xs font-medium text-gray-500">{shapeGroup.label}</h3>
+                    <div
+                      className={`flex flex-wrap gap-2 ${
+                        shapeGroup.items.length === 1 ? "justify-center" : "justify-start"
+                      }`}
+                    >
                       {shapeGroup.items.map((item) => {
                         const mainColor = item.colors.find((color) => color.role === "main");
                         const subColor = item.colors.find((color) => color.role === "sub");

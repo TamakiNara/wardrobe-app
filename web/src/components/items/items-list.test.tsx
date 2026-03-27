@@ -490,12 +490,17 @@ describe("ItemsList", () => {
     const closetButton = Array.from(container.querySelectorAll("button")).find(
       (button) => button.getAttribute("aria-label") === "クローゼットビューに切り替え",
     );
+    const listButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.getAttribute("aria-label") === "通常一覧に切り替え",
+    );
 
     await act(async () => {
       closetButton?.click();
       await waitForEffects();
     });
 
+    expect(listButton?.className).not.toContain("bg-blue-600");
+    expect(closetButton?.className).toContain("bg-blue-600");
     expect(container.textContent).toContain("トップス");
     expect(container.textContent).toContain("ボトムス");
     expect(container.textContent).not.toContain("アウター");
@@ -503,6 +508,12 @@ describe("ItemsList", () => {
     expect(container.textContent).toContain("シャツ");
     expect(container.textContent).toContain("カーディガン");
 
+    const categoryCard = Array.from(container.querySelectorAll("section")).find((section) =>
+      section.textContent?.includes("トップス"),
+    );
+    const shapeRow = categoryCard?.querySelector("div.mt-3.flex.flex-wrap.items-start");
+
+    expect(shapeRow?.className).toContain("flex-wrap");
     const topsLink = container.querySelector<HTMLAnchorElement>(
       'a[aria-label="白T / Tシャツ/カットソー / ホワイト"]',
     );
