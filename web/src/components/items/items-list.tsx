@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import TopsPreviewSvg from "@/components/items/preview-svg/tops-preview-svg";
 import { buildSupportedCategoryOptions, fetchCategoryGroups } from "@/lib/api/categories";
+import { buildClosetViewGroups } from "@/lib/items/closet-view";
 import { fetchCategoryVisibilitySettings } from "@/lib/api/settings";
 import { ITEM_CARE_STATUS_LABELS } from "@/lib/items/metadata";
 import {
@@ -28,12 +29,15 @@ type ItemsListProps = {
 };
 
 type ItemSortValue = "updated_at_desc" | "name_asc";
+type ItemListViewMode = "list" | "closet";
 
 const DEFAULT_SORT: ItemSortValue = "updated_at_desc";
 const SORT_OPTIONS: Array<{ value: ItemSortValue; label: string }> = [
   { value: "updated_at_desc", label: "更新順" },
   { value: "name_asc", label: "名前順" },
 ];
+
+const DEFAULT_VIEW_MODE: ItemListViewMode = "list";
 
 function normalizeSort(value: string | null): ItemSortValue {
   if (value === "name_asc") {
@@ -178,6 +182,7 @@ export default function ItemsList({
   const [apiCategoryOptions, setApiCategoryOptions] = useState<CategoryOption[]>([
     ...ITEM_CATEGORY_OPTIONS,
   ]);
+  const [viewMode, setViewMode] = useState<ItemListViewMode>(DEFAULT_VIEW_MODE);
   const initialSeasonAppliedRef = useRef(false);
 
   useEffect(() => {
@@ -265,6 +270,10 @@ export default function ItemsList({
 
   const seasonOptions = availableSeasons;
   const tpoOptions = availableTpos;
+  const closetGroups = useMemo(() => buildClosetViewGroups(items, categoryOptions), [
+    categoryOptions,
+    items,
+  ]);
 
   const hasActiveFilters = Boolean(
     keyword ||
@@ -274,6 +283,8 @@ export default function ItemsList({
       sort !== DEFAULT_SORT ||
       currentPage > 1,
   );
+  const shouldShowEmptyState =
+    items.length === 0 || (viewMode === "closet" && closetGroups.length === 0);
 
   return (
     <div className="space-y-6">
@@ -376,18 +387,60 @@ export default function ItemsList({
             表示件数: {items.length} / {totalCount}
           </p>
 
-          <button
-            type="button"
-            onClick={() => router.replace(pathname, { scroll: false })}
-            className="text-sm font-medium text-blue-600 hover:underline disabled:text-gray-400 disabled:no-underline"
-            disabled={!hasActiveFilters}
-          >
-            条件をクリア
-          </button>
+          <div className="flex items-center gap-3">
+            <div
+              className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 p-1"
+              role="group"
+              aria-label="アイテム一覧の表示切替"
+            >
+              <button
+                type="button"
+                onClick={() => setViewMode("list")}
+                aria-label="通常一覧に切り替え"
+                aria-pressed={viewMode === "list"}
+                className={`inline-flex h-9 w-9 items-center justify-center rounded-full border text-gray-700 transition ${
+                  viewMode === "list"
+                    ? "border-blue-200 bg-blue-50 text-blue-700"
+                    : "border-transparent bg-white hover:border-gray-200 hover:bg-gray-100"
+                }`}
+              >
+                <svg aria-hidden="true" viewBox="0 0 20 20" className="h-4 w-4 fill-current">
+                  <rect x="3" y="4" width="14" height="3" rx="1.5" />
+                  <rect x="3" y="9" width="14" height="3" rx="1.5" />
+                  <rect x="3" y="14" width="14" height="3" rx="1.5" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode("closet")}
+                aria-label="クローゼットビューに切り替え"
+                aria-pressed={viewMode === "closet"}
+                className={`inline-flex h-9 w-9 items-center justify-center rounded-full border text-gray-700 transition ${
+                  viewMode === "closet"
+                    ? "border-blue-200 bg-blue-50 text-blue-700"
+                    : "border-transparent bg-white hover:border-gray-200 hover:bg-gray-100"
+                }`}
+              >
+                <svg aria-hidden="true" viewBox="0 0 20 20" className="h-4 w-4 stroke-current">
+                  <rect x="4" y="3" width="5" height="14" rx="1.5" fill="none" strokeWidth="1.6" />
+                  <rect x="11" y="3" width="5" height="14" rx="1.5" fill="none" strokeWidth="1.6" />
+                </svg>
+              </button>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => router.replace(pathname, { scroll: false })}
+              className="text-sm font-medium text-blue-600 hover:underline disabled:text-gray-400 disabled:no-underline"
+              disabled={!hasActiveFilters}
+            >
+              条件をクリア
+            </button>
+          </div>
         </div>
       </section>
 
-      {items.length === 0 ? (
+      {shouldShowEmptyState ? (
         <section className="rounded-2xl border border-dashed border-gray-300 bg-white p-10 text-center shadow-sm">
           <h2 className="text-lg font-semibold text-gray-900">
             条件に一致するアイテムがありません
@@ -395,6 +448,60 @@ export default function ItemsList({
           <p className="mt-2 text-sm text-gray-600">
             条件を変えてお試しください。
           </p>
+        </section>
+      ) : viewMode === "closet" ? (
+        <section className="space-y-6">
+          {closetGroups.map((group) => (
+            <section
+              key={group.category}
+              className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm"
+            >
+              <h2 className="text-base font-semibold text-gray-900">{group.label}</h2>
+              <div className="mt-4 space-y-5">
+                {group.shapeGroups.map((shapeGroup) => (
+                  <section key={`${group.category}-${shapeGroup.shape}`} className="space-y-3">
+                    <h3 className="text-sm font-medium text-gray-600">{shapeGroup.label}</h3>
+                    <div className="flex flex-wrap gap-3">
+                      {shapeGroup.items.map((item) => {
+                        const mainColor = item.colors.find((color) => color.role === "main");
+                        const subColor = item.colors.find((color) => color.role === "sub");
+                        const itemName = item.name || "名称未設定";
+                        const mainColorLabel = mainColor?.label ?? "未設定";
+
+                        return (
+                          <Link
+                            href={`/items/${item.id}`}
+                            key={item.id}
+                            aria-label={`${itemName} / ${shapeGroup.label} / ${mainColorLabel}`}
+                            className="rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2"
+                          >
+                            <span className="sr-only">
+                              {itemName} / {shapeGroup.label} / {mainColorLabel}
+                            </span>
+                            <span className="relative block h-24 w-12 overflow-hidden rounded-2xl border border-gray-200 bg-white transition hover:border-blue-300 hover:shadow-sm">
+                              <span
+                                className="absolute inset-y-0 left-0"
+                                style={{
+                                  width: subColor?.hex ? "90%" : "100%",
+                                  backgroundColor: mainColor?.hex ?? "#E5E7EB",
+                                }}
+                              />
+                              {subColor?.hex ? (
+                                <span
+                                  className="absolute inset-y-0 right-0"
+                                  style={{ width: "10%", backgroundColor: subColor.hex }}
+                                />
+                              ) : null}
+                            </span>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  </section>
+                ))}
+              </div>
+            </section>
+          ))}
         </section>
       ) : (
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">

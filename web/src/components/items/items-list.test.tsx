@@ -52,6 +52,22 @@ const sampleGroups: CategoryGroupRecord[] = [
       { id: "tops_shirt", groupId: "tops", name: "シャツ / ブラウス", sortOrder: 20 },
     ],
   },
+  {
+    id: "bottoms",
+    name: "ボトムス",
+    sortOrder: 20,
+    categories: [
+      { id: "bottoms_pants", groupId: "bottoms", name: "パンツ", sortOrder: 10 },
+    ],
+  },
+  {
+    id: "outer",
+    name: "アウター",
+    sortOrder: 30,
+    categories: [
+      { id: "outer_coat", groupId: "outer", name: "コート", sortOrder: 10 },
+    ],
+  },
 ];
 
 const sampleItems: ItemRecord[] = [
@@ -117,7 +133,7 @@ const defaultListProps = {
   totalAllCount: sampleItems.length,
   currentPage: 1,
   lastPage: 1,
-  availableCategoryValues: ["tops"],
+  availableCategoryValues: ["tops", "bottoms", "outer"],
   availableSeasons: ["春", "夏"],
   availableTpos: ["仕事", "休日"],
 };
@@ -386,5 +402,170 @@ describe("ItemsList", () => {
     });
 
     expect(replaceMock).not.toHaveBeenCalledWith("/items?season=%E6%98%A5", { scroll: false });
+  });
+
+  it("表示切替でクローゼットビューを開き、中分類ごとに表示する", async () => {
+    fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
+    fetchCategoryVisibilitySettingsMock.mockResolvedValue({
+      visibleCategoryIds: ["tops_tshirt", "tops_shirt", "bottoms_pants"],
+    });
+
+    const closetItems: ItemRecord[] = [
+      sampleItems[0],
+      sampleItems[1],
+      {
+        id: 3,
+        name: "黒カーディガン",
+        status: "active",
+        category: "tops",
+        shape: "cardigan",
+        colors: [
+          {
+            role: "main",
+            mode: "preset",
+            value: "black",
+            hex: "#1F1F1F",
+            label: "ブラック",
+          },
+        ],
+        seasons: ["冬"],
+        tpos: ["仕事"],
+        images: [],
+      },
+      {
+        id: 5,
+        name: "ネイビーパンツ",
+        status: "active",
+        category: "bottoms",
+        shape: "pants",
+        colors: [
+          {
+            role: "main",
+            mode: "preset",
+            value: "navy",
+            hex: "#2F4058",
+            label: "ネイビー",
+          },
+        ],
+        seasons: ["冬"],
+        tpos: ["仕事"],
+        images: [],
+      },
+      {
+        id: 4,
+        name: "処分済みコート",
+        status: "disposed",
+        category: "outer",
+        shape: "coat",
+        colors: [
+          {
+            role: "main",
+            mode: "preset",
+            value: "brown",
+            hex: "#704E3E",
+            label: "ブラウン",
+          },
+        ],
+        seasons: ["冬"],
+        tpos: ["休日"],
+        images: [],
+      },
+    ];
+
+    const { default: ItemsList } = await import("./items-list");
+
+    await act(async () => {
+      root.render(
+        React.createElement(ItemsList, {
+          ...defaultListProps,
+          items: closetItems,
+          totalCount: closetItems.length,
+          totalAllCount: closetItems.length,
+          availableSeasons: ["春", "夏", "冬"],
+        }),
+      );
+      await waitForEffects();
+    });
+
+    const closetButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.getAttribute("aria-label") === "クローゼットビューに切り替え",
+    );
+
+    await act(async () => {
+      closetButton?.click();
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain("トップス");
+    expect(container.textContent).toContain("ボトムス");
+    expect(container.textContent).not.toContain("アウター");
+    expect(container.textContent).toContain("Tシャツ/カットソー");
+    expect(container.textContent).toContain("シャツ");
+    expect(container.textContent).toContain("カーディガン");
+
+    const topsLink = container.querySelector<HTMLAnchorElement>(
+      'a[aria-label="白T / Tシャツ/カットソー / ホワイト"]',
+    );
+    const bottomsLink = container.querySelector<HTMLAnchorElement>(
+      'a[aria-label="ネイビーパンツ / パンツ / ネイビー"]',
+    );
+    const cardiganLink = container.querySelector<HTMLAnchorElement>(
+      'a[aria-label="黒カーディガン / カーディガン / ブラック"]',
+    );
+
+    expect(topsLink?.getAttribute("href")).toBe("/items/1");
+    expect(bottomsLink?.getAttribute("href")).toBe("/items/5");
+    expect(cardiganLink?.getAttribute("href")).toBe("/items/3");
+    expect(topsLink?.className).toContain("focus-visible:ring-2");
+    expect(container.querySelector('a[aria-label*="処分済みコート"]')).toBeNull();
+  });
+
+  it("クローゼットビューでも絞り込み後 0 件なら既存空状態を使う", async () => {
+    fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
+    fetchCategoryVisibilitySettingsMock.mockResolvedValue({
+      visibleCategoryIds: ["tops_tshirt", "tops_shirt", "bottoms_pants", "outer_coat"],
+    });
+
+    const disposedOnlyItems: ItemRecord[] = [
+      {
+        id: 10,
+        name: "処分済みコート",
+        status: "disposed",
+        category: "outer",
+        shape: "coat",
+        colors: [],
+        seasons: ["冬"],
+        tpos: ["休日"],
+        images: [],
+      },
+    ];
+
+    const { default: ItemsList } = await import("./items-list");
+
+    await act(async () => {
+      root.render(
+        React.createElement(ItemsList, {
+          ...defaultListProps,
+          items: disposedOnlyItems,
+          totalCount: disposedOnlyItems.length,
+          totalAllCount: disposedOnlyItems.length,
+          availableSeasons: ["冬"],
+          availableTpos: ["休日"],
+        }),
+      );
+      await waitForEffects();
+    });
+
+    const closetButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.getAttribute("aria-label") === "クローゼットビューに切り替え",
+    );
+
+    await act(async () => {
+      closetButton?.click();
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain("条件に一致するアイテムがありません");
+    expect(container.textContent).toContain("条件を変えてお試しください。");
   });
 });

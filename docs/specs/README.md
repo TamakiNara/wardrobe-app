@@ -5,6 +5,7 @@
 - [items: tops 詳細仕様](./items/tops.md)
 - [items: status 管理](./items/status-management.md)
 - [items: detail status UI](./items/detail-status-ui.md)
+- [items: クローゼットビュー](./items/closet-view.md)
 - [outfits: 作成・編集・invalid/duplicate](./outfits/create-edit.md)
 - [outfits: item 候補ルール](./outfits/item-candidate-rules.md)
 - [wear logs: 一覧・詳細・登録・更新・削除](./wears/wear-logs.md)
