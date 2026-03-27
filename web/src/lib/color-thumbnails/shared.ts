@@ -26,6 +26,8 @@ export type ColorThumbnailLayout = {
 };
 
 export const COLOR_THUMBNAIL_FALLBACK_COLOR = "#E5E7EB";
+export const COLOR_THUMBNAIL_OTHERS_BAR_CLASS =
+  "h-[0.875rem] shrink-0 overflow-hidden rounded-md border border-gray-200 bg-gray-50";
 
 export function resolveColorThumbnailGroup(
   category: string | null | undefined,

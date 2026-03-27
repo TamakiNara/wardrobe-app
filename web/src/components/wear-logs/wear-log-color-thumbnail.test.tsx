@@ -61,7 +61,60 @@ describe("WearLogColorThumbnail", () => {
     expect(container.querySelector('[data-testid="wear-log-thumbnail-tops"]')).not.toBeNull();
     expect(container.querySelector('[data-testid="wear-log-thumbnail-bottoms"]')).not.toBeNull();
     expect(container.querySelector('[data-testid="wear-log-thumbnail-others"]')).not.toBeNull();
+    expect(container.querySelector('[data-testid="wear-log-thumbnail-main-top"]')?.className).toContain("h-1/2");
+    expect(container.querySelector('[data-testid="wear-log-thumbnail-main-bottom"]')?.className).toContain("h-1/2");
+    expect(container.querySelector('[data-testid="wear-log-thumbnail-others-bar"]')?.className).toContain("h-[0.875rem]");
     expect(container.querySelector('[data-testid="wear-log-thumbnail-others-full"]')).toBeNull();
+  });
+
+  it("tops / bottoms 両方ありで others がない場合は 2 層だけを使う", async () => {
+    await act(async () => {
+      root.render(
+        React.createElement(WearLogColorThumbnail, {
+          items: [
+            renderThumbnailItem(1, "tops", [{ role: "main", hex: "#ffffff", label: "白" }]),
+            renderThumbnailItem(2, "bottoms", [{ role: "main", hex: "#111111", label: "黒" }]),
+          ],
+        }),
+      );
+    });
+
+    expect(container.querySelector('[data-testid="wear-log-thumbnail-main-top"]')?.className).toContain("h-1/2");
+    expect(container.querySelector('[data-testid="wear-log-thumbnail-main-bottom"]')?.className).toContain("h-1/2");
+    expect(container.querySelector('[data-testid="wear-log-thumbnail-others-bar"]')).toBeNull();
+  });
+
+  it("tops のみ + others ありでは tops がメイン全体を使い、others バーを出す", async () => {
+    await act(async () => {
+      root.render(
+        React.createElement(WearLogColorThumbnail, {
+          items: [
+            renderThumbnailItem(1, "tops", [{ role: "main", hex: "#ffffff", label: "白" }]),
+            renderThumbnailItem(2, "bag", [{ role: "main", hex: "#111111", label: "黒" }]),
+          ],
+        }),
+      );
+    });
+
+    expect(container.querySelector('[data-testid="wear-log-thumbnail-main-top"]')?.className).toContain("h-full");
+    expect(container.querySelector('[data-testid="wear-log-thumbnail-main-bottom"]')).toBeNull();
+    expect(container.querySelector('[data-testid="wear-log-thumbnail-others-bar"]')).not.toBeNull();
+  });
+
+  it("bottoms のみで others がない場合は bottoms が全体を使う", async () => {
+    await act(async () => {
+      root.render(
+        React.createElement(WearLogColorThumbnail, {
+          items: [
+            renderThumbnailItem(1, "bottoms", [{ role: "main", hex: "#111111", label: "黒" }]),
+          ],
+        }),
+      );
+    });
+
+    expect(container.querySelector('[data-testid="wear-log-thumbnail-main-top"]')).toBeNull();
+    expect(container.querySelector('[data-testid="wear-log-thumbnail-main-bottom"]')?.className).toContain("h-full");
+    expect(container.querySelector('[data-testid="wear-log-thumbnail-others-bar"]')).toBeNull();
   });
 
   it("others のみの場合は全体を others で使う", async () => {

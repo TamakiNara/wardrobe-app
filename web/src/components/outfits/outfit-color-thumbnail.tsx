@@ -1,3 +1,4 @@
+import { COLOR_THUMBNAIL_OTHERS_BAR_CLASS } from "@/lib/color-thumbnails/shared";
 import { buildOutfitThumbnailLayout } from "@/lib/outfits/color-thumbnail";
 
 type OutfitItem = {
@@ -86,33 +87,48 @@ export default function OutfitColorThumbnail({
       colors: outfitItem.item.colors,
     })),
   );
+  const hasTopBottomSplit = layout.tops.length > 0 && layout.bottoms.length > 0;
 
   return (
     <div
-      className="flex h-20 w-20 flex-col overflow-hidden rounded-xl border border-gray-200 bg-gray-50"
+      className="flex w-16 flex-col gap-1"
       data-testid="outfit-color-thumbnail"
       aria-hidden="true"
     >
       {layout.usesFullHeightForOthers ? (
-        <SegmentRow segments={layout.others} testId="thumbnail-others-full" />
+        <div className="h-16 overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
+          <SegmentRow segments={layout.others} testId="thumbnail-others-full" />
+        </div>
       ) : (
         <>
-          <div className="flex min-h-0 flex-1 flex-col">
+          <div
+            className="flex h-16 min-h-0 flex-col overflow-hidden rounded-lg border border-gray-200 bg-gray-50"
+            data-testid="thumbnail-main"
+          >
             {layout.tops.length > 0 ? (
-              <div className={`min-h-0 ${layout.bottoms.length > 0 ? "flex-1" : "h-full"}`}>
+              <div
+                className={`min-h-0 ${hasTopBottomSplit ? "h-1/2" : "h-full"}`}
+                data-testid="thumbnail-main-top"
+              >
                 <SegmentRow segments={layout.tops} testId="thumbnail-tops" />
               </div>
             ) : null}
 
             {layout.bottoms.length > 0 ? (
-              <div className={`min-h-0 ${layout.tops.length > 0 ? "flex-1" : "h-full"}`}>
+              <div
+                className={`min-h-0 ${hasTopBottomSplit ? "h-1/2" : "h-full"}`}
+                data-testid="thumbnail-main-bottom"
+              >
                 <SegmentRow segments={layout.bottoms} testId="thumbnail-bottoms" />
               </div>
             ) : null}
           </div>
 
           {layout.hasOthersBar ? (
-            <div className="h-3 border-t border-white/40">
+            <div
+              className={COLOR_THUMBNAIL_OTHERS_BAR_CLASS}
+              data-testid="thumbnail-others-bar"
+            >
               <SegmentRow segments={layout.others} testId="thumbnail-others" />
             </div>
           ) : null}
