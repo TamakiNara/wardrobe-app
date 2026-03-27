@@ -924,6 +924,8 @@ paths:
         meta.total / totalAll / page / lastPage を返す。
         一覧用の補助配色サムネイルは `thumbnail_items` で返し、
         描画正本は `source_outfit_id` ではなく `wear_log_items` とする。
+        `items=[]` かつ `source_outfit_id` ありで保存した record でも、
+        current 実装では source outfit の構成を `wear_log_items` として実体化する。
       parameters:
         - name: page
           in: query

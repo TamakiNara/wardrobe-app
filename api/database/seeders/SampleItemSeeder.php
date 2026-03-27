@@ -86,6 +86,27 @@ class SampleItemSeeder extends Seeder
                 ],
             ],
             [
+                'name' => 'アイボリーニット',
+                'brand_name' => 'BEAMS',
+                'category' => 'tops',
+                'shape' => 'knit',
+                'colors' => [
+                    ['role' => 'main', 'mode' => 'preset', 'value' => 'ivory', 'hex' => '#F2EEE4', 'label' => 'アイボリー'],
+                ],
+                'seasons' => ['秋', '冬'],
+                'tpos' => ['仕事', '休日'],
+                'spec' => [
+                    'tops' => [
+                        'shape' => 'knit',
+                        'sleeve' => 'long',
+                        'length' => 'normal',
+                        'neck' => 'crew',
+                        'design' => null,
+                        'fit' => 'normal',
+                    ],
+                ],
+            ],
+            [
                 'name' => 'デニムパンツ',
                 'brand_name' => '無印良品',
                 'category' => 'bottoms',
@@ -109,6 +130,19 @@ class SampleItemSeeder extends Seeder
                 'spec' => null,
             ],
             [
+                'name' => 'ベージュトレンチコート',
+                'brand_name' => 'UNITED ARROWS',
+                'category' => 'outer',
+                'shape' => 'trench',
+                'care_status' => 'in_cleaning',
+                'colors' => [
+                    ['role' => 'main', 'mode' => 'preset', 'value' => 'beige', 'hex' => '#D3C0A4', 'label' => 'ベージュ'],
+                ],
+                'seasons' => ['春', '秋'],
+                'tpos' => ['仕事', '休日'],
+                'spec' => null,
+            ],
+            [
                 'name' => 'スニーカー',
                 'brand_name' => 'ABC-MART',
                 'category' => 'shoes',
@@ -122,6 +156,18 @@ class SampleItemSeeder extends Seeder
                 'spec' => null,
             ],
             [
+                'name' => 'ローファー',
+                'brand_name' => 'ABC-MART',
+                'category' => 'shoes',
+                'shape' => 'pumps',
+                'colors' => [
+                    ['role' => 'main', 'mode' => 'preset', 'value' => 'black', 'hex' => '#1F1F1F', 'label' => 'ブラック'],
+                ],
+                'seasons' => ['春', '秋'],
+                'tpos' => ['仕事', 'フォーマル'],
+                'spec' => null,
+            ],
+            [
                 'name' => 'トートバッグ',
                 'brand_name' => 'ZARA',
                 'category' => 'accessories',
@@ -131,6 +177,17 @@ class SampleItemSeeder extends Seeder
                 ],
                 'seasons' => ['春', '夏', '秋', '冬'],
                 'tpos' => ['仕事', '休日', 'フォーマル'],
+                'spec' => null,
+            ],
+            [
+                'name' => 'シルバーネックレス',
+                'category' => 'accessories',
+                'shape' => 'accessory',
+                'colors' => [
+                    ['role' => 'main', 'mode' => 'preset', 'value' => 'gray', 'hex' => '#B8BDC7', 'label' => 'シルバー'],
+                ],
+                'seasons' => ['春', '夏', '秋', '冬'],
+                'tpos' => ['休日', 'フォーマル'],
                 'spec' => null,
             ],
             [

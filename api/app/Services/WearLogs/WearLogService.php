@@ -28,7 +28,13 @@ class WearLogService
                 'memo' => $validated['memo'] ?? null,
             ]);
 
-            $this->syncWearLogItems($wearLog, $validated['items'] ?? []);
+            $this->syncWearLogItems(
+                $wearLog,
+                $this->resolveWearLogItemsPayload(
+                    $validated['items'] ?? [],
+                    $validated['source_outfit_id'] ?? null
+                )
+            );
 
             return $wearLog->fresh()->load(['sourceOutfit', 'wearLogItems.sourceItem']);
         });
@@ -49,7 +55,13 @@ class WearLogService
             ]);
 
             $wearLog->wearLogItems()->delete();
-            $this->syncWearLogItems($wearLog, $validated['items'] ?? []);
+            $this->syncWearLogItems(
+                $wearLog,
+                $this->resolveWearLogItemsPayload(
+                    $validated['items'] ?? [],
+                    $validated['source_outfit_id'] ?? null
+                )
+            );
 
             return $wearLog->fresh()->load(['sourceOutfit', 'wearLogItems.sourceItem']);
         });
@@ -231,5 +243,27 @@ class WearLogService
                 ];
             })->all()
         );
+    }
+
+    private function resolveWearLogItemsPayload(array $items, ?int $sourceOutfitId): array
+    {
+        if ($items !== [] || $sourceOutfitId === null) {
+            return $items;
+        }
+
+        $sourceOutfit = Outfit::query()
+            ->with('outfitItems.item')
+            ->findOrFail($sourceOutfitId);
+
+        return $sourceOutfit->outfitItems
+            ->map(function ($outfitItem) {
+                return [
+                    'source_item_id' => $outfitItem->item_id,
+                    'item_source_type' => 'outfit',
+                    'sort_order' => $outfitItem->sort_order,
+                ];
+            })
+            ->values()
+            ->all();
     }
 }

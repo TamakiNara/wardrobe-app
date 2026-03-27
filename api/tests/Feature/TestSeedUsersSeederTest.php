@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Item;
 use App\Models\User;
 use App\Models\UserBrand;
 use App\Models\WearLog;
@@ -41,12 +42,15 @@ class TestSeedUsersSeederTest extends TestCase
         $this->assertCount(0, $emptyUser->items);
         $this->assertCount(0, $emptyUser->outfits);
         $this->assertCount(0, UserBrand::query()->where('user_id', $emptyUser->id)->get());
-        $this->assertDatabaseCount('items', 44);
+        $this->assertDatabaseCount('items', 48);
 
         $this->assertNotNull($standardUser->visible_category_ids);
         $this->assertCount(36, $standardUser->visible_category_ids);
-        $this->assertCount(4, $standardUser->outfits);
-        $this->assertCount(8, $standardUser->items);
+        $this->assertCount(6, $standardUser->outfits);
+        $this->assertCount(12, $standardUser->items);
+        $this->assertTrue($standardUser->items->contains(
+            fn (Item $item) => $item->care_status === 'in_cleaning'
+        ));
         $standardBrands = UserBrand::query()
             ->where('user_id', $standardUser->id)
             ->orderBy('name')
@@ -71,9 +75,15 @@ class TestSeedUsersSeederTest extends TestCase
             ->orderBy('display_order')
             ->get();
 
-        $this->assertCount(5, $standardWearLogs);
+        $this->assertCount(8, $standardWearLogs);
         $this->assertSame('2026-03-24', $standardWearLogs->first()?->event_date?->format('Y-m-d'));
         $this->assertTrue($standardWearLogs->contains(fn (WearLog $wearLog) => $wearLog->sourceOutfit?->status === 'invalid'));
+        $this->assertTrue($standardWearLogs->contains(
+            fn (WearLog $wearLog) => $wearLog->source_outfit_id !== null && $wearLog->wearLogItems->isNotEmpty()
+        ));
+        $this->assertTrue($standardWearLogs->contains(
+            fn (WearLog $wearLog) => $wearLog->event_date?->format('Y-m-d') === '2026-03-21' && $wearLog->display_order === 2
+        ));
         $this->assertTrue($standardWearLogs->contains(
             fn (WearLog $wearLog) => $wearLog->wearLogItems->contains(fn ($item) => $item->sourceItem?->status === 'disposed')
         ));
@@ -82,6 +92,11 @@ class TestSeedUsersSeederTest extends TestCase
         $this->assertGreaterThanOrEqual(30, $largeUser->items->count());
         $this->assertGreaterThanOrEqual(10, $largeUser->outfits->count());
         $this->assertGreaterThanOrEqual(14, WearLog::query()->where('user_id', $largeUser->id)->count());
+        $this->assertTrue(WearLog::query()
+            ->where('user_id', $largeUser->id)
+            ->whereNotNull('source_outfit_id')
+            ->get()
+            ->every(fn (WearLog $wearLog) => $wearLog->wearLogItems->isNotEmpty()));
         $largeBrands = UserBrand::query()
             ->where('user_id', $largeUser->id)
             ->orderBy('name')

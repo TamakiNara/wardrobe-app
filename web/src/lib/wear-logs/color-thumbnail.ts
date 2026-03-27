@@ -48,6 +48,20 @@ export function getWearLogThumbnailFallbackColor() {
 export function buildWearLogThumbnailLayout(
   items: WearLogThumbnailItem[],
 ): WearLogThumbnailLayout {
+  if (items.length === 0) {
+    return {
+      tops: [],
+      bottoms: [],
+      others: [{
+        id: -1,
+        mainColorHex: THUMBNAIL_FALLBACK_COLOR,
+        subColorHex: null,
+      }],
+      hasOthersBar: false,
+      usesFullHeightForOthers: true,
+    };
+  }
+
   const layout: WearLogThumbnailLayout = {
     tops: [],
     bottoms: [],

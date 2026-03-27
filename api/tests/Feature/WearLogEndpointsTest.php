@@ -358,6 +358,32 @@ class WearLogEndpointsTest extends TestCase
     {
         $user = User::factory()->create();
         $outfit = $this->createOutfit($user);
+        $top = $this->createItem($user, [
+            'name' => '白T',
+            'category' => 'tops',
+        ]);
+        $bottom = $this->createItem($user, [
+            'name' => 'ネイビーパンツ',
+            'category' => 'bottoms',
+            'shape' => 'pants',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'navy',
+                'hex' => '#223355',
+                'label' => 'ネイビー',
+            ]],
+        ]);
+        $outfit->outfitItems()->createMany([
+            [
+                'item_id' => $top->id,
+                'sort_order' => 1,
+            ],
+            [
+                'item_id' => $bottom->id,
+                'sort_order' => 2,
+            ],
+        ]);
 
         $this->actingAs($user, 'web');
         $token = $this->issueCsrfToken();
@@ -377,12 +403,26 @@ class WearLogEndpointsTest extends TestCase
         $response->assertCreated()
             ->assertJsonPath('message', 'created')
             ->assertJsonPath('wearLog.source_outfit_id', $outfit->id)
-            ->assertJsonCount(0, 'wearLog.items');
+            ->assertJsonCount(2, 'wearLog.items')
+            ->assertJsonPath('wearLog.items.0.source_item_id', $top->id)
+            ->assertJsonPath('wearLog.items.0.item_source_type', 'outfit')
+            ->assertJsonPath('wearLog.items.1.source_item_id', $bottom->id)
+            ->assertJsonPath('wearLog.items.1.item_source_type', 'outfit');
 
         $this->assertDatabaseHas('wear_logs', [
             'user_id' => $user->id,
             'source_outfit_id' => $outfit->id,
             'display_order' => 1,
+        ]);
+        $this->assertDatabaseHas('wear_log_items', [
+            'source_item_id' => $top->id,
+            'item_source_type' => 'outfit',
+            'sort_order' => 1,
+        ]);
+        $this->assertDatabaseHas('wear_log_items', [
+            'source_item_id' => $bottom->id,
+            'item_source_type' => 'outfit',
+            'sort_order' => 2,
         ]);
     }
 
@@ -470,6 +510,72 @@ class WearLogEndpointsTest extends TestCase
         $response->assertCreated()
             ->assertJsonPath('wearLog.source_outfit_id', $outfit->id)
             ->assertJsonPath('wearLog.items.0.source_item_id', $item->id);
+    }
+
+    public function test_get_wear_logs_returns_thumbnail_items_for_outfit_only_wear_log_from_materialized_wear_log_items(): void
+    {
+        $user = User::factory()->create();
+        $outfit = $this->createOutfit($user, ['name' => '通勤コーデ']);
+        $top = $this->createItem($user, [
+            'name' => '白T',
+            'category' => 'tops',
+        ]);
+        $bottom = $this->createItem($user, [
+            'name' => 'ネイビーパンツ',
+            'category' => 'bottoms',
+            'shape' => 'pants',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'navy',
+                'hex' => '#223355',
+                'label' => 'ネイビー',
+            ], [
+                'role' => 'sub',
+                'mode' => 'preset',
+                'value' => 'gray',
+                'hex' => '#bbbbbb',
+                'label' => 'グレー',
+            ]],
+        ]);
+        $outfit->outfitItems()->createMany([
+            [
+                'item_id' => $top->id,
+                'sort_order' => 1,
+            ],
+            [
+                'item_id' => $bottom->id,
+                'sort_order' => 2,
+            ],
+        ]);
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $this->postJson('/api/wear-logs', [
+            'status' => 'planned',
+            'event_date' => '2026-03-24',
+            'display_order' => 1,
+            'source_outfit_id' => $outfit->id,
+            'memo' => 'outfit thumbnail',
+            'items' => [],
+        ], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ])->assertCreated();
+
+        $response = $this->getJson('/api/wear-logs', [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('wearLogs.0.source_outfit_id', $outfit->id)
+            ->assertJsonCount(2, 'wearLogs.0.thumbnail_items')
+            ->assertJsonPath('wearLogs.0.thumbnail_items.0.source_item_id', $top->id)
+            ->assertJsonPath('wearLogs.0.thumbnail_items.0.category', 'tops')
+            ->assertJsonPath('wearLogs.0.thumbnail_items.1.source_item_id', $bottom->id)
+            ->assertJsonPath('wearLogs.0.thumbnail_items.1.category', 'bottoms')
+            ->assertJsonPath('wearLogs.0.thumbnail_items.1.colors.1.hex', '#bbbbbb');
     }
 
     public function test_post_wear_log_returns_422_when_outfit_and_items_are_both_missing(): void
@@ -591,6 +697,80 @@ class WearLogEndpointsTest extends TestCase
             ->assertJsonPath('wearLog.status', 'worn')
             ->assertJsonPath('wearLog.event_date', '2026-03-26')
             ->assertJsonPath('wearLog.display_order', 2);
+    }
+
+    public function test_put_wear_log_can_update_with_outfit_only_and_materialize_wear_log_items(): void
+    {
+        $user = User::factory()->create();
+        $wearLog = $this->createWearLog($user, [
+            'source_outfit_id' => null,
+        ]);
+        $manualItem = $this->createItem($user, [
+            'name' => '旧アイテム',
+        ]);
+        $wearLog->wearLogItems()->create([
+            'source_item_id' => $manualItem->id,
+            'sort_order' => 1,
+            'item_source_type' => 'manual',
+        ]);
+
+        $outfit = $this->createOutfit($user, ['name' => '更新後コーデ']);
+        $top = $this->createItem($user, [
+            'name' => '白シャツ',
+            'category' => 'tops',
+            'shape' => 'shirt',
+        ]);
+        $bottom = $this->createItem($user, [
+            'name' => '黒パンツ',
+            'category' => 'bottoms',
+            'shape' => 'pants',
+        ]);
+        $outfit->outfitItems()->createMany([
+            [
+                'item_id' => $top->id,
+                'sort_order' => 1,
+            ],
+            [
+                'item_id' => $bottom->id,
+                'sort_order' => 2,
+            ],
+        ]);
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $response = $this->putJson("/api/wear-logs/{$wearLog->id}", [
+            'status' => 'planned',
+            'event_date' => '2026-03-24',
+            'display_order' => 1,
+            'source_outfit_id' => $outfit->id,
+            'memo' => 'updated from outfit',
+            'items' => [],
+        ], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('wearLog.source_outfit_id', $outfit->id)
+            ->assertJsonCount(2, 'wearLog.items')
+            ->assertJsonPath('wearLog.items.0.source_item_id', $top->id)
+            ->assertJsonPath('wearLog.items.1.source_item_id', $bottom->id);
+
+        $this->assertDatabaseMissing('wear_log_items', [
+            'source_item_id' => $manualItem->id,
+            'item_source_type' => 'manual',
+        ]);
+        $this->assertDatabaseHas('wear_log_items', [
+            'source_item_id' => $top->id,
+            'item_source_type' => 'outfit',
+            'sort_order' => 1,
+        ]);
+        $this->assertDatabaseHas('wear_log_items', [
+            'source_item_id' => $bottom->id,
+            'item_source_type' => 'outfit',
+            'sort_order' => 2,
+        ]);
     }
 
     public function test_put_wear_log_returns_404_for_other_users_record(): void

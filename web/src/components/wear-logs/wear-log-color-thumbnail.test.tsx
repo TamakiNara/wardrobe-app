@@ -125,4 +125,17 @@ describe("WearLogColorThumbnail", () => {
     const main = container.querySelector('[data-testid="wear-log-thumbnail-tops-segment"] span > span');
     expect(main?.getAttribute("style")).toContain("rgb(229, 231, 235)");
   });
+
+  it("item が空でも白箱ではなくフォールバック色で描画する", async () => {
+    await act(async () => {
+      root.render(
+        React.createElement(WearLogColorThumbnail, {
+          items: [],
+        }),
+      );
+    });
+
+    const main = container.querySelector('[data-testid="wear-log-thumbnail-others-full-segment"] span > span');
+    expect(main?.getAttribute("style")).toContain("rgb(229, 231, 235)");
+  });
 });

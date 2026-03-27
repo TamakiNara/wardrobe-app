@@ -77,33 +77,60 @@ class SampleWearLogSeeder extends Seeder
                     ['name' => 'デニムパンツ', 'item_source_type' => 'outfit'],
                 ],
             ],
+            [
+                'status' => 'planned',
+                'event_date' => '2026-03-21',
+                'display_order' => 2,
+                'source_outfit_name' => 'きれいめ通勤コーデ',
+                'memo' => '午後の打ち合わせ候補',
+                'items' => [],
+            ],
+            [
+                'status' => 'worn',
+                'event_date' => '2026-03-20',
+                'display_order' => 1,
+                'source_outfit_name' => null,
+                'memo' => 'コートだけ先に着た記録',
+                'items' => [
+                    ['name' => 'ベージュトレンチコート', 'item_source_type' => 'manual'],
+                    ['name' => 'シルバーネックレス', 'item_source_type' => 'manual'],
+                ],
+            ],
+            [
+                'status' => 'planned',
+                'event_date' => '2026-03-19',
+                'display_order' => 1,
+                'source_outfit_name' => '雨の日コーデ',
+                'memo' => 'バッグだけ変える予定',
+                'items' => [
+                    ['name' => '黒カーディガン', 'item_source_type' => 'outfit'],
+                    ['name' => 'デニムパンツ', 'item_source_type' => 'outfit'],
+                    ['name' => 'スニーカー', 'item_source_type' => 'outfit'],
+                    ['name' => 'シルバーネックレス', 'item_source_type' => 'manual'],
+                ],
+            ],
         ];
 
         foreach ($definitions as $definition) {
             $sourceOutfitName = $definition['source_outfit_name'];
+            $sourceOutfit = is_string($sourceOutfitName)
+                ? $outfits->get($sourceOutfitName)
+                : null;
             $wearLog = WearLog::query()->create([
                 'user_id' => $user->id,
                 'status' => $definition['status'],
                 'event_date' => $definition['event_date'],
                 'display_order' => $definition['display_order'],
-                'source_outfit_id' => is_string($sourceOutfitName)
-                    ? $outfits->get($sourceOutfitName)?->id
-                    : null,
+                'source_outfit_id' => $sourceOutfit?->id,
                 'memo' => $definition['memo'],
             ]);
 
             $wearLog->wearLogItems()->createMany(
-                collect($definition['items'])
-                    ->map(function (array $item, int $index) use ($items) {
-                        return [
-                            'source_item_id' => $items->get($item['name'])?->id,
-                            'item_source_type' => $item['item_source_type'],
-                            'sort_order' => $index + 1,
-                        ];
-                    })
-                    ->filter(fn (array $item) => $item['source_item_id'] !== null)
-                    ->values()
-                    ->all(),
+                $this->buildNamedWearLogItemsPayload(
+                    $definition['items'],
+                    $items,
+                    $sourceOutfit
+                ),
             );
         }
     }
@@ -162,18 +189,68 @@ class SampleWearLogSeeder extends Seeder
             ]);
 
             $wearLog->wearLogItems()->createMany(
-                collect($definition['items'])
-                    ->map(function (array $item, int $index) use ($items) {
-                        return [
-                            'source_item_id' => $items->get($item['item_index'])?->id,
-                            'item_source_type' => $item['item_source_type'],
-                            'sort_order' => $index + 1,
-                        ];
-                    })
-                    ->filter(fn (array $item) => $item['source_item_id'] !== null)
-                    ->values()
-                    ->all(),
+                $this->buildIndexedWearLogItemsPayload(
+                    $definition['items'],
+                    $items,
+                    $sourceOutfit
+                ),
             );
         }
+    }
+
+    private function buildNamedWearLogItemsPayload(array $definitionItems, $items, ?Outfit $sourceOutfit): array
+    {
+        if ($definitionItems !== []) {
+            return collect($definitionItems)
+                ->map(function (array $item, int $index) use ($items) {
+                    return [
+                        'source_item_id' => $items->get($item['name'])?->id,
+                        'item_source_type' => $item['item_source_type'],
+                        'sort_order' => $index + 1,
+                    ];
+                })
+                ->filter(fn (array $item) => $item['source_item_id'] !== null)
+                ->values()
+                ->all();
+        }
+
+        return $this->buildOutfitDerivedWearLogItemsPayload($sourceOutfit);
+    }
+
+    private function buildIndexedWearLogItemsPayload(array $definitionItems, $items, ?Outfit $sourceOutfit): array
+    {
+        if ($definitionItems !== []) {
+            return collect($definitionItems)
+                ->map(function (array $item, int $index) use ($items) {
+                    return [
+                        'source_item_id' => $items->get($item['item_index'])?->id,
+                        'item_source_type' => $item['item_source_type'],
+                        'sort_order' => $index + 1,
+                    ];
+                })
+                ->filter(fn (array $item) => $item['source_item_id'] !== null)
+                ->values()
+                ->all();
+        }
+
+        return $this->buildOutfitDerivedWearLogItemsPayload($sourceOutfit);
+    }
+
+    private function buildOutfitDerivedWearLogItemsPayload(?Outfit $sourceOutfit): array
+    {
+        if ($sourceOutfit === null) {
+            return [];
+        }
+
+        return $sourceOutfit->outfitItems()
+            ->orderBy('sort_order')
+            ->get(['item_id', 'sort_order'])
+            ->map(fn ($outfitItem) => [
+                'source_item_id' => $outfitItem->item_id,
+                'item_source_type' => 'outfit',
+                'sort_order' => $outfitItem->sort_order,
+            ])
+            ->values()
+            ->all();
     }
 }
