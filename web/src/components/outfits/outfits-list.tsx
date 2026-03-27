@@ -9,7 +9,7 @@ import { isItemVisibleByCategorySettings } from "@/lib/api/categories";
 import { fetchCategoryVisibilitySettings } from "@/lib/api/settings";
 import { SEASON_OPTIONS, TPO_OPTIONS } from "@/lib/master-data/item-attributes";
 
-type OutfitItem = {
+export type OutfitItem = {
   id: number;
   item_id: number;
   sort_order: number;
@@ -28,7 +28,7 @@ type OutfitItem = {
   };
 };
 
-type Outfit = {
+export type Outfit = {
   id: number;
   name: string | null;
   memo: string | null;
@@ -38,7 +38,7 @@ type Outfit = {
   outfitItems?: OutfitItem[];
 };
 
-type OutfitsListProps = {
+export type OutfitsListProps = {
   outfits: Outfit[];
   totalCount: number;
   totalAllCount: number;

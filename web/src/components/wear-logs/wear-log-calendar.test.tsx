@@ -124,6 +124,7 @@ describe("WearLogCalendar", () => {
     expect(container.textContent).toContain("通勤コーデ");
     expect(container.textContent).toContain("朝会あり");
     expect(container.innerHTML).toContain('href="/wear-logs/11"');
+    expect(container.innerHTML).not.toContain("wear-log-color-thumbnail");
   });
 
   it("空の日でもシートを開き、この日で新規作成導線を表示する", async () => {

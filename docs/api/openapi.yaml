@@ -922,6 +922,8 @@ paths:
       description: |
         event_date desc, display_order asc を初期並び順とし、
         meta.total / totalAll / page / lastPage を返す。
+        一覧用の補助配色サムネイルは `thumbnail_items` で返し、
+        描画正本は `source_outfit_id` ではなく `wear_log_items` とする。
       parameters:
         - name: page
           in: query
@@ -2529,6 +2531,7 @@ components:
         - event_date
         - display_order
         - items_count
+        - thumbnail_items
       properties:
         id:
           type: integer
@@ -2566,6 +2569,52 @@ components:
         items_count:
           type: integer
           example: 3
+        thumbnail_items:
+          type: array
+          description: |
+            wear log 一覧の補助配色サムネイル描画用の最小 item 情報。
+            正本は `source_outfit_id` ではなく `wear_log_items`。
+          items:
+            $ref: '#/components/schemas/WearLogThumbnailItem'
+
+    WearLogThumbnailItem:
+      type: object
+      required:
+        - source_item_id
+        - category
+        - colors
+      properties:
+        source_item_id:
+          type: integer
+          nullable: true
+          example: 101
+        category:
+          type: string
+          nullable: true
+          example: tops
+        colors:
+          type: array
+          items:
+            $ref: '#/components/schemas/WearLogThumbnailItemColor'
+
+    WearLogThumbnailItemColor:
+      type: object
+      required:
+        - role
+        - hex
+      properties:
+        role:
+          type: string
+          enum:
+            - main
+            - sub
+        hex:
+          type: string
+          example: '#E5E7EB'
+        label:
+          type: string
+          nullable: true
+          example: ホワイト
 
     WearLogItemDetail:
       type: object

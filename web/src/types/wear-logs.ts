@@ -2,6 +2,18 @@ export type WearLogStatus = "planned" | "worn";
 
 export type WearLogItemSourceType = "outfit" | "manual";
 
+export type WearLogThumbnailItemColor = {
+  role: "main" | "sub";
+  hex: string;
+  label: string | null;
+};
+
+export type WearLogThumbnailItem = {
+  source_item_id: number | null;
+  category: string | null;
+  colors: WearLogThumbnailItemColor[];
+};
+
 export type WearLogListItem = {
   id: number;
   status: WearLogStatus;
@@ -13,6 +25,7 @@ export type WearLogListItem = {
   has_disposed_items: boolean;
   memo: string | null;
   items_count: number;
+  thumbnail_items: WearLogThumbnailItem[];
 };
 
 export type WearLogItemDetail = {

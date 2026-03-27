@@ -20,7 +20,6 @@ const WEEKDAY_LABELS = {
   sunday: ["日", "月", "火", "水", "木", "金", "土"],
   monday: ["月", "火", "水", "木", "金", "土", "日"],
 } as const;
-const TODAY = new Date().toISOString().slice(0, 10);
 
 function parseMonth(month: string): { year: number; monthIndex: number } {
   const [year, monthNumber] = month.split("-").map((value) => Number(value));
@@ -137,6 +136,7 @@ export default function WearLogCalendar({
   }, [days]);
 
   const calendarCells = useMemo(() => buildCalendarCells(month, weekStart), [month, weekStart]);
+  const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
 
   async function openDayDetails(date: string) {
     setSelectedDate(date);
@@ -214,8 +214,8 @@ export default function WearLogCalendar({
             {calendarCells.map((cell) => {
             const summary = summaryMap.get(cell.date);
             const isSelected = selectedDate === cell.date;
-            const isToday = cell.date === TODAY;
-            const isPastDate = cell.date < TODAY;
+            const isToday = cell.date === today;
+            const isPastDate = cell.date < today;
             const cellClassName = [
               "aspect-square w-full rounded-lg border p-1.5 text-left transition",
               isSelected
@@ -310,7 +310,7 @@ export default function WearLogCalendar({
                   <article
                     key={wearLog.id}
                     className={`rounded-2xl border px-4 py-3 ${
-                      wearLog.status === "planned" && wearLog.event_date < TODAY
+                      wearLog.status === "planned" && wearLog.event_date < today
                         ? "border-gray-200 bg-gray-100"
                         : "border-gray-200 bg-gray-50"
                     }`}
@@ -338,7 +338,7 @@ export default function WearLogCalendar({
                       <p className="mt-2 line-clamp-2 text-sm text-gray-600">{wearLog.memo}</p>
                     )}
 
-                    {wearLog.status === "planned" && wearLog.event_date < TODAY && (
+                    {wearLog.status === "planned" && wearLog.event_date < today && (
                       <p className="mt-2 text-xs text-gray-500">過去の未完了予定です。</p>
                     )}
                   </article>

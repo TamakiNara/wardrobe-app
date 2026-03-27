@@ -6,6 +6,28 @@ use App\Models\WearLog;
 
 class WearLogPayloadBuilder
 {
+    private static function buildThumbnailItem($wearLogItem): array
+    {
+        $sourceItem = $wearLogItem->sourceItem;
+        $colors = collect($sourceItem?->colors ?? [])
+            ->map(function ($color) {
+                return [
+                    'role' => $color['role'] ?? null,
+                    'hex' => $color['hex'] ?? null,
+                    'label' => $color['label'] ?? null,
+                ];
+            })
+            ->filter(fn ($color) => in_array($color['role'], ['main', 'sub'], true) && is_string($color['hex']))
+            ->values()
+            ->all();
+
+        return [
+            'source_item_id' => $wearLogItem->source_item_id,
+            'category' => $sourceItem?->category,
+            'colors' => $colors,
+        ];
+    }
+
     public static function buildCalendarDaySummary(string $date, iterable $wearLogs): array
     {
         $entries = collect($wearLogs)->values();
@@ -58,6 +80,11 @@ class WearLogPayloadBuilder
             ),
             'memo' => $wearLog->memo,
             'items_count' => $wearLog->wearLogItems->count(),
+            'thumbnail_items' => $wearLog->wearLogItems
+                ->sortBy('sort_order')
+                ->values()
+                ->map(fn ($wearLogItem) => self::buildThumbnailItem($wearLogItem))
+                ->all(),
         ];
     }
 

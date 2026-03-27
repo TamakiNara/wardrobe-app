@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import WearLogCalendar from "@/components/wear-logs/wear-log-calendar";
+import WearLogColorThumbnail from "@/components/wear-logs/wear-log-color-thumbnail";
 import { fetchLaravelWithCookie } from "@/lib/server/laravel";
 import { WEAR_LOG_STATUS_LABELS, getWearLogStatusLabel } from "@/lib/wear-logs/labels";
 import type { WearLogCalendarResponse, WearLogsResponse } from "@/types/wear-logs";
@@ -301,21 +302,27 @@ export default async function WearLogsPage({
                     </span>
                   </div>
 
-                  <h2 className="mt-3 text-lg font-semibold text-gray-900">
-                    {wearLog.source_outfit_name ?? `アイテム ${wearLog.items_count} 件`}
-                  </h2>
+                  <div className="mt-3 flex items-start gap-4">
+                    <WearLogColorThumbnail items={wearLog.thumbnail_items ?? []} />
 
-                  {wearLog.source_outfit_status === "invalid" && (
-                    <p className="mt-1 text-sm text-amber-800">元のコーディネートは現在利用不可です。</p>
-                  )}
+                    <div className="min-w-0 flex-1">
+                      <h2 className="text-lg font-semibold text-gray-900">
+                        {wearLog.source_outfit_name ?? `アイテム ${wearLog.items_count} 件`}
+                      </h2>
 
-                  {wearLog.has_disposed_items && (
-                    <p className="mt-1 text-sm text-amber-800">一部アイテムは現在利用不可です。</p>
-                  )}
+                      {wearLog.source_outfit_status === "invalid" && (
+                        <p className="mt-1 text-sm text-amber-800">元のコーディネートは現在利用不可です。</p>
+                      )}
 
-                  {wearLog.memo && (
-                    <p className="mt-2 text-sm text-gray-600">{wearLog.memo}</p>
-                  )}
+                      {wearLog.has_disposed_items && (
+                        <p className="mt-1 text-sm text-amber-800">一部アイテムは現在利用不可です。</p>
+                      )}
+
+                      {wearLog.memo && (
+                        <p className="mt-2 text-sm text-gray-600">{wearLog.memo}</p>
+                      )}
+                    </div>
+                  </div>
 
                   <div className="mt-4 flex items-center gap-3">
                     <Link

@@ -133,6 +133,69 @@ class WearLogEndpointsTest extends TestCase
             ->assertJsonPath('wearLogs.2.id', $laterSameDay->id);
     }
 
+    public function test_get_wear_logs_returns_thumbnail_items_from_wear_log_items_even_without_source_outfit(): void
+    {
+        $user = User::factory()->create();
+        $top = $this->createItem($user, [
+            'category' => 'tops',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'white',
+                'hex' => '#eeeeee',
+                'label' => 'ホワイト',
+            ]],
+        ]);
+        $bottom = $this->createItem($user, [
+            'name' => 'ネイビーパンツ',
+            'category' => 'bottoms',
+            'shape' => 'pants',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'navy',
+                'hex' => '#223355',
+                'label' => 'ネイビー',
+            ], [
+                'role' => 'sub',
+                'mode' => 'preset',
+                'value' => 'gray',
+                'hex' => '#bbbbbb',
+                'label' => 'グレー',
+            ]],
+        ]);
+        $wearLog = $this->createWearLog($user, [
+            'source_outfit_id' => null,
+        ]);
+        $wearLog->wearLogItems()->createMany([
+            [
+                'source_item_id' => $top->id,
+                'sort_order' => 1,
+                'item_source_type' => 'manual',
+            ],
+            [
+                'source_item_id' => $bottom->id,
+                'sort_order' => 2,
+                'item_source_type' => 'manual',
+            ],
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->getJson('/api/wear-logs', [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('wearLogs.0.id', $wearLog->id)
+            ->assertJsonPath('wearLogs.0.source_outfit_id', null)
+            ->assertJsonCount(2, 'wearLogs.0.thumbnail_items')
+            ->assertJsonPath('wearLogs.0.thumbnail_items.0.category', 'tops')
+            ->assertJsonPath('wearLogs.0.thumbnail_items.0.colors.0.hex', '#eeeeee')
+            ->assertJsonPath('wearLogs.0.thumbnail_items.1.category', 'bottoms')
+            ->assertJsonPath('wearLogs.0.thumbnail_items.1.colors.1.hex', '#bbbbbb');
+    }
+
     public function test_get_wear_log_calendar_returns_monthly_day_summaries_with_dots_and_overflow(): void
     {
         $user = User::factory()->create();

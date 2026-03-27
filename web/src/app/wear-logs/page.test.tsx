@@ -90,6 +90,18 @@ describe("WearLogsPage", () => {
             has_disposed_items: false,
             memo: "朝の予定",
             items_count: 2,
+            thumbnail_items: [
+              {
+                source_item_id: 31,
+                category: "tops",
+                colors: [{ role: "main", hex: "#eeeeee", label: "ホワイト" }],
+              },
+              {
+                source_item_id: 32,
+                category: "bottoms",
+                colors: [{ role: "main", hex: "#223355", label: "ネイビー" }],
+              },
+            ],
           },
           {
             id: 2,
@@ -102,6 +114,13 @@ describe("WearLogsPage", () => {
             has_disposed_items: true,
             memo: null,
             items_count: 1,
+            thumbnail_items: [
+              {
+                source_item_id: 33,
+                category: "shoes",
+                colors: [],
+              },
+            ],
           },
         ],
         meta: {
@@ -146,6 +165,7 @@ describe("WearLogsPage", () => {
     expect(markup).toContain("通勤コーディネート");
     expect(markup).toContain("アイテム 1 件");
     expect(markup).toContain("一部アイテムは現在利用不可です。");
+    expect(markup).toContain("wear-log-color-thumbnail");
     expect(markup).toContain('href="/wear-logs/1"');
     expect(markup).toContain("2026年3月");
     expect(markup).not.toContain('href="/wear-logs/1/edit"');

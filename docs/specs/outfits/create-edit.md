@@ -116,7 +116,7 @@ MVP では、全体構成の重複禁止は行わない。
 ### 一覧での補助表示
 
 - current の outfit 一覧では、item 構成の配色情報から生成する配色サムネイルを補助表示として出す
-- 詳細は `docs/specs/outfits/color-thumbnail.md` を正本とする
+- 詳細は `docs/specs/color-thumbnails.md` を正本とする
 
 ---
 

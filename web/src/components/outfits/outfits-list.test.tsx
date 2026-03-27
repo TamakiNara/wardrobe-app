@@ -4,6 +4,7 @@ import React from "react";
 import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { Outfit, OutfitsListProps } from "./outfits-list";
 
 const fetchCategoryVisibilitySettingsMock = vi.fn();
 const replaceMock = vi.fn();
@@ -30,7 +31,7 @@ vi.mock("@/components/outfits/outfit-duplicate-action", () => ({
     React.createElement("span", null, `duplicate-${outfitId}`),
 }));
 
-const sampleOutfits = [
+const sampleOutfits: Outfit[] = [
   {
     id: 1,
     name: "春コーディネート",
@@ -90,7 +91,7 @@ const sampleOutfits = [
   },
 ];
 
-const defaultListProps = {
+const defaultListProps: OutfitsListProps = {
   outfits: sampleOutfits,
   totalCount: sampleOutfits.length,
   totalAllCount: sampleOutfits.length,

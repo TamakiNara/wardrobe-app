@@ -508,17 +508,22 @@ describe("ItemsList", () => {
     expect(container.textContent).toContain("シャツ");
     expect(container.textContent).toContain("カーディガン");
 
-    const categoryCard = Array.from(container.querySelectorAll("section")).find((section) =>
-      section.textContent?.includes("トップス"),
+    const categoryHeading = Array.from(container.querySelectorAll("h2")).find((heading) =>
+      heading.textContent === "トップス",
     );
-    const shapeRow = categoryCard?.querySelector("div.mt-3.flex.flex-wrap.items-start");
+    const categoryCard = categoryHeading?.closest("section");
+    const shapeRow = Array.from(categoryCard?.querySelectorAll("div") ?? []).find((element) =>
+      element.className.includes("flex-wrap") && element.className.includes("items-start"),
+    );
 
+    expect(shapeRow).toBeTruthy();
     expect(shapeRow?.className).toContain("flex-wrap");
     const topsLink = container.querySelector<HTMLAnchorElement>(
       'a[aria-label="白T / Tシャツ/カットソー / ホワイト"]',
     );
-    const bottomsLink = container.querySelector<HTMLAnchorElement>(
-      'a[aria-label="ネイビーパンツ / パンツ / ネイビー"]',
+    const bottomsLink = Array.from(container.querySelectorAll<HTMLAnchorElement>("a")).find((link) =>
+      link.getAttribute("aria-label")?.includes("ネイビーパンツ /") &&
+      link.getAttribute("aria-label")?.includes("/ ネイビー"),
     );
     const cardiganLink = container.querySelector<HTMLAnchorElement>(
       'a[aria-label="黒カーディガン / カーディガン / ブラック"]',
