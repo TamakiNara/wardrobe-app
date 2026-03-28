@@ -45,6 +45,7 @@ describe("SettingsPage", () => {
         currentSeason: null,
         defaultWearLogStatus: null,
         calendarWeekStart: null,
+        skinTonePreset: "neutral_medium",
       },
     });
   });
@@ -66,6 +67,7 @@ describe("SettingsPage", () => {
     });
 
     expect(container.textContent).toContain("表示・初期値設定");
+    expect(container.textContent).toContain("サムネイル肌色");
     expect(container.innerHTML).toContain('href="/settings/categories"');
     expect(container.innerHTML).toContain('href="/settings/tpos"');
     expect(container.innerHTML).toContain('href="/settings/brands"');
@@ -81,6 +83,7 @@ describe("SettingsPage", () => {
         currentSeason: "winter",
         defaultWearLogStatus: "planned",
         calendarWeekStart: "sunday",
+        skinTonePreset: "yellow_deep",
       },
     });
 
@@ -94,6 +97,7 @@ describe("SettingsPage", () => {
     const currentSeasonSelect = container.querySelector<HTMLSelectElement>("#preferences-current-season");
     const defaultStatusSelect = container.querySelector<HTMLSelectElement>("#preferences-default-wear-log-status");
     const weekStartSelect = container.querySelector<HTMLSelectElement>("#preferences-calendar-week-start");
+    const pinkDeepButton = container.querySelector<HTMLButtonElement>('[aria-label="サムネイル肌色: イエロー系・深め"]');
     const saveButton = Array.from(container.querySelectorAll<HTMLButtonElement>("button")).find(
       (button) => button.textContent === "個人設定を保存",
     );
@@ -105,6 +109,7 @@ describe("SettingsPage", () => {
       defaultStatusSelect!.dispatchEvent(new Event("change", { bubbles: true }));
       weekStartSelect!.value = "sunday";
       weekStartSelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      pinkDeepButton!.click();
       await waitForEffects();
     });
 
@@ -117,6 +122,7 @@ describe("SettingsPage", () => {
       currentSeason: "winter",
       defaultWearLogStatus: "planned",
       calendarWeekStart: "sunday",
+      skinTonePreset: "yellow_deep",
     });
     expect(container.textContent).toContain("表示・初期値設定を保存しました。");
   });

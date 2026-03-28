@@ -20,6 +20,7 @@ class UserPreference extends Model
         'current_season',
         'default_wear_log_status',
         'calendar_week_start',
+        'skin_tone_preset',
     ];
 
     public function user(): BelongsTo

@@ -16,6 +16,7 @@ import {
 } from "@/lib/master-data/item-shapes";
 import type { CategoryOption } from "@/types/categories";
 import type { ItemRecord } from "@/types/items";
+import type { SkinTonePreset } from "@/types/settings";
 
 type ItemsListProps = {
   items: ItemRecord[];
@@ -27,6 +28,7 @@ type ItemsListProps = {
   availableSeasons: string[];
   availableTpos: string[];
   initialSeasonFilter?: string;
+  skinTonePreset?: SkinTonePreset;
 };
 
 type ItemSortValue = "updated_at_desc" | "name_asc";
@@ -109,10 +111,12 @@ function PreviewThumb({
   item,
   mainColorHex,
   subColorHex,
+  skinTonePreset,
 }: {
   item: ItemRecord;
   mainColorHex?: string;
   subColorHex?: string;
+  skinTonePreset?: SkinTonePreset;
 }) {
   return (
     <ItemThumbnailPreview
@@ -123,6 +127,7 @@ function PreviewThumb({
       topsSpecRaw={item.spec?.tops}
       spec={item.spec}
       images={item.images}
+      skinTonePreset={skinTonePreset}
       size="small"
     />
   );
@@ -137,6 +142,7 @@ export default function ItemsList({
   availableSeasons,
   availableTpos,
   initialSeasonFilter = "",
+  skinTonePreset,
 }: ItemsListProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -503,6 +509,7 @@ export default function ItemsList({
                       item={item}
                       mainColorHex={mainColor?.hex}
                       subColorHex={subColor?.hex}
+                      skinTonePreset={skinTonePreset}
                     />
 
                     <div className="min-w-0 flex-1">

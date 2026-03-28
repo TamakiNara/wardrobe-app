@@ -4,12 +4,14 @@ import DeleteItemButton from "@/components/items/delete-item-button";
 import ItemCareStatusAction from "@/components/items/item-care-status-action";
 import ItemStatusAction from "@/components/items/item-status-action";
 import ItemPreviewCard from "@/components/items/item-preview-card";
+import { DEFAULT_SKIN_TONE_PRESET } from "@/lib/master-data/skin-tone-presets";
 import { formatItemPrice, ITEM_CARE_STATUS_LABELS, ITEM_SIZE_GENDER_LABELS } from "@/lib/items/metadata";
 import { findBottomsLengthLabel, findLegwearCoverageLabel } from "@/lib/master-data/item-skin-exposure";
 import { buildTopsSpecLabels, buildTopsSpecRaw } from "@/lib/master-data/item-tops";
 import { findItemCategoryLabel, findItemShapeLabel } from "@/lib/master-data/item-shapes";
 import { fetchLaravelWithCookie } from "@/lib/server/laravel";
 import type { ItemRecord } from "@/types/items";
+import type { SkinTonePreset } from "@/types/settings";
 
 async function getItem(id: string): Promise<ItemRecord> {
   const res = await fetchLaravelWithCookie(`/api/items/${id}`);
@@ -21,6 +23,18 @@ async function getItem(id: string): Promise<ItemRecord> {
   return data.item;
 }
 
+async function getSkinTonePreset(): Promise<SkinTonePreset> {
+  const res = await fetchLaravelWithCookie("/api/settings/preferences");
+
+  if (res.status === 401) redirect("/login");
+  if (!res.ok) return DEFAULT_SKIN_TONE_PRESET;
+
+  const data = (await res.json()) as {
+    preferences?: { skinTonePreset?: SkinTonePreset | null };
+  };
+  return data.preferences?.skinTonePreset ?? DEFAULT_SKIN_TONE_PRESET;
+}
+
 export default async function ItemPage({
   params,
   searchParams,
@@ -30,7 +44,10 @@ export default async function ItemPage({
 }) {
   const { id } = await params;
   const resolvedSearchParams = await searchParams;
-  const item = await getItem(id);
+  const [item, skinTonePreset] = await Promise.all([
+    getItem(id),
+    getSkinTonePreset(),
+  ]);
   const returnToParam = typeof resolvedSearchParams.return_to === "string"
     ? resolvedSearchParams.return_to
     : null;
@@ -135,6 +152,7 @@ export default async function ItemPage({
           topsSpecRaw={topsSpecRaw}
           spec={item.spec}
           images={item.images}
+          skinTonePreset={skinTonePreset}
         />
 
         <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">

@@ -4,6 +4,7 @@ namespace App\Services\Settings;
 
 use App\Models\User;
 use App\Models\UserPreference;
+use App\Support\SkinTonePresetSupport;
 
 class UserPreferenceService
 {
@@ -22,6 +23,9 @@ class UserPreferenceService
             'current_season' => $validated['currentSeason'] ?? null,
             'default_wear_log_status' => $validated['defaultWearLogStatus'] ?? null,
             'calendar_week_start' => $validated['calendarWeekStart'] ?? null,
+            'skin_tone_preset' => $validated['skinTonePreset']
+                ?? $preference->skin_tone_preset
+                ?? SkinTonePresetSupport::DEFAULT_PRESET,
         ]);
         $preference->save();
 

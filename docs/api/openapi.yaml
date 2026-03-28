@@ -318,7 +318,7 @@ paths:
       tags:
         - Settings
       summary: 表示・初期値設定取得
-      description: "`currentSeason` と `defaultWearLogStatus` と `calendarWeekStart` を返す。未設定時は null を返す。"
+      description: "`currentSeason` と `defaultWearLogStatus` と `calendarWeekStart` と `skinTonePreset` を返す。前者3つの未設定時は null を返し、`skinTonePreset` は `neutral_medium` を返す。"
       security:
         - SessionCookieAuth: []
       responses:
@@ -335,7 +335,7 @@ paths:
         - Settings
       summary: 表示・初期値設定更新
       description: |
-        item / outfit 一覧の初期季節と、wear log 新規作成時の初期 status と、wear log カレンダーの週開始を更新する。
+        item / outfit 一覧の初期季節と、wear log 新規作成時の初期 status と、wear log カレンダーの週開始と、item サムネイル用の肌色 preset を更新する。
         一覧では URL の季節条件が優先され、URL に季節指定がない場合のみ `currentSeason` を初期値として使う。
       security:
         - SessionCookieAuth: []
@@ -1816,6 +1816,7 @@ components:
         - currentSeason
         - defaultWearLogStatus
         - calendarWeekStart
+        - skinTonePreset
       properties:
         currentSeason:
           type: string
@@ -1829,6 +1830,9 @@ components:
           type: string
           nullable: true
           enum: [monday, sunday]
+        skinTonePreset:
+          type: string
+          enum: [pink_light, pink_medium, pink_deep, neutral_light, neutral_medium, neutral_deep, yellow_light, yellow_medium, yellow_deep]
 
     UserPreferencesResponse:
       type: object
@@ -1853,6 +1857,10 @@ components:
           type: string
           nullable: true
           enum: [monday, sunday]
+        skinTonePreset:
+          type: string
+          nullable: true
+          enum: [pink_light, pink_medium, pink_deep, neutral_light, neutral_medium, neutral_deep, yellow_light, yellow_medium, yellow_deep]
 
     UserPreferencesUpdatedResponse:
       description: |

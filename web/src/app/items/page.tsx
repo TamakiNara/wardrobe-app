@@ -1,9 +1,11 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import ItemsList from "@/components/items/items-list";
+import { DEFAULT_SKIN_TONE_PRESET } from "@/lib/master-data/skin-tone-presets";
 import { fetchLaravelWithCookie } from "@/lib/server/laravel";
 import { mapPreferenceSeasonToFilterValue } from "@/lib/settings/preferences";
 import type { ItemRecord } from "@/types/items";
+import type { SkinTonePreset } from "@/types/settings";
 
 type ItemsPageSearchParams = Record<string, string | string[] | undefined>;
 
@@ -23,6 +25,7 @@ type ItemsResponse = {
 type PreferencesResponse = {
   preferences?: {
     currentSeason?: "spring" | "summer" | "autumn" | "winter" | null;
+    skinTonePreset?: SkinTonePreset | null;
   };
 };
 
@@ -103,17 +106,20 @@ export default async function ItemsPage({
 }) {
   const resolvedSearchParams = await searchParams;
   const currentSeason = resolveCurrentSeason(resolvedSearchParams);
+  const preferencesRes = await fetchLaravelWithCookie("/api/settings/preferences");
+
+  if (preferencesRes.status === 401) {
+    redirect("/login");
+  }
+
   let initialSeasonFilter = "";
+  let skinTonePreset: SkinTonePreset = DEFAULT_SKIN_TONE_PRESET;
 
-  if (!currentSeason) {
-    const preferencesRes = await fetchLaravelWithCookie("/api/settings/preferences");
+  if (preferencesRes.ok) {
+    const preferencesData = (await preferencesRes.json()) as PreferencesResponse;
+    skinTonePreset = preferencesData.preferences?.skinTonePreset ?? DEFAULT_SKIN_TONE_PRESET;
 
-    if (preferencesRes.status === 401) {
-      redirect("/login");
-    }
-
-    if (preferencesRes.ok) {
-      const preferencesData = (await preferencesRes.json()) as PreferencesResponse;
+    if (!currentSeason) {
       initialSeasonFilter = mapPreferenceSeasonToFilterValue(
         preferencesData.preferences?.currentSeason ?? null,
       );
@@ -186,6 +192,7 @@ export default async function ItemsPage({
             availableSeasons={data.meta.availableSeasons}
             availableTpos={data.meta.availableTpos}
             initialSeasonFilter={currentSeason ? "" : initialSeasonFilter}
+            skinTonePreset={skinTonePreset}
           />
         )}
       </div>

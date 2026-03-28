@@ -2,7 +2,9 @@ import TopsPreviewSvg from "@/components/items/preview-svg/tops-preview-svg";
 import LowerBodyPreviewSvg from "@/components/items/item-lower-body-thumbnail-svg";
 import { COLOR_THUMBNAIL_FALLBACK_COLOR } from "@/lib/color-thumbnails/shared";
 import { resolveLegwearCoverageType } from "@/lib/master-data/item-skin-exposure";
+import { resolveSkinToneColor } from "@/lib/master-data/skin-tone-presets";
 import type { ItemImageRecord, ItemSpec } from "@/types/items";
+import type { SkinTonePreset } from "@/types/settings";
 
 type ItemThumbnailPreviewProps = {
   category: string;
@@ -19,6 +21,7 @@ type ItemThumbnailPreviewProps = {
   spec?: ItemSpec | null;
   images?: ItemImageRecord[];
   size?: "small" | "large";
+  skinTonePreset?: SkinTonePreset;
 };
 
 export default function ItemThumbnailPreview({
@@ -30,6 +33,7 @@ export default function ItemThumbnailPreview({
   spec,
   images,
   size = "large",
+  skinTonePreset,
 }: ItemThumbnailPreviewProps) {
   const primaryImage = images?.find((image) => image.is_primary) ?? images?.[0];
   const sizeClass = size === "small"
@@ -42,6 +46,7 @@ export default function ItemThumbnailPreview({
     spec?.legwear?.coverage_type,
   );
   const bottomsLengthType = spec?.bottoms?.length_type ?? null;
+  const skinToneColor = resolveSkinToneColor(skinTonePreset);
   const shouldRenderLowerBody =
     (category === "bottoms" && Boolean(bottomsLengthType))
     || (category === "legwear" && Boolean(legwearCoverageType));
@@ -84,6 +89,7 @@ export default function ItemThumbnailPreview({
           coverageType={legwearCoverageType}
           mainColor={mainColorHex}
           subColor={subColorHex}
+          skinToneColor={skinToneColor}
         />
       </div>
     );

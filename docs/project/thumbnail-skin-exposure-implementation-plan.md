@@ -42,17 +42,16 @@ current 実装の正本ではなく、今後の実装依頼や仕様確認の起
 - wear log サムネイルは `wear_log_items` を正本としている
 - item 側では `spec.tops` / `spec.bottoms.length_type` / `spec.legwear.coverage_type` を保存できる
 - item create / edit / detail では bottoms / legwear 分類値を扱える
-- item サムネイルでは、固定の仮肌色 1 色を使って bottoms / legwear の素の見え方を描画できる
+- `skinTonePreset` を `user_preferences` に保存できる
+- item サムネイルでは、`skinTonePreset` を使って bottoms / legwear の素の見え方を描画できる
 - item 一覧と item 詳細は同じ item サムネイル描画ロジックを使う
 
 ### planned
 
-- `skinTonePreset`
 - outfit / wear log サムネイルでの脚見え合成表現
 
 ### 要再判断
 
-- `skinTonePreset` を current settings API に含める時期
 - `bottom_length_type` から描画割合への変換テーブルの最終値
 - `wear_log_items` 内でボトムス / レッグウェア候補が複数ある場合の優先順位
 - 透け感や厚みをどこまで初期版で扱うか
@@ -95,8 +94,8 @@ current 実装の正本ではなく、今後の実装依頼や仕様確認の起
 
 ### 現時点の整理
 
-- 第1段階では `spec.bottoms` / `spec.legwear` を先行し、`skinTonePreset` は第2段階以降でも成立しうる
-- ただし item サムネイルで肌色を見せる案を初期版から入れるなら、settings 側も同時対応が必要になる
+- current では `skinTonePreset` を `user_preferences` へ追加済みで、settings トップから選択できる
+- outfit / wear log 合成へ進む前に、item サムネイルで settings 正本の肌色を使う段階までは完了している
 
 ---
 
@@ -111,7 +110,7 @@ current 実装の正本ではなく、今後の実装依頼や仕様確認の起
 ### 注意点
 
 - item サムネイルで肌色をどこまで出すかは、`skinTonePreset` の導入順と連動する
-- Phase 2-1 の current では、`skinTonePreset` の代わりに固定の仮肌色 1 色を使う
+- current では `skinTonePreset` を使って肌色を切り替える
 - bottoms item と legwear item で見た目ルールを分ける必要がある
 - current の item サムネイル責務を広げすぎないよう、最終合成表現は持ち込まない方がよい
 
@@ -169,26 +168,25 @@ current 実装の正本ではなく、今後の実装依頼や仕様確認の起
 ### 第2段階
 
 - item サムネイルで bottoms / legwear の素の見え方を描画する
-- 固定の仮肌色 1 色を使い、`skinTonePreset` はまだ導入しない
+- `skinTonePreset` を `user_preferences` に追加し、settings トップから選択できるようにする
 - 最終合成はまだ行わない
-- `skinTonePreset` なしでも成立する範囲を優先する
+- item 一覧と item 詳細で同じ item サムネイル描画ロジックへ反映する
 
 上記 4 点は current 化済み。
 
 ### 第3段階
 
-- `skinTonePreset` を settings / preferences 側へ追加
-- item サムネイルで必要な範囲、または outfit 合成で必要な範囲に合わせて肌色選択を導入する
-
-### 第4段階
-
 - outfit サムネイルで bottoms + legwear + skinTonePreset の合成を追加
 - 変換テーブルや補正ルールを outfit で先に確認する
 
-### 第5段階
+### 第4段階
 
 - wear log サムネイルへ展開する
 - `wear_log_items` 正本を維持したまま、複数候補時の優先順位もこの段階で固める
+
+### 第5段階
+
+- `skinTonePreset` の微調整や、透け感・厚みの表現精緻化を必要に応じて追加する
 
 ### この順序を推奨する理由
 
@@ -230,7 +228,7 @@ current 実装の正本ではなく、今後の実装依頼や仕様確認の起
 
 1. 初期版は `spec.bottoms` / `spec.legwear` から入る
 2. item サムネイルを outfit / wear log 合成より先に着手する
-3. `skinTonePreset` は少なくとも outfit 合成前までに導入するか、代替案を決める
+3. outfit / wear log へ広げる際も `skinTonePreset` を item と同じ settings 正本から使う
 4. wear log は `wear_log_items` 正本を崩さない
 5. 複数候補時の優先順位は、wear log 展開前までに確定する
 
@@ -239,7 +237,6 @@ current 実装の正本ではなく、今後の実装依頼や仕様確認の起
 ## 保留でよいこと
 
 - `bottom_length_type` の最終変換テーブル
-- `skinTonePreset` の preset hex 値
 - 透け感や厚みの精緻化
 - 肌見え表現を検索条件や分析指標へ広げるか
 - 一覧 / 詳細 / モーダルでどこまで同じ描画 helper を共有するか

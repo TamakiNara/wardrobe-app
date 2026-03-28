@@ -6,9 +6,10 @@ type LowerBodyPreviewSvgProps = {
   coverageType?: string | null;
   mainColor?: string;
   subColor?: string;
+  skinToneColor?: string;
 };
 
-const PREVIEW_SKIN_TONE = "#F1C7A6";
+const DEFAULT_SKIN_TONE = "#F1C7A6";
 const DEFAULT_GARMENT_COLOR = "#CBD5E1";
 const FRAME_X = 18;
 const FRAME_Y = 18;
@@ -36,7 +37,13 @@ const LEGGINGS_END_Y: Record<string, number> = {
   leggings_full: 102,
 };
 
-function PreviewFrame({ children }: { children: React.ReactNode }) {
+function PreviewFrame({
+  children,
+  skinToneColor,
+}: {
+  children: React.ReactNode;
+  skinToneColor?: string;
+}) {
   const clipPathId = useId().replace(/:/g, "");
 
   return (
@@ -54,12 +61,13 @@ function PreviewFrame({ children }: { children: React.ReactNode }) {
       </defs>
       <g clipPath={`url(#${clipPathId})`}>
         <rect
+          data-testid="lower-body-skin-base"
           x={FRAME_X}
           y={FRAME_Y}
           width={FRAME_WIDTH}
           height={FRAME_HEIGHT}
           rx={FRAME_RX}
-          fill={PREVIEW_SKIN_TONE}
+          fill={skinToneColor ?? DEFAULT_SKIN_TONE}
         />
         {children}
       </g>
@@ -82,6 +90,7 @@ export default function LowerBodyPreviewSvg({
   coverageType,
   mainColor,
   subColor,
+  skinToneColor,
 }: LowerBodyPreviewSvgProps) {
   const primaryColor = mainColor ?? DEFAULT_GARMENT_COLOR;
   const accentColor = subColor ?? null;
@@ -96,7 +105,7 @@ export default function LowerBodyPreviewSvg({
         data-testid="lower-body-preview-svg"
         aria-label="ボトムスプレビュー"
       >
-        <PreviewFrame>
+        <PreviewFrame skinToneColor={skinToneColor}>
           <rect
             data-testid="bottoms-garment"
             x={FRAME_X}
@@ -139,7 +148,7 @@ export default function LowerBodyPreviewSvg({
           data-testid="lower-body-preview-svg"
           aria-label="レッグウェアプレビュー"
         >
-          <PreviewFrame>
+          <PreviewFrame skinToneColor={skinToneColor}>
             <rect
               data-testid="legwear-overlay"
               x={FRAME_X}
@@ -173,7 +182,7 @@ export default function LowerBodyPreviewSvg({
           data-testid="lower-body-preview-svg"
           aria-label="レッグウェアプレビュー"
         >
-          <PreviewFrame>
+          <PreviewFrame skinToneColor={skinToneColor}>
             <rect
               data-testid="legwear-overlay"
               x={FRAME_X}
@@ -207,7 +216,7 @@ export default function LowerBodyPreviewSvg({
           data-testid="lower-body-preview-svg"
           aria-label="レッグウェアプレビュー"
         >
-          <PreviewFrame>
+          <PreviewFrame skinToneColor={skinToneColor}>
             <rect
               data-testid="legwear-overlay"
               x={FRAME_X}

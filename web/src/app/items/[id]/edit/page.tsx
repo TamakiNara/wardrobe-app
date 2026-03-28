@@ -9,7 +9,7 @@ import {
   type ItemCategory,
 } from "@/lib/master-data/item-shapes";
 import { buildSupportedCategoryOptions, fetchCategoryGroups } from "@/lib/api/categories";
-import { fetchCategoryVisibilitySettings, fetchUserTpos } from "@/lib/api/settings";
+import { fetchCategoryVisibilitySettings, fetchUserPreferences, fetchUserTpos } from "@/lib/api/settings";
 import type { CategoryOption } from "@/types/categories";
 import {
   ITEM_COLORS,
@@ -22,6 +22,7 @@ import ColorSelect from "@/components/items/color-select";
 import ItemImageUploader from "@/components/items/item-image-uploader";
 import ItemPreviewCard from "@/components/items/item-preview-card";
 import { SEASON_OPTIONS } from "@/lib/master-data/item-attributes";
+import { DEFAULT_SKIN_TONE_PRESET } from "@/lib/master-data/skin-tone-presets";
 import type { CreateItemPayload, ItemCareStatus, ItemFormColor, ItemImageRecord, ItemRecord } from "@/types/items";
 import {
   buildTopsSpecLabels,
@@ -52,7 +53,7 @@ import {
   type LegwearCoverageType,
 } from "@/lib/master-data/item-skin-exposure";
 import { formatItemPrice, ITEM_CARE_STATUS_LABELS, ITEM_SIZE_GENDER_LABELS, normalizeItemImages } from "@/lib/items/metadata";
-import type { UserTpoRecord } from "@/types/settings";
+import type { SkinTonePreset, UserTpoRecord } from "@/types/settings";
 
 
 
@@ -95,6 +96,7 @@ export default function EditItemPage({
   const [selectedSeasons, setSelectedSeasons] = useState<string[]>([]);
   const [selectedTpoIds, setSelectedTpoIds] = useState<number[]>([]);
   const [tpoOptions, setTpoOptions] = useState<UserTpoRecord[]>([]);
+  const [skinTonePreset, setSkinTonePreset] = useState<SkinTonePreset>(DEFAULT_SKIN_TONE_PRESET);
 
   const [topsShape, setTopsShape] = useState<TopsShapeValue | "">("");
   const [topsSleeve, setTopsSleeve] = useState<TopsSleeveValue | "">("");
@@ -211,11 +213,19 @@ export default function EditItemPage({
       setItemId(Number(id));
 
       try {
-        const [response, tpoResponse] = await Promise.all([
+        const [response, tpoResponse, preferencesResponse] = await Promise.all([
           fetch(`/api/items/${id}`, {
             headers: { Accept: "application/json" },
           }),
           fetchUserTpos(true).catch(() => ({ tpos: [] as UserTpoRecord[] })),
+          fetchUserPreferences().catch(() => ({
+            preferences: {
+              currentSeason: null,
+              defaultWearLogStatus: null,
+              calendarWeekStart: null,
+              skinTonePreset: DEFAULT_SKIN_TONE_PRESET,
+            },
+          })),
         ]);
 
         if (response.status === 401) {
@@ -264,6 +274,7 @@ export default function EditItemPage({
             return [...carry, tpo];
           }, []),
         );
+        setSkinTonePreset(preferencesResponse.preferences.skinTonePreset);
 
         const main = item.colors.find((color) => color.role === "main");
         const sub = item.colors.find((color) => color.role === "sub");
@@ -1097,6 +1108,7 @@ export default function EditItemPage({
           topsSpecRaw={previewTopsSpecRaw}
           spec={previewSpec}
           images={itemImages}
+          skinTonePreset={skinTonePreset}
         />
 
         {submitError && <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">{submitError}</div>}

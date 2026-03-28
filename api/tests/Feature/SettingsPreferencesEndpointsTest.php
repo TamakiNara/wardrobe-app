@@ -30,7 +30,8 @@ class SettingsPreferencesEndpointsTest extends TestCase
         $response->assertOk()
             ->assertJsonPath('preferences.currentSeason', null)
             ->assertJsonPath('preferences.defaultWearLogStatus', null)
-            ->assertJsonPath('preferences.calendarWeekStart', null);
+            ->assertJsonPath('preferences.calendarWeekStart', null)
+            ->assertJsonPath('preferences.skinTonePreset', 'neutral_medium');
     }
 
     public function test_put_settings_preferences_stores_values(): void
@@ -44,6 +45,7 @@ class SettingsPreferencesEndpointsTest extends TestCase
             'currentSeason' => 'spring',
             'defaultWearLogStatus' => 'worn',
             'calendarWeekStart' => 'sunday',
+            'skinTonePreset' => 'pink_deep',
         ], [
             'Accept' => 'application/json',
             'X-CSRF-TOKEN' => $token,
@@ -53,13 +55,15 @@ class SettingsPreferencesEndpointsTest extends TestCase
             ->assertJsonPath('message', 'updated')
             ->assertJsonPath('preferences.currentSeason', 'spring')
             ->assertJsonPath('preferences.defaultWearLogStatus', 'worn')
-            ->assertJsonPath('preferences.calendarWeekStart', 'sunday');
+            ->assertJsonPath('preferences.calendarWeekStart', 'sunday')
+            ->assertJsonPath('preferences.skinTonePreset', 'pink_deep');
 
         $this->assertDatabaseHas('user_preferences', [
             'user_id' => $user->id,
             'current_season' => 'spring',
             'default_wear_log_status' => 'worn',
             'calendar_week_start' => 'sunday',
+            'skin_tone_preset' => 'pink_deep',
         ]);
     }
 
@@ -82,13 +86,15 @@ class SettingsPreferencesEndpointsTest extends TestCase
         $response->assertOk()
             ->assertJsonPath('preferences.currentSeason', null)
             ->assertJsonPath('preferences.defaultWearLogStatus', null)
-            ->assertJsonPath('preferences.calendarWeekStart', null);
+            ->assertJsonPath('preferences.calendarWeekStart', null)
+            ->assertJsonPath('preferences.skinTonePreset', 'neutral_medium');
 
         $this->assertDatabaseHas('user_preferences', [
             'user_id' => $user->id,
             'current_season' => null,
             'default_wear_log_status' => null,
             'calendar_week_start' => null,
+            'skin_tone_preset' => 'neutral_medium',
         ]);
     }
 
@@ -127,5 +133,25 @@ class SettingsPreferencesEndpointsTest extends TestCase
         ])
             ->assertStatus(422)
             ->assertJsonValidationErrors(['calendarWeekStart']);
+    }
+
+    public function test_put_settings_preferences_rejects_invalid_skin_tone_preset(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $this->putJson('/api/settings/preferences', [
+            'currentSeason' => null,
+            'defaultWearLogStatus' => 'planned',
+            'calendarWeekStart' => null,
+            'skinTonePreset' => 'custom',
+        ], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['skinTonePreset']);
     }
 }

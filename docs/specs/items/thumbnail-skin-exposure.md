@@ -55,23 +55,21 @@
 - tops については `spec.tops` を持つ設計がある
 - `spec.bottoms.length_type` を保存・取得・item 画面で表示できる
 - `spec.legwear.coverage_type` を保存・取得・item 画面で表示できる
-- item サムネイルでは、固定の仮肌色 1 色を使って bottoms / legwear の素の見え方を表現できる
+- `skinTonePreset` を `user_preferences` に保存できる
+- item サムネイルでは、`skinTonePreset` を使って bottoms / legwear の素の見え方を表現できる
 - item 一覧と item 詳細は同じ item サムネイル描画ロジックを使う
 - item / outfit / wear log にサムネイル表示の責務がある
 - wear log サムネイルは `wear_log_items` を正本として扱う
 
 ### planned
 
-- `skinTonePreset`
 - outfit / wear log サムネイルでの合成表現
-- ボトムス丈とレッグウェア補正を使った脚の見え方描画
+- outfit / wear log でボトムス丈とレッグウェア補正を使った脚の見え方描画
 
 ### 要再判断
 
 - `bottom_length_type` から描画割合への変換テーブルの最終値
-- `skinTonePreset` の実際の preset hex 値
 - `wear_log_items` 内でボトムス / レッグウェア候補が複数ある場合の優先順位
-- 初期版で `skinTonePreset` を settings API に含めるか
 - 透け感や厚みを将来どこまで表現するか
 
 ---
@@ -228,6 +226,18 @@ item 側には分類値のみを保存し、描画時に見え方へ変換する
 - 初期版はプリセット選択式
 - カスタム色入力は持たない
 - preset ID → hex 変換は描画側で行う
+
+### current preset
+
+- `pink_light` → `#F4D8D1`
+- `pink_medium` → `#E6B8AA`
+- `pink_deep` → `#C88F80`
+- `neutral_light` → `#F5D9BF`
+- `neutral_medium` → `#F1C7A6`
+- `neutral_deep` → `#C78F67`
+- `yellow_light` → `#F2D8AA`
+- `yellow_medium` → `#D8AE75`
+- `yellow_deep` → `#A87348`
 
 ---
 

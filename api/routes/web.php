@@ -18,6 +18,7 @@ use App\Support\ItemLegwearSpecValidator;
 use App\Support\ItemsIndexQuery;
 use App\Support\OutfitPayloadBuilder;
 use App\Support\OutfitsIndexQuery;
+use App\Support\SkinTonePresetSupport;
 use App\Support\TpoSelectionResolver;
 use App\Support\UserPreferencePayloadBuilder;
 use Illuminate\Http\Request;
@@ -197,6 +198,7 @@ Route::prefix('api')->middleware(['web'])->group(function () {
             'currentSeason' => ['nullable', 'string', 'in:spring,summer,autumn,winter'],
             'defaultWearLogStatus' => ['nullable', 'string', 'in:planned,worn'],
             'calendarWeekStart' => ['nullable', 'string', 'in:monday,sunday'],
+            'skinTonePreset' => ['nullable', 'string', 'in:' . implode(',', SkinTonePresetSupport::values())],
         ]);
 
         $preference = app(UserPreferenceService::class)->update($request->user(), $validated);

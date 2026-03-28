@@ -123,4 +123,21 @@ describe("ItemThumbnailPreview", () => {
 
     expect(container.querySelector('[data-testid="lower-body-preview-svg"]')).toBeNull();
   });
+
+  it("skinTonePreset に応じて肌色を切り替える", async () => {
+    await act(async () => {
+      root.render(
+        <ItemThumbnailPreview
+          category="legwear"
+          shape="tights"
+          mainColorHex="#111827"
+          spec={{ legwear: { coverage_type: "tights" } }}
+          skinTonePreset="yellow_deep"
+          size="small"
+        />,
+      );
+    });
+
+    expect(container.querySelector('[data-testid="lower-body-skin-base"]')?.getAttribute("fill")).toBe("#A87348");
+  });
 });

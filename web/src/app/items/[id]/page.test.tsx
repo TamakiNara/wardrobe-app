@@ -45,57 +45,67 @@ describe("ItemPage", () => {
   });
 
   it("purchase candidate 由来の追加項目と画像を表示できる", async () => {
-    fetchMock.mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => ({
-        item: {
-          id: 1,
-          name: "レインコート",
-          status: "active",
-          care_status: "in_cleaning",
-          brand_name: "Sample Brand",
-          price: 19800,
-          purchase_url: "https://example.test/items/1",
-          memo: "購入後メモ",
-          purchased_at: "2026-03-24T00:00:00.000000Z",
-          size_gender: "women",
-          size_label: "M",
-          size_note: "厚手ニット込み",
-          size_details: {
-            note: "裄丈 78cm",
+    fetchMock
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          item: {
+            id: 1,
+            name: "レインコート",
+            status: "active",
+            care_status: "in_cleaning",
+            brand_name: "Sample Brand",
+            price: 19800,
+            purchase_url: "https://example.test/items/1",
+            memo: "購入後メモ",
+            purchased_at: "2026-03-24T00:00:00.000000Z",
+            size_gender: "women",
+            size_label: "M",
+            size_note: "厚手ニット込み",
+            size_details: {
+              note: "裄丈 78cm",
+            },
+            is_rain_ok: true,
+            category: "legwear",
+            shape: "tights",
+            colors: [],
+            seasons: ["春"],
+            tpos: ["仕事"],
+            spec: {
+              bottoms: {
+                length_type: "midi",
+              },
+              legwear: {
+                coverage_type: "tights",
+              },
+            },
+            images: [
+              {
+                id: 1,
+                item_id: 1,
+                disk: "public",
+                path: "items/1/coat.png",
+                url: "https://example.test/storage/items/1/coat.png",
+                original_filename: "coat.png",
+                mime_type: "image/png",
+                file_size: 1000,
+                sort_order: 1,
+                is_primary: true,
+              },
+            ],
           },
-          is_rain_ok: true,
-          category: "legwear",
-          shape: "tights",
-          colors: [],
-          seasons: ["春"],
-          tpos: ["仕事"],
-          spec: {
-            bottoms: {
-              length_type: "midi",
-            },
-            legwear: {
-              coverage_type: "tights",
-            },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          preferences: {
+            skinTonePreset: "neutral_medium",
           },
-          images: [
-            {
-              id: 1,
-              item_id: 1,
-              disk: "public",
-              path: "items/1/coat.png",
-              url: "https://example.test/storage/items/1/coat.png",
-              original_filename: "coat.png",
-              mime_type: "image/png",
-              file_size: 1000,
-              sort_order: 1,
-              is_primary: true,
-            },
-          ],
-        },
-      }),
-    });
+        }),
+      });
 
     const { default: ItemPage } = await import("./page");
     const markup = renderToStaticMarkup(
@@ -120,35 +130,45 @@ describe("ItemPage", () => {
   });
 
   it("return_to があるときだけ着用履歴フォームへの戻りリンクを表示する", async () => {
-    fetchMock.mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => ({
-        item: {
-          id: 1,
-          name: "レインコート",
-          status: "active",
-          care_status: null,
-          brand_name: null,
-          price: null,
-          purchase_url: null,
-          memo: null,
-          purchased_at: null,
-          size_gender: null,
-          size_label: null,
-          size_note: null,
-          size_details: null,
-          is_rain_ok: false,
-          category: "outer",
-          shape: "trench",
-          colors: [],
-          seasons: [],
-          tpos: [],
-          spec: null,
-          images: [],
-        },
-      }),
-    });
+    fetchMock
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          item: {
+            id: 1,
+            name: "レインコート",
+            status: "active",
+            care_status: null,
+            brand_name: null,
+            price: null,
+            purchase_url: null,
+            memo: null,
+            purchased_at: null,
+            size_gender: null,
+            size_label: null,
+            size_note: null,
+            size_details: null,
+            is_rain_ok: false,
+            category: "outer",
+            shape: "trench",
+            colors: [],
+            seasons: [],
+            tpos: [],
+            spec: null,
+            images: [],
+          },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          preferences: {
+            skinTonePreset: "neutral_medium",
+          },
+        }),
+      });
 
     const { default: ItemPage } = await import("./page");
     const markup = renderToStaticMarkup(

@@ -11,6 +11,11 @@ import {
   fetchUserPreferences,
   updateUserPreferences,
 } from "@/lib/api/settings";
+import {
+  DEFAULT_SKIN_TONE_PRESET,
+  findSkinTonePresetOption,
+  SKIN_TONE_PRESET_OPTIONS,
+} from "@/lib/master-data/skin-tone-presets";
 import type { UserPreferences } from "@/types/settings";
 
 function SettingsPageContent() {
@@ -20,11 +25,13 @@ function SettingsPageContent() {
     currentSeason: null,
     defaultWearLogStatus: null,
     calendarWeekStart: null,
+    skinTonePreset: DEFAULT_SKIN_TONE_PRESET,
   });
   const [savedPreferences, setSavedPreferences] = useState<UserPreferences>({
     currentSeason: null,
     defaultWearLogStatus: null,
     calendarWeekStart: null,
+    skinTonePreset: DEFAULT_SKIN_TONE_PRESET,
   });
   const [preferencesSaving, setPreferencesSaving] = useState(false);
   const [preferencesSaveMessage, setPreferencesSaveMessage] = useState<string | null>(null);
@@ -61,9 +68,12 @@ function SettingsPageContent() {
     return (
       preferences.currentSeason !== savedPreferences.currentSeason ||
       preferences.defaultWearLogStatus !== savedPreferences.defaultWearLogStatus ||
-      preferences.calendarWeekStart !== savedPreferences.calendarWeekStart
+      preferences.calendarWeekStart !== savedPreferences.calendarWeekStart ||
+      preferences.skinTonePreset !== savedPreferences.skinTonePreset
     );
   }, [preferences, savedPreferences]);
+
+  const selectedSkinTone = findSkinTonePresetOption(preferences.skinTonePreset);
 
   const preferencesButtonDisabled = loading || preferencesSaving || !hasPreferenceChanges;
   const preferencesButtonLabel = preferencesSaving
@@ -219,6 +229,58 @@ function SettingsPageContent() {
               <p className="mt-2 text-xs text-gray-500">
                 着用履歴カレンダーの曜日並びに使います。未設定時は月曜始まりです。
               </p>
+            </div>
+
+            <div className="md:col-span-3">
+              <div className="flex flex-col gap-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  サムネイル肌色
+                </label>
+                <p className="text-xs text-gray-500">
+                  item サムネイルの肌色表現に使います。
+                </p>
+                <p className="text-sm text-gray-700">
+                  選択中: <span className="font-medium">{selectedSkinTone.label}</span>
+                </p>
+              </div>
+
+              <div className="mt-3 grid grid-cols-3 gap-3 sm:max-w-md">
+                {SKIN_TONE_PRESET_OPTIONS.map((option) => {
+                  const isSelected = preferences.skinTonePreset === option.value;
+
+                  return (
+                    <button
+                      key={option.value}
+                      type="button"
+                      title={option.label}
+                      aria-label={`サムネイル肌色: ${option.label}`}
+                      onClick={() => {
+                        setPreferencesSaveMessage(null);
+                        setPreferencesSaveError(null);
+                        setPreferences((current) => ({
+                          ...current,
+                          skinTonePreset: option.value,
+                        }));
+                      }}
+                      className={`relative flex h-16 items-center justify-center rounded-xl border bg-white transition ${
+                        isSelected
+                          ? "border-blue-500 ring-2 ring-blue-100"
+                          : "border-gray-300 hover:border-gray-400"
+                      }`}
+                    >
+                      <span
+                        className="h-10 w-10 rounded-lg border border-gray-200"
+                        style={{ backgroundColor: option.hex }}
+                      />
+                      {isSelected ? (
+                        <span className="absolute right-2 top-2 inline-flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-xs font-semibold text-white">
+                          ✓
+                        </span>
+                      ) : null}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </SettingsCard>

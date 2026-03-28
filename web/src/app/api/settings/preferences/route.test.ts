@@ -23,6 +23,7 @@ describe("/api/settings/preferences route", () => {
             currentSeason: "spring",
             defaultWearLogStatus: "planned",
             calendarWeekStart: "monday",
+            skinTonePreset: "neutral_medium",
           },
         }),
         {
@@ -70,6 +71,7 @@ describe("/api/settings/preferences route", () => {
               currentSeason: "winter",
               defaultWearLogStatus: "worn",
               calendarWeekStart: "sunday",
+              skinTonePreset: "pink_medium",
             },
           }),
           {
@@ -91,6 +93,7 @@ describe("/api/settings/preferences route", () => {
         currentSeason: "winter",
         defaultWearLogStatus: "worn",
         calendarWeekStart: "sunday",
+        skinTonePreset: "pink_medium",
       }),
     });
 

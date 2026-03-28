@@ -10,6 +10,7 @@ const pushMock = vi.fn();
 const refreshMock = vi.fn();
 const fetchCategoryGroupsMock = vi.fn();
 const fetchCategoryVisibilitySettingsMock = vi.fn();
+const fetchUserPreferencesMock = vi.fn();
 const fetchUserBrandsMock = vi.fn();
 const fetchUserTposMock = vi.fn();
 const routerMock = { push: pushMock, refresh: refreshMock };
@@ -40,6 +41,7 @@ vi.mock("@/lib/api/categories", async () => {
 
 vi.mock("@/lib/api/settings", () => ({
   fetchCategoryVisibilitySettings: fetchCategoryVisibilitySettingsMock,
+  fetchUserPreferences: fetchUserPreferencesMock,
   fetchUserBrands: fetchUserBrandsMock,
   fetchUserTpos: fetchUserTposMock,
 }));
@@ -120,6 +122,14 @@ describe("NewItemPage", () => {
     fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
     fetchCategoryVisibilitySettingsMock.mockResolvedValue({
       visibleCategoryIds: ["tops_tshirt", "bottoms_straight", "dress_onepiece", "inner_roomwear", "legwear_socks"],
+    });
+    fetchUserPreferencesMock.mockResolvedValue({
+      preferences: {
+        currentSeason: null,
+        defaultWearLogStatus: null,
+        calendarWeekStart: null,
+        skinTonePreset: "neutral_medium",
+      },
     });
     fetchUserBrandsMock.mockResolvedValue({ brands: [] });
     fetchUserTposMock.mockResolvedValue({

@@ -4,6 +4,7 @@ import {
   findItemShapeLabel,
 } from "@/lib/master-data/item-shapes";
 import type { ItemImageRecord, ItemSpec } from "@/types/items";
+import type { SkinTonePreset } from "@/types/settings";
 
 type ItemPreviewCardProps = {
   name: string;
@@ -31,6 +32,7 @@ type ItemPreviewCardProps = {
   } | null;
   spec?: ItemSpec | null;
   images?: ItemImageRecord[];
+  skinTonePreset?: SkinTonePreset;
 };
 
 function ColorDot({
@@ -73,6 +75,7 @@ export default function ItemPreviewCard({
   topsSpecRaw,
   spec,
   images,
+  skinTonePreset,
 }: ItemPreviewCardProps) {
   const categoryLabel = findItemCategoryLabel(category) || "カテゴリ未選択";
   const shapeLabel = findItemShapeLabel(category, shape);
@@ -101,6 +104,7 @@ export default function ItemPreviewCard({
           topsSpecRaw={topsSpecRaw}
           spec={spec}
           images={images}
+          skinTonePreset={skinTonePreset}
           size="large"
         />
 

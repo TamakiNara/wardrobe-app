@@ -1,3 +1,14 @@
+export type SkinTonePreset =
+  | "pink_light"
+  | "pink_medium"
+  | "pink_deep"
+  | "neutral_light"
+  | "neutral_medium"
+  | "neutral_deep"
+  | "yellow_light"
+  | "yellow_medium"
+  | "yellow_deep";
+
 export type CategoryVisibilitySettings = {
   visibleCategoryIds: string[];
 };
@@ -10,6 +21,7 @@ export type UserPreferences = {
   currentSeason: "spring" | "summer" | "autumn" | "winter" | null;
   defaultWearLogStatus: "planned" | "worn" | null;
   calendarWeekStart: "monday" | "sunday" | null;
+  skinTonePreset: SkinTonePreset;
 };
 
 export type UserPreferencesResponse = {
@@ -20,6 +32,7 @@ export type UpdateUserPreferencesPayload = {
   currentSeason: "spring" | "summer" | "autumn" | "winter" | null;
   defaultWearLogStatus: "planned" | "worn" | null;
   calendarWeekStart: "monday" | "sunday" | null;
+  skinTonePreset: SkinTonePreset;
 };
 
 export type UserTpoRecord = {

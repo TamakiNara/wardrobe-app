@@ -73,6 +73,7 @@ describe("settings api helpers", () => {
         currentSeason: "spring",
         defaultWearLogStatus: "planned",
         calendarWeekStart: "monday",
+        skinTonePreset: "neutral_medium",
       },
     });
 
@@ -100,6 +101,7 @@ describe("settings api helpers", () => {
         currentSeason: "winter",
         defaultWearLogStatus: null,
         calendarWeekStart: "sunday",
+        skinTonePreset: "pink_medium",
       },
     });
 
@@ -107,6 +109,7 @@ describe("settings api helpers", () => {
       currentSeason: "winter" as const,
       defaultWearLogStatus: null,
       calendarWeekStart: "sunday" as const,
+      skinTonePreset: "pink_medium" as const,
     };
 
     await updateUserPreferences(payload);

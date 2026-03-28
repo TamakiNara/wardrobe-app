@@ -18,6 +18,7 @@ class UserPreferencePayloadBuilder
             'currentSeason' => $currentSeason,
             'defaultWearLogStatus' => $preference?->default_wear_log_status,
             'calendarWeekStart' => $preference?->calendar_week_start,
+            'skinTonePreset' => $preference?->skin_tone_preset ?? SkinTonePresetSupport::DEFAULT_PRESET,
         ];
     }
 }
