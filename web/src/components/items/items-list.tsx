@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import TopsPreviewSvg from "@/components/items/preview-svg/tops-preview-svg";
+import ItemThumbnailPreview from "@/components/items/item-thumbnail-preview";
 import { buildSupportedCategoryOptions, fetchCategoryGroups } from "@/lib/api/categories";
 import { COLOR_THUMBNAIL_FALLBACK_COLOR } from "@/lib/color-thumbnails/shared";
 import { buildClosetViewGroups } from "@/lib/items/closet-view";
@@ -114,46 +114,17 @@ function PreviewThumb({
   mainColorHex?: string;
   subColorHex?: string;
 }) {
-  const topsSpec = item.spec?.tops;
-  const primaryImage = item.images?.find((image) => image.is_primary)
-    ?? item.images?.[0];
-
-  if (primaryImage?.url) {
-    return (
-      <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl border border-gray-200 bg-gray-50 p-2">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={primaryImage.url}
-          alt={primaryImage.original_filename ?? item.name ?? "item image"}
-          className="h-full w-full object-contain"
-        />
-      </div>
-    );
-  }
-
-  if (item.category === "tops" && topsSpec?.shape) {
-    return (
-      <div className="flex h-20 w-20 items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-white">
-        <TopsPreviewSvg
-          shape={topsSpec.shape}
-          sleeve={topsSpec.sleeve ?? undefined}
-          neck={topsSpec.neck ?? undefined}
-          design={topsSpec.design ?? undefined}
-          fit={topsSpec.fit ?? undefined}
-          mainColor={mainColorHex}
-          subColor={subColorHex}
-        />
-      </div>
-    );
-  }
-
   return (
-    <div className="flex h-20 w-20 items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-white">
-      <div
-        className="h-12 w-12 rounded-2xl border border-gray-300"
-        style={{ backgroundColor: mainColorHex ?? COLOR_THUMBNAIL_FALLBACK_COLOR }}
-      />
-    </div>
+    <ItemThumbnailPreview
+      category={item.category}
+      shape={item.shape}
+      mainColorHex={mainColorHex}
+      subColorHex={subColorHex}
+      topsSpecRaw={item.spec?.tops}
+      spec={item.spec}
+      images={item.images}
+      size="small"
+    />
   );
 }
 

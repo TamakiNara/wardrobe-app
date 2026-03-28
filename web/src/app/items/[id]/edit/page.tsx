@@ -651,6 +651,17 @@ export default function EditItemPage({
         fit: topsFit || undefined,
       })
     : null;
+  const previewSpec = {
+    tops: previewTopsSpecRaw,
+    bottoms: isBottomsSpecCategory(category)
+      ? { length_type: bottomsLengthType || undefined }
+      : undefined,
+    legwear: isLegwearSpecCategory(category)
+      ? {
+          coverage_type: resolveLegwearCoverageType(category, shape, legwearCoverageType) ?? undefined,
+        }
+      : undefined,
+  };
   if (loading) {
     return (
       <main className="min-h-screen bg-gray-100 p-6 md:p-10">
@@ -1084,6 +1095,8 @@ export default function EditItemPage({
           subColorLabel={selectedSubColor?.label}
           topsSpec={previewTopsSpec}
           topsSpecRaw={previewTopsSpecRaw}
+          spec={previewSpec}
+          images={itemImages}
         />
 
         {submitError && <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">{submitError}</div>}

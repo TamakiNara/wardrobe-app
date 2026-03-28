@@ -543,6 +543,18 @@ export default function NewItemPage() {
         fit: topsFit || undefined,
       })
     : null;
+  const previewSpec = {
+    tops: previewTopsSpecRaw,
+    bottoms: isBottomsSpecCategory(category)
+      ? { length_type: bottomsLengthType || undefined }
+      : undefined,
+    legwear: isLegwearSpecCategory(category)
+      ? {
+          coverage_type: resolveLegwearCoverageType(category, shape, legwearCoverageType) ?? undefined,
+        }
+      : undefined,
+  };
+
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">
       <div className="mx-auto max-w-3xl space-y-6">
@@ -1158,6 +1170,8 @@ export default function NewItemPage() {
           subColorLabel={selectedSubColor?.label}
           topsSpec={previewTopsSpec}
           topsSpecRaw={previewTopsSpecRaw}
+          spec={previewSpec}
+          images={itemImages}
         />
 
         {submitError && <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">{submitError}</div>}

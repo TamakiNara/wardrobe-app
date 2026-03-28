@@ -55,13 +55,14 @@
 - tops については `spec.tops` を持つ設計がある
 - `spec.bottoms.length_type` を保存・取得・item 画面で表示できる
 - `spec.legwear.coverage_type` を保存・取得・item 画面で表示できる
+- item サムネイルでは、固定の仮肌色 1 色を使って bottoms / legwear の素の見え方を表現できる
+- item 一覧と item 詳細は同じ item サムネイル描画ロジックを使う
 - item / outfit / wear log にサムネイル表示の責務がある
 - wear log サムネイルは `wear_log_items` を正本として扱う
 
 ### planned
 
 - `skinTonePreset`
-- item サムネイルでの素の見え方表現
 - outfit / wear log サムネイルでの合成表現
 - ボトムス丈とレッグウェア補正を使った脚の見え方描画
 
@@ -359,6 +360,7 @@ stockings のような半透明レイヤーにはしない。
 
 item サムネイルは、**組み合わせ前提の最終見え方を出さない**。  
 outfit / wear log 側の合成で初めて、最終的な脚の見え方を表現する。
+- Phase 2-1 の current では `skinTonePreset` をまだ使わず、固定の仮肌色 1 色で item 単体の差分だけを表現する
 
 ---
 

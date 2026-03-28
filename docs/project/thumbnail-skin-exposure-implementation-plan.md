@@ -42,11 +42,12 @@ current 実装の正本ではなく、今後の実装依頼や仕様確認の起
 - wear log サムネイルは `wear_log_items` を正本としている
 - item 側では `spec.tops` / `spec.bottoms.length_type` / `spec.legwear.coverage_type` を保存できる
 - item create / edit / detail では bottoms / legwear 分類値を扱える
+- item サムネイルでは、固定の仮肌色 1 色を使って bottoms / legwear の素の見え方を描画できる
+- item 一覧と item 詳細は同じ item サムネイル描画ロジックを使う
 
 ### planned
 
 - `skinTonePreset`
-- item サムネイルでの素の脚見え表現
 - outfit / wear log サムネイルでの脚見え合成表現
 
 ### 要再判断
@@ -110,6 +111,7 @@ current 実装の正本ではなく、今後の実装依頼や仕様確認の起
 ### 注意点
 
 - item サムネイルで肌色をどこまで出すかは、`skinTonePreset` の導入順と連動する
+- Phase 2-1 の current では、`skinTonePreset` の代わりに固定の仮肌色 1 色を使う
 - bottoms item と legwear item で見た目ルールを分ける必要がある
 - current の item サムネイル責務を広げすぎないよう、最終合成表現は持ち込まない方がよい
 
@@ -167,8 +169,11 @@ current 実装の正本ではなく、今後の実装依頼や仕様確認の起
 ### 第2段階
 
 - item サムネイルで bottoms / legwear の素の見え方を描画する
+- 固定の仮肌色 1 色を使い、`skinTonePreset` はまだ導入しない
 - 最終合成はまだ行わない
 - `skinTonePreset` なしでも成立する範囲を優先する
+
+上記 4 点は current 化済み。
 
 ### 第3段階
 

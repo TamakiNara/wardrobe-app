@@ -1,8 +1,9 @@
-﻿import TopsPreviewSvg from "@/components/items/preview-svg/tops-preview-svg";
+﻿import ItemThumbnailPreview from "@/components/items/item-thumbnail-preview";
 import {
   findItemCategoryLabel,
   findItemShapeLabel,
 } from "@/lib/master-data/item-shapes";
+import type { ItemImageRecord, ItemSpec } from "@/types/items";
 
 type ItemPreviewCardProps = {
   name: string;
@@ -28,6 +29,8 @@ type ItemPreviewCardProps = {
     design?: string;
     fit?: string;
   } | null;
+  spec?: ItemSpec | null;
+  images?: ItemImageRecord[];
 };
 
 function ColorDot({
@@ -68,8 +71,9 @@ export default function ItemPreviewCard({
   subColorLabel,
   topsSpec,
   topsSpecRaw,
+  spec,
+  images,
 }: ItemPreviewCardProps) {
-  const isTops = category === "tops";
   const categoryLabel = findItemCategoryLabel(category) || "カテゴリ未選択";
   const shapeLabel = findItemShapeLabel(category, shape);
 
@@ -89,33 +93,16 @@ export default function ItemPreviewCard({
       </div>
 
       <div className="mt-4 grid gap-4 md:grid-cols-[140px_1fr]">
-        <div className="flex h-36 items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-white">
-          {isTops && topsSpecRaw?.shape ? (
-            <TopsPreviewSvg
-              shape={topsSpecRaw.shape}
-              sleeve={topsSpecRaw.sleeve}
-              neck={topsSpecRaw.neck}
-              design={topsSpecRaw.design}
-              fit={topsSpecRaw.fit}
-              mainColor={mainColorHex}
-              subColor={subColorHex}
-            />
-          ) : (
-            <div className="text-center">
-              <div
-                className="mx-auto h-16 w-16 rounded-2xl border border-gray-300"
-                style={{ backgroundColor: mainColorHex ?? "#E5E7EB" }}
-              />
-              {subColorHex && (
-                <div
-                  className="mt-2 ml-auto h-4 w-4 rounded-full border border-gray-300"
-                  style={{ backgroundColor: subColorHex }}
-                />
-              )}
-              <p className="mt-2 text-xs text-gray-500">SVG プレビュー</p>
-            </div>
-          )}
-        </div>
+        <ItemThumbnailPreview
+          category={category}
+          shape={shape}
+          mainColorHex={mainColorHex}
+          subColorHex={subColorHex}
+          topsSpecRaw={topsSpecRaw}
+          spec={spec}
+          images={images}
+          size="large"
+        />
 
         <div className="space-y-4">
           <div className="flex flex-wrap gap-2">
@@ -131,7 +118,7 @@ export default function ItemPreviewCard({
             />
           </div>
 
-          {isTops && topsSpec && (
+          {category === "tops" && topsSpec && (
             <div className="rounded-xl border border-gray-200 bg-white p-4">
               <p className="mb-3 text-sm font-medium text-gray-700">
                 トップス仕様
