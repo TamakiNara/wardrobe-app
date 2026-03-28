@@ -49,6 +49,7 @@
 - アカウント: `empty-user@example.com`
 - Item 0 件
 - Outfits 0 件
+- TPO は初期プリセット 3 件を持つ
 - 新規登録直後の初期導線を確認するためのアカウント
 
 ### パターンB: 標準的な確認用
@@ -182,6 +183,7 @@
 
 - 現行 schema で seed 対応している sample item の差分は category / color / seasons / tpos / tpo_ids / spec に加え、`brand_name` まで
 - TPO の選択肢正本は `user_tpos` とし、`standard-user@example.com` / `large-user@example.com` では active / inactive を含む候補を再投入する
+- `empty-user@example.com` も item / outfit / wear logs は 0 件のまま、初期プリセット TPO 3 件を持つ
 - brand 名 / item メモ / 画像 URL などの将来項目は、テーブル追加後に sample data へ反映する
 - `standard-user@example.com` は手書き 12 件の Item（うち `disposed` 1 件、`in_cleaning` 1 件）と 6 件の Outfit（うち `invalid` 1 件）、8 件の wear logs を持ち、`large-user@example.com` は Factory 併用の 36 件の Item と 12 件の Outfit、14 件以上の wear logs を持つ
 - outfit ベースの wear log は、sample data でも `wear_log_items` を実体化した状態で再投入する

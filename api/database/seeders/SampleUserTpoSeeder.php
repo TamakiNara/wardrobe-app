@@ -19,7 +19,11 @@ class SampleUserTpoSeeder extends Seeder
     private function seedEmptyUser(): void
     {
         $user = User::query()->where('email', TestSeedUsers::EMPTY_EMAIL)->firstOrFail();
-        $this->syncTpos($user, []);
+        $this->syncTpos($user, [
+            ['name' => '仕事', 'sort_order' => 1, 'is_active' => true, 'is_preset' => true],
+            ['name' => '休日', 'sort_order' => 2, 'is_active' => true, 'is_preset' => true],
+            ['name' => 'フォーマル', 'sort_order' => 3, 'is_active' => true, 'is_preset' => true],
+        ]);
     }
 
     private function seedStandardUser(): void

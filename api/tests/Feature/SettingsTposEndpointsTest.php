@@ -14,6 +14,7 @@ class SettingsTposEndpointsTest extends TestCase
     public function test_get_settings_tpos_returns_presets_for_current_user(): void
     {
         $user = User::factory()->create();
+        $this->assertDatabaseCount('user_tpos', 3);
         $this->actingAs($user, 'web');
 
         $response = $this->getJson('/api/settings/tpos', [
@@ -59,24 +60,14 @@ class SettingsTposEndpointsTest extends TestCase
         $user = User::factory()->create();
         $this->actingAs($user, 'web');
 
-        $presetWork = UserTpo::query()->create([
-            'user_id' => $user->id,
-            'name' => '仕事',
-            'sort_order' => 1,
-            'is_active' => true,
-            'is_preset' => true,
-        ]);
-        UserTpo::query()->create([
-            'user_id' => $user->id,
-            'name' => '休日',
-            'sort_order' => 2,
-            'is_active' => true,
-            'is_preset' => true,
-        ]);
+        $presetWork = UserTpo::query()
+            ->where('user_id', $user->id)
+            ->where('name', '仕事')
+            ->firstOrFail();
         $custom = UserTpo::query()->create([
             'user_id' => $user->id,
             'name' => '出張',
-            'sort_order' => 3,
+            'sort_order' => 4,
             'is_active' => true,
             'is_preset' => false,
         ]);
@@ -107,13 +98,10 @@ class SettingsTposEndpointsTest extends TestCase
     public function test_patch_settings_tpos_rejects_preset_rename(): void
     {
         $user = User::factory()->create();
-        $preset = UserTpo::query()->create([
-            'user_id' => $user->id,
-            'name' => '仕事',
-            'sort_order' => 1,
-            'is_active' => true,
-            'is_preset' => true,
-        ]);
+        $preset = UserTpo::query()
+            ->where('user_id', $user->id)
+            ->where('name', '仕事')
+            ->firstOrFail();
 
         $this->actingAs($user, 'web');
 

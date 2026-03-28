@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\Settings\UserTpoService;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -49,6 +50,13 @@ class User extends Authenticatable
             'password' => 'hashed',
             'visible_category_ids' => 'array',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::created(function (self $user): void {
+            app(UserTpoService::class)->ensurePresets($user);
+        });
     }
 
     public function items(): HasMany

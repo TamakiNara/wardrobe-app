@@ -42,7 +42,7 @@ class TestSeedUsersSeederTest extends TestCase
         $this->assertNull($emptyUser->visible_category_ids);
         $this->assertCount(0, $emptyUser->items);
         $this->assertCount(0, $emptyUser->outfits);
-        $this->assertCount(0, UserTpo::query()->where('user_id', $emptyUser->id)->get());
+        $this->assertCount(3, UserTpo::query()->where('user_id', $emptyUser->id)->get());
         $this->assertCount(0, UserBrand::query()->where('user_id', $emptyUser->id)->get());
         $this->assertDatabaseCount('items', 48);
 
