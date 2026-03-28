@@ -79,6 +79,32 @@ class AuthEndpointsTest extends TestCase
             'email' => 'sample.user@gmail.com',
         ]);
 
+        $userId = User::query()
+            ->where('email', 'sample.user@gmail.com')
+            ->value('id');
+
+        $this->assertDatabaseHas('user_tpos', [
+            'user_id' => $userId,
+            'name' => '仕事',
+            'sort_order' => 1,
+            'is_active' => true,
+            'is_preset' => true,
+        ]);
+        $this->assertDatabaseHas('user_tpos', [
+            'user_id' => $userId,
+            'name' => '休日',
+            'sort_order' => 2,
+            'is_active' => true,
+            'is_preset' => true,
+        ]);
+        $this->assertDatabaseHas('user_tpos', [
+            'user_id' => $userId,
+            'name' => 'フォーマル',
+            'sort_order' => 3,
+            'is_active' => true,
+            'is_preset' => true,
+        ]);
+
         // 登録後にそのままログイン状態になる設計を保証
         $this->assertAuthenticated('web');
     }
