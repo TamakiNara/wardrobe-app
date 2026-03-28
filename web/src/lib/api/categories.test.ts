@@ -39,6 +39,13 @@ const groups: CategoryGroupRecord[] = [
     ],
   },
   {
+    id: "legwear",
+    name: "レッグウェア",
+    categories: [
+      { id: "legwear_socks", groupId: "legwear", name: "ソックス" },
+    ],
+  },
+  {
     id: "bags",
     name: "バッグ",
     categories: [
@@ -54,6 +61,7 @@ describe("buildSupportedCategoryOptions", () => {
       { value: "outer", label: "アウター" },
       { value: "dress", label: "ワンピース・オールインワン" },
       { value: "inner", label: "ルームウェア・インナー" },
+      { value: "legwear", label: "レッグウェア" },
     ]);
   });
 
@@ -61,6 +69,10 @@ describe("buildSupportedCategoryOptions", () => {
     expect(buildSupportedCategoryOptions(groups, ["tops_tshirt", "inner_roomwear"])).toEqual([
       { value: "tops", label: "トップス" },
       { value: "inner", label: "ルームウェア・インナー" },
+    ]);
+
+    expect(buildSupportedCategoryOptions(groups, ["legwear_socks"])).toEqual([
+      { value: "legwear", label: "レッグウェア" },
     ]);
   });
 
@@ -76,6 +88,7 @@ describe("findVisibleCategoryIdForItem", () => {
     expect(findVisibleCategoryIdForItem("outer", "trench")).toBe("outer_coat");
     expect(findVisibleCategoryIdForItem("dress", "onepiece")).toBe("dress_onepiece");
     expect(findVisibleCategoryIdForItem("inner", "roomwear")).toBe("inner_roomwear");
+    expect(findVisibleCategoryIdForItem("legwear", "tights")).toBe("legwear_tights");
     expect(findVisibleCategoryIdForItem("accessories", "tote")).toBe("bags_tote");
   });
 
@@ -116,6 +129,13 @@ describe("isItemVisibleByCategorySettings", () => {
       isItemVisibleByCategorySettings(
         { category: "inner", shape: "roomwear" },
         ["inner_roomwear"],
+      ),
+    ).toBe(true);
+
+    expect(
+      isItemVisibleByCategorySettings(
+        { category: "legwear", shape: "tights" },
+        ["legwear_tights"],
       ),
     ).toBe(true);
 

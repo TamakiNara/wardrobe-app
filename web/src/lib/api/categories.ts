@@ -44,6 +44,12 @@ const ITEM_CATEGORY_ID_BY_SHAPE: Record<string, Record<string, string>> = {
     underwear: "inner_underwear",
     pajamas: "inner_pajamas",
   },
+  legwear: {
+    socks: "legwear_socks",
+    stockings: "legwear_stockings",
+    tights: "legwear_tights",
+    leggings: "legwear_leggings",
+  },
   shoes: {
     sneakers: "shoes_sneakers",
     pumps: "shoes_pumps",

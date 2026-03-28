@@ -15,9 +15,10 @@ class CategoryGroupSeeder extends Seeder
             ['id' => 'bottoms', 'name' => 'ボトムス', 'sort_order' => 3],
             ['id' => 'dress', 'name' => 'ワンピース・オールインワン', 'sort_order' => 4],
             ['id' => 'inner', 'name' => 'ルームウェア・インナー', 'sort_order' => 5],
-            ['id' => 'shoes', 'name' => 'シューズ', 'sort_order' => 6],
-            ['id' => 'bags', 'name' => 'バッグ', 'sort_order' => 7],
-            ['id' => 'accessories', 'name' => '小物', 'sort_order' => 8],
+            ['id' => 'legwear', 'name' => 'レッグウェア', 'sort_order' => 6],
+            ['id' => 'shoes', 'name' => 'シューズ', 'sort_order' => 7],
+            ['id' => 'bags', 'name' => 'バッグ', 'sort_order' => 8],
+            ['id' => 'accessories', 'name' => '小物', 'sort_order' => 9],
         ];
 
         foreach ($groups as $group) {

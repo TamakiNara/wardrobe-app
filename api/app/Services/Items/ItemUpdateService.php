@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Services\Brands\UserBrandService;
 use App\Services\Settings\UserTpoService;
 use App\Support\ItemImageSync;
+use App\Support\ItemSpecNormalizer;
 use App\Support\TpoSelectionResolver;
 use Illuminate\Support\Facades\DB;
 use Throwable;
@@ -48,7 +49,11 @@ class ItemUpdateService
                         $validated,
                         $item->tpo_ids ?? [],
                     ),
-                    'spec' => $validated['spec'] ?? null,
+                    'spec' => ItemSpecNormalizer::normalize(
+                        $validated['category'] ?? null,
+                        $validated['shape'] ?? null,
+                        $validated['spec'] ?? null,
+                    ),
                 ]);
 
                 ItemImageSync::sync($item, $validated['images'] ?? [], $copiedFiles);

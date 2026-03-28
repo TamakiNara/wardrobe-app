@@ -352,7 +352,7 @@ wear logs も本資料の対象とし、その保存方針を定義します。
 補足:
 
 - `spec` は nullable
-- Phase 1 では bottoms は `spec.bottoms.length_type`、inner は `spec.legwear.coverage_type` を持てる
+- Phase 1 では bottoms は `spec.bottoms.length_type`、legwear は `spec.legwear.coverage_type` を持てる
 - `is_rain_ok` は正式項目として持ち、初期値は `false` とする
 - 雨対応はまず boolean で表現し、`weather_tags` のような拡張は後回しにする
 - 詳細仕様の定義は `docs/specs/items/tops.md` と `docs/specs/items/thumbnail-skin-exposure.md` を参照
@@ -519,6 +519,7 @@ outfit と item の関連テーブルです。
 - `bottoms`
 - `dress`
 - `inner`
+- `legwear`
 - `shoes`
 - `bags`
 - `accessories`
@@ -555,6 +556,7 @@ outfit と item の関連テーブルです。
 - `tops_hoodie`
 - `tops_cardigan`
 - `tops_vest`
+- `legwear_socks`
 
 ---
 

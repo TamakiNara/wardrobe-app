@@ -75,7 +75,7 @@ current 実装の正本ではなく、今後の実装依頼や仕様確認の起
 ### 注意点
 
 - bottoms 系 item にだけ `length_type` を持たせるか、他カテゴリでも nullable に持てるようにするかは実装時に決める必要がある
-- Phase 1 の current UI では、legwear 系入力は `inner` category を入口として扱う
+- Phase 1 の current UI では、legwear 系入力は `legwear` category を入口として扱う
 - 保存値追加だけを先に入れても、UI で設定できない期間が発生する
 
 ---
@@ -157,6 +157,7 @@ current 実装の正本ではなく、今後の実装依頼や仕様確認の起
 - `spec.bottoms.length_type` を追加
 - `spec.legwear.coverage_type` を追加
 - item create / edit / detail で設定・確認できるようにする
+- `legwear` を独立 category とし、`shape` は `socks / stockings / tights / leggings` の粗い分類として扱う
 
 上記 3 点は current 化済み。
 

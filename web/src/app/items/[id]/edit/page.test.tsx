@@ -222,7 +222,7 @@ describe("EditItemPage", () => {
         json: async () => ({
           item: {
             id: 2,
-            name: "レギンス",
+            name: "ソックス",
             status: "active",
             care_status: null,
             brand_name: null,
@@ -235,15 +235,15 @@ describe("EditItemPage", () => {
             size_note: null,
             size_details: null,
             is_rain_ok: false,
-            category: "inner",
-            shape: "underwear",
+            category: "legwear",
+            shape: "socks",
             colors: [],
             seasons: [],
             tpos: [],
             tpo_ids: [],
             spec: {
               legwear: {
-                coverage_type: "tights",
+                coverage_type: "crew_socks",
               },
             },
             images: [],
@@ -262,7 +262,7 @@ describe("EditItemPage", () => {
       await waitForEffects();
     });
 
-    expect((container.querySelector("#legwear-coverage-type") as HTMLSelectElement | null)?.value).toBe("tights");
+    expect((container.querySelector("#legwear-coverage-type") as HTMLSelectElement | null)?.value).toBe("crew_socks");
     expect(container.textContent).toContain("レッグウェア仕様");
   });
 });

@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Services\Brands\UserBrandService;
 use App\Services\Settings\UserTpoService;
 use App\Support\ItemImageSync;
+use App\Support\ItemSpecNormalizer;
 use App\Support\TpoSelectionResolver;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -47,7 +48,11 @@ class ItemStoreService
                     'colors' => $validated['colors'],
                     'seasons' => $validated['seasons'] ?? [],
                     'tpo_ids' => TpoSelectionResolver::resolve($this->userTpoService, $user, $validated),
-                    'spec' => $validated['spec'] ?? null,
+                    'spec' => ItemSpecNormalizer::normalize(
+                        $validated['category'] ?? null,
+                        $validated['shape'] ?? null,
+                        $validated['spec'] ?? null,
+                    ),
                 ]);
 
                 ItemImageSync::sync($item, $validated['images'] ?? [], $copiedFiles);

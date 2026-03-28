@@ -89,6 +89,14 @@ const sampleGroups: CategoryGroupRecord[] = [
       { id: "inner_roomwear", groupId: "inner", name: "ルームウェア", sortOrder: 10 },
     ],
   },
+  {
+    id: "legwear",
+    name: "レッグウェア",
+    sortOrder: 35,
+    categories: [
+      { id: "legwear_socks", groupId: "legwear", name: "ソックス", sortOrder: 10 },
+    ],
+  },
 ];
 
 async function waitForEffects() {
@@ -111,7 +119,7 @@ describe("NewItemPage", () => {
     root = createRoot(container);
     fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
     fetchCategoryVisibilitySettingsMock.mockResolvedValue({
-      visibleCategoryIds: ["tops_tshirt", "bottoms_straight", "dress_onepiece", "inner_roomwear"],
+      visibleCategoryIds: ["tops_tshirt", "bottoms_straight", "dress_onepiece", "inner_roomwear", "legwear_socks"],
     });
     fetchUserBrandsMock.mockResolvedValue({ brands: [] });
     fetchUserTposMock.mockResolvedValue({
@@ -148,6 +156,7 @@ describe("NewItemPage", () => {
       "ボトムス",
       "ワンピース・オールインワン",
       "ルームウェア・インナー",
+      "レッグウェア",
     ]);
     expect(container.textContent).toContain("「必須」が付いた項目は登録に必要です。");
     expect(container.textContent).toContain("カテゴリ");
@@ -258,8 +267,19 @@ describe("NewItemPage", () => {
     expect(container.querySelector("#legwear-coverage-type")).toBeNull();
 
     await act(async () => {
-      categorySelect!.value = "inner";
+      categorySelect!.value = "legwear";
       categorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    expect(container.querySelector("#legwear-coverage-type")).toBeNull();
+
+    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
+    expect(shapeSelect).not.toBeNull();
+
+    await act(async () => {
+      shapeSelect!.value = "socks";
+      shapeSelect!.dispatchEvent(new Event("change", { bubbles: true }));
       await waitForEffects();
     });
 

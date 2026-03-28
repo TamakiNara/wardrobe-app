@@ -478,9 +478,9 @@ class ItemsEndpointsTest extends TestCase
         $this->actingAs($user, 'web');
 
         $response = $this->postJson('/api/items', [
-            'name' => 'タイツ',
-            'category' => 'inner',
-            'shape' => 'underwear',
+            'name' => 'ソックス',
+            'category' => 'legwear',
+            'shape' => 'socks',
             'colors' => [[
                 'role' => 'main',
                 'mode' => 'preset',
@@ -490,9 +490,37 @@ class ItemsEndpointsTest extends TestCase
             ]],
             'spec' => [
                 'legwear' => [
-                    'coverage_type' => 'tights',
+                    'coverage_type' => 'crew_socks',
                 ],
             ],
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('item.spec.legwear.coverage_type', 'crew_socks');
+
+        $item = Item::query()->findOrFail($response->json('item.id'));
+        $this->assertSame('crew_socks', data_get($item->spec, 'legwear.coverage_type'));
+    }
+
+    public function test_post_items_autofills_fixed_legwear_coverage_type_from_shape(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/items', [
+            'name' => 'タイツ',
+            'category' => 'legwear',
+            'shape' => 'tights',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'black',
+                'hex' => '#111111',
+                'label' => 'ブラック',
+            ]],
         ], [
             'Accept' => 'application/json',
         ]);

@@ -20,14 +20,57 @@ export const LEGWEAR_COVERAGE_OPTIONS = [
 export type BottomsLengthType = (typeof BOTTOMS_LENGTH_OPTIONS)[number]["value"];
 export type LegwearCoverageType = (typeof LEGWEAR_COVERAGE_OPTIONS)[number]["value"];
 
+const SOCKS_COVERAGE_TYPES = ["ankle_socks", "crew_socks", "knee_socks", "over_knee"] as const;
+const LEGGINGS_COVERAGE_TYPES = ["leggings_cropped", "leggings_full"] as const;
+
 export function isBottomsSpecCategory(category?: string | null) {
   return category === "bottoms";
 }
 
 export function isLegwearSpecCategory(category?: string | null) {
-  // Phase 1 では current master data に legwear 専用 category がないため、
-  // inner category をレッグウェア入力の入口として扱う。
-  return category === "inner";
+  return category === "legwear";
+}
+
+export function shouldShowLegwearCoverageSelect(category?: string | null, shape?: string | null) {
+  if (!isLegwearSpecCategory(category)) return false;
+  return shape === "socks" || shape === "leggings";
+}
+
+export function getLegwearCoverageOptions(shape?: string | null) {
+  if (shape === "socks") {
+    return LEGWEAR_COVERAGE_OPTIONS.filter((item) =>
+      SOCKS_COVERAGE_TYPES.includes(item.value as (typeof SOCKS_COVERAGE_TYPES)[number]),
+    );
+  }
+
+  if (shape === "leggings") {
+    return LEGWEAR_COVERAGE_OPTIONS.filter((item) =>
+      LEGGINGS_COVERAGE_TYPES.includes(item.value as (typeof LEGGINGS_COVERAGE_TYPES)[number]),
+    );
+  }
+
+  return [];
+}
+
+export function resolveLegwearCoverageType(
+  category?: string | null,
+  shape?: string | null,
+  value?: string | null,
+) {
+  if (!isLegwearSpecCategory(category)) return null;
+
+  if (shape === "stockings") return "stockings";
+  if (shape === "tights") return "tights";
+
+  if (shape === "socks") {
+    return SOCKS_COVERAGE_TYPES.includes(value as (typeof SOCKS_COVERAGE_TYPES)[number]) ? value : null;
+  }
+
+  if (shape === "leggings") {
+    return LEGGINGS_COVERAGE_TYPES.includes(value as (typeof LEGGINGS_COVERAGE_TYPES)[number]) ? value : null;
+  }
+
+  return null;
 }
 
 export function findBottomsLengthLabel(value?: string | null) {

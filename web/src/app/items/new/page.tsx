@@ -43,9 +43,11 @@ import {
 } from "@/lib/master-data/item-tops";
 import {
   BOTTOMS_LENGTH_OPTIONS,
-  LEGWEAR_COVERAGE_OPTIONS,
+  getLegwearCoverageOptions,
   isBottomsSpecCategory,
   isLegwearSpecCategory,
+  resolveLegwearCoverageType,
+  shouldShowLegwearCoverageSelect,
   type BottomsLengthType,
   type LegwearCoverageType,
 } from "@/lib/master-data/item-skin-exposure";
@@ -116,7 +118,9 @@ export default function NewItemPage() {
 
   const isTopsCategory = category === "tops";
   const isBottomsSpecVisible = isBottomsSpecCategory(category);
-  const isLegwearSpecVisible = isLegwearSpecCategory(category);
+  const isLegwearSpecVisible = isLegwearSpecCategory(category) && Boolean(shape);
+  const isLegwearCoverageSelectVisible = shouldShowLegwearCoverageSelect(category, shape);
+  const legwearCoverageOptions = useMemo(() => getLegwearCoverageOptions(shape), [shape]);
 
   const shapeOptions = useMemo(() => {
     if (!category) return [];
@@ -308,6 +312,19 @@ export default function NewItemPage() {
     setShape(value);
   }
 
+  function handleShapeChange(nextShape: string) {
+    setShape(nextShape);
+
+    if (!isLegwearSpecCategory(category)) {
+      resetLegwearSpecState();
+      return;
+    }
+
+    setLegwearCoverageType(
+      (resolveLegwearCoverageType(category, nextShape, legwearCoverageType) as LegwearCoverageType | null) ?? "",
+    );
+  }
+
   function toggleValue<T>(value: T, current: T[], setter: (values: T[]) => void) {
     setter(current.includes(value) ? current.filter((item) => item !== value) : [...current, value]);
   }
@@ -334,6 +351,8 @@ export default function NewItemPage() {
         label: selectedSubColor.label,
       });
     }
+
+    const resolvedLegwearCoverageType = resolveLegwearCoverageType(category, shape, legwearCoverageType);
 
     return {
       name,
@@ -377,10 +396,10 @@ export default function NewItemPage() {
                     },
                   }
                 : {}),
-              ...(isLegwearSpecVisible && legwearCoverageType
+              ...(resolvedLegwearCoverageType
                 ? {
                     legwear: {
-                      coverage_type: legwearCoverageType,
+                      coverage_type: resolvedLegwearCoverageType,
                     },
                   }
                 : {}),
@@ -390,18 +409,18 @@ export default function NewItemPage() {
                 bottoms: {
                   length_type: bottomsLengthType,
                 },
-                ...(isLegwearSpecVisible && legwearCoverageType
+                ...(resolvedLegwearCoverageType
                   ? {
                       legwear: {
-                        coverage_type: legwearCoverageType,
+                        coverage_type: resolvedLegwearCoverageType,
                       },
                     }
                   : {}),
               }
-            : isLegwearSpecVisible && legwearCoverageType
+            : resolvedLegwearCoverageType
               ? {
                   legwear: {
-                    coverage_type: legwearCoverageType,
+                    coverage_type: resolvedLegwearCoverageType,
                   },
                 }
               : null,
@@ -763,7 +782,7 @@ export default function NewItemPage() {
               <select
                 id="shape"
                 value={shape}
-                onChange={(e) => setShape(e.target.value)}
+                onChange={(e) => handleShapeChange(e.target.value)}
                 disabled={!category || isTopsCategory}
                 className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors.shape ? "border-red-400" : "border-gray-300"}`}
               >
@@ -973,24 +992,30 @@ export default function NewItemPage() {
                 <p className="text-sm font-medium text-gray-700">レッグウェア仕様</p>
               </div>
 
-              <div>
-                <label htmlFor="legwear-coverage-type" className="mb-1 block text-sm font-medium text-gray-700">
-                  レッグウェア
-                </label>
-                <select
-                  id="legwear-coverage-type"
-                  value={legwearCoverageType}
-                  onChange={(e) => setLegwearCoverageType(e.target.value as LegwearCoverageType | "")}
-                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                >
-                  <option value="">選択してください</option>
-                  {LEGWEAR_COVERAGE_OPTIONS.map((item) => (
-                    <option key={item.value} value={item.value}>
-                      {item.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              {isLegwearCoverageSelectVisible ? (
+                <div>
+                  <label htmlFor="legwear-coverage-type" className="mb-1 block text-sm font-medium text-gray-700">
+                    レッグウェア
+                  </label>
+                  <select
+                    id="legwear-coverage-type"
+                    value={legwearCoverageType}
+                    onChange={(e) => setLegwearCoverageType(e.target.value as LegwearCoverageType | "")}
+                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  >
+                    <option value="">選択してください</option>
+                    {legwearCoverageOptions.map((item) => (
+                      <option key={item.value} value={item.value}>
+                        {item.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              ) : (
+                <p className="text-sm text-gray-600">
+                  レッグウェア： {shape === "stockings" ? "ストッキング" : "タイツ"}
+                </p>
+              )}
             </section>
           )}
 

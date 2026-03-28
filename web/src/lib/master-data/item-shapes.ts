@@ -32,6 +32,12 @@
     { value: "underwear", label: "インナー" },
     { value: "pajamas", label: "パジャマ" },
   ],
+  legwear: [
+    { value: "socks", label: "ソックス" },
+    { value: "stockings", label: "ストッキング" },
+    { value: "tights", label: "タイツ" },
+    { value: "leggings", label: "レギンス" },
+  ],
   shoes: [
     { value: "pumps", label: "パンプス" },
     { value: "sneakers", label: "スニーカー" },
@@ -53,6 +59,7 @@ export const ITEM_CATEGORIES = [
   { value: "outer", label: "アウター" },
   { value: "dress", label: "ワンピース・オールインワン" },
   { value: "inner", label: "ルームウェア・インナー" },
+  { value: "legwear", label: "レッグウェア" },
   { value: "shoes", label: "シューズ" },
   { value: "accessories", label: "小物" },
 ] as const;
