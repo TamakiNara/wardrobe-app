@@ -241,7 +241,7 @@ export default function SettingsTposPage() {
                   className={`rounded-xl border p-4 transition ${
                     tpo.isActive
                       ? "border-gray-200 bg-gray-50"
-                      : "border-gray-200 bg-amber-50/40"
+                      : "border-gray-200 bg-gray-50"
                   }`}
                 >
                   <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -277,14 +277,18 @@ export default function SettingsTposPage() {
                         ) : (
                           <>
                             <h3 className={`text-base font-semibold ${tpo.isActive ? "text-gray-900" : "text-gray-800"}`}>{tpo.name}</h3>
+                            <span
+                              className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                                tpo.isActive
+                                  ? "bg-emerald-100 text-emerald-700"
+                                  : "bg-gray-200 text-gray-700"
+                              }`}
+                            >
+                              {tpo.isActive ? "有効" : "無効"}
+                            </span>
                             {tpo.isPreset ? (
                               <span className="rounded-full border border-gray-300 bg-white px-2 py-0.5 text-xs font-medium text-gray-700">
                                 プリセット
-                              </span>
-                            ) : null}
-                            {!tpo.isActive ? (
-                              <span className="rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800">
-                                無効
                               </span>
                             ) : null}
                           </>

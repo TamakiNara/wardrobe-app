@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ApiClientError } from "@/lib/api/client";
+import { settingsActionIcons } from "@/lib/icons/settings-icons";
 import { collectAllCategoryIds } from "@/lib/master-data/category-presets";
 import { fetchItems } from "@/lib/api/items";
 import { fetchCategoryGroups, findVisibleCategoryIdForItem } from "@/lib/api/categories";
@@ -83,6 +84,7 @@ function getGroupState(
 }
 
 function SettingsPageContent() {
+  const EditIcon = settingsActionIcons.edit;
   const router = useRouter();
   const searchParams = useSearchParams();
   const [groups, setGroups] = useState<CategoryGroupRecord[]>([]);
@@ -978,18 +980,19 @@ function SettingsPageContent() {
                             <div className="flex flex-wrap gap-2">
                               <button
                                 type="button"
+                                onClick={() => startEditingBrand(brand)}
+                                className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 transition hover:bg-gray-100"
+                              >
+                                <EditIcon aria-hidden="true" className="h-4 w-4" strokeWidth={1.9} />
+                                編集
+                              </button>
+                              <button
+                                type="button"
                                 onClick={() => handleToggleBrandActive(brand)}
                                 disabled={isUpdating}
                                 className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400"
                               >
                                 無効にする
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => startEditingBrand(brand)}
-                                className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 transition hover:bg-gray-100"
-                              >
-                                編集する
                               </button>
                             </div>
                           </div>
@@ -1110,18 +1113,19 @@ function SettingsPageContent() {
                                   <div className="flex flex-wrap gap-2">
                                     <button
                                       type="button"
-                                      onClick={() => handleToggleBrandActive(brand)}
-                                      disabled={isUpdating}
-                                      className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400"
+                                      onClick={() => startEditingBrand(brand)}
+                                      className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 transition hover:bg-gray-100"
                                     >
-                                      有効にする
+                                      <EditIcon aria-hidden="true" className="h-4 w-4" strokeWidth={1.9} />
+                                      編集
                                     </button>
                                     <button
                                       type="button"
-                                      onClick={() => startEditingBrand(brand)}
-                                      className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 transition hover:bg-gray-100"
+                                      onClick={() => handleToggleBrandActive(brand)}
+                                      disabled={isUpdating}
+                                      className="rounded-lg border border-emerald-400 bg-emerald-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400"
                                     >
-                                      編集する
+                                      有効にする
                                     </button>
                                   </div>
                                 </div>

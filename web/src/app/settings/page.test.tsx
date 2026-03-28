@@ -630,7 +630,7 @@ describe("SettingsPage", () => {
     });
 
     const editButton = Array.from(container.querySelectorAll<HTMLButtonElement>("button")).find(
-      (button) => button.textContent === "編集する",
+      (button) => button.textContent?.includes("編集"),
     );
 
     await act(async () => {
