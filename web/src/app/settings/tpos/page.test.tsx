@@ -45,7 +45,7 @@ describe("SettingsTposPage", () => {
       tpos: [
         { id: 1, name: "仕事", sortOrder: 1, isActive: true, isPreset: true },
         { id: 2, name: "休日", sortOrder: 2, isActive: true, isPreset: true },
-        { id: 4, name: "出張", sortOrder: 4, isActive: true, isPreset: false },
+        { id: 4, name: "出張", sortOrder: 4, isActive: false, isPreset: false },
       ],
     });
   });
@@ -70,6 +70,7 @@ describe("SettingsTposPage", () => {
     expect(container.textContent).toContain("仕事");
     expect(container.textContent).toContain("プリセット");
     expect(container.textContent).toContain("出張");
+    expect(container.textContent).toContain("無効候補");
     expect(container.textContent).toContain("編集");
     expect(container.querySelector('button[aria-label="仕事 を 1 つ下へ移動"]')).not.toBeNull();
     expect(container.querySelector('button[aria-label="休日 を 1 つ上へ移動"]')).not.toBeNull();
@@ -86,6 +87,14 @@ describe("SettingsTposPage", () => {
     });
 
     const { default: SettingsTposPage } = await import("./page");
+
+    fetchUserTposMock.mockResolvedValue({
+      tpos: [
+        { id: 1, name: "仕事", sortOrder: 1, isActive: true, isPreset: true },
+        { id: 2, name: "休日", sortOrder: 2, isActive: true, isPreset: true },
+        { id: 4, name: "出張", sortOrder: 4, isActive: true, isPreset: false },
+      ],
+    });
 
     await act(async () => {
       root.render(React.createElement(SettingsTposPage));

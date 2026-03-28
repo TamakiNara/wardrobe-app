@@ -20,8 +20,10 @@ function SettingsBrandsPageContent() {
   const [brands, setBrands] = useState<UserBrandRecord[]>([]);
   const [brandsLoading, setBrandsLoading] = useState(true);
   const [brandsLoadError, setBrandsLoadError] = useState<string | null>(null);
-  const [brandSaveMessage, setBrandSaveMessage] = useState<string | null>(null);
-  const [brandSaveError, setBrandSaveError] = useState<string | null>(null);
+  const [brandFormMessage, setBrandFormMessage] = useState<string | null>(null);
+  const [brandFormError, setBrandFormError] = useState<string | null>(null);
+  const [brandListMessage, setBrandListMessage] = useState<string | null>(null);
+  const [brandListError, setBrandListError] = useState<string | null>(null);
   const [newBrandName, setNewBrandName] = useState("");
   const [newBrandKana, setNewBrandKana] = useState("");
   const [brandKeyword, setBrandKeyword] = useState("");
@@ -92,8 +94,10 @@ function SettingsBrandsPageContent() {
   }
 
   function resetBrandMessages() {
-    setBrandSaveMessage(null);
-    setBrandSaveError(null);
+    setBrandFormMessage(null);
+    setBrandFormError(null);
+    setBrandListMessage(null);
+    setBrandListError(null);
   }
 
   async function refreshBrands() {
@@ -115,16 +119,16 @@ function SettingsBrandsPageContent() {
       await refreshBrands();
       setNewBrandName("");
       setNewBrandKana("");
-      setBrandSaveMessage("ブランド候補を追加しました。");
+      setBrandFormMessage("ブランド候補を追加しました。");
     } catch (error) {
       if (error instanceof ApiClientError) {
-        setBrandSaveError(
+        setBrandFormError(
           error.data?.errors?.name?.[0] ??
             error.data?.errors?.kana?.[0] ??
             error.message,
         );
       } else {
-        setBrandSaveError("ブランド候補を追加できませんでした。時間をおいて再度お試しください。");
+        setBrandFormError("ブランド候補を追加できませんでした。時間をおいて再度お試しください。");
       }
     } finally {
       setAddingBrand(false);
@@ -153,16 +157,16 @@ function SettingsBrandsPageContent() {
       });
       await refreshBrands();
       setEditingBrandId(null);
-      setBrandSaveMessage("ブランド候補を更新しました。");
+      setBrandListMessage("ブランド候補を更新しました。");
     } catch (error) {
       if (error instanceof ApiClientError) {
-        setBrandSaveError(
+        setBrandListError(
           error.data?.errors?.name?.[0] ??
             error.data?.errors?.kana?.[0] ??
             error.message,
         );
       } else {
-        setBrandSaveError("ブランド候補を更新できませんでした。時間をおいて再度お試しください。");
+        setBrandListError("ブランド候補を更新できませんでした。時間をおいて再度お試しください。");
       }
     } finally {
       setUpdatingBrandId(null);
@@ -180,16 +184,16 @@ function SettingsBrandsPageContent() {
         is_active: !brand.is_active,
       });
       await refreshBrands();
-      setBrandSaveMessage(
+      setBrandListMessage(
         !brand.is_active
           ? "ブランド候補を有効にしました。"
           : "ブランド候補を無効にしました。",
       );
     } catch (error) {
       if (error instanceof ApiClientError) {
-        setBrandSaveError(error.message);
+        setBrandListError(error.message);
       } else {
-        setBrandSaveError("ブランド候補の状態を更新できませんでした。時間をおいて再度お試しください。");
+        setBrandListError("ブランド候補の状態を更新できませんでした。時間をおいて再度お試しください。");
       }
     } finally {
       setUpdatingBrandId(null);
@@ -217,11 +221,11 @@ function SettingsBrandsPageContent() {
             </div>
 
             <div className="flex flex-col items-start gap-2 md:items-end">
-              {brandSaveMessage ? (
-                <p className="text-sm text-emerald-700">{brandSaveMessage}</p>
+              {brandFormMessage ? (
+                <p className="text-sm text-emerald-700">{brandFormMessage}</p>
               ) : null}
-              {brandSaveError ? (
-                <p className="text-sm text-red-600">{brandSaveError}</p>
+              {brandFormError ? (
+                <p className="text-sm text-red-600">{brandFormError}</p>
               ) : null}
             </div>
           </div>
@@ -284,6 +288,8 @@ function SettingsBrandsPageContent() {
               無効候補も表示する
             </label>
           </div>
+          {brandListMessage ? <p className="mt-3 text-sm text-emerald-700">{brandListMessage}</p> : null}
+          {brandListError ? <p className="mt-3 text-sm text-red-600">{brandListError}</p> : null}
 
           <div className="mt-6 rounded-2xl border border-gray-200 bg-gray-50 p-4">
             <label
