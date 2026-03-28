@@ -180,8 +180,8 @@
 
 ## 現在の実装メモ
 
-- 現行 schema で seed 対応している sample item の差分は category / color / seasons / tpos / spec に加え、`brand_name` まで
-- 季節 UI の表示順は `春 / 夏 / 秋 / 冬 / オール`、TPO の正規値は `仕事 / 休日 / フォーマル` を前提にそろえる
+- 現行 schema で seed 対応している sample item の差分は category / color / seasons / tpos / tpo_ids / spec に加え、`brand_name` まで
+- TPO の選択肢正本は `user_tpos` とし、`standard-user@example.com` / `large-user@example.com` では active / inactive を含む候補を再投入する
 - brand 名 / item メモ / 画像 URL などの将来項目は、テーブル追加後に sample data へ反映する
 - `standard-user@example.com` は手書き 12 件の Item（うち `disposed` 1 件、`in_cleaning` 1 件）と 6 件の Outfit（うち `invalid` 1 件）、8 件の wear logs を持ち、`large-user@example.com` は Factory 併用の 36 件の Item と 12 件の Outfit、14 件以上の wear logs を持つ
 - outfit ベースの wear log は、sample data でも `wear_log_items` を実体化した状態で再投入する

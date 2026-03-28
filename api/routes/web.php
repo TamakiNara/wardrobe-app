@@ -3,19 +3,24 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Api\ItemImageController;
 use App\Http\Controllers\Api\PurchaseCandidateController;
+use App\Http\Controllers\Api\SettingsTpoController;
 use App\Http\Controllers\Api\WearLogController;
 use App\Services\Brands\UserBrandService;
 use App\Services\Items\ItemStoreService;
 use App\Services\Items\ItemUpdateService;
 use App\Services\Settings\UserPreferenceService;
+use App\Services\Settings\UserTpoService;
 use App\Models\CategoryMaster;
 use App\Models\Item;
 use App\Models\Outfit;
 use App\Support\ItemPayloadBuilder;
 use App\Support\ItemsIndexQuery;
+use App\Support\OutfitPayloadBuilder;
 use App\Support\OutfitsIndexQuery;
+use App\Support\TpoSelectionResolver;
 use App\Support\UserPreferencePayloadBuilder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/csrf-cookie', function (Request $request) {
@@ -201,6 +206,12 @@ Route::prefix('api')->middleware(['web'])->group(function () {
         ]);
     });
 
+    Route::middleware('auth:web')->controller(SettingsTpoController::class)->group(function () {
+        Route::get('/settings/tpos', 'index');
+        Route::post('/settings/tpos', 'store');
+        Route::patch('/settings/tpos/{id}', 'update');
+    });
+
     // Items
     Route::middleware('auth:web')->get('/items', function (Request $request) {
         return response()->json(ItemsIndexQuery::build($request->user(), $request));
@@ -233,6 +244,8 @@ Route::prefix('api')->middleware(['web'])->group(function () {
             'colors.*.label' => ['required', 'string', 'max:100'],
             'seasons' => ['nullable', 'array'],
             'seasons.*' => ['string', 'max:50'],
+            'tpo_ids' => ['nullable', 'array'],
+            'tpo_ids.*' => ['integer'],
             'tpos' => ['nullable', 'array'],
             'tpos.*' => ['string', 'max:50'],
             'spec' => ['nullable', 'array'],
@@ -264,7 +277,7 @@ Route::prefix('api')->middleware(['web'])->group(function () {
     Route::middleware('auth:web')->get('/items/{id}', function (Request $request, int $id) {
         $item = Item::query()
             ->where('user_id', $request->user()->id)
-            ->with('images')
+            ->with(['images', 'user'])
             ->findOrFail($id);
 
         return response()->json([
@@ -302,6 +315,8 @@ Route::prefix('api')->middleware(['web'])->group(function () {
             'colors.*.label' => ['required', 'string', 'max:100'],
             'seasons' => ['nullable', 'array'],
             'seasons.*' => ['string', 'max:50'],
+            'tpo_ids' => ['nullable', 'array'],
+            'tpo_ids.*' => ['integer'],
             'tpos' => ['nullable', 'array'],
             'tpos.*' => ['string', 'max:50'],
             'spec' => ['nullable', 'array'],
@@ -345,7 +360,7 @@ Route::prefix('api')->middleware(['web'])->group(function () {
 
         return response()->json([
             'message' => 'updated',
-            'item' => ItemPayloadBuilder::buildDetail($item->fresh()->load('images')),
+            'item' => ItemPayloadBuilder::buildDetail($item->fresh()->load(['images', 'user'])),
         ]);
     });
 
@@ -416,14 +431,16 @@ Route::prefix('api')->middleware(['web'])->group(function () {
 
         return response()->json([
             'message' => 'restored',
-            'outfit' => $outfit->fresh()->load(['outfitItems.item']),
+            'outfit' => OutfitPayloadBuilder::buildDetail(
+                $outfit->fresh()->load(['outfitItems.item', 'user'])
+            ),
         ]);
     });
 
     Route::middleware('auth:web')->post('/outfits/{id}/duplicate', function (Request $request, int $id) {
         $outfit = Outfit::query()
             ->where('user_id', $request->user()->id)
-            ->with(['outfitItems.item'])
+            ->with(['outfitItems.item', 'user'])
             ->findOrFail($id);
 
         $payloadItems = $outfit->outfitItems
@@ -445,6 +462,7 @@ Route::prefix('api')->middleware(['web'])->group(function () {
         $duplicatedName = $outfit->name !== null
             ? $outfit->name . '（コピー）'
             : '（コピー）';
+        $outfitPayload = OutfitPayloadBuilder::buildDetail($outfit);
 
         return response()->json([
             'message' => 'duplicated_payload_ready',
@@ -452,7 +470,8 @@ Route::prefix('api')->middleware(['web'])->group(function () {
                 'name' => $duplicatedName,
                 'memo' => $outfit->memo,
                 'seasons' => $outfit->seasons ?? [],
-                'tpos' => $outfit->tpos ?? [],
+                'tpos' => $outfitPayload['tpos'],
+                'tpo_ids' => $outfitPayload['tpo_ids'],
                 'items' => $payloadItems,
             ],
         ]);
@@ -464,6 +483,8 @@ Route::prefix('api')->middleware(['web'])->group(function () {
             'memo' => ['nullable', 'string'],
             'seasons' => ['nullable', 'array'],
             'seasons.*' => ['string', 'max:50'],
+            'tpo_ids' => ['nullable', 'array'],
+            'tpo_ids.*' => ['integer'],
             'tpos' => ['nullable', 'array'],
             'tpos.*' => ['string', 'max:50'],
             'items' => ['required', 'array', 'min:1'],
@@ -497,7 +518,7 @@ Route::prefix('api')->middleware(['web'])->group(function () {
                 'name' => $validated['name'] ?? null,
                 'memo' => $validated['memo'] ?? null,
                 'seasons' => $validated['seasons'] ?? [],
-                'tpos' => $validated['tpos'] ?? [],
+                'tpo_ids' => TpoSelectionResolver::resolve(app(UserTpoService::class), $user, $validated),
             ]);
 
             $outfit->outfitItems()->createMany(
@@ -509,23 +530,23 @@ Route::prefix('api')->middleware(['web'])->group(function () {
                 })->all()
             );
 
-            return $outfit->load(['outfitItems.item']);
+            return $outfit->load(['outfitItems.item', 'user']);
         });
 
         return response()->json([
             'message' => 'created',
-            'outfit' => $outfit,
+            'outfit' => OutfitPayloadBuilder::buildDetail($outfit),
         ], 201);
     });
 
     Route::middleware('auth:web')->get('/outfits/{id}', function (Request $request, int $id) {
         $outfit = Outfit::query()
             ->where('user_id', $request->user()->id)
-            ->with(['outfitItems.item'])
+            ->with(['outfitItems.item', 'user'])
             ->findOrFail($id);
 
         return response()->json([
-            'outfit' => $outfit,
+            'outfit' => OutfitPayloadBuilder::buildDetail($outfit),
         ]);
     });
 
@@ -539,6 +560,8 @@ Route::prefix('api')->middleware(['web'])->group(function () {
             'memo' => ['nullable', 'string'],
             'seasons' => ['nullable', 'array'],
             'seasons.*' => ['string', 'max:50'],
+            'tpo_ids' => ['nullable', 'array'],
+            'tpo_ids.*' => ['integer'],
             'tpos' => ['nullable', 'array'],
             'tpos.*' => ['string', 'max:50'],
             'items' => ['required', 'array', 'min:1'],
@@ -565,12 +588,17 @@ Route::prefix('api')->middleware(['web'])->group(function () {
             ], 422);
         }
 
-        DB::transaction(function () use ($outfit, $validated) {
+        DB::transaction(function () use ($outfit, $validated, $user) {
             $outfit->update([
                 'name' => $validated['name'] ?? null,
                 'memo' => $validated['memo'] ?? null,
                 'seasons' => $validated['seasons'] ?? [],
-                'tpos' => $validated['tpos'] ?? [],
+                'tpo_ids' => TpoSelectionResolver::resolve(
+                    app(UserTpoService::class),
+                    $user,
+                    $validated,
+                    $outfit->tpo_ids ?? [],
+                ),
             ]);
 
             $outfit->outfitItems()->delete();
@@ -587,7 +615,7 @@ Route::prefix('api')->middleware(['web'])->group(function () {
 
         return response()->json([
             'message' => 'updated',
-            'outfit' => $outfit->fresh()->load(['outfitItems.item']),
+            'outfit' => OutfitPayloadBuilder::buildDetail($outfit->fresh()->load(['outfitItems.item', 'user'])),
         ]);
     });
 

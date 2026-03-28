@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import OutfitDuplicateAction from "@/components/outfits/outfit-duplicate-action";
-import { SEASON_OPTIONS, TPO_OPTIONS } from "@/lib/master-data/item-attributes";
+import { SEASON_OPTIONS } from "@/lib/master-data/item-attributes";
 
 type Outfit = {
   id: number;
@@ -20,6 +20,7 @@ type InvalidOutfitsListProps = {
   totalCount: number;
   currentPage: number;
   lastPage: number;
+  availableTpos: string[];
 };
 
 type OutfitSortValue = "updated_at_desc" | "name_asc";
@@ -94,6 +95,7 @@ export default function InvalidOutfitsList({
   totalCount,
   currentPage,
   lastPage,
+  availableTpos,
 }: InvalidOutfitsListProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -202,7 +204,7 @@ export default function InvalidOutfitsList({
               className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             >
               <option value="">すべて</option>
-              {TPO_OPTIONS.map((tpo) => (
+              {availableTpos.map((tpo) => (
                 <option key={tpo} value={tpo}>
                   {tpo}
                 </option>

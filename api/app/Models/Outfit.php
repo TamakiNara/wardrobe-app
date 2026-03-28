@@ -18,11 +18,13 @@ class Outfit extends Model
         'memo',
         'seasons',
         'tpos',
+        'tpo_ids',
     ];
 
     protected $casts = [
         'seasons' => 'array',
         'tpos' => 'array',
+        'tpo_ids' => 'array',
     ];
 
     public function user(): BelongsTo

@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Item;
 use App\Models\User;
 use App\Models\UserBrand;
+use App\Models\UserTpo;
 use App\Models\WearLog;
 use Database\Seeders\CategoryGroupSeeder;
 use Database\Seeders\CategoryMasterSeeder;
@@ -41,6 +42,7 @@ class TestSeedUsersSeederTest extends TestCase
         $this->assertNull($emptyUser->visible_category_ids);
         $this->assertCount(0, $emptyUser->items);
         $this->assertCount(0, $emptyUser->outfits);
+        $this->assertCount(0, UserTpo::query()->where('user_id', $emptyUser->id)->get());
         $this->assertCount(0, UserBrand::query()->where('user_id', $emptyUser->id)->get());
         $this->assertDatabaseCount('items', 48);
 
@@ -48,8 +50,17 @@ class TestSeedUsersSeederTest extends TestCase
         $this->assertCount(36, $standardUser->visible_category_ids);
         $this->assertCount(6, $standardUser->outfits);
         $this->assertCount(12, $standardUser->items);
+        $standardTpos = UserTpo::query()
+            ->where('user_id', $standardUser->id)
+            ->orderBy('sort_order')
+            ->get();
+        $this->assertCount(5, $standardTpos);
+        $this->assertTrue($standardTpos->contains(fn (UserTpo $tpo) => $tpo->name === '在宅' && $tpo->is_active === false));
         $this->assertTrue($standardUser->items->contains(
             fn (Item $item) => $item->care_status === 'in_cleaning'
+        ));
+        $this->assertTrue($standardUser->items->every(
+            fn (Item $item) => is_array($item->tpo_ids)
         ));
         $standardBrands = UserBrand::query()
             ->where('user_id', $standardUser->id)
@@ -89,6 +100,7 @@ class TestSeedUsersSeederTest extends TestCase
         ));
 
         $this->assertNotNull($largeUser->visible_category_ids);
+        $this->assertCount(6, UserTpo::query()->where('user_id', $largeUser->id)->get());
         $this->assertGreaterThanOrEqual(30, $largeUser->items->count());
         $this->assertGreaterThanOrEqual(10, $largeUser->outfits->count());
         $this->assertGreaterThanOrEqual(14, WearLog::query()->where('user_id', $largeUser->id)->count());

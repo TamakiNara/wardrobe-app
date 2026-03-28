@@ -8,6 +8,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const pushMock = vi.fn();
 const refreshMock = vi.fn();
 const fetchCategoryVisibilitySettingsMock = vi.fn();
+const fetchUserTposMock = vi.fn();
 const routerMock = { push: pushMock, refresh: refreshMock };
 
 vi.mock("next/link", () => ({
@@ -21,6 +22,7 @@ vi.mock("next/navigation", () => ({
 
 vi.mock("@/lib/api/settings", () => ({
   fetchCategoryVisibilitySettings: fetchCategoryVisibilitySettingsMock,
+  fetchUserTpos: fetchUserTposMock,
 }));
 
 async function waitForEffects() {
@@ -40,6 +42,12 @@ describe("EditOutfitPage", () => {
     document.body.appendChild(container);
     root = createRoot(container);
     fetchCategoryVisibilitySettingsMock.mockRejectedValue(new Error("network"));
+    fetchUserTposMock.mockResolvedValue({
+      tpos: [
+        { id: 1, name: "仕事", sortOrder: 1, isActive: true, isPreset: true },
+        { id: 2, name: "休日", sortOrder: 2, isActive: true, isPreset: true },
+      ],
+    });
     vi.stubGlobal(
       "fetch",
       vi.fn()
@@ -53,6 +61,7 @@ describe("EditOutfitPage", () => {
               memo: null,
               seasons: [],
               tpos: [],
+              tpo_ids: [],
               outfitItems: [
                 {
                   id: 201,
@@ -67,6 +76,7 @@ describe("EditOutfitPage", () => {
                     colors: [],
                     seasons: [],
                     tpos: [],
+                    tpo_ids: [],
                   },
                 },
               ],
@@ -87,6 +97,7 @@ describe("EditOutfitPage", () => {
                 colors: [],
                 seasons: [],
                 tpos: [],
+                tpo_ids: [],
               },
               {
                 id: 2,
@@ -97,6 +108,7 @@ describe("EditOutfitPage", () => {
                 colors: [],
                 seasons: [],
                 tpos: [],
+                tpo_ids: [],
               },
             ],
           }),
@@ -147,6 +159,7 @@ describe("EditOutfitPage", () => {
               memo: null,
               seasons: [],
               tpos: [],
+              tpo_ids: [],
               outfitItems: [
                 {
                   id: 201,
@@ -161,6 +174,7 @@ describe("EditOutfitPage", () => {
                     colors: [],
                     seasons: [],
                     tpos: [],
+                    tpo_ids: [],
                   },
                 },
               ],
@@ -181,6 +195,7 @@ describe("EditOutfitPage", () => {
                 colors: [],
                 seasons: [],
                 tpos: [],
+                tpo_ids: [],
               },
             ],
           }),

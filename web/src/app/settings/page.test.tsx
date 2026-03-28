@@ -175,6 +175,8 @@ describe("SettingsPage", () => {
     expect(checkboxes).toHaveLength(2);
     expect(checkboxes[0]?.checked).toBe(true);
     expect(checkboxes[1]?.checked).toBe(false);
+    expect(container.innerHTML).toContain('href="/settings/tpos"');
+    expect(container.textContent).toContain("TPO を管理する");
     expect(updateCategoryVisibilitySettingsMock).not.toHaveBeenCalled();
   });
 

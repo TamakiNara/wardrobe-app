@@ -5,10 +5,11 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import FieldLabel from "@/components/forms/field-label";
 import { isItemVisibleByCategorySettings } from "@/lib/api/categories";
-import { fetchCategoryVisibilitySettings } from "@/lib/api/settings";
+import { fetchCategoryVisibilitySettings, fetchUserTpos } from "@/lib/api/settings";
 import type { CreateOutfitPayload } from "@/types/outfits";
 import type { ItemRecord } from "@/types/items";
-import { SEASON_OPTIONS, TPO_OPTIONS } from "@/lib/master-data/item-attributes";
+import { SEASON_OPTIONS } from "@/lib/master-data/item-attributes";
+import type { UserTpoRecord } from "@/types/settings";
 
 type Item = ItemRecord;
 
@@ -25,6 +26,7 @@ type Outfit = {
   memo: string | null;
   seasons: string[];
   tpos: string[];
+  tpo_ids?: number[];
   outfit_items?: OutfitItem[];
   outfitItems?: OutfitItem[];
 };
@@ -44,7 +46,8 @@ export default function EditOutfitPage({
   const [memo, setMemo] = useState("");
 
   const [selectedSeasons, setSelectedSeasons] = useState<string[]>([]);
-  const [selectedTpos, setSelectedTpos] = useState<string[]>([]);
+  const [selectedTpoIds, setSelectedTpoIds] = useState<number[]>([]);
+  const [tpoOptions, setTpoOptions] = useState<UserTpoRecord[]>([]);
 
   const [items, setItems] = useState<Item[]>([]);
   const [selectedItemIds, setSelectedItemIds] = useState<number[]>([]);
@@ -60,7 +63,7 @@ export default function EditOutfitPage({
       setOutfitId(Number(id));
 
       try {
-        const [outfitRes, itemsRes, settings] = await Promise.all([
+        const [outfitRes, itemsRes, settings, tpoResponse] = await Promise.all([
           fetch(`/api/outfits/${id}`, {
             headers: { Accept: "application/json" },
           }),
@@ -68,6 +71,7 @@ export default function EditOutfitPage({
             headers: { Accept: "application/json" },
           }),
           fetchCategoryVisibilitySettings().catch(() => null),
+          fetchUserTpos(true).catch(() => ({ tpos: [] as UserTpoRecord[] })),
         ]);
 
         if (outfitRes.status === 401 || itemsRes.status === 401) {
@@ -93,7 +97,23 @@ export default function EditOutfitPage({
         setName(outfit.name ?? "");
         setMemo(outfit.memo ?? "");
         setSelectedSeasons(outfit.seasons ?? []);
-        setSelectedTpos(outfit.tpos ?? []);
+        setSelectedTpoIds(outfit.tpo_ids ?? []);
+        const selectedInactiveTpos = (outfit.tpo_ids ?? []).map((tpoId, index) => ({
+          id: tpoId,
+          name: outfit.tpos?.[index] ?? `TPO ${tpoId}`,
+          sortOrder: 10_000 + index,
+          isActive: false,
+          isPreset: false,
+        }));
+        setTpoOptions(
+          [...tpoResponse.tpos, ...selectedInactiveTpos].reduce<UserTpoRecord[]>((carry, tpo) => {
+            if (carry.some((current) => current.id === tpo.id)) {
+              return carry;
+            }
+
+            return [...carry, tpo];
+          }, []),
+        );
         setSelectedItemIds(outfitItems.map((item) => item.item_id));
 
         const selectedIds = outfitItems.map((item) => item.item_id);
@@ -145,13 +165,13 @@ export default function EditOutfitPage({
     });
   }
 
-  function handleTpoToggle(tpo: string) {
-    setSelectedTpos((prev) => {
-      if (prev.includes(tpo)) {
-        return prev.filter((item) => item !== tpo);
+  function handleTpoToggle(tpoId: number) {
+    setSelectedTpoIds((prev) => {
+      if (prev.includes(tpoId)) {
+        return prev.filter((item) => item !== tpoId);
       }
 
-      return [...prev, tpo];
+      return [...prev, tpoId];
     });
   }
 
@@ -184,7 +204,7 @@ export default function EditOutfitPage({
       name,
       memo,
       seasons: selectedSeasons,
-      tpos: selectedTpos,
+      tpo_ids: selectedTpoIds,
       items: selectedItemIds.map((itemId, index) => ({
         item_id: itemId,
         sort_order: index + 1,
@@ -382,15 +402,17 @@ export default function EditOutfitPage({
             <div>
               <p className="mb-2 text-sm font-medium text-gray-700">TPO</p>
               <div className="flex flex-wrap gap-3">
-                {TPO_OPTIONS.map((tpo) => {
-                  const checked = selectedTpos.includes(tpo);
+                {tpoOptions.map((tpo) => {
+                  const checked = selectedTpoIds.includes(tpo.id);
 
                   return (
                     <label
-                      key={tpo}
+                      key={tpo.id}
                       className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition ${
                         checked
-                          ? "border-blue-500 bg-blue-50 text-blue-700"
+                          ? tpo.isActive
+                            ? "border-blue-500 bg-blue-50 text-blue-700"
+                            : "border-amber-400 bg-amber-50 text-amber-800"
                           : "border-gray-300 bg-white text-gray-700"
                       }`}
                     >
@@ -398,12 +420,16 @@ export default function EditOutfitPage({
                         type="checkbox"
                         className="h-4 w-4"
                         checked={checked}
-                        onChange={() => handleTpoToggle(tpo)}
+                        onChange={() => handleTpoToggle(tpo.id)}
                       />
-                      {tpo}
+                      {tpo.name}
+                      {!tpo.isActive ? "（無効）" : ""}
                     </label>
                   );
                 })}
+                {tpoOptions.length === 0 ? (
+                  <p className="text-sm text-gray-500">有効な TPO はまだありません。設定から追加できます。</p>
+                ) : null}
               </div>
             </div>
           </section>

@@ -363,6 +363,106 @@ paths:
               schema:
                 $ref: '#/components/schemas/ValidationErrorResponse'
 
+  /api/settings/tpos:
+    get:
+      tags:
+        - Settings
+      summary: TPO 設定一覧取得
+      description: |
+        現在のユーザーが持つ TPO 一覧を `sort_order asc` で返す。
+        `active_only=1` を指定した場合は active な TPO のみ返す。
+        settings 管理画面の正本とし、item / outfit の新規候補取得にも使う。
+      security:
+        - SessionCookieAuth: []
+      parameters:
+        - name: active_only
+          in: query
+          required: false
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: 取得成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserTposResponse'
+        '401':
+          description: 未認証
+    post:
+      tags:
+        - Settings
+      summary: TPO 追加
+      description: |
+        ユーザー追加 TPO を新規作成する。
+        作成時は `isActive=true`、`isPreset=false`、`sortOrder` は末尾自動採番とする。
+      security:
+        - SessionCookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XCsrfTokenHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserTpoRequest'
+      responses:
+        '201':
+          description: 作成成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserTpoResponseWithMessage'
+        '401':
+          description: 未認証
+        '422':
+          description: バリデーションエラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+
+  /api/settings/tpos/{id}:
+    patch:
+      tags:
+        - Settings
+      summary: TPO 更新
+      description: |
+        TPO の名称、active 状態、表示順を更新する。
+        プリセット TPO の名称変更はできない。
+      security:
+        - SessionCookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XCsrfTokenHeader'
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserTpoRequest'
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserTpoResponseWithMessage'
+        '401':
+          description: 未認証
+        '404':
+          description: 対象なし
+        '422':
+          description: バリデーションエラーまたは業務ルール違反
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+
   /api/items:
     get:
       tags:
@@ -1767,6 +1867,68 @@ components:
             preferences:
               $ref: '#/components/schemas/UserPreferencesRecord'
 
+    UserTpoRecord:
+      type: object
+      required:
+        - id
+        - name
+        - sortOrder
+        - isActive
+        - isPreset
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        sortOrder:
+          type: integer
+          minimum: 1
+        isActive:
+          type: boolean
+        isPreset:
+          type: boolean
+
+    UserTposResponse:
+      type: object
+      required:
+        - tpos
+      properties:
+        tpos:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserTpoRecord'
+
+    CreateUserTpoRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          maxLength: 50
+
+    UpdateUserTpoRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 50
+        isActive:
+          type: boolean
+        sortOrder:
+          type: integer
+          minimum: 1
+
+    UserTpoResponseWithMessage:
+      allOf:
+        - $ref: '#/components/schemas/MessageOnlyResponse'
+        - type: object
+          required:
+            - tpo
+          properties:
+            tpo:
+              $ref: '#/components/schemas/UserTpoRecord'
+
     UserBrandRecord:
       type: object
       required:
@@ -1978,8 +2140,14 @@ components:
             type: string
         tpos:
           type: array
+          description: `tpo_ids` を現在のユーザーの TPO 名へ解決した表示用配列。
           items:
             type: string
+        tpo_ids:
+          type: array
+          description: item 側の保存正本となる TPO ID 配列。
+          items:
+            type: integer
         spec:
           allOf:
             - $ref: '#/components/schemas/ItemSpec'
@@ -2070,8 +2238,16 @@ components:
             type: string
         tpos:
           type: array
+          deprecated: true
+          description: |
+            旧 name ベース request との互換用フィールド。
+            current 実装では `tpo_ids` を正本として扱う。
           items:
             type: string
+        tpo_ids:
+          type: array
+          items:
+            type: integer
         spec:
           $ref: '#/components/schemas/ItemSpec'
         images:
@@ -2195,6 +2371,10 @@ components:
             lastPage:
               type: integer
               example: 2
+            availableTpos:
+              type: array
+              items:
+                type: string
 
     ItemResponse:
       type: object
@@ -2278,8 +2458,14 @@ components:
             type: string
         tpos:
           type: array
+          description: `tpo_ids` を現在のユーザーの TPO 名へ解決した表示用配列。
           items:
             type: string
+        tpo_ids:
+          type: array
+          description: outfit 側の保存正本となる TPO ID 配列。
+          items:
+            type: integer
         outfit_items:
           type: array
           items:
@@ -2331,8 +2517,16 @@ components:
             type: string
         tpos:
           type: array
+          deprecated: true
+          description: |
+            旧 name ベース request との互換用フィールド。
+            current 実装では `tpo_ids` を正本として扱う。
           items:
             type: string
+        tpo_ids:
+          type: array
+          items:
+            type: integer
         items:
           type: array
           minItems: 1
@@ -2373,6 +2567,10 @@ components:
             lastPage:
               type: integer
               example: 1
+            availableTpos:
+              type: array
+              items:
+                type: string
 
     OutfitResponse:
       type: object
@@ -2440,6 +2638,10 @@ components:
           type: array
           items:
             type: string
+        tpo_ids:
+          type: array
+          items:
+            type: integer
         items:
           type: array
           items:

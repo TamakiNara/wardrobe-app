@@ -1,7 +1,7 @@
 # TPO 任意追加 実装前影響整理メモ
 
 この資料は、`docs/specs/settings/tpos.md` を実装へ落とす前に、影響範囲と段階的な実装順を整理するための補助メモです。  
-current 実装の正本ではなく、今後の実装依頼や仕様確認の起点として使うことを目的とします。
+Phase 1 実装後は、current / planned の境界確認と wear log 後段対応の起点として使うことを目的とします。
 
 正本:
 
@@ -15,7 +15,7 @@ current 実装の正本ではなく、今後の実装依頼や仕様確認の起
 ## 目的
 
 - TPO 任意追加を実装する前に、DB / API / settings 画面 / 利用先画面への影響を整理する
-- 既存の `items.tpos` / `outfits.tpos` / wear log 側の保存構造と、`user_tpos` をどう接続するかを明確にする
+- 既存の `items.tpos` / `outfits.tpos` / wear log 側の保存構造と、`user_tpos` / `tpo_ids` をどう接続するかを明確にする
 - 一括実装ではなく、段階的に current 化できる順序を整理する
 
 ---
@@ -35,31 +35,27 @@ current 実装の正本ではなく、今後の実装依頼や仕様確認の起
 ### current
 
 - item / outfit / wear log には TPO の概念があり、複数値を扱う前提がある
-- TPO は固定値寄りの運用だが、将来 settings 配下で管理する方向性は合意済み
-- `docs/specs/settings/tpos.md` では、TPO をユーザー単位マスタとして扱う planned を整理済み
+- settings + item + outfit では、TPO の選択肢正本を `user_tpos` として扱う
+- settings + item + outfit の保存方式は ID ベースで、item / outfit は `tpo_ids` を保存正本とする
+- inactive TPO は新規候補に出さず、既存データでは表示・保持する
+- プリセット TPO の名称変更は不可、並び替え UI は上下移動を採用する
 
 ### planned
 
-- `user_tpos` テーブル相当の導入
-- settings 配下の TPO 管理画面
-- 初期版の対象は settings + item + outfit とする
-- 初期版の保存方式は ID ベースとする
-- `GET /api/settings/tpos`
-- `POST /api/settings/tpos`
-- `PATCH /api/settings/tpos/{id}`
-- item / outfit の選択肢を、登録済み TPO ベースへ切り替える
 - wear log は後段対応として planned に残す
+- wear log の入力 UI / 表示 UI を `user_tpos` 正本へ接続する
+- wear log の保存方式を ID ベースへ揃える
 
 ### 要再判断
 
-- wear log を初期版から同時対応に含めるか
 - inactive TPO の表示方法を一覧 / 詳細 / 編集でどこまで揃えるか
+- wear log で TPO をどの粒度まで使うか
 
 ---
 
 ## 既存保存構造との接続案
 
-### 初期版の方針
+### Phase 1 の方針
 
 - settings 側の選択肢正本を `user_tpos` に置く
 - item / outfit の保存値は TPO ID ベースとする
@@ -173,27 +169,16 @@ current 実装の正本ではなく、今後の実装依頼や仕様確認の起
 
 ## 段階的実装案
 
-### 第1段階
+### Phase 1
 
 - `user_tpos` 導入
 - settings API 導入
 - settings 画面で TPO 一覧 / 追加 / 無効化 / 並び替えを実装
-- item / outfit の選択肢正本を settings 管理値へ接続する準備を整える
+- item / outfit の選択肢を settings 管理値へ接続
+- inactive TPO の表示 / 保持ルールを item / outfit で整理
+- item / outfit 側の保存を TPO ID ベースへ寄せる
 
-### 第2段階
-
-- item の TPO 選択肢を settings 管理値へ接続
-- inactive TPO の表示 / 保持ルールを item で整理
-- item 側の保存を TPO ID ベースへ寄せる
-
-### 第3段階
-
-- outfit の TPO 選択肢を settings 管理値へ接続
-- inactive TPO の表示 / 保持ルールを outfit で整理
-- outfit 側の保存を TPO ID ベースへ寄せる
-- 一覧 / 詳細 / 編集の見え方を揃える
-
-### 第4段階
+### 後段
 
 - wear log へ適用するかを再判断
 - 必要なら、wear log の入力 UI・表示 UI へ段階導入する
@@ -203,7 +188,7 @@ current 実装の正本ではなく、今後の実装依頼や仕様確認の起
 
 - settings 側を先に成立させることで、選択肢正本を固定しやすい
 - item / outfit を初期版対象に絞ることで、ID ベース保存の影響範囲を限定しやすい
-- wear log は利用粒度が未確定のため、初期版から同時対応しなくてもよい
+- wear log は利用粒度が未確定のため、Phase 1 から同時対応しなくてもよい
 
 ---
 
@@ -237,7 +222,7 @@ current 実装の正本ではなく、今後の実装依頼や仕様確認の起
 2. 初期版の保存構造は ID ベースにする
 3. 削除より無効化を優先する
 4. settings 側を先に実装する
-5. 初期版の対象は settings + item + outfit とし、wear log は後段に分ける
+5. Phase 1 の対象は settings + item + outfit とし、wear log は後段に分ける
 
 ---
 

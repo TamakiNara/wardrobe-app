@@ -22,6 +22,28 @@ export type UpdateUserPreferencesPayload = {
   calendarWeekStart: "monday" | "sunday" | null;
 };
 
+export type UserTpoRecord = {
+  id: number;
+  name: string;
+  sortOrder: number;
+  isActive: boolean;
+  isPreset: boolean;
+};
+
+export type UserTposResponse = {
+  tpos: UserTpoRecord[];
+};
+
+export type CreateUserTpoPayload = {
+  name: string;
+};
+
+export type UpdateUserTpoPayload = {
+  name?: string;
+  isActive?: boolean;
+  sortOrder?: number;
+};
+
 export type UserBrandRecord = {
   id: number;
   name: string;

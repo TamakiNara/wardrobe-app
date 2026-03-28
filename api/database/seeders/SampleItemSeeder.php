@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Item;
 use App\Models\User;
+use App\Models\UserTpo;
 use Database\Seeders\Support\TestSeedUsers;
 use Illuminate\Database\Seeder;
 
@@ -216,7 +217,10 @@ class SampleItemSeeder extends Seeder
         foreach ($items as $item) {
             Item::query()->updateOrCreate(
                 ['user_id' => $user->id, 'name' => $item['name']],
-                $item,
+                [
+                    ...$item,
+                    'tpo_ids' => $this->resolveTpoIds($user, $item['tpos'] ?? []),
+                ],
             );
         }
     }
@@ -234,5 +238,35 @@ class SampleItemSeeder extends Seeder
             ->create([
                 'user_id' => $user->id,
             ]);
+
+        $userTpos = UserTpo::query()
+            ->where('user_id', $user->id)
+            ->pluck('id', 'name');
+
+        Item::query()
+            ->where('user_id', $user->id)
+            ->each(function (Item $item) use ($userTpos) {
+                $item->forceFill([
+                    'tpo_ids' => collect($item->tpos ?? [])
+                        ->map(fn ($name) => $userTpos->get($name))
+                        ->filter()
+                        ->values()
+                        ->all(),
+                ])->save();
+            });
+    }
+
+    private function resolveTpoIds(User $user, array $names): array
+    {
+        $tpoIds = UserTpo::query()
+            ->where('user_id', $user->id)
+            ->whereIn('name', $names)
+            ->pluck('id', 'name');
+
+        return collect($names)
+            ->map(fn ($name) => $tpoIds->get($name))
+            ->filter()
+            ->values()
+            ->all();
     }
 }

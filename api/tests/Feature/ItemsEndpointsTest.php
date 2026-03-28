@@ -8,6 +8,7 @@ use App\Models\Item;
 use App\Models\PurchaseCandidate;
 use App\Models\User;
 use App\Models\UserBrand;
+use App\Models\UserTpo;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -124,6 +125,17 @@ class ItemsEndpointsTest extends TestCase
             'normalized_name' => 'uniqlo',
             'normalized_kana' => null,
             'is_active' => true,
+        ], $overrides));
+    }
+
+    private function createUserTpo(User $user, array $overrides = []): UserTpo
+    {
+        return UserTpo::query()->create(array_merge([
+            'user_id' => $user->id,
+            'name' => '仕事',
+            'sort_order' => 1,
+            'is_active' => true,
+            'is_preset' => true,
         ], $overrides));
     }
 
@@ -416,6 +428,46 @@ class ItemsEndpointsTest extends TestCase
             'name' => 'クリーニング予定コート',
             'care_status' => 'in_cleaning',
         ]);
+    }
+
+    public function test_post_items_can_save_tpo_ids_and_return_resolved_tpos(): void
+    {
+        $user = User::factory()->create();
+        $workTpo = $this->createUserTpo($user, [
+            'name' => '仕事',
+            'sort_order' => 1,
+            'is_preset' => true,
+        ]);
+        $tripTpo = $this->createUserTpo($user, [
+            'name' => '出張',
+            'sort_order' => 4,
+            'is_preset' => false,
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/items', [
+            'name' => 'TPO テストアイテム',
+            'category' => 'tops',
+            'shape' => 'tshirt',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'white',
+                'hex' => '#eeeeee',
+                'label' => 'ホワイト',
+            ]],
+            'seasons' => ['春'],
+            'tpo_ids' => [$workTpo->id, $tripTpo->id],
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('item.tpo_ids.0', $workTpo->id)
+            ->assertJsonPath('item.tpo_ids.1', $tripTpo->id)
+            ->assertJsonPath('item.tpos.0', '仕事')
+            ->assertJsonPath('item.tpos.1', '出張');
     }
 
     public function test_post_items_skips_brand_candidate_creation_when_duplicate_exists(): void
@@ -766,6 +818,44 @@ class ItemsEndpointsTest extends TestCase
             'name' => 'GLOBAL WORK',
             'normalized_name' => 'global work',
         ]);
+    }
+
+    public function test_put_item_keeps_selected_inactive_tpo_ids(): void
+    {
+        $user = User::factory()->create();
+        $inactiveTpo = $this->createUserTpo($user, [
+            'name' => '在宅',
+            'sort_order' => 4,
+            'is_active' => false,
+            'is_preset' => false,
+        ]);
+        $item = $this->createItem($user, [
+            'tpos' => [],
+            'tpo_ids' => [$inactiveTpo->id],
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->putJson("/api/items/{$item->id}", [
+            'name' => '更新後トップス',
+            'category' => 'tops',
+            'shape' => 'tshirt',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'white',
+                'hex' => '#eeeeee',
+                'label' => 'ホワイト',
+            ]],
+            'tpo_ids' => [$inactiveTpo->id],
+            'images' => [],
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('item.tpo_ids.0', $inactiveTpo->id)
+            ->assertJsonPath('item.tpos.0', '在宅');
     }
 
     public function test_post_item_image_uploads_to_item_storage(): void

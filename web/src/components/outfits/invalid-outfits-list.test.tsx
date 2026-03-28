@@ -49,6 +49,7 @@ const defaultListProps = {
   totalCount: sampleOutfits.length,
   currentPage: 1,
   lastPage: 1,
+  availableTpos: ["仕事", "休日"],
 };
 
 async function waitForEffects() {

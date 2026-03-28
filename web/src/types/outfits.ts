@@ -15,6 +15,7 @@ export type OutfitDuplicatePayload = {
   memo: string | null;
   seasons: string[];
   tpos: string[];
+  tpo_ids: number[];
   items: OutfitDuplicateItem[];
 };
 
@@ -27,6 +28,6 @@ export type CreateOutfitPayload = {
   name: string;
   memo: string;
   seasons: string[];
-  tpos: string[];
+  tpo_ids: number[];
   items: OutfitSelectedItem[];
 };

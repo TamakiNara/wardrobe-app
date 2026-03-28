@@ -42,6 +42,7 @@ type OutfitsResponse = {
     totalAll: number;
     page: number;
     lastPage: number;
+    availableTpos?: string[];
   };
 };
 
@@ -117,6 +118,7 @@ async function getOutfits(searchParams: OutfitsPageSearchParams): Promise<Outfit
       totalAll: data.meta?.totalAll ?? 0,
       page: data.meta?.page ?? 1,
       lastPage: data.meta?.lastPage ?? 1,
+      availableTpos: data.meta?.availableTpos ?? [],
     },
   };
 }
@@ -230,6 +232,7 @@ export default async function OutfitsPage({
             totalAllCount={data.meta.totalAll}
             currentPage={data.meta.page}
             lastPage={data.meta.lastPage}
+            availableTpos={data.meta.availableTpos ?? []}
             initialSeasonFilter={currentSeason ? "" : initialSeasonFilter}
           />
         )}

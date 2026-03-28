@@ -31,6 +31,7 @@ class Item extends Model
         'colors',
         'seasons',
         'tpos',
+        'tpo_ids',
         'spec',
     ];
 
@@ -42,6 +43,7 @@ class Item extends Model
         'colors' => 'array',
         'seasons' => 'array',
         'tpos' => 'array',
+        'tpo_ids' => 'array',
         'spec' => 'array',
     ];
 

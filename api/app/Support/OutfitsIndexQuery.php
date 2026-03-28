@@ -19,16 +19,16 @@ class OutfitsIndexQuery
         $outfits = Outfit::query()
             ->where('user_id', $user->id)
             ->where('status', $status)
-            ->with(['outfitItems.item'])
+            ->with(['outfitItems.item', 'user'])
             ->latest()
             ->get();
 
         $filteredOutfits = $outfits
-            ->filter(function (Outfit $outfit) use ($keyword, $season, $tpo) {
+            ->filter(function (Outfit $outfit) use ($keyword, $season, $tpo, $user) {
                 $name = mb_strtolower((string) ($outfit->name ?? ''), 'UTF-8');
                 $normalizedKeyword = mb_strtolower($keyword, 'UTF-8');
                 $seasons = is_array($outfit->seasons) ? $outfit->seasons : [];
-                $tpos = is_array($outfit->tpos) ? $outfit->tpos : [];
+                $tpos = UserTpoNameResolver::resolveNames($user, $outfit->tpo_ids ?? [], $outfit->tpos ?? []);
                 $isAllSeason = $seasons === [] || in_array('オール', $seasons, true);
 
                 $matchKeyword = $normalizedKeyword === '' || str_contains($name, $normalizedKeyword);
@@ -49,12 +49,21 @@ class OutfitsIndexQuery
         $pagination = ListQuerySupport::paginate($filteredOutfits, $page);
 
         return [
-            'outfits' => $pagination['items'],
+            'outfits' => $pagination['items']
+                ->map(fn (Outfit $outfit) => OutfitPayloadBuilder::buildDetail($outfit))
+                ->values()
+                ->all(),
             'meta' => [
                 'total' => $pagination['total'],
                 'totalAll' => $outfits->count(),
                 'page' => $pagination['page'],
                 'lastPage' => $pagination['lastPage'],
+                'availableTpos' => ListQuerySupport::buildOrderedOptions(
+                    $outfits->flatMap(
+                        fn (Outfit $outfit) => UserTpoNameResolver::resolveNames($user, $outfit->tpo_ids ?? [], $outfit->tpos ?? [])
+                    )->all(),
+                    ['仕事', '休日', 'フォーマル'],
+                ),
             ],
         ];
     }

@@ -24,18 +24,18 @@ class ItemsIndexQuery
         $visibleItems = Item::query()
             ->where('user_id', $user->id)
             ->where('status', 'active')
-            ->with('images')
+            ->with(['images', 'user'])
             ->latest()
             ->get()
             ->filter(fn (Item $item) => ListQuerySupport::isItemVisibleForList($item, $visibleCategoryIds))
             ->values();
 
         $filteredItems = $visibleItems
-            ->filter(function (Item $item) use ($keyword, $category, $season, $tpo) {
+            ->filter(function (Item $item) use ($user, $keyword, $category, $season, $tpo) {
                 $name = mb_strtolower((string) ($item->name ?? ''), 'UTF-8');
                 $normalizedKeyword = mb_strtolower($keyword, 'UTF-8');
                 $seasons = is_array($item->seasons) ? $item->seasons : [];
-                $tpos = is_array($item->tpos) ? $item->tpos : [];
+                $tpos = UserTpoNameResolver::resolveNames($user, $item->tpo_ids ?? [], $item->tpos ?? []);
 
                 $matchKeyword = $normalizedKeyword === '' || str_contains($name, $normalizedKeyword);
                 $matchCategory = $category === '' || $item->category === $category;
@@ -75,7 +75,9 @@ class ItemsIndexQuery
                     ['春', '夏', '秋', '冬', 'オール'],
                 ),
                 'availableTpos' => ListQuerySupport::buildOrderedOptions(
-                    $visibleItems->flatMap(fn (Item $item) => is_array($item->tpos) ? $item->tpos : [])->all(),
+                    $visibleItems->flatMap(
+                        fn (Item $item) => UserTpoNameResolver::resolveNames($user, $item->tpo_ids ?? [], $item->tpos ?? [])
+                    )->all(),
                     ['仕事', '休日', 'フォーマル'],
                 ),
             ],

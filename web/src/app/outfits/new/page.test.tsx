@@ -10,6 +10,7 @@ const pushMock = vi.fn();
 const refreshMock = vi.fn();
 const replaceMock = vi.fn();
 const fetchCategoryVisibilitySettingsMock = vi.fn();
+const fetchUserTposMock = vi.fn();
 const routerMock = { push: pushMock, refresh: refreshMock, replace: replaceMock };
 let searchParamsValue = "";
 
@@ -25,6 +26,7 @@ vi.mock("next/navigation", () => ({
 
 vi.mock("@/lib/api/settings", () => ({
   fetchCategoryVisibilitySettings: fetchCategoryVisibilitySettingsMock,
+  fetchUserTpos: fetchUserTposMock,
 }));
 
 async function waitForEffects() {
@@ -46,6 +48,12 @@ describe("NewOutfitPage", () => {
     document.body.appendChild(container);
     root = createRoot(container);
     fetchCategoryVisibilitySettingsMock.mockRejectedValue(new Error("network"));
+    fetchUserTposMock.mockResolvedValue({
+      tpos: [
+        { id: 1, name: "仕事", sortOrder: 1, isActive: true, isPreset: true },
+        { id: 2, name: "休日", sortOrder: 2, isActive: true, isPreset: true },
+      ],
+    });
     vi.stubGlobal(
       "fetch",
       vi.fn().mockResolvedValue({
@@ -108,6 +116,7 @@ describe("NewOutfitPage", () => {
       memo: "朝会用",
       seasons: ["春"],
       tpos: ["仕事"],
+      tpo_ids: [1],
       items: [
         {
           item_id: 1,
@@ -143,6 +152,7 @@ describe("NewOutfitPage", () => {
       memo: null,
       seasons: ["夏"],
       tpos: ["休日"],
+      tpo_ids: [2],
       items: [
         {
           item_id: 1,

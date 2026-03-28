@@ -2,12 +2,16 @@ import { apiFetch } from "@/lib/api/client";
 import type {
   CategoryVisibilitySettings,
   CreateUserBrandPayload,
+  CreateUserTpoPayload,
   UpdateUserPreferencesPayload,
   UpdateUserBrandPayload,
+  UpdateUserTpoPayload,
   UpdateCategoryVisibilitySettingsPayload,
   UserPreferencesResponse,
   UserBrandRecord,
   UserBrandsResponse,
+  UserTpoRecord,
+  UserTposResponse,
 } from "@/types/settings";
 
 export async function fetchCategoryVisibilitySettings(): Promise<CategoryVisibilitySettings> {
@@ -43,6 +47,45 @@ export async function updateUserPreferences(
       body: JSON.stringify(payload),
     },
   );
+}
+
+export async function fetchUserTpos(activeOnly = false): Promise<UserTposResponse> {
+  const params = new URLSearchParams();
+
+  if (activeOnly) {
+    params.set("active_only", "1");
+  }
+
+  const search = params.toString();
+
+  return apiFetch<UserTposResponse>(
+    `/api/settings/tpos${search ? `?${search}` : ""}`,
+  );
+}
+
+export async function createUserTpo(
+  payload: CreateUserTpoPayload,
+): Promise<{ message: string; tpo: UserTpoRecord }> {
+  return apiFetch<{ message: string; tpo: UserTpoRecord }>("/api/settings/tpos", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function updateUserTpo(
+  tpoId: number,
+  payload: UpdateUserTpoPayload,
+): Promise<{ message: string; tpo: UserTpoRecord }> {
+  return apiFetch<{ message: string; tpo: UserTpoRecord }>(`/api/settings/tpos/${tpoId}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
 }
 
 export async function fetchUserBrands(

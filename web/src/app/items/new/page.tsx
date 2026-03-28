@@ -9,7 +9,7 @@ import {
   type ItemCategory,
 } from "@/lib/master-data/item-shapes";
 import { buildSupportedCategoryOptions, fetchCategoryGroups } from "@/lib/api/categories";
-import { fetchCategoryVisibilitySettings } from "@/lib/api/settings";
+import { fetchCategoryVisibilitySettings, fetchUserTpos } from "@/lib/api/settings";
 import type { CategoryOption } from "@/types/categories";
 import {
   ITEM_COLORS,
@@ -22,7 +22,7 @@ import ColorSelect from "@/components/items/color-select";
 import ItemImageUploader from "@/components/items/item-image-uploader";
 import type { CreateItemPayload, ItemCareStatus, ItemFormColor, ItemImageRecord } from "@/types/items";
 import ItemPreviewCard from "@/components/items/item-preview-card";
-import { SEASON_OPTIONS, TPO_OPTIONS } from "@/lib/master-data/item-attributes";
+import { SEASON_OPTIONS } from "@/lib/master-data/item-attributes";
 import {
   buildTopsSpecLabels,
   buildTopsSpecRaw,
@@ -53,6 +53,7 @@ import {
   mapPurchaseCandidateImagesToItemImages,
   normalizeItemImages,
 } from "@/lib/items/metadata";
+import type { UserTpoRecord } from "@/types/settings";
 
 export default function NewItemPage() {
   const router = useRouter();
@@ -83,7 +84,9 @@ export default function NewItemPage() {
   const [customSubHex, setCustomSubHex] = useState("#9CA3AF");
 
   const [selectedSeasons, setSelectedSeasons] = useState<string[]>([]);
-  const [selectedTpos, setSelectedTpos] = useState<string[]>([]);
+  const [selectedTpoIds, setSelectedTpoIds] = useState<number[]>([]);
+  const [tpoOptions, setTpoOptions] = useState<UserTpoRecord[]>([]);
+  const [draftTpoNames, setDraftTpoNames] = useState<string[]>([]);
 
   const [topsShape, setTopsShape] = useState<TopsShapeValue | "">("");
   const [topsSleeve, setTopsSleeve] = useState<TopsSleeveValue | "">("");
@@ -167,14 +170,16 @@ export default function NewItemPage() {
     Promise.all([
       fetchCategoryGroups(),
       fetchCategoryVisibilitySettings(),
+      fetchUserTpos(true),
     ])
-      .then(([groups, settings]) => {
+      .then(([groups, settings, tpoResponse]) => {
         if (!active) return;
         const nextOptions = buildSupportedCategoryOptions(
           groups,
           settings.visibleCategoryIds,
         );
         setCategoryOptions(nextOptions);
+        setTpoOptions(tpoResponse.tpos);
       })
       .catch(() => {
         // フロントでは取得失敗時に固定 master data へフォールバックする
@@ -215,7 +220,7 @@ export default function NewItemPage() {
     setCategory(draft.category as ItemCategory);
     setShape(draft.shape);
     setSelectedSeasons(draft.seasons);
-    setSelectedTpos(draft.tpos);
+    setDraftTpoNames(draft.tpos);
     setMainColor((mainDraftColor?.value as ItemColorValue | undefined) ?? "");
     setSubColor((subDraftColor?.value as ItemColorValue | undefined) ?? "");
     setItemImages(mapPurchaseCandidateImagesToItemImages(draft.images));
@@ -223,6 +228,18 @@ export default function NewItemPage() {
 
     clearPurchaseCandidateItemDraft();
   }, [searchParams]);
+
+  useEffect(() => {
+    if (draftTpoNames.length === 0 || tpoOptions.length === 0 || selectedTpoIds.length > 0) {
+      return;
+    }
+
+    const matchedIds = tpoOptions
+      .filter((tpo) => draftTpoNames.includes(tpo.name))
+      .map((tpo) => tpo.id);
+
+    setSelectedTpoIds(matchedIds);
+  }, [draftTpoNames, selectedTpoIds.length, tpoOptions]);
 
   function resetTopsState() {
     setTopsShape("");
@@ -265,7 +282,7 @@ export default function NewItemPage() {
     setShape(value);
   }
 
-  function toggleValue(value: string, current: string[], setter: (values: string[]) => void) {
+  function toggleValue<T>(value: T, current: T[], setter: (values: T[]) => void) {
     setter(current.includes(value) ? current.filter((item) => item !== value) : [...current, value]);
   }
 
@@ -315,7 +332,7 @@ export default function NewItemPage() {
       shape,
       colors,
       seasons: selectedSeasons,
-      tpos: selectedTpos,
+      tpo_ids: selectedTpoIds,
       spec:
         isTopsCategory && topsShape
           ? {
@@ -961,15 +978,23 @@ export default function NewItemPage() {
             <div>
               <p className="mb-2 text-sm font-medium">TPO</p>
               <div className="flex flex-wrap gap-3">
-                {TPO_OPTIONS.map((tpo) => {
-                  const checked = selectedTpos.includes(tpo);
+                {tpoOptions.map((tpo) => {
+                  const checked = selectedTpoIds.includes(tpo.id);
                   return (
-                    <label key={tpo} className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition ${checked ? "border-blue-500 bg-blue-50 text-blue-700" : "border-gray-300 bg-white text-gray-700"}`}>
-                      <input type="checkbox" className="h-4 w-4" checked={checked} onChange={() => toggleValue(tpo, selectedTpos, setSelectedTpos)} />
-                      {tpo}
+                    <label key={tpo.id} className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition ${checked ? "border-blue-500 bg-blue-50 text-blue-700" : "border-gray-300 bg-white text-gray-700"}`}>
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4"
+                        checked={checked}
+                        onChange={() => toggleValue(tpo.id, selectedTpoIds, setSelectedTpoIds)}
+                      />
+                      {tpo.name}
                     </label>
                   );
                 })}
+                {tpoOptions.length === 0 ? (
+                  <p className="text-sm text-gray-500">有効な TPO はまだありません。設定から追加できます。</p>
+                ) : null}
               </div>
             </div>
           </section>

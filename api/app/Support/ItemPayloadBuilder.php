@@ -31,7 +31,10 @@ class ItemPayloadBuilder
             'shape' => $item->shape,
             'colors' => $item->colors ?? [],
             'seasons' => $item->seasons ?? [],
-            'tpos' => $item->tpos ?? [],
+            'tpos' => $item->relationLoaded('user') || $item->user !== null
+                ? UserTpoNameResolver::resolveNames($item->user, $item->tpo_ids ?? [], $item->tpos ?? [])
+                : ($item->tpos ?? []),
+            'tpo_ids' => $item->tpo_ids ?? [],
             'spec' => $item->spec,
             'images' => $item->images
                 ->sortBy('sort_order')

@@ -13,6 +13,7 @@ export type OutfitDuplicateDraft = {
   memo: string;
   seasons: string[];
   tpos: string[];
+  tpoIds: number[];
   selectedItemIds: number[];
   unavailableItems: DuplicateUnavailableItem[];
 };
@@ -51,6 +52,7 @@ export function mapOutfitDuplicatePayloadToDraft(
     memo: payload.memo ?? "",
     seasons: payload.seasons,
     tpos: payload.tpos,
+    tpoIds: payload.tpo_ids,
     selectedItemIds: sortedItems
       .filter((item) => item.selectable)
       .map((item) => item.item_id),

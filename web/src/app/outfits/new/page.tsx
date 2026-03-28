@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import FieldLabel from "@/components/forms/field-label";
 import { isItemVisibleByCategorySettings } from "@/lib/api/categories";
-import { fetchCategoryVisibilitySettings } from "@/lib/api/settings";
+import { fetchCategoryVisibilitySettings, fetchUserTpos } from "@/lib/api/settings";
 import {
   clearOutfitDuplicatePayload,
   loadOutfitDuplicatePayload,
@@ -13,7 +13,8 @@ import {
   type DuplicateUnavailableItem,
 } from "@/lib/outfits/duplicate";
 import type { CreateOutfitPayload } from "@/types/outfits";
-import { SEASON_OPTIONS, TPO_OPTIONS } from "@/lib/master-data/item-attributes";
+import { SEASON_OPTIONS } from "@/lib/master-data/item-attributes";
+import type { UserTpoRecord } from "@/types/settings";
 
 type Item = {
   id: number;
@@ -40,7 +41,8 @@ export default function NewOutfitPage() {
   const [memo, setMemo] = useState("");
 
   const [selectedSeasons, setSelectedSeasons] = useState<string[]>([]);
-  const [selectedTpos, setSelectedTpos] = useState<string[]>([]);
+  const [selectedTpoIds, setSelectedTpoIds] = useState<number[]>([]);
+  const [tpoOptions, setTpoOptions] = useState<UserTpoRecord[]>([]);
 
   const [items, setItems] = useState<Item[]>([]);
   const [selectedItemIds, setSelectedItemIds] = useState<number[]>([]);
@@ -66,13 +68,14 @@ export default function NewOutfitPage() {
       setLoadingItems(true);
 
       try {
-        const [res, settings] = await Promise.all([
+        const [res, settings, tpoResponse] = await Promise.all([
           fetch("/api/items", {
             headers: {
               Accept: "application/json",
             },
           }),
           fetchCategoryVisibilitySettings().catch(() => null),
+          fetchUserTpos(true).catch(() => ({ tpos: [] as UserTpoRecord[] })),
         ]);
 
         if (res.status === 401) {
@@ -95,6 +98,7 @@ export default function NewOutfitPage() {
           : (data?.items ?? []);
 
         setItems(nextItems);
+        setTpoOptions(tpoResponse.tpos);
       } catch {
         setSubmitError("アイテム一覧の取得に失敗しました。");
       } finally {
@@ -134,7 +138,22 @@ export default function NewOutfitPage() {
     setName(draft.name);
     setMemo(draft.memo);
     setSelectedSeasons(draft.seasons);
-    setSelectedTpos(draft.tpos);
+    setSelectedTpoIds(draft.tpoIds);
+    setTpoOptions((current) =>
+      [...current, ...draft.tpoIds.map((tpoId, index) => ({
+        id: tpoId,
+        name: draft.tpos[index] ?? `TPO ${tpoId}`,
+        sortOrder: 10_000 + index,
+        isActive: false,
+        isPreset: false,
+      }))].reduce<UserTpoRecord[]>((carry, tpo) => {
+        if (carry.some((currentTpo) => currentTpo.id === tpo.id)) {
+          return carry;
+        }
+
+        return [...carry, tpo];
+      }, []),
+    );
     setSelectedItemIds(draft.selectedItemIds);
     setDuplicateUnavailableItems(draft.unavailableItems);
     setErrors({});
@@ -159,13 +178,13 @@ export default function NewOutfitPage() {
     });
   }
 
-  function handleTpoToggle(tpo: string) {
-    setSelectedTpos((prev) => {
-      if (prev.includes(tpo)) {
-        return prev.filter((item) => item !== tpo);
+  function handleTpoToggle(tpoId: number) {
+    setSelectedTpoIds((prev) => {
+      if (prev.includes(tpoId)) {
+        return prev.filter((item) => item !== tpoId);
       }
 
-      return [...prev, tpo];
+      return [...prev, tpoId];
     });
   }
 
@@ -190,7 +209,7 @@ export default function NewOutfitPage() {
       name,
       memo,
       seasons: selectedSeasons,
-      tpos: selectedTpos,
+      tpo_ids: selectedTpoIds,
       items: selectedItemIds.map((itemId, index) => ({
         item_id: itemId,
         sort_order: index + 1,
@@ -388,12 +407,12 @@ export default function NewOutfitPage() {
             <div>
               <p className="mb-2 text-sm font-medium text-gray-700">TPO</p>
               <div className="flex flex-wrap gap-3">
-                {TPO_OPTIONS.map((tpo) => {
-                  const checked = selectedTpos.includes(tpo);
+                {tpoOptions.map((tpo) => {
+                  const checked = selectedTpoIds.includes(tpo.id);
 
                   return (
                     <label
-                      key={tpo}
+                      key={tpo.id}
                       className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition ${
                         checked
                           ? "border-blue-500 bg-blue-50 text-blue-700"
@@ -404,12 +423,15 @@ export default function NewOutfitPage() {
                         type="checkbox"
                         className="h-4 w-4"
                         checked={checked}
-                        onChange={() => handleTpoToggle(tpo)}
+                        onChange={() => handleTpoToggle(tpo.id)}
                       />
-                      {tpo}
+                      {tpo.name}
                     </label>
                   );
                 })}
+                {tpoOptions.length === 0 ? (
+                  <p className="text-sm text-gray-500">有効な TPO はまだありません。設定から追加できます。</p>
+                ) : null}
               </div>
             </div>
           </section>

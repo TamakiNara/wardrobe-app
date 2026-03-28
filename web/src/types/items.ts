@@ -55,7 +55,8 @@ export type CreateItemPayload = {
   shape: string;
   colors: ItemFormColor[];
   seasons: string[];
-  tpos: string[];
+  tpos?: string[];
+  tpo_ids: number[];
   spec?: ItemSpec | null;
   images: ItemImageRecord[];
 };
@@ -84,6 +85,7 @@ export type ItemRecord = {
   colors: ItemFormColor[];
   seasons: string[];
   tpos: string[];
+  tpo_ids?: number[];
   spec?: ItemSpec | null;
   images?: ItemImageRecord[];
 };

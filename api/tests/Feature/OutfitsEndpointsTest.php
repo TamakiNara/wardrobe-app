@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Item;
 use App\Models\Outfit;
 use App\Models\User;
+use App\Models\UserTpo;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -35,6 +36,17 @@ class OutfitsEndpointsTest extends TestCase
             'seasons' => ['春'],
             'tpos' => ['休日'],
             'spec' => null,
+        ], $overrides));
+    }
+
+    private function createUserTpo(User $user, array $overrides = []): UserTpo
+    {
+        return UserTpo::query()->create(array_merge([
+            'user_id' => $user->id,
+            'name' => '仕事',
+            'sort_order' => 1,
+            'is_active' => true,
+            'is_preset' => true,
         ], $overrides));
     }
 
@@ -491,6 +503,11 @@ class OutfitsEndpointsTest extends TestCase
         $user = User::factory()->create();
         $itemA = $this->createItem($user, ['name' => 'トップス']);
         $itemB = $this->createItem($user, ['name' => 'ボトムス', 'category' => 'bottoms', 'shape' => 'wide']);
+        $holidayTpo = $this->createUserTpo($user, [
+            'name' => '休日',
+            'sort_order' => 2,
+            'is_preset' => true,
+        ]);
 
         $this->actingAs($user, 'web');
         $token = $this->issueCsrfToken();
@@ -499,7 +516,7 @@ class OutfitsEndpointsTest extends TestCase
             'name' => '休日コーデ',
             'memo' => 'テストメモ',
             'seasons' => ['春', '秋'],
-            'tpos' => ['休日'],
+            'tpo_ids' => [$holidayTpo->id],
             'items' => [
                 ['item_id' => $itemA->id, 'sort_order' => 1],
                 ['item_id' => $itemB->id, 'sort_order' => 2],
@@ -512,6 +529,8 @@ class OutfitsEndpointsTest extends TestCase
         $response->assertCreated()
             ->assertJsonPath('message', 'created')
             ->assertJsonPath('outfit.name', '休日コーデ')
+            ->assertJsonPath('outfit.tpo_ids.0', $holidayTpo->id)
+            ->assertJsonPath('outfit.tpos.0', '休日')
             ->assertJsonCount(2, 'outfit.outfit_items');
 
         $this->assertDatabaseHas('outfits', [
@@ -616,13 +635,20 @@ class OutfitsEndpointsTest extends TestCase
         $user = User::factory()->create();
         $itemA = $this->createItem($user, ['name' => 'トップス']);
         $itemB = $this->createItem($user, ['name' => 'ボトムス', 'category' => 'bottoms', 'shape' => 'wide']);
+        $inactiveTpo = $this->createUserTpo($user, [
+            'name' => '在宅',
+            'sort_order' => 4,
+            'is_active' => false,
+            'is_preset' => false,
+        ]);
 
         $outfit = Outfit::query()->create([
             'user_id' => $user->id,
             'name' => '更新前',
             'memo' => 'old memo',
             'seasons' => ['春'],
-            'tpos' => ['休日'],
+            'tpos' => [],
+            'tpo_ids' => [$inactiveTpo->id],
         ]);
         $outfit->outfitItems()->create([
             'item_id' => $itemA->id,
@@ -636,7 +662,7 @@ class OutfitsEndpointsTest extends TestCase
             'name' => '更新後',
             'memo' => 'new memo',
             'seasons' => ['秋'],
-            'tpos' => ['仕事'],
+            'tpo_ids' => [$inactiveTpo->id],
             'items' => [
                 ['item_id' => $itemB->id, 'sort_order' => 1],
             ],
@@ -648,6 +674,8 @@ class OutfitsEndpointsTest extends TestCase
         $response->assertOk()
             ->assertJsonPath('message', 'updated')
             ->assertJsonPath('outfit.name', '更新後')
+            ->assertJsonPath('outfit.tpo_ids.0', $inactiveTpo->id)
+            ->assertJsonPath('outfit.tpos.0', '在宅')
             ->assertJsonCount(1, 'outfit.outfit_items')
             ->assertJsonPath('outfit.outfit_items.0.item_id', $itemB->id);
 

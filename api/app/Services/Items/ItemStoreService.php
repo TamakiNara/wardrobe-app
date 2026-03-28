@@ -6,7 +6,9 @@ use App\Models\Item;
 use App\Models\PurchaseCandidate;
 use App\Models\User;
 use App\Services\Brands\UserBrandService;
+use App\Services\Settings\UserTpoService;
 use App\Support\ItemImageSync;
+use App\Support\TpoSelectionResolver;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Throwable;
@@ -15,6 +17,7 @@ class ItemStoreService
 {
     public function __construct(
         private readonly UserBrandService $userBrandService,
+        private readonly UserTpoService $userTpoService,
     ) {
     }
 
@@ -43,7 +46,7 @@ class ItemStoreService
                     'shape' => $validated['shape'],
                     'colors' => $validated['colors'],
                     'seasons' => $validated['seasons'] ?? [],
-                    'tpos' => $validated['tpos'] ?? [],
+                    'tpo_ids' => TpoSelectionResolver::resolve($this->userTpoService, $user, $validated),
                     'spec' => $validated['spec'] ?? null,
                 ]);
 
@@ -63,7 +66,7 @@ class ItemStoreService
                     (bool) ($validated['save_brand_as_candidate'] ?? false),
                 );
 
-                return $item->fresh()->load('images');
+                return $item->fresh()->load(['images', 'user']);
             });
         } catch (Throwable $e) {
             ItemImageSync::cleanupCopied($copiedFiles);

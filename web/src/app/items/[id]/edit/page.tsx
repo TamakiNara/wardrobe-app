@@ -9,7 +9,7 @@ import {
   type ItemCategory,
 } from "@/lib/master-data/item-shapes";
 import { buildSupportedCategoryOptions, fetchCategoryGroups } from "@/lib/api/categories";
-import { fetchCategoryVisibilitySettings } from "@/lib/api/settings";
+import { fetchCategoryVisibilitySettings, fetchUserTpos } from "@/lib/api/settings";
 import type { CategoryOption } from "@/types/categories";
 import {
   ITEM_COLORS,
@@ -21,7 +21,7 @@ import ColorChip from "@/components/items/color-chip";
 import ColorSelect from "@/components/items/color-select";
 import ItemImageUploader from "@/components/items/item-image-uploader";
 import ItemPreviewCard from "@/components/items/item-preview-card";
-import { SEASON_OPTIONS, TPO_OPTIONS } from "@/lib/master-data/item-attributes";
+import { SEASON_OPTIONS } from "@/lib/master-data/item-attributes";
 import type { CreateItemPayload, ItemCareStatus, ItemFormColor, ItemImageRecord, ItemRecord } from "@/types/items";
 import {
   buildTopsSpecLabels,
@@ -42,6 +42,7 @@ import {
   type TopsSleeveValue,
 } from "@/lib/master-data/item-tops";
 import { formatItemPrice, ITEM_CARE_STATUS_LABELS, ITEM_SIZE_GENDER_LABELS, normalizeItemImages } from "@/lib/items/metadata";
+import type { UserTpoRecord } from "@/types/settings";
 
 
 
@@ -82,7 +83,8 @@ export default function EditItemPage({
   const [customSubHex, setCustomSubHex] = useState("#9CA3AF");
 
   const [selectedSeasons, setSelectedSeasons] = useState<string[]>([]);
-  const [selectedTpos, setSelectedTpos] = useState<string[]>([]);
+  const [selectedTpoIds, setSelectedTpoIds] = useState<number[]>([]);
+  const [tpoOptions, setTpoOptions] = useState<UserTpoRecord[]>([]);
 
   const [topsShape, setTopsShape] = useState<TopsShapeValue | "">("");
   const [topsSleeve, setTopsSleeve] = useState<TopsSleeveValue | "">("");
@@ -193,9 +195,12 @@ export default function EditItemPage({
       setItemId(Number(id));
 
       try {
-        const response = await fetch(`/api/items/${id}`, {
-          headers: { Accept: "application/json" },
-        });
+        const [response, tpoResponse] = await Promise.all([
+          fetch(`/api/items/${id}`, {
+            headers: { Accept: "application/json" },
+          }),
+          fetchUserTpos(true).catch(() => ({ tpos: [] as UserTpoRecord[] })),
+        ]);
 
         if (response.status === 401) {
           router.push("/login");
@@ -226,7 +231,23 @@ export default function EditItemPage({
         setCategory(item.category as ItemCategory);
         setShape(item.shape);
         setSelectedSeasons(item.seasons ?? []);
-        setSelectedTpos(item.tpos ?? []);
+        setSelectedTpoIds(item.tpo_ids ?? []);
+        const selectedInactiveTpos = (item.tpo_ids ?? []).map((tpoId, index) => ({
+          id: tpoId,
+          name: item.tpos?.[index] ?? `TPO ${tpoId}`,
+          sortOrder: 10_000 + index,
+          isActive: false,
+          isPreset: false,
+        }));
+        setTpoOptions(
+          [...tpoResponse.tpos, ...selectedInactiveTpos].reduce<UserTpoRecord[]>((carry, tpo) => {
+            if (carry.some((current) => current.id === tpo.id)) {
+              return carry;
+            }
+
+            return [...carry, tpo];
+          }, []),
+        );
 
         const main = item.colors.find((color) => color.role === "main");
         const sub = item.colors.find((color) => color.role === "sub");
@@ -310,7 +331,7 @@ export default function EditItemPage({
     setShape(value);
   }
 
-  function toggleValue(value: string, current: string[], setter: (values: string[]) => void) {
+  function toggleValue<T>(value: T, current: T[], setter: (values: T[]) => void) {
     setter(current.includes(value) ? current.filter((item) => item !== value) : [...current, value]);
   }
 
@@ -355,7 +376,7 @@ export default function EditItemPage({
       shape,
       colors,
       seasons: selectedSeasons,
-      tpos: selectedTpos,
+      tpo_ids: selectedTpoIds,
       spec:
         isTopsCategory && topsShape
           ? {
@@ -875,15 +896,23 @@ export default function EditItemPage({
             <div>
               <p className="mb-2 text-sm font-medium">TPO</p>
               <div className="flex flex-wrap gap-3">
-                {TPO_OPTIONS.map((tpo) => {
-                  const checked = selectedTpos.includes(tpo);
+                {tpoOptions.map((tpo) => {
+                  const checked = selectedTpoIds.includes(tpo.id);
                   return (
-                    <label key={tpo} className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition ${checked ? "border-blue-500 bg-blue-50 text-blue-700" : "border-gray-300 bg-white text-gray-700"}`}>
-                      <input type="checkbox" className="h-4 w-4" checked={checked} onChange={() => toggleValue(tpo, selectedTpos, setSelectedTpos)} />
-                      {tpo}
+                    <label key={tpo.id} className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition ${checked ? "border-blue-500 bg-blue-50 text-blue-700" : "border-gray-300 bg-white text-gray-700"} ${!tpo.isActive ? "border-amber-300 bg-amber-50 text-amber-800" : ""}`}>
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4"
+                        checked={checked}
+                        onChange={() => toggleValue(tpo.id, selectedTpoIds, setSelectedTpoIds)}
+                      />
+                      {tpo.name}
                     </label>
                   );
                 })}
+                {tpoOptions.length === 0 ? (
+                  <p className="text-sm text-gray-500">有効な TPO はまだありません。設定から追加できます。</p>
+                ) : null}
               </div>
             </div>
           </section>

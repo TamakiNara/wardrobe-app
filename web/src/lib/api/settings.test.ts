@@ -1,13 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { apiFetch } from "@/lib/api/client";
 import {
+  createUserTpo,
   createUserBrand,
   fetchCategoryVisibilitySettings,
   fetchUserPreferences,
+  fetchUserTpos,
   fetchUserBrands,
   updateUserBrand,
   updateCategoryVisibilitySettings,
   updateUserPreferences,
+  updateUserTpo,
 } from "@/lib/api/settings";
 
 vi.mock("@/lib/api/client", () => ({
@@ -79,6 +82,17 @@ describe("settings api helpers", () => {
     expect(result.preferences.currentSeason).toBe("spring");
   });
 
+  it("fetchUserTpos calls the tpos endpoint", async () => {
+    vi.mocked(apiFetch).mockResolvedValueOnce({
+      tpos: [{ id: 1, name: "仕事", sortOrder: 1, isActive: true, isPreset: true }],
+    });
+
+    const result = await fetchUserTpos(true);
+
+    expect(apiFetch).toHaveBeenCalledWith("/api/settings/tpos?active_only=1");
+    expect(result.tpos[0].name).toBe("仕事");
+  });
+
   it("updateUserPreferences sends a PUT request", async () => {
     vi.mocked(apiFetch).mockResolvedValueOnce({
       message: "updated",
@@ -128,6 +142,27 @@ describe("settings api helpers", () => {
     });
   });
 
+  it("createUserTpo sends a POST request", async () => {
+    vi.mocked(apiFetch).mockResolvedValueOnce({
+      message: "created",
+      tpo: { id: 4, name: "出張", sortOrder: 4, isActive: true, isPreset: false },
+    });
+
+    const payload = {
+      name: "出張",
+    };
+
+    await createUserTpo(payload);
+
+    expect(apiFetch).toHaveBeenCalledWith("/api/settings/tpos", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+  });
+
   it("updateUserBrand sends a PATCH request", async () => {
     vi.mocked(apiFetch).mockResolvedValueOnce({
       message: "updated",
@@ -141,6 +176,28 @@ describe("settings api helpers", () => {
     await updateUserBrand(1, payload);
 
     expect(apiFetch).toHaveBeenCalledWith("/api/settings/brands/1", {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+  });
+
+  it("updateUserTpo sends a PATCH request", async () => {
+    vi.mocked(apiFetch).mockResolvedValueOnce({
+      message: "updated",
+      tpo: { id: 4, name: "出張", sortOrder: 3, isActive: false, isPreset: false },
+    });
+
+    const payload = {
+      isActive: false,
+      sortOrder: 3,
+    };
+
+    await updateUserTpo(4, payload);
+
+    expect(apiFetch).toHaveBeenCalledWith("/api/settings/tpos/4", {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",

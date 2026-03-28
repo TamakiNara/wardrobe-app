@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Item;
 use App\Models\Outfit;
 use App\Models\User;
+use App\Models\UserTpo;
 use Database\Seeders\Support\TestSeedUsers;
 use Illuminate\Database\Seeder;
 
@@ -79,6 +80,7 @@ class SampleOutfitSeeder extends Seeder
                 'memo' => $definition['memo'],
                 'seasons' => $definition['seasons'],
                 'tpos' => $definition['tpos'],
+                'tpo_ids' => $this->resolveTpoIds($user, $definition['tpos']),
             ]);
 
             foreach ($definition['items'] as $index => $itemName) {
@@ -112,6 +114,20 @@ class SampleOutfitSeeder extends Seeder
                 'user_id' => $user->id,
             ]);
 
+        $userTpos = UserTpo::query()
+            ->where('user_id', $user->id)
+            ->pluck('id', 'name');
+
+        $outfits->each(function (Outfit $outfit) use ($userTpos) {
+            $outfit->forceFill([
+                'tpo_ids' => collect($outfit->tpos ?? [])
+                    ->map(fn ($name) => $userTpos->get($name))
+                    ->filter()
+                    ->values()
+                    ->all(),
+            ])->save();
+        });
+
         foreach ($outfits as $outfit) {
             $selectedItems = $items->shuffle()->take(random_int(3, 5))->values();
 
@@ -122,5 +138,19 @@ class SampleOutfitSeeder extends Seeder
                 ]);
             }
         }
+    }
+
+    private function resolveTpoIds(User $user, array $names): array
+    {
+        $tpoIds = UserTpo::query()
+            ->where('user_id', $user->id)
+            ->whereIn('name', $names)
+            ->pluck('id', 'name');
+
+        return collect($names)
+            ->map(fn ($name) => $tpoIds->get($name))
+            ->filter()
+            ->values()
+            ->all();
     }
 }

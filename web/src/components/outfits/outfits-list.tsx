@@ -7,7 +7,7 @@ import OutfitColorThumbnail from "@/components/outfits/outfit-color-thumbnail";
 import OutfitDuplicateAction from "@/components/outfits/outfit-duplicate-action";
 import { isItemVisibleByCategorySettings } from "@/lib/api/categories";
 import { fetchCategoryVisibilitySettings } from "@/lib/api/settings";
-import { SEASON_OPTIONS, TPO_OPTIONS } from "@/lib/master-data/item-attributes";
+import { SEASON_OPTIONS } from "@/lib/master-data/item-attributes";
 
 export type OutfitItem = {
   id: number;
@@ -44,6 +44,7 @@ export type OutfitsListProps = {
   totalAllCount: number;
   currentPage: number;
   lastPage: number;
+  availableTpos: string[];
   initialSeasonFilter?: string;
 };
 
@@ -119,6 +120,7 @@ export default function OutfitsList({
   totalCount,
   currentPage,
   lastPage,
+  availableTpos,
   initialSeasonFilter = "",
 }: OutfitsListProps) {
   const router = useRouter();
@@ -260,7 +262,7 @@ export default function OutfitsList({
               className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             >
               <option value="">すべて</option>
-              {TPO_OPTIONS.map((tpo) => (
+              {availableTpos.map((tpo) => (
                 <option key={tpo} value={tpo}>
                   {tpo}
                 </option>

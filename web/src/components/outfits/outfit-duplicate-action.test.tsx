@@ -55,6 +55,7 @@ describe("OutfitDuplicateAction", () => {
               memo: "朝会用",
               seasons: ["春"],
               tpos: ["仕事"],
+              tpo_ids: [1],
               items: [
                 {
                   item_id: 1,
