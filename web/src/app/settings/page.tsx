@@ -4,6 +4,9 @@ import Link from "next/link";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ApiClientError } from "@/lib/api/client";
+import { SettingsBreadcrumbs } from "@/components/settings/settings-breadcrumbs";
+import { SettingsCard } from "@/components/settings/settings-card";
+import { SettingsPageHeader } from "@/components/settings/settings-page-header";
 import {
   fetchUserPreferences,
   updateUserPreferences,
@@ -89,26 +92,20 @@ function SettingsPageContent() {
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">
       <div className="mx-auto max-w-5xl space-y-6">
-        <nav className="text-sm text-gray-500">
-          <Link href="/" className="hover:underline">
-            ホーム
-          </Link>
-          {" / "}
-          <span className="text-gray-700">設定</span>
-        </nav>
+        <SettingsBreadcrumbs currentLabel="設定" />
 
-        <section className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">設定</h1>
-            <p className="mt-2 text-sm text-gray-600">
+        <SettingsPageHeader
+          title="設定"
+          description={
+            <>
               各種設定を変更できます。
               <br />
               表示内容や利用方法に関する項目は、ここから調整できます。
-            </p>
-          </div>
-        </section>
+            </>
+          }
+        />
 
-        <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+        <SettingsCard>
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
               <h2 className="text-lg font-semibold text-gray-900">表示・初期値設定</h2>
@@ -224,10 +221,10 @@ function SettingsPageContent() {
               </p>
             </div>
           </div>
-        </section>
+        </SettingsCard>
 
         <section className="grid gap-4 md:grid-cols-3">
-          <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <SettingsCard>
             <h2 className="text-lg font-semibold text-gray-900">カテゴリ設定</h2>
             <p className="mt-2 text-sm text-gray-600">
               登録や選択に出すカテゴリを調整できます。
@@ -240,9 +237,9 @@ function SettingsPageContent() {
                 カテゴリ設定へ
               </Link>
             </div>
-          </section>
+          </SettingsCard>
 
-          <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <SettingsCard>
             <h2 className="text-lg font-semibold text-gray-900">TPO 設定</h2>
             <p className="mt-2 text-sm text-gray-600">
               アイテムとコーディネートで使う TPO 候補を管理できます。
@@ -255,9 +252,9 @@ function SettingsPageContent() {
                 TPO 設定へ
               </Link>
             </div>
-          </section>
+          </SettingsCard>
 
-          <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <SettingsCard>
             <h2 className="text-lg font-semibold text-gray-900">ブランド候補設定</h2>
             <p className="mt-2 text-sm text-gray-600">
               アイテム入力で使うブランド候補を管理できます。
@@ -270,7 +267,7 @@ function SettingsPageContent() {
                 ブランド候補設定へ
               </Link>
             </div>
-          </section>
+          </SettingsCard>
         </section>
       </div>
     </main>

@@ -1,9 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ApiClientError } from "@/lib/api/client";
+import { SettingsBreadcrumbs } from "@/components/settings/settings-breadcrumbs";
+import { SettingsCard } from "@/components/settings/settings-card";
+import { SettingsPageHeader } from "@/components/settings/settings-page-header";
 import { collectAllCategoryIds } from "@/lib/master-data/category-presets";
 import { fetchItems } from "@/lib/api/items";
 import { fetchCategoryGroups, findVisibleCategoryIdForItem } from "@/lib/api/categories";
@@ -312,38 +314,15 @@ function SettingsCategoriesPageContent() {
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">
       <div className="mx-auto max-w-5xl space-y-6">
-        <nav className="text-sm text-gray-500">
-          <Link href="/" className="hover:underline">
-            ホーム
-          </Link>
-          {" / "}
-          <Link href="/settings" className="hover:underline">
-            設定
-          </Link>
-          {" / "}
-          <span className="text-gray-700">カテゴリ設定</span>
-        </nav>
+        <SettingsBreadcrumbs currentLabel="カテゴリ設定" />
 
-        <section className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
-          <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-            <div>
-              <p className="text-sm text-gray-500">設定</p>
-              <h1 className="text-2xl font-bold text-gray-900">カテゴリ設定</h1>
-              <p className="mt-2 text-sm text-gray-600">
-                ON にしたカテゴリのみ、登録や選択時に表示されます。
-              </p>
-            </div>
+        <SettingsPageHeader
+          title="カテゴリ設定"
+          description="ON にしたカテゴリのみ、登録や選択時に表示されます。"
+          backHref="/settings"
+        />
 
-            <Link
-              href="/settings"
-              className="text-sm font-medium text-blue-600 hover:underline"
-            >
-              設定へ戻る
-            </Link>
-          </div>
-        </section>
-
-        <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+        <SettingsCard>
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
               <h2 className="text-lg font-semibold text-gray-900">カテゴリ表示設定</h2>
@@ -481,7 +460,7 @@ function SettingsCategoriesPageContent() {
               </div>
             </div>
           )}
-        </section>
+        </SettingsCard>
       </div>
     </main>
   );

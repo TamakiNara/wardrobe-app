@@ -1,9 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ApiClientError } from "@/lib/api/client";
+import { SettingsBreadcrumbs } from "@/components/settings/settings-breadcrumbs";
+import { SettingsCard } from "@/components/settings/settings-card";
+import { SettingsPageHeader } from "@/components/settings/settings-page-header";
 import { settingsActionIcons } from "@/lib/icons/settings-icons";
 import {
   createUserBrand,
@@ -197,38 +199,15 @@ function SettingsBrandsPageContent() {
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">
       <div className="mx-auto max-w-5xl space-y-6">
-        <nav className="text-sm text-gray-500">
-          <Link href="/" className="hover:underline">
-            ホーム
-          </Link>
-          {" / "}
-          <Link href="/settings" className="hover:underline">
-            設定
-          </Link>
-          {" / "}
-          <span className="text-gray-700">ブランド候補設定</span>
-        </nav>
+        <SettingsBreadcrumbs currentLabel="ブランド候補設定" />
 
-        <section className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
-          <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-            <div>
-              <p className="text-sm text-gray-500">設定</p>
-              <h1 className="text-2xl font-bold text-gray-900">ブランド候補設定</h1>
-              <p className="mt-2 text-sm text-gray-600">
-                アイテム入力で使うブランド候補を管理できます。既存 item のブランド名は自動更新しません。
-              </p>
-            </div>
+        <SettingsPageHeader
+          title="ブランド候補設定"
+          description="アイテム入力で使うブランド候補を管理できます。既存 item のブランド名は自動更新しません。"
+          backHref="/settings"
+        />
 
-            <Link
-              href="/settings"
-              className="text-sm font-medium text-blue-600 hover:underline"
-            >
-              設定へ戻る
-            </Link>
-          </div>
-        </section>
-
-        <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+        <SettingsCard>
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
               <h2 className="text-lg font-semibold text-gray-900">ブランド候補を追加</h2>
@@ -285,9 +264,9 @@ function SettingsBrandsPageContent() {
               </div>
             </div>
           </div>
-        </section>
+        </SettingsCard>
 
-        <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+        <SettingsCard>
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div className="flex-1">
               <h2 className="text-lg font-semibold text-gray-900">登録済みブランド候補</h2>
@@ -556,7 +535,7 @@ function SettingsBrandsPageContent() {
               ) : null}
             </div>
           )}
-        </section>
+        </SettingsCard>
       </div>
     </main>
   );

@@ -1,9 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ApiClientError } from "@/lib/api/client";
+import { SettingsBreadcrumbs } from "@/components/settings/settings-breadcrumbs";
+import { SettingsCard } from "@/components/settings/settings-card";
+import { SettingsPageHeader } from "@/components/settings/settings-page-header";
 import { settingsActionIcons } from "@/lib/icons/settings-icons";
 import { createUserTpo, fetchUserTpos, updateUserTpo } from "@/lib/api/settings";
 import type { UserTpoRecord } from "@/types/settings";
@@ -162,38 +164,15 @@ export default function SettingsTposPage() {
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">
       <div className="mx-auto max-w-4xl space-y-6">
-        <nav className="text-sm text-gray-500">
-          <Link href="/" className="hover:underline">
-            ホーム
-          </Link>
-          {" / "}
-          <Link href="/settings" className="hover:underline">
-            設定
-          </Link>
-          {" / "}
-          <span className="text-gray-700">TPO 設定</span>
-        </nav>
+        <SettingsBreadcrumbs currentLabel="TPO 設定" />
 
-        <section className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
-          <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-            <div>
-              <p className="text-sm text-gray-500">設定</p>
-              <h1 className="text-2xl font-bold text-gray-900">TPO 設定</h1>
-              <p className="mt-2 text-sm text-gray-600">
-                アイテムとコーディネートで使う TPO 候補を管理します。無効化した TPO は新規候補に出ません。
-              </p>
-            </div>
+        <SettingsPageHeader
+          title="TPO 設定"
+          description="アイテムとコーディネートで使う TPO 候補を管理します。無効化した TPO は新規候補に出ません。"
+          backHref="/settings"
+        />
 
-            <Link
-              href="/settings"
-              className="text-sm font-medium text-blue-600 hover:underline"
-            >
-              設定へ戻る
-            </Link>
-          </div>
-        </section>
-
-        <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+        <SettingsCard>
           <h2 className="text-lg font-semibold text-gray-900">TPO を追加</h2>
           <div className="mt-4 flex flex-col gap-3 md:flex-row">
             <input
@@ -214,9 +193,9 @@ export default function SettingsTposPage() {
           </div>
           {formMessage ? <p className="mt-3 text-sm text-emerald-700">{formMessage}</p> : null}
           {error ? <p className="mt-3 text-sm text-red-600">{error}</p> : null}
-        </section>
+        </SettingsCard>
 
-        <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+        <SettingsCard>
           <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
             <div>
               <h2 className="text-lg font-semibold text-gray-900">登録済み TPO</h2>
@@ -347,7 +326,7 @@ export default function SettingsTposPage() {
               ))}
             </div>
           )}
-        </section>
+        </SettingsCard>
       </div>
     </main>
   );
