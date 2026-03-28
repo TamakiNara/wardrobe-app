@@ -237,7 +237,7 @@ function SettingsPageContent() {
                 href="/settings/categories"
                 className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
               >
-                カテゴリ設定を開く
+                カテゴリ設定へ
               </Link>
             </div>
           </section>
@@ -252,7 +252,7 @@ function SettingsPageContent() {
                 href="/settings/tpos"
                 className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
               >
-                TPO を管理する
+                TPO 設定へ
               </Link>
             </div>
           </section>
@@ -267,7 +267,7 @@ function SettingsPageContent() {
                 href="/settings/brands"
                 className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
               >
-                ブランド候補を管理する
+                ブランド候補設定へ
               </Link>
             </div>
           </section>

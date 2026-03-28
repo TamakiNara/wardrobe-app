@@ -69,9 +69,9 @@ describe("SettingsPage", () => {
     expect(container.innerHTML).toContain('href="/settings/categories"');
     expect(container.innerHTML).toContain('href="/settings/tpos"');
     expect(container.innerHTML).toContain('href="/settings/brands"');
-    expect(container.textContent).toContain("カテゴリ設定を開く");
-    expect(container.textContent).toContain("TPO を管理する");
-    expect(container.textContent).toContain("ブランド候補を管理する");
+    expect(container.textContent).toContain("カテゴリ設定へ");
+    expect(container.textContent).toContain("TPO 設定へ");
+    expect(container.textContent).toContain("ブランド候補設定へ");
   });
 
   it("表示・初期値設定を保存できる", async () => {
