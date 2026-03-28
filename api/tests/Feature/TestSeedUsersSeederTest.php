@@ -44,12 +44,12 @@ class TestSeedUsersSeederTest extends TestCase
         $this->assertCount(0, $emptyUser->outfits);
         $this->assertCount(3, UserTpo::query()->where('user_id', $emptyUser->id)->get());
         $this->assertCount(0, UserBrand::query()->where('user_id', $emptyUser->id)->get());
-        $this->assertDatabaseCount('items', 48);
+        $this->assertDatabaseCount('items', 61);
 
         $this->assertNotNull($standardUser->visible_category_ids);
-        $this->assertCount(36, $standardUser->visible_category_ids);
+        $this->assertCount(40, $standardUser->visible_category_ids);
         $this->assertCount(6, $standardUser->outfits);
-        $this->assertCount(12, $standardUser->items);
+        $this->assertCount(25, $standardUser->items);
         $standardTpos = UserTpo::query()
             ->where('user_id', $standardUser->id)
             ->orderBy('sort_order')
@@ -62,6 +62,24 @@ class TestSeedUsersSeederTest extends TestCase
         $this->assertTrue($standardUser->items->every(
             fn (Item $item) => is_array($item->tpo_ids)
         ));
+        $bottomsLengthTypes = $standardUser->items
+            ->pluck('spec')
+            ->map(fn ($spec) => data_get($spec, 'bottoms.length_type'))
+            ->filter()
+            ->values();
+        $legwearCoverageTypes = $standardUser->items
+            ->pluck('spec')
+            ->map(fn ($spec) => data_get($spec, 'legwear.coverage_type'))
+            ->filter()
+            ->values();
+        $this->assertSame(
+            ['ankle', 'full', 'knee', 'midi', 'mini'],
+            $bottomsLengthTypes->unique()->sort()->values()->all(),
+        );
+        $this->assertSame(
+            ['ankle_socks', 'crew_socks', 'knee_socks', 'leggings_cropped', 'leggings_full', 'over_knee', 'stockings', 'tights'],
+            $legwearCoverageTypes->unique()->sort()->values()->all(),
+        );
         $standardBrands = UserBrand::query()
             ->where('user_id', $standardUser->id)
             ->orderBy('name')

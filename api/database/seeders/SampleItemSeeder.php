@@ -131,6 +131,201 @@ class SampleItemSeeder extends Seeder
                 'spec' => null,
             ],
             [
+                'name' => 'ミニスカート',
+                'category' => 'bottoms',
+                'shape' => 'mini-skirt',
+                'colors' => [
+                    ['role' => 'main', 'mode' => 'preset', 'value' => 'gray', 'hex' => '#8A9099', 'label' => 'グレー'],
+                ],
+                'seasons' => ['春', '夏'],
+                'tpos' => ['休日'],
+                'spec' => [
+                    'bottoms' => [
+                        'length_type' => 'mini',
+                    ],
+                ],
+            ],
+            [
+                'name' => 'ひざ丈スカート',
+                'category' => 'bottoms',
+                'shape' => 'tight-skirt',
+                'colors' => [
+                    ['role' => 'main', 'mode' => 'preset', 'value' => 'navy', 'hex' => '#44516A', 'label' => 'ネイビー'],
+                ],
+                'seasons' => ['春', '秋'],
+                'tpos' => ['仕事'],
+                'spec' => [
+                    'bottoms' => [
+                        'length_type' => 'knee',
+                    ],
+                ],
+            ],
+            [
+                'name' => 'ミディスカート',
+                'category' => 'bottoms',
+                'shape' => 'flare-skirt',
+                'colors' => [
+                    ['role' => 'main', 'mode' => 'preset', 'value' => 'beige', 'hex' => '#CBB79D', 'label' => 'ベージュ'],
+                ],
+                'seasons' => ['春', '秋'],
+                'tpos' => ['休日', 'フォーマル'],
+                'spec' => [
+                    'bottoms' => [
+                        'length_type' => 'midi',
+                    ],
+                ],
+            ],
+            [
+                'name' => 'アンクルパンツ',
+                'category' => 'bottoms',
+                'shape' => 'tapered',
+                'colors' => [
+                    ['role' => 'main', 'mode' => 'preset', 'value' => 'black', 'hex' => '#262626', 'label' => 'ブラック'],
+                ],
+                'seasons' => ['春', '秋'],
+                'tpos' => ['仕事', '休日'],
+                'spec' => [
+                    'bottoms' => [
+                        'length_type' => 'ankle',
+                    ],
+                ],
+            ],
+            [
+                'name' => 'フルレングスパンツ',
+                'category' => 'bottoms',
+                'shape' => 'wide',
+                'colors' => [
+                    ['role' => 'main', 'mode' => 'preset', 'value' => 'brown', 'hex' => '#7C6556', 'label' => 'ブラウン'],
+                ],
+                'seasons' => ['秋', '冬'],
+                'tpos' => ['仕事', '休日'],
+                'spec' => [
+                    'bottoms' => [
+                        'length_type' => 'full',
+                    ],
+                ],
+            ],
+            [
+                'name' => 'アンクルソックス',
+                'category' => 'legwear',
+                'shape' => 'socks',
+                'colors' => [
+                    ['role' => 'main', 'mode' => 'preset', 'value' => 'white', 'hex' => '#ECECEC', 'label' => 'ホワイト'],
+                ],
+                'seasons' => ['春', '夏', '秋'],
+                'tpos' => ['休日'],
+                'spec' => [
+                    'legwear' => [
+                        'coverage_type' => 'ankle_socks',
+                    ],
+                ],
+            ],
+            [
+                'name' => 'クルーソックス',
+                'category' => 'legwear',
+                'shape' => 'socks',
+                'colors' => [
+                    ['role' => 'main', 'mode' => 'preset', 'value' => 'gray', 'hex' => '#A4ACB6', 'label' => 'グレー'],
+                ],
+                'seasons' => ['春', '秋', '冬'],
+                'tpos' => ['仕事', '休日'],
+                'spec' => [
+                    'legwear' => [
+                        'coverage_type' => 'crew_socks',
+                    ],
+                ],
+            ],
+            [
+                'name' => 'ひざ下ソックス',
+                'category' => 'legwear',
+                'shape' => 'socks',
+                'colors' => [
+                    ['role' => 'main', 'mode' => 'preset', 'value' => 'navy', 'hex' => '#485B78', 'label' => 'ネイビー'],
+                ],
+                'seasons' => ['秋', '冬'],
+                'tpos' => ['仕事'],
+                'spec' => [
+                    'legwear' => [
+                        'coverage_type' => 'knee_socks',
+                    ],
+                ],
+            ],
+            [
+                'name' => 'オーバーニーソックス',
+                'category' => 'legwear',
+                'shape' => 'socks',
+                'colors' => [
+                    ['role' => 'main', 'mode' => 'preset', 'value' => 'black', 'hex' => '#2B2B2B', 'label' => 'ブラック'],
+                ],
+                'seasons' => ['秋', '冬'],
+                'tpos' => ['休日'],
+                'spec' => [
+                    'legwear' => [
+                        'coverage_type' => 'over_knee',
+                    ],
+                ],
+            ],
+            [
+                'name' => 'ベージュストッキング',
+                'category' => 'legwear',
+                'shape' => 'stockings',
+                'colors' => [
+                    ['role' => 'main', 'mode' => 'preset', 'value' => 'beige', 'hex' => '#D8B89F', 'label' => 'ベージュ'],
+                ],
+                'seasons' => ['春', '夏', '秋', '冬'],
+                'tpos' => ['仕事', 'フォーマル'],
+                'spec' => [
+                    'legwear' => [
+                        'coverage_type' => 'stockings',
+                    ],
+                ],
+            ],
+            [
+                'name' => 'ブラックタイツ',
+                'category' => 'legwear',
+                'shape' => 'tights',
+                'colors' => [
+                    ['role' => 'main', 'mode' => 'preset', 'value' => 'black', 'hex' => '#1F1F1F', 'label' => 'ブラック'],
+                ],
+                'seasons' => ['秋', '冬'],
+                'tpos' => ['仕事', '休日', 'フォーマル'],
+                'spec' => [
+                    'legwear' => [
+                        'coverage_type' => 'tights',
+                    ],
+                ],
+            ],
+            [
+                'name' => 'クロップドレギンス',
+                'category' => 'legwear',
+                'shape' => 'leggings',
+                'colors' => [
+                    ['role' => 'main', 'mode' => 'preset', 'value' => 'gray', 'hex' => '#8E97A3', 'label' => 'グレー'],
+                ],
+                'seasons' => ['春', '秋'],
+                'tpos' => ['休日'],
+                'spec' => [
+                    'legwear' => [
+                        'coverage_type' => 'leggings_cropped',
+                    ],
+                ],
+            ],
+            [
+                'name' => 'フルレングスレギンス',
+                'category' => 'legwear',
+                'shape' => 'leggings',
+                'colors' => [
+                    ['role' => 'main', 'mode' => 'preset', 'value' => 'black', 'hex' => '#30343A', 'label' => 'ブラック'],
+                ],
+                'seasons' => ['秋', '冬'],
+                'tpos' => ['休日'],
+                'spec' => [
+                    'legwear' => [
+                        'coverage_type' => 'leggings_full',
+                    ],
+                ],
+            ],
+            [
                 'name' => 'ベージュトレンチコート',
                 'brand_name' => 'UNITED ARROWS',
                 'category' => 'outer',

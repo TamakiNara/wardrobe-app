@@ -185,7 +185,7 @@
 - TPO の選択肢正本は `user_tpos` とし、`standard-user@example.com` / `large-user@example.com` では active / inactive を含む候補を再投入する
 - `empty-user@example.com` も item / outfit / wear logs は 0 件のまま、初期プリセット TPO 3 件を持つ
 - brand 名 / item メモ / 画像 URL などの将来項目は、テーブル追加後に sample data へ反映する
-- `standard-user@example.com` は手書き 12 件の Item（うち `disposed` 1 件、`in_cleaning` 1 件）と 6 件の Outfit（うち `invalid` 1 件）、8 件の wear logs を持ち、`large-user@example.com` は Factory 併用の 36 件の Item と 12 件の Outfit、14 件以上の wear logs を持つ
+- `standard-user@example.com` は手書き 25 件の Item（うち `disposed` 1 件、`in_cleaning` 1 件、ボトムス丈 5 種とレッグウェア被覆 8 種の確認用 item を含む）と 6 件の Outfit（うち `invalid` 1 件）、8 件の wear logs を持ち、`large-user@example.com` は Factory 併用の 36 件の Item と 12 件の Outfit、14 件以上の wear logs を持つ
 - outfit ベースの wear log は、sample data でも `wear_log_items` を実体化した状態で再投入する
 - ブランド候補は `empty-user@example.com` 0 件、`standard-user@example.com` 8 件、`large-user@example.com` 24 件を投入し、標準 / 多件数 / inactive 混在の確認ができる
 - `php artisan migrate:fresh --seed` と `php artisan db:seed --class=TestDatasetSeeder` は実行確認済み
