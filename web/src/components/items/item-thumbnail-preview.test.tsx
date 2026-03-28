@@ -138,6 +138,6 @@ describe("ItemThumbnailPreview", () => {
       );
     });
 
-    expect(container.querySelector('[data-testid="lower-body-skin-base"]')?.getAttribute("fill")).toBe("#A87348");
+    expect(container.querySelector('[data-testid="lower-body-skin-base"]')?.getAttribute("fill")).toBe("#C98D5E");
   });
 });

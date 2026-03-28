@@ -229,15 +229,15 @@ item 側には分類値のみを保存し、描画時に見え方へ変換する
 
 ### current preset
 
-- `pink_light` → `#F4D8D1`
-- `pink_medium` → `#E6B8AA`
-- `pink_deep` → `#C88F80`
+- `pink_light` → `#F2D9C9`
+- `pink_medium` → `#EDC6B5`
+- `pink_deep` → `#D6A489`
 - `neutral_light` → `#F5D9BF`
 - `neutral_medium` → `#F1C7A6`
 - `neutral_deep` → `#C78F67`
-- `yellow_light` → `#F2D8AA`
-- `yellow_medium` → `#D8AE75`
-- `yellow_deep` → `#A87348`
+- `yellow_light` → `#F3DFC0`
+- `yellow_medium` → `#E9C29B`
+- `yellow_deep` → `#C98D5E`
 
 ---
 
