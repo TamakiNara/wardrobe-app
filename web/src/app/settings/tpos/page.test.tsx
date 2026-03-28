@@ -70,7 +70,9 @@ describe("SettingsTposPage", () => {
     expect(container.textContent).toContain("仕事");
     expect(container.textContent).toContain("プリセット");
     expect(container.textContent).toContain("出張");
-    expect(container.textContent).toContain("名称編集");
+    expect(container.textContent).toContain("編集");
+    expect(container.querySelector('button[aria-label="仕事 を 1 つ下へ移動"]')).not.toBeNull();
+    expect(container.querySelector('button[aria-label="休日 を 1 つ上へ移動"]')).not.toBeNull();
   });
 
   it("追加と無効化の操作を API へ送る", async () => {
