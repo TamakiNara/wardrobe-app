@@ -71,7 +71,14 @@ describe("ItemPage", () => {
           colors: [],
           seasons: ["春"],
           tpos: ["仕事"],
-          spec: null,
+          spec: {
+            bottoms: {
+              length_type: "midi",
+            },
+            legwear: {
+              coverage_type: "tights",
+            },
+          },
           images: [
             {
               id: 1,
@@ -106,6 +113,8 @@ describe("ItemPage", () => {
     expect(markup).toContain("購入後メモ");
     expect(markup).toContain("対応");
     expect(markup).toContain("クリーニング中");
+    expect(markup).toContain("ボトムス丈： ミディ丈");
+    expect(markup).toContain("レッグウェア： タイツ");
     expect(markup).toContain("画像");
     expect(markup).toContain("coat.png");
   });

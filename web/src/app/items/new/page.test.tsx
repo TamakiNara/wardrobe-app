@@ -66,6 +66,14 @@ const sampleGroups: CategoryGroupRecord[] = [
     ],
   },
   {
+    id: "bottoms",
+    name: "ボトムス",
+    sortOrder: 15,
+    categories: [
+      { id: "bottoms_straight", groupId: "bottoms", name: "ストレート", sortOrder: 10 },
+    ],
+  },
+  {
     id: "dress",
     name: "ワンピース・オールインワン",
     sortOrder: 20,
@@ -103,7 +111,7 @@ describe("NewItemPage", () => {
     root = createRoot(container);
     fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
     fetchCategoryVisibilitySettingsMock.mockResolvedValue({
-      visibleCategoryIds: ["tops_tshirt", "dress_onepiece", "inner_roomwear"],
+      visibleCategoryIds: ["tops_tshirt", "bottoms_straight", "dress_onepiece", "inner_roomwear"],
     });
     fetchUserBrandsMock.mockResolvedValue({ brands: [] });
     fetchUserTposMock.mockResolvedValue({
@@ -137,6 +145,7 @@ describe("NewItemPage", () => {
     expect(optionLabels).toEqual([
       "選択してください",
       "トップス",
+      "ボトムス",
       "ワンピース・オールインワン",
       "ルームウェア・インナー",
     ]);
@@ -224,5 +233,38 @@ describe("NewItemPage", () => {
     expect(container.textContent).toContain("購入検討の内容を初期値として読み込みました。");
     expect(container.textContent).toContain("引き継いだ画像も保存前に取り除けます。");
     expect(container.textContent).toContain("ブランド候補にも追加する");
+  });
+
+  it("カテゴリに応じてボトムス丈とレッグウェア入力を切り替える", async () => {
+    const { default: NewItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(NewItemPage));
+      await waitForEffects();
+    });
+
+    const categorySelect = container.querySelector<HTMLSelectElement>("#category");
+    expect(categorySelect).not.toBeNull();
+
+    await act(async () => {
+      categorySelect!.value = "bottoms";
+      categorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain("ボトムス仕様");
+    expect(container.textContent).toContain("ボトムス丈");
+    expect(container.querySelector("#bottoms-length-type")).not.toBeNull();
+    expect(container.querySelector("#legwear-coverage-type")).toBeNull();
+
+    await act(async () => {
+      categorySelect!.value = "inner";
+      categorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain("レッグウェア仕様");
+    expect(container.textContent).toContain("レッグウェア");
+    expect(container.querySelector("#legwear-coverage-type")).not.toBeNull();
   });
 });

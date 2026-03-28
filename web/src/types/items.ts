@@ -17,8 +17,18 @@ export type TopsSpec = {
   fit?: string | null;
 };
 
+export type BottomsSpec = {
+  length_type?: string | null;
+};
+
+export type LegwearSpec = {
+  coverage_type?: string | null;
+};
+
 export type ItemSpec = {
   tops?: TopsSpec | null;
+  bottoms?: BottomsSpec | null;
+  legwear?: LegwearSpec | null;
 };
 
 export type ItemImageRecord = {

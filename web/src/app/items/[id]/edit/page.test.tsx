@@ -62,6 +62,14 @@ const sampleGroups: CategoryGroupRecord[] = [
     ],
   },
   {
+    id: "bottoms",
+    name: "ボトムス",
+    sortOrder: 15,
+    categories: [
+      { id: "bottoms_straight", groupId: "bottoms", name: "ストレート", sortOrder: 10 },
+    ],
+  },
+  {
     id: "dress",
     name: "ワンピース・オールインワン",
     sortOrder: 20,
@@ -97,7 +105,7 @@ describe("EditItemPage", () => {
     root = createRoot(container);
     fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
     fetchCategoryVisibilitySettingsMock.mockResolvedValue({
-      visibleCategoryIds: ["tops_tshirt", "dress_onepiece", "inner_roomwear"],
+      visibleCategoryIds: ["tops_tshirt", "bottoms_straight", "dress_onepiece", "inner_roomwear"],
     });
     fetchUserBrandsMock.mockResolvedValue({ brands: [] });
     fetchUserTposMock.mockResolvedValue({
@@ -184,6 +192,7 @@ describe("EditItemPage", () => {
     expect(optionLabels).toEqual([
       "選択してください",
       "トップス",
+      "ボトムス",
       "ワンピース・オールインワン",
       "ルームウェア・インナー",
     ]);
@@ -203,4 +212,57 @@ describe("EditItemPage", () => {
     expect(container.textContent).toContain("削除");
     expect((container.querySelector("#care-status") as HTMLSelectElement | null)?.value).toBe("in_cleaning");
   }, 20000);
+
+  it("編集画面でボトムス丈とレッグウェア設定を表示できる", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          item: {
+            id: 2,
+            name: "レギンス",
+            status: "active",
+            care_status: null,
+            brand_name: null,
+            price: null,
+            purchase_url: null,
+            memo: null,
+            purchased_at: null,
+            size_gender: null,
+            size_label: null,
+            size_note: null,
+            size_details: null,
+            is_rain_ok: false,
+            category: "inner",
+            shape: "underwear",
+            colors: [],
+            seasons: [],
+            tpos: [],
+            tpo_ids: [],
+            spec: {
+              legwear: {
+                coverage_type: "tights",
+              },
+            },
+            images: [],
+          },
+        }),
+      }),
+    );
+
+    const { default: EditItemPage } = await import("./page");
+
+    act(() => {
+      root.render(React.createElement(EditItemPage, { params: Promise.resolve({ id: "2" }) }));
+    });
+
+    await act(async () => {
+      await waitForEffects();
+    });
+
+    expect((container.querySelector("#legwear-coverage-type") as HTMLSelectElement | null)?.value).toBe("tights");
+    expect(container.textContent).toContain("レッグウェア仕様");
+  });
 });

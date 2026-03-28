@@ -5,6 +5,7 @@ import ItemCareStatusAction from "@/components/items/item-care-status-action";
 import ItemStatusAction from "@/components/items/item-status-action";
 import ItemPreviewCard from "@/components/items/item-preview-card";
 import { formatItemPrice, ITEM_CARE_STATUS_LABELS, ITEM_SIZE_GENDER_LABELS } from "@/lib/items/metadata";
+import { findBottomsLengthLabel, findLegwearCoverageLabel } from "@/lib/master-data/item-skin-exposure";
 import { buildTopsSpecLabels, buildTopsSpecRaw } from "@/lib/master-data/item-tops";
 import { findItemCategoryLabel, findItemShapeLabel } from "@/lib/master-data/item-shapes";
 import { fetchLaravelWithCookie } from "@/lib/server/laravel";
@@ -41,6 +42,8 @@ export default async function ItemPage({
   const subColor = item.colors.find((c) => c.role === "sub");
   const topsSpec = buildTopsSpecLabels(item.spec?.tops);
   const topsSpecRaw = buildTopsSpecRaw(item.spec?.tops);
+  const bottomsLengthLabel = findBottomsLengthLabel(item.spec?.bottoms?.length_type);
+  const legwearCoverageLabel = findLegwearCoverageLabel(item.spec?.legwear?.coverage_type);
   const categoryLabel = findItemCategoryLabel(item.category);
   const shapeLabel = findItemShapeLabel(item.category, item.shape);
   const itemImages = item.images ?? [];
@@ -164,6 +167,16 @@ export default async function ItemPage({
           <p className="mt-1 text-sm text-gray-600">
             TPO： {item.tpos?.length ? item.tpos.join(" / ") : "未設定"}
           </p>
+          {bottomsLengthLabel ? (
+            <p className="mt-1 text-sm text-gray-600">
+              ボトムス丈： {bottomsLengthLabel}
+            </p>
+          ) : null}
+          {legwearCoverageLabel ? (
+            <p className="mt-1 text-sm text-gray-600">
+              レッグウェア： {legwearCoverageLabel}
+            </p>
+          ) : null}
         </div>
 
         <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">

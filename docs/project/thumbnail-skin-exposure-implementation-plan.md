@@ -40,12 +40,11 @@ current 実装の正本ではなく、今後の実装依頼や仕様確認の起
 - item / outfit / wear log にサムネイル表示の責務がある
 - outfit サムネイルは current outfit item 構成を正本としている
 - wear log サムネイルは `wear_log_items` を正本としている
-- item 側では `spec.tops` を持つ設計がある
+- item 側では `spec.tops` / `spec.bottoms.length_type` / `spec.legwear.coverage_type` を保存できる
+- item create / edit / detail では bottoms / legwear 分類値を扱える
 
 ### planned
 
-- `spec.bottoms.length_type`
-- `spec.legwear.coverage_type`
 - `skinTonePreset`
 - item サムネイルでの素の脚見え表現
 - outfit / wear log サムネイルでの脚見え合成表現
@@ -76,7 +75,7 @@ current 実装の正本ではなく、今後の実装依頼や仕様確認の起
 ### 注意点
 
 - bottoms 系 item にだけ `length_type` を持たせるか、他カテゴリでも nullable に持てるようにするかは実装時に決める必要がある
-- legwear 系 item の coverage 分類は、既存 category / shape とどう対応づけるか整理が必要になる
+- Phase 1 の current UI では、legwear 系入力は `inner` category を入口として扱う
 - 保存値追加だけを先に入れても、UI で設定できない期間が発生する
 
 ---
@@ -158,6 +157,8 @@ current 実装の正本ではなく、今後の実装依頼や仕様確認の起
 - `spec.bottoms.length_type` を追加
 - `spec.legwear.coverage_type` を追加
 - item create / edit / detail で設定・確認できるようにする
+
+上記 3 点は current 化済み。
 
 ### 第2段階
 

@@ -130,13 +130,21 @@ class ItemsEndpointsTest extends TestCase
 
     private function createUserTpo(User $user, array $overrides = []): UserTpo
     {
-        return UserTpo::query()->create(array_merge([
+        $attributes = array_merge([
             'user_id' => $user->id,
             'name' => '仕事',
             'sort_order' => 1,
             'is_active' => true,
             'is_preset' => true,
-        ], $overrides));
+        ], $overrides);
+
+        return UserTpo::query()->updateOrCreate(
+            [
+                'user_id' => $user->id,
+                'name' => $attributes['name'],
+            ],
+            $attributes,
+        );
     }
 
     public function test_get_items_returns_401_when_unauthenticated(): void
@@ -428,6 +436,108 @@ class ItemsEndpointsTest extends TestCase
             'name' => 'クリーニング予定コート',
             'care_status' => 'in_cleaning',
         ]);
+    }
+
+    public function test_post_items_can_save_bottoms_length_type_spec(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/items', [
+            'name' => 'ミディ丈スカート',
+            'category' => 'bottoms',
+            'shape' => 'a-line-skirt',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'navy',
+                'hex' => '#123456',
+                'label' => 'ネイビー',
+            ]],
+            'spec' => [
+                'bottoms' => [
+                    'length_type' => 'midi',
+                ],
+            ],
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('item.spec.bottoms.length_type', 'midi');
+
+        $item = Item::query()->findOrFail($response->json('item.id'));
+        $this->assertSame('midi', data_get($item->spec, 'bottoms.length_type'));
+    }
+
+    public function test_post_items_can_save_legwear_coverage_type_spec(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/items', [
+            'name' => 'タイツ',
+            'category' => 'inner',
+            'shape' => 'underwear',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'black',
+                'hex' => '#111111',
+                'label' => 'ブラック',
+            ]],
+            'spec' => [
+                'legwear' => [
+                    'coverage_type' => 'tights',
+                ],
+            ],
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('item.spec.legwear.coverage_type', 'tights');
+
+        $item = Item::query()->findOrFail($response->json('item.id'));
+        $this->assertSame('tights', data_get($item->spec, 'legwear.coverage_type'));
+    }
+
+    public function test_post_items_rejects_unknown_skin_exposure_spec_values(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/items', [
+            'name' => '不正な丈アイテム',
+            'category' => 'bottoms',
+            'shape' => 'straight',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'navy',
+                'hex' => '#123456',
+                'label' => 'ネイビー',
+            ]],
+            'spec' => [
+                'bottoms' => [
+                    'length_type' => 'shortish',
+                ],
+                'legwear' => [
+                    'coverage_type' => 'full_socks',
+                ],
+            ],
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors([
+                'spec.bottoms.length_type',
+                'spec.legwear.coverage_type',
+            ]);
     }
 
     public function test_post_items_can_save_tpo_ids_and_return_resolved_tpos(): void

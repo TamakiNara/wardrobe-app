@@ -41,6 +41,14 @@ import {
   type TopsShapeValue,
   type TopsSleeveValue,
 } from "@/lib/master-data/item-tops";
+import {
+  BOTTOMS_LENGTH_OPTIONS,
+  LEGWEAR_COVERAGE_OPTIONS,
+  isBottomsSpecCategory,
+  isLegwearSpecCategory,
+  type BottomsLengthType,
+  type LegwearCoverageType,
+} from "@/lib/master-data/item-skin-exposure";
 import { formatItemPrice, ITEM_CARE_STATUS_LABELS, ITEM_SIZE_GENDER_LABELS, normalizeItemImages } from "@/lib/items/metadata";
 import type { UserTpoRecord } from "@/types/settings";
 
@@ -92,6 +100,8 @@ export default function EditItemPage({
   const [topsNeck, setTopsNeck] = useState<TopsNeckValue | "">("");
   const [topsDesign, setTopsDesign] = useState<TopsDesignValue | "">("");
   const [topsFit, setTopsFit] = useState<TopsFitValue>(DEFAULT_TOPS_FIT);
+  const [bottomsLengthType, setBottomsLengthType] = useState<BottomsLengthType | "">("");
+  const [legwearCoverageType, setLegwearCoverageType] = useState<LegwearCoverageType | "">("");
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
@@ -99,6 +109,8 @@ export default function EditItemPage({
   const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
 
   const isTopsCategory = category === "tops";
+  const isBottomsSpecVisible = isBottomsSpecCategory(category);
+  const isLegwearSpecVisible = isLegwearSpecCategory(category);
 
   const shapeOptions = useMemo(() => {
     if (!category) return [];
@@ -252,6 +264,8 @@ export default function EditItemPage({
         const main = item.colors.find((color) => color.role === "main");
         const sub = item.colors.find((color) => color.role === "sub");
         const tops = item.spec?.tops;
+        const bottoms = item.spec?.bottoms;
+        const legwear = item.spec?.legwear;
 
         if (main) {
           if (main.mode === "custom") {
@@ -282,6 +296,14 @@ export default function EditItemPage({
           setTopsDesign((tops?.design as TopsDesignValue | null | undefined) ?? rule?.defaults?.design ?? "");
           setTopsFit((tops?.fit as TopsFitValue | null | undefined) ?? rule?.defaults?.fit ?? DEFAULT_TOPS_FIT);
         }
+
+        if (item.category === "bottoms") {
+          setBottomsLengthType((bottoms?.length_type as BottomsLengthType | null | undefined) ?? "");
+        }
+
+        if (item.category === "inner") {
+          setLegwearCoverageType((legwear?.coverage_type as LegwearCoverageType | null | undefined) ?? "");
+        }
       } finally {
         setLoading(false);
       }
@@ -299,12 +321,26 @@ export default function EditItemPage({
     setTopsFit(DEFAULT_TOPS_FIT);
   }
 
+  function resetBottomsSpecState() {
+    setBottomsLengthType("");
+  }
+
+  function resetLegwearSpecState() {
+    setLegwearCoverageType("");
+  }
+
   function handleCategoryChange(nextCategory: string) {
     setCategory(nextCategory as ItemCategory | "");
     setShape("");
 
     if (nextCategory !== "tops") {
       resetTopsState();
+    }
+    if (!isBottomsSpecCategory(nextCategory)) {
+      resetBottomsSpecState();
+    }
+    if (!isLegwearSpecCategory(nextCategory)) {
+      resetLegwearSpecState();
     }
   }
 
@@ -388,8 +424,41 @@ export default function EditItemPage({
                 design: topsDesign || null,
                 fit: topsFit || null,
               },
+              ...(isBottomsSpecVisible && bottomsLengthType
+                ? {
+                    bottoms: {
+                      length_type: bottomsLengthType,
+                    },
+                  }
+                : {}),
+              ...(isLegwearSpecVisible && legwearCoverageType
+                ? {
+                    legwear: {
+                      coverage_type: legwearCoverageType,
+                    },
+                  }
+                : {}),
             }
-          : null,
+          : isBottomsSpecVisible && bottomsLengthType
+            ? {
+                bottoms: {
+                  length_type: bottomsLengthType,
+                },
+                ...(isLegwearSpecVisible && legwearCoverageType
+                  ? {
+                      legwear: {
+                        coverage_type: legwearCoverageType,
+                      },
+                    }
+                  : {}),
+              }
+            : isLegwearSpecVisible && legwearCoverageType
+              ? {
+                  legwear: {
+                    coverage_type: legwearCoverageType,
+                  },
+                }
+              : null,
       images: itemImages.map((image) => ({
         disk: image.disk,
         path: image.path,
@@ -811,6 +880,52 @@ export default function EditItemPage({
                     ))}
                   </select>
                 </div>
+              </div>
+            </section>
+          )}
+
+          {isBottomsSpecVisible && (
+            <section className="space-y-4 rounded-xl border border-gray-200 bg-gray-50 p-4">
+              <div>
+                <p className="text-sm font-medium text-gray-700">ボトムス仕様</p>
+              </div>
+
+              <div>
+                <label htmlFor="bottoms-length-type" className="mb-1 block text-sm font-medium text-gray-700">ボトムス丈</label>
+                <select
+                  id="bottoms-length-type"
+                  value={bottomsLengthType}
+                  onChange={(e) => setBottomsLengthType(e.target.value as BottomsLengthType | "")}
+                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                >
+                  <option value="">選択してください</option>
+                  {BOTTOMS_LENGTH_OPTIONS.map((item) => (
+                    <option key={item.value} value={item.value}>{item.label}</option>
+                  ))}
+                </select>
+              </div>
+            </section>
+          )}
+
+          {isLegwearSpecVisible && (
+            <section className="space-y-4 rounded-xl border border-gray-200 bg-gray-50 p-4">
+              <div>
+                <p className="text-sm font-medium text-gray-700">レッグウェア仕様</p>
+              </div>
+
+              <div>
+                <label htmlFor="legwear-coverage-type" className="mb-1 block text-sm font-medium text-gray-700">レッグウェア</label>
+                <select
+                  id="legwear-coverage-type"
+                  value={legwearCoverageType}
+                  onChange={(e) => setLegwearCoverageType(e.target.value as LegwearCoverageType | "")}
+                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                >
+                  <option value="">選択してください</option>
+                  {LEGWEAR_COVERAGE_OPTIONS.map((item) => (
+                    <option key={item.value} value={item.value}>{item.label}</option>
+                  ))}
+                </select>
               </div>
             </section>
           )}

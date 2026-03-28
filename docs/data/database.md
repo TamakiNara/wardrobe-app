@@ -328,7 +328,7 @@ wear logs も本資料の対象とし、その保存方針を定義します。
 ### items.spec
 
 `spec` は JSON オブジェクトです。  
-現在は `tops` の詳細仕様を保存します。
+現在は `tops` の詳細仕様に加えて、`bottoms.length_type` と `legwear.coverage_type` を保存します。
 
 ```json
 {
@@ -339,6 +339,12 @@ wear logs も本資料の対象とし、その保存方針を定義します。
     "neck": "crew",
     "design": "raglan",
     "fit": "normal"
+  },
+  "bottoms": {
+    "length_type": "midi"
+  },
+  "legwear": {
+    "coverage_type": "tights"
   }
 }
 ```
@@ -346,10 +352,10 @@ wear logs も本資料の対象とし、その保存方針を定義します。
 補足:
 
 - `spec` は nullable
-- tops 以外のカテゴリでは `null` のままでもよい
+- Phase 1 では bottoms は `spec.bottoms.length_type`、inner は `spec.legwear.coverage_type` を持てる
 - `is_rain_ok` は正式項目として持ち、初期値は `false` とする
 - 雨対応はまず boolean で表現し、`weather_tags` のような拡張は後回しにする
-- 詳細仕様の定義は `docs/specs/items/tops.md` を参照
+- 詳細仕様の定義は `docs/specs/items/tops.md` と `docs/specs/items/thumbnail-skin-exposure.md` を参照
 - item status の状態管理の正本は `docs/specs/items/status-management.md` を参照
 - カテゴリ設定の仕様は `docs/specs/settings/category-settings.md` を参照
 - `status` は `active` / `disposed` を持つ

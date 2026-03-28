@@ -2042,11 +2042,42 @@ components:
         fit:
           type: string
 
+    BottomsSpec:
+      type: object
+      properties:
+        length_type:
+          type: string
+          enum:
+            - mini
+            - knee
+            - midi
+            - ankle
+            - full
+
+    LegwearSpec:
+      type: object
+      properties:
+        coverage_type:
+          type: string
+          enum:
+            - ankle_socks
+            - crew_socks
+            - knee_socks
+            - over_knee
+            - stockings
+            - tights
+            - leggings_cropped
+            - leggings_full
+
     ItemSpec:
       type: object
       properties:
         tops:
           $ref: '#/components/schemas/TopsSpec'
+        bottoms:
+          $ref: '#/components/schemas/BottomsSpec'
+        legwear:
+          $ref: '#/components/schemas/LegwearSpec'
       additionalProperties: true
 
     ItemRecord:
