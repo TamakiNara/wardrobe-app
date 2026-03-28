@@ -141,6 +141,6 @@ describe("CategoryPresetSelectionPage", () => {
     });
 
     expect(updateCategoryVisibilitySettingsMock).not.toHaveBeenCalled();
-    expect(pushMock).toHaveBeenCalledWith("/settings?mode=onboarding&preset=custom");
+    expect(pushMock).toHaveBeenCalledWith("/settings/categories?mode=onboarding&preset=custom");
   });
 });

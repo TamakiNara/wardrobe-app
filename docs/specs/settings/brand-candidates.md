@@ -538,8 +538,10 @@ server behavior:
 - item create / update は `save_brand_as_candidate` を受け取り、Laravel 側で候補追加を試行する
 - `save_brand_as_candidate=true` かつ重複時は候補追加をスキップし、item 保存自体は成功させる
 - item 新規作成 / 編集画面では `GET /api/settings/brands` を使ったブランド候補サジェスト UI を実装済み
-- 設定画面ではブランド候補一覧 / 追加 / 編集 / 有効無効切替 UI を実装済み
-- 設定画面ではキーワード絞り込み、更新日時表示、無効候補の折りたたみ表示まで実装済み
+- current 実装の画面パスは `/settings/brands`
+- settings トップはハブ画面とし、ブランド候補設定本体は別ページで管理する
+- ブランド候補設定画面ではブランド候補一覧 / 追加 / 編集 / 有効無効切替 UI を実装済み
+- `/settings/brands` ではキーワード絞り込み、更新日時表示、無効候補の折りたたみ表示まで実装済み
 - テスト用 seed ユーザー向けに、0 件 / 標準件数 / 多件数のブランド候補データを投入する Seeder を実装済み
 
 未対応:

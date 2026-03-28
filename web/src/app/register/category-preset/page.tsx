@@ -67,7 +67,7 @@ export default function CategoryPresetSelectionPage() {
 
     try {
       if (selectedPreset === "custom") {
-        router.push("/settings?mode=onboarding&preset=custom");
+        router.push("/settings/categories?mode=onboarding&preset=custom");
         return;
       }
 

@@ -136,7 +136,7 @@
 
 - 登録 API 完了後の遷移先にこの画面を差し込む
 - `male` / `female` は選択完了時に即保存
-- `custom` は既存 settings UI の onboarding モードを使う
+- `custom` はカテゴリ設定画面の onboarding モードを使う
 
 ---
 
@@ -144,7 +144,7 @@
 
 - 登録完了後は `/register/category-preset` へ遷移する
 - `male` / `female` は選択後にカテゴリ表示設定を保存してホームへ進む
-- `custom` は settings の onboarding モードへ進み、保存後にホームへ進む
+- `custom` は `/settings/categories?mode=onboarding&preset=custom` へ進み、保存後にホームへ進む
 - 画面文言は `メンズ / レディース / カスタム` と `次へ` を使用する
 
 ---
