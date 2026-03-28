@@ -568,6 +568,70 @@ class ItemsEndpointsTest extends TestCase
             ]);
     }
 
+    public function test_post_items_rejects_legwear_coverage_type_for_non_legwear_category(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/items', [
+            'name' => '不正レッグウェア',
+            'category' => 'inner',
+            'shape' => 'underwear',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'black',
+                'hex' => '#111111',
+                'label' => 'ブラック',
+            ]],
+            'spec' => [
+                'legwear' => [
+                    'coverage_type' => 'tights',
+                ],
+            ],
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors([
+                'spec.legwear.coverage_type',
+            ]);
+    }
+
+    public function test_post_items_rejects_mismatched_legwear_shape_and_coverage_type(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/items', [
+            'name' => '不正ソックス',
+            'category' => 'legwear',
+            'shape' => 'socks',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'black',
+                'hex' => '#111111',
+                'label' => 'ブラック',
+            ]],
+            'spec' => [
+                'legwear' => [
+                    'coverage_type' => 'leggings_full',
+                ],
+            ],
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors([
+                'spec.legwear.coverage_type',
+            ]);
+    }
+
     public function test_post_items_can_save_tpo_ids_and_return_resolved_tpos(): void
     {
         $user = User::factory()->create();

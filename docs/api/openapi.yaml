@@ -2059,7 +2059,7 @@ components:
       properties:
         coverage_type:
           type: string
-          description: legwear category の item で使う詳細分類。shape は粗い分類、coverage_type は詳細分類の正本。
+          description: legwear category の item で使う詳細分類。shape は粗い分類、coverage_type は詳細分類の正本。shape ごとに許可される値がある。
           enum:
             - ankle_socks
             - crew_socks

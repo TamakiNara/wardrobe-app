@@ -14,6 +14,7 @@ use App\Models\CategoryMaster;
 use App\Models\Item;
 use App\Models\Outfit;
 use App\Support\ItemPayloadBuilder;
+use App\Support\ItemLegwearSpecValidator;
 use App\Support\ItemsIndexQuery;
 use App\Support\OutfitPayloadBuilder;
 use App\Support\OutfitsIndexQuery;
@@ -270,6 +271,8 @@ Route::prefix('api')->middleware(['web'])->group(function () {
             'images.*.is_primary' => ['nullable', 'boolean'],
         ]);
 
+        ItemLegwearSpecValidator::validate($validated);
+
         $item = app(ItemStoreService::class)->store($request->user(), $validated);
 
         return response()->json([
@@ -344,6 +347,8 @@ Route::prefix('api')->middleware(['web'])->group(function () {
             'images.*.sort_order' => ['required', 'integer', 'min:1'],
             'images.*.is_primary' => ['nullable', 'boolean'],
         ]);
+
+        ItemLegwearSpecValidator::validate($validated);
 
         $item = app(ItemUpdateService::class)->update($request->user(), $item, $validated);
 

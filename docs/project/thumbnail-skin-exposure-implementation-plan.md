@@ -161,6 +161,9 @@ current 実装の正本ではなく、今後の実装依頼や仕様確認の起
 
 上記 3 点は current 化済み。
 
+- create / update では `shape × coverage_type` の対応関係を validation で確認する
+- `ItemSpecNormalizer` は固定値補完と防御コードとして残す
+
 ### 第2段階
 
 - item サムネイルで bottoms / legwear の素の見え方を描画する
