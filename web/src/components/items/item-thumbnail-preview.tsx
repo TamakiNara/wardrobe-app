@@ -84,12 +84,14 @@ export default function ItemThumbnailPreview({
     return (
       <div className={`flex items-center justify-center border border-dashed border-gray-300 bg-white ${sizeClass} ${contentPaddingClass}`}>
         <LowerBodyPreviewSvg
-          category={category === "legwear" ? "legwear" : "bottoms"}
-          lengthType={bottomsLengthType}
-          coverageType={legwearCoverageType}
-          mainColor={mainColorHex}
-          subColor={subColorHex}
+          lengthType={category === "bottoms" ? bottomsLengthType : null}
+          coverageType={category === "legwear" ? legwearCoverageType : null}
+          bottomsMainColor={category === "bottoms" ? mainColorHex : null}
+          bottomsSubColor={category === "bottoms" ? subColorHex : null}
+          legwearMainColor={category === "legwear" ? mainColorHex : null}
+          legwearSubColor={category === "legwear" ? subColorHex : null}
           skinToneColor={skinToneColor}
+          ariaLabel={category === "legwear" ? "レッグウェアプレビュー" : "ボトムスプレビュー"}
         />
       </div>
     );

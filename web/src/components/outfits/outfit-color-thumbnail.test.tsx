@@ -16,16 +16,24 @@ function renderOutfitItem(
     hex: string;
     label: string;
   }>,
+  options?: {
+    sortOrder?: number;
+    shape?: string;
+    spec?: {
+      bottoms?: { length_type?: string | null } | null;
+      legwear?: { coverage_type?: string | null } | null;
+    } | null;
+  },
 ) {
   return {
     id,
     item_id: id,
-    sort_order: id,
+    sort_order: options?.sortOrder ?? id,
     item: {
       id,
       name: `item-${id}`,
       category,
-      shape: "shape",
+      shape: options?.shape ?? "shape",
       colors: colors.map((color) => ({
         role: color.role,
         mode: color.mode ?? "preset",
@@ -33,6 +41,7 @@ function renderOutfitItem(
         hex: color.hex,
         label: color.label,
       })),
+      spec: options?.spec ?? null,
     },
   };
 }
@@ -186,5 +195,92 @@ describe("OutfitColorThumbnail", () => {
 
     const main = container.querySelector('[data-testid="thumbnail-tops-segment"] span > span');
     expect(main?.getAttribute("style")).toContain("rgb(229, 231, 235)");
+  });
+
+  it("representative bottoms があると lower-body preview を表示する", async () => {
+    await act(async () => {
+      root.render(
+        React.createElement(OutfitColorThumbnail, {
+          outfitItems: [
+            renderOutfitItem(
+              1,
+              "bottoms",
+              [
+                { role: "main", hex: "#cbb79d", label: "ベージュ" },
+                { role: "sub", hex: "#8a9099", label: "グレー" },
+              ],
+              {
+                spec: { bottoms: { length_type: "midi" } },
+              },
+            ),
+            renderOutfitItem(
+              2,
+              "legwear",
+              [{ role: "main", hex: "#334155", label: "ネイビー" }],
+              {
+                shape: "socks",
+                spec: { legwear: { coverage_type: "crew_socks" } },
+              },
+            ),
+          ],
+          skinTonePreset: "yellow_medium",
+        }),
+      );
+    });
+
+    expect(container.querySelector('[data-testid="thumbnail-lower-body"]')).not.toBeNull();
+    expect(container.querySelector('[data-testid="thumbnail-bottoms"]')).toBeNull();
+    expect(container.querySelector('[data-testid="lower-body-skin-base"]')?.getAttribute("fill")).toBe("#E9C29B");
+    expect(container.querySelector('[data-testid="lower-body-skin-base"]')?.getAttribute("x")).toBe("0");
+    expect(container.querySelector('[data-testid="lower-body-skin-base"]')?.getAttribute("y")).toBe("0");
+  });
+
+  it("representative bottoms がなければ lower-body preview を表示しない", async () => {
+    await act(async () => {
+      root.render(
+        React.createElement(OutfitColorThumbnail, {
+          outfitItems: [
+            renderOutfitItem(1, "tops", [{ role: "main", hex: "#ffffff", label: "白" }]),
+            renderOutfitItem(2, "legwear", [{ role: "main", hex: "#111111", label: "黒" }], {
+              shape: "tights",
+              spec: { legwear: { coverage_type: "tights" } },
+            }),
+          ],
+        }),
+      );
+    });
+
+    expect(container.querySelector('[data-testid="thumbnail-lower-body"]')).toBeNull();
+  });
+
+  it("stockings 合成時は裾より下の露出領域だけに重ねる", async () => {
+    await act(async () => {
+      root.render(
+        React.createElement(OutfitColorThumbnail, {
+          outfitItems: [
+            renderOutfitItem(
+              1,
+              "bottoms",
+              [{ role: "main", hex: "#44516A", label: "ネイビー" }],
+              {
+                spec: { bottoms: { length_type: "knee" } },
+              },
+            ),
+            renderOutfitItem(
+              2,
+              "legwear",
+              [{ role: "main", hex: "#D8B89F", label: "ベージュ" }],
+              {
+                shape: "stockings",
+                spec: { legwear: { coverage_type: "stockings" } },
+              },
+            ),
+          ],
+        }),
+      );
+    });
+
+    expect(container.querySelector('[data-testid="bottoms-garment"]')?.getAttribute("fill")).toBe("#44516A");
+    expect(container.querySelector('[data-testid="legwear-overlay"]')?.getAttribute("y")).not.toBe("0");
   });
 });

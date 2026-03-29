@@ -1,8 +1,11 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import OutfitsList from "@/components/outfits/outfits-list";
+import { DEFAULT_SKIN_TONE_PRESET } from "@/lib/master-data/skin-tone-presets";
 import { mapPreferenceSeasonToFilterValue } from "@/lib/settings/preferences";
 import { fetchLaravelWithCookie } from "@/lib/server/laravel";
+import type { ItemSpec } from "@/types/items";
+import type { SkinTonePreset } from "@/types/settings";
 
 type OutfitItem = {
   id: number;
@@ -20,6 +23,7 @@ type OutfitItem = {
       hex: string;
       label: string;
     }[];
+    spec?: ItemSpec | null;
   };
 };
 
@@ -55,6 +59,7 @@ type ItemCountResponse = {
 type PreferencesResponse = {
   preferences?: {
     currentSeason?: "spring" | "summer" | "autumn" | "winter" | null;
+    skinTonePreset?: SkinTonePreset | null;
   };
 };
 
@@ -142,16 +147,19 @@ export default async function OutfitsPage({
   const resolvedSearchParams = await searchParams;
   const currentSeason = resolveCurrentSeason(resolvedSearchParams);
   let initialSeasonFilter = "";
+  let skinTonePreset: SkinTonePreset = DEFAULT_SKIN_TONE_PRESET;
 
-  if (!currentSeason) {
-    const preferencesRes = await fetchLaravelWithCookie("/api/settings/preferences");
+  const preferencesRes = await fetchLaravelWithCookie("/api/settings/preferences");
 
-    if (preferencesRes.status === 401) {
-      redirect("/login");
-    }
+  if (preferencesRes.status === 401) {
+    redirect("/login");
+  }
 
-    if (preferencesRes.ok) {
-      const preferencesData = (await preferencesRes.json()) as PreferencesResponse;
+  if (preferencesRes.ok) {
+    const preferencesData = (await preferencesRes.json()) as PreferencesResponse;
+    skinTonePreset = preferencesData.preferences?.skinTonePreset ?? DEFAULT_SKIN_TONE_PRESET;
+
+    if (!currentSeason) {
       initialSeasonFilter = mapPreferenceSeasonToFilterValue(
         preferencesData.preferences?.currentSeason ?? null,
       );
@@ -234,6 +242,7 @@ export default async function OutfitsPage({
             lastPage={data.meta.lastPage}
             availableTpos={data.meta.availableTpos ?? []}
             initialSeasonFilter={currentSeason ? "" : initialSeasonFilter}
+            skinTonePreset={skinTonePreset}
           />
         )}
       </div>

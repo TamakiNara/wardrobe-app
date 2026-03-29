@@ -20,8 +20,21 @@ vi.mock("next/link", () => ({
 }));
 
 vi.mock("@/components/outfits/outfits-list", () => ({
-  default: ({ initialSeasonFilter }: { initialSeasonFilter?: string }) =>
-    React.createElement("div", { "data-initial-season": initialSeasonFilter ?? "" }, "outfits-list"),
+  default: ({
+    initialSeasonFilter,
+    skinTonePreset,
+  }: {
+    initialSeasonFilter?: string;
+    skinTonePreset?: string;
+  }) =>
+    React.createElement(
+      "div",
+      {
+        "data-initial-season": initialSeasonFilter ?? "",
+        "data-skin-tone-preset": skinTonePreset ?? "",
+      },
+      "outfits-list",
+    ),
 }));
 
 describe("OutfitsPage", () => {
@@ -41,6 +54,7 @@ describe("OutfitsPage", () => {
           preferences: {
             currentSeason: null,
             defaultWearLogStatus: null,
+            skinTonePreset: "neutral_medium",
           },
         }),
       })
@@ -88,6 +102,7 @@ describe("OutfitsPage", () => {
           preferences: {
             currentSeason: null,
             defaultWearLogStatus: null,
+            skinTonePreset: "neutral_medium",
           },
         }),
       })
@@ -132,6 +147,7 @@ describe("OutfitsPage", () => {
           preferences: {
             currentSeason: "autumn",
             defaultWearLogStatus: null,
+            skinTonePreset: "yellow_light",
           },
         }),
       })
@@ -159,32 +175,46 @@ describe("OutfitsPage", () => {
       expect.any(Object),
     );
     expect(markup).toContain('data-initial-season="秋"');
+    expect(markup).toContain('data-skin-tone-preset="yellow_light"');
   });
 
   it("URL に season がある場合は preference より URL を優先する", async () => {
-    fetchMock.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        outfits: [{ id: 1, name: "夏コーデ" }],
-        meta: {
-          total: 1,
-          totalAll: 1,
-          page: 1,
-          lastPage: 1,
-        },
-      }),
-    });
+    fetchMock
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          preferences: {
+            currentSeason: "autumn",
+            defaultWearLogStatus: null,
+            skinTonePreset: "neutral_medium",
+          },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          outfits: [{ id: 1, name: "夏コーデ" }],
+          meta: {
+            total: 1,
+            totalAll: 1,
+            page: 1,
+            lastPage: 1,
+          },
+        }),
+      });
 
     const { default: OutfitsPage } = await import("./page");
     const markup = renderToStaticMarkup(
       await OutfitsPage({ searchParams: Promise.resolve({ season: "夏" }) }),
     );
 
-    expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(fetchMock).toHaveBeenCalledWith(
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
       "http://localhost:8000/api/outfits?season=%E5%A4%8F",
       expect.any(Object),
     );
     expect(markup).toContain('data-initial-season=""');
+    expect(markup).toContain('data-skin-tone-preset="neutral_medium"');
   });
 });

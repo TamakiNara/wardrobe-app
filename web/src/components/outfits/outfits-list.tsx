@@ -8,6 +8,8 @@ import OutfitDuplicateAction from "@/components/outfits/outfit-duplicate-action"
 import { isItemVisibleByCategorySettings } from "@/lib/api/categories";
 import { fetchCategoryVisibilitySettings } from "@/lib/api/settings";
 import { SEASON_OPTIONS } from "@/lib/master-data/item-attributes";
+import type { ItemSpec } from "@/types/items";
+import type { SkinTonePreset } from "@/types/settings";
 
 export type OutfitItem = {
   id: number;
@@ -25,6 +27,7 @@ export type OutfitItem = {
       hex: string;
       label: string;
     }[];
+    spec?: ItemSpec | null;
   };
 };
 
@@ -46,6 +49,7 @@ export type OutfitsListProps = {
   lastPage: number;
   availableTpos: string[];
   initialSeasonFilter?: string;
+  skinTonePreset?: SkinTonePreset;
 };
 
 type OutfitSortValue = "updated_at_desc" | "name_asc";
@@ -122,6 +126,7 @@ export default function OutfitsList({
   lastPage,
   availableTpos,
   initialSeasonFilter = "",
+  skinTonePreset,
 }: OutfitsListProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -336,7 +341,10 @@ export default function OutfitsList({
                   className="block transition hover:text-blue-700"
                 >
                   <div className="flex items-start gap-4">
-                    <OutfitColorThumbnail outfitItems={visibleOutfitItems} />
+                    <OutfitColorThumbnail
+                      outfitItems={visibleOutfitItems}
+                      skinTonePreset={skinTonePreset}
+                    />
 
                     <div className="min-w-0 flex-1">
                       <h2 className="min-h-6 text-lg font-semibold text-gray-900">

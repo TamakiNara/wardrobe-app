@@ -1,10 +1,14 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import DeleteOutfitButton from "@/components/outfits/delete-outfit-button";
+import OutfitColorThumbnail from "@/components/outfits/outfit-color-thumbnail";
 import OutfitDuplicateAction from "@/components/outfits/outfit-duplicate-action";
 import OutfitRestoreAction from "@/components/outfits/outfit-restore-action";
 import { isItemVisibleByCategorySettings } from "@/lib/api/categories";
+import { DEFAULT_SKIN_TONE_PRESET } from "@/lib/master-data/skin-tone-presets";
 import { fetchLaravelWithCookie } from "@/lib/server/laravel";
+import type { ItemSpec } from "@/types/items";
+import type { SkinTonePreset } from "@/types/settings";
 
 type OutfitItem = {
   id: number;
@@ -22,6 +26,7 @@ type OutfitItem = {
       hex: string;
       label: string;
     }[];
+    spec?: ItemSpec | null;
     status: "active" | "disposed";
     seasons: string[];
     tpos: string[];
@@ -54,6 +59,21 @@ async function getOutfit(id: string): Promise<Outfit> {
   return data.outfit;
 }
 
+async function getSkinTonePreset(): Promise<SkinTonePreset> {
+  const res = await fetchLaravelWithCookie("/api/settings/preferences");
+
+  if (res.status === 401) {
+    redirect("/login");
+  }
+
+  if (!res.ok) {
+    return DEFAULT_SKIN_TONE_PRESET;
+  }
+
+  const data = await res.json().catch(() => null);
+  return data?.preferences?.skinTonePreset ?? DEFAULT_SKIN_TONE_PRESET;
+}
+
 async function getCategoryVisibilitySettings(): Promise<string[] | null> {
   const res = await fetchLaravelWithCookie("/api/settings/categories");
 
@@ -78,9 +98,10 @@ export default async function OutfitDetailPage({
 }) {
   const { id } = await params;
   const resolvedSearchParams = await searchParams;
-  const [outfit, visibleCategoryIds] = await Promise.all([
+  const [outfit, visibleCategoryIds, skinTonePreset] = await Promise.all([
     getOutfit(id),
     getCategoryVisibilitySettings(),
+    getSkinTonePreset(),
   ]);
   const outfitItems = outfit.outfitItems ?? outfit.outfit_items ?? [];
   const canRestore =
@@ -211,20 +232,32 @@ export default async function OutfitDetailPage({
         <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
           <h2 className="mb-4 text-lg font-semibold text-gray-900">基本情報</h2>
 
-          {outfit.memo && (
-            <div className="mb-4">
-              <p className="mb-1 text-sm font-medium text-gray-700">メモ</p>
-              <p className="text-sm text-gray-600">{outfit.memo}</p>
-            </div>
-          )}
+          <div className="flex flex-col gap-4 md:flex-row md:items-start">
+            {visibleOutfitItems.length > 0 ? (
+              <OutfitColorThumbnail
+                outfitItems={visibleOutfitItems}
+                skinTonePreset={skinTonePreset}
+                size="large"
+              />
+            ) : null}
 
-          <div className="space-y-2">
-            <p className="text-sm text-gray-600">
-              季節： {outfit.seasons?.length ? outfit.seasons.join(" / ") : "未設定"}
-            </p>
-            <p className="text-sm text-gray-600">
-              TPO： {outfit.tpos?.length ? outfit.tpos.join(" / ") : "未設定"}
-            </p>
+            <div className="min-w-0 flex-1">
+              {outfit.memo && (
+                <div className="mb-4">
+                  <p className="mb-1 text-sm font-medium text-gray-700">メモ</p>
+                  <p className="text-sm text-gray-600">{outfit.memo}</p>
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <p className="text-sm text-gray-600">
+                  季節： {outfit.seasons?.length ? outfit.seasons.join(" / ") : "未設定"}
+                </p>
+                <p className="text-sm text-gray-600">
+                  TPO： {outfit.tpos?.length ? outfit.tpos.join(" / ") : "未設定"}
+                </p>
+              </div>
+            </div>
           </div>
         </section>
 

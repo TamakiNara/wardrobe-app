@@ -82,6 +82,7 @@ describe("OutfitDetailPage", () => {
                   category: "tops",
                   shape: "tshirt",
                   colors: [],
+                  spec: null,
                   seasons: [],
                   tpos: [],
                 },
@@ -95,6 +96,15 @@ describe("OutfitDetailPage", () => {
         status: 200,
         json: async () => ({
           visibleCategoryIds: null,
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          preferences: {
+            skinTonePreset: "neutral_medium",
+          },
         }),
       });
 
@@ -143,6 +153,15 @@ describe("OutfitDetailPage", () => {
         json: async () => ({
           visibleCategoryIds: null,
         }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          preferences: {
+            skinTonePreset: "neutral_medium",
+          },
+        }),
       });
 
     const { default: OutfitDetailPage } = await import("./page");
@@ -180,6 +199,15 @@ describe("OutfitDetailPage", () => {
         json: async () => ({
           visibleCategoryIds: null,
         }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          preferences: {
+            skinTonePreset: "neutral_medium",
+          },
+        }),
       });
 
     const { default: OutfitDetailPage } = await import("./page");
@@ -195,5 +223,80 @@ describe("OutfitDetailPage", () => {
 
     expect(markup).toContain('href="/wear-logs/new"');
     expect(markup).toContain("着用履歴フォームへ戻る");
+  });
+
+  it("詳細で representative bottoms があると thumbnail を表示する", async () => {
+    fetchMock
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          outfit: {
+            id: 12,
+            status: "active",
+            name: "ボトムス確認コーデ",
+            memo: null,
+            seasons: ["春"],
+            tpos: ["休日"],
+            outfitItems: [
+              {
+                id: 1,
+                item_id: 2,
+                sort_order: 1,
+                item: {
+                  id: 2,
+                  name: "ミディスカート",
+                  status: "active",
+                  category: "bottoms",
+                  shape: "flare-skirt",
+                  colors: [
+                    {
+                      role: "main",
+                      mode: "preset",
+                      value: "beige",
+                      hex: "#CBB79D",
+                      label: "ベージュ",
+                    },
+                  ],
+                  spec: {
+                    bottoms: {
+                      length_type: "midi",
+                    },
+                  },
+                  seasons: [],
+                  tpos: [],
+                },
+              },
+            ],
+          },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          visibleCategoryIds: null,
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          preferences: {
+            skinTonePreset: "yellow_medium",
+          },
+        }),
+      });
+
+    const { default: OutfitDetailPage } = await import("./page");
+    const markup = renderToStaticMarkup(
+      await OutfitDetailPage({
+        params: Promise.resolve({ id: "12" }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+
+    expect(markup).toContain("outfit-color-thumbnail");
+    expect(markup).toContain("lower-body-preview-svg");
   });
 });
