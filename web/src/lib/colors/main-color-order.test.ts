@@ -1,15 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { compareByMainColorSort } from "./main-color-order";
 
-function buildRecord(
-  id: number,
-  hex?: string,
-) {
+function buildRecord(id: number, hex?: string) {
   return {
     id,
-    colors: hex
-      ? [{ role: "main" as const, hex }]
-      : [],
+    colors: hex ? [{ role: "main" as const, hex }] : [],
   };
 }
 

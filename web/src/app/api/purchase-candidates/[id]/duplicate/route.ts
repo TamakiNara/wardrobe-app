@@ -6,5 +6,8 @@ export async function POST(
   context: { params: Promise<{ id: string }> },
 ) {
   const { id } = await context.params;
-  return forwardPostWithCsrfAndCookie(req, `/api/purchase-candidates/${id}/duplicate`);
+  return forwardPostWithCsrfAndCookie(
+    req,
+    `/api/purchase-candidates/${id}/duplicate`,
+  );
 }

@@ -52,7 +52,12 @@ const sampleGroups: CategoryGroupRecord[] = [
     sortOrder: 10,
     categories: [
       { id: "tops_tshirt", groupId: "tops", name: "Tシャツ", sortOrder: 10 },
-      { id: "tops_shirt", groupId: "tops", name: "シャツ / ブラウス", sortOrder: 20 },
+      {
+        id: "tops_shirt",
+        groupId: "tops",
+        name: "シャツ / ブラウス",
+        sortOrder: 20,
+      },
     ],
   },
 ];
@@ -77,7 +82,9 @@ async function waitForEffects() {
 }
 
 function getSaveButtons(container: HTMLDivElement) {
-  return Array.from(container.querySelectorAll<HTMLButtonElement>("button")).filter(
+  return Array.from(
+    container.querySelectorAll<HTMLButtonElement>("button"),
+  ).filter(
     (button) =>
       button.textContent === "表示設定を保存" ||
       button.textContent === "保存してはじめる" ||
@@ -87,9 +94,9 @@ function getSaveButtons(container: HTMLDivElement) {
 }
 
 function getCategoryCheckboxes(container: HTMLDivElement) {
-  return Array.from(container.querySelectorAll<HTMLInputElement>('input[type="checkbox"]')).filter(
-    (input) => input.id === "",
-  );
+  return Array.from(
+    container.querySelectorAll<HTMLInputElement>('input[type="checkbox"]'),
+  ).filter((input) => input.id === "");
 }
 
 describe("SettingsCategoriesPage", () => {
@@ -149,7 +156,9 @@ describe("SettingsCategoriesPage", () => {
     });
 
     expect(getSaveButtons(container)).toHaveLength(2);
-    expect(getSaveButtons(container).every((button) => button.disabled)).toBe(true);
+    expect(getSaveButtons(container).every((button) => button.disabled)).toBe(
+      true,
+    );
 
     const checkboxes = getCategoryCheckboxes(container);
 
@@ -158,7 +167,9 @@ describe("SettingsCategoriesPage", () => {
       await waitForEffects();
     });
 
-    expect(getSaveButtons(container).every((button) => !button.disabled)).toBe(true);
+    expect(getSaveButtons(container).every((button) => !button.disabled)).toBe(
+      true,
+    );
 
     await act(async () => {
       getSaveButtons(container)[0].click();
@@ -168,7 +179,9 @@ describe("SettingsCategoriesPage", () => {
     expect(updateCategoryVisibilitySettingsMock).toHaveBeenCalledWith({
       visibleCategoryIds: ["tops_shirt", "tops_tshirt"],
     });
-    expect(getSaveButtons(container).every((button) => button.disabled)).toBe(true);
+    expect(getSaveButtons(container).every((button) => button.disabled)).toBe(
+      true,
+    );
   });
 
   it("custom onboarding では初期状態で保存でき、保存後にホームへ進む", async () => {

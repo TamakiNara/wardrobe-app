@@ -59,10 +59,16 @@ describe("ItemCareStatusAction", () => {
       }),
     );
 
-    const { default: ItemCareStatusAction } = await import("./item-care-status-action");
+    const { default: ItemCareStatusAction } =
+      await import("./item-care-status-action");
 
     await act(async () => {
-      root.render(React.createElement(ItemCareStatusAction, { itemId: 1, careStatus: null }));
+      root.render(
+        React.createElement(ItemCareStatusAction, {
+          itemId: 1,
+          careStatus: null,
+        }),
+      );
       await waitForEffects();
     });
 
@@ -103,10 +109,16 @@ describe("ItemCareStatusAction", () => {
       }),
     );
 
-    const { default: ItemCareStatusAction } = await import("./item-care-status-action");
+    const { default: ItemCareStatusAction } =
+      await import("./item-care-status-action");
 
     await act(async () => {
-      root.render(React.createElement(ItemCareStatusAction, { itemId: 1, careStatus: "in_cleaning" }));
+      root.render(
+        React.createElement(ItemCareStatusAction, {
+          itemId: 1,
+          careStatus: "in_cleaning",
+        }),
+      );
       await waitForEffects();
     });
 

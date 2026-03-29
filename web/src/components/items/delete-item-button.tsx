@@ -7,9 +7,7 @@ type DeleteItemButtonProps = {
   itemId: number;
 };
 
-export default function DeleteItemButton({
-  itemId,
-}: DeleteItemButtonProps) {
+export default function DeleteItemButton({ itemId }: DeleteItemButtonProps) {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);

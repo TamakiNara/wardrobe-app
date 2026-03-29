@@ -46,16 +46,21 @@ describe("POST /api/purchase-candidates/[id]/item-draft", () => {
         ),
       ) as typeof fetch;
 
-    const req = new Request("http://localhost:3000/api/purchase-candidates/1/item-draft", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Cookie: "laravel-session=old_session",
+    const req = new Request(
+      "http://localhost:3000/api/purchase-candidates/1/item-draft",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Cookie: "laravel-session=old_session",
+        },
+        body: JSON.stringify({}),
       },
-      body: JSON.stringify({}),
-    });
+    );
 
-    const res = await POST(req as any, { params: Promise.resolve({ id: "1" }) });
+    const res = await POST(req as any, {
+      params: Promise.resolve({ id: "1" }),
+    });
     const json = await res.json();
 
     expect(global.fetch).toHaveBeenNthCalledWith(

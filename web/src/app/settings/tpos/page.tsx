@@ -7,7 +7,11 @@ import { SettingsBreadcrumbs } from "@/components/settings/settings-breadcrumbs"
 import { SettingsCard } from "@/components/settings/settings-card";
 import { SettingsPageHeader } from "@/components/settings/settings-page-header";
 import { settingsActionIcons } from "@/lib/icons/settings-icons";
-import { createUserTpo, fetchUserTpos, updateUserTpo } from "@/lib/api/settings";
+import {
+  createUserTpo,
+  fetchUserTpos,
+  updateUserTpo,
+} from "@/lib/api/settings";
 import type { UserTpoRecord } from "@/types/settings";
 
 export default function SettingsTposPage() {
@@ -39,12 +43,17 @@ export default function SettingsTposPage() {
     loadAll()
       .catch((loadErrorValue) => {
         if (!active) return;
-        if (loadErrorValue instanceof ApiClientError && loadErrorValue.status === 401) {
+        if (
+          loadErrorValue instanceof ApiClientError &&
+          loadErrorValue.status === 401
+        ) {
           router.push("/login");
           return;
         }
 
-        setLoadError("TPO 設定を読み込めませんでした。時間をおいて再度お試しください。");
+        setLoadError(
+          "TPO 設定を読み込めませんでした。時間をおいて再度お試しください。",
+        );
       })
       .finally(() => {
         if (!active) return;
@@ -92,8 +101,7 @@ export default function SettingsTposPage() {
     } catch (createError) {
       if (createError instanceof ApiClientError) {
         setFormError(
-          createError.data?.errors?.name?.[0] ??
-            createError.message,
+          createError.data?.errors?.name?.[0] ?? createError.message,
         );
       } else {
         setFormError("TPO を追加できませんでした。");
@@ -112,7 +120,9 @@ export default function SettingsTposPage() {
     try {
       await updateUserTpo(tpo.id, { isActive: !tpo.isActive });
       await loadAll();
-      setListMessage(!tpo.isActive ? "TPO を有効にしました。" : "TPO を無効にしました。");
+      setListMessage(
+        !tpo.isActive ? "TPO を有効にしました。" : "TPO を無効にしました。",
+      );
     } catch (updateError) {
       if (updateError instanceof ApiClientError) {
         setListError(updateError.message);
@@ -162,8 +172,7 @@ export default function SettingsTposPage() {
     } catch (updateError) {
       if (updateError instanceof ApiClientError) {
         setListError(
-          updateError.data?.errors?.name?.[0] ??
-            updateError.message,
+          updateError.data?.errors?.name?.[0] ?? updateError.message,
         );
       } else {
         setListError("TPO 名を更新できませんでした。");
@@ -203,24 +212,37 @@ export default function SettingsTposPage() {
               {adding ? "追加中..." : "追加"}
             </button>
           </div>
-          {formMessage ? <p className="mt-3 text-sm text-emerald-700">{formMessage}</p> : null}
-          {formError ? <p className="mt-3 text-sm text-red-600">{formError}</p> : null}
+          {formMessage ? (
+            <p className="mt-3 text-sm text-emerald-700">{formMessage}</p>
+          ) : null}
+          {formError ? (
+            <p className="mt-3 text-sm text-red-600">{formError}</p>
+          ) : null}
         </SettingsCard>
 
         <SettingsCard>
           <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">登録済み TPO</h2>
+              <h2 className="text-lg font-semibold text-gray-900">
+                登録済み TPO
+              </h2>
               <p className="mt-1 text-sm text-gray-600">
-                無効化した TPO は新規候補に出ません。プリセット名は変更できません。
+                無効化した TPO
+                は新規候補に出ません。プリセット名は変更できません。
               </p>
             </div>
           </div>
-          {listMessage ? <p className="mt-3 text-sm text-emerald-700">{listMessage}</p> : null}
-          {listError ? <p className="mt-3 text-sm text-red-600">{listError}</p> : null}
+          {listMessage ? (
+            <p className="mt-3 text-sm text-emerald-700">{listMessage}</p>
+          ) : null}
+          {listError ? (
+            <p className="mt-3 text-sm text-red-600">{listError}</p>
+          ) : null}
 
           {loading ? (
-            <p className="mt-6 text-sm text-gray-600">TPO を読み込み中です...</p>
+            <p className="mt-6 text-sm text-gray-600">
+              TPO を読み込み中です...
+            </p>
           ) : loadError ? (
             <p className="mt-6 text-sm text-red-600">{loadError}</p>
           ) : sortedTpos.length === 0 ? (
@@ -229,7 +251,9 @@ export default function SettingsTposPage() {
             <div className="mt-6 space-y-3">
               {activeTpos.length > 0 ? (
                 activeTpos.map((tpo) => {
-                  const index = sortedTpos.findIndex((current) => current.id === tpo.id);
+                  const index = sortedTpos.findIndex(
+                    (current) => current.id === tpo.id,
+                  );
 
                   return (
                     <article
@@ -244,7 +268,9 @@ export default function SettingsTposPage() {
                                 <input
                                   type="text"
                                   value={editingName}
-                                  onChange={(event) => setEditingName(event.target.value)}
+                                  onChange={(event) =>
+                                    setEditingName(event.target.value)
+                                  }
                                   className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                 />
                                 <button
@@ -268,7 +294,9 @@ export default function SettingsTposPage() {
                               </div>
                             ) : (
                               <>
-                                <h3 className="text-base font-semibold text-gray-900">{tpo.name}</h3>
+                                <h3 className="text-base font-semibold text-gray-900">
+                                  {tpo.name}
+                                </h3>
                                 <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
                                   有効
                                 </span>
@@ -290,16 +318,27 @@ export default function SettingsTposPage() {
                             aria-label={`${tpo.name} を 1 つ上へ移動`}
                             className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400"
                           >
-                            <MoveUpIcon aria-hidden="true" className="h-4 w-4" strokeWidth={1.9} />
+                            <MoveUpIcon
+                              aria-hidden="true"
+                              className="h-4 w-4"
+                              strokeWidth={1.9}
+                            />
                           </button>
                           <button
                             type="button"
                             onClick={() => handleMove(tpo, "down")}
-                            disabled={index === sortedTpos.length - 1 || updatingId !== null}
+                            disabled={
+                              index === sortedTpos.length - 1 ||
+                              updatingId !== null
+                            }
                             aria-label={`${tpo.name} を 1 つ下へ移動`}
                             className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400"
                           >
-                            <MoveDownIcon aria-hidden="true" className="h-4 w-4" strokeWidth={1.9} />
+                            <MoveDownIcon
+                              aria-hidden="true"
+                              className="h-4 w-4"
+                              strokeWidth={1.9}
+                            />
                           </button>
                           {!tpo.isPreset ? (
                             <button
@@ -311,7 +350,11 @@ export default function SettingsTposPage() {
                               }}
                               className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 transition hover:bg-gray-100"
                             >
-                              <EditIcon aria-hidden="true" className="h-4 w-4" strokeWidth={1.9} />
+                              <EditIcon
+                                aria-hidden="true"
+                                className="h-4 w-4"
+                                strokeWidth={1.9}
+                              />
                               編集
                             </button>
                           ) : null}
@@ -336,9 +379,13 @@ export default function SettingsTposPage() {
 
               {inactiveTpos.length > 0 ? (
                 <section className="space-y-3">
-                  <h3 className="text-sm font-semibold text-gray-900">無効候補</h3>
+                  <h3 className="text-sm font-semibold text-gray-900">
+                    無効候補
+                  </h3>
                   {inactiveTpos.map((tpo) => {
-                    const index = sortedTpos.findIndex((current) => current.id === tpo.id);
+                    const index = sortedTpos.findIndex(
+                      (current) => current.id === tpo.id,
+                    );
 
                     return (
                       <article
@@ -353,7 +400,9 @@ export default function SettingsTposPage() {
                                   <input
                                     type="text"
                                     value={editingName}
-                                    onChange={(event) => setEditingName(event.target.value)}
+                                    onChange={(event) =>
+                                      setEditingName(event.target.value)
+                                    }
                                     className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                   />
                                   <button
@@ -377,7 +426,9 @@ export default function SettingsTposPage() {
                                 </div>
                               ) : (
                                 <>
-                                  <h3 className="text-base font-semibold text-gray-900">{tpo.name}</h3>
+                                  <h3 className="text-base font-semibold text-gray-900">
+                                    {tpo.name}
+                                  </h3>
                                   <span className="rounded-full bg-gray-200 px-3 py-1 text-xs font-semibold text-gray-700">
                                     無効
                                   </span>
@@ -399,16 +450,27 @@ export default function SettingsTposPage() {
                               aria-label={`${tpo.name} を 1 つ上へ移動`}
                               className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400"
                             >
-                              <MoveUpIcon aria-hidden="true" className="h-4 w-4" strokeWidth={1.9} />
+                              <MoveUpIcon
+                                aria-hidden="true"
+                                className="h-4 w-4"
+                                strokeWidth={1.9}
+                              />
                             </button>
                             <button
                               type="button"
                               onClick={() => handleMove(tpo, "down")}
-                              disabled={index === sortedTpos.length - 1 || updatingId !== null}
+                              disabled={
+                                index === sortedTpos.length - 1 ||
+                                updatingId !== null
+                              }
                               aria-label={`${tpo.name} を 1 つ下へ移動`}
                               className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400"
                             >
-                              <MoveDownIcon aria-hidden="true" className="h-4 w-4" strokeWidth={1.9} />
+                              <MoveDownIcon
+                                aria-hidden="true"
+                                className="h-4 w-4"
+                                strokeWidth={1.9}
+                              />
                             </button>
                             {!tpo.isPreset ? (
                               <button
@@ -420,7 +482,11 @@ export default function SettingsTposPage() {
                                 }}
                                 className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 transition hover:bg-gray-100"
                               >
-                                <EditIcon aria-hidden="true" className="h-4 w-4" strokeWidth={1.9} />
+                                <EditIcon
+                                  aria-hidden="true"
+                                  className="h-4 w-4"
+                                  strokeWidth={1.9}
+                                />
                                 編集
                               </button>
                             ) : null}

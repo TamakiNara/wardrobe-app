@@ -2,9 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  savePurchaseCandidateItemDraft,
-} from "@/lib/purchase-candidates/item-draft";
+import { savePurchaseCandidateItemDraft } from "@/lib/purchase-candidates/item-draft";
 import type { PurchaseCandidateItemDraftResponse } from "@/types/purchase-candidates";
 
 type PurchaseCandidateItemDraftActionProps = {
@@ -25,15 +23,21 @@ export default function PurchaseCandidateItemDraftAction({
     setError(null);
 
     try {
-      const response = await fetch(`/api/purchase-candidates/${candidateId}/item-draft`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `/api/purchase-candidates/${candidateId}/item-draft`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({}),
         },
-        body: JSON.stringify({}),
-      });
+      );
 
-      const data = (await response.json().catch(() => null)) as PurchaseCandidateItemDraftResponse | { message?: string } | null;
+      const data = (await response.json().catch(() => null)) as
+        | PurchaseCandidateItemDraftResponse
+        | { message?: string }
+        | null;
 
       if (response.status === 401) {
         setError("セッションが切れました。再度ログインしてください。");
@@ -63,12 +67,12 @@ export default function PurchaseCandidateItemDraftAction({
         disabled={submitting}
         className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300"
       >
-        {convertedItemId === null ? "アイテムに追加する" : "アイテム初期値を再生成する"}
+        {convertedItemId === null
+          ? "アイテムに追加する"
+          : "アイテム初期値を再生成する"}
       </button>
 
-      {error && (
-        <p className="text-sm text-red-600">{error}</p>
-      )}
+      {error && <p className="text-sm text-red-600">{error}</p>}
     </div>
   );
 }

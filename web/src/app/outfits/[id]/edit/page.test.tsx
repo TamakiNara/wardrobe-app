@@ -50,7 +50,8 @@ describe("EditOutfitPage", () => {
     });
     vi.stubGlobal(
       "fetch",
-      vi.fn()
+      vi
+        .fn()
         .mockResolvedValueOnce({
           ok: true,
           status: 200,
@@ -139,8 +140,12 @@ describe("EditOutfitPage", () => {
 
     expect(container.textContent).toContain("白T");
     expect(container.textContent).toContain("青シャツ");
-    expect(container.textContent).not.toContain("登録済みアイテムがありません。");
-    expect(container.textContent).toContain("「必須」が付いた項目は更新に必要です。");
+    expect(container.textContent).not.toContain(
+      "登録済みアイテムがありません。",
+    );
+    expect(container.textContent).toContain(
+      "「必須」が付いた項目は更新に必要です。",
+    );
     expect(container.textContent).toContain("アイテム選択");
     expect(container.textContent?.match(/必須/g)?.length).toBe(2);
   }, 20000);
@@ -148,7 +153,8 @@ describe("EditOutfitPage", () => {
   it("既存構成の disposed item は表示しつつ、このままでは保存できないことを案内する", async () => {
     vi.stubGlobal(
       "fetch",
-      vi.fn()
+      vi
+        .fn()
         .mockResolvedValueOnce({
           ok: true,
           status: 200,
@@ -215,12 +221,16 @@ describe("EditOutfitPage", () => {
 
     expect(container.textContent).toContain("旧トップス");
     expect(container.textContent).toContain("手放し済み");
-    expect(container.textContent).toContain("このアイテムは現在の候補には使えません");
-    expect(container.textContent).toContain("手放し済みのアイテムを含むため、このままでは保存できません。");
+    expect(container.textContent).toContain(
+      "このアイテムは現在の候補には使えません",
+    );
+    expect(container.textContent).toContain(
+      "手放し済みのアイテムを含むため、このままでは保存できません。",
+    );
     expect(container.textContent).toContain("青シャツ");
 
-    const submitButton = Array.from(container.querySelectorAll("button")).find((button) =>
-      button.textContent?.includes("更新する"),
+    const submitButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent?.includes("更新する"),
     );
     expect(submitButton?.hasAttribute("disabled")).toBe(true);
   });

@@ -62,6 +62,8 @@ export function shouldShowGlobalNav(pathname: string): boolean {
   return globalNavItems.some((item) => item.matches(pathname));
 }
 
-export function findActiveGlobalNavItem(pathname: string): GlobalNavItem | null {
+export function findActiveGlobalNavItem(
+  pathname: string,
+): GlobalNavItem | null {
   return globalNavItems.find((item) => item.matches(pathname)) ?? null;
 }

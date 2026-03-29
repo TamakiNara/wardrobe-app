@@ -132,7 +132,9 @@ describe("OutfitsPage", () => {
       await OutfitsPage({ searchParams: Promise.resolve({}) }),
     );
 
-    expect(markup).toContain("手持ちのアイテムを組み合わせて作ってみましょう。");
+    expect(markup).toContain(
+      "手持ちのアイテムを組み合わせて作ってみましょう。",
+    );
     expect(markup).toContain('href="/outfits/invalid"');
     expect(markup).toContain("無効コーディネート一覧");
     expect(markup).toContain('href="/outfits/new"');

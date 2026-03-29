@@ -115,7 +115,10 @@ export function isItemVisibleByCategorySettings(
     return true;
   }
 
-  const resolvedCategoryId = findVisibleCategoryIdForItem(item.category, item.shape);
+  const resolvedCategoryId = findVisibleCategoryIdForItem(
+    item.category,
+    item.shape,
+  );
   if (!resolvedCategoryId) {
     return true;
   }

@@ -30,7 +30,11 @@ describe("fetchLaravelWithCookie", () => {
   });
 
   it("cookie を付けて Laravel API に GET する", async () => {
-    global.fetch = vi.fn().mockResolvedValueOnce(new Response(null, { status: 200 })) as typeof fetch;
+    global.fetch = vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response(null, { status: 200 }),
+      ) as typeof fetch;
 
     await fetchLaravelWithCookie("/api/items?keyword=shirt");
 
@@ -49,7 +53,11 @@ describe("fetchLaravelWithCookie", () => {
 
   it("LARAVEL_API_BASE_URL がなければ LARAVEL_BASE_URL を使う", async () => {
     process.env.LARAVEL_API_BASE_URL = "";
-    global.fetch = vi.fn().mockResolvedValueOnce(new Response(null, { status: 200 })) as typeof fetch;
+    global.fetch = vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response(null, { status: 200 }),
+      ) as typeof fetch;
 
     await fetchLaravelWithCookie("/api/me");
 

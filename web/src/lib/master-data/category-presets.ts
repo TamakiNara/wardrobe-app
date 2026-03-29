@@ -41,8 +41,8 @@ export function buildVisibleCategoryIdsForPreset(
   const allCategoryIds = collectAllCategoryIds(groups);
 
   if (preset === "male") {
-    return allCategoryIds.filter((categoryId) =>
-      !MALE_HIDDEN_CATEGORY_IDS.has(categoryId),
+    return allCategoryIds.filter(
+      (categoryId) => !MALE_HIDDEN_CATEGORY_IDS.has(categoryId),
     );
   }
 

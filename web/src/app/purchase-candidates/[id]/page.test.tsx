@@ -19,15 +19,32 @@ vi.mock("next/link", () => ({
     React.createElement("a", { href, ...props }, children),
 }));
 
-vi.mock("@/components/purchase-candidates/purchase-candidate-item-draft-action", () => ({
-  default: ({ candidateId }: { candidateId: number }) =>
-    React.createElement("div", { "data-testid": "item-draft-action", "data-candidate-id": candidateId }, "item-draft-action"),
-}));
+vi.mock(
+  "@/components/purchase-candidates/purchase-candidate-item-draft-action",
+  () => ({
+    default: ({ candidateId }: { candidateId: number }) =>
+      React.createElement(
+        "div",
+        {
+          "data-testid": "item-draft-action",
+          "data-candidate-id": candidateId,
+        },
+        "item-draft-action",
+      ),
+  }),
+);
 
-vi.mock("@/components/purchase-candidates/purchase-candidate-duplicate-action", () => ({
-  default: ({ candidateId }: { candidateId: number }) =>
-    React.createElement("div", { "data-testid": "duplicate-action", "data-candidate-id": candidateId }, "duplicate-action"),
-}));
+vi.mock(
+  "@/components/purchase-candidates/purchase-candidate-duplicate-action",
+  () => ({
+    default: ({ candidateId }: { candidateId: number }) =>
+      React.createElement(
+        "div",
+        { "data-testid": "duplicate-action", "data-candidate-id": candidateId },
+        "duplicate-action",
+      ),
+  }),
+);
 
 describe("PurchaseCandidateDetailPage", () => {
   beforeEach(() => {
@@ -63,7 +80,15 @@ describe("PurchaseCandidateDetailPage", () => {
           is_rain_ok: true,
           converted_item_id: null,
           converted_at: null,
-          colors: [{ role: "main", mode: "preset", value: "navy", hex: "#1F3A5F", label: "ネイビー" }],
+          colors: [
+            {
+              role: "main",
+              mode: "preset",
+              value: "navy",
+              hex: "#1F3A5F",
+              label: "ネイビー",
+            },
+          ],
           seasons: ["春"],
           tpos: ["仕事"],
           images: [],
@@ -75,7 +100,9 @@ describe("PurchaseCandidateDetailPage", () => {
 
     const { default: PurchaseCandidateDetailPage } = await import("./page");
     const markup = renderToStaticMarkup(
-      await PurchaseCandidateDetailPage({ params: Promise.resolve({ id: "10" }) }),
+      await PurchaseCandidateDetailPage({
+        params: Promise.resolve({ id: "10" }),
+      }),
     );
 
     expect(markup).toContain("ネイビーコート");
@@ -118,7 +145,15 @@ describe("PurchaseCandidateDetailPage", () => {
           is_rain_ok: true,
           converted_item_id: 55,
           converted_at: "2026-03-25T10:00:00+09:00",
-          colors: [{ role: "main", mode: "preset", value: "navy", hex: "#1F3A5F", label: "ネイビー" }],
+          colors: [
+            {
+              role: "main",
+              mode: "preset",
+              value: "navy",
+              hex: "#1F3A5F",
+              label: "ネイビー",
+            },
+          ],
           seasons: ["春"],
           tpos: ["仕事"],
           images: [],
@@ -130,7 +165,9 @@ describe("PurchaseCandidateDetailPage", () => {
 
     const { default: PurchaseCandidateDetailPage } = await import("./page");
     const markup = renderToStaticMarkup(
-      await PurchaseCandidateDetailPage({ params: Promise.resolve({ id: "11" }) }),
+      await PurchaseCandidateDetailPage({
+        params: Promise.resolve({ id: "11" }),
+      }),
     );
 
     expect(markup).toContain("この購入検討はアイテム化済みの履歴です。");

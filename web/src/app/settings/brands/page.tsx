@@ -50,7 +50,9 @@ function SettingsBrandsPageContent() {
           router.push("/login");
           return;
         }
-        setBrandsLoadError("ブランド候補を読み込めませんでした。時間をおいて再度お試しください。");
+        setBrandsLoadError(
+          "ブランド候補を読み込めませんでした。時間をおいて再度お試しください。",
+        );
       })
       .finally(() => {
         if (!active) return;
@@ -128,7 +130,9 @@ function SettingsBrandsPageContent() {
             error.message,
         );
       } else {
-        setBrandFormError("ブランド候補を追加できませんでした。時間をおいて再度お試しください。");
+        setBrandFormError(
+          "ブランド候補を追加できませんでした。時間をおいて再度お試しください。",
+        );
       }
     } finally {
       setAddingBrand(false);
@@ -166,7 +170,9 @@ function SettingsBrandsPageContent() {
             error.message,
         );
       } else {
-        setBrandListError("ブランド候補を更新できませんでした。時間をおいて再度お試しください。");
+        setBrandListError(
+          "ブランド候補を更新できませんでした。時間をおいて再度お試しください。",
+        );
       }
     } finally {
       setUpdatingBrandId(null);
@@ -193,7 +199,9 @@ function SettingsBrandsPageContent() {
       if (error instanceof ApiClientError) {
         setBrandListError(error.message);
       } else {
-        setBrandListError("ブランド候補の状態を更新できませんでした。時間をおいて再度お試しください。");
+        setBrandListError(
+          "ブランド候補の状態を更新できませんでした。時間をおいて再度お試しください。",
+        );
       }
     } finally {
       setUpdatingBrandId(null);
@@ -214,7 +222,9 @@ function SettingsBrandsPageContent() {
         <SettingsCard>
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">ブランド候補を追加</h2>
+              <h2 className="text-lg font-semibold text-gray-900">
+                ブランド候補を追加
+              </h2>
               <p className="mt-2 text-sm text-gray-600">
                 ブランド名と読み仮名を登録できます。
               </p>
@@ -233,7 +243,10 @@ function SettingsBrandsPageContent() {
           <div className="mt-6 rounded-2xl border border-gray-200 bg-gray-50 p-4">
             <div className="grid gap-4 md:grid-cols-[2fr_2fr_auto]">
               <div>
-                <label htmlFor="new-brand-name" className="mb-1 block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="new-brand-name"
+                  className="mb-1 block text-sm font-medium text-gray-700"
+                >
                   ブランド名
                 </label>
                 <input
@@ -245,7 +258,10 @@ function SettingsBrandsPageContent() {
                 />
               </div>
               <div>
-                <label htmlFor="new-brand-kana" className="mb-1 block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="new-brand-kana"
+                  className="mb-1 block text-sm font-medium text-gray-700"
+                >
                   読み仮名
                 </label>
                 <input
@@ -273,7 +289,9 @@ function SettingsBrandsPageContent() {
         <SettingsCard>
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div className="flex-1">
-              <h2 className="text-lg font-semibold text-gray-900">登録済みブランド候補</h2>
+              <h2 className="text-lg font-semibold text-gray-900">
+                登録済みブランド候補
+              </h2>
               <p className="mt-2 text-sm text-gray-600">
                 無効にした候補は新規候補から外れます。既存データはそのまま保持します。
               </p>
@@ -282,14 +300,20 @@ function SettingsBrandsPageContent() {
               <input
                 type="checkbox"
                 checked={showInactiveBrands}
-                onChange={(event) => setShowInactiveBrands(event.target.checked)}
+                onChange={(event) =>
+                  setShowInactiveBrands(event.target.checked)
+                }
                 className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
               />
               無効候補も表示する
             </label>
           </div>
-          {brandListMessage ? <p className="mt-3 text-sm text-emerald-700">{brandListMessage}</p> : null}
-          {brandListError ? <p className="mt-3 text-sm text-red-600">{brandListError}</p> : null}
+          {brandListMessage ? (
+            <p className="mt-3 text-sm text-emerald-700">{brandListMessage}</p>
+          ) : null}
+          {brandListError ? (
+            <p className="mt-3 text-sm text-red-600">{brandListError}</p>
+          ) : null}
 
           <div className="mt-6 rounded-2xl border border-gray-200 bg-gray-50 p-4">
             <label
@@ -312,7 +336,9 @@ function SettingsBrandsPageContent() {
           </div>
 
           {brandsLoading ? (
-            <p className="mt-6 text-sm text-gray-600">ブランド候補を読み込み中です...</p>
+            <p className="mt-6 text-sm text-gray-600">
+              ブランド候補を読み込み中です...
+            </p>
           ) : brandsLoadError ? (
             <p className="mt-6 text-sm text-red-600">{brandsLoadError}</p>
           ) : sortedBrands.length === 0 ? (
@@ -336,7 +362,9 @@ function SettingsBrandsPageContent() {
                       <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
-                            <p className="text-base font-semibold text-gray-900">{brand.name}</p>
+                            <p className="text-base font-semibold text-gray-900">
+                              {brand.name}
+                            </p>
                             <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
                               有効
                             </span>
@@ -355,7 +383,11 @@ function SettingsBrandsPageContent() {
                             onClick={() => startEditingBrand(brand)}
                             className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 transition hover:bg-gray-100"
                           >
-                            <EditIcon aria-hidden="true" className="h-4 w-4" strokeWidth={1.9} />
+                            <EditIcon
+                              aria-hidden="true"
+                              className="h-4 w-4"
+                              strokeWidth={1.9}
+                            />
                             編集
                           </button>
                           <button
@@ -372,26 +404,36 @@ function SettingsBrandsPageContent() {
                       {isEditing ? (
                         <div className="mt-4 grid gap-4 md:grid-cols-[2fr_2fr_auto_auto]">
                           <div>
-                            <label htmlFor={`brand-name-${brand.id}`} className="mb-1 block text-sm font-medium text-gray-700">
+                            <label
+                              htmlFor={`brand-name-${brand.id}`}
+                              className="mb-1 block text-sm font-medium text-gray-700"
+                            >
                               ブランド名
                             </label>
                             <input
                               id={`brand-name-${brand.id}`}
                               type="text"
                               value={editBrandName}
-                              onChange={(event) => setEditBrandName(event.target.value)}
+                              onChange={(event) =>
+                                setEditBrandName(event.target.value)
+                              }
                               className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                             />
                           </div>
                           <div>
-                            <label htmlFor={`brand-kana-${brand.id}`} className="mb-1 block text-sm font-medium text-gray-700">
+                            <label
+                              htmlFor={`brand-kana-${brand.id}`}
+                              className="mb-1 block text-sm font-medium text-gray-700"
+                            >
                               読み仮名
                             </label>
                             <input
                               id={`brand-kana-${brand.id}`}
                               type="text"
                               value={editBrandKana}
-                              onChange={(event) => setEditBrandKana(event.target.value)}
+                              onChange={(event) =>
+                                setEditBrandKana(event.target.value)
+                              }
                               className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                             />
                           </div>
@@ -399,7 +441,9 @@ function SettingsBrandsPageContent() {
                             <input
                               type="checkbox"
                               checked={editBrandIsActive}
-                              onChange={(event) => setEditBrandIsActive(event.target.checked)}
+                              onChange={(event) =>
+                                setEditBrandIsActive(event.target.checked)
+                              }
                               className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                             />
                             有効
@@ -434,7 +478,9 @@ function SettingsBrandsPageContent() {
 
               {showInactiveBrands && inactiveBrands.length > 0 ? (
                 <section className="space-y-3">
-                  <h3 className="text-sm font-semibold text-gray-900">無効候補</h3>
+                  <h3 className="text-sm font-semibold text-gray-900">
+                    無効候補
+                  </h3>
                   {inactiveBrands.map((brand) => {
                     const isEditing = editingBrandId === brand.id;
                     const isUpdating = updatingBrandId === brand.id;
@@ -447,7 +493,9 @@ function SettingsBrandsPageContent() {
                         <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                           <div className="space-y-1">
                             <div className="flex items-center gap-2">
-                              <p className="text-base font-semibold text-gray-900">{brand.name}</p>
+                              <p className="text-base font-semibold text-gray-900">
+                                {brand.name}
+                              </p>
                               <span className="rounded-full bg-gray-200 px-3 py-1 text-xs font-semibold text-gray-700">
                                 無効
                               </span>
@@ -466,7 +514,11 @@ function SettingsBrandsPageContent() {
                               onClick={() => startEditingBrand(brand)}
                               className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 transition hover:bg-gray-100"
                             >
-                              <EditIcon aria-hidden="true" className="h-4 w-4" strokeWidth={1.9} />
+                              <EditIcon
+                                aria-hidden="true"
+                                className="h-4 w-4"
+                                strokeWidth={1.9}
+                              />
                               編集
                             </button>
                             <button
@@ -483,26 +535,36 @@ function SettingsBrandsPageContent() {
                         {isEditing ? (
                           <div className="mt-4 grid gap-4 md:grid-cols-[2fr_2fr_auto_auto]">
                             <div>
-                              <label htmlFor={`brand-name-${brand.id}`} className="mb-1 block text-sm font-medium text-gray-700">
+                              <label
+                                htmlFor={`brand-name-${brand.id}`}
+                                className="mb-1 block text-sm font-medium text-gray-700"
+                              >
                                 ブランド名
                               </label>
                               <input
                                 id={`brand-name-${brand.id}`}
                                 type="text"
                                 value={editBrandName}
-                                onChange={(event) => setEditBrandName(event.target.value)}
+                                onChange={(event) =>
+                                  setEditBrandName(event.target.value)
+                                }
                                 className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                               />
                             </div>
                             <div>
-                              <label htmlFor={`brand-kana-${brand.id}`} className="mb-1 block text-sm font-medium text-gray-700">
+                              <label
+                                htmlFor={`brand-kana-${brand.id}`}
+                                className="mb-1 block text-sm font-medium text-gray-700"
+                              >
                                 読み仮名
                               </label>
                               <input
                                 id={`brand-kana-${brand.id}`}
                                 type="text"
                                 value={editBrandKana}
-                                onChange={(event) => setEditBrandKana(event.target.value)}
+                                onChange={(event) =>
+                                  setEditBrandKana(event.target.value)
+                                }
                                 className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                               />
                             </div>
@@ -510,7 +572,9 @@ function SettingsBrandsPageContent() {
                               <input
                                 type="checkbox"
                                 checked={editBrandIsActive}
-                                onChange={(event) => setEditBrandIsActive(event.target.checked)}
+                                onChange={(event) =>
+                                  setEditBrandIsActive(event.target.checked)
+                                }
                                 className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                               />
                               有効

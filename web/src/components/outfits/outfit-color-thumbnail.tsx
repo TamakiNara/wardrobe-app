@@ -110,9 +110,10 @@ export default function OutfitColorThumbnail({
     })),
   );
   const hasTopBottomSplit = layout.tops.length > 0 && layout.bottoms.length > 0;
-  const dimensions = size === "large"
-    ? { wrapper: "w-20", main: "h-20", othersGap: "gap-1.5" }
-    : { wrapper: "w-16", main: "h-16", othersGap: "gap-1" };
+  const dimensions =
+    size === "large"
+      ? { wrapper: "w-20", main: "h-20", othersGap: "gap-1.5" }
+      : { wrapper: "w-16", main: "h-16", othersGap: "gap-1" };
   const skinToneColor = resolveSkinToneColor(skinTonePreset);
 
   return (
@@ -122,7 +123,9 @@ export default function OutfitColorThumbnail({
       aria-hidden="true"
     >
       {layout.usesFullHeightForOthers ? (
-        <div className={`${dimensions.main} overflow-hidden rounded-lg border border-gray-200 bg-gray-50`}>
+        <div
+          className={`${dimensions.main} overflow-hidden rounded-lg border border-gray-200 bg-gray-50`}
+        >
           <SegmentRow segments={layout.others} testId="thumbnail-others-full" />
         </div>
       ) : (
@@ -164,7 +167,10 @@ export default function OutfitColorThumbnail({
                     />
                   </div>
                 ) : (
-                  <SegmentRow segments={layout.bottoms} testId="thumbnail-bottoms" />
+                  <SegmentRow
+                    segments={layout.bottoms}
+                    testId="thumbnail-bottoms"
+                  />
                 )}
               </div>
             ) : null}

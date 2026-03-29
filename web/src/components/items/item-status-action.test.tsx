@@ -65,7 +65,9 @@ describe("ItemStatusAction", () => {
     const { default: ItemStatusAction } = await import("./item-status-action");
 
     await act(async () => {
-      root.render(React.createElement(ItemStatusAction, { itemId: 1, status: "active" }));
+      root.render(
+        React.createElement(ItemStatusAction, { itemId: 1, status: "active" }),
+      );
       await waitForEffects();
     });
 
@@ -77,10 +79,14 @@ describe("ItemStatusAction", () => {
     });
 
     expect(confirmMock).toHaveBeenCalledWith(
-      expect.stringContaining("通常一覧やコーディネート候補、着用履歴の登録候補から除外されます。"),
+      expect.stringContaining(
+        "通常一覧やコーディネート候補、着用履歴の登録候補から除外されます。",
+      ),
     );
     expect(confirmMock).toHaveBeenCalledWith(
-      expect.stringContaining("このアイテムを含むコーディネートは無効になります。"),
+      expect.stringContaining(
+        "このアイテムを含むコーディネートは無効になります。",
+      ),
     );
     expect(global.fetch).toHaveBeenCalledWith("/api/items/1/dispose", {
       method: "POST",
@@ -113,7 +119,12 @@ describe("ItemStatusAction", () => {
     const { default: ItemStatusAction } = await import("./item-status-action");
 
     await act(async () => {
-      root.render(React.createElement(ItemStatusAction, { itemId: 1, status: "disposed" }));
+      root.render(
+        React.createElement(ItemStatusAction, {
+          itemId: 1,
+          status: "disposed",
+        }),
+      );
       await waitForEffects();
     });
 

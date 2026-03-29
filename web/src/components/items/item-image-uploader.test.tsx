@@ -25,11 +25,14 @@ describe("ItemImageUploader", () => {
     globalThis.IS_REACT_ACT_ENVIRONMENT = false;
   });
 
-  function renderUploader(props?: Partial<React.ComponentProps<typeof ItemImageUploader>>) {
+  function renderUploader(
+    props?: Partial<React.ComponentProps<typeof ItemImageUploader>>,
+  ) {
     const onPendingImagesChange = props?.onPendingImagesChange ?? vi.fn();
     const onDeleteExistingImage = props?.onDeleteExistingImage ?? vi.fn();
     const onMoveExistingImage = props?.onMoveExistingImage ?? vi.fn();
-    const onMakePrimaryExistingImage = props?.onMakePrimaryExistingImage ?? vi.fn();
+    const onMakePrimaryExistingImage =
+      props?.onMakePrimaryExistingImage ?? vi.fn();
 
     act(() => {
       root.render(
@@ -47,11 +50,21 @@ describe("ItemImageUploader", () => {
       );
     });
 
-    return { onPendingImagesChange, onDeleteExistingImage, onMoveExistingImage, onMakePrimaryExistingImage };
+    return {
+      onPendingImagesChange,
+      onDeleteExistingImage,
+      onMoveExistingImage,
+      onMakePrimaryExistingImage,
+    };
   }
 
   it("file select と画像操作を扱える", async () => {
-    const { onPendingImagesChange, onDeleteExistingImage, onMoveExistingImage, onMakePrimaryExistingImage } = renderUploader({
+    const {
+      onPendingImagesChange,
+      onDeleteExistingImage,
+      onMoveExistingImage,
+      onMakePrimaryExistingImage,
+    } = renderUploader({
       existingImages: [
         {
           id: 1,
@@ -79,10 +92,18 @@ describe("ItemImageUploader", () => {
       input.dispatchEvent(new Event("change", { bubbles: true }));
     });
 
-    const upButton = Array.from(container.querySelectorAll("button")).find((element) => element.textContent === "上へ");
-    const downButton = Array.from(container.querySelectorAll("button")).find((element) => element.textContent === "下へ");
-    const primaryButton = Array.from(container.querySelectorAll("button")).find((element) => element.textContent === "代表画像");
-    const deleteButton = Array.from(container.querySelectorAll("button")).find((element) => element.textContent === "削除");
+    const upButton = Array.from(container.querySelectorAll("button")).find(
+      (element) => element.textContent === "上へ",
+    );
+    const downButton = Array.from(container.querySelectorAll("button")).find(
+      (element) => element.textContent === "下へ",
+    );
+    const primaryButton = Array.from(container.querySelectorAll("button")).find(
+      (element) => element.textContent === "代表画像",
+    );
+    const deleteButton = Array.from(container.querySelectorAll("button")).find(
+      (element) => element.textContent === "削除",
+    );
     await act(async () => {
       upButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
       downButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
@@ -128,12 +149,18 @@ describe("ItemImageUploader", () => {
       existingImages: [...existingImages],
     });
 
-    const downButton = Array.from(container.querySelectorAll("button")).find((element) => element.textContent === "下へ");
-    const makePrimaryButton = Array.from(container.querySelectorAll("button")).find((element) => element.textContent === "代表にする");
+    const downButton = Array.from(container.querySelectorAll("button")).find(
+      (element) => element.textContent === "下へ",
+    );
+    const makePrimaryButton = Array.from(
+      container.querySelectorAll("button"),
+    ).find((element) => element.textContent === "代表にする");
 
     await act(async () => {
       downButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-      makePrimaryButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      makePrimaryButton?.dispatchEvent(
+        new MouseEvent("click", { bubbles: true }),
+      );
     });
 
     expect(onMoveExistingImage).toHaveBeenCalledWith(existingImages[0], "down");

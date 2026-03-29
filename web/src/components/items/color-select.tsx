@@ -78,7 +78,9 @@ export default function ColorSelect({
             <span className="text-gray-400">{placeholder}</span>
           )}
         </span>
-        <span className="shrink-0 text-xs text-gray-500">{open ? "閉じる" : "選択"}</span>
+        <span className="shrink-0 text-xs text-gray-500">
+          {open ? "閉じる" : "選択"}
+        </span>
       </button>
 
       {open && !disabled && (
@@ -115,7 +117,9 @@ export default function ColorSelect({
                         setOpen(false);
                       }}
                       className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left transition ${
-                        isSelected ? "bg-blue-50 text-blue-900" : "hover:bg-gray-50"
+                        isSelected
+                          ? "bg-blue-50 text-blue-900"
+                          : "hover:bg-gray-50"
                       }`}
                     >
                       <span className="flex min-w-0 items-center gap-3">
@@ -123,11 +127,17 @@ export default function ColorSelect({
                           className="h-5 w-5 shrink-0 rounded-full border border-gray-300"
                           style={{ backgroundColor: color.hex }}
                         />
-                        <span className="truncate text-sm font-medium">{color.label}</span>
-                        <span className="shrink-0 text-xs text-gray-400">{color.hex.toUpperCase()}</span>
+                        <span className="truncate text-sm font-medium">
+                          {color.label}
+                        </span>
+                        <span className="shrink-0 text-xs text-gray-400">
+                          {color.hex.toUpperCase()}
+                        </span>
                       </span>
                       {isSelected && (
-                        <span className="shrink-0 text-xs font-medium text-blue-600">選択中</span>
+                        <span className="shrink-0 text-xs font-medium text-blue-600">
+                          選択中
+                        </span>
                       )}
                     </button>
                   );

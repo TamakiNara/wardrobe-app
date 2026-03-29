@@ -32,12 +32,13 @@ export type PurchaseCandidateItemDraft = {
 export function savePurchaseCandidateItemDraft(
   payload: PurchaseCandidateItemDraftResponse,
 ) {
-  window.sessionStorage.setItem(ITEM_DRAFT_STORAGE_KEY, JSON.stringify(payload));
+  window.sessionStorage.setItem(
+    ITEM_DRAFT_STORAGE_KEY,
+    JSON.stringify(payload),
+  );
 }
 
-export function loadPurchaseCandidateItemDraft():
-  | PurchaseCandidateItemDraftResponse
-  | null {
+export function loadPurchaseCandidateItemDraft(): PurchaseCandidateItemDraftResponse | null {
   const raw = window.sessionStorage.getItem(ITEM_DRAFT_STORAGE_KEY);
 
   if (!raw) {

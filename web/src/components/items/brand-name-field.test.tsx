@@ -48,7 +48,10 @@ describe("BrandNameField", () => {
   }
 
   function setInputValue(input: HTMLInputElement, value: string) {
-    const descriptor = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value");
+    const descriptor = Object.getOwnPropertyDescriptor(
+      HTMLInputElement.prototype,
+      "value",
+    );
     descriptor?.set?.call(input, value);
     input.dispatchEvent(new Event("input", { bubbles: true }));
     input.dispatchEvent(new Event("change", { bubbles: true }));
@@ -95,17 +98,22 @@ describe("BrandNameField", () => {
     expect(container.textContent).toContain("UNIQLO");
     expect(container.textContent).toContain("ゆにくろ");
 
-    const suggestionButton = Array.from(container.querySelectorAll("button")).find(
-      (button) => button.textContent?.includes("UNIQLO"),
-    );
+    const suggestionButton = Array.from(
+      container.querySelectorAll("button"),
+    ).find((button) => button.textContent?.includes("UNIQLO"));
     expect(suggestionButton).not.toBeUndefined();
 
     await act(async () => {
-      suggestionButton!.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
+      suggestionButton!.dispatchEvent(
+        new MouseEvent("mousedown", { bubbles: true }),
+      );
       await waitForEffects();
     });
 
-    expect((container.querySelector("#brand-name") as HTMLInputElement | null)?.value).toBe("UNIQLO");
+    expect(
+      (container.querySelector("#brand-name") as HTMLInputElement | null)
+        ?.value,
+    ).toBe("UNIQLO");
   });
 
   it("kana 検索でも候補に当たり、候補がなくても自由入力を妨げない", async () => {
@@ -136,7 +144,12 @@ describe("BrandNameField", () => {
     });
 
     expect(fetchUserBrandsMock.mock.calls).toContainEqual(["NoBrand", true]);
-    expect((container.querySelector("#brand-name") as HTMLInputElement | null)?.value).toBe("NoBrand");
-    expect(container.textContent).toContain("一致するブランド候補はありません。");
+    expect(
+      (container.querySelector("#brand-name") as HTMLInputElement | null)
+        ?.value,
+    ).toBe("NoBrand");
+    expect(container.textContent).toContain(
+      "一致するブランド候補はありません。",
+    );
   });
 });

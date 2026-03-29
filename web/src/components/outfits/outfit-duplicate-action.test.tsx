@@ -76,7 +76,8 @@ describe("OutfitDuplicateAction", () => {
       ),
     );
 
-    const { default: OutfitDuplicateAction } = await import("./outfit-duplicate-action");
+    const { default: OutfitDuplicateAction } =
+      await import("./outfit-duplicate-action");
 
     await act(async () => {
       root.render(React.createElement(OutfitDuplicateAction, { outfitId: 10 }));
@@ -120,10 +121,13 @@ describe("OutfitDuplicateAction", () => {
       ),
     );
 
-    const { default: OutfitDuplicateAction } = await import("./outfit-duplicate-action");
+    const { default: OutfitDuplicateAction } =
+      await import("./outfit-duplicate-action");
 
     await act(async () => {
-      root.render(React.createElement(OutfitDuplicateAction, { outfitId: 999 }));
+      root.render(
+        React.createElement(OutfitDuplicateAction, { outfitId: 999 }),
+      );
       await waitForEffects();
     });
 
@@ -134,7 +138,9 @@ describe("OutfitDuplicateAction", () => {
       await waitForEffects();
     });
 
-    expect(container.textContent).toContain("対象のコーディネートが見つかりませんでした。");
+    expect(container.textContent).toContain(
+      "対象のコーディネートが見つかりませんでした。",
+    );
     expect(pushMock).not.toHaveBeenCalled();
   });
 });

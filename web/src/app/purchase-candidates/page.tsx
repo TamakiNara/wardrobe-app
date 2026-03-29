@@ -68,9 +68,10 @@ export default async function PurchaseCandidatesPage({
 }) {
   const resolvedSearchParams = await searchParams;
   const data = await getPurchaseCandidates();
-  const flashMessage = resolvedSearchParams.message === "deleted"
-    ? "購入検討を削除しました。"
-    : null;
+  const flashMessage =
+    resolvedSearchParams.message === "deleted"
+      ? "購入検討を削除しました。"
+      : null;
 
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">
@@ -112,7 +113,8 @@ export default async function PurchaseCandidatesPage({
               購入検討がまだありません
             </h2>
             <p className="mt-2 text-sm text-gray-600">
-              気になるアイテムを候補として登録して比較や item 化の準備を進めましょう。
+              気になるアイテムを候補として登録して比較や item
+              化の準備を進めましょう。
             </p>
           </section>
         ) : (
@@ -148,7 +150,8 @@ export default async function PurchaseCandidatesPage({
                       {PURCHASE_CANDIDATE_STATUS_LABELS[candidate.status]}
                     </span>
                     <span className="rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-xs font-medium text-gray-600">
-                      優先度: {PURCHASE_CANDIDATE_PRIORITY_LABELS[candidate.priority]}
+                      優先度:{" "}
+                      {PURCHASE_CANDIDATE_PRIORITY_LABELS[candidate.priority]}
                     </span>
                     {candidate.converted_item_id !== null && (
                       <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
@@ -174,7 +177,8 @@ export default async function PurchaseCandidatesPage({
                       <dt>想定価格</dt>
                       <dd>{formatPrice(candidate.price)}</dd>
                     </div>
-                    {(candidate.sale_price !== null || candidate.sale_ends_at !== null) && (
+                    {(candidate.sale_price !== null ||
+                      candidate.sale_ends_at !== null) && (
                       <>
                         {candidate.sale_price !== null && (
                           <div className="flex items-center justify-between gap-3 text-rose-700">

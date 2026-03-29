@@ -1,7 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+  type FormEvent,
+  type ReactNode,
+} from "react";
 import { useRouter } from "next/navigation";
 import FieldLabel from "@/components/forms/field-label";
 import {
@@ -49,7 +55,9 @@ type OutfitCandidate = {
   outfitItems?: Array<unknown>;
 };
 
-const WEAR_LOG_FILTER_SEASONS = SEASON_OPTIONS.filter((season) => season !== "オール");
+const WEAR_LOG_FILTER_SEASONS = SEASON_OPTIONS.filter(
+  (season) => season !== "オール",
+);
 
 export default function WearLogForm({
   mode,
@@ -61,7 +69,10 @@ export default function WearLogForm({
   initialDisplayOrder = 1,
 }: WearLogFormProps) {
   const router = useRouter();
-  const returnToPath = mode === "edit" && wearLogId ? `/wear-logs/${wearLogId}/edit` : "/wear-logs/new";
+  const returnToPath =
+    mode === "edit" && wearLogId
+      ? `/wear-logs/${wearLogId}/edit`
+      : "/wear-logs/new";
 
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -79,8 +90,12 @@ export default function WearLogForm({
   const [itemSeasonFilter, setItemSeasonFilter] = useState("");
   const [itemTpoFilter, setItemTpoFilter] = useState("");
 
-  const [candidateItems, setCandidateItems] = useState<WearLogSelectableItem[]>([]);
-  const [candidateOutfits, setCandidateOutfits] = useState<WearLogSelectableOutfit[]>([]);
+  const [candidateItems, setCandidateItems] = useState<WearLogSelectableItem[]>(
+    [],
+  );
+  const [candidateOutfits, setCandidateOutfits] = useState<
+    WearLogSelectableOutfit[]
+  >([]);
   const [selectedItems, setSelectedItems] = useState<SelectedWearLogItem[]>([]);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -111,13 +126,20 @@ export default function WearLogForm({
             return;
           }
 
-          const detailData = (await detailResponse.json()) as WearLogDetailResponse;
+          const detailData =
+            (await detailResponse.json()) as WearLogDetailResponse;
           wearLogData = detailData.wearLog;
         }
 
         const [itemsResult, outfitsResult] = await Promise.all([
-          fetchAllPaginatedCandidates<ItemRecord, "items">("/api/items", "items"),
-          fetchAllPaginatedCandidates<OutfitCandidate, "outfits">("/api/outfits", "outfits"),
+          fetchAllPaginatedCandidates<ItemRecord, "items">(
+            "/api/items",
+            "items",
+          ),
+          fetchAllPaginatedCandidates<OutfitCandidate, "outfits">(
+            "/api/outfits",
+            "outfits",
+          ),
         ]);
 
         if (itemsResult.status === 401 || outfitsResult.status === 401) {
@@ -167,7 +189,9 @@ export default function WearLogForm({
           setSelectedItems(buildSelectedWearLogItems(wearLogData));
         } else {
           setStatus(initialStatus);
-          setEventDate(initialEventDate ?? new Date().toISOString().slice(0, 10));
+          setEventDate(
+            initialEventDate ?? new Date().toISOString().slice(0, 10),
+          );
           setDisplayOrder(initialDisplayOrder);
           setSelectedItems([]);
         }
@@ -179,7 +203,14 @@ export default function WearLogForm({
     }
 
     loadInitialData();
-  }, [initialDisplayOrder, initialEventDate, initialStatus, mode, router, wearLogId]);
+  }, [
+    initialDisplayOrder,
+    initialEventDate,
+    initialStatus,
+    mode,
+    router,
+    wearLogId,
+  ]);
 
   const selectedItemIds = useMemo(() => {
     return selectedItems.map((item) => item.sourceItemId);
@@ -188,7 +219,9 @@ export default function WearLogForm({
   const selectedItemRecords = useMemo(() => {
     return selectedItems
       .map((selectedItem) => {
-        const item = candidateItems.find((candidate) => candidate.id === selectedItem.sourceItemId);
+        const item = candidateItems.find(
+          (candidate) => candidate.id === selectedItem.sourceItemId,
+        );
 
         if (!item) {
           return null;
@@ -199,7 +232,13 @@ export default function WearLogForm({
           itemSourceType: selectedItem.itemSourceType,
         };
       })
-      .filter((item): item is WearLogSelectableItem & { itemSourceType: "outfit" | "manual" } => item !== null);
+      .filter(
+        (
+          item,
+        ): item is WearLogSelectableItem & {
+          itemSourceType: "outfit" | "manual";
+        } => item !== null,
+      );
   }, [candidateItems, selectedItems]);
 
   const currentSourceOutfit = useMemo(() => {
@@ -207,7 +246,9 @@ export default function WearLogForm({
       return null;
     }
 
-    return candidateOutfits.find((outfit) => outfit.id === sourceOutfitId) ?? null;
+    return (
+      candidateOutfits.find((outfit) => outfit.id === sourceOutfitId) ?? null
+    );
   }, [candidateOutfits, sourceOutfitId]);
 
   const hasUnavailableSelectedItems = selectedItemRecords.some(
@@ -223,7 +264,10 @@ export default function WearLogForm({
       new Set(
         candidateItems
           .map((item) => item.category)
-          .filter((category): category is string => typeof category === "string" && category !== ""),
+          .filter(
+            (category): category is string =>
+              typeof category === "string" && category !== "",
+          ),
       ),
     );
   }, [candidateItems]);
@@ -232,12 +276,15 @@ export default function WearLogForm({
     const keyword = outfitKeyword.trim().toLowerCase();
 
     return candidateOutfits.filter((outfit) => {
-      const matchKeyword = !keyword || (outfit.name ?? "名称未設定").toLowerCase().includes(keyword);
+      const matchKeyword =
+        !keyword ||
+        (outfit.name ?? "名称未設定").toLowerCase().includes(keyword);
       const seasons = outfit.seasons ?? [];
       const tpos = outfit.tpos ?? [];
       const isAllSeason = seasons.length === 0 || seasons.includes("オール");
-      const matchSeason = outfitSeasonFilter === ""
-        || (outfitSeasonFilter === "オール"
+      const matchSeason =
+        outfitSeasonFilter === "" ||
+        (outfitSeasonFilter === "オール"
           ? isAllSeason
           : seasons.includes(outfitSeasonFilter) || isAllSeason);
       const matchTpo = outfitTpoFilter === "" || tpos.includes(outfitTpoFilter);
@@ -251,18 +298,34 @@ export default function WearLogForm({
 
     return candidateItems.filter((item) => {
       const name = (item.name ?? "名称未設定").toLowerCase();
-      const category = (findItemCategoryLabel(item.category) ?? "").toLowerCase();
-      const shape = (findItemShapeLabel(item.category, item.shape) ?? "").toLowerCase();
+      const category = (
+        findItemCategoryLabel(item.category) ?? ""
+      ).toLowerCase();
+      const shape = (
+        findItemShapeLabel(item.category, item.shape) ?? ""
+      ).toLowerCase();
       const seasons = item.seasons ?? [];
       const tpos = item.tpos ?? [];
-      const matchKeyword = !keyword || name.includes(keyword) || category.includes(keyword) || shape.includes(keyword);
-      const matchCategory = itemCategoryFilter === "" || item.category === itemCategoryFilter;
-      const matchSeason = itemSeasonFilter === "" || seasons.includes(itemSeasonFilter);
+      const matchKeyword =
+        !keyword ||
+        name.includes(keyword) ||
+        category.includes(keyword) ||
+        shape.includes(keyword);
+      const matchCategory =
+        itemCategoryFilter === "" || item.category === itemCategoryFilter;
+      const matchSeason =
+        itemSeasonFilter === "" || seasons.includes(itemSeasonFilter);
       const matchTpo = itemTpoFilter === "" || tpos.includes(itemTpoFilter);
 
       return matchKeyword && matchCategory && matchSeason && matchTpo;
     });
-  }, [candidateItems, itemKeyword, itemCategoryFilter, itemSeasonFilter, itemTpoFilter]);
+  }, [
+    candidateItems,
+    itemKeyword,
+    itemCategoryFilter,
+    itemSeasonFilter,
+    itemTpoFilter,
+  ]);
 
   function buildItemDetailHref(itemId: number): string {
     return `/items/${itemId}?return_to=${encodeURIComponent(returnToPath)}&return_label=${encodeURIComponent("着用履歴フォーム")}`;
@@ -351,7 +414,8 @@ export default function WearLogForm({
     }
 
     if (sourceOutfitId === null && selectedItems.length === 0) {
-      nextErrors.selection = "コーディネートまたはアイテムを1件以上指定してください。";
+      nextErrors.selection =
+        "コーディネートまたはアイテムを1件以上指定してください。";
     }
 
     setErrors(nextErrors);
@@ -380,7 +444,10 @@ export default function WearLogForm({
     setSubmitting(true);
 
     try {
-      const path = mode === "edit" && wearLogId ? `/api/wear-logs/${wearLogId}` : "/api/wear-logs";
+      const path =
+        mode === "edit" && wearLogId
+          ? `/api/wear-logs/${wearLogId}`
+          : "/api/wear-logs";
       const method = mode === "edit" ? "PUT" : "POST";
 
       const response = await fetch(path, {
@@ -417,7 +484,11 @@ export default function WearLogForm({
         return;
       }
 
-      setSubmitSuccess(mode === "edit" ? "着用履歴を更新しました。" : "着用履歴を登録しました。");
+      setSubmitSuccess(
+        mode === "edit"
+          ? "着用履歴を更新しました。"
+          : "着用履歴を登録しました。",
+      );
 
       window.setTimeout(() => {
         router.push("/wear-logs");
@@ -433,7 +504,9 @@ export default function WearLogForm({
   if (loading) {
     return (
       <section className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
-        <p className="text-sm text-gray-600">着用履歴フォームを読み込み中です...</p>
+        <p className="text-sm text-gray-600">
+          着用履歴フォームを読み込み中です...
+        </p>
       </section>
     );
   }
@@ -470,14 +543,18 @@ export default function WearLogForm({
       )}
 
       {selectedCleaningItems.length > 0 && (
-        <div className={`rounded-xl border px-4 py-3 ${
-          status === "worn"
-            ? "border-amber-300 bg-amber-50"
-            : "border-sky-200 bg-sky-50"
-        }`}>
-          <p className={`text-sm font-medium ${
-            status === "worn" ? "text-amber-900" : "text-sky-900"
-          }`}>
+        <div
+          className={`rounded-xl border px-4 py-3 ${
+            status === "worn"
+              ? "border-amber-300 bg-amber-50"
+              : "border-sky-200 bg-sky-50"
+          }`}
+        >
+          <p
+            className={`text-sm font-medium ${
+              status === "worn" ? "text-amber-900" : "text-sky-900"
+            }`}
+          >
             {status === "worn"
               ? "クリーニング中のアイテムが含まれています。着用済みとして登録する前に内容を確認してください。"
               : "クリーニング中のアイテムが含まれています。予定として保存はできますが、必要なら先に状態を確認してください。"}
@@ -533,7 +610,9 @@ export default function WearLogForm({
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">表示順</label>
+            <label className="mb-1 block text-sm font-medium text-gray-700">
+              表示順
+            </label>
             <input
               type="number"
               min={1}
@@ -542,19 +621,25 @@ export default function WearLogForm({
               className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             />
             {errors.display_order && (
-              <p className="mt-2 text-sm text-red-600">{errors.display_order}</p>
+              <p className="mt-2 text-sm text-red-600">
+                {errors.display_order}
+              </p>
             )}
           </div>
         </div>
       </section>
 
       <section className="space-y-4">
-        <h2 className="text-lg font-semibold text-gray-900">元のコーディネート</h2>
+        <h2 className="text-lg font-semibold text-gray-900">
+          元のコーディネート
+        </h2>
         <p className="text-sm text-gray-500">
           名前、構成数、季節、TPOを見ながらベースにするコーディネートを選べます。
         </p>
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">キーワードで絞り込む</label>
+          <label className="mb-1 block text-sm font-medium text-gray-700">
+            キーワードで絞り込む
+          </label>
           <input
             data-testid="wear-log-outfit-search"
             type="search"
@@ -566,7 +651,9 @@ export default function WearLogForm({
         </div>
         <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">季節</label>
+            <label className="mb-1 block text-sm font-medium text-gray-700">
+              季節
+            </label>
             <select
               data-testid="wear-log-outfit-season-filter"
               value={outfitSeasonFilter}
@@ -582,7 +669,9 @@ export default function WearLogForm({
             </select>
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">TPO</label>
+            <label className="mb-1 block text-sm font-medium text-gray-700">
+              TPO
+            </label>
             <select
               data-testid="wear-log-outfit-tpo-filter"
               value={outfitTpoFilter}
@@ -661,10 +750,14 @@ export default function WearLogForm({
                       構成アイテム {outfit.itemCount ?? 0} 件
                     </p>
                     <p className="mt-1 text-sm text-gray-600">
-                      季節: {outfit.seasons?.length ? outfit.seasons.join(" / ") : "未設定"}
+                      季節:{" "}
+                      {outfit.seasons?.length
+                        ? outfit.seasons.join(" / ")
+                        : "未設定"}
                     </p>
                     <p className="mt-1 text-sm text-gray-600">
-                      TPO: {outfit.tpos?.length ? outfit.tpos.join(" / ") : "未設定"}
+                      TPO:{" "}
+                      {outfit.tpos?.length ? outfit.tpos.join(" / ") : "未設定"}
                     </p>
                   </button>
 
@@ -707,7 +800,9 @@ export default function WearLogForm({
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">キーワードで絞り込む</label>
+          <label className="mb-1 block text-sm font-medium text-gray-700">
+            キーワードで絞り込む
+          </label>
           <input
             data-testid="wear-log-item-search"
             type="search"
@@ -719,7 +814,9 @@ export default function WearLogForm({
         </div>
         <div className="grid gap-4 md:grid-cols-3">
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">カテゴリ</label>
+            <label className="mb-1 block text-sm font-medium text-gray-700">
+              カテゴリ
+            </label>
             <select
               data-testid="wear-log-item-category-filter"
               value={itemCategoryFilter}
@@ -727,7 +824,9 @@ export default function WearLogForm({
               className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             >
               <option value="">指定なし</option>
-              {ITEM_CATEGORIES.filter((category) => availableItemCategoryValues.includes(category.value)).map((category) => (
+              {ITEM_CATEGORIES.filter((category) =>
+                availableItemCategoryValues.includes(category.value),
+              ).map((category) => (
                 <option key={category.value} value={category.value}>
                   {category.label}
                 </option>
@@ -735,7 +834,9 @@ export default function WearLogForm({
             </select>
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">季節</label>
+            <label className="mb-1 block text-sm font-medium text-gray-700">
+              季節
+            </label>
             <select
               data-testid="wear-log-item-season-filter"
               value={itemSeasonFilter}
@@ -751,7 +852,9 @@ export default function WearLogForm({
             </select>
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">TPO</label>
+            <label className="mb-1 block text-sm font-medium text-gray-700">
+              TPO
+            </label>
             <select
               data-testid="wear-log-item-tpo-filter"
               value={itemTpoFilter}
@@ -802,7 +905,10 @@ export default function WearLogForm({
 
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <label htmlFor={checkboxId} className="cursor-pointer font-medium text-gray-900">
+                        <label
+                          htmlFor={checkboxId}
+                          className="cursor-pointer font-medium text-gray-900"
+                        >
                           {item.name ?? "名称未設定"}
                         </label>
                         <Link
@@ -823,9 +929,11 @@ export default function WearLogForm({
                         )}
                       </div>
                       <p className="mt-2 text-sm text-gray-600">
-                        {findItemCategoryLabel(item.category) || "カテゴリ未設定"}
+                        {findItemCategoryLabel(item.category) ||
+                          "カテゴリ未設定"}
                         {" / "}
-                        {findItemShapeLabel(item.category, item.shape) || "形未設定"}
+                        {findItemShapeLabel(item.category, item.shape) ||
+                          "形未設定"}
                       </p>
                       {renderColorSummary(item)}
                       {item.status === "disposed" && (
@@ -852,7 +960,9 @@ export default function WearLogForm({
 
         {selectedItemRecords.length > 0 && (
           <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
-            <p className="mb-3 text-sm font-medium text-gray-700">選択中の順序</p>
+            <p className="mb-3 text-sm font-medium text-gray-700">
+              選択中の順序
+            </p>
             <ol className="space-y-2 text-sm text-gray-700">
               {selectedItemRecords.map((item, index) => (
                 <li
@@ -871,7 +981,9 @@ export default function WearLogForm({
                         詳細
                       </Link>
                       <span>
-                        {item.itemSourceType === "outfit" ? "コーデ由来" : "手動追加"}
+                        {item.itemSourceType === "outfit"
+                          ? "コーデ由来"
+                          : "手動追加"}
                       </span>
                       {item.care_status === "in_cleaning" ? (
                         <span className="rounded-full border border-sky-300 bg-sky-50 px-2 py-0.5 text-xs font-medium text-sky-800">
@@ -879,9 +991,11 @@ export default function WearLogForm({
                         </span>
                       ) : null}
                       <span>
-                        {findItemCategoryLabel(item.category) || "カテゴリ未設定"}
+                        {findItemCategoryLabel(item.category) ||
+                          "カテゴリ未設定"}
                         {" / "}
-                        {findItemShapeLabel(item.category, item.shape) || "形未設定"}
+                        {findItemShapeLabel(item.category, item.shape) ||
+                          "形未設定"}
                       </span>
                     </div>
                   </div>
@@ -925,11 +1039,11 @@ export default function WearLogForm({
         className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-4"
         data-testid="wear-log-form-actions"
       >
-        <div className={`flex flex-col gap-3 sm:flex-row sm:items-center ${footerAction ? "sm:justify-between" : "sm:justify-end"}`}>
+        <div
+          className={`flex flex-col gap-3 sm:flex-row sm:items-center ${footerAction ? "sm:justify-between" : "sm:justify-end"}`}
+        >
           {footerAction ? (
-            <div className="flex items-center">
-              {footerAction}
-            </div>
+            <div className="flex items-center">{footerAction}</div>
           ) : null}
 
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -945,7 +1059,11 @@ export default function WearLogForm({
               disabled={submitting}
               className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-3 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {submitting ? "送信中..." : mode === "edit" ? "更新する" : "登録する"}
+              {submitting
+                ? "送信中..."
+                : mode === "edit"
+                  ? "更新する"
+                  : "登録する"}
             </button>
           </div>
         </div>

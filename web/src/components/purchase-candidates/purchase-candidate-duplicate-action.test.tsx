@@ -63,10 +63,15 @@ describe("PurchaseCandidateDuplicateAction", () => {
       },
     });
 
-    const { default: PurchaseCandidateDuplicateAction } = await import("./purchase-candidate-duplicate-action");
+    const { default: PurchaseCandidateDuplicateAction } =
+      await import("./purchase-candidate-duplicate-action");
 
     await act(async () => {
-      root.render(React.createElement(PurchaseCandidateDuplicateAction, { candidateId: 10 }));
+      root.render(
+        React.createElement(PurchaseCandidateDuplicateAction, {
+          candidateId: 10,
+        }),
+      );
       await waitForEffects();
     });
 

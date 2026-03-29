@@ -34,34 +34,37 @@ describe("WearLogsPage", () => {
   });
 
   it("空状態を表示できる", async () => {
-    fetchMock.mockResolvedValueOnce({
-      ok: true,
-      status: 200,
-      json: async () => ({
-        wearLogs: [],
-        meta: {
-          total: 0,
-          totalAll: 0,
-          page: 1,
-          lastPage: 1,
-        },
-      }),
-    }).mockResolvedValueOnce({
-      ok: true,
-      status: 200,
-      json: async () => ({
-        month: "2026-03",
-        days: [],
-      }),
-    }).mockResolvedValueOnce({
-      ok: true,
-      status: 200,
-      json: async () => ({
-        preferences: {
-          calendarWeekStart: "monday",
-        },
-      }),
-    });
+    fetchMock
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          wearLogs: [],
+          meta: {
+            total: 0,
+            totalAll: 0,
+            page: 1,
+            lastPage: 1,
+          },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          month: "2026-03",
+          days: [],
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          preferences: {
+            calendarWeekStart: "monday",
+          },
+        }),
+      });
 
     const { default: WearLogsPage } = await import("./page");
     const markup = renderToStaticMarkup(
@@ -74,86 +77,89 @@ describe("WearLogsPage", () => {
   });
 
   it("一覧に予定 / 着用済み と詳細導線を表示する", async () => {
-    fetchMock.mockResolvedValueOnce({
-      ok: true,
-      status: 200,
-      json: async () => ({
-        wearLogs: [
-          {
-            id: 1,
-            status: "planned",
-            event_date: "2026-03-24",
-            display_order: 1,
-            source_outfit_id: 5,
-            source_outfit_name: "通勤コーディネート",
-            source_outfit_status: "active",
-            has_disposed_items: false,
-            memo: "朝の予定",
-            items_count: 2,
-            thumbnail_items: [
-              {
-                source_item_id: 31,
-                category: "tops",
-                colors: [{ role: "main", hex: "#eeeeee", label: "ホワイト" }],
-              },
-              {
-                source_item_id: 32,
-                category: "bottoms",
-                colors: [{ role: "main", hex: "#223355", label: "ネイビー" }],
-              },
-            ],
+    fetchMock
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          wearLogs: [
+            {
+              id: 1,
+              status: "planned",
+              event_date: "2026-03-24",
+              display_order: 1,
+              source_outfit_id: 5,
+              source_outfit_name: "通勤コーディネート",
+              source_outfit_status: "active",
+              has_disposed_items: false,
+              memo: "朝の予定",
+              items_count: 2,
+              thumbnail_items: [
+                {
+                  source_item_id: 31,
+                  category: "tops",
+                  colors: [{ role: "main", hex: "#eeeeee", label: "ホワイト" }],
+                },
+                {
+                  source_item_id: 32,
+                  category: "bottoms",
+                  colors: [{ role: "main", hex: "#223355", label: "ネイビー" }],
+                },
+              ],
+            },
+            {
+              id: 2,
+              status: "worn",
+              event_date: "2026-03-23",
+              display_order: 2,
+              source_outfit_id: null,
+              source_outfit_name: null,
+              source_outfit_status: null,
+              has_disposed_items: true,
+              memo: null,
+              items_count: 1,
+              thumbnail_items: [
+                {
+                  source_item_id: 33,
+                  category: "shoes",
+                  colors: [],
+                },
+              ],
+            },
+          ],
+          meta: {
+            total: 2,
+            totalAll: 2,
+            page: 1,
+            lastPage: 1,
           },
-          {
-            id: 2,
-            status: "worn",
-            event_date: "2026-03-23",
-            display_order: 2,
-            source_outfit_id: null,
-            source_outfit_name: null,
-            source_outfit_status: null,
-            has_disposed_items: true,
-            memo: null,
-            items_count: 1,
-            thumbnail_items: [
-              {
-                source_item_id: 33,
-                category: "shoes",
-                colors: [],
-              },
-            ],
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          month: "2026-03",
+          days: [
+            {
+              date: "2026-03-24",
+              plannedCount: 1,
+              wornCount: 0,
+              dots: [{ status: "planned" }],
+              overflowCount: 0,
+            },
+          ],
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          preferences: {
+            calendarWeekStart: "monday",
           },
-        ],
-        meta: {
-          total: 2,
-          totalAll: 2,
-          page: 1,
-          lastPage: 1,
-        },
-      }),
-    }).mockResolvedValueOnce({
-      ok: true,
-      status: 200,
-      json: async () => ({
-        month: "2026-03",
-        days: [
-          {
-            date: "2026-03-24",
-            plannedCount: 1,
-            wornCount: 0,
-            dots: [{ status: "planned" }],
-            overflowCount: 0,
-          },
-        ],
-      }),
-    }).mockResolvedValueOnce({
-      ok: true,
-      status: 200,
-      json: async () => ({
-        preferences: {
-          calendarWeekStart: "monday",
-        },
-      }),
-    });
+        }),
+      });
 
     const { default: WearLogsPage } = await import("./page");
     const markup = renderToStaticMarkup(
@@ -173,38 +179,43 @@ describe("WearLogsPage", () => {
   });
 
   it("削除完了メッセージを表示できる", async () => {
-    fetchMock.mockResolvedValueOnce({
-      ok: true,
-      status: 200,
-      json: async () => ({
-        wearLogs: [],
-        meta: {
-          total: 0,
-          totalAll: 0,
-          page: 1,
-          lastPage: 1,
-        },
-      }),
-    }).mockResolvedValueOnce({
-      ok: true,
-      status: 200,
-      json: async () => ({
-        month: "2026-03",
-        days: [],
-      }),
-    }).mockResolvedValueOnce({
-      ok: true,
-      status: 200,
-      json: async () => ({
-        preferences: {
-          calendarWeekStart: "monday",
-        },
-      }),
-    });
+    fetchMock
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          wearLogs: [],
+          meta: {
+            total: 0,
+            totalAll: 0,
+            page: 1,
+            lastPage: 1,
+          },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          month: "2026-03",
+          days: [],
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          preferences: {
+            calendarWeekStart: "monday",
+          },
+        }),
+      });
 
     const { default: WearLogsPage } = await import("./page");
     const markup = renderToStaticMarkup(
-      await WearLogsPage({ searchParams: Promise.resolve({ message: "deleted" }) }),
+      await WearLogsPage({
+        searchParams: Promise.resolve({ message: "deleted" }),
+      }),
     );
 
     expect(markup).toContain("着用履歴を削除しました。");

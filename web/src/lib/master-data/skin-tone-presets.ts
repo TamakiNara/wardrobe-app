@@ -18,11 +18,19 @@ export const SKIN_TONE_PRESET_OPTIONS: Array<{
   { value: "yellow_deep", label: "イエロー系・深め", hex: "#C98D5E" },
 ];
 
-export function findSkinTonePresetOption(value: SkinTonePreset | null | undefined) {
-  return SKIN_TONE_PRESET_OPTIONS.find((option) => option.value === value)
-    ?? SKIN_TONE_PRESET_OPTIONS.find((option) => option.value === DEFAULT_SKIN_TONE_PRESET)!;
+export function findSkinTonePresetOption(
+  value: SkinTonePreset | null | undefined,
+) {
+  return (
+    SKIN_TONE_PRESET_OPTIONS.find((option) => option.value === value) ??
+    SKIN_TONE_PRESET_OPTIONS.find(
+      (option) => option.value === DEFAULT_SKIN_TONE_PRESET,
+    )!
+  );
 }
 
-export function resolveSkinToneColor(value: SkinTonePreset | null | undefined): string {
+export function resolveSkinToneColor(
+  value: SkinTonePreset | null | undefined,
+): string {
   return findSkinTonePresetOption(value).hex;
 }

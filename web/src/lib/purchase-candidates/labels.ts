@@ -3,14 +3,20 @@ import type {
   PurchaseCandidateStatus,
 } from "@/types/purchase-candidates";
 
-export const PURCHASE_CANDIDATE_STATUS_LABELS: Record<PurchaseCandidateStatus, string> = {
+export const PURCHASE_CANDIDATE_STATUS_LABELS: Record<
+  PurchaseCandidateStatus,
+  string
+> = {
   considering: "検討中",
   on_hold: "保留中",
   purchased: "購入済み",
   dropped: "見送り",
 };
 
-export const PURCHASE_CANDIDATE_PRIORITY_LABELS: Record<PurchaseCandidatePriority, string> = {
+export const PURCHASE_CANDIDATE_PRIORITY_LABELS: Record<
+  PurchaseCandidatePriority,
+  string
+> = {
   high: "高",
   medium: "中",
   low: "低",

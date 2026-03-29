@@ -3,7 +3,6 @@ export const TOPS_FITS = [
   { value: "oversized", label: "オーバーサイズ" },
 ] as const;
 
-export type TopsFitValue =
-  (typeof TOPS_FITS)[number]["value"];
+export type TopsFitValue = (typeof TOPS_FITS)[number]["value"];
 
 export const DEFAULT_TOPS_FIT: TopsFitValue = "normal";

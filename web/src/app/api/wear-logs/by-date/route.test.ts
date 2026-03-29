@@ -33,7 +33,9 @@ describe("/api/wear-logs/by-date route", () => {
 
     const req = {
       headers: new Headers(),
-      nextUrl: new URL("http://localhost:3000/api/wear-logs/by-date?event_date=2026-03-05"),
+      nextUrl: new URL(
+        "http://localhost:3000/api/wear-logs/by-date?event_date=2026-03-05",
+      ),
     };
     const res = await GET(req as any);
     const json = await res.json();

@@ -39,7 +39,10 @@ describe("DeleteWearLogButton", () => {
   });
 
   it("confirm をキャンセルした場合は削除しない", async () => {
-    vi.stubGlobal("confirm", vi.fn(() => false));
+    vi.stubGlobal(
+      "confirm",
+      vi.fn(() => false),
+    );
     const fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);
 
@@ -58,7 +61,10 @@ describe("DeleteWearLogButton", () => {
   });
 
   it("削除成功時は一覧へ戻して再読込する", async () => {
-    vi.stubGlobal("confirm", vi.fn(() => true));
+    vi.stubGlobal(
+      "confirm",
+      vi.fn(() => true),
+    );
     vi.stubGlobal(
       "fetch",
       vi.fn().mockResolvedValue({

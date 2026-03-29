@@ -142,9 +142,13 @@ describe("OutfitsList", () => {
     });
 
     expect(container.textContent).toContain("表示アイテム数: 1");
-    expect(container.textContent).toContain("現在の表示設定により 1 件を非表示にしています。");
+    expect(container.textContent).toContain(
+      "現在の表示設定により 1 件を非表示にしています。",
+    );
     expect(container.textContent).toContain("duplicate-1");
-    expect(container.querySelector('[data-testid="outfit-color-thumbnail"]')).not.toBeNull();
+    expect(
+      container.querySelector('[data-testid="outfit-color-thumbnail"]'),
+    ).not.toBeNull();
   });
 
   it("ページャ操作で page クエリを更新する", async () => {
@@ -168,8 +172,8 @@ describe("OutfitsList", () => {
       await waitForEffects();
     });
 
-    const nextButton = Array.from(container.querySelectorAll("button")).find((button) =>
-      button.textContent?.includes("次へ"),
+    const nextButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent?.includes("次へ"),
     );
 
     await act(async () => {
@@ -178,7 +182,9 @@ describe("OutfitsList", () => {
     });
 
     expect(container.textContent).toContain("2 / 4ページ（全30件）");
-    expect(replaceMock).toHaveBeenCalledWith("/outfits?page=3", { scroll: false });
+    expect(replaceMock).toHaveBeenCalledWith("/outfits?page=3", {
+      scroll: false,
+    });
   });
 
   it("URL クエリの初期値を反映し、条件クリアで URL も戻す", async () => {
@@ -201,10 +207,12 @@ describe("OutfitsList", () => {
       await waitForEffects();
     });
 
-    const input = container.querySelector<HTMLInputElement>('input[type="search"]');
+    const input = container.querySelector<HTMLInputElement>(
+      'input[type="search"]',
+    );
     const selects = Array.from(container.querySelectorAll("select"));
-    const clearButton = Array.from(container.querySelectorAll("button")).find((button) =>
-      button.textContent?.includes("クリア"),
+    const clearButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent?.includes("クリア"),
     );
 
     expect(input?.value).toBe("夏");
@@ -242,7 +250,9 @@ describe("OutfitsList", () => {
       await waitForEffects();
     });
 
-    expect(container.textContent).toContain("条件に一致するコーディネートがありません");
+    expect(container.textContent).toContain(
+      "条件に一致するコーディネートがありません",
+    );
     expect(container.textContent).toContain("条件を変えてお試しください。");
     expect(container.textContent).toContain("条件をクリア");
   });
@@ -260,7 +270,9 @@ describe("OutfitsList", () => {
       await waitForEffects();
     });
 
-    const input = container.querySelector<HTMLInputElement>('input[type="search"]');
+    const input = container.querySelector<HTMLInputElement>(
+      'input[type="search"]',
+    );
 
     await act(async () => {
       const valueSetter = Object.getOwnPropertyDescriptor(
@@ -279,9 +291,12 @@ describe("OutfitsList", () => {
       await waitForEffects();
     });
 
-    expect(replaceMock).toHaveBeenCalledWith("/outfits?keyword=%E5%A4%8F%E3%82%B3%E3%83%BC", {
-      scroll: false,
-    });
+    expect(replaceMock).toHaveBeenCalledWith(
+      "/outfits?keyword=%E5%A4%8F%E3%82%B3%E3%83%BC",
+      {
+        scroll: false,
+      },
+    );
   });
 
   it("URL に season がない場合は初期季節を 1 回だけ query に反映する", async () => {
@@ -301,7 +316,9 @@ describe("OutfitsList", () => {
       await waitForEffects();
     });
 
-    expect(replaceMock).toHaveBeenCalledWith("/outfits?season=%E7%A7%8B", { scroll: false });
+    expect(replaceMock).toHaveBeenCalledWith("/outfits?season=%E7%A7%8B", {
+      scroll: false,
+    });
   });
 
   it("URL に season がある場合は初期季節を上書きしない", async () => {
@@ -322,6 +339,8 @@ describe("OutfitsList", () => {
       await waitForEffects();
     });
 
-    expect(replaceMock).not.toHaveBeenCalledWith("/outfits?season=%E7%A7%8B", { scroll: false });
+    expect(replaceMock).not.toHaveBeenCalledWith("/outfits?season=%E7%A7%8B", {
+      scroll: false,
+    });
   });
 });

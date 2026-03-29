@@ -25,7 +25,10 @@ export async function fetchAllPaginatedCandidates<TEntry, TKey extends string>(
       };
     }
 
-    const data = (await response.json()) as CandidateCollectionResponse<TEntry, TKey>;
+    const data = (await response.json()) as CandidateCollectionResponse<
+      TEntry,
+      TKey
+    >;
     const chunk = data[key];
 
     if (Array.isArray(chunk)) {
@@ -33,9 +36,10 @@ export async function fetchAllPaginatedCandidates<TEntry, TKey extends string>(
     }
 
     const responseLastPage = data.meta?.lastPage;
-    lastPage = typeof responseLastPage === "number" && responseLastPage > 0
-      ? responseLastPage
-      : 1;
+    lastPage =
+      typeof responseLastPage === "number" && responseLastPage > 0
+        ? responseLastPage
+        : 1;
     page += 1;
   } while (page <= lastPage);
 

@@ -7,7 +7,7 @@ import {
 
 export async function GET(
   req: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> },
 ) {
   const { id } = await context.params;
   return forwardGetWithCookie(req, `/api/items/${id}`);
@@ -15,7 +15,7 @@ export async function GET(
 
 export async function PUT(
   req: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> },
 ) {
   const { id } = await context.params;
   const body = await req.json();
@@ -29,4 +29,3 @@ export async function DELETE(
   const { id } = await context.params;
   return forwardDeleteWithCookie(req, `/api/items/${id}`);
 }
-

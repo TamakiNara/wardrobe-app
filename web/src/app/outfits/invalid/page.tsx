@@ -23,9 +23,14 @@ type OutfitsResponse = {
   };
 };
 
-type InvalidOutfitsPageSearchParams = Record<string, string | string[] | undefined>;
+type InvalidOutfitsPageSearchParams = Record<
+  string,
+  string | string[] | undefined
+>;
 
-function buildQueryString(searchParams: InvalidOutfitsPageSearchParams): string {
+function buildQueryString(
+  searchParams: InvalidOutfitsPageSearchParams,
+): string {
   const params = new URLSearchParams();
 
   for (const [key, value] of Object.entries(searchParams)) {
@@ -108,7 +113,9 @@ export default async function InvalidOutfitsPage({
         <header className="flex flex-col gap-4 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm md:flex-row md:items-center md:justify-between">
           <div>
             <p className="text-sm text-gray-500">コーディネート管理</p>
-            <h1 className="text-2xl font-bold text-gray-900">無効コーディネート一覧</h1>
+            <h1 className="text-2xl font-bold text-gray-900">
+              無効コーディネート一覧
+            </h1>
             <p className="mt-1 text-sm text-gray-600">
               通常一覧から分けて保持し、詳細確認や再利用判断を行います。
             </p>

@@ -8,5 +8,4 @@ export const TOPS_SLEEVES = [
   { value: "camisole", label: "キャミソール" },
 ] as const;
 
-export type TopsSleeveValue =
-  (typeof TOPS_SLEEVES)[number]["value"];
+export type TopsSleeveValue = (typeof TOPS_SLEEVES)[number]["value"];

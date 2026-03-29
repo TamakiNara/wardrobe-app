@@ -49,7 +49,12 @@ const sampleGroups: CategoryGroupRecord[] = [
     sortOrder: 10,
     categories: [
       { id: "tops_tshirt", groupId: "tops", name: "Tシャツ", sortOrder: 10 },
-      { id: "tops_shirt", groupId: "tops", name: "シャツ / ブラウス", sortOrder: 20 },
+      {
+        id: "tops_shirt",
+        groupId: "tops",
+        name: "シャツ / ブラウス",
+        sortOrder: 20,
+      },
     ],
   },
   {
@@ -57,7 +62,12 @@ const sampleGroups: CategoryGroupRecord[] = [
     name: "ボトムス",
     sortOrder: 20,
     categories: [
-      { id: "bottoms_pants", groupId: "bottoms", name: "パンツ", sortOrder: 10 },
+      {
+        id: "bottoms_pants",
+        groupId: "bottoms",
+        name: "パンツ",
+        sortOrder: 10,
+      },
     ],
   },
   {
@@ -194,7 +204,9 @@ describe("ItemsList", () => {
     expect(container.textContent).toContain("クリーニング中");
     expect(container.textContent).not.toContain("青シャツ");
     const image = container.querySelector('img[alt="main.png"]');
-    expect(image?.getAttribute("src")).toBe("https://example.test/storage/items/1/main.png");
+    expect(image?.getAttribute("src")).toBe(
+      "https://example.test/storage/items/1/main.png",
+    );
   });
 
   it("季節は定義順で表示し、TPO は共通の候補だけを表示する", async () => {
@@ -246,8 +258,8 @@ describe("ItemsList", () => {
       await waitForEffects();
     });
 
-    const nextButton = Array.from(container.querySelectorAll("button")).find((button) =>
-      button.textContent?.includes("次へ"),
+    const nextButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent?.includes("次へ"),
     );
 
     await act(async () => {
@@ -256,7 +268,9 @@ describe("ItemsList", () => {
     });
 
     expect(container.textContent).toContain("2 / 3ページ（全25件）");
-    expect(replaceMock).toHaveBeenCalledWith("/items?page=3", { scroll: false });
+    expect(replaceMock).toHaveBeenCalledWith("/items?page=3", {
+      scroll: false,
+    });
   });
 
   it("URL クエリの初期値を反映し、条件クリアで URL も戻す", async () => {
@@ -280,10 +294,12 @@ describe("ItemsList", () => {
       await waitForEffects();
     });
 
-    const input = container.querySelector<HTMLInputElement>('input[type="search"]');
+    const input = container.querySelector<HTMLInputElement>(
+      'input[type="search"]',
+    );
     const selects = Array.from(container.querySelectorAll("select"));
-    const clearButton = Array.from(container.querySelectorAll("button")).find((button) =>
-      button.textContent?.includes("クリア"),
+    const clearButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent?.includes("クリア"),
     );
 
     expect(input?.value).toBe("白");
@@ -320,7 +336,9 @@ describe("ItemsList", () => {
       await waitForEffects();
     });
 
-    expect(container.textContent).toContain("条件に一致するアイテムがありません");
+    expect(container.textContent).toContain(
+      "条件に一致するアイテムがありません",
+    );
     expect(container.textContent).toContain("条件を変えてお試しください。");
     expect(container.textContent).toContain("条件をクリア");
   });
@@ -339,7 +357,9 @@ describe("ItemsList", () => {
       await waitForEffects();
     });
 
-    const input = container.querySelector<HTMLInputElement>('input[type="search"]');
+    const input = container.querySelector<HTMLInputElement>(
+      'input[type="search"]',
+    );
 
     await act(async () => {
       const valueSetter = Object.getOwnPropertyDescriptor(
@@ -358,7 +378,9 @@ describe("ItemsList", () => {
       await waitForEffects();
     });
 
-    expect(replaceMock).toHaveBeenCalledWith("/items?keyword=%E7%99%BDT", { scroll: false });
+    expect(replaceMock).toHaveBeenCalledWith("/items?keyword=%E7%99%BDT", {
+      scroll: false,
+    });
   });
 
   it("URL に season がない場合は初期季節を 1 回だけ query に反映する", async () => {
@@ -379,7 +401,9 @@ describe("ItemsList", () => {
       await waitForEffects();
     });
 
-    expect(replaceMock).toHaveBeenCalledWith("/items?season=%E6%98%A5", { scroll: false });
+    expect(replaceMock).toHaveBeenCalledWith("/items?season=%E6%98%A5", {
+      scroll: false,
+    });
   });
 
   it("URL に season がある場合は初期季節を上書きしない", async () => {
@@ -401,7 +425,9 @@ describe("ItemsList", () => {
       await waitForEffects();
     });
 
-    expect(replaceMock).not.toHaveBeenCalledWith("/items?season=%E6%98%A5", { scroll: false });
+    expect(replaceMock).not.toHaveBeenCalledWith("/items?season=%E6%98%A5", {
+      scroll: false,
+    });
   });
 
   it("表示切替でクローゼットビューを開き、中分類ごとに表示する", async () => {
@@ -488,7 +514,8 @@ describe("ItemsList", () => {
     });
 
     const closetButton = Array.from(container.querySelectorAll("button")).find(
-      (button) => button.getAttribute("aria-label") === "クローゼットビューに切り替え",
+      (button) =>
+        button.getAttribute("aria-label") === "クローゼットビューに切り替え",
     );
     const listButton = Array.from(container.querySelectorAll("button")).find(
       (button) => button.getAttribute("aria-label") === "通常一覧に切り替え",
@@ -508,12 +535,16 @@ describe("ItemsList", () => {
     expect(container.textContent).toContain("シャツ");
     expect(container.textContent).toContain("カーディガン");
 
-    const categoryHeading = Array.from(container.querySelectorAll("h2")).find((heading) =>
-      heading.textContent === "トップス",
+    const categoryHeading = Array.from(container.querySelectorAll("h2")).find(
+      (heading) => heading.textContent === "トップス",
     );
     const categoryCard = categoryHeading?.closest("section");
-    const shapeRow = Array.from(categoryCard?.querySelectorAll("div") ?? []).find((element) =>
-      element.className.includes("flex-wrap") && element.className.includes("items-start"),
+    const shapeRow = Array.from(
+      categoryCard?.querySelectorAll("div") ?? [],
+    ).find(
+      (element) =>
+        element.className.includes("flex-wrap") &&
+        element.className.includes("items-start"),
     );
 
     expect(shapeRow).toBeTruthy();
@@ -521,9 +552,12 @@ describe("ItemsList", () => {
     const topsLink = container.querySelector<HTMLAnchorElement>(
       'a[aria-label="白T / Tシャツ/カットソー / ホワイト"]',
     );
-    const bottomsLink = Array.from(container.querySelectorAll<HTMLAnchorElement>("a")).find((link) =>
-      link.getAttribute("aria-label")?.includes("ネイビーパンツ /") &&
-      link.getAttribute("aria-label")?.includes("/ ネイビー"),
+    const bottomsLink = Array.from(
+      container.querySelectorAll<HTMLAnchorElement>("a"),
+    ).find(
+      (link) =>
+        link.getAttribute("aria-label")?.includes("ネイビーパンツ /") &&
+        link.getAttribute("aria-label")?.includes("/ ネイビー"),
     );
     const cardiganLink = container.querySelector<HTMLAnchorElement>(
       'a[aria-label="黒カーディガン / カーディガン / ブラック"]',
@@ -533,13 +567,20 @@ describe("ItemsList", () => {
     expect(bottomsLink?.getAttribute("href")).toBe("/items/5");
     expect(cardiganLink?.getAttribute("href")).toBe("/items/3");
     expect(topsLink?.className).toContain("focus-visible:ring-2");
-    expect(container.querySelector('a[aria-label*="処分済みコート"]')).toBeNull();
+    expect(
+      container.querySelector('a[aria-label*="処分済みコート"]'),
+    ).toBeNull();
   });
 
   it("クローゼットビューでも絞り込み後 0 件なら既存空状態を使う", async () => {
     fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
     fetchCategoryVisibilitySettingsMock.mockResolvedValue({
-      visibleCategoryIds: ["tops_tshirt", "tops_shirt", "bottoms_pants", "outer_coat"],
+      visibleCategoryIds: [
+        "tops_tshirt",
+        "tops_shirt",
+        "bottoms_pants",
+        "outer_coat",
+      ],
     });
 
     const disposedOnlyItems: ItemRecord[] = [
@@ -573,7 +614,8 @@ describe("ItemsList", () => {
     });
 
     const closetButton = Array.from(container.querySelectorAll("button")).find(
-      (button) => button.getAttribute("aria-label") === "クローゼットビューに切り替え",
+      (button) =>
+        button.getAttribute("aria-label") === "クローゼットビューに切り替え",
     );
 
     await act(async () => {
@@ -581,7 +623,9 @@ describe("ItemsList", () => {
       await waitForEffects();
     });
 
-    expect(container.textContent).toContain("条件に一致するアイテムがありません");
+    expect(container.textContent).toContain(
+      "条件に一致するアイテムがありません",
+    );
     expect(container.textContent).toContain("条件を変えてお試しください。");
   });
 });

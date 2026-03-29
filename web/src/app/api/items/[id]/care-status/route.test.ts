@@ -56,7 +56,9 @@ describe("POST /api/items/[id]/care-status", () => {
       }),
     });
 
-    const res = await POST(req as any, { params: Promise.resolve({ id: "1" }) });
+    const res = await POST(req as any, {
+      params: Promise.resolve({ id: "1" }),
+    });
     const json = await res.json();
 
     expect(global.fetch).toHaveBeenCalledTimes(2);

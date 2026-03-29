@@ -1,6 +1,4 @@
-import {
-  buildWearLogThumbnailLayout,
-} from "@/lib/wear-logs/color-thumbnail";
+import { buildWearLogThumbnailLayout } from "@/lib/wear-logs/color-thumbnail";
 import type { WearLogThumbnailItem } from "@/types/wear-logs";
 import { COLOR_THUMBNAIL_OTHERS_BAR_CLASS } from "@/lib/color-thumbnails/shared";
 
@@ -75,7 +73,10 @@ export default function WearLogModalColorThumbnail({
     >
       {layout.usesFullHeightForOthers ? (
         <div className="h-11 overflow-hidden rounded-md border border-gray-200 bg-gray-50">
-          <SegmentRow segments={layout.others} testId="wear-log-modal-thumbnail-others-full" />
+          <SegmentRow
+            segments={layout.others}
+            testId="wear-log-modal-thumbnail-others-full"
+          />
         </div>
       ) : (
         <>
@@ -85,7 +86,10 @@ export default function WearLogModalColorThumbnail({
                 className={`min-h-0 ${hasTopBottomSplit ? "h-1/2" : "h-full"}`}
                 data-testid="wear-log-modal-thumbnail-main-top"
               >
-                <SegmentRow segments={layout.tops} testId="wear-log-modal-thumbnail-tops" />
+                <SegmentRow
+                  segments={layout.tops}
+                  testId="wear-log-modal-thumbnail-tops"
+                />
               </div>
             ) : null}
 
@@ -94,7 +98,10 @@ export default function WearLogModalColorThumbnail({
                 className={`min-h-0 ${hasTopBottomSplit ? "h-1/2" : "h-full"}`}
                 data-testid="wear-log-modal-thumbnail-main-bottom"
               >
-                <SegmentRow segments={layout.bottoms} testId="wear-log-modal-thumbnail-bottoms" />
+                <SegmentRow
+                  segments={layout.bottoms}
+                  testId="wear-log-modal-thumbnail-bottoms"
+                />
               </div>
             ) : null}
           </div>
@@ -104,7 +111,10 @@ export default function WearLogModalColorThumbnail({
               className={COLOR_THUMBNAIL_OTHERS_BAR_CLASS}
               data-testid="wear-log-modal-thumbnail-others-bar"
             >
-              <SegmentRow segments={layout.others} testId="wear-log-modal-thumbnail-others" />
+              <SegmentRow
+                segments={layout.others}
+                testId="wear-log-modal-thumbnail-others"
+              />
             </div>
           ) : null}
         </>

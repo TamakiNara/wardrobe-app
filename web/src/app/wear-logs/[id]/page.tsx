@@ -55,9 +55,14 @@ export default async function WearLogDetailPage({
   const { id } = await params;
   const wearLog = await getWearLog(id);
   const today = getTodayYmd();
-  const isPastPlanned = wearLog.status === "planned" && wearLog.event_date < today;
-  const disposedItems = wearLog.items.filter((item) => item.source_item_status === "disposed");
-  const cleaningItems = wearLog.items.filter((item) => item.source_item_care_status === "in_cleaning");
+  const isPastPlanned =
+    wearLog.status === "planned" && wearLog.event_date < today;
+  const disposedItems = wearLog.items.filter(
+    (item) => item.source_item_status === "disposed",
+  );
+  const cleaningItems = wearLog.items.filter(
+    (item) => item.source_item_care_status === "in_cleaning",
+  );
 
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">
@@ -147,7 +152,9 @@ export default async function WearLogDetailPage({
                 >
                   <p
                     className={`text-sm font-medium ${
-                      wearLog.status === "worn" ? "text-amber-900" : "text-sky-900"
+                      wearLog.status === "worn"
+                        ? "text-amber-900"
+                        : "text-sky-900"
                     }`}
                   >
                     {wearLog.status === "worn"
@@ -166,14 +173,13 @@ export default async function WearLogDetailPage({
                               : "border-sky-300 bg-white text-sky-800"
                           }`}
                         >
-                          {(item.item_name ?? "名称未設定")}を確認
+                          {item.item_name ?? "名称未設定"}を確認
                         </Link>
                       ) : null,
                     )}
                   </div>
                 </div>
               )}
-
             </div>
           )}
 
@@ -181,19 +187,27 @@ export default async function WearLogDetailPage({
             <dl className="grid gap-4 md:grid-cols-2">
               <div>
                 <dt className="text-sm font-medium text-gray-700">状態</dt>
-                <dd className="mt-1 text-sm text-gray-600">{getWearLogStatusLabel(wearLog.status)}</dd>
+                <dd className="mt-1 text-sm text-gray-600">
+                  {getWearLogStatusLabel(wearLog.status)}
+                </dd>
               </div>
               <div>
                 <dt className="text-sm font-medium text-gray-700">日付</dt>
-                <dd className="mt-1 text-sm text-gray-600">{wearLog.event_date}</dd>
+                <dd className="mt-1 text-sm text-gray-600">
+                  {wearLog.event_date}
+                </dd>
               </div>
               <div>
                 <dt className="text-sm font-medium text-gray-700">表示順</dt>
-                <dd className="mt-1 text-sm text-gray-600">{wearLog.display_order}件目</dd>
+                <dd className="mt-1 text-sm text-gray-600">
+                  {wearLog.display_order}件目
+                </dd>
               </div>
               <div>
                 <dt className="text-sm font-medium text-gray-700">メモ</dt>
-                <dd className="mt-1 text-sm text-gray-600">{wearLog.memo || "未設定"}</dd>
+                <dd className="mt-1 text-sm text-gray-600">
+                  {wearLog.memo || "未設定"}
+                </dd>
               </div>
             </dl>
           </div>
@@ -203,7 +217,9 @@ export default async function WearLogDetailPage({
           <h2 className="text-lg font-semibold text-gray-900">アイテム</h2>
 
           {wearLog.items.length === 0 ? (
-            <p className="mt-3 text-sm text-gray-600">アイテムは登録されていません。</p>
+            <p className="mt-3 text-sm text-gray-600">
+              アイテムは登録されていません。
+            </p>
           ) : (
             <div className="mt-4 space-y-3">
               {wearLog.items.map((item) => (
@@ -231,7 +247,8 @@ export default async function WearLogDetailPage({
                       <p className="mt-1 text-sm text-gray-500">
                         {item.sort_order}番目
                         {" / "}
-                        {item.item_source_type === "outfit" && wearLog.source_outfit_id !== null ? (
+                        {item.item_source_type === "outfit" &&
+                        wearLog.source_outfit_id !== null ? (
                           <Link
                             href={`/outfits/${wearLog.source_outfit_id}?from=wear-log&wear_log_id=${wearLog.id}`}
                             className="font-medium text-blue-600 hover:underline"

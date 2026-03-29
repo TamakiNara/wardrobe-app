@@ -142,12 +142,13 @@ export default async function Home() {
     );
   }
 
-  const [itemsCount, outfitsCount, wearLogsCount, purchaseCandidatesCount] = await Promise.all([
-    getItemsCount(),
-    getOutfitsCount(),
-    getWearLogsCount(),
-    getPurchaseCandidatesCount(),
-  ]);
+  const [itemsCount, outfitsCount, wearLogsCount, purchaseCandidatesCount] =
+    await Promise.all([
+      getItemsCount(),
+      getOutfitsCount(),
+      getWearLogsCount(),
+      getPurchaseCandidatesCount(),
+    ]);
 
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">
@@ -197,7 +198,9 @@ export default async function Home() {
             <p className="mt-2 text-3xl font-bold text-gray-900">
               {outfitsCount}
             </p>
-            <p className="mt-2 text-sm text-gray-600">登録済みコーディネート数</p>
+            <p className="mt-2 text-sm text-gray-600">
+              登録済みコーディネート数
+            </p>
 
             <div className="mt-6 flex gap-3">
               <Link
@@ -263,7 +266,6 @@ export default async function Home() {
         </section>
 
         <section className="grid gap-4">
-
           <Link href="/settings" className="block">
             <article className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition hover:bg-gray-50">
               <h2 className="text-lg font-semibold text-gray-900">設定へ</h2>

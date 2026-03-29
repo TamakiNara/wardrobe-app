@@ -93,7 +93,9 @@ function resolveCurrentSeason(searchParams: OutfitsPageSearchParams): string {
   return value ?? "";
 }
 
-async function getOutfits(searchParams: OutfitsPageSearchParams): Promise<OutfitsResponse> {
+async function getOutfits(
+  searchParams: OutfitsPageSearchParams,
+): Promise<OutfitsResponse> {
   const query = buildQueryString(searchParams);
   const path = query ? `/api/outfits?${query}` : "/api/outfits";
   const res = await fetchLaravelWithCookie(path);
@@ -149,15 +151,19 @@ export default async function OutfitsPage({
   let initialSeasonFilter = "";
   let skinTonePreset: SkinTonePreset = DEFAULT_SKIN_TONE_PRESET;
 
-  const preferencesRes = await fetchLaravelWithCookie("/api/settings/preferences");
+  const preferencesRes = await fetchLaravelWithCookie(
+    "/api/settings/preferences",
+  );
 
   if (preferencesRes.status === 401) {
     redirect("/login");
   }
 
   if (preferencesRes.ok) {
-    const preferencesData = (await preferencesRes.json()) as PreferencesResponse;
-    skinTonePreset = preferencesData.preferences?.skinTonePreset ?? DEFAULT_SKIN_TONE_PRESET;
+    const preferencesData =
+      (await preferencesRes.json()) as PreferencesResponse;
+    skinTonePreset =
+      preferencesData.preferences?.skinTonePreset ?? DEFAULT_SKIN_TONE_PRESET;
 
     if (!currentSeason) {
       initialSeasonFilter = mapPreferenceSeasonToFilterValue(
@@ -190,7 +196,9 @@ export default async function OutfitsPage({
         <header className="flex flex-col gap-4 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm md:flex-row md:items-center md:justify-between">
           <div>
             <p className="text-sm text-gray-500">コーディネート管理</p>
-            <h1 className="text-2xl font-bold text-gray-900">コーディネート一覧</h1>
+            <h1 className="text-2xl font-bold text-gray-900">
+              コーディネート一覧
+            </h1>
             <p className="mt-1 text-sm text-gray-600">
               登録したアイテムを組み合わせてコーディネートを管理します。
             </p>
@@ -229,7 +237,9 @@ export default async function OutfitsPage({
                 href={itemCount === 0 ? "/items/new" : "/outfits/new"}
                 className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
               >
-                {itemCount === 0 ? "アイテムを追加する" : "コーディネートを作成する"}
+                {itemCount === 0
+                  ? "アイテムを追加する"
+                  : "コーディネートを作成する"}
               </Link>
             </div>
           </section>

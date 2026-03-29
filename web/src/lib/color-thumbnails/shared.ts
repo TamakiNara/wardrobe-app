@@ -93,9 +93,12 @@ export function buildColorThumbnailLayout(
   });
 
   layout.hasOthersBar =
-    layout.others.length > 0 && (layout.tops.length > 0 || layout.bottoms.length > 0);
+    layout.others.length > 0 &&
+    (layout.tops.length > 0 || layout.bottoms.length > 0);
   layout.usesFullHeightForOthers =
-    layout.others.length > 0 && layout.tops.length === 0 && layout.bottoms.length === 0;
+    layout.others.length > 0 &&
+    layout.tops.length === 0 &&
+    layout.bottoms.length === 0;
 
   return layout;
 }

@@ -30,7 +30,11 @@ vi.mock("@/components/wear-logs/wear-log-status-action", () => ({
 
 vi.mock("@/components/wear-logs/delete-wear-log-button", () => ({
   default: ({ wearLogId }: { wearLogId: string }) =>
-    React.createElement("div", { "data-testid": "delete-action" }, `delete-wear-log-button:${wearLogId}`),
+    React.createElement(
+      "div",
+      { "data-testid": "delete-action" },
+      `delete-wear-log-button:${wearLogId}`,
+    ),
 }));
 
 describe("WearLogDetailPage", () => {
@@ -94,18 +98,28 @@ describe("WearLogDetailPage", () => {
     expect(markup).toContain("編集");
     expect(markup).toContain("wear-log-status-action:12:worn");
     expect(markup).toContain("delete-wear-log-button:12");
-    expect(markup).toContain("元のコーディネートは現在候補外ですが、既存の記録として保持しています。");
+    expect(markup).toContain(
+      "元のコーディネートは現在候補外ですが、既存の記録として保持しています。",
+    );
     expect(markup).toContain("白シャツ");
     expect(markup).toContain("手放し済み");
     expect(markup).toContain("クリーニング中");
-    expect(markup).toContain("クリーニング中のアイテムが含まれています。着用済みとして登録する前に内容を確認してください。");
-    expect(markup).toContain("このアイテムは現在候補外ですが、既存の記録として表示しています。");
-    expect(markup).toContain("クリーニング中ですが、予定・着用履歴ともに保持できます。");
+    expect(markup).toContain(
+      "クリーニング中のアイテムが含まれています。着用済みとして登録する前に内容を確認してください。",
+    );
+    expect(markup).toContain(
+      "このアイテムは現在候補外ですが、既存の記録として表示しています。",
+    );
+    expect(markup).toContain(
+      "クリーニング中ですが、予定・着用履歴ともに保持できます。",
+    );
     expect(markup).toContain("元コーディネート");
     expect(markup).toContain("手動追加");
     expect(markup).not.toContain(">元のコーディネート<");
     expect(markup).toContain('href="/wear-logs/12/edit"');
-    expect(markup).toContain('href="/outfits/8?from=wear-log&amp;wear_log_id=12"');
+    expect(markup).toContain(
+      'href="/outfits/8?from=wear-log&amp;wear_log_id=12"',
+    );
     expect(markup).toContain('href="/items/33"');
     expect(markup).not.toContain("wear-log-color-thumbnail");
     expect(markup).not.toContain("wear-log-modal-color-thumbnail");

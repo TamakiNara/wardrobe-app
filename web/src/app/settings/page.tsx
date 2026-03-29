@@ -34,8 +34,12 @@ function SettingsPageContent() {
     skinTonePreset: DEFAULT_SKIN_TONE_PRESET,
   });
   const [preferencesSaving, setPreferencesSaving] = useState(false);
-  const [preferencesSaveMessage, setPreferencesSaveMessage] = useState<string | null>(null);
-  const [preferencesSaveError, setPreferencesSaveError] = useState<string | null>(null);
+  const [preferencesSaveMessage, setPreferencesSaveMessage] = useState<
+    string | null
+  >(null);
+  const [preferencesSaveError, setPreferencesSaveError] = useState<
+    string | null
+  >(null);
 
   useEffect(() => {
     let active = true;
@@ -52,7 +56,9 @@ function SettingsPageContent() {
           router.push("/login");
           return;
         }
-        setPreferencesSaveError("表示・初期値設定を読み込めませんでした。時間をおいて再度お試しください。");
+        setPreferencesSaveError(
+          "表示・初期値設定を読み込めませんでした。時間をおいて再度お試しください。",
+        );
       })
       .finally(() => {
         if (!active) return;
@@ -67,7 +73,8 @@ function SettingsPageContent() {
   const hasPreferenceChanges = useMemo(() => {
     return (
       preferences.currentSeason !== savedPreferences.currentSeason ||
-      preferences.defaultWearLogStatus !== savedPreferences.defaultWearLogStatus ||
+      preferences.defaultWearLogStatus !==
+        savedPreferences.defaultWearLogStatus ||
       preferences.calendarWeekStart !== savedPreferences.calendarWeekStart ||
       preferences.skinTonePreset !== savedPreferences.skinTonePreset
     );
@@ -75,7 +82,8 @@ function SettingsPageContent() {
 
   const selectedSkinTone = findSkinTonePresetOption(preferences.skinTonePreset);
 
-  const preferencesButtonDisabled = loading || preferencesSaving || !hasPreferenceChanges;
+  const preferencesButtonDisabled =
+    loading || preferencesSaving || !hasPreferenceChanges;
   const preferencesButtonLabel = preferencesSaving
     ? "個人設定を保存中..."
     : "個人設定を保存";
@@ -93,7 +101,9 @@ function SettingsPageContent() {
       setSavedPreferences(response.preferences);
       setPreferencesSaveMessage("表示・初期値設定を保存しました。");
     } catch {
-      setPreferencesSaveError("表示・初期値設定を保存できませんでした。時間をおいて再度お試しください。");
+      setPreferencesSaveError(
+        "表示・初期値設定を保存できませんでした。時間をおいて再度お試しください。",
+      );
     } finally {
       setPreferencesSaving(false);
     }
@@ -118,7 +128,9 @@ function SettingsPageContent() {
         <SettingsCard>
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">表示・初期値設定</h2>
+              <h2 className="text-lg font-semibold text-gray-900">
+                表示・初期値設定
+              </h2>
               <p className="mt-2 text-sm text-gray-600">
                 一覧の絞り込みと、着用履歴登録時の初期値を設定できます。
               </p>
@@ -126,7 +138,9 @@ function SettingsPageContent() {
 
             <div className="flex flex-col items-start gap-2 md:items-end">
               {preferencesSaveMessage ? (
-                <p className="text-sm text-emerald-700">{preferencesSaveMessage}</p>
+                <p className="text-sm text-emerald-700">
+                  {preferencesSaveMessage}
+                </p>
               ) : null}
               {preferencesSaveError ? (
                 <p className="text-sm text-red-600">{preferencesSaveError}</p>
@@ -158,7 +172,8 @@ function SettingsPageContent() {
                   setPreferencesSaveError(null);
                   setPreferences((current) => ({
                     ...current,
-                    currentSeason: (event.target.value || null) as UserPreferences["currentSeason"],
+                    currentSeason: (event.target.value ||
+                      null) as UserPreferences["currentSeason"],
                   }));
                 }}
                 className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
@@ -170,7 +185,8 @@ function SettingsPageContent() {
                 <option value="winter">冬</option>
               </select>
               <p className="mt-2 text-xs text-gray-500">
-                アイテム一覧 / コーディネート一覧で指定の季節で絞り込んで表示します。
+                アイテム一覧 /
+                コーディネート一覧で指定の季節で絞り込んで表示します。
               </p>
             </div>
 
@@ -189,7 +205,8 @@ function SettingsPageContent() {
                   setPreferencesSaveError(null);
                   setPreferences((current) => ({
                     ...current,
-                    defaultWearLogStatus: (event.target.value || null) as UserPreferences["defaultWearLogStatus"],
+                    defaultWearLogStatus: (event.target.value ||
+                      null) as UserPreferences["defaultWearLogStatus"],
                   }));
                 }}
                 className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
@@ -212,13 +229,17 @@ function SettingsPageContent() {
               </label>
               <select
                 id="preferences-calendar-week-start"
-                value={preferences.calendarWeekStart === "sunday" ? "sunday" : ""}
+                value={
+                  preferences.calendarWeekStart === "sunday" ? "sunday" : ""
+                }
                 onChange={(event) => {
                   setPreferencesSaveMessage(null);
                   setPreferencesSaveError(null);
                   setPreferences((current) => ({
                     ...current,
-                    calendarWeekStart: (event.target.value === "sunday" ? "sunday" : null) as UserPreferences["calendarWeekStart"],
+                    calendarWeekStart: (event.target.value === "sunday"
+                      ? "sunday"
+                      : null) as UserPreferences["calendarWeekStart"],
                   }));
                 }}
                 className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
@@ -240,13 +261,15 @@ function SettingsPageContent() {
                   item サムネイルの肌色表現に使います。
                 </p>
                 <p className="text-sm text-gray-700">
-                  選択中: <span className="font-medium">{selectedSkinTone.label}</span>
+                  選択中:{" "}
+                  <span className="font-medium">{selectedSkinTone.label}</span>
                 </p>
               </div>
 
               <div className="mt-3 grid grid-cols-3 gap-3 sm:max-w-md">
                 {SKIN_TONE_PRESET_OPTIONS.map((option) => {
-                  const isSelected = preferences.skinTonePreset === option.value;
+                  const isSelected =
+                    preferences.skinTonePreset === option.value;
 
                   return (
                     <button
@@ -287,7 +310,9 @@ function SettingsPageContent() {
 
         <section className="grid gap-4 md:grid-cols-3">
           <SettingsCard>
-            <h2 className="text-lg font-semibold text-gray-900">カテゴリ設定</h2>
+            <h2 className="text-lg font-semibold text-gray-900">
+              カテゴリ設定
+            </h2>
             <p className="mt-2 text-sm text-gray-600">
               登録や選択に出すカテゴリを調整できます。
             </p>
@@ -317,7 +342,9 @@ function SettingsPageContent() {
           </SettingsCard>
 
           <SettingsCard>
-            <h2 className="text-lg font-semibold text-gray-900">ブランド候補設定</h2>
+            <h2 className="text-lg font-semibold text-gray-900">
+              ブランド候補設定
+            </h2>
             <p className="mt-2 text-sm text-gray-600">
               アイテム入力で使うブランド候補を管理できます。
             </p>

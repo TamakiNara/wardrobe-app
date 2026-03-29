@@ -18,7 +18,8 @@ import type { CategoryGroupRecord } from "@/types/categories";
 export default function CategoryPresetSelectionPage() {
   const router = useRouter();
   const [groups, setGroups] = useState<CategoryGroupRecord[]>([]);
-  const [selectedPreset, setSelectedPreset] = useState<CategoryPresetValue | null>(null);
+  const [selectedPreset, setSelectedPreset] =
+    useState<CategoryPresetValue | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -26,21 +27,23 @@ export default function CategoryPresetSelectionPage() {
   useEffect(() => {
     let active = true;
 
-    Promise.all([
-      fetchCategoryGroups(),
-      fetchCategoryVisibilitySettings(),
-    ])
+    Promise.all([fetchCategoryGroups(), fetchCategoryVisibilitySettings()])
       .then(([fetchedGroups]) => {
         if (!active) return;
         setGroups(fetchedGroups);
       })
       .catch((caughtError) => {
         if (!active) return;
-        if (caughtError instanceof ApiClientError && caughtError.status === 401) {
+        if (
+          caughtError instanceof ApiClientError &&
+          caughtError.status === 401
+        ) {
           router.push("/login");
           return;
         }
-        setError("カテゴリプリセットの読み込みに失敗しました。時間をおいて再度お試しください。");
+        setError(
+          "カテゴリプリセットの読み込みに失敗しました。時間をおいて再度お試しください。",
+        );
       })
       .finally(() => {
         if (!active) return;
@@ -83,7 +86,9 @@ export default function CategoryPresetSelectionPage() {
         router.push("/login");
         return;
       }
-      setError("カテゴリプリセットの保存に失敗しました。時間をおいて再度お試しください。");
+      setError(
+        "カテゴリプリセットの保存に失敗しました。時間をおいて再度お試しください。",
+      );
     } finally {
       setSubmitting(false);
     }
@@ -118,7 +123,9 @@ export default function CategoryPresetSelectionPage() {
                     : "border-gray-200 bg-white hover:border-blue-200 hover:bg-blue-50/40"
                 }`}
               >
-                <p className="text-sm font-semibold text-blue-600">{preset.label}</p>
+                <p className="text-sm font-semibold text-blue-600">
+                  {preset.label}
+                </p>
                 <p className="mt-3 text-sm leading-6 text-gray-700">
                   {preset.description}
                 </p>

@@ -50,18 +50,38 @@ describe("WearLogModalColorThumbnail", () => {
       root.render(
         React.createElement(WearLogModalColorThumbnail, {
           items: [
-            renderThumbnailItem(1, "tops", [{ role: "main", hex: "#ffffff", label: "白" }]),
-            renderThumbnailItem(2, "bottoms", [{ role: "main", hex: "#111111", label: "黒" }]),
-            renderThumbnailItem(3, "shoes", [{ role: "main", hex: "#224488", label: "青" }]),
+            renderThumbnailItem(1, "tops", [
+              { role: "main", hex: "#ffffff", label: "白" },
+            ]),
+            renderThumbnailItem(2, "bottoms", [
+              { role: "main", hex: "#111111", label: "黒" },
+            ]),
+            renderThumbnailItem(3, "shoes", [
+              { role: "main", hex: "#224488", label: "青" },
+            ]),
           ],
         }),
       );
     });
 
-    expect(container.querySelector('[data-testid="wear-log-modal-thumbnail-tops"]')).not.toBeNull();
-    expect(container.querySelector('[data-testid="wear-log-modal-thumbnail-bottoms"]')).not.toBeNull();
-    expect(container.querySelector('[data-testid="wear-log-modal-thumbnail-others"]')).not.toBeNull();
-    expect(container.querySelector('[data-testid="wear-log-modal-thumbnail-others-full"]')).toBeNull();
+    expect(
+      container.querySelector('[data-testid="wear-log-modal-thumbnail-tops"]'),
+    ).not.toBeNull();
+    expect(
+      container.querySelector(
+        '[data-testid="wear-log-modal-thumbnail-bottoms"]',
+      ),
+    ).not.toBeNull();
+    expect(
+      container.querySelector(
+        '[data-testid="wear-log-modal-thumbnail-others"]',
+      ),
+    ).not.toBeNull();
+    expect(
+      container.querySelector(
+        '[data-testid="wear-log-modal-thumbnail-others-full"]',
+      ),
+    ).toBeNull();
   });
 
   it("others のみの場合は全体を others で使う", async () => {
@@ -69,14 +89,26 @@ describe("WearLogModalColorThumbnail", () => {
       root.render(
         React.createElement(WearLogModalColorThumbnail, {
           items: [
-            renderThumbnailItem(1, "outer", [{ role: "main", hex: "#888888", label: "グレー" }]),
+            renderThumbnailItem(1, "outer", [
+              { role: "main", hex: "#888888", label: "グレー" },
+            ]),
           ],
         }),
       );
     });
 
-    expect(container.querySelector('[data-testid="wear-log-modal-thumbnail-others-full"]')).not.toBeNull();
-    expect(container.querySelector('[data-testid="wear-log-modal-thumbnail-tops"]')).toBeNull();
-    expect(container.querySelector('[data-testid="wear-log-modal-thumbnail-bottoms"]')).toBeNull();
+    expect(
+      container.querySelector(
+        '[data-testid="wear-log-modal-thumbnail-others-full"]',
+      ),
+    ).not.toBeNull();
+    expect(
+      container.querySelector('[data-testid="wear-log-modal-thumbnail-tops"]'),
+    ).toBeNull();
+    expect(
+      container.querySelector(
+        '[data-testid="wear-log-modal-thumbnail-bottoms"]',
+      ),
+    ).toBeNull();
   });
 });

@@ -88,7 +88,9 @@ describe("AppShell", () => {
       );
     });
 
-    expect(container.querySelector('[data-testid="bottom-nav"]')).not.toBeNull();
+    expect(
+      container.querySelector('[data-testid="bottom-nav"]'),
+    ).not.toBeNull();
   });
 
   it("wear logs 配下でもボトムナビを表示する", async () => {
@@ -115,7 +117,9 @@ describe("AppShell", () => {
       );
     });
 
-    expect(container.querySelector('[data-testid="bottom-nav"]')).not.toBeNull();
+    expect(
+      container.querySelector('[data-testid="bottom-nav"]'),
+    ).not.toBeNull();
   });
 
   it("ログイン直後に settings 配下へ遷移してもボトムナビを表示する", async () => {
@@ -151,6 +155,8 @@ describe("AppShell", () => {
         credentials: "same-origin",
       }),
     );
-    expect(container.querySelector('[data-testid="bottom-nav"]')).not.toBeNull();
+    expect(
+      container.querySelector('[data-testid="bottom-nav"]'),
+    ).not.toBeNull();
   });
 });

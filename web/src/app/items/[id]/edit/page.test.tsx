@@ -68,7 +68,12 @@ const sampleGroups: CategoryGroupRecord[] = [
     name: "ボトムス",
     sortOrder: 15,
     categories: [
-      { id: "bottoms_straight", groupId: "bottoms", name: "ストレート", sortOrder: 10 },
+      {
+        id: "bottoms_straight",
+        groupId: "bottoms",
+        name: "ストレート",
+        sortOrder: 10,
+      },
     ],
   },
   {
@@ -76,7 +81,12 @@ const sampleGroups: CategoryGroupRecord[] = [
     name: "ワンピース・オールインワン",
     sortOrder: 20,
     categories: [
-      { id: "dress_onepiece", groupId: "dress", name: "ワンピース", sortOrder: 10 },
+      {
+        id: "dress_onepiece",
+        groupId: "dress",
+        name: "ワンピース",
+        sortOrder: 10,
+      },
     ],
   },
   {
@@ -84,7 +94,12 @@ const sampleGroups: CategoryGroupRecord[] = [
     name: "ルームウェア・インナー",
     sortOrder: 30,
     categories: [
-      { id: "inner_roomwear", groupId: "inner", name: "ルームウェア", sortOrder: 10 },
+      {
+        id: "inner_roomwear",
+        groupId: "inner",
+        name: "ルームウェア",
+        sortOrder: 10,
+      },
     ],
   },
 ];
@@ -107,7 +122,12 @@ describe("EditItemPage", () => {
     root = createRoot(container);
     fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
     fetchCategoryVisibilitySettingsMock.mockResolvedValue({
-      visibleCategoryIds: ["tops_tshirt", "bottoms_straight", "dress_onepiece", "inner_roomwear"],
+      visibleCategoryIds: [
+        "tops_tshirt",
+        "bottoms_straight",
+        "dress_onepiece",
+        "inner_roomwear",
+      ],
     });
     fetchUserPreferencesMock.mockResolvedValue({
       preferences: {
@@ -187,18 +207,25 @@ describe("EditItemPage", () => {
     const { default: EditItemPage } = await import("./page");
 
     act(() => {
-      root.render(React.createElement(EditItemPage, { params: Promise.resolve({ id: "1" }) }));
+      root.render(
+        React.createElement(EditItemPage, {
+          params: Promise.resolve({ id: "1" }),
+        }),
+      );
     });
 
     await act(async () => {
       await waitForEffects();
     });
 
-    const categorySelect = container.querySelector<HTMLSelectElement>("#category");
+    const categorySelect =
+      container.querySelector<HTMLSelectElement>("#category");
     expect(categorySelect).not.toBeNull();
     expect(categorySelect!.value).toBe("tops");
 
-    const optionLabels = Array.from(categorySelect!.options).map((option) => option.textContent);
+    const optionLabels = Array.from(categorySelect!.options).map(
+      (option) => option.textContent,
+    );
     expect(optionLabels).toEqual([
       "選択してください",
       "トップス",
@@ -206,21 +233,33 @@ describe("EditItemPage", () => {
       "ワンピース・オールインワン",
       "ルームウェア・インナー",
     ]);
-    expect(container.textContent).toContain("「必須」が付いた項目は更新に必要です。");
+    expect(container.textContent).toContain(
+      "「必須」が付いた項目は更新に必要です。",
+    );
     expect(container.textContent).toContain("カテゴリ");
     expect(container.textContent).toContain("形");
     expect(container.textContent).toContain("ケア状態");
     expect(container.textContent).toContain("メインカラー");
     expect(container.textContent).toContain("ブランド候補にも追加する");
     expect(container.textContent?.match(/必須/g)?.length).toBe(4);
-    expect((container.querySelector("#brand-name") as HTMLInputElement | null)?.value).toBe("Sample Brand");
-    expect((container.querySelector("#price") as HTMLInputElement | null)?.value).toBe("19800");
-    expect((container.querySelector("#memo") as HTMLTextAreaElement | null)?.value).toBe("既存メモ");
+    expect(
+      (container.querySelector("#brand-name") as HTMLInputElement | null)
+        ?.value,
+    ).toBe("Sample Brand");
+    expect(
+      (container.querySelector("#price") as HTMLInputElement | null)?.value,
+    ).toBe("19800");
+    expect(
+      (container.querySelector("#memo") as HTMLTextAreaElement | null)?.value,
+    ).toBe("既存メモ");
     expect(container.textContent).toContain("画像");
     expect(container.textContent).toContain("クリックして画像を選択");
     expect(container.textContent).toContain("代表画像");
     expect(container.textContent).toContain("削除");
-    expect((container.querySelector("#care-status") as HTMLSelectElement | null)?.value).toBe("in_cleaning");
+    expect(
+      (container.querySelector("#care-status") as HTMLSelectElement | null)
+        ?.value,
+    ).toBe("in_cleaning");
   }, 20000);
 
   it("編集画面でボトムス丈とレッグウェア設定を表示できる", async () => {
@@ -265,14 +304,24 @@ describe("EditItemPage", () => {
     const { default: EditItemPage } = await import("./page");
 
     act(() => {
-      root.render(React.createElement(EditItemPage, { params: Promise.resolve({ id: "2" }) }));
+      root.render(
+        React.createElement(EditItemPage, {
+          params: Promise.resolve({ id: "2" }),
+        }),
+      );
     });
 
     await act(async () => {
       await waitForEffects();
     });
 
-    expect((container.querySelector("#legwear-coverage-type") as HTMLSelectElement | null)?.value).toBe("crew_socks");
+    expect(
+      (
+        container.querySelector(
+          "#legwear-coverage-type",
+        ) as HTMLSelectElement | null
+      )?.value,
+    ).toBe("crew_socks");
     expect(container.textContent).toContain("レッグウェア仕様");
   });
 });

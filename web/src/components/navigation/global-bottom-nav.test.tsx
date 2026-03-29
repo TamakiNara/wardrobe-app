@@ -69,7 +69,12 @@ describe("GlobalBottomNav", () => {
   it("wear logs 配下では一覧・詳細・新規作成・編集のいずれでも着用履歴タブをアクティブにする", async () => {
     const { default: GlobalBottomNav } = await import("./global-bottom-nav");
 
-    for (const pathname of ["/wear-logs", "/wear-logs/12", "/wear-logs/new", "/wear-logs/12/edit"]) {
+    for (const pathname of [
+      "/wear-logs",
+      "/wear-logs/12",
+      "/wear-logs/new",
+      "/wear-logs/12/edit",
+    ]) {
       usePathnameMock.mockReturnValue(pathname);
 
       await act(async () => {

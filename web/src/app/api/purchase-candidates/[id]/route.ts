@@ -19,7 +19,11 @@ export async function PUT(
 ) {
   const { id } = await context.params;
   const body = await req.json();
-  return forwardPutWithCsrfAndCookie(req, `/api/purchase-candidates/${id}`, body);
+  return forwardPutWithCsrfAndCookie(
+    req,
+    `/api/purchase-candidates/${id}`,
+    body,
+  );
 }
 
 export async function DELETE(

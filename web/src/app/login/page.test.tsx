@@ -18,9 +18,9 @@ describe("mapLoginErrorMessage", () => {
     expect(mapLoginErrorMessage("CSRF token mismatch.")).toBe(
       "通信に失敗しました。時間をおいて再度お試しください。",
     );
-    expect(mapLoginErrorMessage("Failed to get CSRF cookie from backend.")).toBe(
-      "通信に失敗しました。時間をおいて再度お試しください。",
-    );
+    expect(
+      mapLoginErrorMessage("Failed to get CSRF cookie from backend."),
+    ).toBe("通信に失敗しました。時間をおいて再度お試しください。");
     expect(mapLoginErrorMessage()).toBe(
       "通信に失敗しました。時間をおいて再度お試しください。",
     );

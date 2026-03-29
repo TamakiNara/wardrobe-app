@@ -7,5 +7,9 @@ export async function POST(
 ) {
   const { id } = await context.params;
   const body = await req.json();
-  return forwardPostWithCsrfAndCookie(req, `/api/items/${id}/care-status`, body);
+  return forwardPostWithCsrfAndCookie(
+    req,
+    `/api/items/${id}/care-status`,
+    body,
+  );
 }

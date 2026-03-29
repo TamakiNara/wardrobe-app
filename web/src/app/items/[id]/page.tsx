@@ -5,10 +5,23 @@ import ItemCareStatusAction from "@/components/items/item-care-status-action";
 import ItemStatusAction from "@/components/items/item-status-action";
 import ItemPreviewCard from "@/components/items/item-preview-card";
 import { DEFAULT_SKIN_TONE_PRESET } from "@/lib/master-data/skin-tone-presets";
-import { formatItemPrice, ITEM_CARE_STATUS_LABELS, ITEM_SIZE_GENDER_LABELS } from "@/lib/items/metadata";
-import { findBottomsLengthLabel, findLegwearCoverageLabel } from "@/lib/master-data/item-skin-exposure";
-import { buildTopsSpecLabels, buildTopsSpecRaw } from "@/lib/master-data/item-tops";
-import { findItemCategoryLabel, findItemShapeLabel } from "@/lib/master-data/item-shapes";
+import {
+  formatItemPrice,
+  ITEM_CARE_STATUS_LABELS,
+  ITEM_SIZE_GENDER_LABELS,
+} from "@/lib/items/metadata";
+import {
+  findBottomsLengthLabel,
+  findLegwearCoverageLabel,
+} from "@/lib/master-data/item-skin-exposure";
+import {
+  buildTopsSpecLabels,
+  buildTopsSpecRaw,
+} from "@/lib/master-data/item-tops";
+import {
+  findItemCategoryLabel,
+  findItemShapeLabel,
+} from "@/lib/master-data/item-shapes";
 import { fetchLaravelWithCookie } from "@/lib/server/laravel";
 import type { ItemRecord } from "@/types/items";
 import type { SkinTonePreset } from "@/types/settings";
@@ -48,19 +61,25 @@ export default async function ItemPage({
     getItem(id),
     getSkinTonePreset(),
   ]);
-  const returnToParam = typeof resolvedSearchParams.return_to === "string"
-    ? resolvedSearchParams.return_to
-    : null;
-  const returnLabelParam = typeof resolvedSearchParams.return_label === "string"
-    ? resolvedSearchParams.return_label
-    : null;
+  const returnToParam =
+    typeof resolvedSearchParams.return_to === "string"
+      ? resolvedSearchParams.return_to
+      : null;
+  const returnLabelParam =
+    typeof resolvedSearchParams.return_label === "string"
+      ? resolvedSearchParams.return_label
+      : null;
 
   const mainColor = item.colors.find((c) => c.role === "main");
   const subColor = item.colors.find((c) => c.role === "sub");
   const topsSpec = buildTopsSpecLabels(item.spec?.tops);
   const topsSpecRaw = buildTopsSpecRaw(item.spec?.tops);
-  const bottomsLengthLabel = findBottomsLengthLabel(item.spec?.bottoms?.length_type);
-  const legwearCoverageLabel = findLegwearCoverageLabel(item.spec?.legwear?.coverage_type);
+  const bottomsLengthLabel = findBottomsLengthLabel(
+    item.spec?.bottoms?.length_type,
+  );
+  const legwearCoverageLabel = findLegwearCoverageLabel(
+    item.spec?.legwear?.coverage_type,
+  );
   const categoryLabel = findItemCategoryLabel(item.category);
   const shapeLabel = findItemShapeLabel(item.category, item.shape);
   const itemImages = item.images ?? [];
@@ -119,7 +138,10 @@ export default async function ItemPage({
                 {returnLabelParam ?? "戻る"}へ戻る
               </Link>
             ) : null}
-            <ItemCareStatusAction itemId={item.id} careStatus={item.care_status} />
+            <ItemCareStatusAction
+              itemId={item.id}
+              careStatus={item.care_status}
+            />
             <ItemStatusAction itemId={item.id} status={item.status} />
 
             <Link
@@ -204,11 +226,18 @@ export default async function ItemPage({
           {itemImages.length > 0 ? (
             <div className="mt-4 grid gap-4 md:grid-cols-2">
               {itemImages.map((image) => (
-                <article key={image.id ?? `${image.path}-${image.sort_order}`} className="overflow-hidden rounded-xl border border-gray-200">
+                <article
+                  key={image.id ?? `${image.path}-${image.sort_order}`}
+                  className="overflow-hidden rounded-xl border border-gray-200"
+                >
                   {image.url ? (
                     <div className="flex aspect-[3/4] items-center justify-center bg-gray-50 p-2">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={image.url} alt={image.original_filename ?? "item image"} className="h-full w-full object-contain" />
+                      <img
+                        src={image.url}
+                        alt={image.original_filename ?? "item image"}
+                        className="h-full w-full object-contain"
+                      />
                     </div>
                   ) : (
                     <div className="flex aspect-[4/3] items-center justify-center bg-gray-100 text-sm text-gray-400">
@@ -216,7 +245,8 @@ export default async function ItemPage({
                     </div>
                   )}
                   <div className="p-3 text-sm text-gray-600">
-                    {image.sort_order}枚目{image.is_primary ? " / 代表画像" : ""}
+                    {image.sort_order}枚目
+                    {image.is_primary ? " / 代表画像" : ""}
                   </div>
                 </article>
               ))}
@@ -227,27 +257,40 @@ export default async function ItemPage({
         </section>
 
         <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-gray-900">購入・サイズ情報</h2>
+          <h2 className="text-lg font-semibold text-gray-900">
+            購入・サイズ情報
+          </h2>
           <dl className="mt-4 grid gap-4 md:grid-cols-2">
             <div>
               <dt className="text-sm font-medium text-gray-700">ブランド名</dt>
-              <dd className="mt-1 text-sm text-gray-600">{item.brand_name ?? "未設定"}</dd>
+              <dd className="mt-1 text-sm text-gray-600">
+                {item.brand_name ?? "未設定"}
+              </dd>
             </div>
             <div>
               <dt className="text-sm font-medium text-gray-700">実購入価格</dt>
-              <dd className="mt-1 text-sm text-gray-600">{formatItemPrice(item.price ?? null)}</dd>
+              <dd className="mt-1 text-sm text-gray-600">
+                {formatItemPrice(item.price ?? null)}
+              </dd>
             </div>
             <div>
               <dt className="text-sm font-medium text-gray-700">ケア状態</dt>
               <dd className="mt-1 text-sm text-gray-600">
-                {item.care_status ? ITEM_CARE_STATUS_LABELS[item.care_status] : "未設定"}
+                {item.care_status
+                  ? ITEM_CARE_STATUS_LABELS[item.care_status]
+                  : "未設定"}
               </dd>
             </div>
             <div>
               <dt className="text-sm font-medium text-gray-700">購入 URL</dt>
               <dd className="mt-1 text-sm text-gray-600">
                 {item.purchase_url ? (
-                  <a href={item.purchase_url} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">
+                  <a
+                    href={item.purchase_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-blue-600 hover:underline"
+                  >
                     開く
                   </a>
                 ) : (
@@ -257,31 +300,47 @@ export default async function ItemPage({
             </div>
             <div>
               <dt className="text-sm font-medium text-gray-700">購入日</dt>
-              <dd className="mt-1 text-sm text-gray-600">{item.purchased_at ? item.purchased_at.slice(0, 10) : "未設定"}</dd>
+              <dd className="mt-1 text-sm text-gray-600">
+                {item.purchased_at ? item.purchased_at.slice(0, 10) : "未設定"}
+              </dd>
             </div>
             <div>
               <dt className="text-sm font-medium text-gray-700">サイズ区分</dt>
-              <dd className="mt-1 text-sm text-gray-600">{item.size_gender ? (ITEM_SIZE_GENDER_LABELS[item.size_gender] ?? "未設定") : "未設定"}</dd>
+              <dd className="mt-1 text-sm text-gray-600">
+                {item.size_gender
+                  ? (ITEM_SIZE_GENDER_LABELS[item.size_gender] ?? "未設定")
+                  : "未設定"}
+              </dd>
             </div>
             <div>
               <dt className="text-sm font-medium text-gray-700">サイズ表記</dt>
-              <dd className="mt-1 text-sm text-gray-600">{item.size_label ?? "未設定"}</dd>
+              <dd className="mt-1 text-sm text-gray-600">
+                {item.size_label ?? "未設定"}
+              </dd>
             </div>
             <div>
               <dt className="text-sm font-medium text-gray-700">サイズ補足</dt>
-              <dd className="mt-1 text-sm text-gray-600">{item.size_note ?? "未設定"}</dd>
+              <dd className="mt-1 text-sm text-gray-600">
+                {item.size_note ?? "未設定"}
+              </dd>
             </div>
             <div>
               <dt className="text-sm font-medium text-gray-700">雨対応</dt>
-              <dd className="mt-1 text-sm text-gray-600">{item.is_rain_ok ? "対応" : "未対応"}</dd>
+              <dd className="mt-1 text-sm text-gray-600">
+                {item.is_rain_ok ? "対応" : "未対応"}
+              </dd>
             </div>
             <div className="md:col-span-2">
               <dt className="text-sm font-medium text-gray-700">実寸メモ</dt>
-              <dd className="mt-1 text-sm text-gray-600">{item.size_details?.note ?? "未設定"}</dd>
+              <dd className="mt-1 text-sm text-gray-600">
+                {item.size_details?.note ?? "未設定"}
+              </dd>
             </div>
             <div className="md:col-span-2">
               <dt className="text-sm font-medium text-gray-700">メモ</dt>
-              <dd className="mt-1 whitespace-pre-wrap text-sm text-gray-600">{item.memo ?? "未設定"}</dd>
+              <dd className="mt-1 whitespace-pre-wrap text-sm text-gray-600">
+                {item.memo ?? "未設定"}
+              </dd>
             </div>
           </dl>
         </section>

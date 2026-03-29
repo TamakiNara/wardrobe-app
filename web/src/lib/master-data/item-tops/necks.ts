@@ -6,5 +6,4 @@ export const TOPS_NECKS = [
   { value: "collar", label: "襟" },
 ] as const;
 
-export type TopsNeckValue =
-  (typeof TOPS_NECKS)[number]["value"];
+export type TopsNeckValue = (typeof TOPS_NECKS)[number]["value"];

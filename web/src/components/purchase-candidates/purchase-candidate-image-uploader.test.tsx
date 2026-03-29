@@ -25,7 +25,11 @@ describe("PurchaseCandidateImageUploader", () => {
     globalThis.IS_REACT_ACT_ENVIRONMENT = false;
   });
 
-  function renderUploader(props?: Partial<React.ComponentProps<typeof PurchaseCandidateImageUploader>>) {
+  function renderUploader(
+    props?: Partial<
+      React.ComponentProps<typeof PurchaseCandidateImageUploader>
+    >,
+  ) {
     const onPendingImagesChange = props?.onPendingImagesChange ?? vi.fn();
 
     act(() => {
@@ -64,9 +68,13 @@ describe("PurchaseCandidateImageUploader", () => {
 
   it("drag & drop と paste で画像を追加できる", async () => {
     const { onPendingImagesChange } = renderUploader();
-    const dropzone = container.querySelector('[aria-label="画像追加エリア"]') as HTMLDivElement;
+    const dropzone = container.querySelector(
+      '[aria-label="画像追加エリア"]',
+    ) as HTMLDivElement;
     const droppedFile = new File(["drop"], "drop.png", { type: "image/png" });
-    const pastedFile = new File(["paste"], "paste.webp", { type: "image/webp" });
+    const pastedFile = new File(["paste"], "paste.webp", {
+      type: "image/webp",
+    });
 
     await act(async () => {
       const dropEvent = new Event("drop", { bubbles: true, cancelable: true });
@@ -78,7 +86,10 @@ describe("PurchaseCandidateImageUploader", () => {
     });
 
     await act(async () => {
-      const pasteEvent = new Event("paste", { bubbles: true, cancelable: true });
+      const pasteEvent = new Event("paste", {
+        bubbles: true,
+        cancelable: true,
+      });
       Object.defineProperty(pasteEvent, "clipboardData", {
         configurable: true,
         value: { files: [pastedFile] },
@@ -146,7 +157,9 @@ describe("PurchaseCandidateImageUploader", () => {
     });
 
     const input = container.querySelector("#images") as HTMLInputElement;
-    const overflowFile = new File(["overflow"], "overflow.png", { type: "image/png" });
+    const overflowFile = new File(["overflow"], "overflow.png", {
+      type: "image/png",
+    });
 
     await act(async () => {
       Object.defineProperty(input, "files", {
@@ -156,6 +169,8 @@ describe("PurchaseCandidateImageUploader", () => {
       input.dispatchEvent(new Event("change", { bubbles: true }));
     });
 
-    expect(container.textContent).toContain("画像は5枚まで登録できます。不要な画像を削除してから追加してください。");
+    expect(container.textContent).toContain(
+      "画像は5枚まで登録できます。不要な画像を削除してから追加してください。",
+    );
   });
 });

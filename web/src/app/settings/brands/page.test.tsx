@@ -11,13 +11,15 @@ const fetchUserBrandsMock = vi.fn();
 const createUserBrandMock = vi.fn();
 const updateUserBrandMock = vi.fn();
 
-function buildBrand(overrides: Partial<{
-  id: number;
-  name: string;
-  kana: string | null;
-  is_active: boolean;
-  updated_at: string;
-}> = {}) {
+function buildBrand(
+  overrides: Partial<{
+    id: number;
+    name: string;
+    kana: string | null;
+    is_active: boolean;
+    updated_at: string;
+  }> = {},
+) {
   return {
     id: 1,
     name: "UNIQLO",
@@ -50,7 +52,10 @@ async function waitForEffects() {
 }
 
 function setInputValue(input: HTMLInputElement, value: string) {
-  const descriptor = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value");
+  const descriptor = Object.getOwnPropertyDescriptor(
+    HTMLInputElement.prototype,
+    "value",
+  );
   descriptor?.set?.call(input, value);
   input.dispatchEvent(new Event("input", { bubbles: true }));
   input.dispatchEvent(new Event("change", { bubbles: true }));
@@ -81,7 +86,12 @@ describe("SettingsBrandsPage", () => {
     fetchUserBrandsMock.mockResolvedValue({
       brands: [
         buildBrand({ id: 2, name: "GU", kana: "じーゆー", is_active: false }),
-        buildBrand({ id: 1, name: "UNIQLO", kana: "ゆにくろ", is_active: true }),
+        buildBrand({
+          id: 1,
+          name: "UNIQLO",
+          kana: "ゆにくろ",
+          is_active: true,
+        }),
       ],
     });
 
@@ -118,11 +128,13 @@ describe("SettingsBrandsPage", () => {
       await waitForEffects();
     });
 
-    const nameInput = container.querySelector<HTMLInputElement>("#new-brand-name");
-    const kanaInput = container.querySelector<HTMLInputElement>("#new-brand-kana");
-    const addButton = Array.from(container.querySelectorAll<HTMLButtonElement>("button")).find(
-      (button) => button.textContent === "追加する",
-    );
+    const nameInput =
+      container.querySelector<HTMLInputElement>("#new-brand-name");
+    const kanaInput =
+      container.querySelector<HTMLInputElement>("#new-brand-kana");
+    const addButton = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button"),
+    ).find((button) => button.textContent === "追加する");
 
     await act(async () => {
       setInputValue(nameInput!, "UNIQLO");
@@ -160,9 +172,9 @@ describe("SettingsBrandsPage", () => {
       await waitForEffects();
     });
 
-    const toggleButton = Array.from(container.querySelectorAll<HTMLButtonElement>("button")).find(
-      (button) => button.textContent === "無効にする",
-    );
+    const toggleButton = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button"),
+    ).find((button) => button.textContent === "無効にする");
 
     await act(async () => {
       toggleButton!.click();

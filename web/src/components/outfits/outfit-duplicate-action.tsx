@@ -3,9 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ApiClientError, apiFetch } from "@/lib/api/client";
-import {
-  saveOutfitDuplicatePayload,
-} from "@/lib/outfits/duplicate";
+import { saveOutfitDuplicatePayload } from "@/lib/outfits/duplicate";
 import type { OutfitDuplicateResponse } from "@/types/outfits";
 
 type OutfitDuplicateActionProps = {

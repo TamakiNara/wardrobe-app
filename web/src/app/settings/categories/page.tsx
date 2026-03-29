@@ -8,7 +8,10 @@ import { SettingsCard } from "@/components/settings/settings-card";
 import { SettingsPageHeader } from "@/components/settings/settings-page-header";
 import { collectAllCategoryIds } from "@/lib/master-data/category-presets";
 import { fetchItems } from "@/lib/api/items";
-import { fetchCategoryGroups, findVisibleCategoryIdForItem } from "@/lib/api/categories";
+import {
+  fetchCategoryGroups,
+  findVisibleCategoryIdForItem,
+} from "@/lib/api/categories";
 import {
   fetchCategoryVisibilitySettings,
   updateCategoryVisibilitySettings,
@@ -24,7 +27,10 @@ function buildVisibilityFromIds(
 
   return Object.fromEntries(
     groups.flatMap((group) =>
-      group.categories.map((category) => [category.id, visibleIdSet.has(category.id)]),
+      group.categories.map((category) => [
+        category.id,
+        visibleIdSet.has(category.id),
+      ]),
     ),
   ) as Record<string, boolean>;
 }
@@ -83,8 +89,12 @@ function SettingsCategoriesPageContent() {
   const searchParams = useSearchParams();
   const [groups, setGroups] = useState<CategoryGroupRecord[]>([]);
   const [visibility, setVisibility] = useState<Record<string, boolean>>({});
-  const [savedVisibleCategoryIds, setSavedVisibleCategoryIds] = useState<string[]>([]);
-  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
+  const [savedVisibleCategoryIds, setSavedVisibleCategoryIds] = useState<
+    string[]
+  >([]);
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(
+    {},
+  );
   const [registeredItems, setRegisteredItems] = useState<ItemRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -141,7 +151,9 @@ function SettingsCategoriesPageContent() {
           router.push("/login");
           return;
         }
-        setLoadError("カテゴリ設定を読み込めませんでした。時間をおいて再度お試しください。");
+        setLoadError(
+          "カテゴリ設定を読み込めませんでした。時間をおいて再度お試しください。",
+        );
       })
       .finally(() => {
         if (!active) return;
@@ -159,7 +171,9 @@ function SettingsCategoriesPageContent() {
   );
 
   const hasChanges = useMemo(() => {
-    return currentVisibleCategoryIds.join("|") !== savedVisibleCategoryIds.join("|");
+    return (
+      currentVisibleCategoryIds.join("|") !== savedVisibleCategoryIds.join("|")
+    );
   }, [currentVisibleCategoryIds, savedVisibleCategoryIds]);
 
   const hasSaveAction = hasChanges || requiresInitialSave;
@@ -305,7 +319,9 @@ function SettingsCategoriesPageContent() {
 
       setSaveMessage("カテゴリ表示設定を保存しました。");
     } catch {
-      setSaveError("設定を保存できませんでした。時間をおいて再度お試しください。");
+      setSaveError(
+        "設定を保存できませんでした。時間をおいて再度お試しください。",
+      );
     } finally {
       setSaving(false);
     }
@@ -325,7 +341,9 @@ function SettingsCategoriesPageContent() {
         <SettingsCard>
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">カテゴリ表示設定</h2>
+              <h2 className="text-lg font-semibold text-gray-900">
+                カテゴリ表示設定
+              </h2>
               <p className="mt-2 text-sm text-gray-600">
                 大分類ごとに表示カテゴリを調整できます。
               </p>
@@ -350,7 +368,9 @@ function SettingsCategoriesPageContent() {
           </div>
 
           {loading ? (
-            <p className="mt-6 text-sm text-gray-600">カテゴリを読み込み中です...</p>
+            <p className="mt-6 text-sm text-gray-600">
+              カテゴリを読み込み中です...
+            </p>
           ) : loadError ? (
             <p className="mt-6 text-sm text-red-600">{loadError}</p>
           ) : (
@@ -394,7 +414,8 @@ function SettingsCategoriesPageContent() {
                               {group.name}
                             </p>
                             <p className="text-sm text-gray-600">
-                              表示中：{enabledCount} / {group.categories.length}件
+                              表示中：{enabledCount} / {group.categories.length}
+                              件
                             </p>
                           </div>
                         </div>

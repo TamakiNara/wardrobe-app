@@ -61,7 +61,9 @@ describe("NewWearLogPage", () => {
     });
 
     const { default: NewWearLogPage } = await import("./page");
-    const markup = renderToStaticMarkup(await NewWearLogPage({ searchParams: Promise.resolve({}) }));
+    const markup = renderToStaticMarkup(
+      await NewWearLogPage({ searchParams: Promise.resolve({}) }),
+    );
 
     expect(fetchMock).toHaveBeenCalledWith(
       "http://localhost:8000/api/settings/preferences",
@@ -82,7 +84,9 @@ describe("NewWearLogPage", () => {
     });
 
     const { default: NewWearLogPage } = await import("./page");
-    const markup = renderToStaticMarkup(await NewWearLogPage({ searchParams: Promise.resolve({}) }));
+    const markup = renderToStaticMarkup(
+      await NewWearLogPage({ searchParams: Promise.resolve({}) }),
+    );
 
     expect(markup).toContain('data-initial-status="planned"');
   });

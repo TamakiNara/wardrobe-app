@@ -11,7 +11,10 @@ type PreferencesResponse = {
 
 type NewWearLogPageSearchParams = Record<string, string | string[] | undefined>;
 
-function getSearchParam(searchParams: NewWearLogPageSearchParams, key: string): string | null {
+function getSearchParam(
+  searchParams: NewWearLogPageSearchParams,
+  key: string,
+): string | null {
   const value = searchParams[key];
 
   if (Array.isArray(value)) {
@@ -33,11 +36,15 @@ export default async function NewWearLogPage({
     return value && /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : undefined;
   })();
   const initialDisplayOrder = (() => {
-    const value = Number(getSearchParam(resolvedSearchParams, "display_order") ?? "1");
+    const value = Number(
+      getSearchParam(resolvedSearchParams, "display_order") ?? "1",
+    );
     return Number.isInteger(value) && value > 0 ? value : 1;
   })();
 
-  const preferencesRes = await fetchLaravelWithCookie("/api/settings/preferences");
+  const preferencesRes = await fetchLaravelWithCookie(
+    "/api/settings/preferences",
+  );
 
   if (preferencesRes.status === 401) {
     redirect("/login");

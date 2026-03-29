@@ -80,7 +80,12 @@ const RAGLAN_SLEEVE_PATHS: Record<string, SleeveSide> = {
 };
 
 function resolveSleeveKey(sleeve?: string) {
-  if (sleeve === "french" || sleeve === "five" || sleeve === "seven" || sleeve === "long") {
+  if (
+    sleeve === "french" ||
+    sleeve === "five" ||
+    sleeve === "seven" ||
+    sleeve === "long"
+  ) {
     return sleeve;
   }
 
@@ -95,13 +100,7 @@ function TshirtNeckBand() {
   return <path fill="#F8FAFC" d={TSHIRT_NECK_BAND_PATH} />;
 }
 
-function SleevePair({
-  paths,
-  fill,
-}: {
-  paths: SleeveSide;
-  fill: string;
-}) {
+function SleevePair({ paths, fill }: { paths: SleeveSide; fill: string }) {
   return (
     <>
       <path fill={fill} d={paths.left} />
@@ -134,7 +133,7 @@ export default function TshirtPreviewSvg({
   const isOversized = fit === "oversized";
 
   const bodyColor = mainColor;
-  const sleeveColor = isRaglan ? subColor ?? "#CBD5E1" : mainColor;
+  const sleeveColor = isRaglan ? (subColor ?? "#CBD5E1") : mainColor;
 
   const scale = isOversized ? 1.06 : 1;
   const translateX = isOversized ? -9 : 0;

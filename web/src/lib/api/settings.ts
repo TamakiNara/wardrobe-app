@@ -36,20 +36,25 @@ export async function fetchUserPreferences(): Promise<UserPreferencesResponse> {
 
 export async function updateUserPreferences(
   payload: UpdateUserPreferencesPayload,
-): Promise<{ message: string; preferences: UserPreferencesResponse["preferences"] }> {
-  return apiFetch<{ message: string; preferences: UserPreferencesResponse["preferences"] }>(
-    "/api/settings/preferences",
-    {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
+): Promise<{
+  message: string;
+  preferences: UserPreferencesResponse["preferences"];
+}> {
+  return apiFetch<{
+    message: string;
+    preferences: UserPreferencesResponse["preferences"];
+  }>("/api/settings/preferences", {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
     },
-  );
+    body: JSON.stringify(payload),
+  });
 }
 
-export async function fetchUserTpos(activeOnly = false): Promise<UserTposResponse> {
+export async function fetchUserTpos(
+  activeOnly = false,
+): Promise<UserTposResponse> {
   const params = new URLSearchParams();
 
   if (activeOnly) {
@@ -66,26 +71,32 @@ export async function fetchUserTpos(activeOnly = false): Promise<UserTposRespons
 export async function createUserTpo(
   payload: CreateUserTpoPayload,
 ): Promise<{ message: string; tpo: UserTpoRecord }> {
-  return apiFetch<{ message: string; tpo: UserTpoRecord }>("/api/settings/tpos", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
+  return apiFetch<{ message: string; tpo: UserTpoRecord }>(
+    "/api/settings/tpos",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
     },
-    body: JSON.stringify(payload),
-  });
+  );
 }
 
 export async function updateUserTpo(
   tpoId: number,
   payload: UpdateUserTpoPayload,
 ): Promise<{ message: string; tpo: UserTpoRecord }> {
-  return apiFetch<{ message: string; tpo: UserTpoRecord }>(`/api/settings/tpos/${tpoId}`, {
-    method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
+  return apiFetch<{ message: string; tpo: UserTpoRecord }>(
+    `/api/settings/tpos/${tpoId}`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
     },
-    body: JSON.stringify(payload),
-  });
+  );
 }
 
 export async function fetchUserBrands(
@@ -112,24 +123,30 @@ export async function fetchUserBrands(
 export async function createUserBrand(
   payload: CreateUserBrandPayload,
 ): Promise<{ message: string; brand: UserBrandRecord }> {
-  return apiFetch<{ message: string; brand: UserBrandRecord }>("/api/settings/brands", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
+  return apiFetch<{ message: string; brand: UserBrandRecord }>(
+    "/api/settings/brands",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
     },
-    body: JSON.stringify(payload),
-  });
+  );
 }
 
 export async function updateUserBrand(
   brandId: number,
   payload: UpdateUserBrandPayload,
 ): Promise<{ message: string; brand: UserBrandRecord }> {
-  return apiFetch<{ message: string; brand: UserBrandRecord }>(`/api/settings/brands/${brandId}`, {
-    method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
+  return apiFetch<{ message: string; brand: UserBrandRecord }>(
+    `/api/settings/brands/${brandId}`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
     },
-    body: JSON.stringify(payload),
-  });
+  );
 }

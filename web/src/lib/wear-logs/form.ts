@@ -40,19 +40,22 @@ export function mergeWearLogItemCandidates(
     return candidates;
   }
 
-  return [...wearLog.items
-    .filter((item) => item.source_item_id !== null)
-    .map((item) => ({
-      id: item.source_item_id as number,
-      name: item.item_name,
-      status: item.source_item_status ?? "active",
-      care_status: null,
-      category: null,
-      shape: null,
-      colors: [],
-      seasons: [],
-      tpos: [],
-    })), ...candidates].reduce<WearLogSelectableItem[]>((carry, item) => {
+  return [
+    ...wearLog.items
+      .filter((item) => item.source_item_id !== null)
+      .map((item) => ({
+        id: item.source_item_id as number,
+        name: item.item_name,
+        status: item.source_item_status ?? "active",
+        care_status: null,
+        category: null,
+        shape: null,
+        colors: [],
+        seasons: [],
+        tpos: [],
+      })),
+    ...candidates,
+  ].reduce<WearLogSelectableItem[]>((carry, item) => {
     if (carry.some((current) => current.id === item.id)) {
       return carry;
     }
@@ -65,10 +68,7 @@ export function mergeWearLogOutfitCandidates(
   candidates: WearLogSelectableOutfit[],
   wearLog: WearLogRecord | null,
 ): WearLogSelectableOutfit[] {
-  if (
-    wearLog === null ||
-    wearLog.source_outfit_id === null
-  ) {
+  if (wearLog === null || wearLog.source_outfit_id === null) {
     return candidates;
   }
 

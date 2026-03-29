@@ -87,17 +87,25 @@ export default function ItemPreviewCard({
   const categoryLabel = findItemCategoryLabel(category) || "カテゴリ未選択";
   const shapeLabel = findItemShapeLabel(category, shape);
   const bottomsLengthLabel = findBottomsLengthLabel(spec?.bottoms?.length_type);
-  const legwearCoverageLabel = findLegwearCoverageLabel(spec?.legwear?.coverage_type);
+  const legwearCoverageLabel = findLegwearCoverageLabel(
+    spec?.legwear?.coverage_type,
+  );
   const selectedSkinTone = findSkinTonePresetOption(skinTonePreset);
 
   const previewMeta = [
     {
       label: "メインカラー",
-      value: mainColorLabel && mainColorHex ? `${mainColorLabel} (${mainColorHex})` : "未設定",
+      value:
+        mainColorLabel && mainColorHex
+          ? `${mainColorLabel} (${mainColorHex})`
+          : "未設定",
     },
     {
       label: "サブカラー",
-      value: subColorLabel && subColorHex ? `${subColorLabel} (${subColorHex})` : "未設定",
+      value:
+        subColorLabel && subColorHex
+          ? `${subColorLabel} (${subColorHex})`
+          : "未設定",
     },
     {
       label: "skinTonePreset",
@@ -136,16 +144,8 @@ export default function ItemPreviewCard({
         {showDebugDetails ? (
           <div className="space-y-4">
             <div className="flex flex-wrap gap-2">
-              <ColorDot
-                hex={mainColorHex}
-                label={mainColorLabel}
-                tone="main"
-              />
-              <ColorDot
-                hex={subColorHex}
-                label={subColorLabel}
-                tone="sub"
-              />
+              <ColorDot hex={mainColorHex} label={mainColorLabel} tone="main" />
+              <ColorDot hex={subColorHex} label={subColorLabel} tone="sub" />
             </div>
 
             <div className="rounded-xl border border-gray-200 bg-white p-4">

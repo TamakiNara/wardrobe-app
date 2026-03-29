@@ -65,7 +65,13 @@ describe("WearLogForm", () => {
             category: "tops",
             shape: "tshirt",
             colors: [
-              { role: "main", mode: "preset", value: "white", hex: "#FFFFFF", label: "白" },
+              {
+                role: "main",
+                mode: "preset",
+                value: "white",
+                hex: "#FFFFFF",
+                label: "白",
+              },
             ],
           },
         ],
@@ -86,17 +92,16 @@ describe("WearLogForm", () => {
 
     vi.stubGlobal(
       "fetch",
-      vi.fn()
-        .mockResolvedValueOnce({
-          ok: true,
-          status: 201,
-          json: async () => ({
-            message: "created",
-            wearLog: {
-              id: 1,
-            },
-          }),
+      vi.fn().mockResolvedValueOnce({
+        ok: true,
+        status: 201,
+        json: async () => ({
+          message: "created",
+          wearLog: {
+            id: 1,
+          },
         }),
+      }),
     );
 
     const { default: WearLogForm } = await import("./wear-log-form");
@@ -108,7 +113,9 @@ describe("WearLogForm", () => {
       await waitForEffects();
     });
 
-    expect(container.textContent).toContain("「必須」が付いた項目は登録に必要です。");
+    expect(container.textContent).toContain(
+      "「必須」が付いた項目は登録に必要です。",
+    );
     expect(container.textContent).toContain("状態");
     expect(container.textContent).toContain("日付");
     expect(container.textContent).toContain("アイテム");
@@ -126,10 +133,13 @@ describe("WearLogForm", () => {
       'href="/outfits/5?return_to=%2Fwear-logs%2Fnew&amp;return_label=%E7%9D%80%E7%94%A8%E5%B1%A5%E6%AD%B4%E3%83%95%E3%82%A9%E3%83%BC%E3%83%A0"',
     );
 
-    const dateInput = container.querySelector<HTMLInputElement>('input[type="date"]');
-    const checkbox = container.querySelector<HTMLInputElement>('input[type="checkbox"]');
-    const submitButton = Array.from(container.querySelectorAll("button")).find((button) =>
-      button.textContent?.includes("登録する"),
+    const dateInput =
+      container.querySelector<HTMLInputElement>('input[type="date"]');
+    const checkbox = container.querySelector<HTMLInputElement>(
+      'input[type="checkbox"]',
+    );
+    const submitButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent?.includes("登録する"),
     );
 
     await act(async () => {
@@ -209,11 +219,14 @@ describe("WearLogForm", () => {
       await waitForEffects();
     });
 
-    const checkbox = container.querySelector<HTMLInputElement>('input[type="checkbox"]');
-    const dateInput = container.querySelector<HTMLInputElement>('input[type="date"]');
+    const checkbox = container.querySelector<HTMLInputElement>(
+      'input[type="checkbox"]',
+    );
+    const dateInput =
+      container.querySelector<HTMLInputElement>('input[type="date"]');
     const statusSelect = container.querySelector<HTMLSelectElement>("select");
-    const submitButton = Array.from(container.querySelectorAll("button")).find((button) =>
-      button.textContent?.includes("登録する"),
+    const submitButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent?.includes("登録する"),
     );
 
     await act(async () => {
@@ -222,7 +235,9 @@ describe("WearLogForm", () => {
     });
 
     expect(container.textContent).toContain("クリーニング中");
-    expect(container.textContent).toContain("予定として保存はできますが、必要なら先に状態を確認してください。");
+    expect(container.textContent).toContain(
+      "予定として保存はできますが、必要なら先に状態を確認してください。",
+    );
 
     await act(async () => {
       const inputSetter = Object.getOwnPropertyDescriptor(
@@ -247,7 +262,9 @@ describe("WearLogForm", () => {
       await waitForEffects();
     });
 
-    expect(container.textContent).toContain("着用済みとして登録する前に内容を確認してください。");
+    expect(container.textContent).toContain(
+      "着用済みとして登録する前に内容を確認してください。",
+    );
   });
 
   it("候補外データを含む既存レコードでも編集画面が壊れない", async () => {
@@ -263,53 +280,60 @@ describe("WearLogForm", () => {
 
     vi.stubGlobal(
       "fetch",
-      vi.fn()
-        .mockResolvedValueOnce({
-          ok: true,
-          status: 200,
-          json: async () => ({
-            wearLog: {
-              id: 1,
-              status: "planned",
-              event_date: "2026-03-24",
-              display_order: 1,
-              source_outfit_id: 5,
-              source_outfit_name: "現在は無効",
-              source_outfit_status: "invalid",
-              memo: "memo",
-              items: [
-                {
-                  id: 11,
-                  source_item_id: 7,
-                  item_name: "手放し済みトップス",
-                  source_item_status: "disposed",
-                  sort_order: 1,
-                  item_source_type: "manual",
-                },
-              ],
-              created_at: "2026-03-24T00:00:00Z",
-              updated_at: "2026-03-24T00:00:00Z",
-            },
-          }),
+      vi.fn().mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          wearLog: {
+            id: 1,
+            status: "planned",
+            event_date: "2026-03-24",
+            display_order: 1,
+            source_outfit_id: 5,
+            source_outfit_name: "現在は無効",
+            source_outfit_status: "invalid",
+            memo: "memo",
+            items: [
+              {
+                id: 11,
+                source_item_id: 7,
+                item_name: "手放し済みトップス",
+                source_item_status: "disposed",
+                sort_order: 1,
+                item_source_type: "manual",
+              },
+            ],
+            created_at: "2026-03-24T00:00:00Z",
+            updated_at: "2026-03-24T00:00:00Z",
+          },
         }),
+      }),
     );
 
     const { default: WearLogForm } = await import("./wear-log-form");
 
     await act(async () => {
-      root.render(React.createElement(WearLogForm, { mode: "edit", wearLogId: "1" }));
+      root.render(
+        React.createElement(WearLogForm, { mode: "edit", wearLogId: "1" }),
+      );
     });
     await act(async () => {
       await waitForEffects();
     });
 
-    expect(container.textContent).toContain("「必須」が付いた項目は更新に必要です。");
+    expect(container.textContent).toContain(
+      "「必須」が付いた項目は更新に必要です。",
+    );
     expect(container.textContent?.match(/必須/g)?.length).toBe(4);
     expect(container.textContent).toContain(
       "現在は候補に使えないデータが含まれていますが、この記録の内容確認と更新は続けられます。",
     );
-    expect(container.textContent).toContain("元のコーディネートは現在利用できません。");
-    expect(container.textContent).toContain("手放し済みのアイテムが含まれています。");
+    expect(container.textContent).toContain(
+      "元のコーディネートは現在利用できません。",
+    );
+    expect(container.textContent).toContain(
+      "手放し済みのアイテムが含まれています。",
+    );
     expect(container.textContent).toContain("手放し済みトップス");
     expect(container.textContent).toContain("構成アイテム 0 件");
     expect(container.textContent).toContain("現在は利用不可");
@@ -333,7 +357,13 @@ describe("WearLogForm", () => {
             category: "tops",
             shape: "tshirt",
             colors: [
-              { role: "main", mode: "preset", value: "white", hex: "#FFFFFF", label: "白" },
+              {
+                role: "main",
+                mode: "preset",
+                value: "white",
+                hex: "#FFFFFF",
+                label: "白",
+              },
             ],
             seasons: ["春"],
             tpos: ["仕事"],
@@ -345,7 +375,13 @@ describe("WearLogForm", () => {
             category: "bottoms",
             shape: "wide",
             colors: [
-              { role: "main", mode: "preset", value: "navy", hex: "#1F3A5F", label: "ネイビー" },
+              {
+                role: "main",
+                mode: "preset",
+                value: "navy",
+                hex: "#1F3A5F",
+                label: "ネイビー",
+              },
             ],
             seasons: ["秋"],
             tpos: ["休日"],
@@ -359,17 +395,16 @@ describe("WearLogForm", () => {
 
     vi.stubGlobal(
       "fetch",
-      vi.fn()
-        .mockResolvedValueOnce({
-          ok: true,
-          status: 201,
-          json: async () => ({
-            message: "created",
-            wearLog: {
-              id: 1,
-            },
-          }),
+      vi.fn().mockResolvedValueOnce({
+        ok: true,
+        status: 201,
+        json: async () => ({
+          message: "created",
+          wearLog: {
+            id: 1,
+          },
         }),
+      }),
     );
 
     const { default: WearLogForm } = await import("./wear-log-form");
@@ -383,11 +418,15 @@ describe("WearLogForm", () => {
 
     expect(container.textContent).toContain("ネイビーパンツ");
 
-    const dateInput = container.querySelector<HTMLInputElement>('input[type="date"]');
-    const checkbox = Array.from(container.querySelectorAll<HTMLInputElement>('input[type="checkbox"]'))
-      .find((input) => input.parentElement?.textContent?.includes("ネイビーパンツ"));
-    const submitButton = Array.from(container.querySelectorAll("button")).find((button) =>
-      button.textContent?.includes("登録する"),
+    const dateInput =
+      container.querySelector<HTMLInputElement>('input[type="date"]');
+    const checkbox = Array.from(
+      container.querySelectorAll<HTMLInputElement>('input[type="checkbox"]'),
+    ).find((input) =>
+      input.parentElement?.textContent?.includes("ネイビーパンツ"),
+    );
+    const submitButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent?.includes("登録する"),
     );
 
     await act(async () => {
@@ -436,7 +475,13 @@ describe("WearLogForm", () => {
             category: "tops",
             shape: "tshirt",
             colors: [
-              { role: "main", mode: "preset", value: "white", hex: "#FFFFFF", label: "白" },
+              {
+                role: "main",
+                mode: "preset",
+                value: "white",
+                hex: "#FFFFFF",
+                label: "白",
+              },
             ],
           },
           {
@@ -446,7 +491,13 @@ describe("WearLogForm", () => {
             category: "bottoms",
             shape: "wide",
             colors: [
-              { role: "main", mode: "preset", value: "navy", hex: "#1F3A5F", label: "ネイビー" },
+              {
+                role: "main",
+                mode: "preset",
+                value: "navy",
+                hex: "#1F3A5F",
+                label: "ネイビー",
+              },
             ],
           },
         ],
@@ -479,10 +530,13 @@ describe("WearLogForm", () => {
       await waitForEffects();
     });
 
-    const checkboxes = Array.from(container.querySelectorAll<HTMLInputElement>('input[type="checkbox"]'));
-    const dateInput = container.querySelector<HTMLInputElement>('input[type="date"]');
-    const submitButton = Array.from(container.querySelectorAll("button")).find((button) =>
-      button.textContent?.includes("登録する"),
+    const checkboxes = Array.from(
+      container.querySelectorAll<HTMLInputElement>('input[type="checkbox"]'),
+    );
+    const dateInput =
+      container.querySelector<HTMLInputElement>('input[type="date"]');
+    const submitButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent?.includes("登録する"),
     );
 
     await act(async () => {
@@ -494,8 +548,12 @@ describe("WearLogForm", () => {
     expect(container.textContent).toContain("1. 白T");
     expect(container.textContent).toContain("2. ネイビーパンツ");
 
-    const moveUpButton = Array.from(container.querySelectorAll("button")).find((button) =>
-      button.textContent === "上へ" && button.parentElement?.parentElement?.textContent?.includes("2. ネイビーパンツ"),
+    const moveUpButton = Array.from(container.querySelectorAll("button")).find(
+      (button) =>
+        button.textContent === "上へ" &&
+        button.parentElement?.parentElement?.textContent?.includes(
+          "2. ネイビーパンツ",
+        ),
     );
 
     await act(async () => {
@@ -583,9 +641,15 @@ describe("WearLogForm", () => {
       await waitForEffects();
     });
 
-    const searchInput = container.querySelector<HTMLInputElement>('[data-testid="wear-log-outfit-search"]');
-    const seasonSelect = container.querySelector<HTMLSelectElement>('[data-testid="wear-log-outfit-season-filter"]');
-    const tpoSelect = container.querySelector<HTMLSelectElement>('[data-testid="wear-log-outfit-tpo-filter"]');
+    const searchInput = container.querySelector<HTMLInputElement>(
+      '[data-testid="wear-log-outfit-search"]',
+    );
+    const seasonSelect = container.querySelector<HTMLSelectElement>(
+      '[data-testid="wear-log-outfit-season-filter"]',
+    );
+    const tpoSelect = container.querySelector<HTMLSelectElement>(
+      '[data-testid="wear-log-outfit-tpo-filter"]',
+    );
 
     await act(async () => {
       const setter = Object.getOwnPropertyDescriptor(
@@ -638,7 +702,13 @@ describe("WearLogForm", () => {
             category: "tops",
             shape: "tshirt",
             colors: [
-              { role: "main", mode: "preset", value: "white", hex: "#FFFFFF", label: "白" },
+              {
+                role: "main",
+                mode: "preset",
+                value: "white",
+                hex: "#FFFFFF",
+                label: "白",
+              },
             ],
             seasons: ["春"],
             tpos: ["仕事"],
@@ -650,7 +720,13 @@ describe("WearLogForm", () => {
             category: "bottoms",
             shape: "wide",
             colors: [
-              { role: "main", mode: "preset", value: "navy", hex: "#1F3A5F", label: "ネイビー" },
+              {
+                role: "main",
+                mode: "preset",
+                value: "navy",
+                hex: "#1F3A5F",
+                label: "ネイビー",
+              },
             ],
             seasons: ["秋"],
             tpos: ["休日"],
@@ -673,10 +749,18 @@ describe("WearLogForm", () => {
       await waitForEffects();
     });
 
-    const searchInput = container.querySelector<HTMLInputElement>('[data-testid="wear-log-item-search"]');
-    const categorySelect = container.querySelector<HTMLSelectElement>('[data-testid="wear-log-item-category-filter"]');
-    const seasonSelect = container.querySelector<HTMLSelectElement>('[data-testid="wear-log-item-season-filter"]');
-    const tpoSelect = container.querySelector<HTMLSelectElement>('[data-testid="wear-log-item-tpo-filter"]');
+    const searchInput = container.querySelector<HTMLInputElement>(
+      '[data-testid="wear-log-item-search"]',
+    );
+    const categorySelect = container.querySelector<HTMLSelectElement>(
+      '[data-testid="wear-log-item-category-filter"]',
+    );
+    const seasonSelect = container.querySelector<HTMLSelectElement>(
+      '[data-testid="wear-log-item-season-filter"]',
+    );
+    const tpoSelect = container.querySelector<HTMLSelectElement>(
+      '[data-testid="wear-log-item-tpo-filter"]',
+    );
 
     await act(async () => {
       const setter = Object.getOwnPropertyDescriptor(
@@ -728,6 +812,8 @@ describe("WearLogForm", () => {
       await waitForEffects();
     });
 
-    expect(container.textContent).toContain("条件に一致するアイテム候補がありません。");
+    expect(container.textContent).toContain(
+      "条件に一致するアイテム候補がありません。",
+    );
   });
 });

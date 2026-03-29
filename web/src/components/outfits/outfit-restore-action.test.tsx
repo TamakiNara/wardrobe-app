@@ -58,10 +58,16 @@ describe("OutfitRestoreAction", () => {
       }),
     );
 
-    const { default: OutfitRestoreAction } = await import("./outfit-restore-action");
+    const { default: OutfitRestoreAction } =
+      await import("./outfit-restore-action");
 
     await act(async () => {
-      root.render(React.createElement(OutfitRestoreAction, { outfitId: 10, canRestore: true }));
+      root.render(
+        React.createElement(OutfitRestoreAction, {
+          outfitId: 10,
+          canRestore: true,
+        }),
+      );
       await waitForEffects();
     });
 
@@ -80,7 +86,9 @@ describe("OutfitRestoreAction", () => {
       },
       body: JSON.stringify({}),
     });
-    expect(container.textContent).toContain("コーディネートを有効に戻しました。");
+    expect(container.textContent).toContain(
+      "コーディネートを有効に戻しました。",
+    );
 
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 550));
@@ -93,17 +101,27 @@ describe("OutfitRestoreAction", () => {
     const fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);
 
-    const { default: OutfitRestoreAction } = await import("./outfit-restore-action");
+    const { default: OutfitRestoreAction } =
+      await import("./outfit-restore-action");
 
     await act(async () => {
-      root.render(React.createElement(OutfitRestoreAction, { outfitId: 10, canRestore: false }));
+      root.render(
+        React.createElement(OutfitRestoreAction, {
+          outfitId: 10,
+          canRestore: false,
+        }),
+      );
       await waitForEffects();
     });
 
-    const button = container.querySelector("button") as HTMLButtonElement | null;
+    const button = container.querySelector(
+      "button",
+    ) as HTMLButtonElement | null;
 
     expect(button?.disabled).toBe(true);
-    expect(container.textContent).toContain("手放し済みのアイテムが含まれているため、まだ戻せません。");
+    expect(container.textContent).toContain(
+      "手放し済みのアイテムが含まれているため、まだ戻せません。",
+    );
     expect(fetchMock).not.toHaveBeenCalled();
   });
 });

@@ -16,12 +16,14 @@ describe("/api/purchase-candidates/[id] route", () => {
   });
 
   it("GET は Laravel の purchase candidate 詳細 API へ転送する", async () => {
-    global.fetch = vi.fn().mockResolvedValue(
-      new Response(
-        JSON.stringify({ purchaseCandidate: { id: 1, name: "候補" } }),
-        { status: 200, headers: { "content-type": "application/json" } },
-      ),
-    ) as typeof fetch;
+    global.fetch = vi
+      .fn()
+      .mockResolvedValue(
+        new Response(
+          JSON.stringify({ purchaseCandidate: { id: 1, name: "候補" } }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        ),
+      ) as typeof fetch;
 
     const req = {
       headers: new Headers(),
@@ -66,7 +68,15 @@ describe("/api/purchase-candidates/[id] route", () => {
       body: JSON.stringify({
         name: "更新候補",
         category_id: "tops_tshirt",
-        colors: [{ role: "main", mode: "preset", value: "white", hex: "#fff", label: "ホワイト" }],
+        colors: [
+          {
+            role: "main",
+            mode: "preset",
+            value: "white",
+            hex: "#fff",
+            label: "ホワイト",
+          },
+        ],
       }),
     });
 
@@ -94,10 +104,10 @@ describe("/api/purchase-candidates/[id] route", () => {
         }),
       )
       .mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({ message: "deleted" }),
-          { status: 200, headers: { "content-type": "application/json" } },
-        ),
+        new Response(JSON.stringify({ message: "deleted" }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        }),
       ) as typeof fetch;
 
     const req = new Request("http://localhost:3000/api/purchase-candidates/1", {
@@ -105,7 +115,9 @@ describe("/api/purchase-candidates/[id] route", () => {
       headers: { Cookie: "laravel-session=old_session" },
     });
 
-    const res = await DELETE(req as any, { params: Promise.resolve({ id: "1" }) });
+    const res = await DELETE(req as any, {
+      params: Promise.resolve({ id: "1" }),
+    });
     const json = await res.json();
 
     expect(global.fetch).toHaveBeenNthCalledWith(

@@ -41,7 +41,10 @@ describe("POST /api/items/[id]/images", () => {
       ) as typeof fetch;
 
     const formData = new FormData();
-    formData.set("image", new File(["image"], "item.png", { type: "image/png" }));
+    formData.set(
+      "image",
+      new File(["image"], "item.png", { type: "image/png" }),
+    );
 
     const req = new Request("http://localhost:3000/api/items/10/images", {
       method: "POST",
@@ -51,7 +54,9 @@ describe("POST /api/items/[id]/images", () => {
       body: formData,
     });
 
-    const res = await POST(req as any, { params: Promise.resolve({ id: "10" }) });
+    const res = await POST(req as any, {
+      params: Promise.resolve({ id: "10" }),
+    });
     const json = await res.json();
 
     expect(global.fetch).toHaveBeenNthCalledWith(

@@ -8,7 +8,17 @@ vi.mock("next/link", () => ({
 }));
 
 vi.mock("@/components/wear-logs/wear-log-form", () => ({
-  default: ({ wearLogId, cancelHref, footerAction, initialStatus }: { wearLogId: string; cancelHref?: string; footerAction?: React.ReactNode; initialStatus?: string }) =>
+  default: ({
+    wearLogId,
+    cancelHref,
+    footerAction,
+    initialStatus,
+  }: {
+    wearLogId: string;
+    cancelHref?: string;
+    footerAction?: React.ReactNode;
+    initialStatus?: string;
+  }) =>
     React.createElement(
       "div",
       {
@@ -22,7 +32,11 @@ vi.mock("@/components/wear-logs/wear-log-form", () => ({
 
 vi.mock("@/components/wear-logs/delete-wear-log-button", () => ({
   default: ({ wearLogId }: { wearLogId: string }) =>
-    React.createElement("div", { "data-testid": "delete-action" }, `delete-wear-log-button:${wearLogId}`),
+    React.createElement(
+      "div",
+      { "data-testid": "delete-action" },
+      `delete-wear-log-button:${wearLogId}`,
+    ),
 }));
 
 describe("EditWearLogPage", () => {

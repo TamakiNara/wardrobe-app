@@ -71,10 +71,16 @@ describe("PurchaseCandidateItemDraftAction", () => {
       ),
     );
 
-    const { default: PurchaseCandidateItemDraftAction } = await import("./purchase-candidate-item-draft-action");
+    const { default: PurchaseCandidateItemDraftAction } =
+      await import("./purchase-candidate-item-draft-action");
 
     await act(async () => {
-      root.render(React.createElement(PurchaseCandidateItemDraftAction, { candidateId: 10, convertedItemId: null }));
+      root.render(
+        React.createElement(PurchaseCandidateItemDraftAction, {
+          candidateId: 10,
+          convertedItemId: null,
+        }),
+      );
       await waitForEffects();
     });
 
@@ -89,7 +95,11 @@ describe("PurchaseCandidateItemDraftAction", () => {
       "/api/purchase-candidates/10/item-draft",
       expect.objectContaining({ method: "POST" }),
     );
-    expect(window.sessionStorage.getItem("purchase-candidate-item-draft")).toContain("outer_coat");
-    expect(pushMock).toHaveBeenCalledWith("/items/new?source=purchase-candidate");
+    expect(
+      window.sessionStorage.getItem("purchase-candidate-item-draft"),
+    ).toContain("outer_coat");
+    expect(pushMock).toHaveBeenCalledWith(
+      "/items/new?source=purchase-candidate",
+    );
   });
 });

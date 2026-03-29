@@ -33,7 +33,9 @@ describe("/api/wear-logs/calendar route", () => {
 
     const req = {
       headers: new Headers(),
-      nextUrl: new URL("http://localhost:3000/api/wear-logs/calendar?month=2026-03"),
+      nextUrl: new URL(
+        "http://localhost:3000/api/wear-logs/calendar?month=2026-03",
+      ),
     };
     const res = await GET(req as any);
     const json = await res.json();

@@ -7,7 +7,7 @@ import {
 
 export async function GET(
   req: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> },
 ) {
   const { id } = await context.params;
   return forwardGetWithCookie(req, `/api/outfits/${id}`);

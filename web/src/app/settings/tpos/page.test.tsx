@@ -72,18 +72,34 @@ describe("SettingsTposPage", () => {
     expect(container.textContent).toContain("出張");
     expect(container.textContent).toContain("無効候補");
     expect(container.textContent).toContain("編集");
-    expect(container.querySelector('button[aria-label="仕事 を 1 つ下へ移動"]')).not.toBeNull();
-    expect(container.querySelector('button[aria-label="休日 を 1 つ上へ移動"]')).not.toBeNull();
+    expect(
+      container.querySelector('button[aria-label="仕事 を 1 つ下へ移動"]'),
+    ).not.toBeNull();
+    expect(
+      container.querySelector('button[aria-label="休日 を 1 つ上へ移動"]'),
+    ).not.toBeNull();
   });
 
   it("追加と無効化の操作を API へ送る", async () => {
     createUserTpoMock.mockResolvedValue({
       message: "created",
-      tpo: { id: 5, name: "在宅", sortOrder: 5, isActive: true, isPreset: false },
+      tpo: {
+        id: 5,
+        name: "在宅",
+        sortOrder: 5,
+        isActive: true,
+        isPreset: false,
+      },
     });
     updateUserTpoMock.mockResolvedValue({
       message: "updated",
-      tpo: { id: 4, name: "出張", sortOrder: 4, isActive: false, isPreset: false },
+      tpo: {
+        id: 4,
+        name: "出張",
+        sortOrder: 4,
+        isActive: false,
+        isPreset: false,
+      },
     });
 
     const { default: SettingsTposPage } = await import("./page");
@@ -101,15 +117,18 @@ describe("SettingsTposPage", () => {
       await waitForEffects();
     });
 
-    const input = container.querySelector<HTMLInputElement>('input[type="text"]');
-    const buttons = Array.from(container.querySelectorAll<HTMLButtonElement>("button"));
+    const input =
+      container.querySelector<HTMLInputElement>('input[type="text"]');
+    const buttons = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button"),
+    );
     const addButton = buttons.find((button) => button.textContent === "追加");
     const valueSetter = Object.getOwnPropertyDescriptor(
       HTMLInputElement.prototype,
       "value",
     )?.set;
-    const customRow = Array.from(container.querySelectorAll("article")).find((article) =>
-      article.textContent?.includes("出張"),
+    const customRow = Array.from(container.querySelectorAll("article")).find(
+      (article) => article.textContent?.includes("出張"),
     );
     const deactivateButton = Array.from(
       customRow?.querySelectorAll<HTMLButtonElement>("button") ?? [],

@@ -63,7 +63,9 @@ describe("settings api helpers", () => {
 
     const result = await fetchUserBrands("uni");
 
-    expect(apiFetch).toHaveBeenCalledWith("/api/settings/brands?keyword=uni&active_only=1");
+    expect(apiFetch).toHaveBeenCalledWith(
+      "/api/settings/brands?keyword=uni&active_only=1",
+    );
     expect(result.brands[0].name).toBe("UNIQLO");
   });
 
@@ -85,7 +87,9 @@ describe("settings api helpers", () => {
 
   it("fetchUserTpos calls the tpos endpoint", async () => {
     vi.mocked(apiFetch).mockResolvedValueOnce({
-      tpos: [{ id: 1, name: "仕事", sortOrder: 1, isActive: true, isPreset: true }],
+      tpos: [
+        { id: 1, name: "仕事", sortOrder: 1, isActive: true, isPreset: true },
+      ],
     });
 
     const result = await fetchUserTpos(true);
@@ -148,7 +152,13 @@ describe("settings api helpers", () => {
   it("createUserTpo sends a POST request", async () => {
     vi.mocked(apiFetch).mockResolvedValueOnce({
       message: "created",
-      tpo: { id: 4, name: "出張", sortOrder: 4, isActive: true, isPreset: false },
+      tpo: {
+        id: 4,
+        name: "出張",
+        sortOrder: 4,
+        isActive: true,
+        isPreset: false,
+      },
     });
 
     const payload = {
@@ -190,7 +200,13 @@ describe("settings api helpers", () => {
   it("updateUserTpo sends a PATCH request", async () => {
     vi.mocked(apiFetch).mockResolvedValueOnce({
       message: "updated",
-      tpo: { id: 4, name: "出張", sortOrder: 3, isActive: false, isPreset: false },
+      tpo: {
+        id: 4,
+        name: "出張",
+        sortOrder: 3,
+        isActive: false,
+        isPreset: false,
+      },
     });
 
     const payload = {

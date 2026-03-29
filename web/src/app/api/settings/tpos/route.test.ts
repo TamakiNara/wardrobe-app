@@ -20,7 +20,13 @@ describe("/api/settings/tpos route", () => {
       new Response(
         JSON.stringify({
           tpos: [
-            { id: 1, name: "仕事", sortOrder: 1, isActive: true, isPreset: true },
+            {
+              id: 1,
+              name: "仕事",
+              sortOrder: 1,
+              isActive: true,
+              isPreset: true,
+            },
           ],
         }),
         {
@@ -64,7 +70,13 @@ describe("/api/settings/tpos route", () => {
         new Response(
           JSON.stringify({
             message: "created",
-            tpo: { id: 4, name: "出張", sortOrder: 4, isActive: true, isPreset: false },
+            tpo: {
+              id: 4,
+              name: "出張",
+              sortOrder: 4,
+              isActive: true,
+              isPreset: false,
+            },
           }),
           {
             status: 201,

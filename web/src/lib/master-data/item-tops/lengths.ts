@@ -4,5 +4,4 @@ export const TOPS_LENGTHS = [
   { value: "long", label: "長め" },
 ] as const;
 
-export type TopsLengthValue =
-  (typeof TOPS_LENGTHS)[number]["value"];
+export type TopsLengthValue = (typeof TOPS_LENGTHS)[number]["value"];

@@ -139,7 +139,9 @@ describe("/api/wear-logs/[id] route", () => {
       },
     });
 
-    const res = await DELETE(req as any, { params: Promise.resolve({ id: "1" }) });
+    const res = await DELETE(req as any, {
+      params: Promise.resolve({ id: "1" }),
+    });
     const json = await res.json();
 
     expect(global.fetch).toHaveBeenNthCalledWith(

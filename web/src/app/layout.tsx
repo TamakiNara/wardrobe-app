@@ -27,7 +27,10 @@ export default async function RootLayout({
   const cookieStore = await cookies();
   const hasSession = cookieStore
     .getAll()
-    .some((cookie) => cookie.name === "laravel-session" || cookie.name.endsWith("-session"));
+    .some(
+      (cookie) =>
+        cookie.name === "laravel-session" || cookie.name.endsWith("-session"),
+    );
 
   return (
     <html lang="en">

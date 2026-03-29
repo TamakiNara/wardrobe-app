@@ -72,7 +72,12 @@ const sampleGroups: CategoryGroupRecord[] = [
     name: "ボトムス",
     sortOrder: 15,
     categories: [
-      { id: "bottoms_straight", groupId: "bottoms", name: "ストレート", sortOrder: 10 },
+      {
+        id: "bottoms_straight",
+        groupId: "bottoms",
+        name: "ストレート",
+        sortOrder: 10,
+      },
     ],
   },
   {
@@ -80,7 +85,12 @@ const sampleGroups: CategoryGroupRecord[] = [
     name: "ワンピース・オールインワン",
     sortOrder: 20,
     categories: [
-      { id: "dress_onepiece", groupId: "dress", name: "ワンピース", sortOrder: 10 },
+      {
+        id: "dress_onepiece",
+        groupId: "dress",
+        name: "ワンピース",
+        sortOrder: 10,
+      },
     ],
   },
   {
@@ -88,7 +98,12 @@ const sampleGroups: CategoryGroupRecord[] = [
     name: "ルームウェア・インナー",
     sortOrder: 30,
     categories: [
-      { id: "inner_roomwear", groupId: "inner", name: "ルームウェア", sortOrder: 10 },
+      {
+        id: "inner_roomwear",
+        groupId: "inner",
+        name: "ルームウェア",
+        sortOrder: 10,
+      },
     ],
   },
   {
@@ -96,7 +111,12 @@ const sampleGroups: CategoryGroupRecord[] = [
     name: "レッグウェア",
     sortOrder: 35,
     categories: [
-      { id: "legwear_socks", groupId: "legwear", name: "ソックス", sortOrder: 10 },
+      {
+        id: "legwear_socks",
+        groupId: "legwear",
+        name: "ソックス",
+        sortOrder: 10,
+      },
     ],
   },
 ];
@@ -121,7 +141,13 @@ describe("NewItemPage", () => {
     root = createRoot(container);
     fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
     fetchCategoryVisibilitySettingsMock.mockResolvedValue({
-      visibleCategoryIds: ["tops_tshirt", "bottoms_straight", "dress_onepiece", "inner_roomwear", "legwear_socks"],
+      visibleCategoryIds: [
+        "tops_tshirt",
+        "bottoms_straight",
+        "dress_onepiece",
+        "inner_roomwear",
+        "legwear_socks",
+      ],
     });
     fetchUserPreferencesMock.mockResolvedValue({
       preferences: {
@@ -156,10 +182,13 @@ describe("NewItemPage", () => {
       await waitForEffects();
     });
 
-    const categorySelect = container.querySelector<HTMLSelectElement>("#category");
+    const categorySelect =
+      container.querySelector<HTMLSelectElement>("#category");
     expect(categorySelect).not.toBeNull();
 
-    const optionLabels = Array.from(categorySelect!.options).map((option) => option.textContent);
+    const optionLabels = Array.from(categorySelect!.options).map(
+      (option) => option.textContent,
+    );
     expect(optionLabels).toEqual([
       "選択してください",
       "トップス",
@@ -168,7 +197,9 @@ describe("NewItemPage", () => {
       "ルームウェア・インナー",
       "レッグウェア",
     ]);
-    expect(container.textContent).toContain("「必須」が付いた項目は登録に必要です。");
+    expect(container.textContent).toContain(
+      "「必須」が付いた項目は登録に必要です。",
+    );
     expect(container.textContent).toContain("カテゴリ");
     expect(container.textContent).toContain("形");
     expect(container.textContent).toContain("ケア状態");
@@ -224,19 +255,27 @@ describe("NewItemPage", () => {
     });
 
     const nameInput = container.querySelector<HTMLInputElement>("#name");
-    const brandNameInput = container.querySelector<HTMLInputElement>("#brand-name");
+    const brandNameInput =
+      container.querySelector<HTMLInputElement>("#brand-name");
     const priceInput = container.querySelector<HTMLInputElement>("#price");
-    const purchaseUrlInput = container.querySelector<HTMLInputElement>("#purchase-url");
+    const purchaseUrlInput =
+      container.querySelector<HTMLInputElement>("#purchase-url");
     const memoTextarea = container.querySelector<HTMLTextAreaElement>("#memo");
-    const sizeGenderSelect = container.querySelector<HTMLSelectElement>("#size-gender");
-    const sizeLabelInput = container.querySelector<HTMLInputElement>("#size-label");
-    const sizeNoteInput = container.querySelector<HTMLInputElement>("#size-note");
-    const sizeDetailsTextarea = container.querySelector<HTMLTextAreaElement>("#size-details-note");
-    const rainCheckbox = Array.from(container.querySelectorAll("label")).find(
-      (element) => element.textContent?.includes("雨対応"),
-    )?.querySelector<HTMLInputElement>('input[type="checkbox"]');
-    const categorySelect = container.querySelector<HTMLSelectElement>("#category");
-    const careStatusSelect = container.querySelector<HTMLSelectElement>("#care-status");
+    const sizeGenderSelect =
+      container.querySelector<HTMLSelectElement>("#size-gender");
+    const sizeLabelInput =
+      container.querySelector<HTMLInputElement>("#size-label");
+    const sizeNoteInput =
+      container.querySelector<HTMLInputElement>("#size-note");
+    const sizeDetailsTextarea =
+      container.querySelector<HTMLTextAreaElement>("#size-details-note");
+    const rainCheckbox = Array.from(container.querySelectorAll("label"))
+      .find((element) => element.textContent?.includes("雨対応"))
+      ?.querySelector<HTMLInputElement>('input[type="checkbox"]');
+    const categorySelect =
+      container.querySelector<HTMLSelectElement>("#category");
+    const careStatusSelect =
+      container.querySelector<HTMLSelectElement>("#care-status");
     expect(nameInput?.value).toBe("レインコート候補");
     expect(brandNameInput?.value).toBe("Sample Brand");
     expect(priceInput?.value).toBe("9800");
@@ -249,8 +288,12 @@ describe("NewItemPage", () => {
     expect(rainCheckbox?.checked).toBe(true);
     expect(categorySelect?.value).toBe("tops");
     expect(careStatusSelect?.value).toBe("");
-    expect(container.textContent).toContain("購入検討の内容を初期値として読み込みました。");
-    expect(container.textContent).toContain("引き継いだ画像も保存前に取り除けます。");
+    expect(container.textContent).toContain(
+      "購入検討の内容を初期値として読み込みました。",
+    );
+    expect(container.textContent).toContain(
+      "引き継いだ画像も保存前に取り除けます。",
+    );
     expect(container.textContent).toContain("ブランド候補にも追加する");
   });
 
@@ -262,7 +305,8 @@ describe("NewItemPage", () => {
       await waitForEffects();
     });
 
-    const categorySelect = container.querySelector<HTMLSelectElement>("#category");
+    const categorySelect =
+      container.querySelector<HTMLSelectElement>("#category");
     expect(categorySelect).not.toBeNull();
 
     await act(async () => {

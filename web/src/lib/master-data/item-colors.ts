@@ -33,12 +33,22 @@ export const ITEM_COLORS = [
 
   { value: "pale_red", label: "ペールレッド", hex: "#F3C8C3", group: "pale" },
   { value: "peach", label: "ピーチ", hex: "#F5D7C7", group: "pale" },
-  { value: "pale_yellow", label: "ペールイエロー", hex: "#F6EDB8", group: "pale" },
+  {
+    value: "pale_yellow",
+    label: "ペールイエロー",
+    hex: "#F6EDB8",
+    group: "pale",
+  },
   { value: "pistachio", label: "ピスタチオ", hex: "#E1E9C8", group: "pale" },
   { value: "mint", label: "ミント", hex: "#D6EADF", group: "pale" },
   { value: "sky", label: "スカイ", hex: "#DDECF8", group: "pale" },
   { value: "pale_blue", label: "ペールブルー", hex: "#D7E7F4", group: "pale" },
-  { value: "powder_gray", label: "パウダーグレー", hex: "#E3E7EC", group: "pale" },
+  {
+    value: "powder_gray",
+    label: "パウダーグレー",
+    hex: "#E3E7EC",
+    group: "pale",
+  },
   { value: "lavender", label: "ラベンダー", hex: "#DDD2F0", group: "pale" },
   { value: "pale_pink", label: "ペールピンク", hex: "#F2D0D8", group: "pale" },
 
@@ -46,11 +56,31 @@ export const ITEM_COLORS = [
   { value: "wine", label: "ワイン", hex: "#7A233A", group: "deep" },
   { value: "bordeaux", label: "ボルドー", hex: "#6E2F42", group: "deep" },
   { value: "plum", label: "プラム", hex: "#5B375E", group: "deep" },
-  { value: "deep_purple", label: "ディープパープル", hex: "#4F3E68", group: "deep" },
+  {
+    value: "deep_purple",
+    label: "ディープパープル",
+    hex: "#4F3E68",
+    group: "deep",
+  },
   { value: "midnight", label: "ミッドナイト", hex: "#24324A", group: "deep" },
-  { value: "deep_blue", label: "ディープブルー", hex: "#2D4F7C", group: "deep" },
-  { value: "deep_teal", label: "ディープティール", hex: "#1F5C63", group: "deep" },
-  { value: "deep_green", label: "ディープグリーン", hex: "#2F5D46", group: "deep" },
+  {
+    value: "deep_blue",
+    label: "ディープブルー",
+    hex: "#2D4F7C",
+    group: "deep",
+  },
+  {
+    value: "deep_teal",
+    label: "ディープティール",
+    hex: "#1F5C63",
+    group: "deep",
+  },
+  {
+    value: "deep_green",
+    label: "ディープグリーン",
+    hex: "#2F5D46",
+    group: "deep",
+  },
   { value: "forest", label: "フォレスト", hex: "#43522A", group: "deep" },
 
   { value: "terracotta", label: "テラコッタ", hex: "#B96F4E", group: "earth" },
@@ -61,7 +91,12 @@ export const ITEM_COLORS = [
   { value: "khaki", label: "カーキ", hex: "#8B8A5A", group: "earth" },
   { value: "moss", label: "モス", hex: "#4F6B3B", group: "earth" },
   { value: "olive", label: "オリーブ", hex: "#66714A", group: "earth" },
-  { value: "slate_blue", label: "スレートブルー", hex: "#61758C", group: "earth" },
+  {
+    value: "slate_blue",
+    label: "スレートブルー",
+    hex: "#61758C",
+    group: "earth",
+  },
   { value: "cocoa", label: "ココア", hex: "#6D4C41", group: "earth" },
 ] as const;
 

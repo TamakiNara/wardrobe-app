@@ -55,7 +55,11 @@ export default function GlobalBottomNav() {
                     : "text-gray-500 hover:bg-gray-50 hover:text-gray-700"
                 }`}
               >
-                <Icon aria-hidden="true" className={`h-5 w-5 ${iconClassName(isActive)}`} strokeWidth={1.8} />
+                <Icon
+                  aria-hidden="true"
+                  className={`h-5 w-5 ${iconClassName(isActive)}`}
+                  strokeWidth={1.8}
+                />
                 <span className="truncate">{item.label}</span>
               </Link>
             );

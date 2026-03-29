@@ -27,7 +27,11 @@ export default function PurchaseCandidateImageUploader({
       existingImages={existingImages}
       pendingImages={pendingImages}
       onPendingImagesChange={onPendingImagesChange}
-      onDeleteExistingImage={onDeleteExistingImage ? (image) => image.id && onDeleteExistingImage(image.id) : undefined}
+      onDeleteExistingImage={
+        onDeleteExistingImage
+          ? (image) => image.id && onDeleteExistingImage(image.id)
+          : undefined
+      }
       disabled={disabled}
       error={error}
       helperText={helperText}

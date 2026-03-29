@@ -78,7 +78,15 @@ describe("/api/purchase-candidates route", () => {
       body: JSON.stringify({
         name: "候補",
         category_id: "tops_tshirt",
-        colors: [{ role: "main", mode: "preset", value: "white", hex: "#fff", label: "ホワイト" }],
+        colors: [
+          {
+            role: "main",
+            mode: "preset",
+            value: "white",
+            hex: "#fff",
+            label: "ホワイト",
+          },
+        ],
       }),
     });
 

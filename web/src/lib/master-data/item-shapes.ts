@@ -68,10 +68,15 @@ export type ItemCategory = keyof typeof ITEM_SHAPES;
 
 export function findItemCategoryLabel(category?: string | null) {
   if (!category) return "";
-  return ITEM_CATEGORIES.find((item) => item.value === category)?.label ?? category;
+  return (
+    ITEM_CATEGORIES.find((item) => item.value === category)?.label ?? category
+  );
 }
 
-export function findItemShapeLabel(category?: string | null, shape?: string | null) {
+export function findItemShapeLabel(
+  category?: string | null,
+  shape?: string | null,
+) {
   if (!shape) return "";
   if (!category) return shape;
 

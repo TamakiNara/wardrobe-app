@@ -11,7 +11,11 @@ const refreshMock = vi.fn();
 const replaceMock = vi.fn();
 const fetchCategoryVisibilitySettingsMock = vi.fn();
 const fetchUserTposMock = vi.fn();
-const routerMock = { push: pushMock, refresh: refreshMock, replace: replaceMock };
+const routerMock = {
+  push: pushMock,
+  refresh: refreshMock,
+  replace: replaceMock,
+};
 let searchParamsValue = "";
 
 vi.mock("next/link", () => ({
@@ -103,8 +107,12 @@ describe("NewOutfitPage", () => {
     });
 
     expect(container.textContent).toContain("白T");
-    expect(container.textContent).not.toContain("登録済みアイテムがありません。");
-    expect(container.textContent).toContain("「必須」が付いた項目は登録に必要です。");
+    expect(container.textContent).not.toContain(
+      "登録済みアイテムがありません。",
+    );
+    expect(container.textContent).toContain(
+      "「必須」が付いた項目は登録に必要です。",
+    );
     expect(container.textContent).toContain("アイテム選択");
     expect(container.textContent?.match(/必須/g)?.length).toBe(2);
   });
@@ -126,7 +134,10 @@ describe("NewOutfitPage", () => {
         },
       ],
     };
-    window.sessionStorage.setItem("outfit-duplicate-payload", JSON.stringify(payload));
+    window.sessionStorage.setItem(
+      "outfit-duplicate-payload",
+      JSON.stringify(payload),
+    );
 
     const { default: NewOutfitPage } = await import("./page");
 
@@ -138,8 +149,12 @@ describe("NewOutfitPage", () => {
     expect(container.querySelector<HTMLInputElement>("#name")?.value).toBe(
       "通勤コーデ（コピー）",
     );
-    expect(container.querySelector<HTMLTextAreaElement>("#memo")?.value).toBe("朝会用");
-    expect(container.textContent).toContain("複製元の内容を初期値として読み込みました。");
+    expect(container.querySelector<HTMLTextAreaElement>("#memo")?.value).toBe(
+      "朝会用",
+    );
+    expect(container.textContent).toContain(
+      "複製元の内容を初期値として読み込みました。",
+    );
     expect(container.textContent).toContain("選択中 1 件");
     expect(container.textContent).toContain("1. 白T (tops / tshirt)");
     expect(replaceMock).toHaveBeenCalledWith("/outfits/new");
@@ -168,7 +183,10 @@ describe("NewOutfitPage", () => {
         },
       ],
     };
-    window.sessionStorage.setItem("outfit-duplicate-payload", JSON.stringify(payload));
+    window.sessionStorage.setItem(
+      "outfit-duplicate-payload",
+      JSON.stringify(payload),
+    );
 
     const { default: NewOutfitPage } = await import("./page");
 

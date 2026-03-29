@@ -59,7 +59,9 @@ function resolveCurrentSeason(searchParams: ItemsPageSearchParams): string {
   return value ?? "";
 }
 
-async function getItems(searchParams: ItemsPageSearchParams): Promise<ItemsResponse> {
+async function getItems(
+  searchParams: ItemsPageSearchParams,
+): Promise<ItemsResponse> {
   const query = buildQueryString(searchParams);
   const path = query ? `/api/items?${query}` : "/api/items";
   const res = await fetchLaravelWithCookie(path);
@@ -106,7 +108,9 @@ export default async function ItemsPage({
 }) {
   const resolvedSearchParams = await searchParams;
   const currentSeason = resolveCurrentSeason(resolvedSearchParams);
-  const preferencesRes = await fetchLaravelWithCookie("/api/settings/preferences");
+  const preferencesRes = await fetchLaravelWithCookie(
+    "/api/settings/preferences",
+  );
 
   if (preferencesRes.status === 401) {
     redirect("/login");
@@ -116,8 +120,10 @@ export default async function ItemsPage({
   let skinTonePreset: SkinTonePreset = DEFAULT_SKIN_TONE_PRESET;
 
   if (preferencesRes.ok) {
-    const preferencesData = (await preferencesRes.json()) as PreferencesResponse;
-    skinTonePreset = preferencesData.preferences?.skinTonePreset ?? DEFAULT_SKIN_TONE_PRESET;
+    const preferencesData =
+      (await preferencesRes.json()) as PreferencesResponse;
+    skinTonePreset =
+      preferencesData.preferences?.skinTonePreset ?? DEFAULT_SKIN_TONE_PRESET;
 
     if (!currentSeason) {
       initialSeasonFilter = mapPreferenceSeasonToFilterValue(

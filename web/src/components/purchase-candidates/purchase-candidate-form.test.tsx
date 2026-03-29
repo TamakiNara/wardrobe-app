@@ -49,13 +49,22 @@ describe("PurchaseCandidateForm", () => {
         id: "outer",
         name: "アウター",
         sortOrder: 10,
-        categories: [{ id: "outer_coat", groupId: "outer", name: "コート", sortOrder: 10 }],
+        categories: [
+          { id: "outer_coat", groupId: "outer", name: "コート", sortOrder: 10 },
+        ],
       },
       {
         id: "tops",
         name: "トップス",
         sortOrder: 20,
-        categories: [{ id: "tops_tshirt", groupId: "tops", name: "Tシャツ", sortOrder: 10 }],
+        categories: [
+          {
+            id: "tops_tshirt",
+            groupId: "tops",
+            name: "Tシャツ",
+            sortOrder: 10,
+          },
+        ],
       },
     ]);
     fetchCategoryVisibilitySettingsMock.mockResolvedValue({
@@ -72,11 +81,20 @@ describe("PurchaseCandidateForm", () => {
     vi.unstubAllGlobals();
   });
 
-  async function renderForm(props?: { mode?: "create" | "edit"; candidateId?: string }) {
-    const { default: PurchaseCandidateForm } = await import("./purchase-candidate-form");
+  async function renderForm(props?: {
+    mode?: "create" | "edit";
+    candidateId?: string;
+  }) {
+    const { default: PurchaseCandidateForm } =
+      await import("./purchase-candidate-form");
 
     await act(async () => {
-      root.render(React.createElement(PurchaseCandidateForm, { mode: "create", ...props }));
+      root.render(
+        React.createElement(PurchaseCandidateForm, {
+          mode: "create",
+          ...props,
+        }),
+      );
     });
 
     await act(async () => {
@@ -88,11 +106,12 @@ describe("PurchaseCandidateForm", () => {
     element: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement,
     value: string,
   ) {
-    const prototype = element instanceof HTMLSelectElement
-      ? HTMLSelectElement.prototype
-      : element instanceof HTMLTextAreaElement
-        ? HTMLTextAreaElement.prototype
-        : HTMLInputElement.prototype;
+    const prototype =
+      element instanceof HTMLSelectElement
+        ? HTMLSelectElement.prototype
+        : element instanceof HTMLTextAreaElement
+          ? HTMLTextAreaElement.prototype
+          : HTMLInputElement.prototype;
     const descriptor = Object.getOwnPropertyDescriptor(prototype, "value");
     descriptor?.set?.call(element, value);
     element.dispatchEvent(new Event("input", { bubbles: true }));
@@ -124,10 +143,18 @@ describe("PurchaseCandidateForm", () => {
     await renderForm();
 
     const nameInput = container.querySelector("#name") as HTMLInputElement;
-    const categorySelect = container.querySelector("#category_id") as HTMLSelectElement;
-    const salePriceInput = container.querySelector("#sale_price") as HTMLInputElement;
-    const saleEndsAtInput = container.querySelector("#sale_ends_at") as HTMLInputElement;
-    const customMainCheckbox = container.querySelector('input[aria-label="メインカラーをカラーコードで入力"]') as HTMLInputElement;
+    const categorySelect = container.querySelector(
+      "#category_id",
+    ) as HTMLSelectElement;
+    const salePriceInput = container.querySelector(
+      "#sale_price",
+    ) as HTMLInputElement;
+    const saleEndsAtInput = container.querySelector(
+      "#sale_ends_at",
+    ) as HTMLInputElement;
+    const customMainCheckbox = container.querySelector(
+      'input[aria-label="メインカラーをカラーコードで入力"]',
+    ) as HTMLInputElement;
 
     await act(async () => {
       setNativeValue(nameInput, "レインコート候補");
@@ -137,7 +164,9 @@ describe("PurchaseCandidateForm", () => {
       customMainCheckbox.click();
     });
 
-    const mainColorCodeInput = container.querySelector('input[aria-label="メインカラーコード"]') as HTMLInputElement;
+    const mainColorCodeInput = container.querySelector(
+      'input[aria-label="メインカラーコード"]',
+    ) as HTMLInputElement;
 
     await act(async () => {
       setNativeValue(mainColorCodeInput, "#112233");
@@ -146,7 +175,9 @@ describe("PurchaseCandidateForm", () => {
     const form = container.querySelector("form") as HTMLFormElement;
 
     await act(async () => {
-      form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+      form.dispatchEvent(
+        new Event("submit", { bubbles: true, cancelable: true }),
+      );
     });
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
@@ -169,10 +200,18 @@ describe("PurchaseCandidateForm", () => {
   it("季節のオールを個別季節と排他的に切り替える", async () => {
     await renderForm();
 
-    const seasonButtons = Array.from(container.querySelectorAll('button[aria-pressed]'));
-    const springButton = seasonButtons.find((button) => button.textContent === "春") as HTMLButtonElement;
-    const summerButton = seasonButtons.find((button) => button.textContent === "夏") as HTMLButtonElement;
-    const allSeasonButton = seasonButtons.find((button) => button.textContent === "オール") as HTMLButtonElement;
+    const seasonButtons = Array.from(
+      container.querySelectorAll("button[aria-pressed]"),
+    );
+    const springButton = seasonButtons.find(
+      (button) => button.textContent === "春",
+    ) as HTMLButtonElement;
+    const summerButton = seasonButtons.find(
+      (button) => button.textContent === "夏",
+    ) as HTMLButtonElement;
+    const allSeasonButton = seasonButtons.find(
+      (button) => button.textContent === "オール",
+    ) as HTMLButtonElement;
 
     await act(async () => {
       springButton.click();
@@ -222,7 +261,15 @@ describe("PurchaseCandidateForm", () => {
             is_rain_ok: true,
             converted_item_id: 99,
             converted_at: "2026-03-25T10:00:00+09:00",
-            colors: [{ role: "main", mode: "preset", value: "navy", hex: "#1F3A5F", label: "ネイビー" }],
+            colors: [
+              {
+                role: "main",
+                mode: "preset",
+                value: "navy",
+                hex: "#1F3A5F",
+                label: "ネイビー",
+              },
+            ],
             seasons: ["春"],
             tpos: ["仕事"],
             images: [],
@@ -244,15 +291,29 @@ describe("PurchaseCandidateForm", () => {
     await renderForm({ mode: "edit", candidateId: "12" });
 
     const nameInput = container.querySelector("#name") as HTMLInputElement;
-    const categorySelect = container.querySelector("#category_id") as HTMLSelectElement;
+    const categorySelect = container.querySelector(
+      "#category_id",
+    ) as HTMLSelectElement;
     const priceInput = container.querySelector("#price") as HTMLInputElement;
-    const salePriceInput = container.querySelector("#sale_price") as HTMLInputElement;
-    const saleEndsAtInput = container.querySelector("#sale_ends_at") as HTMLInputElement;
-    const purchaseUrlInput = container.querySelector("#purchase_url") as HTMLInputElement;
-    const wantedReasonTextarea = container.querySelector("#wanted_reason") as HTMLTextAreaElement;
-    const memoTextarea = container.querySelector("#memo") as HTMLTextAreaElement;
+    const salePriceInput = container.querySelector(
+      "#sale_price",
+    ) as HTMLInputElement;
+    const saleEndsAtInput = container.querySelector(
+      "#sale_ends_at",
+    ) as HTMLInputElement;
+    const purchaseUrlInput = container.querySelector(
+      "#purchase_url",
+    ) as HTMLInputElement;
+    const wantedReasonTextarea = container.querySelector(
+      "#wanted_reason",
+    ) as HTMLTextAreaElement;
+    const memoTextarea = container.querySelector(
+      "#memo",
+    ) as HTMLTextAreaElement;
 
-    expect(container.textContent).toContain("購入済みの購入検討では、メモ・欲しい理由・優先度・セール情報・購入 URL・画像のみ更新できます。");
+    expect(container.textContent).toContain(
+      "購入済みの購入検討では、メモ・欲しい理由・優先度・セール情報・購入 URL・画像のみ更新できます。",
+    );
     expect(nameInput.disabled).toBe(true);
     expect(categorySelect.disabled).toBe(true);
     expect(priceInput.disabled).toBe(true);
@@ -273,7 +334,9 @@ describe("PurchaseCandidateForm", () => {
     const form = container.querySelector("form") as HTMLFormElement;
 
     await act(async () => {
-      form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+      form.dispatchEvent(
+        new Event("submit", { bubbles: true, cancelable: true }),
+      );
     });
 
     expect(fetchMock).toHaveBeenCalledTimes(2);

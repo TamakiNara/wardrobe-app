@@ -31,7 +31,13 @@ describe("/api/settings/tpos/[id] route", () => {
         new Response(
           JSON.stringify({
             message: "updated",
-            tpo: { id: 4, name: "出張", sortOrder: 2, isActive: false, isPreset: false },
+            tpo: {
+              id: 4,
+              name: "出張",
+              sortOrder: 2,
+              isActive: false,
+              isPreset: false,
+            },
           }),
           {
             status: 200,
@@ -54,7 +60,9 @@ describe("/api/settings/tpos/[id] route", () => {
       }),
     });
 
-    const res = await PATCH(req as any, { params: Promise.resolve({ id: "4" }) });
+    const res = await PATCH(req as any, {
+      params: Promise.resolve({ id: "4" }),
+    });
     const json = await res.json();
 
     expect(global.fetch).toHaveBeenNthCalledWith(

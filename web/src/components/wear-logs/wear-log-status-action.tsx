@@ -38,9 +38,16 @@ export default function WearLogStatusAction({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  const hasUnresolvedItems = wearLog.items.some((item) => item.source_item_id === null);
-  const { nextStatus, buttonLabel, submittingLabel, successMessage, className } =
-    getActionConfig(wearLog.status);
+  const hasUnresolvedItems = wearLog.items.some(
+    (item) => item.source_item_id === null,
+  );
+  const {
+    nextStatus,
+    buttonLabel,
+    submittingLabel,
+    successMessage,
+    className,
+  } = getActionConfig(wearLog.status);
 
   async function handleClick() {
     if (hasUnresolvedItems || submitting) {
@@ -97,7 +104,10 @@ export default function WearLogStatusAction({
   }
 
   return (
-    <div className="flex flex-col items-start gap-2" data-testid="wear-log-status-action">
+    <div
+      className="flex flex-col items-start gap-2"
+      data-testid="wear-log-status-action"
+    >
       <button
         type="button"
         onClick={handleClick}

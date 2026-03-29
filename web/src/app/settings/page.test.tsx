@@ -94,19 +94,31 @@ describe("SettingsPage", () => {
       await waitForEffects();
     });
 
-    const currentSeasonSelect = container.querySelector<HTMLSelectElement>("#preferences-current-season");
-    const defaultStatusSelect = container.querySelector<HTMLSelectElement>("#preferences-default-wear-log-status");
-    const weekStartSelect = container.querySelector<HTMLSelectElement>("#preferences-calendar-week-start");
-    const pinkDeepButton = container.querySelector<HTMLButtonElement>('[aria-label="サムネイル肌色: イエロー系・深め"]');
-    const saveButton = Array.from(container.querySelectorAll<HTMLButtonElement>("button")).find(
-      (button) => button.textContent === "個人設定を保存",
+    const currentSeasonSelect = container.querySelector<HTMLSelectElement>(
+      "#preferences-current-season",
     );
+    const defaultStatusSelect = container.querySelector<HTMLSelectElement>(
+      "#preferences-default-wear-log-status",
+    );
+    const weekStartSelect = container.querySelector<HTMLSelectElement>(
+      "#preferences-calendar-week-start",
+    );
+    const pinkDeepButton = container.querySelector<HTMLButtonElement>(
+      '[aria-label="サムネイル肌色: イエロー系・深め"]',
+    );
+    const saveButton = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button"),
+    ).find((button) => button.textContent === "個人設定を保存");
 
     await act(async () => {
       currentSeasonSelect!.value = "winter";
-      currentSeasonSelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      currentSeasonSelect!.dispatchEvent(
+        new Event("change", { bubbles: true }),
+      );
       defaultStatusSelect!.value = "planned";
-      defaultStatusSelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      defaultStatusSelect!.dispatchEvent(
+        new Event("change", { bubbles: true }),
+      );
       weekStartSelect!.value = "sunday";
       weekStartSelect!.dispatchEvent(new Event("change", { bubbles: true }));
       pinkDeepButton!.click();

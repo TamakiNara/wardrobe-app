@@ -114,16 +114,20 @@ export default async function OutfitDetailPage({
           isItemVisibleByCategorySettings(outfitItem.item, visibleCategoryIds),
         );
   const hiddenOutfitItemCount = outfitItems.length - visibleOutfitItems.length;
-  const wearLogIdParam = typeof resolvedSearchParams.wear_log_id === "string"
-    ? resolvedSearchParams.wear_log_id
-    : null;
-  const fromWearLog = resolvedSearchParams.from === "wear-log" && wearLogIdParam !== null;
-  const returnToParam = typeof resolvedSearchParams.return_to === "string"
-    ? resolvedSearchParams.return_to
-    : null;
-  const returnLabelParam = typeof resolvedSearchParams.return_label === "string"
-    ? resolvedSearchParams.return_label
-    : null;
+  const wearLogIdParam =
+    typeof resolvedSearchParams.wear_log_id === "string"
+      ? resolvedSearchParams.wear_log_id
+      : null;
+  const fromWearLog =
+    resolvedSearchParams.from === "wear-log" && wearLogIdParam !== null;
+  const returnToParam =
+    typeof resolvedSearchParams.return_to === "string"
+      ? resolvedSearchParams.return_to
+      : null;
+  const returnLabelParam =
+    typeof resolvedSearchParams.return_label === "string"
+      ? resolvedSearchParams.return_label
+      : null;
 
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">
@@ -143,7 +147,10 @@ export default async function OutfitDetailPage({
           {fromWearLog && wearLogIdParam ? (
             <>
               {" / "}
-              <Link href={`/wear-logs/${wearLogIdParam}`} className="hover:underline">
+              <Link
+                href={`/wear-logs/${wearLogIdParam}`}
+                className="hover:underline"
+              >
                 着用履歴詳細
               </Link>
             </>
@@ -186,7 +193,9 @@ export default async function OutfitDetailPage({
                 着用履歴詳細へ戻る
               </Link>
             ) : null}
-            {outfit.status !== "invalid" && <OutfitDuplicateAction outfitId={outfit.id} />}
+            {outfit.status !== "invalid" && (
+              <OutfitDuplicateAction outfitId={outfit.id} />
+            )}
             <Link
               href={`/outfits/${outfit.id}/edit`}
               className="text-sm font-medium text-blue-600 hover:underline"
@@ -209,7 +218,9 @@ export default async function OutfitDetailPage({
           <section className="rounded-2xl border border-amber-200 bg-white p-6 shadow-sm">
             <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
               <div className="space-y-2">
-                <h2 className="text-lg font-semibold text-gray-900">無効の理由</h2>
+                <h2 className="text-lg font-semibold text-gray-900">
+                  無効の理由
+                </h2>
                 <p className="text-sm text-amber-800">
                   現在利用できないアイテムを含むため、通常一覧とは分けて保持しています。
                 </p>
@@ -223,7 +234,10 @@ export default async function OutfitDetailPage({
 
               <div className="flex flex-wrap items-center gap-3 md:justify-end">
                 <OutfitDuplicateAction outfitId={outfit.id} />
-                <OutfitRestoreAction outfitId={outfit.id} canRestore={canRestore} />
+                <OutfitRestoreAction
+                  outfitId={outfit.id}
+                  canRestore={canRestore}
+                />
               </div>
             </div>
           </section>
@@ -251,10 +265,14 @@ export default async function OutfitDetailPage({
 
               <div className="space-y-2">
                 <p className="text-sm text-gray-600">
-                  季節： {outfit.seasons?.length ? outfit.seasons.join(" / ") : "未設定"}
+                  季節：{" "}
+                  {outfit.seasons?.length
+                    ? outfit.seasons.join(" / ")
+                    : "未設定"}
                 </p>
                 <p className="text-sm text-gray-600">
-                  TPO： {outfit.tpos?.length ? outfit.tpos.join(" / ") : "未設定"}
+                  TPO：{" "}
+                  {outfit.tpos?.length ? outfit.tpos.join(" / ") : "未設定"}
                 </p>
               </div>
             </div>
@@ -267,7 +285,9 @@ export default async function OutfitDetailPage({
           </h2>
 
           {outfitItems.length === 0 ? (
-            <p className="text-sm text-gray-600">アイテムが登録されていません。</p>
+            <p className="text-sm text-gray-600">
+              アイテムが登録されていません。
+            </p>
           ) : visibleOutfitItems.length === 0 ? (
             <div className="space-y-3">
               <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
@@ -278,7 +298,8 @@ export default async function OutfitDetailPage({
             <div className="space-y-3">
               {hiddenOutfitItemCount > 0 && (
                 <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-                  現在の表示設定により {hiddenOutfitItemCount} 件を非表示にしています。
+                  現在の表示設定により {hiddenOutfitItemCount}{" "}
+                  件を非表示にしています。
                 </p>
               )}
               {visibleOutfitItems.map((outfitItem, index) => {

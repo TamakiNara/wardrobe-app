@@ -34,7 +34,9 @@ function formatDateTime(value: string | null): string {
 }
 
 async function getPurchaseCandidate(id: string) {
-  const response = await fetchLaravelWithCookie(`/api/purchase-candidates/${id}`);
+  const response = await fetchLaravelWithCookie(
+    `/api/purchase-candidates/${id}`,
+  );
 
   if (response.status === 401) {
     redirect("/login");
@@ -74,7 +76,9 @@ export default async function PurchaseCandidateDetailPage({
         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div>
             <p className="text-sm text-gray-500">購入検討管理</p>
-            <h1 className="text-2xl font-bold text-gray-900">{candidate.name}</h1>
+            <h1 className="text-2xl font-bold text-gray-900">
+              {candidate.name}
+            </h1>
             <div className="mt-3 flex flex-wrap items-center gap-2">
               <span className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-sm font-medium text-blue-700">
                 {PURCHASE_CANDIDATE_STATUS_LABELS[candidate.status]}
@@ -112,7 +116,9 @@ export default async function PurchaseCandidateDetailPage({
             <h2 className="text-lg font-semibold text-gray-900">画像</h2>
 
             {candidate.images.length === 0 ? (
-              <p className="mt-3 text-sm text-gray-600">画像はまだありません。</p>
+              <p className="mt-3 text-sm text-gray-600">
+                画像はまだありません。
+              </p>
             ) : (
               <div className="mt-4 grid gap-4 sm:grid-cols-2">
                 {candidate.images.map((image) => (
@@ -135,7 +141,8 @@ export default async function PurchaseCandidateDetailPage({
                       </div>
                     )}
                     <div className="p-3 text-sm text-gray-600">
-                      {image.sort_order}枚目{image.is_primary ? " / 代表画像" : ""}
+                      {image.sort_order}枚目
+                      {image.is_primary ? " / 代表画像" : ""}
                     </div>
                   </article>
                 ))}
@@ -145,7 +152,9 @@ export default async function PurchaseCandidateDetailPage({
 
           <div className="space-y-6">
             <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-              <h2 className="text-lg font-semibold text-gray-900">アイテム追加</h2>
+              <h2 className="text-lg font-semibold text-gray-900">
+                アイテム追加
+              </h2>
               {candidate.status === "purchased" ? (
                 <>
                   <p className="mt-2 text-sm text-gray-600">
@@ -190,7 +199,8 @@ export default async function PurchaseCandidateDetailPage({
                   <dt>想定価格</dt>
                   <dd>{formatPrice(candidate.price)}</dd>
                 </div>
-                {(candidate.sale_price !== null || candidate.sale_ends_at !== null) && (
+                {(candidate.sale_price !== null ||
+                  candidate.sale_ends_at !== null) && (
                   <>
                     {candidate.sale_price !== null && (
                       <div className="flex items-center justify-between gap-3 text-rose-700">
@@ -210,7 +220,13 @@ export default async function PurchaseCandidateDetailPage({
                 </div>
                 <div className="flex items-center justify-between gap-3">
                   <dt>サイズ区分</dt>
-                  <dd>{candidate.size_gender ? (PURCHASE_CANDIDATE_SIZE_GENDER_LABELS[candidate.size_gender] ?? "未設定") : "未設定"}</dd>
+                  <dd>
+                    {candidate.size_gender
+                      ? (PURCHASE_CANDIDATE_SIZE_GENDER_LABELS[
+                          candidate.size_gender
+                        ] ?? "未設定")
+                      : "未設定"}
+                  </dd>
                 </div>
                 <div className="flex items-center justify-between gap-3">
                   <dt>購入 URL</dt>
@@ -235,7 +251,9 @@ export default async function PurchaseCandidateDetailPage({
         </section>
 
         <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-gray-900">色 / 季節 / TPO</h2>
+          <h2 className="text-lg font-semibold text-gray-900">
+            色 / 季節 / TPO
+          </h2>
           <div className="mt-4 grid gap-4 md:grid-cols-3">
             <div>
               <p className="text-sm font-medium text-gray-700">色</p>
@@ -245,7 +263,8 @@ export default async function PurchaseCandidateDetailPage({
                 ) : (
                   candidate.colors.map((color) => (
                     <li key={`${color.role}-${color.value}`}>
-                      {PURCHASE_CANDIDATE_COLOR_ROLE_LABELS[color.role]}: {color.label}
+                      {PURCHASE_CANDIDATE_COLOR_ROLE_LABELS[color.role]}:{" "}
+                      {color.label}
                     </li>
                   ))
                 )}
@@ -254,13 +273,17 @@ export default async function PurchaseCandidateDetailPage({
             <div>
               <p className="text-sm font-medium text-gray-700">季節</p>
               <p className="mt-2 text-sm text-gray-600">
-                {candidate.seasons.length === 0 ? "未設定" : candidate.seasons.join(" / ")}
+                {candidate.seasons.length === 0
+                  ? "未設定"
+                  : candidate.seasons.join(" / ")}
               </p>
             </div>
             <div>
               <p className="text-sm font-medium text-gray-700">TPO</p>
               <p className="mt-2 text-sm text-gray-600">
-                {candidate.tpos.length === 0 ? "未設定" : candidate.tpos.join(" / ")}
+                {candidate.tpos.length === 0
+                  ? "未設定"
+                  : candidate.tpos.join(" / ")}
               </p>
             </div>
           </div>
@@ -271,19 +294,27 @@ export default async function PurchaseCandidateDetailPage({
           <dl className="mt-4 grid gap-4 md:grid-cols-2">
             <div>
               <dt className="text-sm font-medium text-gray-700">欲しい理由</dt>
-              <dd className="mt-1 text-sm text-gray-600">{candidate.wanted_reason ?? "未設定"}</dd>
+              <dd className="mt-1 text-sm text-gray-600">
+                {candidate.wanted_reason ?? "未設定"}
+              </dd>
             </div>
             <div>
               <dt className="text-sm font-medium text-gray-700">メモ</dt>
-              <dd className="mt-1 text-sm text-gray-600">{candidate.memo ?? "未設定"}</dd>
+              <dd className="mt-1 text-sm text-gray-600">
+                {candidate.memo ?? "未設定"}
+              </dd>
             </div>
             <div>
               <dt className="text-sm font-medium text-gray-700">サイズ表記</dt>
-              <dd className="mt-1 text-sm text-gray-600">{candidate.size_label ?? "未設定"}</dd>
+              <dd className="mt-1 text-sm text-gray-600">
+                {candidate.size_label ?? "未設定"}
+              </dd>
             </div>
             <div>
               <dt className="text-sm font-medium text-gray-700">サイズメモ</dt>
-              <dd className="mt-1 text-sm text-gray-600">{candidate.size_note ?? "未設定"}</dd>
+              <dd className="mt-1 text-sm text-gray-600">
+                {candidate.size_note ?? "未設定"}
+              </dd>
             </div>
           </dl>
         </section>

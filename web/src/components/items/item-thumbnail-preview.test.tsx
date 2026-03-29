@@ -47,7 +47,9 @@ describe("ItemThumbnailPreview", () => {
       );
     });
 
-    const markers = Array.from(container.querySelectorAll('[data-testid="bottoms-hem-marker"]'));
+    const markers = Array.from(
+      container.querySelectorAll('[data-testid="bottoms-hem-marker"]'),
+    );
     expect(markers).toHaveLength(2);
     expect(markers[0]?.getAttribute("y1")).toBe("48");
     expect(markers[1]?.getAttribute("y1")).toBe("102");
@@ -75,7 +77,9 @@ describe("ItemThumbnailPreview", () => {
       );
     });
 
-    const overlays = Array.from(container.querySelectorAll('[data-testid="legwear-overlay"]'));
+    const overlays = Array.from(
+      container.querySelectorAll('[data-testid="legwear-overlay"]'),
+    );
     expect(overlays).toHaveLength(2);
     expect(overlays[0]?.getAttribute("y")).toBe("86");
     expect(overlays[1]?.getAttribute("y")).toBe("40");
@@ -103,7 +107,9 @@ describe("ItemThumbnailPreview", () => {
       );
     });
 
-    const overlays = Array.from(container.querySelectorAll('[data-testid="legwear-overlay"]'));
+    const overlays = Array.from(
+      container.querySelectorAll('[data-testid="legwear-overlay"]'),
+    );
     expect(overlays).toHaveLength(2);
     expect(overlays[0]?.getAttribute("fill-opacity")).toBe("0.38");
     expect(overlays[1]?.getAttribute("fill-opacity")).toBe("0.92");
@@ -121,8 +127,14 @@ describe("ItemThumbnailPreview", () => {
       );
     });
 
-    expect(container.querySelector('[data-testid="lower-body-preview-svg"]')).not.toBeNull();
-    expect(container.querySelector('[data-testid="bottoms-hem-marker"]')?.getAttribute("y1")).toBe("102");
+    expect(
+      container.querySelector('[data-testid="lower-body-preview-svg"]'),
+    ).not.toBeNull();
+    expect(
+      container
+        .querySelector('[data-testid="bottoms-hem-marker"]')
+        ?.getAttribute("y1"),
+    ).toBe("102");
   });
 
   it("coverage_type 未設定のレッグウェアは効果なしとして扱う", async () => {
@@ -137,7 +149,9 @@ describe("ItemThumbnailPreview", () => {
       );
     });
 
-    expect(container.querySelector('[data-testid="lower-body-preview-svg"]')).toBeNull();
+    expect(
+      container.querySelector('[data-testid="lower-body-preview-svg"]'),
+    ).toBeNull();
   });
 
   it("skinTonePreset に応じて肌色を切り替える", async () => {
@@ -154,6 +168,10 @@ describe("ItemThumbnailPreview", () => {
       );
     });
 
-    expect(container.querySelector('[data-testid="lower-body-skin-base"]')?.getAttribute("fill")).toBe("#C98D5E");
+    expect(
+      container
+        .querySelector('[data-testid="lower-body-skin-base"]')
+        ?.getAttribute("fill"),
+    ).toBe("#C98D5E");
   });
 });

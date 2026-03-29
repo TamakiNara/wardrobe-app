@@ -18,16 +18,18 @@ const groups: CategoryGroupRecord[] = [
   {
     id: "outer",
     name: "アウター",
-    categories: [
-      { id: "outer_jacket", groupId: "outer", name: "ジャケット" },
-    ],
+    categories: [{ id: "outer_jacket", groupId: "outer", name: "ジャケット" }],
   },
   {
     id: "dress",
     name: "ワンピース・オールインワン",
     categories: [
       { id: "dress_onepiece", groupId: "dress", name: "ワンピース" },
-      { id: "dress_allinone", groupId: "dress", name: "オールインワン / サロペット" },
+      {
+        id: "dress_allinone",
+        groupId: "dress",
+        name: "オールインワン / サロペット",
+      },
     ],
   },
   {
@@ -41,16 +43,12 @@ const groups: CategoryGroupRecord[] = [
   {
     id: "legwear",
     name: "レッグウェア",
-    categories: [
-      { id: "legwear_socks", groupId: "legwear", name: "ソックス" },
-    ],
+    categories: [{ id: "legwear_socks", groupId: "legwear", name: "ソックス" }],
   },
   {
     id: "bags",
     name: "バッグ",
-    categories: [
-      { id: "bags_tote", groupId: "bags", name: "トートバッグ" },
-    ],
+    categories: [{ id: "bags_tote", groupId: "bags", name: "トートバッグ" }],
   },
 ];
 
@@ -66,7 +64,9 @@ describe("buildSupportedCategoryOptions", () => {
   });
 
   it("表示対象の中分類がない大分類は候補から外す", () => {
-    expect(buildSupportedCategoryOptions(groups, ["tops_tshirt", "inner_roomwear"])).toEqual([
+    expect(
+      buildSupportedCategoryOptions(groups, ["tops_tshirt", "inner_roomwear"]),
+    ).toEqual([
       { value: "tops", label: "トップス" },
       { value: "inner", label: "ルームウェア・インナー" },
     ]);
@@ -86,10 +86,18 @@ describe("findVisibleCategoryIdForItem", () => {
     expect(findVisibleCategoryIdForItem("tops", "shirt")).toBe("tops_shirt");
     expect(findVisibleCategoryIdForItem("tops", "blouse")).toBe("tops_shirt");
     expect(findVisibleCategoryIdForItem("outer", "trench")).toBe("outer_coat");
-    expect(findVisibleCategoryIdForItem("dress", "onepiece")).toBe("dress_onepiece");
-    expect(findVisibleCategoryIdForItem("inner", "roomwear")).toBe("inner_roomwear");
-    expect(findVisibleCategoryIdForItem("legwear", "tights")).toBe("legwear_tights");
-    expect(findVisibleCategoryIdForItem("accessories", "tote")).toBe("bags_tote");
+    expect(findVisibleCategoryIdForItem("dress", "onepiece")).toBe(
+      "dress_onepiece",
+    );
+    expect(findVisibleCategoryIdForItem("inner", "roomwear")).toBe(
+      "inner_roomwear",
+    );
+    expect(findVisibleCategoryIdForItem("legwear", "tights")).toBe(
+      "legwear_tights",
+    );
+    expect(findVisibleCategoryIdForItem("accessories", "tote")).toBe(
+      "bags_tote",
+    );
   });
 
   it("対応がないときは null を返す", () => {
@@ -100,22 +108,23 @@ describe("findVisibleCategoryIdForItem", () => {
 
 describe("isItemVisibleByCategorySettings", () => {
   it("visibleCategoryIds が未指定なら表示可能とみなす", () => {
-    expect(isItemVisibleByCategorySettings({ category: "tops", shape: "shirt" })).toBe(true);
+    expect(
+      isItemVisibleByCategorySettings({ category: "tops", shape: "shirt" }),
+    ).toBe(true);
   });
 
   it("解決した中分類 ID が含まれるときだけ true を返す", () => {
     expect(
-      isItemVisibleByCategorySettings(
-        { category: "tops", shape: "shirt" },
-        ["tops_tshirt", "outer_jacket"],
-      ),
+      isItemVisibleByCategorySettings({ category: "tops", shape: "shirt" }, [
+        "tops_tshirt",
+        "outer_jacket",
+      ]),
     ).toBe(false);
 
     expect(
-      isItemVisibleByCategorySettings(
-        { category: "tops", shape: "shirt" },
-        ["tops_shirt"],
-      ),
+      isItemVisibleByCategorySettings({ category: "tops", shape: "shirt" }, [
+        "tops_shirt",
+      ]),
     ).toBe(true);
 
     expect(

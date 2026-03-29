@@ -70,21 +70,43 @@ describe("OutfitColorThumbnail", () => {
       root.render(
         React.createElement(OutfitColorThumbnail, {
           outfitItems: [
-            renderOutfitItem(1, "tops", [{ role: "main", hex: "#ffffff", label: "白" }]),
-            renderOutfitItem(2, "bottoms", [{ role: "main", hex: "#111111", label: "黒" }]),
-            renderOutfitItem(3, "shoes", [{ role: "main", hex: "#224488", label: "青" }]),
+            renderOutfitItem(1, "tops", [
+              { role: "main", hex: "#ffffff", label: "白" },
+            ]),
+            renderOutfitItem(2, "bottoms", [
+              { role: "main", hex: "#111111", label: "黒" },
+            ]),
+            renderOutfitItem(3, "shoes", [
+              { role: "main", hex: "#224488", label: "青" },
+            ]),
           ],
         }),
       );
     });
 
-    expect(container.querySelector('[data-testid="thumbnail-tops"]')).not.toBeNull();
-    expect(container.querySelector('[data-testid="thumbnail-bottoms"]')).not.toBeNull();
-    expect(container.querySelector('[data-testid="thumbnail-others"]')).not.toBeNull();
-    expect(container.querySelector('[data-testid="thumbnail-main-top"]')?.className).toContain("h-1/2");
-    expect(container.querySelector('[data-testid="thumbnail-main-bottom"]')?.className).toContain("h-1/2");
-    expect(container.querySelector('[data-testid="thumbnail-others-bar"]')?.className).toContain("h-[0.875rem]");
-    expect(container.querySelector('[data-testid="thumbnail-others-full"]')).toBeNull();
+    expect(
+      container.querySelector('[data-testid="thumbnail-tops"]'),
+    ).not.toBeNull();
+    expect(
+      container.querySelector('[data-testid="thumbnail-bottoms"]'),
+    ).not.toBeNull();
+    expect(
+      container.querySelector('[data-testid="thumbnail-others"]'),
+    ).not.toBeNull();
+    expect(
+      container.querySelector('[data-testid="thumbnail-main-top"]')?.className,
+    ).toContain("h-1/2");
+    expect(
+      container.querySelector('[data-testid="thumbnail-main-bottom"]')
+        ?.className,
+    ).toContain("h-1/2");
+    expect(
+      container.querySelector('[data-testid="thumbnail-others-bar"]')
+        ?.className,
+    ).toContain("h-[0.875rem]");
+    expect(
+      container.querySelector('[data-testid="thumbnail-others-full"]'),
+    ).toBeNull();
   });
 
   it("tops / bottoms 両方ありで others がない場合は 2 層だけを使う", async () => {
@@ -92,16 +114,27 @@ describe("OutfitColorThumbnail", () => {
       root.render(
         React.createElement(OutfitColorThumbnail, {
           outfitItems: [
-            renderOutfitItem(1, "tops", [{ role: "main", hex: "#ffffff", label: "白" }]),
-            renderOutfitItem(2, "bottoms", [{ role: "main", hex: "#111111", label: "黒" }]),
+            renderOutfitItem(1, "tops", [
+              { role: "main", hex: "#ffffff", label: "白" },
+            ]),
+            renderOutfitItem(2, "bottoms", [
+              { role: "main", hex: "#111111", label: "黒" },
+            ]),
           ],
         }),
       );
     });
 
-    expect(container.querySelector('[data-testid="thumbnail-main-top"]')?.className).toContain("h-1/2");
-    expect(container.querySelector('[data-testid="thumbnail-main-bottom"]')?.className).toContain("h-1/2");
-    expect(container.querySelector('[data-testid="thumbnail-others-bar"]')).toBeNull();
+    expect(
+      container.querySelector('[data-testid="thumbnail-main-top"]')?.className,
+    ).toContain("h-1/2");
+    expect(
+      container.querySelector('[data-testid="thumbnail-main-bottom"]')
+        ?.className,
+    ).toContain("h-1/2");
+    expect(
+      container.querySelector('[data-testid="thumbnail-others-bar"]'),
+    ).toBeNull();
   });
 
   it("tops のみ + others ありでは tops がメイン全体を使い、others バーを出す", async () => {
@@ -109,16 +142,26 @@ describe("OutfitColorThumbnail", () => {
       root.render(
         React.createElement(OutfitColorThumbnail, {
           outfitItems: [
-            renderOutfitItem(1, "tops", [{ role: "main", hex: "#ffffff", label: "白" }]),
-            renderOutfitItem(2, "bag", [{ role: "main", hex: "#111111", label: "黒" }]),
+            renderOutfitItem(1, "tops", [
+              { role: "main", hex: "#ffffff", label: "白" },
+            ]),
+            renderOutfitItem(2, "bag", [
+              { role: "main", hex: "#111111", label: "黒" },
+            ]),
           ],
         }),
       );
     });
 
-    expect(container.querySelector('[data-testid="thumbnail-main-top"]')?.className).toContain("h-full");
-    expect(container.querySelector('[data-testid="thumbnail-main-bottom"]')).toBeNull();
-    expect(container.querySelector('[data-testid="thumbnail-others-bar"]')).not.toBeNull();
+    expect(
+      container.querySelector('[data-testid="thumbnail-main-top"]')?.className,
+    ).toContain("h-full");
+    expect(
+      container.querySelector('[data-testid="thumbnail-main-bottom"]'),
+    ).toBeNull();
+    expect(
+      container.querySelector('[data-testid="thumbnail-others-bar"]'),
+    ).not.toBeNull();
   });
 
   it("bottoms のみで others がない場合は bottoms が全体を使う", async () => {
@@ -126,15 +169,24 @@ describe("OutfitColorThumbnail", () => {
       root.render(
         React.createElement(OutfitColorThumbnail, {
           outfitItems: [
-            renderOutfitItem(1, "bottoms", [{ role: "main", hex: "#111111", label: "黒" }]),
+            renderOutfitItem(1, "bottoms", [
+              { role: "main", hex: "#111111", label: "黒" },
+            ]),
           ],
         }),
       );
     });
 
-    expect(container.querySelector('[data-testid="thumbnail-main-top"]')).toBeNull();
-    expect(container.querySelector('[data-testid="thumbnail-main-bottom"]')?.className).toContain("h-full");
-    expect(container.querySelector('[data-testid="thumbnail-others-bar"]')).toBeNull();
+    expect(
+      container.querySelector('[data-testid="thumbnail-main-top"]'),
+    ).toBeNull();
+    expect(
+      container.querySelector('[data-testid="thumbnail-main-bottom"]')
+        ?.className,
+    ).toContain("h-full");
+    expect(
+      container.querySelector('[data-testid="thumbnail-others-bar"]'),
+    ).toBeNull();
   });
 
   it("others のみの場合は全体を others で使う", async () => {
@@ -142,17 +194,29 @@ describe("OutfitColorThumbnail", () => {
       root.render(
         React.createElement(OutfitColorThumbnail, {
           outfitItems: [
-            renderOutfitItem(1, "outer", [{ role: "main", hex: "#888888", label: "グレー" }]),
-            renderOutfitItem(2, "shoes", [{ role: "main", hex: "#222222", label: "黒" }]),
+            renderOutfitItem(1, "outer", [
+              { role: "main", hex: "#888888", label: "グレー" },
+            ]),
+            renderOutfitItem(2, "shoes", [
+              { role: "main", hex: "#222222", label: "黒" },
+            ]),
           ],
         }),
       );
     });
 
-    expect(container.querySelector('[data-testid="thumbnail-others-full"]')).not.toBeNull();
-    expect(container.querySelector('[data-testid="thumbnail-tops"]')).toBeNull();
-    expect(container.querySelector('[data-testid="thumbnail-bottoms"]')).toBeNull();
-    expect(container.querySelector('[data-testid="thumbnail-others"]')).toBeNull();
+    expect(
+      container.querySelector('[data-testid="thumbnail-others-full"]'),
+    ).not.toBeNull();
+    expect(
+      container.querySelector('[data-testid="thumbnail-tops"]'),
+    ).toBeNull();
+    expect(
+      container.querySelector('[data-testid="thumbnail-bottoms"]'),
+    ).toBeNull();
+    expect(
+      container.querySelector('[data-testid="thumbnail-others"]'),
+    ).toBeNull();
   });
 
   it("main / sub color を 90 / 10 で描画し、sub なしでも表示できる", async () => {
@@ -164,13 +228,17 @@ describe("OutfitColorThumbnail", () => {
               { role: "main", hex: "#eeeeee", label: "白" },
               { role: "sub", hex: "#333333", label: "黒" },
             ]),
-            renderOutfitItem(2, "bottoms", [{ role: "main", hex: "#2255cc", label: "青" }]),
+            renderOutfitItem(2, "bottoms", [
+              { role: "main", hex: "#2255cc", label: "青" },
+            ]),
           ],
         }),
       );
     });
 
-    const allBands = container.querySelectorAll('[data-testid="thumbnail-tops-segment"], [data-testid="thumbnail-bottoms-segment"]');
+    const allBands = container.querySelectorAll(
+      '[data-testid="thumbnail-tops-segment"], [data-testid="thumbnail-bottoms-segment"]',
+    );
     const firstMain = allBands[0]?.querySelector("span > span");
     const firstSub = allBands[0]?.querySelector("span > span + span");
     const secondMain = allBands[1]?.querySelector("span > span");
@@ -193,7 +261,9 @@ describe("OutfitColorThumbnail", () => {
       );
     });
 
-    const main = container.querySelector('[data-testid="thumbnail-tops-segment"] span > span');
+    const main = container.querySelector(
+      '[data-testid="thumbnail-tops-segment"] span > span',
+    );
     expect(main?.getAttribute("style")).toContain("rgb(229, 231, 235)");
   });
 
@@ -228,11 +298,27 @@ describe("OutfitColorThumbnail", () => {
       );
     });
 
-    expect(container.querySelector('[data-testid="thumbnail-lower-body"]')).not.toBeNull();
-    expect(container.querySelector('[data-testid="thumbnail-bottoms"]')).toBeNull();
-    expect(container.querySelector('[data-testid="lower-body-skin-base"]')?.getAttribute("fill")).toBe("#E9C29B");
-    expect(container.querySelector('[data-testid="lower-body-skin-base"]')?.getAttribute("x")).toBe("0");
-    expect(container.querySelector('[data-testid="lower-body-skin-base"]')?.getAttribute("y")).toBe("0");
+    expect(
+      container.querySelector('[data-testid="thumbnail-lower-body"]'),
+    ).not.toBeNull();
+    expect(
+      container.querySelector('[data-testid="thumbnail-bottoms"]'),
+    ).toBeNull();
+    expect(
+      container
+        .querySelector('[data-testid="lower-body-skin-base"]')
+        ?.getAttribute("fill"),
+    ).toBe("#E9C29B");
+    expect(
+      container
+        .querySelector('[data-testid="lower-body-skin-base"]')
+        ?.getAttribute("x"),
+    ).toBe("0");
+    expect(
+      container
+        .querySelector('[data-testid="lower-body-skin-base"]')
+        ?.getAttribute("y"),
+    ).toBe("0");
   });
 
   it("representative bottoms がなければ lower-body preview を表示しない", async () => {
@@ -240,17 +326,26 @@ describe("OutfitColorThumbnail", () => {
       root.render(
         React.createElement(OutfitColorThumbnail, {
           outfitItems: [
-            renderOutfitItem(1, "tops", [{ role: "main", hex: "#ffffff", label: "白" }]),
-            renderOutfitItem(2, "legwear", [{ role: "main", hex: "#111111", label: "黒" }], {
-              shape: "tights",
-              spec: { legwear: { coverage_type: "tights" } },
-            }),
+            renderOutfitItem(1, "tops", [
+              { role: "main", hex: "#ffffff", label: "白" },
+            ]),
+            renderOutfitItem(
+              2,
+              "legwear",
+              [{ role: "main", hex: "#111111", label: "黒" }],
+              {
+                shape: "tights",
+                spec: { legwear: { coverage_type: "tights" } },
+              },
+            ),
           ],
         }),
       );
     });
 
-    expect(container.querySelector('[data-testid="thumbnail-lower-body"]')).toBeNull();
+    expect(
+      container.querySelector('[data-testid="thumbnail-lower-body"]'),
+    ).toBeNull();
   });
 
   it("stockings 合成時は裾より下の露出領域だけに重ねる", async () => {
@@ -280,7 +375,15 @@ describe("OutfitColorThumbnail", () => {
       );
     });
 
-    expect(container.querySelector('[data-testid="bottoms-garment"]')?.getAttribute("fill")).toBe("#44516A");
-    expect(container.querySelector('[data-testid="legwear-overlay"]')?.getAttribute("y")).not.toBe("0");
+    expect(
+      container
+        .querySelector('[data-testid="bottoms-garment"]')
+        ?.getAttribute("fill"),
+    ).toBe("#44516A");
+    expect(
+      container
+        .querySelector('[data-testid="legwear-overlay"]')
+        ?.getAttribute("y"),
+    ).not.toBe("0");
   });
 });

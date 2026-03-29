@@ -140,32 +140,39 @@ export default function OutfitsList({
 
   const [isComposingKeyword, setIsComposingKeyword] = useState(false);
   const [draftKeyword, setDraftKeyword] = useState(keyword);
-  const [visibleCategoryIds, setVisibleCategoryIds] = useState<string[] | null>(null);
+  const [visibleCategoryIds, setVisibleCategoryIds] = useState<string[] | null>(
+    null,
+  );
   const initialSeasonAppliedRef = useRef(false);
 
   useEffect(() => {
     setDraftKeyword(keyword);
   }, [keyword]);
 
-  const updateQuery = useCallback((nextValues: Partial<{
-    keyword: string;
-    season: string;
-    tpo: string;
-    sort: OutfitSortValue;
-    page: number;
-  }>) => {
-    const nextQuery = buildQueryString({
-      keyword: nextValues.keyword ?? keyword,
-      season: nextValues.season ?? seasonFilter,
-      tpo: nextValues.tpo ?? tpoFilter,
-      sort: nextValues.sort ?? sort,
-      page: nextValues.page ?? page,
-    });
+  const updateQuery = useCallback(
+    (
+      nextValues: Partial<{
+        keyword: string;
+        season: string;
+        tpo: string;
+        sort: OutfitSortValue;
+        page: number;
+      }>,
+    ) => {
+      const nextQuery = buildQueryString({
+        keyword: nextValues.keyword ?? keyword,
+        season: nextValues.season ?? seasonFilter,
+        tpo: nextValues.tpo ?? tpoFilter,
+        sort: nextValues.sort ?? sort,
+        page: nextValues.page ?? page,
+      });
 
-    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, {
-      scroll: false,
-    });
-  }, [keyword, page, pathname, router, seasonFilter, sort, tpoFilter]);
+      router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, {
+        scroll: false,
+      });
+    },
+    [keyword, page, pathname, router, seasonFilter, sort, tpoFilter],
+  );
 
   useEffect(() => {
     if (initialSeasonAppliedRef.current) {
@@ -212,7 +219,11 @@ export default function OutfitsList({
   }, [draftKeyword, isComposingKeyword, keyword, updateQuery]);
 
   const hasActiveFilters = Boolean(
-    keyword || seasonFilter || tpoFilter || sort !== DEFAULT_SORT || currentPage > 1,
+    keyword ||
+    seasonFilter ||
+    tpoFilter ||
+    sort !== DEFAULT_SORT ||
+    currentPage > 1,
   );
 
   return (
@@ -281,7 +292,9 @@ export default function OutfitsList({
             </label>
             <select
               value={sort}
-              onChange={(e) => updateQuery({ sort: normalizeSort(e.target.value), page: 1 })}
+              onChange={(e) =>
+                updateQuery({ sort: normalizeSort(e.target.value), page: 1 })
+              }
               className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             >
               {SORT_OPTIONS.map((option) => (
@@ -326,10 +339,14 @@ export default function OutfitsList({
               visibleCategoryIds === null
                 ? outfitItems
                 : outfitItems.filter((outfitItem) =>
-                    isItemVisibleByCategorySettings(outfitItem.item, visibleCategoryIds),
+                    isItemVisibleByCategorySettings(
+                      outfitItem.item,
+                      visibleCategoryIds,
+                    ),
                   );
             const itemCount = visibleOutfitItems.length;
-            const hiddenItemCount = outfitItems.length - visibleOutfitItems.length;
+            const hiddenItemCount =
+              outfitItems.length - visibleOutfitItems.length;
 
             return (
               <article
@@ -352,7 +369,9 @@ export default function OutfitsList({
                       </h2>
 
                       {outfit.memo && (
-                        <p className="mt-2 text-sm text-gray-600">{outfit.memo}</p>
+                        <p className="mt-2 text-sm text-gray-600">
+                          {outfit.memo}
+                        </p>
                       )}
 
                       <p className="mt-4 text-sm text-gray-600">
@@ -361,17 +380,23 @@ export default function OutfitsList({
 
                       {hiddenItemCount > 0 && (
                         <p className="mt-1 text-sm text-amber-700">
-                          現在の表示設定により {hiddenItemCount} 件を非表示にしています。
+                          現在の表示設定により {hiddenItemCount}{" "}
+                          件を非表示にしています。
                         </p>
                       )}
 
                       <p className="mt-2 text-sm text-gray-600">
                         季節:{" "}
-                        {outfit.seasons?.length ? outfit.seasons.join(" / ") : "未設定"}
+                        {outfit.seasons?.length
+                          ? outfit.seasons.join(" / ")
+                          : "未設定"}
                       </p>
 
                       <p className="mt-1 text-sm text-gray-600">
-                        TPO: {outfit.tpos?.length ? outfit.tpos.join(" / ") : "未設定"}
+                        TPO:{" "}
+                        {outfit.tpos?.length
+                          ? outfit.tpos.join(" / ")
+                          : "未設定"}
                       </p>
                     </div>
                   </div>
@@ -404,9 +429,7 @@ export default function OutfitsList({
 
         <p className="text-sm text-gray-600">
           {currentPage} / {lastPage}ページ
-          <span className="ml-2 text-gray-400">
-            （全{totalCount}件）
-          </span>
+          <span className="ml-2 text-gray-400">（全{totalCount}件）</span>
         </p>
         <button
           type="button"

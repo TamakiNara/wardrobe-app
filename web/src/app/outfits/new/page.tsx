@@ -5,7 +5,10 @@ import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import FieldLabel from "@/components/forms/field-label";
 import { isItemVisibleByCategorySettings } from "@/lib/api/categories";
-import { fetchCategoryVisibilitySettings, fetchUserTpos } from "@/lib/api/settings";
+import {
+  fetchCategoryVisibilitySettings,
+  fetchUserTpos,
+} from "@/lib/api/settings";
 import {
   clearOutfitDuplicatePayload,
   loadOutfitDuplicatePayload,
@@ -56,10 +59,12 @@ export default function NewOutfitPage() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
   const [submitPreview, setSubmitPreview] = useState("");
-  const [initializationSuccess, setInitializationSuccess] = useState<string | null>(
+  const [initializationSuccess, setInitializationSuccess] = useState<
+    string | null
+  >(null);
+  const [initializationError, setInitializationError] = useState<string | null>(
     null,
   );
-  const [initializationError, setInitializationError] = useState<string | null>(null);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -140,13 +145,16 @@ export default function NewOutfitPage() {
     setSelectedSeasons(draft.seasons);
     setSelectedTpoIds(draft.tpoIds);
     setTpoOptions((current) =>
-      [...current, ...draft.tpoIds.map((tpoId, index) => ({
-        id: tpoId,
-        name: draft.tpos[index] ?? `TPO ${tpoId}`,
-        sortOrder: 10_000 + index,
-        isActive: false,
-        isPreset: false,
-      }))].reduce<UserTpoRecord[]>((carry, tpo) => {
+      [
+        ...current,
+        ...draft.tpoIds.map((tpoId, index) => ({
+          id: tpoId,
+          name: draft.tpos[index] ?? `TPO ${tpoId}`,
+          sortOrder: 10_000 + index,
+          isActive: false,
+          isPreset: false,
+        })),
+      ].reduce<UserTpoRecord[]>((carry, tpo) => {
         if (carry.some((currentTpo) => currentTpo.id === tpo.id)) {
           return carry;
         }
@@ -272,7 +280,9 @@ export default function NewOutfitPage() {
             setSubmitError("コーディネートの登録に失敗しました。");
           }
         } else {
-          setSubmitError(data?.message ?? "コーディネートの登録に失敗しました。");
+          setSubmitError(
+            data?.message ?? "コーディネートの登録に失敗しました。",
+          );
         }
         return;
       }
@@ -308,7 +318,9 @@ export default function NewOutfitPage() {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm text-gray-500">コーディネート管理</p>
-            <h1 className="text-2xl font-bold text-gray-900">コーディネート登録</h1>
+            <h1 className="text-2xl font-bold text-gray-900">
+              コーディネート登録
+            </h1>
           </div>
 
           <Link
@@ -337,7 +349,9 @@ export default function NewOutfitPage() {
         >
           <section className="space-y-4">
             <h2 className="text-lg font-semibold text-gray-900">基本情報</h2>
-            <p className="text-sm text-gray-500">「必須」が付いた項目は登録に必要です。</p>
+            <p className="text-sm text-gray-500">
+              「必須」が付いた項目は登録に必要です。
+            </p>
 
             <div>
               <label
@@ -430,7 +444,9 @@ export default function NewOutfitPage() {
                   );
                 })}
                 {tpoOptions.length === 0 ? (
-                  <p className="text-sm text-gray-500">有効な TPO はまだありません。設定から追加できます。</p>
+                  <p className="text-sm text-gray-500">
+                    有効な TPO はまだありません。設定から追加できます。
+                  </p>
                 ) : null}
               </div>
             </div>
@@ -465,14 +481,18 @@ export default function NewOutfitPage() {
               </div>
             )}
 
-            {selectedItemIds.length === 0 && !loadingItems && items.length > 0 && (
-              <p className="text-sm text-gray-500">
-                コーディネートに含めるアイテムを1つ以上選択してください。
-              </p>
-            )}
+            {selectedItemIds.length === 0 &&
+              !loadingItems &&
+              items.length > 0 && (
+                <p className="text-sm text-gray-500">
+                  コーディネートに含めるアイテムを1つ以上選択してください。
+                </p>
+              )}
 
             {loadingItems ? (
-              <p className="text-sm text-gray-600">アイテムを読み込み中です...</p>
+              <p className="text-sm text-gray-600">
+                アイテムを読み込み中です...
+              </p>
             ) : items.length === 0 ? (
               <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-6 text-sm text-gray-600">
                 登録済みアイテムがありません。先にアイテムを登録してください。
@@ -537,7 +557,8 @@ export default function NewOutfitPage() {
                 <ol className="space-y-2 text-sm text-gray-700">
                   {selectedItems.map((item, index) => (
                     <li key={item.id}>
-                      {index + 1}. {item.name || "名称未設定"} ({item.category} / {item.shape})
+                      {index + 1}. {item.name || "名称未設定"} ({item.category}{" "}
+                      / {item.shape})
                     </li>
                   ))}
                 </ol>

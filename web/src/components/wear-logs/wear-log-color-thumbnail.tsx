@@ -1,7 +1,5 @@
 import { COLOR_THUMBNAIL_OTHERS_BAR_CLASS } from "@/lib/color-thumbnails/shared";
-import {
-  buildWearLogThumbnailLayout,
-} from "@/lib/wear-logs/color-thumbnail";
+import { buildWearLogThumbnailLayout } from "@/lib/wear-logs/color-thumbnail";
 import type { WearLogThumbnailItem } from "@/types/wear-logs";
 
 function ColorBand({
@@ -75,7 +73,10 @@ export default function WearLogColorThumbnail({
     >
       {layout.usesFullHeightForOthers ? (
         <div className="h-14 overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
-          <SegmentRow segments={layout.others} testId="wear-log-thumbnail-others-full" />
+          <SegmentRow
+            segments={layout.others}
+            testId="wear-log-thumbnail-others-full"
+          />
         </div>
       ) : (
         <>
@@ -88,7 +89,10 @@ export default function WearLogColorThumbnail({
                 className={`min-h-0 ${hasTopBottomSplit ? "h-1/2" : "h-full"}`}
                 data-testid="wear-log-thumbnail-main-top"
               >
-                <SegmentRow segments={layout.tops} testId="wear-log-thumbnail-tops" />
+                <SegmentRow
+                  segments={layout.tops}
+                  testId="wear-log-thumbnail-tops"
+                />
               </div>
             ) : null}
 
@@ -97,7 +101,10 @@ export default function WearLogColorThumbnail({
                 className={`min-h-0 ${hasTopBottomSplit ? "h-1/2" : "h-full"}`}
                 data-testid="wear-log-thumbnail-main-bottom"
               >
-                <SegmentRow segments={layout.bottoms} testId="wear-log-thumbnail-bottoms" />
+                <SegmentRow
+                  segments={layout.bottoms}
+                  testId="wear-log-thumbnail-bottoms"
+                />
               </div>
             ) : null}
           </div>
@@ -107,7 +114,10 @@ export default function WearLogColorThumbnail({
               className={COLOR_THUMBNAIL_OTHERS_BAR_CLASS}
               data-testid="wear-log-thumbnail-others-bar"
             >
-              <SegmentRow segments={layout.others} testId="wear-log-thumbnail-others" />
+              <SegmentRow
+                segments={layout.others}
+                testId="wear-log-thumbnail-others"
+              />
             </div>
           ) : null}
         </>

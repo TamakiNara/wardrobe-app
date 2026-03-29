@@ -8,8 +8,15 @@ import {
   ITEM_SHAPES,
   type ItemCategory,
 } from "@/lib/master-data/item-shapes";
-import { buildSupportedCategoryOptions, fetchCategoryGroups } from "@/lib/api/categories";
-import { fetchCategoryVisibilitySettings, fetchUserPreferences, fetchUserTpos } from "@/lib/api/settings";
+import {
+  buildSupportedCategoryOptions,
+  fetchCategoryGroups,
+} from "@/lib/api/categories";
+import {
+  fetchCategoryVisibilitySettings,
+  fetchUserPreferences,
+  fetchUserTpos,
+} from "@/lib/api/settings";
 import type { CategoryOption } from "@/types/categories";
 import {
   ITEM_COLORS,
@@ -23,7 +30,13 @@ import ItemImageUploader from "@/components/items/item-image-uploader";
 import ItemPreviewCard from "@/components/items/item-preview-card";
 import { SEASON_OPTIONS } from "@/lib/master-data/item-attributes";
 import { DEFAULT_SKIN_TONE_PRESET } from "@/lib/master-data/skin-tone-presets";
-import type { CreateItemPayload, ItemCareStatus, ItemFormColor, ItemImageRecord, ItemRecord } from "@/types/items";
+import type {
+  CreateItemPayload,
+  ItemCareStatus,
+  ItemFormColor,
+  ItemImageRecord,
+  ItemRecord,
+} from "@/types/items";
 import {
   buildTopsSpecLabels,
   buildTopsSpecRaw,
@@ -54,10 +67,13 @@ import {
   type BottomsLengthType,
   type LegwearCoverageType,
 } from "@/lib/master-data/item-skin-exposure";
-import { formatItemPrice, ITEM_CARE_STATUS_LABELS, ITEM_SIZE_GENDER_LABELS, normalizeItemImages } from "@/lib/items/metadata";
+import {
+  formatItemPrice,
+  ITEM_CARE_STATUS_LABELS,
+  ITEM_SIZE_GENDER_LABELS,
+  normalizeItemImages,
+} from "@/lib/items/metadata";
 import type { SkinTonePreset, UserTpoRecord } from "@/types/settings";
-
-
 
 export default function EditItemPage({
   params,
@@ -77,7 +93,9 @@ export default function EditItemPage({
   const [memo, setMemo] = useState("");
   const [careStatus, setCareStatus] = useState<ItemCareStatus | "">("");
   const [purchasedAt, setPurchasedAt] = useState("");
-  const [sizeGender, setSizeGender] = useState<"women" | "men" | "unisex" | "">("");
+  const [sizeGender, setSizeGender] = useState<"women" | "men" | "unisex" | "">(
+    "",
+  );
   const [sizeLabel, setSizeLabel] = useState("");
   const [sizeNote, setSizeNote] = useState("");
   const [sizeDetailsNote, setSizeDetailsNote] = useState("");
@@ -85,7 +103,9 @@ export default function EditItemPage({
   const [itemImages, setItemImages] = useState<ItemImageRecord[]>([]);
   const [pendingImages, setPendingImages] = useState<File[]>([]);
   const [category, setCategory] = useState<ItemCategory | "">("");
-  const [categoryOptions, setCategoryOptions] = useState<CategoryOption[]>([...ITEM_CATEGORIES]);
+  const [categoryOptions, setCategoryOptions] = useState<CategoryOption[]>([
+    ...ITEM_CATEGORIES,
+  ]);
   const [shape, setShape] = useState("");
 
   const [mainColor, setMainColor] = useState<ItemColorValue | "">("");
@@ -98,7 +118,9 @@ export default function EditItemPage({
   const [selectedSeasons, setSelectedSeasons] = useState<string[]>([]);
   const [selectedTpoIds, setSelectedTpoIds] = useState<number[]>([]);
   const [tpoOptions, setTpoOptions] = useState<UserTpoRecord[]>([]);
-  const [skinTonePreset, setSkinTonePreset] = useState<SkinTonePreset>(DEFAULT_SKIN_TONE_PRESET);
+  const [skinTonePreset, setSkinTonePreset] = useState<SkinTonePreset>(
+    DEFAULT_SKIN_TONE_PRESET,
+  );
 
   const [topsShape, setTopsShape] = useState<TopsShapeValue | "">("");
   const [topsSleeve, setTopsSleeve] = useState<TopsSleeveValue | "">("");
@@ -106,8 +128,12 @@ export default function EditItemPage({
   const [topsNeck, setTopsNeck] = useState<TopsNeckValue | "">("");
   const [topsDesign, setTopsDesign] = useState<TopsDesignValue | "">("");
   const [topsFit, setTopsFit] = useState<TopsFitValue>(DEFAULT_TOPS_FIT);
-  const [bottomsLengthType, setBottomsLengthType] = useState<BottomsLengthType | "">("");
-  const [legwearCoverageType, setLegwearCoverageType] = useState<LegwearCoverageType | "">("");
+  const [bottomsLengthType, setBottomsLengthType] = useState<
+    BottomsLengthType | ""
+  >("");
+  const [legwearCoverageType, setLegwearCoverageType] = useState<
+    LegwearCoverageType | ""
+  >("");
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
@@ -116,9 +142,16 @@ export default function EditItemPage({
 
   const isTopsCategory = category === "tops";
   const isBottomsSpecVisible = isBottomsSpecCategory(category);
-  const isLegwearSpecVisible = isLegwearSpecCategory(category) && Boolean(shape);
-  const isLegwearCoverageSelectVisible = shouldShowLegwearCoverageSelect(category, shape);
-  const legwearCoverageOptions = useMemo(() => getLegwearCoverageOptions(shape), [shape]);
+  const isLegwearSpecVisible =
+    isLegwearSpecCategory(category) && Boolean(shape);
+  const isLegwearCoverageSelectVisible = shouldShowLegwearCoverageSelect(
+    category,
+    shape,
+  );
+  const legwearCoverageOptions = useMemo(
+    () => getLegwearCoverageOptions(shape),
+    [shape],
+  );
 
   const shapeOptions = useMemo(() => {
     if (!category) return [];
@@ -174,10 +207,7 @@ export default function EditItemPage({
   useEffect(() => {
     let active = true;
 
-    Promise.all([
-      fetchCategoryGroups(),
-      fetchCategoryVisibilitySettings(),
-    ])
+    Promise.all([fetchCategoryGroups(), fetchCategoryVisibilitySettings()])
       .then(([groups, settings]) => {
         if (!active) return;
         const nextOptions = buildSupportedCategoryOptions(
@@ -203,10 +233,10 @@ export default function EditItemPage({
         return current;
       }
 
-      const currentOption = ITEM_CATEGORIES.find((option) => option.value === category);
-      return currentOption
-        ? [...current, currentOption]
-        : current;
+      const currentOption = ITEM_CATEGORIES.find(
+        (option) => option.value === category,
+      );
+      return currentOption ? [...current, currentOption] : current;
     });
   }, [category]);
   useEffect(() => {
@@ -260,15 +290,19 @@ export default function EditItemPage({
         setShape(item.shape);
         setSelectedSeasons(item.seasons ?? []);
         setSelectedTpoIds(item.tpo_ids ?? []);
-        const selectedInactiveTpos = (item.tpo_ids ?? []).map((tpoId, index) => ({
-          id: tpoId,
-          name: item.tpos?.[index] ?? `TPO ${tpoId}`,
-          sortOrder: 10_000 + index,
-          isActive: false,
-          isPreset: false,
-        }));
+        const selectedInactiveTpos = (item.tpo_ids ?? []).map(
+          (tpoId, index) => ({
+            id: tpoId,
+            name: item.tpos?.[index] ?? `TPO ${tpoId}`,
+            sortOrder: 10_000 + index,
+            isActive: false,
+            isPreset: false,
+          }),
+        );
         setTpoOptions(
-          [...tpoResponse.tpos, ...selectedInactiveTpos].reduce<UserTpoRecord[]>((carry, tpo) => {
+          [...tpoResponse.tpos, ...selectedInactiveTpos].reduce<
+            UserTpoRecord[]
+          >((carry, tpo) => {
             if (carry.some((current) => current.id === tpo.id)) {
               return carry;
             }
@@ -307,15 +341,38 @@ export default function EditItemPage({
           setTopsShape(resolvedShape);
 
           const rule = TOPS_RULES[resolvedShape];
-          setTopsSleeve((tops?.sleeve as TopsSleeveValue | null | undefined) ?? rule?.defaults?.sleeve ?? "");
-          setTopsLength((tops?.length as TopsLengthValue | null | undefined) ?? rule?.defaults?.length ?? "");
-          setTopsNeck((tops?.neck as TopsNeckValue | null | undefined) ?? rule?.defaults?.neck ?? "");
-          setTopsDesign((tops?.design as TopsDesignValue | null | undefined) ?? rule?.defaults?.design ?? "");
-          setTopsFit((tops?.fit as TopsFitValue | null | undefined) ?? rule?.defaults?.fit ?? DEFAULT_TOPS_FIT);
+          setTopsSleeve(
+            (tops?.sleeve as TopsSleeveValue | null | undefined) ??
+              rule?.defaults?.sleeve ??
+              "",
+          );
+          setTopsLength(
+            (tops?.length as TopsLengthValue | null | undefined) ??
+              rule?.defaults?.length ??
+              "",
+          );
+          setTopsNeck(
+            (tops?.neck as TopsNeckValue | null | undefined) ??
+              rule?.defaults?.neck ??
+              "",
+          );
+          setTopsDesign(
+            (tops?.design as TopsDesignValue | null | undefined) ??
+              rule?.defaults?.design ??
+              "",
+          );
+          setTopsFit(
+            (tops?.fit as TopsFitValue | null | undefined) ??
+              rule?.defaults?.fit ??
+              DEFAULT_TOPS_FIT,
+          );
         }
 
         if (item.category === "bottoms") {
-          setBottomsLengthType((bottoms?.length_type as BottomsLengthType | null | undefined) ?? "");
+          setBottomsLengthType(
+            (bottoms?.length_type as BottomsLengthType | null | undefined) ??
+              "",
+          );
         }
 
         if (item.category === "legwear") {
@@ -399,12 +456,24 @@ export default function EditItemPage({
     }
 
     setLegwearCoverageType(
-      (resolveLegwearCoverageType(category, nextShape, legwearCoverageType) as LegwearCoverageType | null) ?? "",
+      (resolveLegwearCoverageType(
+        category,
+        nextShape,
+        legwearCoverageType,
+      ) as LegwearCoverageType | null) ?? "",
     );
   }
 
-  function toggleValue<T>(value: T, current: T[], setter: (values: T[]) => void) {
-    setter(current.includes(value) ? current.filter((item) => item !== value) : [...current, value]);
+  function toggleValue<T>(
+    value: T,
+    current: T[],
+    setter: (values: T[]) => void,
+  ) {
+    setter(
+      current.includes(value)
+        ? current.filter((item) => item !== value)
+        : [...current, value],
+    );
   }
 
   function buildPayload(): CreateItemPayload {
@@ -430,7 +499,11 @@ export default function EditItemPage({
       });
     }
 
-    const resolvedLegwearCoverageType = resolveLegwearCoverageType(category, shape, legwearCoverageType);
+    const resolvedLegwearCoverageType = resolveLegwearCoverageType(
+      category,
+      shape,
+      legwearCoverageType,
+    );
 
     return {
       name,
@@ -444,7 +517,9 @@ export default function EditItemPage({
       size_gender: sizeGender || null,
       size_label: sizeLabel.trim() || null,
       size_note: sizeNote.trim() || null,
-      size_details: sizeDetailsNote.trim() ? { note: sizeDetailsNote.trim() } : null,
+      size_details: sizeDetailsNote.trim()
+        ? { note: sizeDetailsNote.trim() }
+        : null,
       is_rain_ok: isRainOk,
       category,
       shape,
@@ -526,7 +601,11 @@ export default function EditItemPage({
 
       if (!uploadResponse.ok) {
         const uploadData = await uploadResponse.json().catch(() => null);
-        throw new Error(uploadData?.message ?? uploadData?.errors?.image?.[0] ?? "画像の追加に失敗しました。");
+        throw new Error(
+          uploadData?.message ??
+            uploadData?.errors?.image?.[0] ??
+            "画像の追加に失敗しました。",
+        );
       }
     }
   }
@@ -548,18 +627,26 @@ export default function EditItemPage({
     }
 
     setItemImages((current) =>
-      normalizeItemImages(current.filter((currentImage) => currentImage.id !== imageId)),
+      normalizeItemImages(
+        current.filter((currentImage) => currentImage.id !== imageId),
+      ),
     );
   }
 
-  function handleMoveImage(targetImage: ItemImageRecord, direction: "up" | "down") {
+  function handleMoveImage(
+    targetImage: ItemImageRecord,
+    direction: "up" | "down",
+  ) {
     setItemImages((current) => {
-      const currentIndex = current.findIndex((image) => image.id === targetImage.id);
+      const currentIndex = current.findIndex(
+        (image) => image.id === targetImage.id,
+      );
       if (currentIndex < 0) {
         return current;
       }
 
-      const nextIndex = direction === "up" ? currentIndex - 1 : currentIndex + 1;
+      const nextIndex =
+        direction === "up" ? currentIndex - 1 : currentIndex + 1;
       if (nextIndex < 0 || nextIndex >= current.length) {
         return current;
       }
@@ -585,16 +672,25 @@ export default function EditItemPage({
 
   function validateForm() {
     const nextErrors: Record<string, string> = {};
-    const resolvedLegwearCoverageType = resolveLegwearCoverageType(category, shape, legwearCoverageType);
+    const resolvedLegwearCoverageType = resolveLegwearCoverageType(
+      category,
+      shape,
+      legwearCoverageType,
+    );
 
     if (!category) nextErrors.category = "カテゴリを選択してください。";
     if (!shape) nextErrors.shape = "形を選択してください。";
-    if (!selectedMainColor) nextErrors.mainColor = "メインカラーを選択してください。";
+    if (!selectedMainColor)
+      nextErrors.mainColor = "メインカラーを選択してください。";
     if (isBottomsLengthTypeRequired(category) && !bottomsLengthType) {
       nextErrors["spec.bottoms.length_type"] = "ボトムス丈を選択してください。";
     }
-    if (isLegwearCoverageTypeRequired(category, shape) && !resolvedLegwearCoverageType) {
-      nextErrors["spec.legwear.coverage_type"] = "レッグウェアを選択してください。";
+    if (
+      isLegwearCoverageTypeRequired(category, shape) &&
+      !resolvedLegwearCoverageType
+    ) {
+      nextErrors["spec.legwear.coverage_type"] =
+        "レッグウェアを選択してください。";
     }
 
     setErrors(nextErrors);
@@ -678,7 +774,9 @@ export default function EditItemPage({
       : undefined,
     legwear: isLegwearSpecCategory(category)
       ? {
-          coverage_type: resolveLegwearCoverageType(category, shape, legwearCoverageType) ?? undefined,
+          coverage_type:
+            resolveLegwearCoverageType(category, shape, legwearCoverageType) ??
+            undefined,
         }
       : undefined,
   };
@@ -696,9 +794,13 @@ export default function EditItemPage({
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">
       <div className="mx-auto max-w-3xl space-y-6">
         <nav className="text-sm text-gray-500">
-          <Link href="/" className="hover:underline">ホーム</Link>
+          <Link href="/" className="hover:underline">
+            ホーム
+          </Link>
           {" / "}
-          <Link href="/items" className="hover:underline">アイテム一覧</Link>
+          <Link href="/items" className="hover:underline">
+            アイテム一覧
+          </Link>
           {" / "}
           <span className="text-gray-700">編集</span>
         </nav>
@@ -709,15 +811,23 @@ export default function EditItemPage({
             <h1 className="text-2xl font-bold text-gray-900">アイテム編集</h1>
           </div>
 
-          <Link href={itemId ? `/items/${itemId}` : "/items"} className="text-sm font-medium text-blue-600 hover:underline">
+          <Link
+            href={itemId ? `/items/${itemId}` : "/items"}
+            className="text-sm font-medium text-blue-600 hover:underline"
+          >
             詳細に戻る
           </Link>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6 rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-6 rounded-2xl border border-gray-200 bg-white p-8 shadow-sm"
+        >
           <section className="space-y-4">
             <h2 className="text-lg font-semibold text-gray-900">基本情報</h2>
-            <p className="text-sm text-gray-500">「必須」が付いた項目は更新に必要です。</p>
+            <p className="text-sm text-gray-500">
+              「必須」が付いた項目は更新に必要です。
+            </p>
 
             <div className="grid gap-4 md:grid-cols-2">
               <BrandNameField
@@ -730,58 +840,130 @@ export default function EditItemPage({
               />
 
               <div>
-                <label htmlFor="price" className="mb-1 block text-sm font-medium text-gray-700">実購入価格</label>
+                <label
+                  htmlFor="price"
+                  className="mb-1 block text-sm font-medium text-gray-700"
+                >
+                  実購入価格
+                </label>
                 <div className="flex items-center rounded-lg border border-gray-300 bg-white pr-4 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100">
-                  <input id="price" type="number" min="0" inputMode="numeric" value={price} onChange={(e) => setPrice(e.target.value)} className="w-full rounded-lg bg-transparent px-4 py-3 text-gray-900 outline-none" />
+                  <input
+                    id="price"
+                    type="number"
+                    min="0"
+                    inputMode="numeric"
+                    value={price}
+                    onChange={(e) => setPrice(e.target.value)}
+                    className="w-full rounded-lg bg-transparent px-4 py-3 text-gray-900 outline-none"
+                  />
                   <span className="text-sm text-gray-500">円</span>
                 </div>
                 {price !== "" && (
-                  <p className="mt-1 text-xs text-gray-500">表示: {formatItemPrice(Number(price))}</p>
+                  <p className="mt-1 text-xs text-gray-500">
+                    表示: {formatItemPrice(Number(price))}
+                  </p>
                 )}
               </div>
             </div>
 
             <div>
-              <label htmlFor="name" className="mb-1 block text-sm font-medium text-gray-700">名前</label>
-              <input id="name" type="text" value={name} onChange={(e) => setName(e.target.value)} className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
+              <label
+                htmlFor="name"
+                className="mb-1 block text-sm font-medium text-gray-700"
+              >
+                名前
+              </label>
+              <input
+                id="name"
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              />
             </div>
 
             <div>
               <FieldLabel htmlFor="category" label="カテゴリ" required />
-              <select id="category" value={category} onChange={(e) => handleCategoryChange(e.target.value)} className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors.category ? "border-red-400" : "border-gray-300"}`}>
+              <select
+                id="category"
+                value={category}
+                onChange={(e) => handleCategoryChange(e.target.value)}
+                className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors.category ? "border-red-400" : "border-gray-300"}`}
+              >
                 <option value="">選択してください</option>
                 {categoryOptions.map((item) => (
-                  <option key={item.value} value={item.value}>{item.label}</option>
+                  <option key={item.value} value={item.value}>
+                    {item.label}
+                  </option>
                 ))}
               </select>
-              {errors.category && <p className="mt-2 text-sm text-red-600">{errors.category}</p>}
+              {errors.category && (
+                <p className="mt-2 text-sm text-red-600">{errors.category}</p>
+              )}
             </div>
 
             <div>
               <FieldLabel htmlFor="shape" label="形" required />
-              <select id="shape" value={shape} onChange={(e) => handleShapeChange(e.target.value)} disabled={!category || isTopsCategory} className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors.shape ? "border-red-400" : "border-gray-300"}`}>
+              <select
+                id="shape"
+                value={shape}
+                onChange={(e) => handleShapeChange(e.target.value)}
+                disabled={!category || isTopsCategory}
+                className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors.shape ? "border-red-400" : "border-gray-300"}`}
+              >
                 <option value="">選択してください</option>
                 {shapeOptions.map((item) => (
-                  <option key={item.value} value={item.value}>{item.label}</option>
+                  <option key={item.value} value={item.value}>
+                    {item.label}
+                  </option>
                 ))}
               </select>
-              {errors.shape && <p className="mt-2 text-sm text-red-600">{errors.shape}</p>}
+              {errors.shape && (
+                <p className="mt-2 text-sm text-red-600">{errors.shape}</p>
+              )}
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
               <div>
-                <label htmlFor="purchase-url" className="mb-1 block text-sm font-medium text-gray-700">購入 URL</label>
-                <input id="purchase-url" type="url" value={purchaseUrl} onChange={(e) => setPurchaseUrl(e.target.value)} className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
+                <label
+                  htmlFor="purchase-url"
+                  className="mb-1 block text-sm font-medium text-gray-700"
+                >
+                  購入 URL
+                </label>
+                <input
+                  id="purchase-url"
+                  type="url"
+                  value={purchaseUrl}
+                  onChange={(e) => setPurchaseUrl(e.target.value)}
+                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                />
               </div>
 
               <div>
-                <label htmlFor="purchased-at" className="mb-1 block text-sm font-medium text-gray-700">購入日</label>
-                <input id="purchased-at" type="date" value={purchasedAt} onChange={(e) => setPurchasedAt(e.target.value)} className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
+                <label
+                  htmlFor="purchased-at"
+                  className="mb-1 block text-sm font-medium text-gray-700"
+                >
+                  購入日
+                </label>
+                <input
+                  id="purchased-at"
+                  type="date"
+                  value={purchasedAt}
+                  onChange={(e) => setPurchasedAt(e.target.value)}
+                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                />
               </div>
             </div>
 
             <div>
-              <label htmlFor="memo" className="mb-1 block text-sm font-medium text-gray-700">メモ</label>
+              <label
+                htmlFor="memo"
+                className="mb-1 block text-sm font-medium text-gray-700"
+              >
+                メモ
+              </label>
               <textarea
                 id="memo"
                 value={memo}
@@ -792,63 +974,140 @@ export default function EditItemPage({
             </div>
 
             <div>
-              <label htmlFor="care-status" className="mb-1 block text-sm font-medium text-gray-700">ケア状態</label>
+              <label
+                htmlFor="care-status"
+                className="mb-1 block text-sm font-medium text-gray-700"
+              >
+                ケア状態
+              </label>
               <select
                 id="care-status"
                 value={careStatus}
-                onChange={(e) => setCareStatus(e.target.value as ItemCareStatus | "")}
+                onChange={(e) =>
+                  setCareStatus(e.target.value as ItemCareStatus | "")
+                }
                 className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               >
                 <option value=""></option>
-                {Object.entries(ITEM_CARE_STATUS_LABELS).map(([value, label]) => (
-                  <option key={value} value={value}>{label}</option>
-                ))}
+                {Object.entries(ITEM_CARE_STATUS_LABELS).map(
+                  ([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ),
+                )}
               </select>
-              <p className="mt-1 text-xs text-gray-500">クリーニング中でもコーデ候補や着用履歴候補からは除外されません。</p>
+              <p className="mt-1 text-xs text-gray-500">
+                クリーニング中でもコーデ候補や着用履歴候補からは除外されません。
+              </p>
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
               <div>
-                <label htmlFor="size-gender" className="mb-1 block text-sm font-medium text-gray-700">サイズ区分</label>
-                <select id="size-gender" value={sizeGender} onChange={(e) => setSizeGender(e.target.value as "women" | "men" | "unisex" | "")} className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
+                <label
+                  htmlFor="size-gender"
+                  className="mb-1 block text-sm font-medium text-gray-700"
+                >
+                  サイズ区分
+                </label>
+                <select
+                  id="size-gender"
+                  value={sizeGender}
+                  onChange={(e) =>
+                    setSizeGender(
+                      e.target.value as "women" | "men" | "unisex" | "",
+                    )
+                  }
+                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                >
                   <option value=""></option>
-                  {Object.entries(ITEM_SIZE_GENDER_LABELS).map(([value, label]) => (
-                    <option key={value} value={value}>{label}</option>
-                  ))}
+                  {Object.entries(ITEM_SIZE_GENDER_LABELS).map(
+                    ([value, label]) => (
+                      <option key={value} value={value}>
+                        {label}
+                      </option>
+                    ),
+                  )}
                 </select>
               </div>
 
               <div>
-                <label htmlFor="size-label" className="mb-1 block text-sm font-medium text-gray-700">サイズ表記</label>
-                <input id="size-label" type="text" placeholder="例: M / 23.5cm" value={sizeLabel} onChange={(e) => setSizeLabel(e.target.value)} className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
+                <label
+                  htmlFor="size-label"
+                  className="mb-1 block text-sm font-medium text-gray-700"
+                >
+                  サイズ表記
+                </label>
+                <input
+                  id="size-label"
+                  type="text"
+                  placeholder="例: M / 23.5cm"
+                  value={sizeLabel}
+                  onChange={(e) => setSizeLabel(e.target.value)}
+                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                />
               </div>
             </div>
 
             <div className="grid gap-4 md:grid-cols-[1fr_auto]">
               <div>
-                <label htmlFor="size-note" className="mb-1 block text-sm font-medium text-gray-700">サイズ補足</label>
-                <input id="size-note" type="text" value={sizeNote} onChange={(e) => setSizeNote(e.target.value)} className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
+                <label
+                  htmlFor="size-note"
+                  className="mb-1 block text-sm font-medium text-gray-700"
+                >
+                  サイズ補足
+                </label>
+                <input
+                  id="size-note"
+                  type="text"
+                  value={sizeNote}
+                  onChange={(e) => setSizeNote(e.target.value)}
+                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                />
               </div>
 
               <div>
-                <div className="mb-1 block text-sm font-medium text-transparent" aria-hidden="true">雨対応</div>
+                <div
+                  className="mb-1 block text-sm font-medium text-transparent"
+                  aria-hidden="true"
+                >
+                  雨対応
+                </div>
                 <label className="inline-flex h-[50px] w-full items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700">
-                  <input type="checkbox" checked={isRainOk} onChange={(e) => setIsRainOk(e.target.checked)} className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                  <input
+                    type="checkbox"
+                    checked={isRainOk}
+                    onChange={(e) => setIsRainOk(e.target.checked)}
+                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
                   雨対応
                 </label>
               </div>
             </div>
 
             <div>
-              <label htmlFor="size-details-note" className="mb-1 block text-sm font-medium text-gray-700">実寸メモ</label>
-              <textarea id="size-details-note" value={sizeDetailsNote} onChange={(e) => setSizeDetailsNote(e.target.value)} rows={3} className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
+              <label
+                htmlFor="size-details-note"
+                className="mb-1 block text-sm font-medium text-gray-700"
+              >
+                実寸メモ
+              </label>
+              <textarea
+                id="size-details-note"
+                value={sizeDetailsNote}
+                onChange={(e) => setSizeDetailsNote(e.target.value)}
+                rows={3}
+                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              />
             </div>
           </section>
 
           <section className="space-y-4 rounded-xl border border-gray-200 bg-gray-50 p-4">
             <div>
               <h2 className="text-lg font-semibold text-gray-900">画像</h2>
-              <p className="mt-1 text-sm text-gray-500">既存画像の削除と、新しい item 画像の追加ができます。</p>
+              <p className="mt-1 text-sm text-gray-500">
+                既存画像の削除と、新しい item 画像の追加ができます。
+              </p>
             </div>
 
             <ItemImageUploader
@@ -866,73 +1125,168 @@ export default function EditItemPage({
               }}
               disabled={submitting}
               helperText="既存画像は並び替えと代表画像の切り替えができます。保存前の追加画像はまとめて反映されます。"
-              existingHeading={itemImages.length > 0 ? "現在登録されている画像" : undefined}
+              existingHeading={
+                itemImages.length > 0 ? "現在登録されている画像" : undefined
+              }
             />
           </section>
 
           {isTopsCategory && (
             <section className="space-y-4 rounded-xl border border-gray-200 bg-gray-50 p-4">
               <div>
-                <p className="text-sm font-medium text-gray-700">トップス仕様</p>
-                <p className="mt-1 text-xs text-gray-500">保存済みのトップス仕様を編集しながら、下のプレビューに反映します。</p>
+                <p className="text-sm font-medium text-gray-700">
+                  トップス仕様
+                </p>
+                <p className="mt-1 text-xs text-gray-500">
+                  保存済みのトップス仕様を編集しながら、下のプレビューに反映します。
+                </p>
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
-                  <label htmlFor="tops-shape" className="mb-1 block text-sm font-medium text-gray-700">形</label>
-                  <select id="tops-shape" value={topsShape} onChange={(e) => handleTopsShapeChange(e.target.value)} className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
+                  <label
+                    htmlFor="tops-shape"
+                    className="mb-1 block text-sm font-medium text-gray-700"
+                  >
+                    形
+                  </label>
+                  <select
+                    id="tops-shape"
+                    value={topsShape}
+                    onChange={(e) => handleTopsShapeChange(e.target.value)}
+                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  >
                     <option value="">選択してください</option>
                     {TOPS_SHAPES.map((item) => (
-                      <option key={item.value} value={item.value}>{item.label}</option>
+                      <option key={item.value} value={item.value}>
+                        {item.label}
+                      </option>
                     ))}
                   </select>
                 </div>
 
                 <div>
-                  <label htmlFor="tops-sleeve" className="mb-1 block text-sm font-medium text-gray-700">袖</label>
-                  <select id="tops-sleeve" value={topsSleeve} onChange={(e) => setTopsSleeve(e.target.value as TopsSleeveValue | "")} disabled={!topsShape} className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
+                  <label
+                    htmlFor="tops-sleeve"
+                    className="mb-1 block text-sm font-medium text-gray-700"
+                  >
+                    袖
+                  </label>
+                  <select
+                    id="tops-sleeve"
+                    value={topsSleeve}
+                    onChange={(e) =>
+                      setTopsSleeve(e.target.value as TopsSleeveValue | "")
+                    }
+                    disabled={!topsShape}
+                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  >
                     <option value="">選択してください</option>
                     {availableTopsSleeves.map((item) => (
-                      <option key={item.value} value={item.value}>{item.label}</option>
+                      <option key={item.value} value={item.value}>
+                        {item.label}
+                      </option>
                     ))}
                   </select>
                 </div>
 
                 <div>
-                  <label htmlFor="tops-length" className="mb-1 block text-sm font-medium text-gray-700">丈</label>
-                  <select id="tops-length" value={topsLength} onChange={(e) => setTopsLength(e.target.value as TopsLengthValue | "")} disabled={!topsShape} className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
+                  <label
+                    htmlFor="tops-length"
+                    className="mb-1 block text-sm font-medium text-gray-700"
+                  >
+                    丈
+                  </label>
+                  <select
+                    id="tops-length"
+                    value={topsLength}
+                    onChange={(e) =>
+                      setTopsLength(e.target.value as TopsLengthValue | "")
+                    }
+                    disabled={!topsShape}
+                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  >
                     <option value="">選択してください</option>
                     {availableTopsLengths.map((item) => (
-                      <option key={item.value} value={item.value}>{item.label}</option>
+                      <option key={item.value} value={item.value}>
+                        {item.label}
+                      </option>
                     ))}
                   </select>
                 </div>
 
                 <div>
-                  <label htmlFor="tops-neck" className="mb-1 block text-sm font-medium text-gray-700">首元</label>
-                  <select id="tops-neck" value={topsNeck} onChange={(e) => setTopsNeck(e.target.value as TopsNeckValue | "")} disabled={!topsShape} className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
+                  <label
+                    htmlFor="tops-neck"
+                    className="mb-1 block text-sm font-medium text-gray-700"
+                  >
+                    首元
+                  </label>
+                  <select
+                    id="tops-neck"
+                    value={topsNeck}
+                    onChange={(e) =>
+                      setTopsNeck(e.target.value as TopsNeckValue | "")
+                    }
+                    disabled={!topsShape}
+                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  >
                     <option value="">選択してください</option>
                     {availableTopsNecks.map((item) => (
-                      <option key={item.value} value={item.value}>{item.label}</option>
+                      <option key={item.value} value={item.value}>
+                        {item.label}
+                      </option>
                     ))}
                   </select>
                 </div>
 
                 <div>
-                  <label htmlFor="tops-design" className="mb-1 block text-sm font-medium text-gray-700">デザイン</label>
-                  <select id="tops-design" value={topsDesign} onChange={(e) => setTopsDesign(e.target.value as TopsDesignValue | "")} disabled={!topsShape || availableTopsDesigns.length === 0} className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
-                    <option value="">{availableTopsDesigns.length ? "選択してください" : "選択肢がありません"}</option>
+                  <label
+                    htmlFor="tops-design"
+                    className="mb-1 block text-sm font-medium text-gray-700"
+                  >
+                    デザイン
+                  </label>
+                  <select
+                    id="tops-design"
+                    value={topsDesign}
+                    onChange={(e) =>
+                      setTopsDesign(e.target.value as TopsDesignValue | "")
+                    }
+                    disabled={!topsShape || availableTopsDesigns.length === 0}
+                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  >
+                    <option value="">
+                      {availableTopsDesigns.length
+                        ? "選択してください"
+                        : "選択肢がありません"}
+                    </option>
                     {availableTopsDesigns.map((item) => (
-                      <option key={item.value} value={item.value}>{item.label}</option>
+                      <option key={item.value} value={item.value}>
+                        {item.label}
+                      </option>
                     ))}
                   </select>
                 </div>
 
                 <div>
-                  <label htmlFor="tops-fit" className="mb-1 block text-sm font-medium text-gray-700">シルエット</label>
-                  <select id="tops-fit" value={topsFit} onChange={(e) => setTopsFit(e.target.value as TopsFitValue)} disabled={!topsShape} className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
+                  <label
+                    htmlFor="tops-fit"
+                    className="mb-1 block text-sm font-medium text-gray-700"
+                  >
+                    シルエット
+                  </label>
+                  <select
+                    id="tops-fit"
+                    value={topsFit}
+                    onChange={(e) => setTopsFit(e.target.value as TopsFitValue)}
+                    disabled={!topsShape}
+                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  >
                     {availableTopsFits.map((item) => (
-                      <option key={item.value} value={item.value}>{item.label}</option>
+                      <option key={item.value} value={item.value}>
+                        {item.label}
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -943,24 +1297,39 @@ export default function EditItemPage({
           {isBottomsSpecVisible && (
             <section className="space-y-4 rounded-xl border border-gray-200 bg-gray-50 p-4">
               <div>
-                <p className="text-sm font-medium text-gray-700">ボトムス仕様</p>
+                <p className="text-sm font-medium text-gray-700">
+                  ボトムス仕様
+                </p>
               </div>
 
               <div>
-                <label htmlFor="bottoms-length-type" className="mb-1 block text-sm font-medium text-gray-700">ボトムス丈</label>
+                <label
+                  htmlFor="bottoms-length-type"
+                  className="mb-1 block text-sm font-medium text-gray-700"
+                >
+                  ボトムス丈
+                </label>
                 <select
                   id="bottoms-length-type"
                   value={bottomsLengthType}
-                  onChange={(e) => setBottomsLengthType(e.target.value as BottomsLengthType | "")}
+                  onChange={(e) =>
+                    setBottomsLengthType(
+                      e.target.value as BottomsLengthType | "",
+                    )
+                  }
                   className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors["spec.bottoms.length_type"] ? "border-red-400" : "border-gray-300"}`}
                 >
                   <option value="">選択してください</option>
                   {BOTTOMS_LENGTH_OPTIONS.map((item) => (
-                    <option key={item.value} value={item.value}>{item.label}</option>
+                    <option key={item.value} value={item.value}>
+                      {item.label}
+                    </option>
                   ))}
                 </select>
                 {errors["spec.bottoms.length_type"] && (
-                  <p className="mt-2 text-sm text-red-600">{errors["spec.bottoms.length_type"]}</p>
+                  <p className="mt-2 text-sm text-red-600">
+                    {errors["spec.bottoms.length_type"]}
+                  </p>
                 )}
               </div>
             </section>
@@ -969,30 +1338,46 @@ export default function EditItemPage({
           {isLegwearSpecVisible && (
             <section className="space-y-4 rounded-xl border border-gray-200 bg-gray-50 p-4">
               <div>
-                <p className="text-sm font-medium text-gray-700">レッグウェア仕様</p>
+                <p className="text-sm font-medium text-gray-700">
+                  レッグウェア仕様
+                </p>
               </div>
 
               {isLegwearCoverageSelectVisible ? (
                 <div>
-                  <label htmlFor="legwear-coverage-type" className="mb-1 block text-sm font-medium text-gray-700">レッグウェア</label>
+                  <label
+                    htmlFor="legwear-coverage-type"
+                    className="mb-1 block text-sm font-medium text-gray-700"
+                  >
+                    レッグウェア
+                  </label>
                   <select
                     id="legwear-coverage-type"
                     value={legwearCoverageType}
-                    onChange={(e) => setLegwearCoverageType(e.target.value as LegwearCoverageType | "")}
+                    onChange={(e) =>
+                      setLegwearCoverageType(
+                        e.target.value as LegwearCoverageType | "",
+                      )
+                    }
                     className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors["spec.legwear.coverage_type"] ? "border-red-400" : "border-gray-300"}`}
                   >
                     <option value="">選択してください</option>
                     {legwearCoverageOptions.map((item) => (
-                      <option key={item.value} value={item.value}>{item.label}</option>
+                      <option key={item.value} value={item.value}>
+                        {item.label}
+                      </option>
                     ))}
                   </select>
                   {errors["spec.legwear.coverage_type"] && (
-                    <p className="mt-2 text-sm text-red-600">{errors["spec.legwear.coverage_type"]}</p>
+                    <p className="mt-2 text-sm text-red-600">
+                      {errors["spec.legwear.coverage_type"]}
+                    </p>
                   )}
                 </div>
               ) : (
                 <p className="text-sm text-gray-600">
-                  レッグウェア： {shape === "stockings" ? "ストッキング" : "タイツ"}
+                  レッグウェア：{" "}
+                  {shape === "stockings" ? "ストッキング" : "タイツ"}
                 </p>
               )}
             </section>
@@ -1003,16 +1388,39 @@ export default function EditItemPage({
 
             <div className="grid gap-6 md:grid-cols-2">
               <div className="space-y-3">
-                <FieldLabel as="div" label="メインカラー" required className="" />
+                <FieldLabel
+                  as="div"
+                  label="メインカラー"
+                  required
+                  className=""
+                />
                 <label className="flex items-center gap-2 text-sm text-gray-700">
-                  <input type="checkbox" checked={useCustomMainColor} onChange={(e) => { setUseCustomMainColor(e.target.checked); if (e.target.checked) setMainColor(""); }} className="h-4 w-4" />
+                  <input
+                    type="checkbox"
+                    checked={useCustomMainColor}
+                    onChange={(e) => {
+                      setUseCustomMainColor(e.target.checked);
+                      if (e.target.checked) setMainColor("");
+                    }}
+                    className="h-4 w-4"
+                  />
                   カスタムカラーを使う
                 </label>
 
                 {useCustomMainColor ? (
                   <div className="flex items-center gap-3 rounded-xl border border-gray-300 bg-white px-4 py-3">
-                    <input type="color" value={customMainHex} onChange={(e) => setCustomMainHex(e.target.value)} className="h-10 w-14 cursor-pointer rounded border border-gray-300 bg-white p-1" />
-                    <input type="text" value={customMainHex} onChange={(e) => setCustomMainHex(e.target.value)} className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors.mainColor ? "border-red-400" : "border-gray-300"}`} />
+                    <input
+                      type="color"
+                      value={customMainHex}
+                      onChange={(e) => setCustomMainHex(e.target.value)}
+                      className="h-10 w-14 cursor-pointer rounded border border-gray-300 bg-white p-1"
+                    />
+                    <input
+                      type="text"
+                      value={customMainHex}
+                      onChange={(e) => setCustomMainHex(e.target.value)}
+                      className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors.mainColor ? "border-red-400" : "border-gray-300"}`}
+                    />
                   </div>
                 ) : (
                   <ColorSelect
@@ -1021,20 +1429,44 @@ export default function EditItemPage({
                     placeholder="選択してください"
                   />
                 )}
-                {errors.mainColor && <p className="mt-2 text-sm text-red-600">{errors.mainColor}</p>}
+                {errors.mainColor && (
+                  <p className="mt-2 text-sm text-red-600">
+                    {errors.mainColor}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-3">
-                <label className="block text-sm font-medium text-gray-700">サブカラー</label>
+                <label className="block text-sm font-medium text-gray-700">
+                  サブカラー
+                </label>
                 <label className="flex items-center gap-2 text-sm text-gray-700">
-                  <input type="checkbox" checked={useCustomSubColor} onChange={(e) => { setUseCustomSubColor(e.target.checked); if (e.target.checked) setSubColor(""); }} className="h-4 w-4" />
+                  <input
+                    type="checkbox"
+                    checked={useCustomSubColor}
+                    onChange={(e) => {
+                      setUseCustomSubColor(e.target.checked);
+                      if (e.target.checked) setSubColor("");
+                    }}
+                    className="h-4 w-4"
+                  />
                   カスタムカラーを使う
                 </label>
 
                 {useCustomSubColor ? (
                   <div className="flex items-center gap-3 rounded-xl border border-gray-300 bg-white px-4 py-3">
-                    <input type="color" value={customSubHex} onChange={(e) => setCustomSubHex(e.target.value)} className="h-10 w-14 cursor-pointer rounded border border-gray-300 bg-white p-1" />
-                    <input type="text" value={customSubHex} onChange={(e) => setCustomSubHex(e.target.value)} className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
+                    <input
+                      type="color"
+                      value={customSubHex}
+                      onChange={(e) => setCustomSubHex(e.target.value)}
+                      className="h-10 w-14 cursor-pointer rounded border border-gray-300 bg-white p-1"
+                    />
+                    <input
+                      type="text"
+                      value={customSubHex}
+                      onChange={(e) => setCustomSubHex(e.target.value)}
+                      className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                    />
                   </div>
                 ) : (
                   <ColorSelect
@@ -1049,10 +1481,24 @@ export default function EditItemPage({
 
             {(selectedMainColor || selectedSubColor) && (
               <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
-                <p className="mb-3 text-sm font-medium text-gray-700">選択中の色</p>
+                <p className="mb-3 text-sm font-medium text-gray-700">
+                  選択中の色
+                </p>
                 <div className="flex flex-wrap gap-2">
-                  {selectedMainColor && <ColorChip label={selectedMainColor.label} hex={selectedMainColor.hex} tone="main" />}
-                  {selectedSubColor && <ColorChip label={selectedSubColor.label} hex={selectedSubColor.hex} tone="sub" />}
+                  {selectedMainColor && (
+                    <ColorChip
+                      label={selectedMainColor.label}
+                      hex={selectedMainColor.hex}
+                      tone="main"
+                    />
+                  )}
+                  {selectedSubColor && (
+                    <ColorChip
+                      label={selectedSubColor.label}
+                      hex={selectedSubColor.hex}
+                      tone="sub"
+                    />
+                  )}
                 </div>
               </div>
             )}
@@ -1067,8 +1513,22 @@ export default function EditItemPage({
                 {SEASON_OPTIONS.map((season) => {
                   const checked = selectedSeasons.includes(season);
                   return (
-                    <label key={season} className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition ${checked ? "border-blue-500 bg-blue-50 text-blue-700" : "border-gray-300 bg-white text-gray-700"}`}>
-                      <input type="checkbox" className="h-4 w-4" checked={checked} onChange={() => toggleValue(season, selectedSeasons, setSelectedSeasons)} />
+                    <label
+                      key={season}
+                      className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition ${checked ? "border-blue-500 bg-blue-50 text-blue-700" : "border-gray-300 bg-white text-gray-700"}`}
+                    >
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4"
+                        checked={checked}
+                        onChange={() =>
+                          toggleValue(
+                            season,
+                            selectedSeasons,
+                            setSelectedSeasons,
+                          )
+                        }
+                      />
                       {season}
                     </label>
                   );
@@ -1082,30 +1542,44 @@ export default function EditItemPage({
                 {tpoOptions.map((tpo) => {
                   const checked = selectedTpoIds.includes(tpo.id);
                   return (
-                    <label key={tpo.id} className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition ${checked ? "border-blue-500 bg-blue-50 text-blue-700" : "border-gray-300 bg-white text-gray-700"} ${!tpo.isActive ? "border-amber-300 bg-amber-50 text-amber-800" : ""}`}>
+                    <label
+                      key={tpo.id}
+                      className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition ${checked ? "border-blue-500 bg-blue-50 text-blue-700" : "border-gray-300 bg-white text-gray-700"} ${!tpo.isActive ? "border-amber-300 bg-amber-50 text-amber-800" : ""}`}
+                    >
                       <input
                         type="checkbox"
                         className="h-4 w-4"
                         checked={checked}
-                        onChange={() => toggleValue(tpo.id, selectedTpoIds, setSelectedTpoIds)}
+                        onChange={() =>
+                          toggleValue(tpo.id, selectedTpoIds, setSelectedTpoIds)
+                        }
                       />
                       {tpo.name}
                     </label>
                   );
                 })}
                 {tpoOptions.length === 0 ? (
-                  <p className="text-sm text-gray-500">有効な TPO はまだありません。設定から追加できます。</p>
+                  <p className="text-sm text-gray-500">
+                    有効な TPO はまだありません。設定から追加できます。
+                  </p>
                 ) : null}
               </div>
             </div>
           </section>
 
           <div className="flex flex-col gap-3 pt-2 sm:flex-row">
-            <button type="submit" disabled={submitting} className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-3 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50">
+            <button
+              type="submit"
+              disabled={submitting}
+              className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-3 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+            >
               {submitting ? "更新中..." : "更新する"}
             </button>
 
-            <Link href={itemId ? `/items/${itemId}` : "/items"} className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50">
+            <Link
+              href={itemId ? `/items/${itemId}` : "/items"}
+              className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+            >
               キャンセル
             </Link>
           </div>
@@ -1126,8 +1600,16 @@ export default function EditItemPage({
           skinTonePreset={skinTonePreset}
         />
 
-        {submitError && <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">{submitError}</div>}
-        {submitSuccess && <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">{submitSuccess}</div>}
+        {submitError && (
+          <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+            {submitError}
+          </div>
+        )}
+        {submitSuccess && (
+          <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+            {submitSuccess}
+          </div>
+        )}
       </div>
     </main>
   );

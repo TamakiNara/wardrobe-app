@@ -1,7 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+  type FormEvent,
+  type ReactNode,
+} from "react";
 import { useRouter } from "next/navigation";
 import FieldLabel from "@/components/forms/field-label";
 import ColorChip from "@/components/items/color-chip";
@@ -20,10 +26,7 @@ import {
   PURCHASE_CANDIDATE_SIZE_GENDER_LABELS,
   PURCHASE_CANDIDATE_STATUS_LABELS,
 } from "@/lib/purchase-candidates/labels";
-import type {
-  CategoryGroupRecord,
-  CategoryOption,
-} from "@/types/categories";
+import type { CategoryGroupRecord, CategoryOption } from "@/types/categories";
 import type {
   PurchaseCandidateDetailResponse,
   PurchaseCandidateImageRecord,
@@ -40,7 +43,9 @@ type PurchaseCandidateFormProps = {
   footerAction?: ReactNode;
 };
 
-const SUPPORTED_GROUP_IDS = new Set<string>(ITEM_CATEGORIES.map((item) => item.value));
+const SUPPORTED_GROUP_IDS = new Set<string>(
+  ITEM_CATEGORIES.map((item) => item.value),
+);
 
 function buildCategoryOptions(
   groups: CategoryGroupRecord[],
@@ -135,7 +140,9 @@ export default function PurchaseCandidateForm({
   const [purchaseUrl, setPurchaseUrl] = useState("");
   const [wantedReason, setWantedReason] = useState("");
   const [memo, setMemo] = useState("");
-  const [sizeGender, setSizeGender] = useState<"women" | "men" | "unisex" | "">("");
+  const [sizeGender, setSizeGender] = useState<"women" | "men" | "unisex" | "">(
+    "",
+  );
   const [sizeLabel, setSizeLabel] = useState("");
   const [sizeNote, setSizeNote] = useState("");
   const [isRainOk, setIsRainOk] = useState(false);
@@ -150,7 +157,9 @@ export default function PurchaseCandidateForm({
   const [selectedTpos, setSelectedTpos] = useState<string[]>([]);
 
   const [categoryOptions, setCategoryOptions] = useState<CategoryOption[]>([]);
-  const [existingImages, setExistingImages] = useState<PurchaseCandidateImageRecord[]>([]);
+  const [existingImages, setExistingImages] = useState<
+    PurchaseCandidateImageRecord[]
+  >([]);
   const [pendingImages, setPendingImages] = useState<File[]>([]);
 
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -192,12 +201,17 @@ export default function PurchaseCandidateForm({
           fetchCategoryVisibilitySettings(),
         ]);
 
-        setCategoryOptions(buildCategoryOptions(groups, settings.visibleCategoryIds));
+        setCategoryOptions(
+          buildCategoryOptions(groups, settings.visibleCategoryIds),
+        );
 
         if (mode === "edit" && candidateId) {
-          const response = await fetch(`/api/purchase-candidates/${candidateId}`, {
-            headers: { Accept: "application/json" },
-          });
+          const response = await fetch(
+            `/api/purchase-candidates/${candidateId}`,
+            {
+              headers: { Accept: "application/json" },
+            },
+          );
 
           if (response.status === 401) {
             router.push("/login");
@@ -209,7 +223,8 @@ export default function PurchaseCandidateForm({
             return;
           }
 
-          const data = (await response.json()) as PurchaseCandidateDetailResponse;
+          const data =
+            (await response.json()) as PurchaseCandidateDetailResponse;
           const candidate = data.purchaseCandidate;
 
           setStatus(candidate.status);
@@ -218,7 +233,9 @@ export default function PurchaseCandidateForm({
           setCategoryId(candidate.category_id);
           setBrandName(candidate.brand_name ?? "");
           setPrice(candidate.price === null ? "" : String(candidate.price));
-          setSalePrice(candidate.sale_price === null ? "" : String(candidate.sale_price));
+          setSalePrice(
+            candidate.sale_price === null ? "" : String(candidate.sale_price),
+          );
           setSaleEndsAt(toDateTimeLocalValue(candidate.sale_ends_at));
           setPurchaseUrl(candidate.purchase_url ?? "");
           setWantedReason(candidate.wanted_reason ?? "");
@@ -262,8 +279,16 @@ export default function PurchaseCandidateForm({
     loadInitialData();
   }, [candidateId, mode, router]);
 
-  function toggleValue(value: string, current: string[], setter: (values: string[]) => void) {
-    setter(current.includes(value) ? current.filter((item) => item !== value) : [...current, value]);
+  function toggleValue(
+    value: string,
+    current: string[],
+    setter: (values: string[]) => void,
+  ) {
+    setter(
+      current.includes(value)
+        ? current.filter((item) => item !== value)
+        : [...current, value],
+    );
   }
 
   function toggleSeason(season: string) {
@@ -352,12 +377,22 @@ export default function PurchaseCandidateForm({
       nextErrors.colors = "メインカラーを選択してください。";
     }
 
-    if (!isPurchasedLocked && useCustomMainColor && !isValidHexColor(customMainHex)) {
-      nextErrors.colors = "メインカラーのカラーコードを #RRGGBB 形式で入力してください。";
+    if (
+      !isPurchasedLocked &&
+      useCustomMainColor &&
+      !isValidHexColor(customMainHex)
+    ) {
+      nextErrors.colors =
+        "メインカラーのカラーコードを #RRGGBB 形式で入力してください。";
     }
 
-    if (!isPurchasedLocked && useCustomSubColor && !isValidHexColor(customSubHex)) {
-      nextErrors.sub_color = "サブカラーのカラーコードを #RRGGBB 形式で入力してください。";
+    if (
+      !isPurchasedLocked &&
+      useCustomSubColor &&
+      !isValidHexColor(customSubHex)
+    ) {
+      nextErrors.sub_color =
+        "サブカラーのカラーコードを #RRGGBB 形式で入力してください。";
     }
 
     setErrors(nextErrors);
@@ -374,14 +409,19 @@ export default function PurchaseCandidateForm({
         formData.set("is_primary", "1");
       }
 
-      const uploadResponse = await fetch(`/api/purchase-candidates/${targetCandidateId}/images`, {
-        method: "POST",
-        body: formData,
-      });
+      const uploadResponse = await fetch(
+        `/api/purchase-candidates/${targetCandidateId}/images`,
+        {
+          method: "POST",
+          body: formData,
+        },
+      );
 
       if (!uploadResponse.ok) {
         const uploadData = await uploadResponse.json().catch(() => null);
-        throw new Error(extractFirstErrorMessage(uploadData, "画像の追加に失敗しました。"));
+        throw new Error(
+          extractFirstErrorMessage(uploadData, "画像の追加に失敗しました。"),
+        );
       }
     }
   }
@@ -435,15 +475,23 @@ export default function PurchaseCandidateForm({
         return;
       }
 
-      const nextCandidate = data?.purchaseCandidate as PurchaseCandidateRecord | undefined;
+      const nextCandidate = data?.purchaseCandidate as
+        | PurchaseCandidateRecord
+        | undefined;
 
       if (nextCandidate && pendingImages.length > 0) {
         await uploadPendingImages(nextCandidate.id);
       }
 
-      setSubmitSuccess(mode === "edit" ? "更新に成功しました。" : "登録に成功しました。");
+      setSubmitSuccess(
+        mode === "edit" ? "更新に成功しました。" : "登録に成功しました。",
+      );
       window.setTimeout(() => {
-        router.push(nextCandidate ? `/purchase-candidates/${nextCandidate.id}` : "/purchase-candidates");
+        router.push(
+          nextCandidate
+            ? `/purchase-candidates/${nextCandidate.id}`
+            : "/purchase-candidates",
+        );
         router.refresh();
       }, 800);
     } catch (error) {
@@ -470,7 +518,9 @@ export default function PurchaseCandidateForm({
       return;
     }
 
-    setExistingImages((current) => current.filter((image) => image.id !== imageId));
+    setExistingImages((current) =>
+      current.filter((image) => image.id !== imageId),
+    );
   }
 
   if (loading) {
@@ -496,10 +546,13 @@ export default function PurchaseCandidateForm({
     >
       <section className="space-y-4">
         <h2 className="text-lg font-semibold text-gray-900">基本情報</h2>
-        <p className="text-sm text-gray-500">「必須」が付いた項目は登録に必要です。</p>
+        <p className="text-sm text-gray-500">
+          「必須」が付いた項目は登録に必要です。
+        </p>
         {isPurchasedLocked && (
           <p className="text-sm text-amber-700">
-            購入済みの購入検討では、メモ・欲しい理由・優先度・セール情報・購入 URL・画像のみ更新できます。アイテムには反映されません。
+            購入済みの購入検討では、メモ・欲しい理由・優先度・セール情報・購入
+            URL・画像のみ更新できます。アイテムには反映されません。
           </p>
         )}
 
@@ -509,14 +562,24 @@ export default function PurchaseCandidateForm({
             <select
               id="status"
               value={status}
-              onChange={(event) => setStatus(event.target.value as PurchaseCandidateStatus)}
+              onChange={(event) =>
+                setStatus(event.target.value as PurchaseCandidateStatus)
+              }
               disabled={isPurchasedLocked}
               className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             >
-              <option value="considering">{PURCHASE_CANDIDATE_STATUS_LABELS.considering}</option>
-              <option value="on_hold">{PURCHASE_CANDIDATE_STATUS_LABELS.on_hold}</option>
-              <option value="purchased">{PURCHASE_CANDIDATE_STATUS_LABELS.purchased}</option>
-              <option value="dropped">{PURCHASE_CANDIDATE_STATUS_LABELS.dropped}</option>
+              <option value="considering">
+                {PURCHASE_CANDIDATE_STATUS_LABELS.considering}
+              </option>
+              <option value="on_hold">
+                {PURCHASE_CANDIDATE_STATUS_LABELS.on_hold}
+              </option>
+              <option value="purchased">
+                {PURCHASE_CANDIDATE_STATUS_LABELS.purchased}
+              </option>
+              <option value="dropped">
+                {PURCHASE_CANDIDATE_STATUS_LABELS.dropped}
+              </option>
             </select>
           </div>
 
@@ -525,12 +588,20 @@ export default function PurchaseCandidateForm({
             <select
               id="priority"
               value={priority}
-              onChange={(event) => setPriority(event.target.value as PurchaseCandidatePriority)}
+              onChange={(event) =>
+                setPriority(event.target.value as PurchaseCandidatePriority)
+              }
               className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             >
-              <option value="high">{PURCHASE_CANDIDATE_PRIORITY_LABELS.high}</option>
-              <option value="medium">{PURCHASE_CANDIDATE_PRIORITY_LABELS.medium}</option>
-              <option value="low">{PURCHASE_CANDIDATE_PRIORITY_LABELS.low}</option>
+              <option value="high">
+                {PURCHASE_CANDIDATE_PRIORITY_LABELS.high}
+              </option>
+              <option value="medium">
+                {PURCHASE_CANDIDATE_PRIORITY_LABELS.medium}
+              </option>
+              <option value="low">
+                {PURCHASE_CANDIDATE_PRIORITY_LABELS.low}
+              </option>
             </select>
           </div>
         </div>
@@ -545,7 +616,9 @@ export default function PurchaseCandidateForm({
             disabled={isPurchasedLocked}
             className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors.name ? "border-red-400" : "border-gray-300"}`}
           />
-          {errors.name && <p className="mt-2 text-sm text-red-600">{errors.name}</p>}
+          {errors.name && (
+            <p className="mt-2 text-sm text-red-600">{errors.name}</p>
+          )}
         </div>
 
         <div>
@@ -564,7 +637,9 @@ export default function PurchaseCandidateForm({
               </option>
             ))}
           </select>
-          {errors.category_id && <p className="mt-2 text-sm text-red-600">{errors.category_id}</p>}
+          {errors.category_id && (
+            <p className="mt-2 text-sm text-red-600">{errors.category_id}</p>
+          )}
         </div>
       </section>
 
@@ -573,7 +648,10 @@ export default function PurchaseCandidateForm({
 
         <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <label htmlFor="brand_name" className="mb-1 block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="brand_name"
+              className="mb-1 block text-sm font-medium text-gray-700"
+            >
               ブランド
             </label>
             <input
@@ -587,7 +665,10 @@ export default function PurchaseCandidateForm({
           </div>
 
           <div>
-            <label htmlFor="price" className="mb-1 block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="price"
+              className="mb-1 block text-sm font-medium text-gray-700"
+            >
               想定価格
             </label>
             <div className="flex items-center rounded-lg border border-gray-300 bg-white pr-4 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100">
@@ -605,7 +686,10 @@ export default function PurchaseCandidateForm({
           </div>
 
           <div>
-            <label htmlFor="sale_price" className="mb-1 block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="sale_price"
+              className="mb-1 block text-sm font-medium text-gray-700"
+            >
               セール価格
             </label>
             <div className="flex items-center rounded-lg border border-gray-300 bg-white pr-4 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100">
@@ -622,7 +706,10 @@ export default function PurchaseCandidateForm({
           </div>
 
           <div>
-            <label htmlFor="sale_ends_at" className="mb-1 block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="sale_ends_at"
+              className="mb-1 block text-sm font-medium text-gray-700"
+            >
               セール終了予定
             </label>
             <input
@@ -636,7 +723,10 @@ export default function PurchaseCandidateForm({
         </div>
 
         <div>
-          <label htmlFor="purchase_url" className="mb-1 block text-sm font-medium text-gray-700">
+          <label
+            htmlFor="purchase_url"
+            className="mb-1 block text-sm font-medium text-gray-700"
+          >
             購入 URL
           </label>
           <input
@@ -653,7 +743,10 @@ export default function PurchaseCandidateForm({
         <h2 className="text-lg font-semibold text-gray-900">メモ</h2>
 
         <div>
-          <label htmlFor="wanted_reason" className="mb-1 block text-sm font-medium text-gray-700">
+          <label
+            htmlFor="wanted_reason"
+            className="mb-1 block text-sm font-medium text-gray-700"
+          >
             欲しい理由
           </label>
           <textarea
@@ -667,10 +760,15 @@ export default function PurchaseCandidateForm({
 
         <div>
           <div className="mb-1 flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
-            <label htmlFor="memo" className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="memo"
+              className="block text-sm font-medium text-gray-700"
+            >
               メモ
             </label>
-            <p className="text-xs text-gray-500">このメモは購入後アイテムに引き継がれます。</p>
+            <p className="text-xs text-gray-500">
+              このメモは購入後アイテムに引き継がれます。
+            </p>
           </div>
           <textarea
             id="memo"
@@ -691,19 +789,30 @@ export default function PurchaseCandidateForm({
             <select
               id="size_gender"
               value={sizeGender}
-              onChange={(event) => setSizeGender(event.target.value as typeof sizeGender)}
+              onChange={(event) =>
+                setSizeGender(event.target.value as typeof sizeGender)
+              }
               disabled={isPurchasedLocked}
               className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             >
               <option value=""></option>
-              <option value="women">{PURCHASE_CANDIDATE_SIZE_GENDER_LABELS.women}</option>
-              <option value="men">{PURCHASE_CANDIDATE_SIZE_GENDER_LABELS.men}</option>
-              <option value="unisex">{PURCHASE_CANDIDATE_SIZE_GENDER_LABELS.unisex}</option>
+              <option value="women">
+                {PURCHASE_CANDIDATE_SIZE_GENDER_LABELS.women}
+              </option>
+              <option value="men">
+                {PURCHASE_CANDIDATE_SIZE_GENDER_LABELS.men}
+              </option>
+              <option value="unisex">
+                {PURCHASE_CANDIDATE_SIZE_GENDER_LABELS.unisex}
+              </option>
             </select>
           </div>
 
           <div>
-            <label htmlFor="size_label" className="mb-1 block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="size_label"
+              className="mb-1 block text-sm font-medium text-gray-700"
+            >
               サイズ表記
             </label>
             <input
@@ -718,7 +827,10 @@ export default function PurchaseCandidateForm({
           </div>
 
           <div>
-            <div className="mb-1 block text-sm font-medium text-transparent" aria-hidden="true">
+            <div
+              className="mb-1 block text-sm font-medium text-transparent"
+              aria-hidden="true"
+            >
               雨対応
             </div>
             <label className="inline-flex h-[50px] w-full items-center gap-3 rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700">
@@ -735,7 +847,10 @@ export default function PurchaseCandidateForm({
         </div>
 
         <div>
-          <label htmlFor="size_note" className="mb-1 block text-sm font-medium text-gray-700">
+          <label
+            htmlFor="size_note"
+            className="mb-1 block text-sm font-medium text-gray-700"
+          >
             サイズメモ
           </label>
           <textarea
@@ -853,16 +968,28 @@ export default function PurchaseCandidateForm({
             </div>
           </div>
         </div>
-        {errors.colors && <p className="text-sm text-red-600">{errors.colors}</p>}
-        {errors.sub_color && <p className="text-sm text-red-600">{errors.sub_color}</p>}
+        {errors.colors && (
+          <p className="text-sm text-red-600">{errors.colors}</p>
+        )}
+        {errors.sub_color && (
+          <p className="text-sm text-red-600">{errors.sub_color}</p>
+        )}
 
         {(selectedMainColor || selectedSubColor) && (
           <div className="flex flex-wrap gap-2">
             {selectedMainColor && (
-              <ColorChip label={selectedMainColor.label} hex={selectedMainColor.hex} tone="main" />
+              <ColorChip
+                label={selectedMainColor.label}
+                hex={selectedMainColor.hex}
+                tone="main"
+              />
             )}
             {selectedSubColor && (
-              <ColorChip label={selectedSubColor.label} hex={selectedSubColor.hex} tone="sub" />
+              <ColorChip
+                label={selectedSubColor.label}
+                hex={selectedSubColor.hex}
+                tone="sub"
+              />
             )}
           </div>
         )}
@@ -902,7 +1029,9 @@ export default function PurchaseCandidateForm({
                   key={option}
                   type="button"
                   aria-pressed={checked}
-                  onClick={() => toggleValue(option, selectedTpos, setSelectedTpos)}
+                  onClick={() =>
+                    toggleValue(option, selectedTpos, setSelectedTpos)
+                  }
                   disabled={isPurchasedLocked}
                   className={`rounded-lg border px-3 py-2 text-sm transition ${
                     checked
@@ -929,7 +1058,11 @@ export default function PurchaseCandidateForm({
           existingImages={existingImages}
           pendingImages={pendingImages}
           onPendingImagesChange={setPendingImages}
-          onDeleteExistingImage={mode === "edit" ? (imageId) => void handleDeleteImage(imageId) : undefined}
+          onDeleteExistingImage={
+            mode === "edit"
+              ? (imageId) => void handleDeleteImage(imageId)
+              : undefined
+          }
           disabled={submitting}
           helperText="一覧では代表画像を表示し、詳細や編集では画像全体を見やすく表示します。"
         />

@@ -25,7 +25,8 @@ export function buildClosetViewGroups(
   const grouped = new Map<string, Map<string, ItemRecord[]>>();
 
   activeItems.forEach((item) => {
-    const categoryMap = grouped.get(item.category) ?? new Map<string, ItemRecord[]>();
+    const categoryMap =
+      grouped.get(item.category) ?? new Map<string, ItemRecord[]>();
     const shapeKey = item.shape || "";
     const current = categoryMap.get(shapeKey) ?? [];
     current.push(item);
@@ -36,7 +37,10 @@ export function buildClosetViewGroups(
   const seenCategories = new Set<string>();
   const groups: ClosetViewGroup[] = [];
 
-  const buildShapeGroups = (category: string, shapeMap: Map<string, ItemRecord[]>) => {
+  const buildShapeGroups = (
+    category: string,
+    shapeMap: Map<string, ItemRecord[]>,
+  ) => {
     const knownShapes = ITEM_SHAPES[category as keyof typeof ITEM_SHAPES] ?? [];
     const seenShapes = new Set<string>();
     const shapeGroups: ClosetViewGroup["shapeGroups"] = [];

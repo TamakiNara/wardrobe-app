@@ -3,8 +3,14 @@ import { redirect } from "next/navigation";
 import WearLogCalendar from "@/components/wear-logs/wear-log-calendar";
 import WearLogColorThumbnail from "@/components/wear-logs/wear-log-color-thumbnail";
 import { fetchLaravelWithCookie } from "@/lib/server/laravel";
-import { WEAR_LOG_STATUS_LABELS, getWearLogStatusLabel } from "@/lib/wear-logs/labels";
-import type { WearLogCalendarResponse, WearLogsResponse } from "@/types/wear-logs";
+import {
+  WEAR_LOG_STATUS_LABELS,
+  getWearLogStatusLabel,
+} from "@/lib/wear-logs/labels";
+import type {
+  WearLogCalendarResponse,
+  WearLogsResponse,
+} from "@/types/wear-logs";
 
 type WearLogsPageSearchParams = Record<string, string | string[] | undefined>;
 type PreferencesResponse = {
@@ -94,8 +100,12 @@ async function getWearLogs(
   };
 }
 
-async function getWearLogCalendar(month: string): Promise<WearLogCalendarResponse> {
-  const response = await fetchLaravelWithCookie(`/api/wear-logs/calendar?month=${encodeURIComponent(month)}`);
+async function getWearLogCalendar(
+  month: string,
+): Promise<WearLogCalendarResponse> {
+  const response = await fetchLaravelWithCookie(
+    `/api/wear-logs/calendar?month=${encodeURIComponent(month)}`,
+  );
 
   if (response.status === 401) {
     redirect("/login");
@@ -143,9 +153,10 @@ export default async function WearLogsPage({
     getWearLogCalendar(selectedMonth),
     getCalendarWeekStart(),
   ]);
-  const flashMessage = resolvedSearchParams.message === "deleted"
-    ? "着用履歴を削除しました。"
-    : null;
+  const flashMessage =
+    resolvedSearchParams.message === "deleted"
+      ? "着用履歴を削除しました。"
+      : null;
 
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">
@@ -185,54 +196,86 @@ export default async function WearLogsPage({
           <form className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
             <input type="hidden" name="month" value={selectedMonth} />
             <div className="xl:col-span-2">
-              <label className="mb-1 block text-sm font-medium text-gray-700">キーワード</label>
+              <label className="mb-1 block text-sm font-medium text-gray-700">
+                キーワード
+              </label>
               <input
                 type="search"
                 name="keyword"
-                defaultValue={typeof resolvedSearchParams.keyword === "string" ? resolvedSearchParams.keyword : ""}
+                defaultValue={
+                  typeof resolvedSearchParams.keyword === "string"
+                    ? resolvedSearchParams.keyword
+                    : ""
+                }
                 placeholder="メモ / 元のコーディネート名"
                 className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               />
             </div>
 
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">状態</label>
+              <label className="mb-1 block text-sm font-medium text-gray-700">
+                状態
+              </label>
               <select
                 name="status"
-                defaultValue={typeof resolvedSearchParams.status === "string" ? resolvedSearchParams.status : ""}
+                defaultValue={
+                  typeof resolvedSearchParams.status === "string"
+                    ? resolvedSearchParams.status
+                    : ""
+                }
                 className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               >
                 <option value="">すべて</option>
-                <option value="planned">{WEAR_LOG_STATUS_LABELS.planned}</option>
+                <option value="planned">
+                  {WEAR_LOG_STATUS_LABELS.planned}
+                </option>
                 <option value="worn">{WEAR_LOG_STATUS_LABELS.worn}</option>
               </select>
             </div>
 
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">開始日</label>
+              <label className="mb-1 block text-sm font-medium text-gray-700">
+                開始日
+              </label>
               <input
                 type="date"
                 name="date_from"
-                defaultValue={typeof resolvedSearchParams.date_from === "string" ? resolvedSearchParams.date_from : ""}
+                defaultValue={
+                  typeof resolvedSearchParams.date_from === "string"
+                    ? resolvedSearchParams.date_from
+                    : ""
+                }
                 className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               />
             </div>
 
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">終了日</label>
+              <label className="mb-1 block text-sm font-medium text-gray-700">
+                終了日
+              </label>
               <input
                 type="date"
                 name="date_to"
-                defaultValue={typeof resolvedSearchParams.date_to === "string" ? resolvedSearchParams.date_to : ""}
+                defaultValue={
+                  typeof resolvedSearchParams.date_to === "string"
+                    ? resolvedSearchParams.date_to
+                    : ""
+                }
                 className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               />
             </div>
 
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">sort</label>
+              <label className="mb-1 block text-sm font-medium text-gray-700">
+                sort
+              </label>
               <select
                 name="sort"
-                defaultValue={typeof resolvedSearchParams.sort === "string" ? resolvedSearchParams.sort : "date_desc"}
+                defaultValue={
+                  typeof resolvedSearchParams.sort === "string"
+                    ? resolvedSearchParams.sort
+                    : "date_desc"
+                }
                 className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               >
                 <option value="date_desc">日付の新しい順</option>
@@ -290,11 +333,13 @@ export default async function WearLogsPage({
                   className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm"
                 >
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className={`rounded-full border px-3 py-1 text-sm font-medium ${
-                      wearLog.status === "worn"
-                        ? "border-emerald-300 bg-emerald-50 text-emerald-700"
-                        : "border-blue-300 bg-blue-50 text-blue-700"
-                    }`}>
+                    <span
+                      className={`rounded-full border px-3 py-1 text-sm font-medium ${
+                        wearLog.status === "worn"
+                          ? "border-emerald-300 bg-emerald-50 text-emerald-700"
+                          : "border-blue-300 bg-blue-50 text-blue-700"
+                      }`}
+                    >
                       {getWearLogStatusLabel(wearLog.status)}
                     </span>
                     <span className="text-sm text-gray-500">
@@ -303,23 +348,32 @@ export default async function WearLogsPage({
                   </div>
 
                   <div className="mt-3 flex items-start gap-4">
-                    <WearLogColorThumbnail items={wearLog.thumbnail_items ?? []} />
+                    <WearLogColorThumbnail
+                      items={wearLog.thumbnail_items ?? []}
+                    />
 
                     <div className="min-w-0 flex-1">
                       <h2 className="text-lg font-semibold text-gray-900">
-                        {wearLog.source_outfit_name ?? `アイテム ${wearLog.items_count} 件`}
+                        {wearLog.source_outfit_name ??
+                          `アイテム ${wearLog.items_count} 件`}
                       </h2>
 
                       {wearLog.source_outfit_status === "invalid" && (
-                        <p className="mt-1 text-sm text-amber-800">元のコーディネートは現在利用不可です。</p>
+                        <p className="mt-1 text-sm text-amber-800">
+                          元のコーディネートは現在利用不可です。
+                        </p>
                       )}
 
                       {wearLog.has_disposed_items && (
-                        <p className="mt-1 text-sm text-amber-800">一部アイテムは現在利用不可です。</p>
+                        <p className="mt-1 text-sm text-amber-800">
+                          一部アイテムは現在利用不可です。
+                        </p>
                       )}
 
                       {wearLog.memo && (
-                        <p className="mt-2 text-sm text-gray-600">{wearLog.memo}</p>
+                        <p className="mt-2 text-sm text-gray-600">
+                          {wearLog.memo}
+                        </p>
                       )}
                     </div>
                   </div>
@@ -352,7 +406,9 @@ export default async function WearLogsPage({
 
               <p className="text-sm text-gray-600">
                 {data.meta.page} / {data.meta.lastPage}ページ
-                <span className="ml-2 text-gray-400">（全{data.meta.total}件）</span>
+                <span className="ml-2 text-gray-400">
+                  （全{data.meta.total}件）
+                </span>
               </p>
 
               {data.meta.page < data.meta.lastPage ? (

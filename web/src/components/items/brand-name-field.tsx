@@ -96,7 +96,9 @@ export default function BrandNameField({
 
     if (event.key === "ArrowUp") {
       event.preventDefault();
-      setHighlightedIndex((current) => (current <= 0 ? suggestions.length - 1 : current - 1));
+      setHighlightedIndex((current) =>
+        current <= 0 ? suggestions.length - 1 : current - 1,
+      );
       return;
     }
 
@@ -120,7 +122,7 @@ export default function BrandNameField({
         type="text"
         value={value}
         onChange={(event) => {
-        onChange(event.target.value);
+          onChange(event.target.value);
           setLoading(true);
           setError(null);
           setOpen(true);
@@ -142,7 +144,9 @@ export default function BrandNameField({
         className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
         disabled={disabled}
       />
-      <p className="mt-1 text-xs text-gray-500">候補がなくても自由入力できます。</p>
+      <p className="mt-1 text-xs text-gray-500">
+        候補がなくても自由入力できます。
+      </p>
 
       {open ? (
         <div
@@ -150,11 +154,15 @@ export default function BrandNameField({
           className="absolute z-20 mt-2 max-h-64 w-full overflow-y-auto rounded-xl border border-gray-200 bg-white p-2 shadow-lg"
         >
           {loading ? (
-            <p className="px-3 py-2 text-sm text-gray-500">ブランド候補を読み込んでいます。</p>
+            <p className="px-3 py-2 text-sm text-gray-500">
+              ブランド候補を読み込んでいます。
+            </p>
           ) : error ? (
             <p className="px-3 py-2 text-sm text-red-600">{error}</p>
           ) : suggestions.length === 0 ? (
-            <p className="px-3 py-2 text-sm text-gray-500">一致するブランド候補はありません。</p>
+            <p className="px-3 py-2 text-sm text-gray-500">
+              一致するブランド候補はありません。
+            </p>
           ) : (
             <ul className="space-y-1">
               {suggestions.map((brand, index) => (
@@ -171,9 +179,13 @@ export default function BrandNameField({
                         : "text-gray-700 hover:bg-gray-50"
                     }`}
                   >
-                    <span className="block text-sm font-medium">{brand.name}</span>
+                    <span className="block text-sm font-medium">
+                      {brand.name}
+                    </span>
                     {brand.kana ? (
-                      <span className="block text-xs text-gray-500">{brand.kana}</span>
+                      <span className="block text-xs text-gray-500">
+                        {brand.kana}
+                      </span>
                     ) : null}
                   </button>
                 </li>

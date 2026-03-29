@@ -1,6 +1,14 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type ChangeEvent, type ClipboardEvent, type DragEvent } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type ClipboardEvent,
+  type DragEvent,
+} from "react";
 
 export type UploadableImageRecord = {
   id?: number;
@@ -16,7 +24,10 @@ type EntityImageUploaderProps = {
   pendingImages: File[];
   onPendingImagesChange: (files: File[]) => void;
   onDeleteExistingImage?: (image: UploadableImageRecord) => void;
-  onMoveExistingImage?: (image: UploadableImageRecord, direction: "up" | "down") => void;
+  onMoveExistingImage?: (
+    image: UploadableImageRecord,
+    direction: "up" | "down",
+  ) => void;
   onMakePrimaryExistingImage?: (image: UploadableImageRecord) => void;
   disabled?: boolean;
   error?: string | null;
@@ -89,9 +100,14 @@ export default function EntityImageUploader({
       return;
     }
 
-    const remaining = Math.max(0, MAX_IMAGE_COUNT - existingImages.length - pendingImages.length);
+    const remaining = Math.max(
+      0,
+      MAX_IMAGE_COUNT - existingImages.length - pendingImages.length,
+    );
     if (remaining <= 0) {
-      setLocalError("画像は5枚まで登録できます。不要な画像を削除してから追加してください。");
+      setLocalError(
+        "画像は5枚まで登録できます。不要な画像を削除してから追加してください。",
+      );
       return;
     }
 
@@ -99,7 +115,9 @@ export default function EntityImageUploader({
 
     for (const file of nextFiles) {
       if (!SUPPORTED_IMAGE_TYPES.includes(file.type)) {
-        setLocalError("対応していない画像形式です。JPEG / PNG / WebP を選んでください。");
+        setLocalError(
+          "対応していない画像形式です。JPEG / PNG / WebP を選んでください。",
+        );
         return;
       }
 
@@ -145,7 +163,9 @@ export default function EntityImageUploader({
 
   function removePendingImage(targetIndex: number) {
     setLocalError(null);
-    onPendingImagesChange(pendingImages.filter((_, index) => index !== targetIndex));
+    onPendingImagesChange(
+      pendingImages.filter((_, index) => index !== targetIndex),
+    );
   }
 
   const displayedError = error ?? localError;
@@ -198,29 +218,45 @@ export default function EntityImageUploader({
         />
 
         <div className="space-y-2">
-          <p className="text-sm font-medium text-gray-900">クリックして画像を選択</p>
-          <p className="text-sm text-gray-600">ドラッグ＆ドロップ、または貼り付けでも追加できます。</p>
-          <p className="text-xs text-gray-500">JPEG / PNG / WebP、5MB以下、最大5枚</p>
-          {helperText ? <p className="text-xs text-gray-500">{helperText}</p> : null}
+          <p className="text-sm font-medium text-gray-900">
+            クリックして画像を選択
+          </p>
+          <p className="text-sm text-gray-600">
+            ドラッグ＆ドロップ、または貼り付けでも追加できます。
+          </p>
+          <p className="text-xs text-gray-500">
+            JPEG / PNG / WebP、5MB以下、最大5枚
+          </p>
+          {helperText ? (
+            <p className="text-xs text-gray-500">{helperText}</p>
+          ) : null}
         </div>
       </div>
 
       {existingImages.length > 0 && (
         <div className="space-y-2">
           {existingHeading ? (
-            <p className="text-sm font-medium text-gray-700">{existingHeading}</p>
+            <p className="text-sm font-medium text-gray-700">
+              {existingHeading}
+            </p>
           ) : null}
           <div className="grid gap-4 md:grid-cols-2">
             {existingImages.map((image, index) => (
               <article
-                key={image.id ?? `${image.original_filename ?? "image"}-${image.sort_order}-${index}`}
+                key={
+                  image.id ??
+                  `${image.original_filename ?? "image"}-${image.sort_order}-${index}`
+                }
                 className="rounded-xl border border-gray-200 bg-white p-4"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="space-y-1">
-                    <p className="text-sm font-medium text-gray-900">{image.original_filename ?? "画像"}</p>
+                    <p className="text-sm font-medium text-gray-900">
+                      {image.original_filename ?? "画像"}
+                    </p>
                     <p className="text-xs text-gray-500">
-                      {image.sort_order}枚目{image.is_primary ? " / 代表画像" : ""}
+                      {image.sort_order}枚目
+                      {image.is_primary ? " / 代表画像" : ""}
                     </p>
                   </div>
                   <div className="flex flex-wrap items-center justify-end gap-3">
@@ -237,7 +273,9 @@ export default function EntityImageUploader({
                         <button
                           type="button"
                           onClick={() => onMoveExistingImage(image, "down")}
-                          disabled={disabled || index === existingImages.length - 1}
+                          disabled={
+                            disabled || index === existingImages.length - 1
+                          }
                           className="text-sm font-medium text-gray-600 hover:underline disabled:cursor-not-allowed disabled:text-gray-300"
                         >
                           下へ
@@ -269,7 +307,11 @@ export default function EntityImageUploader({
                 {image.url ? (
                   <div className="mt-3 flex aspect-[3/4] items-center justify-center rounded-lg bg-gray-50 p-2">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={image.url} alt={image.original_filename ?? "image"} className="h-full w-full object-contain" />
+                    <img
+                      src={image.url}
+                      alt={image.original_filename ?? "image"}
+                      className="h-full w-full object-contain"
+                    />
                   </div>
                 ) : (
                   <div className="mt-3 flex aspect-[3/4] items-center justify-center rounded-lg bg-gray-100 text-sm text-gray-400">
@@ -287,14 +329,23 @@ export default function EntityImageUploader({
           <p className="text-sm font-medium text-gray-700">{pendingHeading}</p>
           <div className="grid gap-4 md:grid-cols-2">
             {pendingPreviews.map((preview, index) => (
-              <article key={preview.key} className="rounded-xl border border-blue-200 bg-blue-50/40 p-4">
+              <article
+                key={preview.key}
+                className="rounded-xl border border-blue-200 bg-blue-50/40 p-4"
+              >
                 <div className="flex items-start justify-between gap-3">
                   <div className="space-y-1">
-                    <p className="text-sm font-medium text-gray-900">{preview.file.name}</p>
+                    <p className="text-sm font-medium text-gray-900">
+                      {preview.file.name}
+                    </p>
                     <p className="text-xs text-gray-500">
                       {existingImages.length + index + 1}枚目
-                      {existingImages.length === 0 && index === 0 ? " / 代表画像予定" : ""}
-                      {preview.file.size ? ` / ${formatBytes(preview.file.size)}` : ""}
+                      {existingImages.length === 0 && index === 0
+                        ? " / 代表画像予定"
+                        : ""}
+                      {preview.file.size
+                        ? ` / ${formatBytes(preview.file.size)}`
+                        : ""}
                     </p>
                   </div>
                   <button
@@ -308,7 +359,11 @@ export default function EntityImageUploader({
 
                 <div className="mt-3 flex aspect-[3/4] items-center justify-center rounded-lg bg-white p-2">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={preview.url} alt={preview.file.name} className="h-full w-full object-contain" />
+                  <img
+                    src={preview.url}
+                    alt={preview.file.name}
+                    className="h-full w-full object-contain"
+                  />
                 </div>
               </article>
             ))}

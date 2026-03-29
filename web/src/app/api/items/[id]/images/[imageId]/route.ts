@@ -6,8 +6,5 @@ export async function DELETE(
   context: { params: Promise<{ id: string; imageId: string }> },
 ) {
   const { id, imageId } = await context.params;
-  return forwardDeleteWithCookie(
-    req,
-    `/api/items/${id}/images/${imageId}`,
-  );
+  return forwardDeleteWithCookie(req, `/api/items/${id}/images/${imageId}`);
 }

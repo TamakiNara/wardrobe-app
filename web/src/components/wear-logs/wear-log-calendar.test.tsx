@@ -110,7 +110,11 @@ describe("WearLogCalendar", () => {
               date: "2026-03-05",
               plannedCount: 1,
               wornCount: 1,
-              dots: [{ status: "planned" }, { status: "worn" }, { status: "planned" }],
+              dots: [
+                { status: "planned" },
+                { status: "worn" },
+                { status: "planned" },
+              ],
               overflowCount: 1,
             },
           ],
@@ -131,7 +135,9 @@ describe("WearLogCalendar", () => {
       await waitForEffects();
     });
 
-    expect(apiFetchMock).toHaveBeenCalledWith("/api/wear-logs/by-date?event_date=2026-03-05");
+    expect(apiFetchMock).toHaveBeenCalledWith(
+      "/api/wear-logs/by-date?event_date=2026-03-05",
+    );
     expect(container.textContent).toContain("日別詳細");
     expect(container.textContent).toContain("通勤コーデ");
     expect(container.textContent).toContain("朝会あり");
@@ -167,7 +173,9 @@ describe("WearLogCalendar", () => {
     });
 
     expect(container.textContent).toContain("この日の着用履歴はまだありません");
-    expect(container.innerHTML).toContain('href="/wear-logs/new?event_date=2026-03-08&amp;display_order=1"');
+    expect(container.innerHTML).toContain(
+      'href="/wear-logs/new?event_date=2026-03-08&amp;display_order=1"',
+    );
   });
 
   it("選択日 / 今日 / 他月日 / 過去日の状態差を崩さず表示する", async () => {
@@ -191,9 +199,15 @@ describe("WearLogCalendar", () => {
       await waitForEffects();
     });
 
-    const todayButton = container.querySelector<HTMLButtonElement>('button[data-date="2026-03-26"]');
-    const pastButton = container.querySelector<HTMLButtonElement>('button[data-date="2026-03-05"]');
-    const otherMonthButton = container.querySelector<HTMLButtonElement>('button[data-date="2026-02-23"]');
+    const todayButton = container.querySelector<HTMLButtonElement>(
+      'button[data-date="2026-03-26"]',
+    );
+    const pastButton = container.querySelector<HTMLButtonElement>(
+      'button[data-date="2026-03-05"]',
+    );
+    const otherMonthButton = container.querySelector<HTMLButtonElement>(
+      'button[data-date="2026-02-23"]',
+    );
 
     expect(todayButton?.getAttribute("data-today")).toBe("true");
     expect(todayButton?.innerHTML).toContain("border-blue-200");
@@ -278,8 +292,8 @@ describe("WearLogCalendar", () => {
       await waitForEffects();
     });
 
-    const nextButton = Array.from(container.querySelectorAll("button")).find((button) =>
-      button.textContent?.includes("次の月"),
+    const nextButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent?.includes("次の月"),
     );
 
     await act(async () => {
@@ -287,7 +301,9 @@ describe("WearLogCalendar", () => {
       await waitForEffects();
     });
 
-    expect(replaceMock).toHaveBeenCalledWith("/wear-logs?month=2026-04", { scroll: false });
+    expect(replaceMock).toHaveBeenCalledWith("/wear-logs?month=2026-04", {
+      scroll: false,
+    });
   });
 
   it("週開始を sunday にすると日曜始まりで並ぶ", async () => {
@@ -304,7 +320,9 @@ describe("WearLogCalendar", () => {
       await waitForEffects();
     });
 
-    const weekdayHeaders = Array.from(container.querySelectorAll(".grid.grid-cols-7 > div"))
+    const weekdayHeaders = Array.from(
+      container.querySelectorAll(".grid.grid-cols-7 > div"),
+    )
       .slice(0, 7)
       .map((node) => node.textContent);
 

@@ -21,7 +21,6 @@ export type TopsRule = {
 };
 
 export const TOPS_RULES: Record<TopsShapeValue, TopsRule> = {
-
   tshirt: {
     sleeves: ["short", "five", "seven", "long", "sleeveless", "french"],
     lengths: ["short", "normal", "long"],
@@ -126,5 +125,4 @@ export const TOPS_RULES: Record<TopsShapeValue, TopsRule> = {
       fit: "normal",
     },
   },
-
 };

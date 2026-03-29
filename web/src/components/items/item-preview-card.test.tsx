@@ -51,7 +51,9 @@ describe("ItemPreviewCard", () => {
     expect(container.textContent).toContain("サブカラー");
     expect(container.textContent).toContain("グレー (#8A9099)");
     expect(container.textContent).toContain("skinTonePreset");
-    expect(container.textContent).toContain("ニュートラル・標準 (neutral_medium)");
+    expect(container.textContent).toContain(
+      "ニュートラル・標準 (neutral_medium)",
+    );
     expect(container.textContent).toContain("ボトムス仕様");
     expect(container.textContent).toContain("ボトムス丈");
     expect(container.textContent).toContain("ミディ丈");

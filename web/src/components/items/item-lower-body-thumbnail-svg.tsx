@@ -42,7 +42,10 @@ const LEGGINGS_END_Y: Record<string, number> = {
   leggings_full: 102,
 };
 
-function remapViewportY(value: number, frameMode: "standalone" | "viewport"): number {
+function remapViewportY(
+  value: number,
+  frameMode: "standalone" | "viewport",
+): number {
   if (frameMode === "standalone") {
     return value;
   }
@@ -50,7 +53,10 @@ function remapViewportY(value: number, frameMode: "standalone" | "viewport"): nu
   return ((value - FRAME_Y) / FRAME_HEIGHT) * VIEWPORT_SIZE;
 }
 
-function remapViewportOffset(value: number, frameMode: "standalone" | "viewport"): number {
+function remapViewportOffset(
+  value: number,
+  frameMode: "standalone" | "viewport",
+): number {
   if (frameMode === "standalone") {
     return value;
   }
@@ -135,7 +141,10 @@ export default function LowerBodyPreviewSvg({
   const frameWidth = frameMode === "viewport" ? 120 : FRAME_WIDTH;
 
   if (hasBottoms && lengthType) {
-    const hemY = remapViewportY(BOTTOMS_HEM_Y[lengthType] ?? BOTTOMS_HEM_Y.midi, frameMode);
+    const hemY = remapViewportY(
+      BOTTOMS_HEM_Y[lengthType] ?? BOTTOMS_HEM_Y.midi,
+      frameMode,
+    );
 
     return (
       <svg
@@ -236,18 +245,20 @@ function LegwearOverlay({
   const frameWidth = frameMode === "viewport" ? 120 : FRAME_WIDTH;
   const frameHeight = frameMode === "viewport" ? 120 : FRAME_HEIGHT;
   const frameRx = frameMode === "viewport" ? 0 : FRAME_RX;
-  const boundaryInset = visibleFromY === null || visibleFromY === undefined
-    ? 0
-    : Math.max(remapViewportOffset(1, frameMode), 1);
+  const boundaryInset =
+    visibleFromY === null || visibleFromY === undefined
+      ? 0
+      : Math.max(remapViewportOffset(1, frameMode), 1);
 
   if (coverageType in SOCKS_START_Y) {
     const startY = remapViewportY(
       SOCKS_START_Y[coverageType] ?? SOCKS_START_Y.crew_socks,
       frameMode,
     );
-    const overlayStartY = visibleFromY === null || visibleFromY === undefined
-      ? startY
-      : Math.max(startY, visibleFromY + boundaryInset);
+    const overlayStartY =
+      visibleFromY === null || visibleFromY === undefined
+        ? startY
+        : Math.max(startY, visibleFromY + boundaryInset);
 
     return (
       <>
@@ -276,9 +287,10 @@ function LegwearOverlay({
       LEGGINGS_END_Y[coverageType] ?? LEGGINGS_END_Y.leggings_full,
       frameMode,
     );
-    const overlayStartY = visibleFromY === null || visibleFromY === undefined
-      ? frameY
-      : visibleFromY + boundaryInset;
+    const overlayStartY =
+      visibleFromY === null || visibleFromY === undefined
+        ? frameY
+        : visibleFromY + boundaryInset;
     const overlayHeight = Math.max(endY - overlayStartY, 0);
 
     return (
@@ -305,9 +317,10 @@ function LegwearOverlay({
 
   if (coverageType === "stockings" || coverageType === "tights") {
     const overlayOpacity = coverageType === "stockings" ? 0.38 : 0.92;
-    const overlayStartY = visibleFromY === null || visibleFromY === undefined
-      ? frameY
-      : visibleFromY + boundaryInset;
+    const overlayStartY =
+      visibleFromY === null || visibleFromY === undefined
+        ? frameY
+        : visibleFromY + boundaryInset;
     const overlayHeight = Math.max(frameY + frameHeight - overlayStartY, 0);
 
     return (

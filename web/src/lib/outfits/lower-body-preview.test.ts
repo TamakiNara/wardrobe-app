@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { buildOutfitLowerBodyPreviewSource, type OutfitLowerBodyPreviewItem } from "./lower-body-preview";
+import {
+  buildOutfitLowerBodyPreviewSource,
+  type OutfitLowerBodyPreviewItem,
+} from "./lower-body-preview";
 
 function createOutfitItem(
   id: number,
@@ -37,8 +40,20 @@ describe("buildOutfitLowerBodyPreviewSource", () => {
   it("legwear 複数時は sort_order 最小の有効 spec を採用する", () => {
     const source = buildOutfitLowerBodyPreviewSource([
       createOutfitItem(10, 1, "bottoms", { bottoms: { length_type: "midi" } }),
-      createOutfitItem(20, 2, "legwear", { legwear: { coverage_type: "knee_socks" } }, "socks"),
-      createOutfitItem(21, 1, "legwear", { legwear: { coverage_type: "crew_socks" } }, "socks"),
+      createOutfitItem(
+        20,
+        2,
+        "legwear",
+        { legwear: { coverage_type: "knee_socks" } },
+        "socks",
+      ),
+      createOutfitItem(
+        21,
+        1,
+        "legwear",
+        { legwear: { coverage_type: "crew_socks" } },
+        "socks",
+      ),
     ]);
 
     expect(source?.representativeLegwearItemId).toBe(21);
@@ -50,7 +65,13 @@ describe("buildOutfitLowerBodyPreviewSource", () => {
       createOutfitItem(10, 1, "bottoms", { bottoms: {} }),
       createOutfitItem(11, 2, "bottoms", { bottoms: { length_type: "full" } }),
       createOutfitItem(20, 1, "legwear", { legwear: {} }, "leggings"),
-      createOutfitItem(21, 2, "legwear", { legwear: { coverage_type: "leggings_full" } }, "leggings"),
+      createOutfitItem(
+        21,
+        2,
+        "legwear",
+        { legwear: { coverage_type: "leggings_full" } },
+        "leggings",
+      ),
     ]);
 
     expect(source?.representativeBottomsItemId).toBe(11);
@@ -63,7 +84,13 @@ describe("buildOutfitLowerBodyPreviewSource", () => {
     const source = buildOutfitLowerBodyPreviewSource([
       createOutfitItem(10, 1, "bottoms", { bottoms: {} }),
       createOutfitItem(11, 2, "bottoms", { bottoms: {} }),
-      createOutfitItem(20, 1, "legwear", { legwear: { coverage_type: "crew_socks" } }, "socks"),
+      createOutfitItem(
+        20,
+        1,
+        "legwear",
+        { legwear: { coverage_type: "crew_socks" } },
+        "socks",
+      ),
     ]);
 
     expect(source?.representativeBottomsItemId).toBe(10);
@@ -85,7 +112,13 @@ describe("buildOutfitLowerBodyPreviewSource", () => {
 
   it("bottoms がなければ preview source を作らない", () => {
     const source = buildOutfitLowerBodyPreviewSource([
-      createOutfitItem(20, 1, "legwear", { legwear: { coverage_type: "tights" } }, "tights"),
+      createOutfitItem(
+        20,
+        1,
+        "legwear",
+        { legwear: { coverage_type: "tights" } },
+        "tights",
+      ),
     ]);
 
     expect(source).toBeNull();

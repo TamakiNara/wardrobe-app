@@ -47,7 +47,12 @@ const sampleGroups: CategoryGroupRecord[] = [
     sortOrder: 30,
     categories: [
       { id: "dress_onepiece", groupId: "dress", name: "?????", sortOrder: 10 },
-      { id: "dress_allinone", groupId: "dress", name: "??????? / ?????", sortOrder: 20 },
+      {
+        id: "dress_allinone",
+        groupId: "dress",
+        name: "??????? / ?????",
+        sortOrder: 20,
+      },
     ],
   },
   {
@@ -141,6 +146,8 @@ describe("CategoryPresetSelectionPage", () => {
     });
 
     expect(updateCategoryVisibilitySettingsMock).not.toHaveBeenCalled();
-    expect(pushMock).toHaveBeenCalledWith("/settings/categories?mode=onboarding&preset=custom");
+    expect(pushMock).toHaveBeenCalledWith(
+      "/settings/categories?mode=onboarding&preset=custom",
+    );
   });
 });

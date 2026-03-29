@@ -39,26 +39,30 @@ export default function ItemThumbnailPreview({
   skinTonePreset,
 }: ItemThumbnailPreviewProps) {
   const primaryImage = images?.find((image) => image.is_primary) ?? images?.[0];
-  const sizeClass = size === "small"
-    ? "h-20 w-20 rounded-2xl"
-    : "aspect-square w-full rounded-2xl";
+  const sizeClass =
+    size === "small"
+      ? "h-20 w-20 rounded-2xl"
+      : "aspect-square w-full rounded-2xl";
   const contentPaddingClass = size === "small" ? "p-2" : "p-3";
   const legwearCoverageType = resolveLegwearCoverageType(
     category,
     shape,
     spec?.legwear?.coverage_type,
   );
-  const bottomsLengthType = category === "bottoms"
-    ? resolveBottomsLengthTypeForPreview(spec?.bottoms?.length_type)
-    : null;
+  const bottomsLengthType =
+    category === "bottoms"
+      ? resolveBottomsLengthTypeForPreview(spec?.bottoms?.length_type)
+      : null;
   const skinToneColor = resolveSkinToneColor(skinTonePreset);
   const shouldRenderLowerBody =
-    category === "bottoms"
-    || (category === "legwear" && Boolean(legwearCoverageType));
+    category === "bottoms" ||
+    (category === "legwear" && Boolean(legwearCoverageType));
 
   if (primaryImage?.url) {
     return (
-      <div className={`flex items-center justify-center overflow-hidden border border-gray-200 bg-gray-50 ${sizeClass} ${contentPaddingClass}`}>
+      <div
+        className={`flex items-center justify-center overflow-hidden border border-gray-200 bg-gray-50 ${sizeClass} ${contentPaddingClass}`}
+      >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={primaryImage.url}
@@ -71,7 +75,9 @@ export default function ItemThumbnailPreview({
 
   if (category === "tops" && topsSpecRaw?.shape) {
     return (
-      <div className={`flex items-center justify-center border border-dashed border-gray-300 bg-white ${sizeClass} ${contentPaddingClass}`}>
+      <div
+        className={`flex items-center justify-center border border-dashed border-gray-300 bg-white ${sizeClass} ${contentPaddingClass}`}
+      >
         <TopsPreviewSvg
           shape={topsSpecRaw.shape}
           sleeve={topsSpecRaw.sleeve ?? undefined}
@@ -87,7 +93,9 @@ export default function ItemThumbnailPreview({
 
   if (shouldRenderLowerBody) {
     return (
-      <div className={`flex items-center justify-center border border-dashed border-gray-300 bg-white ${sizeClass} ${contentPaddingClass}`}>
+      <div
+        className={`flex items-center justify-center border border-dashed border-gray-300 bg-white ${sizeClass} ${contentPaddingClass}`}
+      >
         <LowerBodyPreviewSvg
           lengthType={category === "bottoms" ? bottomsLengthType : null}
           coverageType={category === "legwear" ? legwearCoverageType : null}
@@ -96,18 +104,26 @@ export default function ItemThumbnailPreview({
           legwearMainColor={category === "legwear" ? mainColorHex : null}
           legwearSubColor={category === "legwear" ? subColorHex : null}
           skinToneColor={skinToneColor}
-          ariaLabel={category === "legwear" ? "レッグウェアプレビュー" : "ボトムスプレビュー"}
+          ariaLabel={
+            category === "legwear"
+              ? "レッグウェアプレビュー"
+              : "ボトムスプレビュー"
+          }
         />
       </div>
     );
   }
 
   return (
-    <div className={`flex items-center justify-center border border-dashed border-gray-300 bg-white ${sizeClass} ${contentPaddingClass}`}>
+    <div
+      className={`flex items-center justify-center border border-dashed border-gray-300 bg-white ${sizeClass} ${contentPaddingClass}`}
+    >
       <div className="text-center">
         <div
           className={`mx-auto rounded-2xl border border-gray-300 ${size === "small" ? "h-12 w-12" : "h-16 w-16"}`}
-          style={{ backgroundColor: mainColorHex ?? COLOR_THUMBNAIL_FALLBACK_COLOR }}
+          style={{
+            backgroundColor: mainColorHex ?? COLOR_THUMBNAIL_FALLBACK_COLOR,
+          }}
         />
         {subColorHex ? (
           <div
@@ -115,7 +131,9 @@ export default function ItemThumbnailPreview({
             style={{ backgroundColor: subColorHex }}
           />
         ) : null}
-        {size === "large" ? <p className="mt-2 text-xs text-gray-500">SVG プレビュー</p> : null}
+        {size === "large" ? (
+          <p className="mt-2 text-xs text-gray-500">SVG プレビュー</p>
+        ) : null}
       </div>
     </div>
   );

@@ -8,8 +8,15 @@ import {
   ITEM_SHAPES,
   type ItemCategory,
 } from "@/lib/master-data/item-shapes";
-import { buildSupportedCategoryOptions, fetchCategoryGroups } from "@/lib/api/categories";
-import { fetchCategoryVisibilitySettings, fetchUserPreferences, fetchUserTpos } from "@/lib/api/settings";
+import {
+  buildSupportedCategoryOptions,
+  fetchCategoryGroups,
+} from "@/lib/api/categories";
+import {
+  fetchCategoryVisibilitySettings,
+  fetchUserPreferences,
+  fetchUserTpos,
+} from "@/lib/api/settings";
 import type { CategoryOption } from "@/types/categories";
 import {
   ITEM_COLORS,
@@ -20,7 +27,12 @@ import BrandNameField from "@/components/items/brand-name-field";
 import ColorChip from "@/components/items/color-chip";
 import ColorSelect from "@/components/items/color-select";
 import ItemImageUploader from "@/components/items/item-image-uploader";
-import type { CreateItemPayload, ItemCareStatus, ItemFormColor, ItemImageRecord } from "@/types/items";
+import type {
+  CreateItemPayload,
+  ItemCareStatus,
+  ItemFormColor,
+  ItemImageRecord,
+} from "@/types/items";
 import ItemPreviewCard from "@/components/items/item-preview-card";
 import { SEASON_OPTIONS } from "@/lib/master-data/item-attributes";
 import { DEFAULT_SKIN_TONE_PRESET } from "@/lib/master-data/skin-tone-presets";
@@ -81,13 +93,17 @@ export default function NewItemPage() {
   const [memo, setMemo] = useState("");
   const [careStatus, setCareStatus] = useState<ItemCareStatus | "">("");
   const [purchasedAt, setPurchasedAt] = useState("");
-  const [sizeGender, setSizeGender] = useState<"women" | "men" | "unisex" | "">("");
+  const [sizeGender, setSizeGender] = useState<"women" | "men" | "unisex" | "">(
+    "",
+  );
   const [sizeLabel, setSizeLabel] = useState("");
   const [sizeNote, setSizeNote] = useState("");
   const [sizeDetailsNote, setSizeDetailsNote] = useState("");
   const [isRainOk, setIsRainOk] = useState(false);
   const [category, setCategory] = useState<ItemCategory | "">("");
-  const [categoryOptions, setCategoryOptions] = useState<CategoryOption[]>([...ITEM_CATEGORIES]);
+  const [categoryOptions, setCategoryOptions] = useState<CategoryOption[]>([
+    ...ITEM_CATEGORIES,
+  ]);
   const [shape, setShape] = useState("");
 
   const [mainColor, setMainColor] = useState<ItemColorValue | "">("");
@@ -100,7 +116,9 @@ export default function NewItemPage() {
   const [selectedSeasons, setSelectedSeasons] = useState<string[]>([]);
   const [selectedTpoIds, setSelectedTpoIds] = useState<number[]>([]);
   const [tpoOptions, setTpoOptions] = useState<UserTpoRecord[]>([]);
-  const [skinTonePreset, setSkinTonePreset] = useState<SkinTonePreset>(DEFAULT_SKIN_TONE_PRESET);
+  const [skinTonePreset, setSkinTonePreset] = useState<SkinTonePreset>(
+    DEFAULT_SKIN_TONE_PRESET,
+  );
   const [draftTpoNames, setDraftTpoNames] = useState<string[]>([]);
 
   const [topsShape, setTopsShape] = useState<TopsShapeValue | "">("");
@@ -109,23 +127,36 @@ export default function NewItemPage() {
   const [topsNeck, setTopsNeck] = useState<TopsNeckValue | "">("");
   const [topsDesign, setTopsDesign] = useState<TopsDesignValue | "">("");
   const [topsFit, setTopsFit] = useState<TopsFitValue>(DEFAULT_TOPS_FIT);
-  const [bottomsLengthType, setBottomsLengthType] = useState<BottomsLengthType | "">("");
-  const [legwearCoverageType, setLegwearCoverageType] = useState<LegwearCoverageType | "">("");
+  const [bottomsLengthType, setBottomsLengthType] = useState<
+    BottomsLengthType | ""
+  >("");
+  const [legwearCoverageType, setLegwearCoverageType] = useState<
+    LegwearCoverageType | ""
+  >("");
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
   const [draftInfoMessage, setDraftInfoMessage] = useState<string | null>(null);
-  const [sourcePurchaseCandidateId, setSourcePurchaseCandidateId] = useState<number | null>(null);
+  const [sourcePurchaseCandidateId, setSourcePurchaseCandidateId] = useState<
+    number | null
+  >(null);
   const [itemImages, setItemImages] = useState<ItemImageRecord[]>([]);
   const [pendingImages, setPendingImages] = useState<File[]>([]);
 
   const isTopsCategory = category === "tops";
   const isBottomsSpecVisible = isBottomsSpecCategory(category);
-  const isLegwearSpecVisible = isLegwearSpecCategory(category) && Boolean(shape);
-  const isLegwearCoverageSelectVisible = shouldShowLegwearCoverageSelect(category, shape);
-  const legwearCoverageOptions = useMemo(() => getLegwearCoverageOptions(shape), [shape]);
+  const isLegwearSpecVisible =
+    isLegwearSpecCategory(category) && Boolean(shape);
+  const isLegwearCoverageSelectVisible = shouldShowLegwearCoverageSelect(
+    category,
+    shape,
+  );
+  const legwearCoverageOptions = useMemo(
+    () => getLegwearCoverageOptions(shape),
+    [shape],
+  );
 
   const shapeOptions = useMemo(() => {
     if (!category) return [];
@@ -183,7 +214,6 @@ export default function NewItemPage() {
     if (!topsRule) return [];
     return TOPS_FITS.filter((item) => topsRule.fits.includes(item.value));
   }, [topsRule]);
-
 
   useEffect(() => {
     let active = true;
@@ -260,7 +290,11 @@ export default function NewItemPage() {
   }, [searchParams]);
 
   useEffect(() => {
-    if (draftTpoNames.length === 0 || tpoOptions.length === 0 || selectedTpoIds.length > 0) {
+    if (
+      draftTpoNames.length === 0 ||
+      tpoOptions.length === 0 ||
+      selectedTpoIds.length > 0
+    ) {
       return;
     }
 
@@ -335,12 +369,24 @@ export default function NewItemPage() {
     }
 
     setLegwearCoverageType(
-      (resolveLegwearCoverageType(category, nextShape, legwearCoverageType) as LegwearCoverageType | null) ?? "",
+      (resolveLegwearCoverageType(
+        category,
+        nextShape,
+        legwearCoverageType,
+      ) as LegwearCoverageType | null) ?? "",
     );
   }
 
-  function toggleValue<T>(value: T, current: T[], setter: (values: T[]) => void) {
-    setter(current.includes(value) ? current.filter((item) => item !== value) : [...current, value]);
+  function toggleValue<T>(
+    value: T,
+    current: T[],
+    setter: (values: T[]) => void,
+  ) {
+    setter(
+      current.includes(value)
+        ? current.filter((item) => item !== value)
+        : [...current, value],
+    );
   }
 
   function buildPayload(): CreateItemPayload {
@@ -366,7 +412,11 @@ export default function NewItemPage() {
       });
     }
 
-    const resolvedLegwearCoverageType = resolveLegwearCoverageType(category, shape, legwearCoverageType);
+    const resolvedLegwearCoverageType = resolveLegwearCoverageType(
+      category,
+      shape,
+      legwearCoverageType,
+    );
 
     return {
       name,
@@ -459,23 +509,36 @@ export default function NewItemPage() {
 
       if (!uploadResponse.ok) {
         const uploadData = await uploadResponse.json().catch(() => null);
-        throw new Error(uploadData?.message ?? uploadData?.errors?.image?.[0] ?? "画像の追加に失敗しました。");
+        throw new Error(
+          uploadData?.message ??
+            uploadData?.errors?.image?.[0] ??
+            "画像の追加に失敗しました。",
+        );
       }
     }
   }
 
   function validateForm() {
     const nextErrors: Record<string, string> = {};
-    const resolvedLegwearCoverageType = resolveLegwearCoverageType(category, shape, legwearCoverageType);
+    const resolvedLegwearCoverageType = resolveLegwearCoverageType(
+      category,
+      shape,
+      legwearCoverageType,
+    );
 
     if (!category) nextErrors.category = "カテゴリを選択してください。";
     if (!shape) nextErrors.shape = "形を選択してください。";
-    if (!selectedMainColor) nextErrors.mainColor = "メインカラーを選択してください。";
+    if (!selectedMainColor)
+      nextErrors.mainColor = "メインカラーを選択してください。";
     if (isBottomsLengthTypeRequired(category) && !bottomsLengthType) {
       nextErrors["spec.bottoms.length_type"] = "ボトムス丈を選択してください。";
     }
-    if (isLegwearCoverageTypeRequired(category, shape) && !resolvedLegwearCoverageType) {
-      nextErrors["spec.legwear.coverage_type"] = "レッグウェアを選択してください。";
+    if (
+      isLegwearCoverageTypeRequired(category, shape) &&
+      !resolvedLegwearCoverageType
+    ) {
+      nextErrors["spec.legwear.coverage_type"] =
+        "レッグウェアを選択してください。";
     }
 
     setErrors(nextErrors);
@@ -571,7 +634,9 @@ export default function NewItemPage() {
       : undefined,
     legwear: isLegwearSpecCategory(category)
       ? {
-          coverage_type: resolveLegwearCoverageType(category, shape, legwearCoverageType) ?? undefined,
+          coverage_type:
+            resolveLegwearCoverageType(category, shape, legwearCoverageType) ??
+            undefined,
         }
       : undefined,
   };
@@ -585,7 +650,10 @@ export default function NewItemPage() {
             <h1 className="text-2xl font-bold text-gray-900">新規作成</h1>
           </div>
 
-          <Link href="/items" className="text-sm font-medium text-blue-600 hover:underline">
+          <Link
+            href="/items"
+            className="text-sm font-medium text-blue-600 hover:underline"
+          >
             一覧に戻る
           </Link>
         </div>
@@ -595,16 +663,22 @@ export default function NewItemPage() {
             <p>{draftInfoMessage}</p>
             {itemImages.length > 0 && (
               <p className="mt-1 text-blue-600">
-                候補画像 {itemImages.length} 枚もあわせて引き継ぎ対象として保持しています。
+                候補画像 {itemImages.length}{" "}
+                枚もあわせて引き継ぎ対象として保持しています。
               </p>
             )}
           </section>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6 rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-6 rounded-2xl border border-gray-200 bg-white p-8 shadow-sm"
+        >
           <section className="space-y-4">
             <h2 className="text-lg font-semibold text-gray-900">基本情報</h2>
-            <p className="text-sm text-gray-500">「必須」が付いた項目は登録に必要です。</p>
+            <p className="text-sm text-gray-500">
+              「必須」が付いた項目は登録に必要です。
+            </p>
 
             <div>
               <FieldLabel htmlFor="name" label="名前" />
@@ -628,7 +702,10 @@ export default function NewItemPage() {
               />
 
               <div>
-                <label htmlFor="price" className="mb-1 block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="price"
+                  className="mb-1 block text-sm font-medium text-gray-700"
+                >
                   実購入価格
                 </label>
                 <div className="flex items-center rounded-lg border border-gray-300 bg-white pr-4 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100">
@@ -653,7 +730,10 @@ export default function NewItemPage() {
 
             <div className="grid gap-4 md:grid-cols-2">
               <div>
-                <label htmlFor="purchase-url" className="mb-1 block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="purchase-url"
+                  className="mb-1 block text-sm font-medium text-gray-700"
+                >
                   購入 URL
                 </label>
                 <input
@@ -666,7 +746,10 @@ export default function NewItemPage() {
               </div>
 
               <div>
-                <label htmlFor="purchased-at" className="mb-1 block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="purchased-at"
+                  className="mb-1 block text-sm font-medium text-gray-700"
+                >
                   購入日
                 </label>
                 <input
@@ -680,7 +763,10 @@ export default function NewItemPage() {
             </div>
 
             <div>
-              <label htmlFor="memo" className="mb-1 block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="memo"
+                className="mb-1 block text-sm font-medium text-gray-700"
+              >
                 メモ
               </label>
               <textarea
@@ -693,21 +779,28 @@ export default function NewItemPage() {
             </div>
 
             <div>
-              <label htmlFor="care-status" className="mb-1 block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="care-status"
+                className="mb-1 block text-sm font-medium text-gray-700"
+              >
                 ケア状態
               </label>
               <select
                 id="care-status"
                 value={careStatus}
-                onChange={(e) => setCareStatus(e.target.value as ItemCareStatus | "")}
+                onChange={(e) =>
+                  setCareStatus(e.target.value as ItemCareStatus | "")
+                }
                 className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               >
                 <option value=""></option>
-                {Object.entries(ITEM_CARE_STATUS_LABELS).map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
+                {Object.entries(ITEM_CARE_STATUS_LABELS).map(
+                  ([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ),
+                )}
               </select>
               <p className="mt-1 text-xs text-gray-500">
                 クリーニング中でもコーデ候補や着用履歴候補からは除外されません。
@@ -716,26 +809,38 @@ export default function NewItemPage() {
 
             <div className="grid gap-4 md:grid-cols-2">
               <div>
-                <label htmlFor="size-gender" className="mb-1 block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="size-gender"
+                  className="mb-1 block text-sm font-medium text-gray-700"
+                >
                   サイズ区分
                 </label>
                 <select
                   id="size-gender"
                   value={sizeGender}
-                  onChange={(e) => setSizeGender(e.target.value as "women" | "men" | "unisex" | "")}
+                  onChange={(e) =>
+                    setSizeGender(
+                      e.target.value as "women" | "men" | "unisex" | "",
+                    )
+                  }
                   className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                 >
                   <option value=""></option>
-                  {Object.entries(ITEM_SIZE_GENDER_LABELS).map(([value, label]) => (
-                    <option key={value} value={value}>
-                      {label}
-                    </option>
-                  ))}
+                  {Object.entries(ITEM_SIZE_GENDER_LABELS).map(
+                    ([value, label]) => (
+                      <option key={value} value={value}>
+                        {label}
+                      </option>
+                    ),
+                  )}
                 </select>
               </div>
 
               <div>
-                <label htmlFor="size-label" className="mb-1 block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="size-label"
+                  className="mb-1 block text-sm font-medium text-gray-700"
+                >
                   サイズ表記
                 </label>
                 <input
@@ -751,7 +856,10 @@ export default function NewItemPage() {
 
             <div className="grid gap-4 md:grid-cols-[1fr_auto]">
               <div>
-                <label htmlFor="size-note" className="mb-1 block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="size-note"
+                  className="mb-1 block text-sm font-medium text-gray-700"
+                >
                   サイズ補足
                 </label>
                 <input
@@ -764,7 +872,10 @@ export default function NewItemPage() {
               </div>
 
               <div>
-                <div className="mb-1 block text-sm font-medium text-transparent" aria-hidden="true">
+                <div
+                  className="mb-1 block text-sm font-medium text-transparent"
+                  aria-hidden="true"
+                >
                   雨対応
                 </div>
                 <label className="inline-flex h-[50px] w-full items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700">
@@ -780,7 +891,10 @@ export default function NewItemPage() {
             </div>
 
             <div>
-              <label htmlFor="size-details-note" className="mb-1 block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="size-details-note"
+                className="mb-1 block text-sm font-medium text-gray-700"
+              >
                 実寸メモ
               </label>
               <textarea
@@ -807,7 +921,9 @@ export default function NewItemPage() {
                   </option>
                 ))}
               </select>
-              {errors.category && <p className="mt-2 text-sm text-red-600">{errors.category}</p>}
+              {errors.category && (
+                <p className="mt-2 text-sm text-red-600">{errors.category}</p>
+              )}
             </div>
 
             <div>
@@ -826,7 +942,9 @@ export default function NewItemPage() {
                   </option>
                 ))}
               </select>
-              {errors.shape && <p className="mt-2 text-sm text-red-600">{errors.shape}</p>}
+              {errors.shape && (
+                <p className="mt-2 text-sm text-red-600">{errors.shape}</p>
+              )}
             </div>
           </section>
 
@@ -847,24 +965,32 @@ export default function NewItemPage() {
               onDeleteExistingImage={(image) => {
                 setItemImages((current) =>
                   normalizeItemImages(
-                    current.filter((currentImage) => !(
-                      currentImage.path === image.path &&
-                      currentImage.sort_order === image.sort_order &&
-                      currentImage.original_filename === image.original_filename
-                    )),
+                    current.filter(
+                      (currentImage) =>
+                        !(
+                          currentImage.path === image.path &&
+                          currentImage.sort_order === image.sort_order &&
+                          currentImage.original_filename ===
+                            image.original_filename
+                        ),
+                    ),
                   ),
                 );
               }}
               disabled={submitting}
               helperText="引き継いだ画像も保存前に取り除けます。"
-              existingHeading={itemImages.length > 0 ? "保存対象の画像" : undefined}
+              existingHeading={
+                itemImages.length > 0 ? "保存対象の画像" : undefined
+              }
             />
           </section>
 
           {isTopsCategory && (
             <section className="space-y-4 rounded-xl border border-gray-200 bg-gray-50 p-4">
               <div>
-                <p className="text-sm font-medium text-gray-700">トップス仕様</p>
+                <p className="text-sm font-medium text-gray-700">
+                  トップス仕様
+                </p>
                 <p className="mt-1 text-xs text-gray-500">
                   トップス選択時のみ、形・袖・丈・首回り・デザイン・シルエットを指定できます。
                 </p>
@@ -872,7 +998,10 @@ export default function NewItemPage() {
 
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
-                  <label htmlFor="tops-shape" className="mb-1 block text-sm font-medium text-gray-700">
+                  <label
+                    htmlFor="tops-shape"
+                    className="mb-1 block text-sm font-medium text-gray-700"
+                  >
                     形
                   </label>
                   <select
@@ -891,13 +1020,18 @@ export default function NewItemPage() {
                 </div>
 
                 <div>
-                  <label htmlFor="tops-sleeve" className="mb-1 block text-sm font-medium text-gray-700">
+                  <label
+                    htmlFor="tops-sleeve"
+                    className="mb-1 block text-sm font-medium text-gray-700"
+                  >
                     袖
                   </label>
                   <select
                     id="tops-sleeve"
                     value={topsSleeve}
-                    onChange={(e) => setTopsSleeve(e.target.value as TopsSleeveValue | "")}
+                    onChange={(e) =>
+                      setTopsSleeve(e.target.value as TopsSleeveValue | "")
+                    }
                     disabled={!topsShape}
                     className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                   >
@@ -911,13 +1045,18 @@ export default function NewItemPage() {
                 </div>
 
                 <div>
-                  <label htmlFor="tops-length" className="mb-1 block text-sm font-medium text-gray-700">
+                  <label
+                    htmlFor="tops-length"
+                    className="mb-1 block text-sm font-medium text-gray-700"
+                  >
                     丈
                   </label>
                   <select
                     id="tops-length"
                     value={topsLength}
-                    onChange={(e) => setTopsLength(e.target.value as TopsLengthValue | "")}
+                    onChange={(e) =>
+                      setTopsLength(e.target.value as TopsLengthValue | "")
+                    }
                     disabled={!topsShape}
                     className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                   >
@@ -931,13 +1070,18 @@ export default function NewItemPage() {
                 </div>
 
                 <div>
-                  <label htmlFor="tops-neck" className="mb-1 block text-sm font-medium text-gray-700">
+                  <label
+                    htmlFor="tops-neck"
+                    className="mb-1 block text-sm font-medium text-gray-700"
+                  >
                     首回り
                   </label>
                   <select
                     id="tops-neck"
                     value={topsNeck}
-                    onChange={(e) => setTopsNeck(e.target.value as TopsNeckValue | "")}
+                    onChange={(e) =>
+                      setTopsNeck(e.target.value as TopsNeckValue | "")
+                    }
                     disabled={!topsShape}
                     className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                   >
@@ -951,17 +1095,26 @@ export default function NewItemPage() {
                 </div>
 
                 <div>
-                  <label htmlFor="tops-design" className="mb-1 block text-sm font-medium text-gray-700">
+                  <label
+                    htmlFor="tops-design"
+                    className="mb-1 block text-sm font-medium text-gray-700"
+                  >
                     デザイン
                   </label>
                   <select
                     id="tops-design"
                     value={topsDesign}
-                    onChange={(e) => setTopsDesign(e.target.value as TopsDesignValue | "")}
+                    onChange={(e) =>
+                      setTopsDesign(e.target.value as TopsDesignValue | "")
+                    }
                     disabled={!topsShape || availableTopsDesigns.length === 0}
                     className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                   >
-                    <option value="">{availableTopsDesigns.length ? "未選択" : "選択肢がありません"}</option>
+                    <option value="">
+                      {availableTopsDesigns.length
+                        ? "未選択"
+                        : "選択肢がありません"}
+                    </option>
                     {availableTopsDesigns.map((item) => (
                       <option key={item.value} value={item.value}>
                         {item.label}
@@ -971,7 +1124,10 @@ export default function NewItemPage() {
                 </div>
 
                 <div>
-                  <label htmlFor="tops-fit" className="mb-1 block text-sm font-medium text-gray-700">
+                  <label
+                    htmlFor="tops-fit"
+                    className="mb-1 block text-sm font-medium text-gray-700"
+                  >
                     シルエット
                   </label>
                   <select
@@ -995,17 +1151,26 @@ export default function NewItemPage() {
           {isBottomsSpecVisible && (
             <section className="space-y-4 rounded-xl border border-gray-200 bg-gray-50 p-4">
               <div>
-                <p className="text-sm font-medium text-gray-700">ボトムス仕様</p>
+                <p className="text-sm font-medium text-gray-700">
+                  ボトムス仕様
+                </p>
               </div>
 
               <div>
-                <label htmlFor="bottoms-length-type" className="mb-1 block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="bottoms-length-type"
+                  className="mb-1 block text-sm font-medium text-gray-700"
+                >
                   ボトムス丈
                 </label>
                 <select
                   id="bottoms-length-type"
                   value={bottomsLengthType}
-                  onChange={(e) => setBottomsLengthType(e.target.value as BottomsLengthType | "")}
+                  onChange={(e) =>
+                    setBottomsLengthType(
+                      e.target.value as BottomsLengthType | "",
+                    )
+                  }
                   className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors["spec.bottoms.length_type"] ? "border-red-400" : "border-gray-300"}`}
                 >
                   <option value="">選択してください</option>
@@ -1016,7 +1181,9 @@ export default function NewItemPage() {
                   ))}
                 </select>
                 {errors["spec.bottoms.length_type"] && (
-                  <p className="mt-2 text-sm text-red-600">{errors["spec.bottoms.length_type"]}</p>
+                  <p className="mt-2 text-sm text-red-600">
+                    {errors["spec.bottoms.length_type"]}
+                  </p>
                 )}
               </div>
             </section>
@@ -1025,18 +1192,27 @@ export default function NewItemPage() {
           {isLegwearSpecVisible && (
             <section className="space-y-4 rounded-xl border border-gray-200 bg-gray-50 p-4">
               <div>
-                <p className="text-sm font-medium text-gray-700">レッグウェア仕様</p>
+                <p className="text-sm font-medium text-gray-700">
+                  レッグウェア仕様
+                </p>
               </div>
 
               {isLegwearCoverageSelectVisible ? (
                 <div>
-                  <label htmlFor="legwear-coverage-type" className="mb-1 block text-sm font-medium text-gray-700">
+                  <label
+                    htmlFor="legwear-coverage-type"
+                    className="mb-1 block text-sm font-medium text-gray-700"
+                  >
                     レッグウェア
                   </label>
                   <select
                     id="legwear-coverage-type"
                     value={legwearCoverageType}
-                    onChange={(e) => setLegwearCoverageType(e.target.value as LegwearCoverageType | "")}
+                    onChange={(e) =>
+                      setLegwearCoverageType(
+                        e.target.value as LegwearCoverageType | "",
+                      )
+                    }
                     className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors["spec.legwear.coverage_type"] ? "border-red-400" : "border-gray-300"}`}
                   >
                     <option value="">選択してください</option>
@@ -1047,12 +1223,15 @@ export default function NewItemPage() {
                     ))}
                   </select>
                   {errors["spec.legwear.coverage_type"] && (
-                    <p className="mt-2 text-sm text-red-600">{errors["spec.legwear.coverage_type"]}</p>
+                    <p className="mt-2 text-sm text-red-600">
+                      {errors["spec.legwear.coverage_type"]}
+                    </p>
                   )}
                 </div>
               ) : (
                 <p className="text-sm text-gray-600">
-                  レッグウェア： {shape === "stockings" ? "ストッキング" : "タイツ"}
+                  レッグウェア：{" "}
+                  {shape === "stockings" ? "ストッキング" : "タイツ"}
                 </p>
               )}
             </section>
@@ -1063,7 +1242,12 @@ export default function NewItemPage() {
 
             <div className="grid gap-6 md:grid-cols-2">
               <div className="space-y-3">
-                <FieldLabel as="div" label="メインカラー" required className="" />
+                <FieldLabel
+                  as="div"
+                  label="メインカラー"
+                  required
+                  className=""
+                />
                 <label className="flex items-center gap-2 text-sm text-gray-700">
                   <input
                     type="checkbox"
@@ -1079,8 +1263,18 @@ export default function NewItemPage() {
 
                 {useCustomMainColor ? (
                   <div className="flex items-center gap-3 rounded-xl border border-gray-300 bg-white px-4 py-3">
-                    <input type="color" value={customMainHex} onChange={(e) => setCustomMainHex(e.target.value)} className="h-10 w-14 cursor-pointer rounded border border-gray-300 bg-white p-1" />
-                    <input type="text" value={customMainHex} onChange={(e) => setCustomMainHex(e.target.value)} className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors.mainColor ? "border-red-400" : "border-gray-300"}`} />
+                    <input
+                      type="color"
+                      value={customMainHex}
+                      onChange={(e) => setCustomMainHex(e.target.value)}
+                      className="h-10 w-14 cursor-pointer rounded border border-gray-300 bg-white p-1"
+                    />
+                    <input
+                      type="text"
+                      value={customMainHex}
+                      onChange={(e) => setCustomMainHex(e.target.value)}
+                      className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors.mainColor ? "border-red-400" : "border-gray-300"}`}
+                    />
                   </div>
                 ) : (
                   <ColorSelect
@@ -1089,11 +1283,17 @@ export default function NewItemPage() {
                     placeholder="選択してください"
                   />
                 )}
-                {errors.mainColor && <p className="mt-2 text-sm text-red-600">{errors.mainColor}</p>}
+                {errors.mainColor && (
+                  <p className="mt-2 text-sm text-red-600">
+                    {errors.mainColor}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-3">
-                <label className="block text-sm font-medium text-gray-700">サブカラー</label>
+                <label className="block text-sm font-medium text-gray-700">
+                  サブカラー
+                </label>
                 <label className="flex items-center gap-2 text-sm text-gray-700">
                   <input
                     type="checkbox"
@@ -1109,8 +1309,18 @@ export default function NewItemPage() {
 
                 {useCustomSubColor ? (
                   <div className="flex items-center gap-3 rounded-xl border border-gray-300 bg-white px-4 py-3">
-                    <input type="color" value={customSubHex} onChange={(e) => setCustomSubHex(e.target.value)} className="h-10 w-14 cursor-pointer rounded border border-gray-300 bg-white p-1" />
-                    <input type="text" value={customSubHex} onChange={(e) => setCustomSubHex(e.target.value)} className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
+                    <input
+                      type="color"
+                      value={customSubHex}
+                      onChange={(e) => setCustomSubHex(e.target.value)}
+                      className="h-10 w-14 cursor-pointer rounded border border-gray-300 bg-white p-1"
+                    />
+                    <input
+                      type="text"
+                      value={customSubHex}
+                      onChange={(e) => setCustomSubHex(e.target.value)}
+                      className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                    />
                   </div>
                 ) : (
                   <ColorSelect
@@ -1125,10 +1335,24 @@ export default function NewItemPage() {
 
             {(selectedMainColor || selectedSubColor) && (
               <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
-                <p className="mb-3 text-sm font-medium text-gray-700">選択中の色</p>
+                <p className="mb-3 text-sm font-medium text-gray-700">
+                  選択中の色
+                </p>
                 <div className="flex flex-wrap gap-2">
-                  {selectedMainColor && <ColorChip label={selectedMainColor.label} hex={selectedMainColor.hex} tone="main" />}
-                  {selectedSubColor && <ColorChip label={selectedSubColor.label} hex={selectedSubColor.hex} tone="sub" />}
+                  {selectedMainColor && (
+                    <ColorChip
+                      label={selectedMainColor.label}
+                      hex={selectedMainColor.hex}
+                      tone="main"
+                    />
+                  )}
+                  {selectedSubColor && (
+                    <ColorChip
+                      label={selectedSubColor.label}
+                      hex={selectedSubColor.hex}
+                      tone="sub"
+                    />
+                  )}
                 </div>
               </div>
             )}
@@ -1143,8 +1367,22 @@ export default function NewItemPage() {
                 {SEASON_OPTIONS.map((season) => {
                   const checked = selectedSeasons.includes(season);
                   return (
-                    <label key={season} className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition ${checked ? "border-blue-500 bg-blue-50 text-blue-700" : "border-gray-300 bg-white text-gray-700"}`}>
-                      <input type="checkbox" className="h-4 w-4" checked={checked} onChange={() => toggleValue(season, selectedSeasons, setSelectedSeasons)} />
+                    <label
+                      key={season}
+                      className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition ${checked ? "border-blue-500 bg-blue-50 text-blue-700" : "border-gray-300 bg-white text-gray-700"}`}
+                    >
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4"
+                        checked={checked}
+                        onChange={() =>
+                          toggleValue(
+                            season,
+                            selectedSeasons,
+                            setSelectedSeasons,
+                          )
+                        }
+                      />
                       {season}
                     </label>
                   );
@@ -1158,30 +1396,44 @@ export default function NewItemPage() {
                 {tpoOptions.map((tpo) => {
                   const checked = selectedTpoIds.includes(tpo.id);
                   return (
-                    <label key={tpo.id} className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition ${checked ? "border-blue-500 bg-blue-50 text-blue-700" : "border-gray-300 bg-white text-gray-700"}`}>
+                    <label
+                      key={tpo.id}
+                      className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition ${checked ? "border-blue-500 bg-blue-50 text-blue-700" : "border-gray-300 bg-white text-gray-700"}`}
+                    >
                       <input
                         type="checkbox"
                         className="h-4 w-4"
                         checked={checked}
-                        onChange={() => toggleValue(tpo.id, selectedTpoIds, setSelectedTpoIds)}
+                        onChange={() =>
+                          toggleValue(tpo.id, selectedTpoIds, setSelectedTpoIds)
+                        }
                       />
                       {tpo.name}
                     </label>
                   );
                 })}
                 {tpoOptions.length === 0 ? (
-                  <p className="text-sm text-gray-500">有効な TPO はまだありません。設定から追加できます。</p>
+                  <p className="text-sm text-gray-500">
+                    有効な TPO はまだありません。設定から追加できます。
+                  </p>
                 ) : null}
               </div>
             </div>
           </section>
 
           <div className="flex flex-col gap-3 pt-2 sm:flex-row">
-            <button type="submit" disabled={submitting} className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-3 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50">
+            <button
+              type="submit"
+              disabled={submitting}
+              className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-3 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+            >
               {submitting ? "作成中..." : "作成する"}
             </button>
 
-            <Link href="/items" className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50">
+            <Link
+              href="/items"
+              className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+            >
               キャンセル
             </Link>
           </div>
@@ -1202,8 +1454,16 @@ export default function NewItemPage() {
           skinTonePreset={skinTonePreset}
         />
 
-        {submitError && <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">{submitError}</div>}
-        {submitSuccess && <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">{submitSuccess}</div>}
+        {submitError && (
+          <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+            {submitError}
+          </div>
+        )}
+        {submitSuccess && (
+          <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+            {submitSuccess}
+          </div>
+        )}
       </div>
     </main>
   );

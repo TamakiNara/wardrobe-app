@@ -22,19 +22,23 @@ export function formatItemPrice(price: number | null): string {
 export function mapPurchaseCandidateImagesToItemImages(
   images: PurchaseCandidateImageRecord[],
 ): ItemImageRecord[] {
-  return normalizeItemImages(images.map((image) => ({
-    disk: image.disk,
-    path: image.path,
-    url: image.url,
-    original_filename: image.original_filename,
-    mime_type: image.mime_type,
-    file_size: image.file_size,
-    sort_order: image.sort_order,
-    is_primary: image.is_primary,
-  })));
+  return normalizeItemImages(
+    images.map((image) => ({
+      disk: image.disk,
+      path: image.path,
+      url: image.url,
+      original_filename: image.original_filename,
+      mime_type: image.mime_type,
+      file_size: image.file_size,
+      sort_order: image.sort_order,
+      is_primary: image.is_primary,
+    })),
+  );
 }
 
-export function normalizeItemImages(images: ItemImageRecord[]): ItemImageRecord[] {
+export function normalizeItemImages(
+  images: ItemImageRecord[],
+): ItemImageRecord[] {
   const sortedImages = [...images].sort((left, right) => {
     if (left.sort_order !== right.sort_order) {
       return left.sort_order - right.sort_order;
@@ -48,6 +52,7 @@ export function normalizeItemImages(images: ItemImageRecord[]): ItemImageRecord[
   return sortedImages.map((image, index) => ({
     ...image,
     sort_order: index + 1,
-    is_primary: sortedImages.length === 0 ? false : index === resolvedPrimaryIndex,
+    is_primary:
+      sortedImages.length === 0 ? false : index === resolvedPrimaryIndex,
   }));
 }

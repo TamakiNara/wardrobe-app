@@ -39,7 +39,8 @@ describe("BFF CSRF forwarding", () => {
         new Response(null, {
           status: 204,
           headers: {
-            "set-cookie": "XSRF-TOKEN=fresh_token; Path=/; SameSite=Lax, laravel-session=fresh_session; Path=/; HttpOnly; SameSite=Lax",
+            "set-cookie":
+              "XSRF-TOKEN=fresh_token; Path=/; SameSite=Lax, laravel-session=fresh_session; Path=/; HttpOnly; SameSite=Lax",
           },
         }),
       )
@@ -52,7 +53,8 @@ describe("BFF CSRF forwarding", () => {
             status: 200,
             headers: {
               "content-type": "application/json",
-              "set-cookie": "laravel-session=new_session; Path=/; HttpOnly; SameSite=Lax",
+              "set-cookie":
+                "laravel-session=new_session; Path=/; HttpOnly; SameSite=Lax",
             },
           },
         ),
@@ -118,7 +120,9 @@ describe("BFF CSRF forwarding", () => {
     expect(json).toEqual({
       message: "updated",
     });
-    expect(res.headers.get("set-cookie")).toContain("laravel-session=new_session");
+    expect(res.headers.get("set-cookie")).toContain(
+      "laravel-session=new_session",
+    );
   });
 
   it("adds csrf and refreshed session cookies to DELETE requests", async () => {
@@ -128,7 +132,8 @@ describe("BFF CSRF forwarding", () => {
         new Response(null, {
           status: 204,
           headers: {
-            "set-cookie": "XSRF-TOKEN=delete_token; Path=/; SameSite=Lax, laravel-session=delete_session; Path=/; HttpOnly; SameSite=Lax",
+            "set-cookie":
+              "XSRF-TOKEN=delete_token; Path=/; SameSite=Lax, laravel-session=delete_session; Path=/; HttpOnly; SameSite=Lax",
           },
         }),
       )
@@ -199,7 +204,8 @@ describe("BFF CSRF forwarding", () => {
         new Response(null, {
           status: 204,
           headers: {
-            "set-cookie": "XSRF-TOKEN=patch_token; Path=/; SameSite=Lax, laravel-session=patch_session; Path=/; HttpOnly; SameSite=Lax",
+            "set-cookie":
+              "XSRF-TOKEN=patch_token; Path=/; SameSite=Lax, laravel-session=patch_session; Path=/; HttpOnly; SameSite=Lax",
           },
         }),
       )
@@ -221,9 +227,13 @@ describe("BFF CSRF forwarding", () => {
       body: JSON.stringify({ is_active: false }),
     });
 
-    const res = await forwardPatchWithCsrfAndCookie(req as any, "/api/settings/brands/1", {
-      is_active: false,
-    });
+    const res = await forwardPatchWithCsrfAndCookie(
+      req as any,
+      "/api/settings/brands/1",
+      {
+        is_active: false,
+      },
+    );
 
     expect(global.fetch).toHaveBeenCalledTimes(3);
     expect(global.fetch).toHaveBeenNthCalledWith(

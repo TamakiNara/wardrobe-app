@@ -4,7 +4,10 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ItemThumbnailPreview from "@/components/items/item-thumbnail-preview";
-import { buildSupportedCategoryOptions, fetchCategoryGroups } from "@/lib/api/categories";
+import {
+  buildSupportedCategoryOptions,
+  fetchCategoryGroups,
+} from "@/lib/api/categories";
 import { COLOR_THUMBNAIL_FALLBACK_COLOR } from "@/lib/color-thumbnails/shared";
 import { buildClosetViewGroups } from "@/lib/items/closet-view";
 import { fetchCategoryVisibilitySettings } from "@/lib/api/settings";
@@ -157,9 +160,9 @@ export default function ItemsList({
 
   const [isComposingKeyword, setIsComposingKeyword] = useState(false);
   const [draftKeyword, setDraftKeyword] = useState(keyword);
-  const [apiCategoryOptions, setApiCategoryOptions] = useState<CategoryOption[]>([
-    ...ITEM_CATEGORY_OPTIONS,
-  ]);
+  const [apiCategoryOptions, setApiCategoryOptions] = useState<
+    CategoryOption[]
+  >([...ITEM_CATEGORY_OPTIONS]);
   const [viewMode, setViewMode] = useState<ItemListViewMode>(DEFAULT_VIEW_MODE);
   const initialSeasonAppliedRef = useRef(false);
 
@@ -167,27 +170,41 @@ export default function ItemsList({
     setDraftKeyword(keyword);
   }, [keyword]);
 
-  const updateQuery = useCallback((nextValues: Partial<{
-    keyword: string;
-    category: string;
-    season: string;
-    tpo: string;
-    sort: ItemSortValue;
-    page: number;
-  }>) => {
-    const nextQuery = buildQueryString({
-      keyword: nextValues.keyword ?? keyword,
-      category: nextValues.category ?? categoryFilter,
-      season: nextValues.season ?? seasonFilter,
-      tpo: nextValues.tpo ?? tpoFilter,
-      sort: nextValues.sort ?? sort,
-      page: nextValues.page ?? page,
-    });
+  const updateQuery = useCallback(
+    (
+      nextValues: Partial<{
+        keyword: string;
+        category: string;
+        season: string;
+        tpo: string;
+        sort: ItemSortValue;
+        page: number;
+      }>,
+    ) => {
+      const nextQuery = buildQueryString({
+        keyword: nextValues.keyword ?? keyword,
+        category: nextValues.category ?? categoryFilter,
+        season: nextValues.season ?? seasonFilter,
+        tpo: nextValues.tpo ?? tpoFilter,
+        sort: nextValues.sort ?? sort,
+        page: nextValues.page ?? page,
+      });
 
-    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, {
-      scroll: false,
-    });
-  }, [categoryFilter, keyword, page, pathname, router, seasonFilter, sort, tpoFilter]);
+      router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, {
+        scroll: false,
+      });
+    },
+    [
+      categoryFilter,
+      keyword,
+      page,
+      pathname,
+      router,
+      seasonFilter,
+      sort,
+      tpoFilter,
+    ],
+  );
 
   useEffect(() => {
     if (initialSeasonAppliedRef.current) {
@@ -205,10 +222,7 @@ export default function ItemsList({
   useEffect(() => {
     let active = true;
 
-    Promise.all([
-      fetchCategoryGroups(),
-      fetchCategoryVisibilitySettings(),
-    ])
+    Promise.all([fetchCategoryGroups(), fetchCategoryVisibilitySettings()])
       .then(([groups, settings]) => {
         if (!active) return;
         const nextOptions = buildSupportedCategoryOptions(
@@ -248,18 +262,18 @@ export default function ItemsList({
 
   const seasonOptions = availableSeasons;
   const tpoOptions = availableTpos;
-  const closetGroups = useMemo(() => buildClosetViewGroups(items, categoryOptions), [
-    categoryOptions,
-    items,
-  ]);
+  const closetGroups = useMemo(
+    () => buildClosetViewGroups(items, categoryOptions),
+    [categoryOptions, items],
+  );
 
   const hasActiveFilters = Boolean(
     keyword ||
-      categoryFilter ||
-      seasonFilter ||
-      tpoFilter ||
-      sort !== DEFAULT_SORT ||
-      currentPage > 1,
+    categoryFilter ||
+    seasonFilter ||
+    tpoFilter ||
+    sort !== DEFAULT_SORT ||
+    currentPage > 1,
   );
   const shouldShowEmptyState =
     items.length === 0 || (viewMode === "closet" && closetGroups.length === 0);
@@ -294,7 +308,9 @@ export default function ItemsList({
             </label>
             <select
               value={categoryFilter}
-              onChange={(e) => updateQuery({ category: e.target.value, page: 1 })}
+              onChange={(e) =>
+                updateQuery({ category: e.target.value, page: 1 })
+              }
               className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             >
               <option value="">すべて</option>
@@ -348,7 +364,9 @@ export default function ItemsList({
             </label>
             <select
               value={sort}
-              onChange={(e) => updateQuery({ sort: normalizeSort(e.target.value), page: 1 })}
+              onChange={(e) =>
+                updateQuery({ sort: normalizeSort(e.target.value), page: 1 })
+              }
               className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             >
               {SORT_OPTIONS.map((option) => (
@@ -382,7 +400,11 @@ export default function ItemsList({
                     : "border-transparent bg-white text-gray-600 hover:border-gray-200 hover:bg-gray-100"
                 }`}
               >
-                <svg aria-hidden="true" viewBox="0 0 20 20" className="h-4 w-4 fill-current">
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 20 20"
+                  className="h-4 w-4 fill-current"
+                >
                   <rect x="3" y="4" width="14" height="3" rx="1.5" />
                   <rect x="3" y="9" width="14" height="3" rx="1.5" />
                   <rect x="3" y="14" width="14" height="3" rx="1.5" />
@@ -400,9 +422,29 @@ export default function ItemsList({
                     : "border-transparent bg-white text-gray-600 hover:border-gray-200 hover:bg-gray-100"
                 }`}
               >
-                <svg aria-hidden="true" viewBox="0 0 20 20" className="h-4 w-4 stroke-current">
-                  <rect x="4" y="3" width="5" height="14" rx="1.5" fill="none" strokeWidth="1.6" />
-                  <rect x="11" y="3" width="5" height="14" rx="1.5" fill="none" strokeWidth="1.6" />
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 20 20"
+                  className="h-4 w-4 stroke-current"
+                >
+                  <rect
+                    x="4"
+                    y="3"
+                    width="5"
+                    height="14"
+                    rx="1.5"
+                    fill="none"
+                    strokeWidth="1.6"
+                  />
+                  <rect
+                    x="11"
+                    y="3"
+                    width="5"
+                    height="14"
+                    rx="1.5"
+                    fill="none"
+                    strokeWidth="1.6"
+                  />
                 </svg>
                 <span>クローゼット</span>
               </button>
@@ -436,24 +478,36 @@ export default function ItemsList({
               key={group.category}
               className="rounded-2xl border border-gray-200 bg-white px-4 py-3 shadow-sm"
             >
-              <h2 className="text-base font-semibold text-gray-900">{group.label}</h2>
+              <h2 className="text-base font-semibold text-gray-900">
+                {group.label}
+              </h2>
               <div className="mt-2.5 flex flex-wrap items-start gap-x-5 gap-y-3">
                 {group.shapeGroups.map((shapeGroup) => (
                   <section
                     key={`${group.category}-${shapeGroup.shape}`}
                     className={`min-w-fit space-y-1.5 ${
-                      shapeGroup.items.length === 1 ? "text-center" : "text-left"
+                      shapeGroup.items.length === 1
+                        ? "text-center"
+                        : "text-left"
                     }`}
                   >
-                    <h3 className="text-[11px] font-medium text-gray-500">{shapeGroup.label}</h3>
+                    <h3 className="text-[11px] font-medium text-gray-500">
+                      {shapeGroup.label}
+                    </h3>
                     <div
                       className={`flex flex-wrap gap-2 ${
-                        shapeGroup.items.length === 1 ? "justify-center" : "justify-start"
+                        shapeGroup.items.length === 1
+                          ? "justify-center"
+                          : "justify-start"
                       }`}
                     >
                       {shapeGroup.items.map((item) => {
-                        const mainColor = item.colors.find((color) => color.role === "main");
-                        const subColor = item.colors.find((color) => color.role === "sub");
+                        const mainColor = item.colors.find(
+                          (color) => color.role === "main",
+                        );
+                        const subColor = item.colors.find(
+                          (color) => color.role === "sub",
+                        );
                         const itemName = item.name || "名称未設定";
                         const mainColorLabel = mainColor?.label ?? "未設定";
 
@@ -473,13 +527,17 @@ export default function ItemsList({
                                 style={{
                                   width: subColor?.hex ? "90%" : "100%",
                                   backgroundColor:
-                                    mainColor?.hex ?? COLOR_THUMBNAIL_FALLBACK_COLOR,
+                                    mainColor?.hex ??
+                                    COLOR_THUMBNAIL_FALLBACK_COLOR,
                                 }}
                               />
                               {subColor?.hex ? (
                                 <span
                                   className="absolute inset-y-0 right-0"
-                                  style={{ width: "10%", backgroundColor: subColor.hex }}
+                                  style={{
+                                    width: "10%",
+                                    backgroundColor: subColor.hex,
+                                  }}
                                 />
                               ) : null}
                             </span>
@@ -549,10 +607,14 @@ export default function ItemsList({
                       </div>
 
                       <p className="mt-4 text-sm text-gray-600">
-                        季節: {item.seasons?.length ? item.seasons.join(" / ") : "未設定"}
+                        季節:{" "}
+                        {item.seasons?.length
+                          ? item.seasons.join(" / ")
+                          : "未設定"}
                       </p>
                       <p className="mt-1 text-sm text-gray-600">
-                        TPO: {item.tpos?.length ? item.tpos.join(" / ") : "未設定"}
+                        TPO:{" "}
+                        {item.tpos?.length ? item.tpos.join(" / ") : "未設定"}
                       </p>
                     </div>
                   </div>
@@ -575,9 +637,7 @@ export default function ItemsList({
 
         <p className="text-sm text-gray-600">
           {currentPage} / {lastPage}ページ
-          <span className="ml-2 text-gray-400">
-            （全{totalCount}件）
-          </span>
+          <span className="ml-2 text-gray-400">（全{totalCount}件）</span>
         </p>
         <button
           type="button"
