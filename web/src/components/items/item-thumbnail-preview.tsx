@@ -1,3 +1,10 @@
+import {
+  ITEM_THUMBNAIL_FRAME_HEIGHT,
+  ITEM_THUMBNAIL_FRAME_RX,
+  ITEM_THUMBNAIL_FRAME_WIDTH,
+  ITEM_THUMBNAIL_FRAME_X,
+  ITEM_THUMBNAIL_FRAME_Y,
+} from "@/components/items/item-thumbnail-frame";
 import LowerBodyPreviewSvg from "@/components/items/item-lower-body-thumbnail-svg";
 import { COLOR_THUMBNAIL_FALLBACK_COLOR } from "@/lib/color-thumbnails/shared";
 import {
@@ -27,7 +34,7 @@ type ItemThumbnailPreviewProps = {
   skinTonePreset?: SkinTonePreset;
 };
 
-function TopLikeItemPreviewSvg({
+function NonLowerBodyItemPreviewSvg({
   mainColorHex,
   subColorHex,
   category,
@@ -36,9 +43,9 @@ function TopLikeItemPreviewSvg({
   subColorHex?: string;
   category: string;
 }) {
-  const ariaLabel =
-    category === "dress" ? "ワンピースプレビュー" : "トップスプレビュー";
+  const ariaLabel = `${category} プレビュー`;
   const clipPathId = useId().replace(/:/g, "");
+  const subColorBandY = category === "shoes" ? 72 : 20;
 
   return (
     <svg
@@ -46,38 +53,44 @@ function TopLikeItemPreviewSvg({
       className="h-full w-full"
       role="img"
       aria-label={ariaLabel}
-      data-testid="item-toplike-preview-svg"
+      data-testid="item-non-lower-body-preview-svg"
     >
       <defs>
         <clipPath id={clipPathId}>
-          <rect x="22" y="20" width="76" height="72" rx="18" />
+          <rect
+            x={ITEM_THUMBNAIL_FRAME_X}
+            y={ITEM_THUMBNAIL_FRAME_Y}
+            width={ITEM_THUMBNAIL_FRAME_WIDTH}
+            height={ITEM_THUMBNAIL_FRAME_HEIGHT}
+            rx={ITEM_THUMBNAIL_FRAME_RX}
+          />
         </clipPath>
       </defs>
       <g clipPath={`url(#${clipPathId})`}>
         <rect
-          x="22"
-          y="20"
-          width="76"
-          height="72"
+          x={ITEM_THUMBNAIL_FRAME_X}
+          y={ITEM_THUMBNAIL_FRAME_Y}
+          width={ITEM_THUMBNAIL_FRAME_WIDTH}
+          height={ITEM_THUMBNAIL_FRAME_HEIGHT}
           fill={mainColorHex ?? COLOR_THUMBNAIL_FALLBACK_COLOR}
         />
         {subColorHex ? (
           <rect
-            x="22"
-            y="20"
-            width="76"
+            x={ITEM_THUMBNAIL_FRAME_X}
+            y={subColorBandY}
+            width={ITEM_THUMBNAIL_FRAME_WIDTH}
             height="6"
             fill={subColorHex}
-            data-testid="item-toplike-subcolor-line"
+            data-testid="item-non-lower-body-subcolor-line"
           />
         ) : null}
       </g>
       <rect
-        x="22"
-        y="20"
-        width="76"
-        height="72"
-        rx="18"
+        x={ITEM_THUMBNAIL_FRAME_X}
+        y={ITEM_THUMBNAIL_FRAME_Y}
+        width={ITEM_THUMBNAIL_FRAME_WIDTH}
+        height={ITEM_THUMBNAIL_FRAME_HEIGHT}
+        rx={ITEM_THUMBNAIL_FRAME_RX}
         fill="none"
         stroke="#D1D5DB"
         strokeWidth="2"
@@ -115,8 +128,8 @@ export default function ItemThumbnailPreview({
   const shouldRenderLowerBody =
     category === "bottoms" ||
     (category === "legwear" && Boolean(legwearPreviewCoverageType));
-  const shouldRenderTopLikePreview =
-    category === "tops" || category === "dress";
+  const shouldRenderNonLowerBodyPreview =
+    Boolean(category) && !shouldRenderLowerBody;
 
   if (primaryImage?.url) {
     return (
@@ -133,12 +146,12 @@ export default function ItemThumbnailPreview({
     );
   }
 
-  if (shouldRenderTopLikePreview) {
+  if (shouldRenderNonLowerBodyPreview) {
     return (
       <div
         className={`flex items-center justify-center border border-dashed border-gray-300 bg-white ${sizeClass} ${contentPaddingClass}`}
       >
-        <TopLikeItemPreviewSvg
+        <NonLowerBodyItemPreviewSvg
           mainColorHex={mainColorHex}
           subColorHex={subColorHex}
           category={category}

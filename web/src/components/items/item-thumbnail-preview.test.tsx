@@ -52,8 +52,8 @@ describe("ItemThumbnailPreview", () => {
       container.querySelectorAll('[data-testid="bottoms-hem-marker"]'),
     );
     expect(markers).toHaveLength(2);
-    expect(markers[0]?.getAttribute("y1")).toBe("48");
-    expect(markers[1]?.getAttribute("y1")).toBe("102");
+    expect(markers[0]?.getAttribute("y1")).toBe("46");
+    expect(markers[1]?.getAttribute("y1")).toBe("92");
   });
 
   it("トップス item SVG は shape 差分ではなく共通の角丸四角ベースで描く", async () => {
@@ -79,7 +79,9 @@ describe("ItemThumbnailPreview", () => {
     });
 
     const svgs = Array.from(
-      container.querySelectorAll('[data-testid="item-toplike-preview-svg"]'),
+      container.querySelectorAll(
+        '[data-testid="item-non-lower-body-preview-svg"]',
+      ),
     );
     expect(svgs).toHaveLength(2);
     const rects = svgs.map((svg) => {
@@ -108,12 +110,14 @@ describe("ItemThumbnailPreview", () => {
     });
 
     expect(
-      container.querySelector('[data-testid="item-toplike-preview-svg"]'),
+      container.querySelector(
+        '[data-testid="item-non-lower-body-preview-svg"]',
+      ),
     ).not.toBeNull();
     expect(container.textContent).not.toContain("SVG プレビュー");
   });
 
-  it("トップス系のサブカラーは右下三角ラインで表現する", async () => {
+  it("non-lower-body 系のサブカラーは水平ラインで表現する", async () => {
     await act(async () => {
       root.render(
         <div>
@@ -135,10 +139,14 @@ describe("ItemThumbnailPreview", () => {
     });
 
     const lines = Array.from(
-      container.querySelectorAll('[data-testid="item-toplike-subcolor-line"]'),
+      container.querySelectorAll(
+        '[data-testid="item-non-lower-body-subcolor-line"]',
+      ),
     );
     const svgs = Array.from(
-      container.querySelectorAll('[data-testid="item-toplike-preview-svg"]'),
+      container.querySelectorAll(
+        '[data-testid="item-non-lower-body-preview-svg"]',
+      ),
     );
 
     expect(lines).toHaveLength(1);
@@ -147,8 +155,62 @@ describe("ItemThumbnailPreview", () => {
     expect(lines[0]?.getAttribute("width")).toBe("76");
     expect(lines[0]?.getAttribute("height")).toBe("6");
     expect(
-      svgs[1]?.querySelector('[data-testid="item-toplike-subcolor-line"]'),
+      svgs[1]?.querySelector(
+        '[data-testid="item-non-lower-body-subcolor-line"]',
+      ),
     ).toBeNull();
+  });
+
+  it("outer / inner / accessories でも共通四角 SVG を使う", async () => {
+    await act(async () => {
+      root.render(
+        <div>
+          <ItemThumbnailPreview
+            category="outer"
+            shape="trench"
+            mainColorHex="#475569"
+            size="small"
+          />
+          <ItemThumbnailPreview
+            category="inner"
+            shape="roomwear"
+            mainColorHex="#A855F7"
+            size="small"
+          />
+          <ItemThumbnailPreview
+            category="accessories"
+            shape="tote"
+            mainColorHex="#F97316"
+            size="small"
+          />
+        </div>,
+      );
+    });
+
+    expect(
+      container.querySelectorAll(
+        '[data-testid="item-non-lower-body-preview-svg"]',
+      ),
+    ).toHaveLength(3);
+  });
+
+  it("shoes だけサブカラーラインを下寄りにする", async () => {
+    await act(async () => {
+      root.render(
+        <ItemThumbnailPreview
+          category="shoes"
+          shape="pumps"
+          mainColorHex="#94A3B8"
+          subColorHex="#111827"
+          size="small"
+        />,
+      );
+    });
+
+    const line = container.querySelector(
+      '[data-testid="item-non-lower-body-subcolor-line"]',
+    );
+    expect(line?.getAttribute("y")).toBe("72");
   });
 
   it("ソックスは coverage_type に応じて下側から覆う長さが変わる", async () => {
@@ -177,8 +239,8 @@ describe("ItemThumbnailPreview", () => {
       container.querySelectorAll('[data-testid="legwear-overlay"]'),
     );
     expect(overlays).toHaveLength(2);
-    expect(overlays[0]?.getAttribute("y")).toBe("86");
-    expect(overlays[1]?.getAttribute("y")).toBe("40");
+    expect(overlays[0]?.getAttribute("y")).toBe("78");
+    expect(overlays[1]?.getAttribute("y")).toBe("39");
   });
 
   it("stockings と tights で不透明度が変わる", async () => {
@@ -230,7 +292,7 @@ describe("ItemThumbnailPreview", () => {
       container
         .querySelector('[data-testid="bottoms-hem-marker"]')
         ?.getAttribute("y1"),
-    ).toBe("102");
+    ).toBe("92");
   });
 
   it("coverage_type 未設定のレッグウェアは full-length fallback として扱う", async () => {
@@ -249,8 +311,8 @@ describe("ItemThumbnailPreview", () => {
     expect(
       container.querySelector('[data-testid="lower-body-preview-svg"]'),
     ).not.toBeNull();
-    expect(overlay?.getAttribute("y")).toBe("18");
-    expect(overlay?.getAttribute("height")).toBe("84");
+    expect(overlay?.getAttribute("y")).toBe("20");
+    expect(overlay?.getAttribute("height")).toBe("72");
   });
 
   it("bottoms と legwear を合成する場合は legwear を先に描いてから bottoms を重ねる", async () => {

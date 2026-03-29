@@ -1,4 +1,12 @@
 import { useId } from "react";
+import {
+  ITEM_THUMBNAIL_FRAME_HEIGHT,
+  ITEM_THUMBNAIL_FRAME_RX,
+  ITEM_THUMBNAIL_FRAME_WIDTH,
+  ITEM_THUMBNAIL_FRAME_X,
+  ITEM_THUMBNAIL_FRAME_Y,
+  ITEM_THUMBNAIL_VIEWPORT_SIZE,
+} from "@/components/items/item-thumbnail-frame";
 
 type LowerBodyPreviewSvgProps = {
   lengthType?: string | null;
@@ -15,12 +23,14 @@ type LowerBodyPreviewSvgProps = {
 
 const DEFAULT_SKIN_TONE = "#F1C7A6";
 const DEFAULT_GARMENT_COLOR = "#CBD5E1";
-const FRAME_X = 18;
-const FRAME_Y = 18;
-const FRAME_WIDTH = 84;
-const FRAME_HEIGHT = 84;
-const FRAME_RX = 18;
-const VIEWPORT_SIZE = 120;
+const FRAME_X = ITEM_THUMBNAIL_FRAME_X;
+const FRAME_Y = ITEM_THUMBNAIL_FRAME_Y;
+const FRAME_WIDTH = ITEM_THUMBNAIL_FRAME_WIDTH;
+const FRAME_HEIGHT = ITEM_THUMBNAIL_FRAME_HEIGHT;
+const FRAME_RX = ITEM_THUMBNAIL_FRAME_RX;
+const VIEWPORT_SIZE = ITEM_THUMBNAIL_VIEWPORT_SIZE;
+const LEGACY_FRAME_Y = 18;
+const LEGACY_FRAME_HEIGHT = 84;
 
 const BOTTOMS_HEM_Y: Record<string, number> = {
   mini: 48,
@@ -47,10 +57,15 @@ function remapViewportY(
   frameMode: "standalone" | "viewport",
 ): number {
   if (frameMode === "standalone") {
-    return value;
+    return (
+      FRAME_Y +
+      Math.round(
+        ((value - LEGACY_FRAME_Y) / LEGACY_FRAME_HEIGHT) * FRAME_HEIGHT,
+      )
+    );
   }
 
-  return ((value - FRAME_Y) / FRAME_HEIGHT) * VIEWPORT_SIZE;
+  return ((value - LEGACY_FRAME_Y) / LEGACY_FRAME_HEIGHT) * VIEWPORT_SIZE;
 }
 
 function remapViewportOffset(
@@ -58,10 +73,13 @@ function remapViewportOffset(
   frameMode: "standalone" | "viewport",
 ): number {
   if (frameMode === "standalone") {
-    return value;
+    return Math.max(
+      1,
+      Math.round((value / LEGACY_FRAME_HEIGHT) * FRAME_HEIGHT),
+    );
   }
 
-  return (value / FRAME_HEIGHT) * VIEWPORT_SIZE;
+  return (value / LEGACY_FRAME_HEIGHT) * VIEWPORT_SIZE;
 }
 
 function PreviewFrame({

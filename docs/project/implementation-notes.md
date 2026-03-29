@@ -347,7 +347,8 @@ planned:
 
 - `tops spec` を `items.spec` として保存可能にした
 - create / edit / detail / list の各画面で `spec.tops` を利用するように統一した
-- item SVG は画像がない場合の代替表現として簡潔さを優先し、tops / dress は角丸四角ベースの共通表現へ寄せた
+- item SVG は画像がない場合の代替表現として簡潔さを優先し、non-lower-body 系カテゴリを角丸四角ベースの共通表現へ寄せた
+- サブカラーは基本を上寄りの水平ラインとし、shoes だけ下寄りラインの例外を持たせた
 - tops spec は保存・表示には残しつつ、item SVG の shape 個別描画からは切り離した
 - outfit 側のサムネイルは item と責務が異なるため、既存の重ね着 / 分割 / 合成ルールを維持している
 - `tops` 用 master-data (`shape / sleeve / length / neck / design / fit`) を UI に反映した
