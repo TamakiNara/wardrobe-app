@@ -38,5 +38,7 @@ export function getOutfitThumbnailFallbackColor() {
 export function buildOutfitThumbnailLayout(
   items: OutfitThumbnailItem[],
 ): OutfitThumbnailLayout {
-  return buildColorThumbnailLayout(items);
+  return buildColorThumbnailLayout(items, {
+    excludedCategories: ["legwear"],
+  });
 }

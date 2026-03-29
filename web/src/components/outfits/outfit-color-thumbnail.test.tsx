@@ -305,6 +305,12 @@ describe("OutfitColorThumbnail", () => {
       container.querySelector('[data-testid="thumbnail-bottoms"]'),
     ).toBeNull();
     expect(
+      container.querySelector('[data-testid="thumbnail-others"]'),
+    ).toBeNull();
+    expect(
+      container.querySelector('[data-testid="thumbnail-others-bar"]'),
+    ).toBeNull();
+    expect(
       container
         .querySelector('[data-testid="lower-body-skin-base"]')
         ?.getAttribute("fill"),
@@ -319,6 +325,42 @@ describe("OutfitColorThumbnail", () => {
         .querySelector('[data-testid="lower-body-skin-base"]')
         ?.getAttribute("y"),
     ).toBe("0");
+  });
+
+  it("legwear は others ではなく lower-body 専用として扱う", async () => {
+    await act(async () => {
+      root.render(
+        React.createElement(OutfitColorThumbnail, {
+          outfitItems: [
+            renderOutfitItem(1, "tops", [
+              { role: "main", hex: "#ffffff", label: "白" },
+            ]),
+            renderOutfitItem(
+              2,
+              "legwear",
+              [{ role: "main", hex: "#334155", label: "ネイビー" }],
+              {
+                shape: "socks",
+                spec: { legwear: { coverage_type: "crew_socks" } },
+              },
+            ),
+          ],
+        }),
+      );
+    });
+
+    expect(
+      container.querySelector('[data-testid="thumbnail-tops"]'),
+    ).not.toBeNull();
+    expect(
+      container.querySelector('[data-testid="thumbnail-others"]'),
+    ).toBeNull();
+    expect(
+      container.querySelector('[data-testid="thumbnail-others-bar"]'),
+    ).toBeNull();
+    expect(
+      container.querySelector('[data-testid="thumbnail-lower-body"]'),
+    ).toBeNull();
   });
 
   it("representative bottoms がなければ lower-body preview を表示しない", async () => {

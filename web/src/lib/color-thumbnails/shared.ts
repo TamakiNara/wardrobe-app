@@ -61,8 +61,11 @@ export function buildColorThumbnailLayout(
   options?: {
     fallbackWhenEmpty?: boolean;
     emptyFallbackId?: number;
+    excludedCategories?: string[];
   },
 ): ColorThumbnailLayout {
+  const excludedCategories = new Set(options?.excludedCategories ?? []);
+
   if (sources.length === 0 && options?.fallbackWhenEmpty) {
     return {
       tops: [],
@@ -88,6 +91,14 @@ export function buildColorThumbnailLayout(
   };
 
   sources.forEach((source) => {
+    if (
+      source.category !== null &&
+      source.category !== undefined &&
+      excludedCategories.has(source.category)
+    ) {
+      return;
+    }
+
     const group = resolveColorThumbnailGroup(source.category);
     layout[group].push(buildColorThumbnailSegment(source));
   });
