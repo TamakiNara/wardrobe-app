@@ -259,7 +259,7 @@ describe("EditItemPage", () => {
     expect(container.textContent).toContain("ケア状態");
     expect(container.textContent).toContain("メインカラー");
     expect(container.textContent).toContain("ブランド候補にも追加する");
-    expect(container.textContent?.match(/必須/g)?.length).toBe(4);
+    expect(container.textContent?.match(/必須/g)?.length).toBe(3);
     expect(
       (container.querySelector("#brand-name") as HTMLInputElement | null)
         ?.value,
@@ -341,5 +341,67 @@ describe("EditItemPage", () => {
       )?.value,
     ).toBe("crew_socks");
     expect(container.textContent).toContain("レッグウェア仕様");
+    expect(container.textContent).toContain(
+      "ソックスの長さを選択してください。",
+    );
+  });
+
+  it("編集画面でタイツは追加選択なしで扱える", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          item: {
+            id: 3,
+            name: "ブラックタイツ",
+            status: "active",
+            care_status: null,
+            brand_name: null,
+            price: null,
+            purchase_url: null,
+            memo: null,
+            purchased_at: null,
+            size_gender: null,
+            size_label: null,
+            size_note: null,
+            size_details: null,
+            is_rain_ok: false,
+            category: "legwear",
+            shape: "tights",
+            colors: [],
+            seasons: [],
+            tpos: [],
+            tpo_ids: [],
+            spec: {
+              legwear: {
+                coverage_type: "tights",
+              },
+            },
+            images: [],
+          },
+        }),
+      }),
+    );
+
+    const { default: EditItemPage } = await import("./page");
+
+    act(() => {
+      root.render(
+        React.createElement(EditItemPage, {
+          params: Promise.resolve({ id: "3" }),
+        }),
+      );
+    });
+
+    await act(async () => {
+      await waitForEffects();
+    });
+
+    expect(container.querySelector("#legwear-coverage-type")).toBeNull();
+    expect(container.textContent).toContain(
+      "この種類は追加の選択なしで登録できます。",
+    );
   });
 });

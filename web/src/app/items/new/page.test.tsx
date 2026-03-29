@@ -319,6 +319,9 @@ describe("NewItemPage", () => {
 
     expect(container.textContent).toContain("ボトムス仕様");
     expect(container.textContent).toContain("ボトムス丈");
+    expect(container.textContent).toContain(
+      "ボトムスを選んだ場合は、丈を選択してください。",
+    );
     expect(container.querySelector("#bottoms-length-type")).not.toBeNull();
     expect(container.querySelector("#legwear-coverage-type")).toBeNull();
 
@@ -341,6 +344,82 @@ describe("NewItemPage", () => {
 
     expect(container.textContent).toContain("レッグウェア仕様");
     expect(container.textContent).toContain("レッグウェア");
+    expect(container.textContent).toContain(
+      "ソックスの長さを選択してください。",
+    );
     expect(container.querySelector("#legwear-coverage-type")).not.toBeNull();
+
+    await act(async () => {
+      shapeSelect!.value = "tights";
+      shapeSelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    expect(container.querySelector("#legwear-coverage-type")).toBeNull();
+    expect(container.textContent).toContain(
+      "この種類は追加の選択なしで登録できます。",
+    );
+  });
+
+  it("ボトムス丈とソックスの未選択時に分かりやすいエラーを表示する", async () => {
+    const { default: NewItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(NewItemPage));
+      await waitForEffects();
+    });
+
+    const categorySelect =
+      container.querySelector<HTMLSelectElement>("#category");
+    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
+    expect(categorySelect).not.toBeNull();
+    expect(shapeSelect).not.toBeNull();
+
+    await act(async () => {
+      categorySelect!.value = "bottoms";
+      categorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    await act(async () => {
+      shapeSelect!.value = "straight";
+      shapeSelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    const form = container.querySelector("form");
+    expect(form).not.toBeNull();
+
+    await act(async () => {
+      form!.dispatchEvent(
+        new Event("submit", { bubbles: true, cancelable: true }),
+      );
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain("ボトムス丈を選択してください。");
+
+    await act(async () => {
+      categorySelect!.value = "legwear";
+      categorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    await act(async () => {
+      shapeSelect!.value = "socks";
+      shapeSelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    await act(async () => {
+      form!.dispatchEvent(
+        new Event("submit", { bubbles: true, cancelable: true }),
+      );
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain(
+      "レッグウェアの種類を選択してください。",
+    );
   });
 });

@@ -120,9 +120,10 @@ export function resolveLegwearCoverageTypeForPreview(
 ): LegwearPreviewCoverageType | null {
   if (!isLegwearSpecCategory(category)) return null;
 
-  return (
-    resolveLegwearCoverageType(category, shape, value) ?? "full_length_fallback"
-  );
+  const resolved = resolveLegwearCoverageType(category, shape, value);
+  return resolved
+    ? (resolved as LegwearPreviewCoverageType)
+    : "full_length_fallback";
 }
 
 export function resolveBottomsLengthType(value?: string | null) {

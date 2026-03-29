@@ -156,6 +156,10 @@ export default function EditItemPage({
     () => getLegwearCoverageOptions(shape),
     [shape],
   );
+  const isLegwearCoverageRequired = isLegwearCoverageTypeRequired(
+    category,
+    shape,
+  );
 
   const shapeOptions = useMemo(() => {
     if (!category) return [];
@@ -413,9 +417,24 @@ export default function EditItemPage({
     setLegwearCoverageType("");
   }
 
+  function clearErrorsFor(keys: string[]) {
+    setErrors((current) => {
+      const next = { ...current };
+      keys.forEach((key) => {
+        delete next[key];
+      });
+      return next;
+    });
+  }
+
   function handleCategoryChange(nextCategory: string) {
     setCategory(nextCategory as ItemCategory | "");
     setShape("");
+    clearErrorsFor([
+      "shape",
+      "spec.bottoms.length_type",
+      "spec.legwear.coverage_type",
+    ]);
 
     if (nextCategory !== "tops") {
       resetTopsState();
@@ -439,6 +458,7 @@ export default function EditItemPage({
       setTopsDesign("");
       setTopsFit(DEFAULT_TOPS_FIT);
       setShape("");
+      clearErrorsFor(["shape"]);
       return;
     }
 
@@ -449,10 +469,12 @@ export default function EditItemPage({
     setTopsDesign(rule.defaults?.design ?? "");
     setTopsFit(rule.defaults?.fit ?? DEFAULT_TOPS_FIT);
     setShape(value);
+    clearErrorsFor(["shape"]);
   }
 
   function handleShapeChange(nextShape: string) {
     setShape(nextShape);
+    clearErrorsFor(["shape", "spec.legwear.coverage_type"]);
 
     if (!isLegwearSpecCategory(category)) {
       resetLegwearSpecState();
@@ -694,7 +716,7 @@ export default function EditItemPage({
       !resolvedLegwearCoverageType
     ) {
       nextErrors["spec.legwear.coverage_type"] =
-        "レッグウェアを選択してください。";
+        "レッグウェアの種類を選択してください。";
     }
 
     setErrors(nextErrors);
@@ -1122,12 +1144,14 @@ export default function EditItemPage({
                     ボトムス仕様
                   </p>
                   <div>
-                    <label
+                    <FieldLabel
                       htmlFor="bottoms-length-type"
-                      className="mb-1 block text-sm font-medium text-gray-700"
-                    >
-                      ボトムス丈
-                    </label>
+                      label="ボトムス丈"
+                      required={isBottomsLengthTypeRequired(category)}
+                    />
+                    <p className="mb-2 text-xs text-gray-500">
+                      ボトムスを選んだ場合は、丈を選択してください。
+                    </p>
                     <select
                       id="bottoms-length-type"
                       value={bottomsLengthType}
@@ -1136,9 +1160,15 @@ export default function EditItemPage({
                           e.target.value as BottomsLengthType | "",
                         )
                       }
+                      onBlur={() =>
+                        clearErrorsFor(["spec.bottoms.length_type"])
+                      }
+                      onChangeCapture={() =>
+                        clearErrorsFor(["spec.bottoms.length_type"])
+                      }
                       className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors["spec.bottoms.length_type"] ? "border-red-400" : "border-gray-300"}`}
                     >
-                      <option value="">選択してください</option>
+                      <option value="">丈を選択してください</option>
                       {BOTTOMS_LENGTH_OPTIONS.map((item) => (
                         <option key={item.value} value={item.value}>
                           {item.label}
@@ -1161,12 +1191,16 @@ export default function EditItemPage({
                   </p>
                   {isLegwearCoverageSelectVisible ? (
                     <div>
-                      <label
+                      <FieldLabel
                         htmlFor="legwear-coverage-type"
-                        className="mb-1 block text-sm font-medium text-gray-700"
-                      >
-                        レッグウェア
-                      </label>
+                        label="レッグウェア"
+                        required={isLegwearCoverageRequired}
+                      />
+                      <p className="mb-2 text-xs text-gray-500">
+                        {shape === "leggings"
+                          ? "レギンスの長さを選択してください。"
+                          : "ソックスの長さを選択してください。"}
+                      </p>
                       <select
                         id="legwear-coverage-type"
                         value={legwearCoverageType}
@@ -1175,9 +1209,15 @@ export default function EditItemPage({
                             e.target.value as LegwearCoverageType | "",
                           )
                         }
+                        onBlur={() =>
+                          clearErrorsFor(["spec.legwear.coverage_type"])
+                        }
+                        onChangeCapture={() =>
+                          clearErrorsFor(["spec.legwear.coverage_type"])
+                        }
                         className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors["spec.legwear.coverage_type"] ? "border-red-400" : "border-gray-300"}`}
                       >
-                        <option value="">選択してください</option>
+                        <option value="">種類を選択してください</option>
                         {legwearCoverageOptions.map((item) => (
                           <option key={item.value} value={item.value}>
                             {item.label}
@@ -1191,10 +1231,14 @@ export default function EditItemPage({
                       )}
                     </div>
                   ) : (
-                    <p className="text-sm text-gray-600">
-                      レッグウェア：{" "}
-                      {shape === "stockings" ? "ストッキング" : "タイツ"}
-                    </p>
+                    <div className="rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm text-gray-600">
+                      <p className="font-medium text-gray-700">
+                        {shape === "stockings" ? "ストッキング" : "タイツ"}
+                      </p>
+                      <p className="mt-1 text-xs text-gray-500">
+                        この種類は追加の選択なしで登録できます。
+                      </p>
+                    </div>
                   )}
                 </div>
               ) : null}
