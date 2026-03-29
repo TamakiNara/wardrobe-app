@@ -370,6 +370,31 @@ class SampleItemSeeder extends Seeder
                 'spec' => null,
             ],
             [
+                'name' => 'ネイビーワンピース',
+                'brand_name' => 'NATURAL BEAUTY BASIC',
+                'category' => 'dress',
+                'shape' => 'onepiece',
+                'colors' => [
+                    ['role' => 'main', 'mode' => 'preset', 'value' => 'navy', 'hex' => '#44516A', 'label' => 'ネイビー'],
+                    ['role' => 'sub', 'mode' => 'preset', 'value' => 'beige', 'hex' => '#D8CBB4', 'label' => 'ベージュ'],
+                ],
+                'seasons' => ['春', '秋'],
+                'tpos' => ['仕事', '休日'],
+                'spec' => null,
+            ],
+            [
+                'name' => 'ブラックオールインワン',
+                'brand_name' => 'GLOBAL WORK',
+                'category' => 'dress',
+                'shape' => 'allinone',
+                'colors' => [
+                    ['role' => 'main', 'mode' => 'preset', 'value' => 'black', 'hex' => '#2B2B2B', 'label' => 'ブラック'],
+                ],
+                'seasons' => ['春', '秋'],
+                'tpos' => ['休日'],
+                'spec' => null,
+            ],
+            [
                 'name' => 'スニーカー',
                 'brand_name' => 'ABC-MART',
                 'category' => 'shoes',

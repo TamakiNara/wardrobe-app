@@ -2,7 +2,10 @@ import { COLOR_THUMBNAIL_OTHERS_BAR_CLASS } from "@/lib/color-thumbnails/shared"
 import LowerBodyPreviewSvg from "@/components/items/item-lower-body-thumbnail-svg";
 import { resolveSkinToneColor } from "@/lib/master-data/skin-tone-presets";
 import { buildOutfitThumbnailLayout } from "@/lib/outfits/color-thumbnail";
-import { buildOutfitLowerBodyPreviewSource } from "@/lib/outfits/lower-body-preview";
+import {
+  buildOutfitDressLowerBodyPreviewSource,
+  buildOutfitLowerBodyPreviewSource,
+} from "@/lib/outfits/lower-body-preview";
 import type { ItemSpec } from "@/types/items";
 import type { SkinTonePreset } from "@/types/settings";
 
@@ -52,6 +55,30 @@ function ColorBand({
   );
 }
 
+function DressLayerBand({
+  mainColorHex,
+  subColorHex,
+}: {
+  mainColorHex: string;
+  subColorHex: string | null;
+}) {
+  return (
+    <span className="relative block h-full w-full overflow-hidden">
+      <span
+        className="absolute inset-0"
+        style={{ backgroundColor: mainColorHex }}
+      />
+      {subColorHex ? (
+        <span
+          className="absolute inset-x-0 top-0 h-[10%]"
+          style={{ backgroundColor: subColorHex }}
+          data-testid="thumbnail-dress-sub-band"
+        />
+      ) : null}
+    </span>
+  );
+}
+
 function SegmentRow({
   segments,
   testId,
@@ -81,6 +108,14 @@ function SegmentRow({
   );
 }
 
+function findMainColorHex(colors: OutfitItem["item"]["colors"]): string {
+  return colors.find((color) => color.role === "main")?.hex ?? "#E5E7EB";
+}
+
+function findSubColorHex(colors: OutfitItem["item"]["colors"]): string | null {
+  return colors.find((color) => color.role === "sub")?.hex ?? null;
+}
+
 export default function OutfitColorThumbnail({
   outfitItems,
   skinTonePreset,
@@ -90,15 +125,34 @@ export default function OutfitColorThumbnail({
   skinTonePreset?: SkinTonePreset;
   size?: "small" | "large";
 }) {
+  const sortedOutfitItems = [...outfitItems].sort(
+    (left, right) => left.sort_order - right.sort_order,
+  );
+  const hasBottoms = sortedOutfitItems.some(
+    (outfitItem) => outfitItem.item.category === "bottoms",
+  );
+  const dressItems = sortedOutfitItems.filter(
+    (outfitItem) => outfitItem.item.category === "dress",
+  );
+  const topsItems = sortedOutfitItems.filter(
+    (outfitItem) => outfitItem.item.category === "tops",
+  );
+  const representativeDress =
+    dressItems.length > 0 ? dressItems[dressItems.length - 1] : null;
+  const shouldRenderDressLayer =
+    representativeDress !== null && hasBottoms === false;
   const layout = buildOutfitThumbnailLayout(
-    outfitItems.map((outfitItem) => ({
+    sortedOutfitItems.map((outfitItem) => ({
       id: outfitItem.item.id,
       category: outfitItem.item.category,
       colors: outfitItem.item.colors,
     })),
+    {
+      excludeDress: shouldRenderDressLayer,
+    },
   );
   const lowerBodyPreview = buildOutfitLowerBodyPreviewSource(
-    outfitItems.map((outfitItem) => ({
+    sortedOutfitItems.map((outfitItem) => ({
       sort_order: outfitItem.sort_order,
       item: {
         id: outfitItem.item.id,
@@ -109,12 +163,50 @@ export default function OutfitColorThumbnail({
       },
     })),
   );
+  const dressLowerBodyPreview = shouldRenderDressLayer
+    ? buildOutfitDressLowerBodyPreviewSource(
+        sortedOutfitItems.map((outfitItem) => ({
+          sort_order: outfitItem.sort_order,
+          item: {
+            id: outfitItem.item.id,
+            category: outfitItem.item.category,
+            shape: outfitItem.item.shape,
+            colors: outfitItem.item.colors,
+            spec: outfitItem.item.spec ?? null,
+          },
+        })),
+      )
+    : null;
   const hasTopBottomSplit = layout.tops.length > 0 && layout.bottoms.length > 0;
   const dimensions =
     size === "large"
       ? { wrapper: "w-20", main: "h-20", othersGap: "gap-1.5" }
       : { wrapper: "w-16", main: "h-16", othersGap: "gap-1" };
   const skinToneColor = resolveSkinToneColor(skinTonePreset);
+  const highestTopSortOrder = topsItems.length
+    ? Math.max(...topsItems.map((outfitItem) => outfitItem.sort_order))
+    : null;
+  const topsAreAboveDress =
+    representativeDress !== null &&
+    highestTopSortOrder !== null &&
+    highestTopSortOrder > representativeDress.sort_order;
+  const topsAreBelowDress =
+    representativeDress !== null &&
+    highestTopSortOrder !== null &&
+    highestTopSortOrder < representativeDress.sort_order;
+  const dressHasVisibleLowerBody =
+    dressLowerBodyPreview !== null &&
+    dressLowerBodyPreview.lengthType !== "full";
+  const dressMainColorHex = representativeDress
+    ? findMainColorHex(representativeDress.item.colors)
+    : null;
+  const dressSubColorHex = representativeDress
+    ? findSubColorHex(representativeDress.item.colors)
+    : null;
+  const dressLayerStyle = {
+    top: topsAreBelowDress ? "12%" : "0",
+    bottom: dressHasVisibleLowerBody ? "22%" : "0",
+  } as const;
 
   return (
     <div
@@ -122,7 +214,78 @@ export default function OutfitColorThumbnail({
       data-testid="outfit-color-thumbnail"
       aria-hidden="true"
     >
-      {layout.usesFullHeightForOthers ? (
+      {shouldRenderDressLayer && representativeDress ? (
+        <>
+          <div
+            className={`relative ${dimensions.main} overflow-hidden rounded-lg border border-gray-200 bg-gray-50`}
+            data-testid="thumbnail-dress-main"
+          >
+            {topsAreBelowDress && layout.tops.length > 0 ? (
+              <div
+                className="absolute inset-x-0 top-0 z-0 h-[12%] overflow-hidden"
+                data-testid="thumbnail-dress-top-underlay"
+              >
+                <SegmentRow
+                  segments={layout.tops}
+                  testId="thumbnail-dress-underlay-tops"
+                />
+              </div>
+            ) : null}
+
+            {dressHasVisibleLowerBody && dressLowerBodyPreview ? (
+              <div
+                className="absolute inset-x-0 bottom-0 z-0 h-[34%]"
+                data-testid="thumbnail-dress-lower-body"
+              >
+                <LowerBodyPreviewSvg
+                  lengthType={dressLowerBodyPreview.lengthType}
+                  coverageType={dressLowerBodyPreview.coverageType}
+                  bottomsMainColor={dressMainColorHex}
+                  bottomsSubColor={dressSubColorHex}
+                  legwearMainColor={dressLowerBodyPreview.legwearMainColor}
+                  legwearSubColor={dressLowerBodyPreview.legwearSubColor}
+                  skinToneColor={skinToneColor}
+                  ariaLabel="outfit dress lower-body preview"
+                  frameMode="viewport"
+                  preserveAspectRatio="none"
+                />
+              </div>
+            ) : null}
+
+            <div
+              className="absolute inset-x-0 z-10 overflow-hidden"
+              style={dressLayerStyle}
+              data-testid="thumbnail-dress-layer"
+            >
+              <DressLayerBand
+                mainColorHex={dressMainColorHex ?? "#E5E7EB"}
+                subColorHex={dressSubColorHex}
+              />
+            </div>
+
+            {topsAreAboveDress && layout.tops.length > 0 ? (
+              <div
+                className="absolute inset-x-0 top-0 z-20 h-[40%] overflow-hidden"
+                data-testid="thumbnail-dress-top-overlay"
+              >
+                <SegmentRow
+                  segments={layout.tops}
+                  testId="thumbnail-dress-overlay-tops"
+                />
+              </div>
+            ) : null}
+          </div>
+
+          {layout.hasOthersBar ? (
+            <div
+              className={COLOR_THUMBNAIL_OTHERS_BAR_CLASS}
+              data-testid="thumbnail-others-bar"
+            >
+              <SegmentRow segments={layout.others} testId="thumbnail-others" />
+            </div>
+          ) : null}
+        </>
+      ) : layout.usesFullHeightForOthers ? (
         <div
           className={`${dimensions.main} overflow-hidden rounded-lg border border-gray-200 bg-gray-50`}
         >

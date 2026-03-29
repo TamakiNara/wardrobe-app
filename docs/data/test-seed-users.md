@@ -191,10 +191,11 @@
 - brand 名 / item メモ / 画像 URL などの将来項目は、テーブル追加後に sample data へ反映する
 - `standard-user@example.com` の item では `ブルーシャツ` と `アンクルパンツ` に `size_note` / `size_details` を入れ、structured と custom_fields の確認ができる
 - `standard-user@example.com` の purchase_candidates では `Tシャツ候補` / `パンツ候補` / `トレンチコート候補` を入れ、fixed fields あり / custom_fields あり / custom_fields のみを確認できる
-- `standard-user@example.com` は手書き 25 件の Item（うち `disposed` 1 件、`in_cleaning` 1 件、ボトムス丈 5 種とレッグウェア被覆 8 種の確認用 item を含む）と 6 件の Outfit（うち `invalid` 1 件）、8 件の wear logs を持ち、`large-user@example.com` は Factory 併用の 36 件の Item と 12 件の Outfit、14 件以上の wear logs を持つ
+- `standard-user@example.com` は手書き 27 件の Item（うち `disposed` 1 件、`in_cleaning` 1 件、ボトムス丈 5 種とレッグウェア被覆 8 種、`onepiece` / `allinone` 確認用 item を含む）と 8 件の Outfit（うち `invalid` 1 件）、8 件の wear logs を持ち、`large-user@example.com` は Factory 併用の 36 件の Item と 12 件の Outfit、14 件以上の wear logs を持つ
+- `standard-user@example.com` の Outfit には `ワンピース重ねコーデ` と `オールインワン羽織りコーデ` を追加し、tops と one-piece / allinone の重なり順を配色差つきで確認できるようにした
 - `large-user@example.com` の purchase_candidates にも size 情報付き sample data を 2 件入れ、多件数側でも確認できる
 - outfit ベースの wear log は、sample data でも `wear_log_items` を実体化した状態で再投入する
-- ブランド候補は `empty-user@example.com` 0 件、`standard-user@example.com` 8 件、`large-user@example.com` 24 件を投入し、標準 / 多件数 / inactive 混在の確認ができる
+- ブランド候補は `empty-user@example.com` 0 件、`standard-user@example.com` 9 件、`large-user@example.com` 24 件を投入し、標準 / 多件数 / inactive 混在の確認ができる
 - `php artisan migrate:fresh --seed` と `php artisan db:seed --class=TestDatasetSeeder` は実行確認済み
 - TODO: wear log の sample date は固定日ではなく、seed 実行日を基準に前後日・月またぎを確認できる相対日付投入へ寄せる
 

@@ -34,6 +34,7 @@ class SampleUserBrandSeeder extends Seeder
             ['name' => 'UNIQLO', 'kana' => 'ゆにくろ', 'is_active' => true],
             ['name' => 'GU', 'kana' => 'じーゆー', 'is_active' => true],
             ['name' => 'GLOBAL WORK', 'kana' => 'ぐろーばるわーく', 'is_active' => true],
+            ['name' => 'NATURAL BEAUTY BASIC', 'kana' => null, 'is_active' => true],
             ['name' => '無印良品', 'kana' => 'むじるしりょうひん', 'is_active' => true],
             ['name' => 'ABC-MART', 'kana' => 'えーびーしーまーと', 'is_active' => true],
             ['name' => 'ZARA', 'kana' => 'ざら', 'is_active' => true],

@@ -46,13 +46,13 @@ class TestSeedUsersSeederTest extends TestCase
         $this->assertCount(0, PurchaseCandidate::query()->where('user_id', $emptyUser->id)->get());
         $this->assertCount(3, UserTpo::query()->where('user_id', $emptyUser->id)->get());
         $this->assertCount(0, UserBrand::query()->where('user_id', $emptyUser->id)->get());
-        $this->assertDatabaseCount('items', 61);
+        $this->assertDatabaseCount('items', 63);
         $this->assertDatabaseCount('purchase_candidates', 5);
 
         $this->assertNotNull($standardUser->visible_category_ids);
         $this->assertCount(40, $standardUser->visible_category_ids);
-        $this->assertCount(6, $standardUser->outfits);
-        $this->assertCount(25, $standardUser->items);
+        $this->assertCount(8, $standardUser->outfits);
+        $this->assertCount(27, $standardUser->items);
         $standardCandidates = PurchaseCandidate::query()
             ->where('user_id', $standardUser->id)
             ->orderBy('name')
@@ -74,6 +74,12 @@ class TestSeedUsersSeederTest extends TestCase
         $this->assertTrue($standardTpos->contains(fn (UserTpo $tpo) => $tpo->name === '在宅' && $tpo->is_active === false));
         $this->assertTrue($standardUser->items->contains(
             fn (Item $item) => $item->care_status === 'in_cleaning'
+        ));
+        $this->assertTrue($standardUser->items->contains(
+            fn (Item $item) => $item->name === 'ネイビーワンピース' && $item->shape === 'onepiece'
+        ));
+        $this->assertTrue($standardUser->items->contains(
+            fn (Item $item) => $item->name === 'ブラックオールインワン' && $item->shape === 'allinone'
         ));
         $this->assertTrue($standardUser->items->every(
             fn (Item $item) => is_array($item->tpo_ids)
@@ -100,7 +106,7 @@ class TestSeedUsersSeederTest extends TestCase
             ->where('user_id', $standardUser->id)
             ->orderBy('name')
             ->get();
-        $this->assertCount(8, $standardBrands);
+        $this->assertCount(9, $standardBrands);
         $this->assertTrue($standardBrands->contains(fn (UserBrand $brand) => $brand->is_active === false));
         $this->assertTrue($standardBrands->contains(fn (UserBrand $brand) => $brand->kana !== null));
 
@@ -131,6 +137,12 @@ class TestSeedUsersSeederTest extends TestCase
         ));
         $this->assertTrue($standardWearLogs->contains(
             fn (WearLog $wearLog) => $wearLog->wearLogItems->contains(fn ($item) => $item->sourceItem?->status === 'disposed')
+        ));
+        $this->assertTrue($standardUser->outfits->contains(
+            fn ($outfit) => $outfit->name === 'ワンピース重ねコーデ'
+        ));
+        $this->assertTrue($standardUser->outfits->contains(
+            fn ($outfit) => $outfit->name === 'オールインワン羽織りコーデ'
         ));
 
         $this->assertNotNull($largeUser->visible_category_ids);

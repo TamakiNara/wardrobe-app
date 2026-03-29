@@ -34,6 +34,15 @@ export type OutfitLowerBodyPreviewSource = {
   legwearSubColor: string | null;
 };
 
+export type OutfitDressLowerBodyPreviewSource = {
+  representativeDressItemId: number;
+  representativeLegwearItemId: number | null;
+  lengthType: string;
+  coverageType: string | null;
+  legwearMainColor: string | null;
+  legwearSubColor: string | null;
+};
+
 function findMainColorHex(colors: OutfitThumbnailColor[]): string | null {
   return colors.find((color) => color.role === "main")?.hex ?? null;
 }
@@ -84,6 +93,14 @@ function findRepresentativeLegwear(items: OutfitLowerBodyPreviewItem[]) {
   );
 }
 
+function findRepresentativeDress(items: OutfitLowerBodyPreviewItem[]) {
+  const dressItems = items
+    .filter((outfitItem) => outfitItem.item.category === "dress")
+    .sort((left, right) => left.sort_order - right.sort_order);
+
+  return dressItems[dressItems.length - 1] ?? null;
+}
+
 export function buildOutfitLowerBodyPreviewSource(
   items: OutfitLowerBodyPreviewItem[],
 ): OutfitLowerBodyPreviewSource | null {
@@ -111,6 +128,38 @@ export function buildOutfitLowerBodyPreviewSource(
     coverageType,
     bottomsMainColor: findMainColorHex(representativeBottoms.item.colors),
     bottomsSubColor: findSubColorHex(representativeBottoms.item.colors),
+    legwearMainColor: representativeLegwear
+      ? findMainColorHex(representativeLegwear.item.colors)
+      : null,
+    legwearSubColor: representativeLegwear
+      ? findSubColorHex(representativeLegwear.item.colors)
+      : null,
+  };
+}
+
+export function buildOutfitDressLowerBodyPreviewSource(
+  items: OutfitLowerBodyPreviewItem[],
+): OutfitDressLowerBodyPreviewSource | null {
+  const representativeDress = findRepresentativeDress(items);
+
+  if (representativeDress === null) {
+    return null;
+  }
+
+  const representativeLegwear = findRepresentativeLegwear(items);
+  const coverageType = representativeLegwear
+    ? resolveLegwearCoverageTypeForPreview(
+        representativeLegwear.item.category,
+        representativeLegwear.item.shape,
+        representativeLegwear.item.spec?.legwear?.coverage_type,
+      )
+    : null;
+
+  return {
+    representativeDressItemId: representativeDress.item.id,
+    representativeLegwearItemId: representativeLegwear?.item.id ?? null,
+    lengthType: representativeDress.item.shape === "allinone" ? "full" : "midi",
+    coverageType,
     legwearMainColor: representativeLegwear
       ? findMainColorHex(representativeLegwear.item.colors)
       : null,
