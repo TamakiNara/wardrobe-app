@@ -400,8 +400,6 @@ describe("EditItemPage", () => {
     });
 
     expect(container.querySelector("#legwear-coverage-type")).toBeNull();
-    expect(container.textContent).toContain(
-      "この種類は追加の選択なしで登録できます。",
-    );
+    expect(container.textContent).not.toContain("レッグウェア仕様");
   });
 });

@@ -15,6 +15,7 @@ const fetchUserBrandsMock = vi.fn();
 const fetchUserTposMock = vi.fn();
 const routerMock = { push: pushMock, refresh: refreshMock };
 let searchParamsSourceValue = "";
+const scrollIntoViewMock = vi.fn();
 
 vi.mock("next/link", () => ({
   default: ({ children, href, ...props }: React.ComponentProps<"a">) =>
@@ -136,6 +137,7 @@ describe("NewItemPage", () => {
     window.sessionStorage.clear();
     searchParamsSourceValue = "";
     globalThis.IS_REACT_ACT_ENVIRONMENT = true;
+    window.HTMLElement.prototype.scrollIntoView = scrollIntoViewMock;
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
@@ -200,7 +202,7 @@ describe("NewItemPage", () => {
     expect(container.textContent).toContain("カテゴリ");
     expect(container.textContent).toContain("形");
     expect(container.textContent).toContain("分類");
-    expect(container.textContent).toContain("詳細属性");
+    expect(container.textContent).not.toContain("詳細属性");
     expect(container.textContent).toContain("色とプレビュー");
     expect(container.textContent).toContain("利用条件・状態");
     expect(container.textContent).toContain("サイズ");
@@ -307,6 +309,8 @@ describe("NewItemPage", () => {
       await waitForEffects();
     });
 
+    expect(container.textContent).not.toContain("詳細属性");
+
     const categorySelect =
       container.querySelector<HTMLSelectElement>("#category");
     expect(categorySelect).not.toBeNull();
@@ -356,9 +360,7 @@ describe("NewItemPage", () => {
     });
 
     expect(container.querySelector("#legwear-coverage-type")).toBeNull();
-    expect(container.textContent).toContain(
-      "この種類は追加の選択なしで登録できます。",
-    );
+    expect(container.textContent).not.toContain("レッグウェア仕様");
   });
 
   it("ボトムス丈とソックスの未選択時に分かりやすいエラーを表示する", async () => {
@@ -398,6 +400,7 @@ describe("NewItemPage", () => {
     });
 
     expect(container.textContent).toContain("ボトムス丈を選択してください。");
+    expect(container.textContent).toContain("入力内容を確認してください。");
 
     await act(async () => {
       categorySelect!.value = "legwear";
