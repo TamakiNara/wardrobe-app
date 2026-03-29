@@ -70,6 +70,21 @@ class SampleItemSeeder extends Seeder
                 'brand_name' => 'GLOBAL WORK',
                 'category' => 'tops',
                 'shape' => 'shirt',
+                'size_gender' => 'women',
+                'size_label' => 'M',
+                'size_note' => '肩周りは標準、首回りはやや細め',
+                'size_details' => [
+                    'structured' => [
+                        'shoulder_width' => 39,
+                        'body_width' => 49,
+                        'body_length' => 68,
+                        'sleeve_length' => 58,
+                        'neck_circumference' => 38,
+                    ],
+                    'custom_fields' => [
+                        ['label' => '裄丈', 'value' => 77, 'sort_order' => 1],
+                    ],
+                ],
                 'colors' => [
                     ['role' => 'main', 'mode' => 'preset', 'value' => 'blue', 'hex' => '#0077D9', 'label' => 'ブルー'],
                 ],
@@ -179,6 +194,22 @@ class SampleItemSeeder extends Seeder
                 'name' => 'アンクルパンツ',
                 'category' => 'bottoms',
                 'shape' => 'tapered',
+                'size_gender' => 'women',
+                'size_label' => 'M',
+                'size_note' => 'ウエストはちょうどよく、足首はすっきり',
+                'size_details' => [
+                    'structured' => [
+                        'waist' => 68,
+                        'hip' => 94,
+                        'rise' => 31,
+                        'inseam' => 64,
+                        'hem_width' => 16.5,
+                        'thigh_width' => 29,
+                    ],
+                    'custom_fields' => [
+                        ['label' => '総丈', 'value' => 92, 'sort_order' => 1],
+                    ],
+                ],
                 'colors' => [
                     ['role' => 'main', 'mode' => 'preset', 'value' => 'black', 'hex' => '#262626', 'label' => 'ブラック'],
                 ],

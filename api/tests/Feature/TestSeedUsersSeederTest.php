@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Item;
+use App\Models\PurchaseCandidate;
 use App\Models\User;
 use App\Models\UserBrand;
 use App\Models\UserTpo;
@@ -42,14 +43,29 @@ class TestSeedUsersSeederTest extends TestCase
         $this->assertNull($emptyUser->visible_category_ids);
         $this->assertCount(0, $emptyUser->items);
         $this->assertCount(0, $emptyUser->outfits);
+        $this->assertCount(0, PurchaseCandidate::query()->where('user_id', $emptyUser->id)->get());
         $this->assertCount(3, UserTpo::query()->where('user_id', $emptyUser->id)->get());
         $this->assertCount(0, UserBrand::query()->where('user_id', $emptyUser->id)->get());
         $this->assertDatabaseCount('items', 61);
+        $this->assertDatabaseCount('purchase_candidates', 5);
 
         $this->assertNotNull($standardUser->visible_category_ids);
         $this->assertCount(40, $standardUser->visible_category_ids);
         $this->assertCount(6, $standardUser->outfits);
         $this->assertCount(25, $standardUser->items);
+        $standardCandidates = PurchaseCandidate::query()
+            ->where('user_id', $standardUser->id)
+            ->orderBy('name')
+            ->get();
+        $this->assertCount(3, $standardCandidates);
+        $this->assertTrue($standardCandidates->contains(
+            fn (PurchaseCandidate $candidate) => $candidate->name === 'Tシャツ候補'
+                && data_get($candidate->size_details, 'structured.shoulder_width') === 45
+        ));
+        $this->assertTrue($standardCandidates->contains(
+            fn (PurchaseCandidate $candidate) => $candidate->name === 'トレンチコート候補'
+                && data_get($candidate->size_details, 'custom_fields.0.label') === '裄丈'
+        ));
         $standardTpos = UserTpo::query()
             ->where('user_id', $standardUser->id)
             ->orderBy('sort_order')
@@ -118,6 +134,7 @@ class TestSeedUsersSeederTest extends TestCase
         ));
 
         $this->assertNotNull($largeUser->visible_category_ids);
+        $this->assertCount(2, PurchaseCandidate::query()->where('user_id', $largeUser->id)->get());
         $this->assertCount(6, UserTpo::query()->where('user_id', $largeUser->id)->get());
         $this->assertGreaterThanOrEqual(30, $largeUser->items->count());
         $this->assertGreaterThanOrEqual(10, $largeUser->outfits->count());
