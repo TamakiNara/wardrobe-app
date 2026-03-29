@@ -133,6 +133,9 @@
 - web: lint と format check を通す
 - docs/api/openapi.yaml を変更した場合は YAML と整合を確認する
 - docs / OpenAPI / 実装 / test のいずれかを変えたら、関連差分の更新漏れがないか確認する
+- commit やコミットメッセージ提案の前に、`.githooks/pre-commit` の実行内容を確認し、必要なら同等コマンドを先に実行する
+- web に変更がある場合、`npm run lint` だけでなく `npx prettier --check .` も事前に実行する
+- 整形コマンドで修正が入った場合は、その差分を再 stage してから commit する
 
 変更範囲に関係ない大規模修正は行わないこと。
 
@@ -147,5 +150,6 @@
 
 - このリポジトリでは `core.hooksPath=.githooks` を使用する
 - commit 前チェックは `.githooks/pre-commit` を前提とする
+- `.githooks/pre-commit` は web 変更時に staged files ではなく `web` 全体へ `npx prettier --check .` を実行する前提で扱う
 - hook の変更時は README または docs のセットアップ手順も必要に応じて更新する
 - pre-commit は repo 全体の既存負債ではなく、原則として今回変更した範囲を中心に確認する
