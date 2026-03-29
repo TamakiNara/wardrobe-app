@@ -109,13 +109,29 @@ describe("ItemThumbnailPreview", () => {
     expect(overlays[1]?.getAttribute("fill-opacity")).toBe("0.92");
   });
 
-  it("spec 未設定のボトムスは既存の簡易プレビューへフォールバックする", async () => {
+  it("spec 未設定のボトムスは描画上 full 扱いにフォールバックする", async () => {
     await act(async () => {
       root.render(
         <ItemThumbnailPreview
           category="bottoms"
           shape="straight"
           mainColorHex="#9CA3AF"
+          size="small"
+        />,
+      );
+    });
+
+    expect(container.querySelector('[data-testid="lower-body-preview-svg"]')).not.toBeNull();
+    expect(container.querySelector('[data-testid="bottoms-hem-marker"]')?.getAttribute("y1")).toBe("102");
+  });
+
+  it("coverage_type 未設定のレッグウェアは効果なしとして扱う", async () => {
+    await act(async () => {
+      root.render(
+        <ItemThumbnailPreview
+          category="legwear"
+          shape="socks"
+          mainColorHex="#334155"
           size="small"
         />,
       );

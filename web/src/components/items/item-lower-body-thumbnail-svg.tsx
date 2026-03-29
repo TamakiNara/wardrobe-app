@@ -133,8 +133,6 @@ export default function LowerBodyPreviewSvg({
   const frameX = frameMode === "viewport" ? 0 : FRAME_X;
   const frameY = frameMode === "viewport" ? 0 : FRAME_Y;
   const frameWidth = frameMode === "viewport" ? 120 : FRAME_WIDTH;
-  const frameHeight = frameMode === "viewport" ? 120 : FRAME_HEIGHT;
-  const frameRx = frameMode === "viewport" ? 0 : FRAME_RX;
 
   if (hasBottoms && lengthType) {
     const hemY = remapViewportY(BOTTOMS_HEM_Y[lengthType] ?? BOTTOMS_HEM_Y.midi, frameMode);

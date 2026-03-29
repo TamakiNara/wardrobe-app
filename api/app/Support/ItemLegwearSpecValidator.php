@@ -10,7 +10,20 @@ class ItemLegwearSpecValidator
     {
         $category = $validated['category'] ?? null;
         $shape = $validated['shape'] ?? null;
+        $bottomsLengthType = data_get($validated, 'spec.bottoms.length_type');
         $coverageType = data_get($validated, 'spec.legwear.coverage_type');
+
+        if ($category === 'bottoms' && ($bottomsLengthType === null || $bottomsLengthType === '')) {
+            self::throwBottomsLengthTypeRequiredError();
+        }
+
+        if (
+            $category === 'legwear'
+            && in_array($shape, ['socks', 'leggings'], true)
+            && ($coverageType === null || $coverageType === '')
+        ) {
+            self::throwCoverageTypeRequiredError();
+        }
 
         if ($coverageType === null || $coverageType === '') {
             return;
@@ -37,6 +50,20 @@ class ItemLegwearSpecValidator
     {
         throw ValidationException::withMessages([
             'spec.legwear.coverage_type' => '選択した形では、このレッグウェア詳細を保存できません。',
+        ]);
+    }
+
+    private static function throwBottomsLengthTypeRequiredError(): never
+    {
+        throw ValidationException::withMessages([
+            'spec.bottoms.length_type' => 'ボトムス丈を選択してください。',
+        ]);
+    }
+
+    private static function throwCoverageTypeRequiredError(): never
+    {
+        throw ValidationException::withMessages([
+            'spec.legwear.coverage_type' => 'レッグウェアを選択してください。',
         ]);
     }
 }

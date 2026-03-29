@@ -59,6 +59,30 @@ describe("buildOutfitLowerBodyPreviewSource", () => {
     expect(source?.coverageType).toBe("leggings_full");
   });
 
+  it("bottoms の全候補が無効でも先頭候補を full 扱いで採用する", () => {
+    const source = buildOutfitLowerBodyPreviewSource([
+      createOutfitItem(10, 1, "bottoms", { bottoms: {} }),
+      createOutfitItem(11, 2, "bottoms", { bottoms: {} }),
+      createOutfitItem(20, 1, "legwear", { legwear: { coverage_type: "crew_socks" } }, "socks"),
+    ]);
+
+    expect(source?.representativeBottomsItemId).toBe(10);
+    expect(source?.lengthType).toBe("full");
+    expect(source?.representativeLegwearItemId).toBe(20);
+  });
+
+  it("legwear の全候補が無効なら legwear なし相当で扱う", () => {
+    const source = buildOutfitLowerBodyPreviewSource([
+      createOutfitItem(10, 1, "bottoms", { bottoms: { length_type: "knee" } }),
+      createOutfitItem(20, 1, "legwear", { legwear: {} }, "socks"),
+      createOutfitItem(21, 2, "legwear", { legwear: {} }, "leggings"),
+    ]);
+
+    expect(source?.representativeBottomsItemId).toBe(10);
+    expect(source?.representativeLegwearItemId).toBeNull();
+    expect(source?.coverageType).toBeNull();
+  });
+
   it("bottoms がなければ preview source を作らない", () => {
     const source = buildOutfitLowerBodyPreviewSource([
       createOutfitItem(20, 1, "legwear", { legwear: { coverage_type: "tights" } }, "tights"),

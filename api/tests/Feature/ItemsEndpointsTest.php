@@ -471,6 +471,33 @@ class ItemsEndpointsTest extends TestCase
         $this->assertSame('midi', data_get($item->spec, 'bottoms.length_type'));
     }
 
+    public function test_post_items_requires_bottoms_length_type_spec(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/items', [
+            'name' => '丈未設定スカート',
+            'category' => 'bottoms',
+            'shape' => 'a-line-skirt',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'navy',
+                'hex' => '#123456',
+                'label' => 'ネイビー',
+            ]],
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors([
+                'spec.bottoms.length_type',
+            ]);
+    }
+
     public function test_post_items_can_save_legwear_coverage_type_spec(): void
     {
         $user = User::factory()->create();
@@ -504,6 +531,33 @@ class ItemsEndpointsTest extends TestCase
         $this->assertSame('crew_socks', data_get($item->spec, 'legwear.coverage_type'));
     }
 
+    public function test_post_items_requires_legwear_coverage_type_for_socks(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/items', [
+            'name' => '詳細未設定ソックス',
+            'category' => 'legwear',
+            'shape' => 'socks',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'black',
+                'hex' => '#111111',
+                'label' => 'ブラック',
+            ]],
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors([
+                'spec.legwear.coverage_type',
+            ]);
+    }
+
     public function test_post_items_autofills_fixed_legwear_coverage_type_from_shape(): void
     {
         $user = User::factory()->create();
@@ -530,6 +584,34 @@ class ItemsEndpointsTest extends TestCase
 
         $item = Item::query()->findOrFail($response->json('item.id'));
         $this->assertSame('tights', data_get($item->spec, 'legwear.coverage_type'));
+    }
+
+    public function test_post_items_autofills_fixed_stockings_coverage_type_from_shape(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/items', [
+            'name' => 'ストッキング',
+            'category' => 'legwear',
+            'shape' => 'stockings',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'beige',
+                'hex' => '#d8b89c',
+                'label' => 'ベージュ',
+            ]],
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('item.spec.legwear.coverage_type', 'stockings');
+
+        $item = Item::query()->findOrFail($response->json('item.id'));
+        $this->assertSame('stockings', data_get($item->spec, 'legwear.coverage_type'));
     }
 
     public function test_post_items_rejects_unknown_skin_exposure_spec_values(): void

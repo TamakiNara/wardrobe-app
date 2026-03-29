@@ -1,4 +1,8 @@
-import { findBottomsLengthLabel, resolveLegwearCoverageType } from "@/lib/master-data/item-skin-exposure";
+import {
+  resolveBottomsLengthType,
+  resolveBottomsLengthTypeForPreview,
+  resolveLegwearCoverageType,
+} from "@/lib/master-data/item-skin-exposure";
 import type { ItemSpec } from "@/types/items";
 
 type OutfitThumbnailColor = {
@@ -38,10 +42,13 @@ function findSubColorHex(colors: OutfitThumbnailColor[]): string | null {
 }
 
 function findRepresentativeBottoms(items: OutfitLowerBodyPreviewItem[]) {
-  return items
+  const bottomsItems = items
     .filter((outfitItem) => outfitItem.item.category === "bottoms")
-    .sort((left, right) => left.sort_order - right.sort_order)
-    .find((outfitItem) => Boolean(findBottomsLengthLabel(outfitItem.item.spec?.bottoms?.length_type)));
+    .sort((left, right) => left.sort_order - right.sort_order);
+
+  return bottomsItems.find((outfitItem) =>
+    Boolean(resolveBottomsLengthType(outfitItem.item.spec?.bottoms?.length_type)),
+  ) ?? bottomsItems[0] ?? null;
 }
 
 function findRepresentativeLegwear(items: OutfitLowerBodyPreviewItem[]) {
@@ -64,7 +71,7 @@ export function buildOutfitLowerBodyPreviewSource(
 ): OutfitLowerBodyPreviewSource | null {
   const representativeBottoms = findRepresentativeBottoms(items);
 
-  if (!representativeBottoms) {
+  if (representativeBottoms === null) {
     return null;
   }
 
@@ -80,7 +87,7 @@ export function buildOutfitLowerBodyPreviewSource(
   return {
     representativeBottomsItemId: representativeBottoms.item.id,
     representativeLegwearItemId: representativeLegwear?.item.id ?? null,
-    lengthType: representativeBottoms.item.spec?.bottoms?.length_type ?? "midi",
+    lengthType: resolveBottomsLengthTypeForPreview(representativeBottoms.item.spec?.bottoms?.length_type),
     coverageType,
     bottomsMainColor: findMainColorHex(representativeBottoms.item.colors),
     bottomsSubColor: findSubColorHex(representativeBottoms.item.colors),

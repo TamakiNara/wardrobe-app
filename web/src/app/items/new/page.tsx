@@ -46,6 +46,8 @@ import {
   BOTTOMS_LENGTH_OPTIONS,
   getLegwearCoverageOptions,
   isBottomsSpecCategory,
+  isBottomsLengthTypeRequired,
+  isLegwearCoverageTypeRequired,
   isLegwearSpecCategory,
   resolveLegwearCoverageType,
   shouldShowLegwearCoverageSelect,
@@ -464,10 +466,17 @@ export default function NewItemPage() {
 
   function validateForm() {
     const nextErrors: Record<string, string> = {};
+    const resolvedLegwearCoverageType = resolveLegwearCoverageType(category, shape, legwearCoverageType);
 
     if (!category) nextErrors.category = "カテゴリを選択してください。";
     if (!shape) nextErrors.shape = "形を選択してください。";
     if (!selectedMainColor) nextErrors.mainColor = "メインカラーを選択してください。";
+    if (isBottomsLengthTypeRequired(category) && !bottomsLengthType) {
+      nextErrors["spec.bottoms.length_type"] = "ボトムス丈を選択してください。";
+    }
+    if (isLegwearCoverageTypeRequired(category, shape) && !resolvedLegwearCoverageType) {
+      nextErrors["spec.legwear.coverage_type"] = "レッグウェアを選択してください。";
+    }
 
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
@@ -997,7 +1006,7 @@ export default function NewItemPage() {
                   id="bottoms-length-type"
                   value={bottomsLengthType}
                   onChange={(e) => setBottomsLengthType(e.target.value as BottomsLengthType | "")}
-                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors["spec.bottoms.length_type"] ? "border-red-400" : "border-gray-300"}`}
                 >
                   <option value="">選択してください</option>
                   {BOTTOMS_LENGTH_OPTIONS.map((item) => (
@@ -1006,6 +1015,9 @@ export default function NewItemPage() {
                     </option>
                   ))}
                 </select>
+                {errors["spec.bottoms.length_type"] && (
+                  <p className="mt-2 text-sm text-red-600">{errors["spec.bottoms.length_type"]}</p>
+                )}
               </div>
             </section>
           )}
@@ -1025,7 +1037,7 @@ export default function NewItemPage() {
                     id="legwear-coverage-type"
                     value={legwearCoverageType}
                     onChange={(e) => setLegwearCoverageType(e.target.value as LegwearCoverageType | "")}
-                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                    className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors["spec.legwear.coverage_type"] ? "border-red-400" : "border-gray-300"}`}
                   >
                     <option value="">選択してください</option>
                     {legwearCoverageOptions.map((item) => (
@@ -1034,6 +1046,9 @@ export default function NewItemPage() {
                       </option>
                     ))}
                   </select>
+                  {errors["spec.legwear.coverage_type"] && (
+                    <p className="mt-2 text-sm text-red-600">{errors["spec.legwear.coverage_type"]}</p>
+                  )}
                 </div>
               ) : (
                 <p className="text-sm text-gray-600">
