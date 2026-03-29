@@ -5,6 +5,8 @@ use App\Http\Controllers\Api\PurchaseCandidateController;
 use App\Http\Controllers\Api\SettingsTpoController;
 use App\Http\Controllers\Api\WearLogController;
 use App\Http\Controllers\AuthController;
+use App\Http\Requests\ItemStoreRequest;
+use App\Http\Requests\ItemUpdateRequest;
 use App\Models\CategoryMaster;
 use App\Models\Item;
 use App\Models\Outfit;
@@ -13,7 +15,6 @@ use App\Services\Items\ItemStoreService;
 use App\Services\Items\ItemUpdateService;
 use App\Services\Settings\UserPreferenceService;
 use App\Services\Settings\UserTpoService;
-use App\Support\ItemLegwearSpecValidator;
 use App\Support\ItemPayloadBuilder;
 use App\Support\ItemsIndexQuery;
 use App\Support\OutfitPayloadBuilder;
@@ -221,79 +222,8 @@ Route::prefix('api')->middleware(['web'])->group(function () {
         return response()->json(ItemsIndexQuery::build($request->user(), $request));
     });
 
-    Route::middleware('auth:web')->post('/items', function (Request $request) {
-        $validated = $request->validate([
-            'name' => ['nullable', 'string', 'max:255'],
-            'purchase_candidate_id' => ['nullable', 'integer'],
-            'care_status' => ['nullable', 'string', 'in:in_cleaning'],
-            'brand_name' => ['nullable', 'string', 'max:255'],
-            'save_brand_as_candidate' => ['nullable', 'boolean'],
-            'price' => ['nullable', 'integer', 'min:0'],
-            'purchase_url' => ['nullable', 'url'],
-            'memo' => ['nullable', 'string'],
-            'purchased_at' => ['nullable', 'date'],
-            'size_gender' => ['nullable', 'string', 'in:women,men,unisex'],
-            'size_label' => ['nullable', 'string', 'max:50'],
-            'size_note' => ['nullable', 'string'],
-            'size_details' => ['nullable', 'array:structured,custom_fields'],
-            'size_details.structured' => ['nullable', 'array:shoulder_width,body_width,body_length,sleeve_length,sleeve_width,cuff_width,neck_circumference,waist,hip,rise,inseam,hem_width,thigh_width,total_length'],
-            'size_details.structured.shoulder_width' => ['nullable', 'numeric'],
-            'size_details.structured.body_width' => ['nullable', 'numeric'],
-            'size_details.structured.body_length' => ['nullable', 'numeric'],
-            'size_details.structured.sleeve_length' => ['nullable', 'numeric'],
-            'size_details.structured.sleeve_width' => ['nullable', 'numeric'],
-            'size_details.structured.cuff_width' => ['nullable', 'numeric'],
-            'size_details.structured.neck_circumference' => ['nullable', 'numeric'],
-            'size_details.structured.waist' => ['nullable', 'numeric'],
-            'size_details.structured.hip' => ['nullable', 'numeric'],
-            'size_details.structured.rise' => ['nullable', 'numeric'],
-            'size_details.structured.inseam' => ['nullable', 'numeric'],
-            'size_details.structured.hem_width' => ['nullable', 'numeric'],
-            'size_details.structured.thigh_width' => ['nullable', 'numeric'],
-            'size_details.structured.total_length' => ['nullable', 'numeric'],
-            'size_details.custom_fields' => ['nullable', 'array', 'max:10'],
-            'size_details.custom_fields.*' => ['array:label,value,sort_order'],
-            'size_details.custom_fields.*.label' => ['required_with:size_details.custom_fields.*.value', 'string', 'max:50'],
-            'size_details.custom_fields.*.value' => ['required_with:size_details.custom_fields.*.label', 'numeric'],
-            'size_details.custom_fields.*.sort_order' => ['required', 'integer', 'min:1'],
-            'is_rain_ok' => ['nullable', 'boolean'],
-            'category' => ['required', 'string', 'max:100'],
-            'shape' => ['required', 'string', 'max:100'],
-            'colors' => ['required', 'array', 'min:1'],
-            'colors.*.role' => ['required', 'string', 'in:main,sub'],
-            'colors.*.mode' => ['required', 'string', 'in:preset,custom'],
-            'colors.*.value' => ['required', 'string', 'max:100'],
-            'colors.*.hex' => ['required', 'string', 'max:20'],
-            'colors.*.label' => ['required', 'string', 'max:100'],
-            'seasons' => ['nullable', 'array'],
-            'seasons.*' => ['string', 'max:50'],
-            'tpo_ids' => ['nullable', 'array'],
-            'tpo_ids.*' => ['integer'],
-            'tpos' => ['nullable', 'array'],
-            'tpos.*' => ['string', 'max:50'],
-            'spec' => ['nullable', 'array'],
-            'spec.tops' => ['nullable', 'array'],
-            'spec.tops.shape' => ['nullable', 'string', 'max:100'],
-            'spec.tops.sleeve' => ['nullable', 'string', 'max:100'],
-            'spec.tops.length' => ['nullable', 'string', 'max:100'],
-            'spec.tops.neck' => ['nullable', 'string', 'max:100'],
-            'spec.tops.design' => ['nullable', 'string', 'max:100'],
-            'spec.tops.fit' => ['nullable', 'string', 'max:100'],
-            'spec.bottoms' => ['nullable', 'array'],
-            'spec.bottoms.length_type' => ['nullable', 'in:mini,knee,midi,ankle,full'],
-            'spec.legwear' => ['nullable', 'array'],
-            'spec.legwear.coverage_type' => ['nullable', 'in:ankle_socks,crew_socks,knee_socks,over_knee,stockings,tights,leggings_cropped,leggings_full'],
-            'images' => ['nullable', 'array', 'max:5'],
-            'images.*.disk' => ['nullable', 'string', 'max:100'],
-            'images.*.path' => ['nullable', 'string'],
-            'images.*.original_filename' => ['nullable', 'string', 'max:255'],
-            'images.*.mime_type' => ['nullable', 'string', 'max:100'],
-            'images.*.file_size' => ['nullable', 'integer', 'min:0'],
-            'images.*.sort_order' => ['required', 'integer', 'min:1'],
-            'images.*.is_primary' => ['nullable', 'boolean'],
-        ]);
-
-        ItemLegwearSpecValidator::validate($validated);
+    Route::middleware('auth:web')->post('/items', function (ItemStoreRequest $request) {
+        $validated = $request->validated();
 
         $item = app(ItemStoreService::class)->store($request->user(), $validated);
 
@@ -314,82 +244,11 @@ Route::prefix('api')->middleware(['web'])->group(function () {
         ]);
     });
 
-    Route::middleware('auth:web')->put('/items/{id}', function (Request $request, int $id) {
+    Route::middleware('auth:web')->put('/items/{id}', function (ItemUpdateRequest $request, int $id) {
         $item = Item::query()
             ->where('user_id', $request->user()->id)
             ->findOrFail($id);
-
-        $validated = $request->validate([
-            'name' => ['nullable', 'string', 'max:255'],
-            'care_status' => ['nullable', 'string', 'in:in_cleaning'],
-            'brand_name' => ['nullable', 'string', 'max:255'],
-            'save_brand_as_candidate' => ['nullable', 'boolean'],
-            'price' => ['nullable', 'integer', 'min:0'],
-            'purchase_url' => ['nullable', 'url'],
-            'memo' => ['nullable', 'string'],
-            'purchased_at' => ['nullable', 'date'],
-            'size_gender' => ['nullable', 'string', 'in:women,men,unisex'],
-            'size_label' => ['nullable', 'string', 'max:50'],
-            'size_note' => ['nullable', 'string'],
-            'size_details' => ['nullable', 'array:structured,custom_fields'],
-            'size_details.structured' => ['nullable', 'array:shoulder_width,body_width,body_length,sleeve_length,sleeve_width,cuff_width,neck_circumference,waist,hip,rise,inseam,hem_width,thigh_width,total_length'],
-            'size_details.structured.shoulder_width' => ['nullable', 'numeric'],
-            'size_details.structured.body_width' => ['nullable', 'numeric'],
-            'size_details.structured.body_length' => ['nullable', 'numeric'],
-            'size_details.structured.sleeve_length' => ['nullable', 'numeric'],
-            'size_details.structured.sleeve_width' => ['nullable', 'numeric'],
-            'size_details.structured.cuff_width' => ['nullable', 'numeric'],
-            'size_details.structured.neck_circumference' => ['nullable', 'numeric'],
-            'size_details.structured.waist' => ['nullable', 'numeric'],
-            'size_details.structured.hip' => ['nullable', 'numeric'],
-            'size_details.structured.rise' => ['nullable', 'numeric'],
-            'size_details.structured.inseam' => ['nullable', 'numeric'],
-            'size_details.structured.hem_width' => ['nullable', 'numeric'],
-            'size_details.structured.thigh_width' => ['nullable', 'numeric'],
-            'size_details.structured.total_length' => ['nullable', 'numeric'],
-            'size_details.custom_fields' => ['nullable', 'array', 'max:10'],
-            'size_details.custom_fields.*' => ['array:label,value,sort_order'],
-            'size_details.custom_fields.*.label' => ['required_with:size_details.custom_fields.*.value', 'string', 'max:50'],
-            'size_details.custom_fields.*.value' => ['required_with:size_details.custom_fields.*.label', 'numeric'],
-            'size_details.custom_fields.*.sort_order' => ['required', 'integer', 'min:1'],
-            'is_rain_ok' => ['nullable', 'boolean'],
-            'category' => ['required', 'string', 'max:100'],
-            'shape' => ['required', 'string', 'max:100'],
-            'colors' => ['required', 'array', 'min:1'],
-            'colors.*.role' => ['required', 'string', 'in:main,sub'],
-            'colors.*.mode' => ['required', 'string', 'in:preset,custom'],
-            'colors.*.value' => ['required', 'string', 'max:100'],
-            'colors.*.hex' => ['required', 'string', 'max:20'],
-            'colors.*.label' => ['required', 'string', 'max:100'],
-            'seasons' => ['nullable', 'array'],
-            'seasons.*' => ['string', 'max:50'],
-            'tpo_ids' => ['nullable', 'array'],
-            'tpo_ids.*' => ['integer'],
-            'tpos' => ['nullable', 'array'],
-            'tpos.*' => ['string', 'max:50'],
-            'spec' => ['nullable', 'array'],
-            'spec.tops' => ['nullable', 'array'],
-            'spec.tops.shape' => ['nullable', 'string', 'max:100'],
-            'spec.tops.sleeve' => ['nullable', 'string', 'max:100'],
-            'spec.tops.length' => ['nullable', 'string', 'max:100'],
-            'spec.tops.neck' => ['nullable', 'string', 'max:100'],
-            'spec.tops.design' => ['nullable', 'string', 'max:100'],
-            'spec.tops.fit' => ['nullable', 'string', 'max:100'],
-            'spec.bottoms' => ['nullable', 'array'],
-            'spec.bottoms.length_type' => ['nullable', 'in:mini,knee,midi,ankle,full'],
-            'spec.legwear' => ['nullable', 'array'],
-            'spec.legwear.coverage_type' => ['nullable', 'in:ankle_socks,crew_socks,knee_socks,over_knee,stockings,tights,leggings_cropped,leggings_full'],
-            'images' => ['nullable', 'array', 'max:5'],
-            'images.*.disk' => ['nullable', 'string', 'max:100'],
-            'images.*.path' => ['nullable', 'string'],
-            'images.*.original_filename' => ['nullable', 'string', 'max:255'],
-            'images.*.mime_type' => ['nullable', 'string', 'max:100'],
-            'images.*.file_size' => ['nullable', 'integer', 'min:0'],
-            'images.*.sort_order' => ['required', 'integer', 'min:1'],
-            'images.*.is_primary' => ['nullable', 'boolean'],
-        ]);
-
-        ItemLegwearSpecValidator::validate($validated);
+        $validated = $request->validated();
 
         $item = app(ItemUpdateService::class)->update($request->user(), $item, $validated);
 
