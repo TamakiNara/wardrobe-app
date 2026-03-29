@@ -14,8 +14,7 @@ class PurchaseCandidateController extends Controller
 {
     public function __construct(
         private readonly PurchaseCandidateService $purchaseCandidateService,
-    ) {
-    }
+    ) {}
 
     public function index(Request $request): JsonResponse
     {

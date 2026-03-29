@@ -17,8 +17,7 @@ class ItemUpdateService
     public function __construct(
         private readonly UserBrandService $userBrandService,
         private readonly UserTpoService $userTpoService,
-    ) {
-    }
+    ) {}
 
     public function update(User $user, Item $item, array $validated): Item
     {

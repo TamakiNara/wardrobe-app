@@ -24,6 +24,7 @@ class SettingsCategoriesEndpointsTest extends TestCase
     private function issueCsrfToken(): string
     {
         $this->get('/csrf-cookie', ['Accept' => 'application/json']);
+
         return session()->token();
     }
 

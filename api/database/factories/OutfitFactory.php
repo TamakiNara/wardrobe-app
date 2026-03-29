@@ -20,7 +20,7 @@ class OutfitFactory extends Factory
 
         return [
             'user_id' => User::factory(),
-            'name' => 'Bulk Outfit ' . $this->faker->unique()->numberBetween(1, 999),
+            'name' => 'Bulk Outfit '.$this->faker->unique()->numberBetween(1, 999),
             'memo' => $this->faker->boolean(60) ? $this->faker->sentence() : null,
             'seasons' => $this->faker->randomElements($seasonPool, $this->faker->numberBetween(1, 3)),
             'tpos' => $this->faker->randomElements($tpoPool, $this->faker->numberBetween(1, 2)),

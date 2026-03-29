@@ -16,6 +16,7 @@ class WearLogEndpointsTest extends TestCase
     private function issueCsrfToken(): string
     {
         $this->get('/csrf-cookie', ['Accept' => 'application/json']);
+
         return session()->token();
     }
 
@@ -905,7 +906,7 @@ class WearLogEndpointsTest extends TestCase
             'Accept' => 'application/json',
             'X-CSRF-TOKEN' => $token,
         ])->assertOk()
-          ->assertJsonPath('message', 'deleted');
+            ->assertJsonPath('message', 'deleted');
 
         $this->assertDatabaseMissing('wear_logs', ['id' => $wearLog->id]);
         $this->assertDatabaseMissing('wear_log_items', ['id' => $wearLogItem->id]);

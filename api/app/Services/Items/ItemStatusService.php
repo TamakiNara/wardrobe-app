@@ -12,8 +12,7 @@ class ItemStatusService
 {
     public function __construct(
         private readonly OutfitStatusService $outfitStatusService,
-    ) {
-    }
+    ) {}
 
     public function dispose(User $user, int $itemId): Item
     {

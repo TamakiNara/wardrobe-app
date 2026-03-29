@@ -81,7 +81,7 @@ class SampleUserBrandSeeder extends Seeder
     }
 
     /**
-     * @param array<int, array{name:string, kana:?string, is_active:bool}> $brands
+     * @param  array<int, array{name:string, kana:?string, is_active:bool}>  $brands
      */
     private function createBrands(int $userId, array $brands): void
     {

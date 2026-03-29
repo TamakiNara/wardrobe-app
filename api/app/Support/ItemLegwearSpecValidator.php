@@ -28,7 +28,7 @@ class ItemLegwearSpecValidator
             default => null,
         };
 
-        if ($allowedCoverageTypes === null || !in_array($coverageType, $allowedCoverageTypes, true)) {
+        if ($allowedCoverageTypes === null || ! in_array($coverageType, $allowedCoverageTypes, true)) {
             self::throwCoverageTypeError();
         }
     }

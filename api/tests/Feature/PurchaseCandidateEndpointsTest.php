@@ -2,8 +2,8 @@
 
 namespace Tests\Feature;
 
-use App\Models\CategoryMaster;
 use App\Models\CategoryGroup;
+use App\Models\CategoryMaster;
 use App\Models\Item;
 use App\Models\PurchaseCandidate;
 use App\Models\User;
@@ -20,6 +20,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
     private function issueCsrfToken(): string
     {
         $this->get('/csrf-cookie', ['Accept' => 'application/json']);
+
         return session()->token();
     }
 

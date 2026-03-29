@@ -13,8 +13,7 @@ class WearLogController extends Controller
 {
     public function __construct(
         private readonly WearLogService $wearLogService,
-    ) {
-    }
+    ) {}
 
     public function index(Request $request): JsonResponse
     {

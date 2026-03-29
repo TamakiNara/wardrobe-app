@@ -2133,11 +2133,6 @@ components:
         memo:
           type: string
           nullable: true
-        care_status:
-          type: string
-          nullable: true
-          enum:
-            - in_cleaning
         purchased_at:
           type: string
           nullable: true
@@ -2180,7 +2175,7 @@ components:
             type: string
         tpos:
           type: array
-          description: `tpo_ids` を現在のユーザーの TPO 名へ解決した表示用配列。
+          description: "`tpo_ids` を現在のユーザーの TPO 名へ解決した表示用配列。"
           items:
             type: string
         tpo_ids:
@@ -2498,7 +2493,7 @@ components:
             type: string
         tpos:
           type: array
-          description: `tpo_ids` を現在のユーザーの TPO 名へ解決した表示用配列。
+          description: "`tpo_ids` を現在のユーザーの TPO 名へ解決した表示用配列。"
           items:
             type: string
         tpo_ids:

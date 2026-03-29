@@ -76,7 +76,7 @@ class ItemImageSync
             'items/%d/%s%s',
             $item->id,
             Str::uuid()->toString(),
-            $extension !== '' ? '.' . $extension : ''
+            $extension !== '' ? '.'.$extension : ''
         );
 
         $storage->put($destinationPath, $storage->get($path));

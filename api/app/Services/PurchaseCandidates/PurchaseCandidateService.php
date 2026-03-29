@@ -371,7 +371,7 @@ class PurchaseCandidateService
             'purchase-candidates/%d/%s%s',
             $candidate->id,
             Str::uuid()->toString(),
-            $extension !== '' ? '.' . $extension : ''
+            $extension !== '' ? '.'.$extension : ''
         );
 
         $contents = $storage->get($image->path);

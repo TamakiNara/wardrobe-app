@@ -19,8 +19,7 @@ class ItemStoreService
     public function __construct(
         private readonly UserBrandService $userBrandService,
         private readonly UserTpoService $userTpoService,
-    ) {
-    }
+    ) {}
 
     public function store(User $user, array $validated): Item
     {

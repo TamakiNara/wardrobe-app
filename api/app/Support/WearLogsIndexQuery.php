@@ -2,8 +2,8 @@
 
 namespace App\Support;
 
-use App\Models\WearLog;
 use App\Models\User;
+use App\Models\WearLog;
 use Illuminate\Http\Request;
 
 class WearLogsIndexQuery

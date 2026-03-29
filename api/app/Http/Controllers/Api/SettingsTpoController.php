@@ -11,8 +11,7 @@ class SettingsTpoController extends Controller
 {
     public function __construct(
         private readonly UserTpoService $userTpoService,
-    ) {
-    }
+    ) {}
 
     public function index(Request $request)
     {

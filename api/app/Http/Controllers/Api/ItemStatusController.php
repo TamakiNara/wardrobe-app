@@ -12,8 +12,7 @@ class ItemStatusController extends Controller
 {
     public function __construct(
         private readonly ItemStatusService $itemStatusService,
-    ) {
-    }
+    ) {}
 
     public function dispose(Request $request, int $id): JsonResponse
     {

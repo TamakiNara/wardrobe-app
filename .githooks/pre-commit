@@ -53,14 +53,13 @@ fi
 # --------------------------------------------------
 if [ -n "$OPENAPI_FILES" ]; then
   echo "[pre-commit] openapi yaml check"
-  python - <<'PY'
-from pathlib import Path
-import yaml
+  php -r '
+$root = getcwd();
+require $root . "/api/vendor/autoload.php";
 
-path = Path("docs/api/openapi.yaml")
-yaml.safe_load(path.read_text(encoding="utf-8"))
-print("openapi yaml ok")
-PY
+\Symfony\Component\Yaml\Yaml::parseFile($root . "/docs/api/openapi.yaml");
+echo "openapi yaml ok\n";
+'
 fi
 
 echo "[pre-commit] done"

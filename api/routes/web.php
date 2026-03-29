@@ -1,20 +1,20 @@
 <?php
 
-use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Api\ItemImageController;
 use App\Http\Controllers\Api\PurchaseCandidateController;
 use App\Http\Controllers\Api\SettingsTpoController;
 use App\Http\Controllers\Api\WearLogController;
+use App\Http\Controllers\AuthController;
+use App\Models\CategoryMaster;
+use App\Models\Item;
+use App\Models\Outfit;
 use App\Services\Brands\UserBrandService;
 use App\Services\Items\ItemStoreService;
 use App\Services\Items\ItemUpdateService;
 use App\Services\Settings\UserPreferenceService;
 use App\Services\Settings\UserTpoService;
-use App\Models\CategoryMaster;
-use App\Models\Item;
-use App\Models\Outfit;
-use App\Support\ItemPayloadBuilder;
 use App\Support\ItemLegwearSpecValidator;
+use App\Support\ItemPayloadBuilder;
 use App\Support\ItemsIndexQuery;
 use App\Support\OutfitPayloadBuilder;
 use App\Support\OutfitsIndexQuery;
@@ -53,6 +53,7 @@ Route::prefix('api')->middleware(['web'])->group(function () {
     Route::middleware('auth:web')->group(function () {
         Route::get('/me', function (Request $request) {
             $user = $request->user();
+
             return response()->json([
                 'id' => $user->id,
                 'name' => $user->name,
@@ -198,7 +199,7 @@ Route::prefix('api')->middleware(['web'])->group(function () {
             'currentSeason' => ['nullable', 'string', 'in:spring,summer,autumn,winter'],
             'defaultWearLogStatus' => ['nullable', 'string', 'in:planned,worn'],
             'calendarWeekStart' => ['nullable', 'string', 'in:monday,sunday'],
-            'skinTonePreset' => ['nullable', 'string', 'in:' . implode(',', SkinTonePresetSupport::values())],
+            'skinTonePreset' => ['nullable', 'string', 'in:'.implode(',', SkinTonePresetSupport::values())],
         ]);
 
         $preference = app(UserPreferenceService::class)->update($request->user(), $validated);
@@ -475,7 +476,7 @@ Route::prefix('api')->middleware(['web'])->group(function () {
             ->all();
 
         $duplicatedName = $outfit->name !== null
-            ? $outfit->name . '（コピー）'
+            ? $outfit->name.'（コピー）'
             : '（コピー）';
         $outfitPayload = OutfitPayloadBuilder::buildDetail($outfit);
 
@@ -659,7 +660,7 @@ Route::prefix('api')->middleware(['web'])->group(function () {
 
 // swagger-ui 表示用
 Route::get('/docs/openapi.yaml', function () {
-    $path = dirname(base_path()) . DIRECTORY_SEPARATOR . 'docs' . DIRECTORY_SEPARATOR . 'api' . DIRECTORY_SEPARATOR . 'openapi.yaml';
+    $path = dirname(base_path()).DIRECTORY_SEPARATOR.'docs'.DIRECTORY_SEPARATOR.'api'.DIRECTORY_SEPARATOR.'openapi.yaml';
 
     if (! file_exists($path)) {
         abort(404, 'OpenAPI file not found.');

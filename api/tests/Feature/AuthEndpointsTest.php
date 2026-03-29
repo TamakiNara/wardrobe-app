@@ -14,6 +14,7 @@ class AuthEndpointsTest extends TestCase
     {
         // 先に CSRF Cookie を発行してセッションを開始する
         $this->get('/csrf-cookie', ['Accept' => 'application/json']);
+
         // 現在のセッションに紐づく CSRF トークンを取得
         return session()->token();
     }
@@ -134,8 +135,8 @@ class AuthEndpointsTest extends TestCase
     }
 
     /**
-    * パスワードが短すぎる場合は登録できないことを確認する。
-    */
+     * パスワードが短すぎる場合は登録できないことを確認する。
+     */
     public function test_register_returns_422_when_password_is_too_short(): void
     {
         $token = $this->issueCsrfToken();
@@ -154,8 +155,8 @@ class AuthEndpointsTest extends TestCase
     }
 
     /**
-    * 不正なメールアドレス形式では登録できないことを確認する。
-    */
+     * 不正なメールアドレス形式では登録できないことを確認する。
+     */
     public function test_register_returns_422_when_email_is_invalid(): void
     {
         $token = $this->issueCsrfToken();
@@ -232,8 +233,8 @@ class AuthEndpointsTest extends TestCase
     }
 
     /**
-    * パスワードが間違っている場合はログインできないことを確認する。
-    */
+     * パスワードが間違っている場合はログインできないことを確認する。
+     */
     public function test_login_returns_422_with_invalid_credentials(): void
     {
         $user = User::factory()->create([
@@ -394,8 +395,8 @@ class AuthEndpointsTest extends TestCase
     }
 
     /**
-    * 未認証状態でも logout は安全に成功扱いになることを確認する。
-    */
+     * 未認証状態でも logout は安全に成功扱いになることを確認する。
+     */
     public function test_logout_returns_200_when_unauthenticated(): void
     {
         $token = $this->issueCsrfToken();

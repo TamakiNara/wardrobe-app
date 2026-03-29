@@ -32,7 +32,7 @@ class CategoriesController extends Controller
         ])->values();
 
         return response()->json([
-            'groups' => $data
+            'groups' => $data,
         ]);
     }
 }

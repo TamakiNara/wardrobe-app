@@ -7,7 +7,9 @@ final class TestSeedUsers
     public const PASSWORD_ENV_KEY = 'TEST_SEED_USER_PASSWORD';
 
     public const EMPTY_EMAIL = 'empty-user@example.com';
+
     public const STANDARD_EMAIL = 'standard-user@example.com';
+
     public const LARGE_EMAIL = 'large-user@example.com';
 
     /**

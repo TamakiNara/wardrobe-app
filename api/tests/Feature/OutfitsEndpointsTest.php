@@ -16,6 +16,7 @@ class OutfitsEndpointsTest extends TestCase
     private function issueCsrfToken(): string
     {
         $this->get('/csrf-cookie', ['Accept' => 'application/json']);
+
         return session()->token();
     }
 
@@ -503,11 +504,10 @@ class OutfitsEndpointsTest extends TestCase
         $user = User::factory()->create();
         $itemA = $this->createItem($user, ['name' => 'トップス']);
         $itemB = $this->createItem($user, ['name' => 'ボトムス', 'category' => 'bottoms', 'shape' => 'wide']);
-        $holidayTpo = $this->createUserTpo($user, [
-            'name' => '休日',
-            'sort_order' => 2,
-            'is_preset' => true,
-        ]);
+        $holidayTpo = UserTpo::query()
+            ->where('user_id', $user->id)
+            ->where('name', '休日')
+            ->firstOrFail();
 
         $this->actingAs($user, 'web');
         $token = $this->issueCsrfToken();
@@ -623,7 +623,7 @@ class OutfitsEndpointsTest extends TestCase
         $this->getJson("/api/outfits/{$ownedOutfit->id}", [
             'Accept' => 'application/json',
         ])->assertOk()
-          ->assertJsonPath('outfit.id', $ownedOutfit->id);
+            ->assertJsonPath('outfit.id', $ownedOutfit->id);
 
         $this->getJson("/api/outfits/{$otherOutfit->id}", [
             'Accept' => 'application/json',
@@ -809,7 +809,7 @@ class OutfitsEndpointsTest extends TestCase
             'Accept' => 'application/json',
             'X-CSRF-TOKEN' => $token,
         ])->assertOk()
-          ->assertJsonPath('message', 'deleted');
+            ->assertJsonPath('message', 'deleted');
 
         $this->assertDatabaseMissing('outfits', ['id' => $ownedOutfit->id]);
         $this->assertDatabaseHas('outfits', ['id' => $otherOutfit->id]);

@@ -133,7 +133,7 @@ class ItemFactory extends Factory
 
         return [
             'user_id' => User::factory(),
-            'name' => $selected['name'] . ' ' . $this->faker->unique()->numberBetween(1, 999),
+            'name' => $selected['name'].' '.$this->faker->unique()->numberBetween(1, 999),
             'category' => $selected['category'],
             'shape' => $selected['shape'],
             'colors' => $colors,
