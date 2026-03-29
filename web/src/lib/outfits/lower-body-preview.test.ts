@@ -106,8 +106,35 @@ describe("buildOutfitLowerBodyPreviewSource", () => {
     ]);
 
     expect(source?.representativeBottomsItemId).toBe(10);
-    expect(source?.representativeLegwearItemId).toBeNull();
-    expect(source?.coverageType).toBeNull();
+    expect(source?.representativeLegwearItemId).toBe(20);
+    expect(source?.coverageType).toBe("full_length_fallback");
+  });
+
+  it("stockings は coverage_type 未設定でも representative 候補に残る", () => {
+    const source = buildOutfitLowerBodyPreviewSource([
+      createOutfitItem(10, 1, "bottoms", { bottoms: { length_type: "knee" } }),
+      createOutfitItem(20, 1, "legwear", { legwear: {} }, "stockings"),
+    ]);
+
+    expect(source?.representativeLegwearItemId).toBe(20);
+    expect(source?.coverageType).toBe("stockings");
+  });
+
+  it("有効 coverage_type がある候補は tights / stockings の fallback 候補より優先する", () => {
+    const source = buildOutfitLowerBodyPreviewSource([
+      createOutfitItem(10, 1, "bottoms", { bottoms: { length_type: "knee" } }),
+      createOutfitItem(20, 1, "legwear", { legwear: {} }, "stockings"),
+      createOutfitItem(
+        21,
+        2,
+        "legwear",
+        { legwear: { coverage_type: "crew_socks" } },
+        "socks",
+      ),
+    ]);
+
+    expect(source?.representativeLegwearItemId).toBe(21);
+    expect(source?.coverageType).toBe("crew_socks");
   });
 
   it("bottoms がなければ preview source を作らない", () => {

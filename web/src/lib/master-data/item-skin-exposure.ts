@@ -21,6 +21,9 @@ export type BottomsLengthType =
   (typeof BOTTOMS_LENGTH_OPTIONS)[number]["value"];
 export type LegwearCoverageType =
   (typeof LEGWEAR_COVERAGE_OPTIONS)[number]["value"];
+export type LegwearPreviewCoverageType =
+  | LegwearCoverageType
+  | "full_length_fallback";
 
 const SOCKS_COVERAGE_TYPES = [
   "ankle_socks",
@@ -108,6 +111,18 @@ export function resolveLegwearCoverageType(
   }
 
   return null;
+}
+
+export function resolveLegwearCoverageTypeForPreview(
+  category?: string | null,
+  shape?: string | null,
+  value?: string | null,
+): LegwearPreviewCoverageType | null {
+  if (!isLegwearSpecCategory(category)) return null;
+
+  return (
+    resolveLegwearCoverageType(category, shape, value) ?? "full_length_fallback"
+  );
 }
 
 export function resolveBottomsLengthType(value?: string | null) {

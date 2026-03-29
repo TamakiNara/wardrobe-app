@@ -3,7 +3,7 @@ import LowerBodyPreviewSvg from "@/components/items/item-lower-body-thumbnail-sv
 import { COLOR_THUMBNAIL_FALLBACK_COLOR } from "@/lib/color-thumbnails/shared";
 import {
   resolveBottomsLengthTypeForPreview,
-  resolveLegwearCoverageType,
+  resolveLegwearCoverageTypeForPreview,
 } from "@/lib/master-data/item-skin-exposure";
 import { resolveSkinToneColor } from "@/lib/master-data/skin-tone-presets";
 import type { ItemImageRecord, ItemSpec } from "@/types/items";
@@ -44,7 +44,7 @@ export default function ItemThumbnailPreview({
       ? "h-20 w-20 rounded-2xl"
       : "aspect-square w-full rounded-2xl";
   const contentPaddingClass = size === "small" ? "p-2" : "p-3";
-  const legwearCoverageType = resolveLegwearCoverageType(
+  const legwearPreviewCoverageType = resolveLegwearCoverageTypeForPreview(
     category,
     shape,
     spec?.legwear?.coverage_type,
@@ -56,7 +56,7 @@ export default function ItemThumbnailPreview({
   const skinToneColor = resolveSkinToneColor(skinTonePreset);
   const shouldRenderLowerBody =
     category === "bottoms" ||
-    (category === "legwear" && Boolean(legwearCoverageType));
+    (category === "legwear" && Boolean(legwearPreviewCoverageType));
 
   if (primaryImage?.url) {
     return (
@@ -98,7 +98,9 @@ export default function ItemThumbnailPreview({
       >
         <LowerBodyPreviewSvg
           lengthType={category === "bottoms" ? bottomsLengthType : null}
-          coverageType={category === "legwear" ? legwearCoverageType : null}
+          coverageType={
+            category === "legwear" ? legwearPreviewCoverageType : null
+          }
           bottomsMainColor={category === "bottoms" ? mainColorHex : null}
           bottomsSubColor={category === "bottoms" ? subColorHex : null}
           legwearMainColor={category === "legwear" ? mainColorHex : null}

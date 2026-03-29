@@ -4,6 +4,7 @@ import React from "react";
 import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import LowerBodyPreviewSvg from "./item-lower-body-thumbnail-svg";
 import ItemThumbnailPreview from "./item-thumbnail-preview";
 
 describe("ItemThumbnailPreview", () => {
@@ -137,7 +138,7 @@ describe("ItemThumbnailPreview", () => {
     ).toBe("102");
   });
 
-  it("coverage_type 未設定のレッグウェアは効果なしとして扱う", async () => {
+  it("coverage_type 未設定のレッグウェアは full-length fallback として扱う", async () => {
     await act(async () => {
       root.render(
         <ItemThumbnailPreview
@@ -149,9 +150,39 @@ describe("ItemThumbnailPreview", () => {
       );
     });
 
+    const overlay = container.querySelector('[data-testid="legwear-overlay"]');
     expect(
       container.querySelector('[data-testid="lower-body-preview-svg"]'),
-    ).toBeNull();
+    ).not.toBeNull();
+    expect(overlay?.getAttribute("y")).toBe("18");
+    expect(overlay?.getAttribute("height")).toBe("84");
+  });
+
+  it("bottoms と legwear を合成する場合は legwear を先に描いてから bottoms を重ねる", async () => {
+    await act(async () => {
+      root.render(
+        <LowerBodyPreviewSvg
+          lengthType="knee"
+          coverageType="full_length_fallback"
+          bottomsMainColor="#1F2937"
+          legwearMainColor="#334155"
+        />,
+      );
+    });
+
+    const svg = container.querySelector(
+      '[data-testid="lower-body-preview-svg"]',
+    );
+    const children = Array.from(
+      svg?.querySelectorAll("[data-testid]") ?? [],
+    ).map((node) => {
+      return node.getAttribute("data-testid");
+    });
+    expect(children.indexOf("legwear-overlay")).toBeGreaterThan(-1);
+    expect(children.indexOf("bottoms-garment")).toBeGreaterThan(-1);
+    expect(children.indexOf("legwear-overlay")).toBeLessThan(
+      children.indexOf("bottoms-garment"),
+    );
   });
 
   it("skinTonePreset に応じて肌色を切り替える", async () => {

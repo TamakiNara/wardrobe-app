@@ -2,6 +2,7 @@ import {
   resolveBottomsLengthType,
   resolveBottomsLengthTypeForPreview,
   resolveLegwearCoverageType,
+  resolveLegwearCoverageTypeForPreview,
 } from "@/lib/master-data/item-skin-exposure";
 import type { ItemSpec } from "@/types/items";
 
@@ -58,10 +59,17 @@ function findRepresentativeBottoms(items: OutfitLowerBodyPreviewItem[]) {
 }
 
 function findRepresentativeLegwear(items: OutfitLowerBodyPreviewItem[]) {
-  return items
+  const legwearItems = items
     .filter((outfitItem) => outfitItem.item.category === "legwear")
-    .sort((left, right) => left.sort_order - right.sort_order)
-    .find((outfitItem) =>
+    .sort((left, right) => left.sort_order - right.sort_order);
+  const fallbackLegwear = legwearItems.find(
+    (outfitItem) =>
+      outfitItem.item.shape === "tights" ||
+      outfitItem.item.shape === "stockings",
+  );
+
+  return (
+    legwearItems.find((outfitItem) =>
       Boolean(
         resolveLegwearCoverageType(
           outfitItem.item.category,
@@ -69,7 +77,11 @@ function findRepresentativeLegwear(items: OutfitLowerBodyPreviewItem[]) {
           outfitItem.item.spec?.legwear?.coverage_type,
         ),
       ),
-    );
+    ) ??
+    fallbackLegwear ??
+    legwearItems[0] ??
+    null
+  );
 }
 
 export function buildOutfitLowerBodyPreviewSource(
@@ -83,7 +95,7 @@ export function buildOutfitLowerBodyPreviewSource(
 
   const representativeLegwear = findRepresentativeLegwear(items);
   const coverageType = representativeLegwear
-    ? resolveLegwearCoverageType(
+    ? resolveLegwearCoverageTypeForPreview(
         representativeLegwear.item.category,
         representativeLegwear.item.shape,
         representativeLegwear.item.spec?.legwear?.coverage_type,

@@ -155,6 +155,15 @@ export default function LowerBodyPreviewSvg({
         preserveAspectRatio={preserveAspectRatio}
       >
         <PreviewFrame skinToneColor={skinToneColor} frameMode={frameMode}>
+          {hasLegwear ? (
+            <LegwearOverlay
+              coverageType={coverageType}
+              mainColor={legwearColor}
+              subColor={legwearSubColor}
+              frameMode={frameMode}
+              visibleFromY={hemY}
+            />
+          ) : null}
           <rect
             data-testid="bottoms-garment"
             x={frameX}
@@ -183,15 +192,6 @@ export default function LowerBodyPreviewSvg({
               strokeWidth="1"
             />
           )}
-          {hasLegwear ? (
-            <LegwearOverlay
-              coverageType={coverageType}
-              mainColor={legwearColor}
-              subColor={legwearSubColor}
-              frameMode={frameMode}
-              visibleFromY={hemY}
-            />
-          ) : null}
         </PreviewFrame>
       </svg>
     );
@@ -249,6 +249,20 @@ function LegwearOverlay({
     visibleFromY === null || visibleFromY === undefined
       ? 0
       : Math.max(remapViewportOffset(1, frameMode), 1);
+
+  if (coverageType === "full_length_fallback") {
+    return (
+      <rect
+        data-testid="legwear-overlay"
+        x={frameX}
+        y={frameY}
+        width={frameWidth}
+        height={frameHeight}
+        rx="0"
+        fill={mainColor}
+      />
+    );
+  }
 
   if (coverageType in SOCKS_START_Y) {
     const startY = remapViewportY(

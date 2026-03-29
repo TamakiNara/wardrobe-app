@@ -386,4 +386,83 @@ describe("OutfitColorThumbnail", () => {
         ?.getAttribute("y"),
     ).not.toBe("0");
   });
+
+  it("coverage_type 未設定の legwear でも full-length fallback として描画する", async () => {
+    await act(async () => {
+      root.render(
+        React.createElement(OutfitColorThumbnail, {
+          outfitItems: [
+            renderOutfitItem(
+              1,
+              "bottoms",
+              [{ role: "main", hex: "#44516A", label: "ネイビー" }],
+              {
+                spec: { bottoms: { length_type: "knee" } },
+              },
+            ),
+            renderOutfitItem(
+              2,
+              "legwear",
+              [{ role: "main", hex: "#334155", label: "ネイビー" }],
+              {
+                shape: "socks",
+                spec: { legwear: {} },
+              },
+            ),
+          ],
+        }),
+      );
+    });
+
+    expect(
+      container.querySelector('[data-testid="thumbnail-lower-body"]'),
+    ).not.toBeNull();
+    expect(
+      container
+        .querySelector('[data-testid="legwear-overlay"]')
+        ?.getAttribute("y"),
+    ).toBe("0");
+  });
+
+  it("lower-body は legwear を先、その上に bottoms を重ねる", async () => {
+    await act(async () => {
+      root.render(
+        React.createElement(OutfitColorThumbnail, {
+          outfitItems: [
+            renderOutfitItem(
+              1,
+              "bottoms",
+              [{ role: "main", hex: "#44516A", label: "ネイビー" }],
+              {
+                spec: { bottoms: { length_type: "knee" } },
+              },
+            ),
+            renderOutfitItem(
+              2,
+              "legwear",
+              [{ role: "main", hex: "#334155", label: "ネイビー" }],
+              {
+                shape: "tights",
+                spec: {},
+              },
+            ),
+          ],
+        }),
+      );
+    });
+
+    const svg = container.querySelector(
+      '[data-testid="lower-body-preview-svg"]',
+    );
+    const children = Array.from(
+      svg?.querySelectorAll("[data-testid]") ?? [],
+    ).map((node) => {
+      return node.getAttribute("data-testid");
+    });
+    expect(children.indexOf("legwear-overlay")).toBeGreaterThan(-1);
+    expect(children.indexOf("bottoms-garment")).toBeGreaterThan(-1);
+    expect(children.indexOf("legwear-overlay")).toBeLessThan(
+      children.indexOf("bottoms-garment"),
+    );
+  });
 });
