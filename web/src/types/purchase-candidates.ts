@@ -62,6 +62,7 @@ export type PurchaseCandidateRecord = {
   size_gender: "women" | "men" | "unisex" | null;
   size_label: string | null;
   size_note: string | null;
+  size_details: ItemSizeDetails | null;
   is_rain_ok: boolean;
   converted_item_id: number | null;
   converted_at: string | null;
@@ -102,6 +103,7 @@ export type PurchaseCandidateUpsertPayload = {
   size_gender: "women" | "men" | "unisex" | null;
   size_label: string | null;
   size_note: string | null;
+  size_details: ItemSizeDetails | null;
   is_rain_ok: boolean;
   colors: PurchaseCandidateColor[];
   seasons: string[];

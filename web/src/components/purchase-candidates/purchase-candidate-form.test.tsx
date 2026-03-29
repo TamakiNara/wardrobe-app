@@ -155,13 +155,45 @@ describe("PurchaseCandidateForm", () => {
     const customMainCheckbox = container.querySelector(
       'input[aria-label="メインカラーをカラーコードで入力"]',
     ) as HTMLInputElement;
+    const sizeNoteInput = container.querySelector(
+      "#size_note",
+    ) as HTMLTextAreaElement;
 
     await act(async () => {
       setNativeValue(nameInput, "レインコート候補");
-      setNativeValue(categorySelect, "outer_coat");
+      setNativeValue(categorySelect, "tops_tshirt");
       setNativeValue(salePriceInput, "12800");
       setNativeValue(saleEndsAtInput, "2026-03-31T18:00");
+      setNativeValue(sizeNoteInput, "厚手対応");
       customMainCheckbox.click();
+    });
+
+    const shoulderWidthInput = container.querySelector(
+      "#structured-size-shoulder_width",
+    ) as HTMLInputElement;
+
+    await act(async () => {
+      setNativeValue(shoulderWidthInput, "42.5");
+    });
+
+    const addButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent?.includes("自由項目を追加"),
+    ) as HTMLButtonElement;
+
+    await act(async () => {
+      addButton.click();
+    });
+
+    const customLabelInput = container.querySelector(
+      'input[placeholder="項目名"]',
+    ) as HTMLInputElement;
+    const customValueInput = container.querySelector(
+      'input[placeholder="値"]',
+    ) as HTMLInputElement;
+
+    await act(async () => {
+      setNativeValue(customLabelInput, "裄丈");
+      setNativeValue(customValueInput, "78");
     });
 
     const mainColorCodeInput = container.querySelector(
@@ -193,8 +225,51 @@ describe("PurchaseCandidateForm", () => {
         label: "カスタムカラー",
       },
     ]);
+    expect(payload.size_note).toBe("厚手対応");
+    expect(payload.size_details).toEqual({
+      structured: {
+        shoulder_width: 42.5,
+      },
+      custom_fields: [
+        {
+          label: "裄丈",
+          value: 78,
+          sort_order: 1,
+        },
+      ],
+    });
     expect(payload.sale_price).toBe(12800);
     expect(payload.sale_ends_at).toBe("2026-03-31T18:00");
+  });
+
+  it("サイズ実寸の重複は短い警告文で表示する", async () => {
+    await renderForm();
+
+    const categorySelect = container.querySelector(
+      "#category_id",
+    ) as HTMLSelectElement;
+
+    await act(async () => {
+      setNativeValue(categorySelect, "tops_tshirt");
+    });
+
+    const addButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent?.includes("自由項目を追加"),
+    ) as HTMLButtonElement;
+
+    await act(async () => {
+      addButton.click();
+    });
+
+    const customLabelInput = container.querySelector(
+      'input[placeholder="項目名"]',
+    ) as HTMLInputElement;
+
+    await act(async () => {
+      setNativeValue(customLabelInput, "肩幅");
+    });
+
+    expect(container.textContent).toContain("同名の実寸項目があります。");
   });
 
   it("季節のオールを個別季節と排他的に切り替える", async () => {
@@ -258,6 +333,18 @@ describe("PurchaseCandidateForm", () => {
             size_gender: "women",
             size_label: "M",
             size_note: "厚手対応",
+            size_details: {
+              structured: {
+                shoulder_width: 42,
+              },
+              custom_fields: [
+                {
+                  label: "裄丈",
+                  value: 78,
+                  sort_order: 1,
+                },
+              ],
+            },
             is_rain_ok: true,
             converted_item_id: 99,
             converted_at: "2026-03-25T10:00:00+09:00",
@@ -317,6 +404,9 @@ describe("PurchaseCandidateForm", () => {
     expect(nameInput.disabled).toBe(true);
     expect(categorySelect.disabled).toBe(true);
     expect(priceInput.disabled).toBe(true);
+    expect(
+      container.querySelector("#structured-size-shoulder_width"),
+    ).toBeNull();
     expect(salePriceInput.disabled).toBe(false);
     expect(saleEndsAtInput.disabled).toBe(false);
     expect(purchaseUrlInput.disabled).toBe(false);

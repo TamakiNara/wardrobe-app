@@ -52,6 +52,7 @@ class PurchaseCandidatePayloadBuilder
             'size_gender' => $candidate->size_gender,
             'size_label' => $candidate->size_label,
             'size_note' => $candidate->size_note,
+            'size_details' => $candidate->size_details,
             'is_rain_ok' => $candidate->is_rain_ok,
             'converted_item_id' => $candidate->converted_item_id,
             'converted_at' => $candidate->converted_at?->toISOString(),
@@ -109,7 +110,7 @@ class PurchaseCandidatePayloadBuilder
             'size_label' => $candidate->size_label,
             'size_note' => $candidate->size_note,
             'purchased_at' => null,
-            'size_details' => null,
+            'size_details' => $candidate->size_details,
             'spec' => null,
             'is_rain_ok' => $candidate->is_rain_ok,
             'colors' => $candidate->colors

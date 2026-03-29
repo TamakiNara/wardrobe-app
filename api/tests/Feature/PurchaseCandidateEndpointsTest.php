@@ -69,6 +69,18 @@ class PurchaseCandidateEndpointsTest extends TestCase
             'size_gender' => 'women',
             'size_label' => 'M',
             'size_note' => '厚手インナー込み',
+            'size_details' => [
+                'structured' => [
+                    'shoulder_width' => 42,
+                ],
+                'custom_fields' => [
+                    [
+                        'label' => '裄丈',
+                        'value' => 78,
+                        'sort_order' => 1,
+                    ],
+                ],
+            ],
             'is_rain_ok' => true,
         ], $overrides));
 
@@ -177,6 +189,18 @@ class PurchaseCandidateEndpointsTest extends TestCase
             'size_gender' => 'women',
             'size_label' => 'S',
             'size_note' => '肩幅確認',
+            'size_details' => [
+                'structured' => [
+                    'shoulder_width' => 41.5,
+                ],
+                'custom_fields' => [
+                    [
+                        'label' => '裄丈',
+                        'value' => 79,
+                        'sort_order' => 1,
+                    ],
+                ],
+            ],
             'is_rain_ok' => false,
             'colors' => [[
                 'role' => 'main',
@@ -197,6 +221,8 @@ class PurchaseCandidateEndpointsTest extends TestCase
             ->assertJsonPath('purchaseCandidate.name', '白シャツ候補')
             ->assertJsonPath('purchaseCandidate.category_id', 'tops_shirt')
             ->assertJsonPath('purchaseCandidate.sale_price', 8800)
+            ->assertJsonPath('purchaseCandidate.size_details.structured.shoulder_width', 41.5)
+            ->assertJsonPath('purchaseCandidate.size_details.custom_fields.0.label', '裄丈')
             ->assertJsonPath('purchaseCandidate.colors.0.value', 'white')
             ->assertJsonPath('purchaseCandidate.seasons.1', '秋');
 
@@ -276,6 +302,11 @@ class PurchaseCandidateEndpointsTest extends TestCase
             'size_gender' => 'unisex',
             'size_label' => 'L',
             'size_note' => null,
+            'size_details' => [
+                'structured' => [
+                    'body_length' => 68,
+                ],
+            ],
             'is_rain_ok' => true,
             'colors' => [[
                 'role' => 'main',
@@ -296,6 +327,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
             ->assertJsonPath('purchaseCandidate.status', 'on_hold')
             ->assertJsonPath('purchaseCandidate.category_id', 'tops_knit')
             ->assertJsonPath('purchaseCandidate.sale_price', 9800)
+            ->assertJsonPath('purchaseCandidate.size_details.structured.body_length', 68)
             ->assertJsonPath('purchaseCandidate.colors.0.value', 'gray');
 
         $this->assertDatabaseHas('purchase_candidates', [
@@ -384,6 +416,8 @@ class PurchaseCandidateEndpointsTest extends TestCase
             ->assertJsonPath('item_draft.category', 'outer')
             ->assertJsonPath('item_draft.shape', 'trench')
             ->assertJsonPath('item_draft.memo', 'メモ')
+            ->assertJsonPath('item_draft.size_details.structured.shoulder_width', 42)
+            ->assertJsonPath('item_draft.size_details.custom_fields.0.label', '裄丈')
             ->assertJsonPath('item_draft.colors.0.value', 'navy')
             ->assertJsonMissingPath('item_draft.wanted_reason')
             ->assertJsonPath('candidate_summary.id', $candidate->id);

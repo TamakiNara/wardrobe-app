@@ -36,6 +36,7 @@ class PurchaseCandidateService
                 'size_gender' => $validated['size_gender'] ?? null,
                 'size_label' => $validated['size_label'] ?? null,
                 'size_note' => $validated['size_note'] ?? null,
+                'size_details' => $validated['size_details'] ?? null,
                 'is_rain_ok' => (bool) ($validated['is_rain_ok'] ?? false),
             ]);
 
@@ -82,6 +83,7 @@ class PurchaseCandidateService
                 'size_gender' => $validated['size_gender'] ?? null,
                 'size_label' => $validated['size_label'] ?? null,
                 'size_note' => $validated['size_note'] ?? null,
+                'size_details' => $validated['size_details'] ?? null,
                 'is_rain_ok' => (bool) ($validated['is_rain_ok'] ?? false),
             ]);
 
@@ -131,6 +133,7 @@ class PurchaseCandidateService
                     'size_gender' => $sourceCandidate->size_gender,
                     'size_label' => $sourceCandidate->size_label,
                     'size_note' => $sourceCandidate->size_note,
+                    'size_details' => $sourceCandidate->size_details,
                     'is_rain_ok' => $sourceCandidate->is_rain_ok,
                     'converted_item_id' => null,
                     'converted_at' => null,

@@ -190,6 +190,7 @@
 - `size_gender` nullable
 - `size_label` nullable
 - `size_note` nullable
+- `size_details` nullable JSON
 - `is_rain_ok` boolean default false
 - `converted_item_id` nullable
 - `converted_at` nullable
@@ -214,6 +215,8 @@
 - `price`: 想定価格
 - `wanted_reason`: 購入検討にした理由
 - `memo`: 自由メモ
+- `size_note`: サイズ感・着用感の補足メモ
+- `size_details`: `structured` / `custom_fields` を持つ構造化実寸
 - `converted_item_id`: item 化された先の ID
 - `converted_at`: item 化日時
 
@@ -776,6 +779,7 @@ current 実装では、`purchase_candidate_id` を受けた item 作成時に、
 - `size_gender`: nullable / 許可値のみ
 - `size_label`: nullable / string
 - `size_note`: nullable / length 制限
+- `size_details`: nullable / JSON
 - `is_rain_ok`: boolean
 
 ## `items`

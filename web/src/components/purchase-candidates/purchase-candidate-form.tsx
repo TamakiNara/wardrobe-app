@@ -12,6 +12,7 @@ import { useRouter } from "next/navigation";
 import FieldLabel from "@/components/forms/field-label";
 import ColorChip from "@/components/items/color-chip";
 import ColorSelect from "@/components/items/color-select";
+import ItemSizeDetailsFields from "@/components/items/item-size-details-fields";
 import PurchaseCandidateImageUploader from "@/components/purchase-candidates/purchase-candidate-image-uploader";
 import { fetchCategoryGroups } from "@/lib/api/categories";
 import { fetchCategoryVisibilitySettings } from "@/lib/api/settings";
@@ -22,10 +23,18 @@ import {
   type ItemColorValue,
 } from "@/lib/master-data/item-colors";
 import {
+  buildItemSizeDetailsPayload,
+  buildSizeDetailDuplicateWarnings,
+  getStructuredSizeFieldDefinitions,
+  normalizeItemSizeDetails,
+  type EditableCustomSizeField,
+} from "@/lib/items/size-details";
+import {
   PURCHASE_CANDIDATE_PRIORITY_LABELS,
   PURCHASE_CANDIDATE_SIZE_GENDER_LABELS,
   PURCHASE_CANDIDATE_STATUS_LABELS,
 } from "@/lib/purchase-candidates/labels";
+import { resolvePurchaseCandidateItemCategory } from "@/lib/purchase-candidates/category-map";
 import type { CategoryGroupRecord, CategoryOption } from "@/types/categories";
 import type {
   PurchaseCandidateDetailResponse,
@@ -35,6 +44,7 @@ import type {
   PurchaseCandidateStatus,
   PurchaseCandidateUpsertPayload,
 } from "@/types/purchase-candidates";
+import type { StructuredSizeFieldName } from "@/types/items";
 
 type PurchaseCandidateFormProps = {
   mode: "create" | "edit";
@@ -118,6 +128,16 @@ function extractFirstErrorMessage(data: unknown, fallback: string): string {
   return fallback;
 }
 
+function createEditableCustomSizeFieldId(index: number): string {
+  const randomUuid = globalThis.crypto?.randomUUID?.();
+
+  if (randomUuid) {
+    return `custom-${randomUuid}`;
+  }
+
+  return `custom-${Date.now()}-${index}`;
+}
+
 export default function PurchaseCandidateForm({
   mode,
   candidateId,
@@ -145,6 +165,12 @@ export default function PurchaseCandidateForm({
   );
   const [sizeLabel, setSizeLabel] = useState("");
   const [sizeNote, setSizeNote] = useState("");
+  const [structuredSizeValues, setStructuredSizeValues] = useState<
+    Partial<Record<StructuredSizeFieldName, string>>
+  >({});
+  const [customSizeFields, setCustomSizeFields] = useState<
+    EditableCustomSizeField[]
+  >([]);
   const [isRainOk, setIsRainOk] = useState(false);
 
   const [mainColor, setMainColor] = useState<ItemColorValue | "">("");
@@ -189,6 +215,27 @@ export default function PurchaseCandidateForm({
 
     return ITEM_COLORS.find((color) => color.value === subColor) ?? null;
   }, [customSubHex, subColor, useCustomSubColor]);
+
+  const resolvedItemCategory = useMemo(
+    () => resolvePurchaseCandidateItemCategory(categoryId),
+    [categoryId],
+  );
+  const structuredSizeFieldDefinitions = useMemo(
+    () =>
+      getStructuredSizeFieldDefinitions(
+        resolvedItemCategory?.category,
+        resolvedItemCategory?.shape,
+      ),
+    [resolvedItemCategory],
+  );
+  const sizeDetailDuplicateWarnings = useMemo(
+    () =>
+      buildSizeDetailDuplicateWarnings(
+        structuredSizeFieldDefinitions,
+        customSizeFields.map((field) => field.label),
+      ),
+    [customSizeFields, structuredSizeFieldDefinitions],
+  );
 
   useEffect(() => {
     async function loadInitialData() {
@@ -243,6 +290,28 @@ export default function PurchaseCandidateForm({
           setSizeGender(candidate.size_gender ?? "");
           setSizeLabel(candidate.size_label ?? "");
           setSizeNote(candidate.size_note ?? "");
+          const normalizedSizeDetails = normalizeItemSizeDetails(
+            candidate.size_details,
+          );
+          setStructuredSizeValues(
+            normalizedSizeDetails?.structured
+              ? Object.fromEntries(
+                  Object.entries(normalizedSizeDetails.structured).map(
+                    ([fieldName, fieldValue]) => [
+                      fieldName,
+                      String(fieldValue),
+                    ],
+                  ),
+                )
+              : {},
+          );
+          setCustomSizeFields(
+            normalizedSizeDetails?.custom_fields?.map((field, index) => ({
+              id: `existing-${index}`,
+              label: field.label,
+              value: String(field.value),
+            })) ?? [],
+          );
           setIsRainOk(candidate.is_rain_ok);
           const main = candidate.colors.find((color) => color.role === "main");
           const sub = candidate.colors.find((color) => color.role === "sub");
@@ -306,6 +375,45 @@ export default function PurchaseCandidateForm({
     });
   }
 
+  function updateStructuredSizeValue(
+    fieldName: StructuredSizeFieldName,
+    value: string,
+  ) {
+    setStructuredSizeValues((current) => ({
+      ...current,
+      [fieldName]: value,
+    }));
+  }
+
+  function updateCustomSizeField(
+    fieldId: string,
+    field: "label" | "value",
+    value: string,
+  ) {
+    setCustomSizeFields((current) =>
+      current.map((item) =>
+        item.id === fieldId ? { ...item, [field]: value } : item,
+      ),
+    );
+  }
+
+  function addCustomSizeField() {
+    setCustomSizeFields((current) => [
+      ...current,
+      {
+        id: createEditableCustomSizeFieldId(current.length),
+        label: "",
+        value: "",
+      },
+    ]);
+  }
+
+  function removeCustomSizeField(fieldId: string) {
+    setCustomSizeFields((current) =>
+      current.filter((field) => field.id !== fieldId),
+    );
+  }
+
   function buildPayload(): PurchaseCandidateUpsertPayload {
     if (isPurchasedLocked) {
       return {
@@ -355,6 +463,11 @@ export default function PurchaseCandidateForm({
       size_gender: sizeGender || null,
       size_label: normalizeNullableString(sizeLabel) || null,
       size_note: sizeNote.trim() || null,
+      size_details: buildItemSizeDetailsPayload(
+        structuredSizeFieldDefinitions,
+        structuredSizeValues,
+        customSizeFields,
+      ),
       is_rain_ok: isRainOk,
       colors,
       seasons: selectedSeasons,
@@ -851,7 +964,7 @@ export default function PurchaseCandidateForm({
             htmlFor="size_note"
             className="mb-1 block text-sm font-medium text-gray-700"
           >
-            サイズメモ
+            サイズ感メモ
           </label>
           <textarea
             id="size_note"
@@ -859,9 +972,25 @@ export default function PurchaseCandidateForm({
             onChange={(event) => setSizeNote(event.target.value)}
             disabled={isPurchasedLocked}
             rows={3}
+            placeholder="例: 普段Mだが小さめ"
             className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
           />
         </div>
+
+        <ItemSizeDetailsFields
+          structuredSizeFieldDefinitions={structuredSizeFieldDefinitions}
+          structuredSizeValues={structuredSizeValues}
+          customSizeFields={customSizeFields}
+          hasDuplicateWarnings={
+            sizeDetailDuplicateWarnings.hasStructuredDuplicates ||
+            sizeDetailDuplicateWarnings.hasCustomDuplicates
+          }
+          disabled={isPurchasedLocked}
+          onAddCustomSizeField={addCustomSizeField}
+          onUpdateStructuredSizeValue={updateStructuredSizeValue}
+          onUpdateCustomSizeField={updateCustomSizeField}
+          onRemoveCustomSizeField={removeCustomSizeField}
+        />
       </section>
 
       <section className="space-y-4">

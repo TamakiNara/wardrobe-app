@@ -3362,6 +3362,12 @@ components:
           type: string
           nullable: true
           example: 厚手インナー込みで試したい
+          description: サイズ感・着用感の補足メモ。
+        size_details:
+          allOf:
+            - $ref: '#/components/schemas/ItemSizeDetails'
+          nullable: true
+          description: 構造化実寸。`structured` と `custom_fields` を持ち、item draft と同じ意味で扱う。
         is_rain_ok:
           type: boolean
           example: true
@@ -3455,6 +3461,12 @@ components:
         size_note:
           type: string
           nullable: true
+          description: サイズ感・着用感の補足メモ。
+        size_details:
+          allOf:
+            - $ref: '#/components/schemas/ItemSizeDetails'
+          nullable: true
+          description: 構造化実寸。`structured` と `custom_fields` を持ち、item 化時も同じ意味で引き継ぐ。
         is_rain_ok:
           type: boolean
         colors:

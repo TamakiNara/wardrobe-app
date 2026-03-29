@@ -9,6 +9,7 @@ type ItemSizeDetailsFieldsProps = {
   structuredSizeValues: Partial<Record<StructuredSizeFieldName, string>>;
   customSizeFields: EditableCustomSizeField[];
   hasDuplicateWarnings: boolean;
+  disabled?: boolean;
   onAddCustomSizeField: () => void;
   onUpdateStructuredSizeValue: (
     fieldName: StructuredSizeFieldName,
@@ -27,6 +28,7 @@ export default function ItemSizeDetailsFields({
   structuredSizeValues,
   customSizeFields,
   hasDuplicateWarnings,
+  disabled = false,
   onAddCustomSizeField,
   onUpdateStructuredSizeValue,
   onUpdateCustomSizeField,
@@ -39,6 +41,7 @@ export default function ItemSizeDetailsFields({
         <button
           type="button"
           onClick={onAddCustomSizeField}
+          disabled={disabled}
           className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
         >
           自由項目を追加
@@ -63,6 +66,7 @@ export default function ItemSizeDetailsFields({
                   step="0.1"
                   min="0"
                   value={structuredSizeValues[field.name] ?? ""}
+                  disabled={disabled}
                   onChange={(e) =>
                     onUpdateStructuredSizeValue(field.name, e.target.value)
                   }
@@ -91,6 +95,7 @@ export default function ItemSizeDetailsFields({
                 type="text"
                 placeholder="項目名"
                 value={field.label}
+                disabled={disabled}
                 onChange={(e) =>
                   onUpdateCustomSizeField(field.id, "label", e.target.value)
                 }
@@ -104,6 +109,7 @@ export default function ItemSizeDetailsFields({
                   min="0"
                   placeholder="値"
                   value={field.value}
+                  disabled={disabled}
                   onChange={(e) =>
                     onUpdateCustomSizeField(field.id, "value", e.target.value)
                   }
@@ -114,6 +120,7 @@ export default function ItemSizeDetailsFields({
               <button
                 type="button"
                 onClick={() => onRemoveCustomSizeField(field.id)}
+                disabled={disabled}
                 className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
               >
                 削除

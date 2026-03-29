@@ -58,6 +58,7 @@ wear logs も本資料の対象とし、その保存方針を定義します。
 | size_gender | string nullable | `women` / `men` / `unisex` |
 | size_label | string nullable | S / M / L / FREE など |
 | size_note | string nullable | サイズ感・着用感の補足メモ |
+| size_details | json nullable | `structured` / `custom_fields` を持つ構造化実寸 |
 | is_rain_ok | boolean default false | 雨対応フラグ |
 | converted_item_id | bigint nullable | item 化された先の ID |
 | converted_at | timestamp nullable | item 化日時 |
@@ -69,6 +70,7 @@ wear logs も本資料の対象とし、その保存方針を定義します。
 - `dropped` は見送り履歴を残す状態であり、DELETE とは別概念とする
 - candidate の `price` は想定価格、item の `price` は実購入価格として意味を分ける
 - `sale_price` / `sale_ends_at` は candidate 専用であり、item には保存しない
+- `size_note` はサイズ感・着用感の補足メモ、`size_details` は `structured` / `custom_fields` を持つ構造化実寸とする
 - candidate から item へは既存 record を変換せず、新規 item 作成で昇格する
 - current 実装では、`purchase_candidate_id` 付きの item 作成成功時に `status=purchased`、`converted_item_id`、`converted_at` を更新する
 - current 実装では、candidate 複製時に画像も新 candidate 用保存先へ物理コピーして別 record として保持する

@@ -52,6 +52,19 @@ describe("PurchaseCandidateItemDraftAction", () => {
               source_category_id: "outer_coat",
               category: "outer",
               shape: "trench",
+              size_note: "厚手ニット込み",
+              size_details: {
+                structured: {
+                  shoulder_width: 42,
+                },
+                custom_fields: [
+                  {
+                    label: "裄丈",
+                    value: 78,
+                    sort_order: 1,
+                  },
+                ],
+              },
               colors: [],
               seasons: ["春"],
               tpos: ["仕事"],
@@ -95,9 +108,13 @@ describe("PurchaseCandidateItemDraftAction", () => {
       "/api/purchase-candidates/10/item-draft",
       expect.objectContaining({ method: "POST" }),
     );
-    expect(
-      window.sessionStorage.getItem("purchase-candidate-item-draft"),
-    ).toContain("outer_coat");
+    const rawDraft = window.sessionStorage.getItem(
+      "purchase-candidate-item-draft",
+    );
+
+    expect(rawDraft).toContain("outer_coat");
+    expect(rawDraft).toContain("厚手ニット込み");
+    expect(rawDraft).toContain("shoulder_width");
     expect(pushMock).toHaveBeenCalledWith(
       "/items/new?source=purchase-candidate",
     );
