@@ -135,6 +135,7 @@
 - docs / OpenAPI / 実装 / test のいずれかを変えたら、関連差分の更新漏れがないか確認する
 - commit やコミットメッセージ提案の前に、`.githooks/pre-commit` の実行内容を確認し、必要なら同等コマンドを先に実行する
 - web に変更がある場合、`npm run lint` だけでなく `npx prettier --check .` も事前に実行する
+- seed / category master / migration / test dataset に関わる変更では、テストコマンド案内時に `php artisan migrate` / `php artisan db:seed --class=TestDatasetSeeder` または `php artisan migrate:fresh --seed` の要否もあわせて案内する
 - 整形コマンドで修正が入った場合は、その差分を再 stage してから commit する
 - bash / WSL 側で `node` や `npx` の実行結果が不安定な場合は、Windows 側の `cmd.exe /c` で `npm run lint` と `npx prettier --check .` を確認する
 - `prettier --write` を実行した後は、index と working tree がずれるため、対象ファイルを必ず `git add` し直してから commit する
