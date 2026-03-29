@@ -2052,6 +2052,7 @@ components:
 
     BottomsSpec:
       type: object
+      description: bottoms category の lower-body preview 基礎情報。item の create / update では `spec.bottoms.length_type` を必須とする。描画側では旧データ互換として欠落 / 無効値を `full` 扱いにフォールバックする。
       properties:
         length_type:
           type: string
@@ -2064,10 +2065,11 @@ components:
 
     LegwearSpec:
       type: object
+      description: legwear category の lower-body preview 補正情報。`socks` / `leggings` は create / update で `coverage_type` 必須、`tights` / `stockings` は今回の必須化対象外で固定値補完を許容する。描画側では欠落 / 判定不能を full-length legwear 表現として扱う。
       properties:
         coverage_type:
           type: string
-          description: legwear category の item で使う詳細分類。shape は粗い分類、coverage_type は詳細分類の正本。shape ごとに許可される値がある。
+          description: legwear category の item で使う詳細分類。shape は粗い分類、coverage_type は詳細分類の正本。shape ごとに許可される値があり、`socks` / `leggings` では必須、`tights` / `stockings` は固定値補完を許容する。
           enum:
             - ankle_socks
             - crew_socks
@@ -2202,6 +2204,8 @@ components:
         disposed は「手放した / 現在所持していない」状態を表す。
         disposed 変更時は、関連 outfit の invalid 化など副作用を伴うため、
         通常の項目更新とは分けて扱う前提とする。
+        `spec` の条件付き必須は category / shape に応じて判定し、bottoms では `spec.bottoms.length_type`、legwear の `socks` / `leggings` では `spec.legwear.coverage_type` を必須とする。
+        `tights` / `stockings` は今回の必須化対象外で、固定値補完を許容する。
       required:
         - category
         - shape
