@@ -25,8 +25,8 @@ class CategoryPresetSeeder extends Seeder
         $allCategoryIds = DB::table('category_master')->orderBy('id')->pluck('id')->all();
         $maleExcludedIds = [
             'bottoms_skirt',
-            'dress_onepiece',
-            'dress_allinone',
+            'onepiece',
+            'allinone',
             'shoes_pumps',
         ];
 

@@ -82,13 +82,13 @@ const sampleGroups: CategoryGroupRecord[] = [
     ],
   },
   {
-    id: "dress",
-    name: "ワンピース・オールインワン",
+    id: "onepiece_allinone",
+    name: "ワンピース / オールインワン",
     sortOrder: 20,
     categories: [
       {
-        id: "dress_onepiece",
-        groupId: "dress",
+        id: "onepiece",
+        groupId: "onepiece_allinone",
         name: "ワンピース",
         sortOrder: 10,
       },
@@ -160,7 +160,7 @@ describe("NewItemPage", () => {
       visibleCategoryIds: [
         "tops_tshirt",
         "bottoms_straight",
-        "dress_onepiece",
+        "onepiece",
         "inner_roomwear",
         "legwear_socks",
       ],
@@ -190,7 +190,7 @@ describe("NewItemPage", () => {
     globalThis.IS_REACT_ACT_ENVIRONMENT = false;
   });
 
-  it("表示設定に含まれる dress と inner をカテゴリ候補に含める", async () => {
+  it("表示設定に含まれるワンピース / オールインワンと inner をカテゴリ候補に含める", async () => {
     const { default: NewItemPage } = await import("./page");
 
     await act(async () => {
@@ -209,7 +209,7 @@ describe("NewItemPage", () => {
       "選択してください",
       "トップス",
       "ボトムス",
-      "ワンピース・オールインワン",
+      "ワンピース / オールインワン",
       "ルームウェア・インナー",
       "レッグウェア",
     ]);

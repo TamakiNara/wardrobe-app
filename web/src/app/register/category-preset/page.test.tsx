@@ -27,40 +27,50 @@ vi.mock("@/lib/api/settings", () => ({
 const sampleGroups: CategoryGroupRecord[] = [
   {
     id: "tops",
-    name: "????",
+    name: "トップス",
     sortOrder: 10,
     categories: [
-      { id: "tops_tshirt", groupId: "tops", name: "T???", sortOrder: 10 },
+      { id: "tops_tshirt", groupId: "tops", name: "Tシャツ", sortOrder: 10 },
     ],
   },
   {
     id: "bottoms",
-    name: "????",
+    name: "ボトムス",
     sortOrder: 20,
     categories: [
-      { id: "bottoms_skirt", groupId: "bottoms", name: "????", sortOrder: 10 },
+      {
+        id: "bottoms_skirt",
+        groupId: "bottoms",
+        name: "スカート",
+        sortOrder: 10,
+      },
     ],
   },
   {
-    id: "dress",
-    name: "?????????????",
+    id: "onepiece_allinone",
+    name: "ワンピース / オールインワン",
     sortOrder: 30,
     categories: [
-      { id: "dress_onepiece", groupId: "dress", name: "?????", sortOrder: 10 },
       {
-        id: "dress_allinone",
-        groupId: "dress",
-        name: "??????? / ?????",
+        id: "onepiece",
+        groupId: "onepiece_allinone",
+        name: "ワンピース",
+        sortOrder: 10,
+      },
+      {
+        id: "allinone",
+        groupId: "onepiece_allinone",
+        name: "オールインワン / サロペット",
         sortOrder: 20,
       },
     ],
   },
   {
     id: "shoes",
-    name: "????",
+    name: "シューズ",
     sortOrder: 40,
     categories: [
-      { id: "shoes_pumps", groupId: "shoes", name: "????", sortOrder: 10 },
+      { id: "shoes_pumps", groupId: "shoes", name: "パンプス", sortOrder: 10 },
     ],
   },
 ];
@@ -95,7 +105,7 @@ describe("CategoryPresetSelectionPage", () => {
     globalThis.IS_REACT_ACT_ENVIRONMENT = false;
   });
 
-  it("male ??????????????????????????", async () => {
+  it("male プリセットを保存できる", async () => {
     updateCategoryVisibilitySettingsMock.mockResolvedValue({
       visibleCategoryIds: ["tops_tshirt"],
     });
@@ -125,7 +135,7 @@ describe("CategoryPresetSelectionPage", () => {
     expect(pushMock).toHaveBeenCalledWith("/");
   });
 
-  it("custom ???? settings ??????????", async () => {
+  it("custom では個別設定画面へ進める", async () => {
     const { default: Page } = await import("./page");
 
     await act(async () => {

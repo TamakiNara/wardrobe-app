@@ -23,7 +23,7 @@
     { value: "chester", label: "チェスターコート" },
     { value: "down", label: "ダウン" },
   ],
-  dress: [
+  onepiece_allinone: [
     { value: "onepiece", label: "ワンピース" },
     { value: "allinone", label: "オールインワン / サロペット" },
   ],
@@ -57,7 +57,7 @@ export const ITEM_CATEGORIES = [
   { value: "tops", label: "トップス" },
   { value: "bottoms", label: "ボトムス" },
   { value: "outer", label: "アウター" },
-  { value: "dress", label: "ワンピース・オールインワン" },
+  { value: "onepiece_allinone", label: "ワンピース / オールインワン" },
   { value: "inner", label: "ルームウェア・インナー" },
   { value: "legwear", label: "レッグウェア" },
   { value: "shoes", label: "シューズ" },

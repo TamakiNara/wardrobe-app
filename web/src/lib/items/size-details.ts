@@ -76,7 +76,7 @@ function resolveStructuredSizeFieldGroup(
     }
   }
 
-  if (category === "dress" && shape === "onepiece") {
+  if (category === "onepiece_allinone" && shape === "onepiece") {
     return "onepiece";
   }
 

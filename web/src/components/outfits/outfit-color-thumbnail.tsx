@@ -3,7 +3,7 @@ import LowerBodyPreviewSvg from "@/components/items/item-lower-body-thumbnail-sv
 import { resolveSkinToneColor } from "@/lib/master-data/skin-tone-presets";
 import { buildOutfitThumbnailLayout } from "@/lib/outfits/color-thumbnail";
 import {
-  buildOutfitDressLowerBodyPreviewSource,
+  buildOutfitOnepieceAllinoneLowerBodyPreviewSource,
   buildOutfitLowerBodyPreviewSource,
 } from "@/lib/outfits/lower-body-preview";
 import type { ItemSpec } from "@/types/items";
@@ -55,7 +55,7 @@ function ColorBand({
   );
 }
 
-function DressLayerBand({
+function OnepieceAllinoneLayerBand({
   mainColorHex,
   subColorHex,
 }: {
@@ -72,7 +72,7 @@ function DressLayerBand({
         <span
           className="absolute inset-x-0 top-0 h-[10%]"
           style={{ backgroundColor: subColorHex }}
-          data-testid="thumbnail-dress-sub-band"
+          data-testid="thumbnail-onepiece-allinone-sub-band"
         />
       ) : null}
     </span>
@@ -131,16 +131,18 @@ export default function OutfitColorThumbnail({
   const hasBottoms = sortedOutfitItems.some(
     (outfitItem) => outfitItem.item.category === "bottoms",
   );
-  const dressItems = sortedOutfitItems.filter(
-    (outfitItem) => outfitItem.item.category === "dress",
+  const onepieceAllinoneItems = sortedOutfitItems.filter(
+    (outfitItem) => outfitItem.item.category === "onepiece_allinone",
   );
   const topsItems = sortedOutfitItems.filter(
     (outfitItem) => outfitItem.item.category === "tops",
   );
-  const representativeDress =
-    dressItems.length > 0 ? dressItems[dressItems.length - 1] : null;
-  const shouldRenderDressLayer =
-    representativeDress !== null && hasBottoms === false;
+  const representativeOnepieceAllinone =
+    onepieceAllinoneItems.length > 0
+      ? onepieceAllinoneItems[onepieceAllinoneItems.length - 1]
+      : null;
+  const shouldRenderOnepieceAllinoneLayer =
+    representativeOnepieceAllinone !== null && hasBottoms === false;
   const layout = buildOutfitThumbnailLayout(
     sortedOutfitItems.map((outfitItem) => ({
       id: outfitItem.item.id,
@@ -148,7 +150,7 @@ export default function OutfitColorThumbnail({
       colors: outfitItem.item.colors,
     })),
     {
-      excludeDress: shouldRenderDressLayer,
+      excludeOnepieceAllinone: shouldRenderOnepieceAllinoneLayer,
     },
   );
   const lowerBodyPreview = buildOutfitLowerBodyPreviewSource(
@@ -163,8 +165,8 @@ export default function OutfitColorThumbnail({
       },
     })),
   );
-  const dressLowerBodyPreview = shouldRenderDressLayer
-    ? buildOutfitDressLowerBodyPreviewSource(
+  const onepieceAllinoneLowerBodyPreview = shouldRenderOnepieceAllinoneLayer
+    ? buildOutfitOnepieceAllinoneLowerBodyPreviewSource(
         sortedOutfitItems.map((outfitItem) => ({
           sort_order: outfitItem.sort_order,
           item: {
@@ -186,26 +188,26 @@ export default function OutfitColorThumbnail({
   const highestTopSortOrder = topsItems.length
     ? Math.max(...topsItems.map((outfitItem) => outfitItem.sort_order))
     : null;
-  const topsAreAboveDress =
-    representativeDress !== null &&
+  const topsAreAboveOnepieceAllinone =
+    representativeOnepieceAllinone !== null &&
     highestTopSortOrder !== null &&
-    highestTopSortOrder > representativeDress.sort_order;
-  const topsAreBelowDress =
-    representativeDress !== null &&
+    highestTopSortOrder > representativeOnepieceAllinone.sort_order;
+  const topsAreBelowOnepieceAllinone =
+    representativeOnepieceAllinone !== null &&
     highestTopSortOrder !== null &&
-    highestTopSortOrder < representativeDress.sort_order;
-  const dressHasVisibleLowerBody =
-    dressLowerBodyPreview !== null &&
-    dressLowerBodyPreview.lengthType !== "full";
-  const dressMainColorHex = representativeDress
-    ? findMainColorHex(representativeDress.item.colors)
+    highestTopSortOrder < representativeOnepieceAllinone.sort_order;
+  const onepieceAllinoneHasVisibleLowerBody =
+    onepieceAllinoneLowerBodyPreview !== null &&
+    onepieceAllinoneLowerBodyPreview.lengthType !== "full";
+  const onepieceAllinoneMainColorHex = representativeOnepieceAllinone
+    ? findMainColorHex(representativeOnepieceAllinone.item.colors)
     : null;
-  const dressSubColorHex = representativeDress
-    ? findSubColorHex(representativeDress.item.colors)
+  const onepieceAllinoneSubColorHex = representativeOnepieceAllinone
+    ? findSubColorHex(representativeOnepieceAllinone.item.colors)
     : null;
-  const dressLayerStyle = {
-    top: topsAreBelowDress ? "12%" : "0",
-    bottom: dressHasVisibleLowerBody ? "22%" : "0",
+  const onepieceAllinoneLayerStyle = {
+    top: topsAreBelowOnepieceAllinone ? "12%" : "0",
+    bottom: onepieceAllinoneHasVisibleLowerBody ? "22%" : "0",
   } as const;
 
   return (
@@ -214,38 +216,43 @@ export default function OutfitColorThumbnail({
       data-testid="outfit-color-thumbnail"
       aria-hidden="true"
     >
-      {shouldRenderDressLayer && representativeDress ? (
+      {shouldRenderOnepieceAllinoneLayer && representativeOnepieceAllinone ? (
         <>
           <div
             className={`relative ${dimensions.main} overflow-hidden rounded-lg border border-gray-200 bg-gray-50`}
-            data-testid="thumbnail-dress-main"
+            data-testid="thumbnail-onepiece-allinone-main"
           >
-            {topsAreBelowDress && layout.tops.length > 0 ? (
+            {topsAreBelowOnepieceAllinone && layout.tops.length > 0 ? (
               <div
                 className="absolute inset-x-0 top-0 z-0 h-[12%] overflow-hidden"
-                data-testid="thumbnail-dress-top-underlay"
+                data-testid="thumbnail-onepiece-allinone-top-underlay"
               >
                 <SegmentRow
                   segments={layout.tops}
-                  testId="thumbnail-dress-underlay-tops"
+                  testId="thumbnail-onepiece-allinone-underlay-tops"
                 />
               </div>
             ) : null}
 
-            {dressHasVisibleLowerBody && dressLowerBodyPreview ? (
+            {onepieceAllinoneHasVisibleLowerBody &&
+            onepieceAllinoneLowerBodyPreview ? (
               <div
                 className="absolute inset-x-0 bottom-0 z-0 h-[34%]"
-                data-testid="thumbnail-dress-lower-body"
+                data-testid="thumbnail-onepiece-allinone-lower-body"
               >
                 <LowerBodyPreviewSvg
-                  lengthType={dressLowerBodyPreview.lengthType}
-                  coverageType={dressLowerBodyPreview.coverageType}
-                  bottomsMainColor={dressMainColorHex}
-                  bottomsSubColor={dressSubColorHex}
-                  legwearMainColor={dressLowerBodyPreview.legwearMainColor}
-                  legwearSubColor={dressLowerBodyPreview.legwearSubColor}
+                  lengthType={onepieceAllinoneLowerBodyPreview.lengthType}
+                  coverageType={onepieceAllinoneLowerBodyPreview.coverageType}
+                  bottomsMainColor={onepieceAllinoneMainColorHex}
+                  bottomsSubColor={onepieceAllinoneSubColorHex}
+                  legwearMainColor={
+                    onepieceAllinoneLowerBodyPreview.legwearMainColor
+                  }
+                  legwearSubColor={
+                    onepieceAllinoneLowerBodyPreview.legwearSubColor
+                  }
                   skinToneColor={skinToneColor}
-                  ariaLabel="outfit dress lower-body preview"
+                  ariaLabel="outfit onepiece_allinone lower-body preview"
                   frameMode="viewport"
                   preserveAspectRatio="none"
                 />
@@ -254,23 +261,23 @@ export default function OutfitColorThumbnail({
 
             <div
               className="absolute inset-x-0 z-10 overflow-hidden"
-              style={dressLayerStyle}
-              data-testid="thumbnail-dress-layer"
+              style={onepieceAllinoneLayerStyle}
+              data-testid="thumbnail-onepiece-allinone-layer"
             >
-              <DressLayerBand
-                mainColorHex={dressMainColorHex ?? "#E5E7EB"}
-                subColorHex={dressSubColorHex}
+              <OnepieceAllinoneLayerBand
+                mainColorHex={onepieceAllinoneMainColorHex ?? "#E5E7EB"}
+                subColorHex={onepieceAllinoneSubColorHex}
               />
             </div>
 
-            {topsAreAboveDress && layout.tops.length > 0 ? (
+            {topsAreAboveOnepieceAllinone && layout.tops.length > 0 ? (
               <div
                 className="absolute inset-x-0 top-0 z-20 h-[40%] overflow-hidden"
-                data-testid="thumbnail-dress-top-overlay"
+                data-testid="thumbnail-onepiece-allinone-top-overlay"
               >
                 <SegmentRow
                   segments={layout.tops}
-                  testId="thumbnail-dress-overlay-tops"
+                  testId="thumbnail-onepiece-allinone-overlay-tops"
                 />
               </div>
             ) : null}

@@ -34,8 +34,8 @@ export type OutfitLowerBodyPreviewSource = {
   legwearSubColor: string | null;
 };
 
-export type OutfitDressLowerBodyPreviewSource = {
-  representativeDressItemId: number;
+export type OutfitOnepieceAllinoneLowerBodyPreviewSource = {
+  representativeOnepieceAllinoneItemId: number;
   representativeLegwearItemId: number | null;
   lengthType: string;
   coverageType: string | null;
@@ -93,12 +93,14 @@ function findRepresentativeLegwear(items: OutfitLowerBodyPreviewItem[]) {
   );
 }
 
-function findRepresentativeDress(items: OutfitLowerBodyPreviewItem[]) {
-  const dressItems = items
-    .filter((outfitItem) => outfitItem.item.category === "dress")
+function findRepresentativeOnepieceAllinone(
+  items: OutfitLowerBodyPreviewItem[],
+) {
+  const onepieceAllinoneItems = items
+    .filter((outfitItem) => outfitItem.item.category === "onepiece_allinone")
     .sort((left, right) => left.sort_order - right.sort_order);
 
-  return dressItems[dressItems.length - 1] ?? null;
+  return onepieceAllinoneItems[onepieceAllinoneItems.length - 1] ?? null;
 }
 
 export function buildOutfitLowerBodyPreviewSource(
@@ -137,12 +139,13 @@ export function buildOutfitLowerBodyPreviewSource(
   };
 }
 
-export function buildOutfitDressLowerBodyPreviewSource(
+export function buildOutfitOnepieceAllinoneLowerBodyPreviewSource(
   items: OutfitLowerBodyPreviewItem[],
-): OutfitDressLowerBodyPreviewSource | null {
-  const representativeDress = findRepresentativeDress(items);
+): OutfitOnepieceAllinoneLowerBodyPreviewSource | null {
+  const representativeOnepieceAllinone =
+    findRepresentativeOnepieceAllinone(items);
 
-  if (representativeDress === null) {
+  if (representativeOnepieceAllinone === null) {
     return null;
   }
 
@@ -156,9 +159,13 @@ export function buildOutfitDressLowerBodyPreviewSource(
     : null;
 
   return {
-    representativeDressItemId: representativeDress.item.id,
+    representativeOnepieceAllinoneItemId:
+      representativeOnepieceAllinone.item.id,
     representativeLegwearItemId: representativeLegwear?.item.id ?? null,
-    lengthType: representativeDress.item.shape === "allinone" ? "full" : "midi",
+    lengthType:
+      representativeOnepieceAllinone.item.shape === "allinone"
+        ? "full"
+        : "midi",
     coverageType,
     legwearMainColor: representativeLegwear
       ? findMainColorHex(representativeLegwear.item.colors)

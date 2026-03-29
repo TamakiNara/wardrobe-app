@@ -21,13 +21,17 @@ const groups: CategoryGroupRecord[] = [
     categories: [{ id: "outer_jacket", groupId: "outer", name: "ジャケット" }],
   },
   {
-    id: "dress",
-    name: "ワンピース・オールインワン",
+    id: "onepiece_allinone",
+    name: "ワンピース / オールインワン",
     categories: [
-      { id: "dress_onepiece", groupId: "dress", name: "ワンピース" },
       {
-        id: "dress_allinone",
-        groupId: "dress",
+        id: "onepiece",
+        groupId: "onepiece_allinone",
+        name: "ワンピース",
+      },
+      {
+        id: "allinone",
+        groupId: "onepiece_allinone",
         name: "オールインワン / サロペット",
       },
     ],
@@ -57,7 +61,7 @@ describe("buildSupportedCategoryOptions", () => {
     expect(buildSupportedCategoryOptions(groups)).toEqual([
       { value: "tops", label: "トップス" },
       { value: "outer", label: "アウター" },
-      { value: "dress", label: "ワンピース・オールインワン" },
+      { value: "onepiece_allinone", label: "ワンピース / オールインワン" },
       { value: "inner", label: "ルームウェア・インナー" },
       { value: "legwear", label: "レッグウェア" },
     ]);
@@ -86,8 +90,8 @@ describe("findVisibleCategoryIdForItem", () => {
     expect(findVisibleCategoryIdForItem("tops", "shirt")).toBe("tops_shirt");
     expect(findVisibleCategoryIdForItem("tops", "blouse")).toBe("tops_shirt");
     expect(findVisibleCategoryIdForItem("outer", "trench")).toBe("outer_coat");
-    expect(findVisibleCategoryIdForItem("dress", "onepiece")).toBe(
-      "dress_onepiece",
+    expect(findVisibleCategoryIdForItem("onepiece_allinone", "onepiece")).toBe(
+      "onepiece",
     );
     expect(findVisibleCategoryIdForItem("inner", "roomwear")).toBe(
       "inner_roomwear",
@@ -129,8 +133,8 @@ describe("isItemVisibleByCategorySettings", () => {
 
     expect(
       isItemVisibleByCategorySettings(
-        { category: "dress", shape: "onepiece" },
-        ["dress_onepiece"],
+        { category: "onepiece_allinone", shape: "onepiece" },
+        ["onepiece"],
       ),
     ).toBe(true);
 

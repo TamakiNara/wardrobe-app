@@ -23,8 +23,8 @@ export type CategoryPresetValue =
 
 const MALE_HIDDEN_CATEGORY_IDS = new Set([
   "bottoms_skirt",
-  "dress_onepiece",
-  "dress_allinone",
+  "onepiece",
+  "allinone",
   "shoes_pumps",
 ]);
 

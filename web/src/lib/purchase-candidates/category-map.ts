@@ -14,8 +14,14 @@ const PURCHASE_CANDIDATE_ITEM_CATEGORY_MAP = {
   bottoms_skirt: { category: "bottoms", shape: "a-line-skirt" },
   bottoms_shorts: { category: "bottoms", shape: "wide" },
   bottoms_other: { category: "bottoms", shape: "straight" },
-  dress_onepiece: { category: "dress", shape: "onepiece" },
-  dress_allinone: { category: "dress", shape: "allinone" },
+  onepiece: {
+    category: "onepiece_allinone",
+    shape: "onepiece",
+  },
+  allinone: {
+    category: "onepiece_allinone",
+    shape: "allinone",
+  },
   inner_roomwear: { category: "inner", shape: "roomwear" },
   inner_underwear: { category: "inner", shape: "underwear" },
   inner_pajamas: { category: "inner", shape: "pajamas" },

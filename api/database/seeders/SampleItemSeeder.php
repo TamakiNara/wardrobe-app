@@ -372,7 +372,7 @@ class SampleItemSeeder extends Seeder
             [
                 'name' => 'ネイビーワンピース',
                 'brand_name' => 'NATURAL BEAUTY BASIC',
-                'category' => 'dress',
+                'category' => 'onepiece_allinone',
                 'shape' => 'onepiece',
                 'colors' => [
                     ['role' => 'main', 'mode' => 'preset', 'value' => 'navy', 'hex' => '#44516A', 'label' => 'ネイビー'],
@@ -385,7 +385,7 @@ class SampleItemSeeder extends Seeder
             [
                 'name' => 'ブラックオールインワン',
                 'brand_name' => 'GLOBAL WORK',
-                'category' => 'dress',
+                'category' => 'onepiece_allinone',
                 'shape' => 'allinone',
                 'colors' => [
                     ['role' => 'main', 'mode' => 'preset', 'value' => 'black', 'hex' => '#2B2B2B', 'label' => 'ブラック'],

@@ -534,7 +534,7 @@ outfit と item の関連テーブルです。
 - `tops`
 - `outer`
 - `bottoms`
-- `dress`
+- `onepiece_allinone`
 - `inner`
 - `legwear`
 - `shoes`

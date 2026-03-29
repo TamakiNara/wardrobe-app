@@ -98,9 +98,9 @@ class ListQuerySupport
                 'down' => 'outer_down',
                 'outer-cardigan' => 'outer_other',
             ],
-            'dress' => [
-                'onepiece' => 'dress_onepiece',
-                'allinone' => 'dress_allinone',
+            'onepiece_allinone' => [
+                'onepiece' => 'onepiece',
+                'allinone' => 'allinone',
             ],
             'inner' => [
                 'roomwear' => 'inner_roomwear',

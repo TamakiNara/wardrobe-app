@@ -38,12 +38,12 @@ export function getOutfitThumbnailFallbackColor() {
 export function buildOutfitThumbnailLayout(
   items: OutfitThumbnailItem[],
   options?: {
-    excludeDress?: boolean;
+    excludeOnepieceAllinone?: boolean;
   },
 ): OutfitThumbnailLayout {
   return buildColorThumbnailLayout(items, {
-    excludedCategories: options?.excludeDress
-      ? ["legwear", "dress"]
+    excludedCategories: options?.excludeOnepieceAllinone
+      ? ["legwear", "onepiece_allinone"]
       : ["legwear"],
   });
 }

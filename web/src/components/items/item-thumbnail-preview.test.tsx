@@ -101,7 +101,7 @@ describe("ItemThumbnailPreview", () => {
     await act(async () => {
       root.render(
         <ItemThumbnailPreview
-          category="dress"
+          category="onepiece_allinone"
           shape="onepiece"
           mainColorHex="#7C3AED"
           size="small"
