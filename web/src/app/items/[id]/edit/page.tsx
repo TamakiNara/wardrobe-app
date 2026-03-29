@@ -122,6 +122,7 @@ export default function EditItemPage({
   const [selectedSeasons, setSelectedSeasons] = useState<string[]>([]);
   const [selectedTpoIds, setSelectedTpoIds] = useState<number[]>([]);
   const [tpoOptions, setTpoOptions] = useState<UserTpoRecord[]>([]);
+  const [tpoLoadError, setTpoLoadError] = useState<string | null>(null);
   const [skinTonePreset, setSkinTonePreset] = useState<SkinTonePreset>(
     DEFAULT_SKIN_TONE_PRESET,
   );
@@ -253,19 +254,12 @@ export default function EditItemPage({
       setItemId(Number(id));
 
       try {
-        const [response, tpoResponse, preferencesResponse] = await Promise.all([
-          fetch(`/api/items/${id}`, {
-            headers: { Accept: "application/json" },
-          }),
-          fetchUserTpos(true).catch(() => ({ tpos: [] as UserTpoRecord[] })),
-          fetchUserPreferences().catch(() => ({
-            preferences: {
-              currentSeason: null,
-              defaultWearLogStatus: null,
-              calendarWeekStart: null,
-              skinTonePreset: DEFAULT_SKIN_TONE_PRESET,
-            },
-          })),
+        const response = await fetch(`/api/items/${id}`, {
+          headers: { Accept: "application/json" },
+        });
+        const [tpoResult, preferencesResult] = await Promise.allSettled([
+          fetchUserTpos(true),
+          fetchUserPreferences(),
         ]);
 
         if (response.status === 401) {
@@ -307,8 +301,10 @@ export default function EditItemPage({
             isPreset: false,
           }),
         );
+        const activeTpoOptions =
+          tpoResult.status === "fulfilled" ? tpoResult.value.tpos : [];
         setTpoOptions(
-          [...tpoResponse.tpos, ...selectedInactiveTpos].reduce<
+          [...activeTpoOptions, ...selectedInactiveTpos].reduce<
             UserTpoRecord[]
           >((carry, tpo) => {
             if (carry.some((current) => current.id === tpo.id)) {
@@ -318,7 +314,16 @@ export default function EditItemPage({
             return [...carry, tpo];
           }, []),
         );
-        setSkinTonePreset(preferencesResponse.preferences.skinTonePreset);
+        setTpoLoadError(
+          tpoResult.status === "rejected"
+            ? "TPO の取得に失敗しました。再読み込みしても改善しない場合は設定を確認してください。"
+            : null,
+        );
+        setSkinTonePreset(
+          preferencesResult.status === "fulfilled"
+            ? preferencesResult.value.preferences.skinTonePreset
+            : DEFAULT_SKIN_TONE_PRESET,
+        );
 
         const main = item.colors.find((color) => color.role === "main");
         const sub = item.colors.find((color) => color.role === "sub");
@@ -1447,7 +1452,9 @@ export default function EditItemPage({
                       </label>
                     );
                   })}
-                  {tpoOptions.length === 0 ? (
+                  {tpoLoadError ? (
+                    <p className="text-sm text-red-600">{tpoLoadError}</p>
+                  ) : tpoOptions.length === 0 ? (
                     <p className="text-sm text-gray-500">
                       有効な TPO はまだありません。設定から追加できます。
                     </p>

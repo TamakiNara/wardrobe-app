@@ -425,4 +425,20 @@ describe("NewItemPage", () => {
       "レッグウェアの種類を選択してください。",
     );
   });
+
+  it("TPO の取得に失敗した場合は空状態ではなく取得失敗を表示する", async () => {
+    fetchUserTposMock.mockRejectedValueOnce(new Error("failed"));
+
+    const { default: NewItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(NewItemPage));
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain("TPO の取得に失敗しました。");
+    expect(container.textContent).not.toContain(
+      "有効な TPO はまだありません。",
+    );
+  });
 });

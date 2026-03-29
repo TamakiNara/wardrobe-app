@@ -120,6 +120,7 @@ export default function NewItemPage() {
   const [selectedSeasons, setSelectedSeasons] = useState<string[]>([]);
   const [selectedTpoIds, setSelectedTpoIds] = useState<number[]>([]);
   const [tpoOptions, setTpoOptions] = useState<UserTpoRecord[]>([]);
+  const [tpoLoadError, setTpoLoadError] = useState<string | null>(null);
   const [skinTonePreset, setSkinTonePreset] = useState<SkinTonePreset>(
     DEFAULT_SKIN_TONE_PRESET,
   );
@@ -226,32 +227,39 @@ export default function NewItemPage() {
   useEffect(() => {
     let active = true;
 
-    Promise.all([
+    Promise.allSettled([
       fetchCategoryGroups(),
       fetchCategoryVisibilitySettings(),
       fetchUserTpos(true),
-      fetchUserPreferences().catch(() => ({
-        preferences: {
-          currentSeason: null,
-          defaultWearLogStatus: null,
-          calendarWeekStart: null,
-          skinTonePreset: DEFAULT_SKIN_TONE_PRESET,
-        },
-      })),
-    ])
-      .then(([groups, settings, tpoResponse, preferencesResponse]) => {
-        if (!active) return;
+      fetchUserPreferences(),
+    ]).then(([groupsResult, settingsResult, tpoResult, preferencesResult]) => {
+      if (!active) return;
+
+      if (
+        groupsResult.status === "fulfilled" &&
+        settingsResult.status === "fulfilled"
+      ) {
         const nextOptions = buildSupportedCategoryOptions(
-          groups,
-          settings.visibleCategoryIds,
+          groupsResult.value,
+          settingsResult.value.visibleCategoryIds,
         );
         setCategoryOptions(nextOptions);
-        setTpoOptions(tpoResponse.tpos);
-        setSkinTonePreset(preferencesResponse.preferences.skinTonePreset);
-      })
-      .catch(() => {
-        // フロントでは取得失敗時に固定 master data へフォールバックする
-      });
+      }
+
+      if (tpoResult.status === "fulfilled") {
+        setTpoOptions(tpoResult.value.tpos);
+        setTpoLoadError(null);
+      } else {
+        setTpoOptions([]);
+        setTpoLoadError(
+          "TPO の取得に失敗しました。再読み込みしても改善しない場合は設定を確認してください。",
+        );
+      }
+
+      if (preferencesResult.status === "fulfilled") {
+        setSkinTonePreset(preferencesResult.value.preferences.skinTonePreset);
+      }
+    });
 
     return () => {
       active = false;
@@ -1305,7 +1313,9 @@ export default function NewItemPage() {
                       </label>
                     );
                   })}
-                  {tpoOptions.length === 0 ? (
+                  {tpoLoadError ? (
+                    <p className="text-sm text-red-600">{tpoLoadError}</p>
+                  ) : tpoOptions.length === 0 ? (
                     <p className="text-sm text-gray-500">
                       有効な TPO はまだありません。設定から追加できます。
                     </p>

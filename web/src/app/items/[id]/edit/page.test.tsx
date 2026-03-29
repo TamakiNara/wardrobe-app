@@ -402,4 +402,27 @@ describe("EditItemPage", () => {
     expect(container.querySelector("#legwear-coverage-type")).toBeNull();
     expect(container.textContent).not.toContain("レッグウェア仕様");
   });
+
+  it("編集画面で TPO の取得に失敗した場合は取得失敗を表示する", async () => {
+    fetchUserTposMock.mockRejectedValueOnce(new Error("failed"));
+
+    const { default: EditItemPage } = await import("./page");
+
+    act(() => {
+      root.render(
+        React.createElement(EditItemPage, {
+          params: Promise.resolve({ id: "2" }),
+        }),
+      );
+    });
+
+    await act(async () => {
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain("TPO の取得に失敗しました。");
+    expect(container.textContent).not.toContain(
+      "有効な TPO はまだありません。",
+    );
+  });
 });
