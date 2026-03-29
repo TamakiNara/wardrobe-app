@@ -64,7 +64,13 @@ describe("ItemPage", () => {
             size_label: "M",
             size_note: "厚手ニット込み",
             size_details: {
-              note: "裄丈 78cm",
+              custom_fields: [
+                {
+                  label: "裄丈",
+                  value: 78,
+                  sort_order: 1,
+                },
+              ],
             },
             is_rain_ok: true,
             category: "legwear",
@@ -119,7 +125,8 @@ describe("ItemPage", () => {
     expect(markup).toContain("19,800円");
     expect(markup).toContain("レディース");
     expect(markup).toContain("厚手ニット込み");
-    expect(markup).toContain("裄丈 78cm");
+    expect(markup).toContain("裄丈");
+    expect(markup).toContain("78cm");
     expect(markup).toContain("購入後メモ");
     expect(markup).toContain("対応");
     expect(markup).toContain("クリーニング中");

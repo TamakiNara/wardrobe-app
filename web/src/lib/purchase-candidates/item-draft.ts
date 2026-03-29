@@ -2,6 +2,7 @@ import type {
   PurchaseCandidateImageRecord,
   PurchaseCandidateItemDraftResponse,
 } from "@/types/purchase-candidates";
+import type { ItemSizeDetails } from "@/types/items";
 
 const ITEM_DRAFT_STORAGE_KEY = "purchase-candidate-item-draft";
 
@@ -19,7 +20,7 @@ export type PurchaseCandidateItemDraft = {
   sizeLabel: string | null;
   sizeNote: string | null;
   purchasedAt: string | null;
-  sizeDetails: string | null;
+  sizeDetails: ItemSizeDetails | null;
   isRainOk: boolean;
   colors: PurchaseCandidateItemDraftResponse["item_draft"]["colors"];
   seasons: string[];

@@ -178,7 +178,16 @@ describe("EditItemPage", () => {
             size_label: "M",
             size_note: "厚手ニット込み",
             size_details: {
-              note: "裄丈 78cm",
+              structured: {
+                shoulder_width: 42,
+              },
+              custom_fields: [
+                {
+                  label: "裄丈",
+                  value: 78,
+                  sort_order: 1,
+                },
+              ],
             },
             is_rain_ok: true,
             category: "tops",
@@ -267,6 +276,20 @@ describe("EditItemPage", () => {
     expect(
       (container.querySelector("#price") as HTMLInputElement | null)?.value,
     ).toBe("19800");
+    expect(
+      (
+        container.querySelector(
+          "#structured-size-shoulder_width",
+        ) as HTMLInputElement | null
+      )?.value,
+    ).toBe("42");
+    expect(
+      (
+        container.querySelector(
+          'input[placeholder="項目名"]',
+        ) as HTMLInputElement | null
+      )?.value,
+    ).toBe("裄丈");
     expect(
       (container.querySelector("#memo") as HTMLTextAreaElement | null)?.value,
     ).toBe("既存メモ");

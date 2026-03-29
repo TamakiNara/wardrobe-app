@@ -11,6 +11,11 @@ import {
   ITEM_SIZE_GENDER_LABELS,
 } from "@/lib/items/metadata";
 import {
+  formatSizeDetailValue,
+  getStructuredSizeFieldDefinitions,
+  normalizeItemSizeDetails,
+} from "@/lib/items/size-details";
+import {
   findBottomsLengthLabel,
   findLegwearCoverageLabel,
 } from "@/lib/master-data/item-skin-exposure";
@@ -83,6 +88,15 @@ export default async function ItemPage({
   const categoryLabel = findItemCategoryLabel(item.category);
   const shapeLabel = findItemShapeLabel(item.category, item.shape);
   const itemImages = item.images ?? [];
+  const normalizedSizeDetails = normalizeItemSizeDetails(item.size_details);
+  const structuredSizeFieldDefinitions = getStructuredSizeFieldDefinitions(
+    item.category,
+    item.shape,
+  );
+  const visibleStructuredSizeFields = structuredSizeFieldDefinitions.filter(
+    (field) => normalizedSizeDetails?.structured?.[field.name] !== undefined,
+  );
+  const visibleCustomSizeFields = normalizedSizeDetails?.custom_fields ?? [];
 
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">
@@ -319,7 +333,9 @@ export default async function ItemPage({
               </dd>
             </div>
             <div>
-              <dt className="text-sm font-medium text-gray-700">サイズ補足</dt>
+              <dt className="text-sm font-medium text-gray-700">
+                サイズ感メモ
+              </dt>
               <dd className="mt-1 text-sm text-gray-600">
                 {item.size_note ?? "未設定"}
               </dd>
@@ -331,10 +347,51 @@ export default async function ItemPage({
               </dd>
             </div>
             <div className="md:col-span-2">
-              <dt className="text-sm font-medium text-gray-700">実寸メモ</dt>
-              <dd className="mt-1 text-sm text-gray-600">
-                {item.size_details?.note ?? "未設定"}
-              </dd>
+              <dt className="text-sm font-medium text-gray-700">実寸</dt>
+              {visibleStructuredSizeFields.length > 0 ||
+              visibleCustomSizeFields.length > 0 ? (
+                <dd className="mt-2 space-y-3 text-sm text-gray-600">
+                  {visibleStructuredSizeFields.length > 0 ? (
+                    <div className="grid gap-2 md:grid-cols-2">
+                      {visibleStructuredSizeFields.map((field) => (
+                        <div
+                          key={field.name}
+                          className="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 px-3 py-2"
+                        >
+                          <span className="text-gray-700">{field.label}</span>
+                          <span>
+                            {formatSizeDetailValue(
+                              normalizedSizeDetails?.structured?.[field.name] ??
+                                0,
+                            )}
+                            cm
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+                  {visibleCustomSizeFields.length > 0 ? (
+                    <div className="space-y-2">
+                      {visibleCustomSizeFields
+                        .slice()
+                        .sort(
+                          (left, right) => left.sort_order - right.sort_order,
+                        )
+                        .map((field) => (
+                          <div
+                            key={`${field.label}-${field.sort_order}`}
+                            className="flex items-center justify-between rounded-lg border border-gray-200 bg-white px-3 py-2"
+                          >
+                            <span className="text-gray-700">{field.label}</span>
+                            <span>{formatSizeDetailValue(field.value)}cm</span>
+                          </div>
+                        ))}
+                    </div>
+                  ) : null}
+                </dd>
+              ) : (
+                <dd className="mt-1 text-sm text-gray-600">未設定</dd>
+              )}
             </div>
             <div className="md:col-span-2">
               <dt className="text-sm font-medium text-gray-700">メモ</dt>

@@ -470,8 +470,8 @@ UI/UX メモ:
 - `weather_tags`：天気対応の拡張タグ。必要になるまで後回し
 - `size_gender`：メンズ / ウィメンズ
 - `size_label`：S / M / L / FREE など
-- `size_note`：購入候補由来メモや補足サイズ
-- `size_details`：実寸の詳細
+- `size_note`：サイズ感・着用感の補足メモ
+- `size_details`：`structured` と `custom_fields` からなる構造化実寸
 - `price`：購入金額
 - `purchase_url`：商品ページなどの URL
 - `purchased_at`：購入日

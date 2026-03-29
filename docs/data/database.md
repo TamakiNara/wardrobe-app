@@ -57,7 +57,7 @@ wear logs も本資料の対象とし、その保存方針を定義します。
 | wanted_reason | text nullable | 欲しい理由 |
 | size_gender | string nullable | `women` / `men` / `unisex` |
 | size_label | string nullable | S / M / L / FREE など |
-| size_note | string nullable | サイズ補足 |
+| size_note | string nullable | サイズ感・着用感の補足メモ |
 | is_rain_ok | boolean default false | 雨対応フラグ |
 | converted_item_id | bigint nullable | item 化された先の ID |
 | converted_at | timestamp nullable | item 化日時 |
@@ -382,14 +382,26 @@ wear logs も本資料の対象とし、その保存方針を定義します。
 | is_rain_ok | boolean default false | 雨対応フラグ |
 | size_gender | string nullable | メンズ / ウィメンズ |
 | size_label | string nullable | S / M / L / FREE など |
-| size_note | string nullable | 購入候補由来メモや補足サイズ |
-| size_details | json nullable | 実寸詳細 |
+| size_note | string nullable | サイズ感・着用感の補足メモ |
+| size_details | json nullable | 実寸の構造化情報 |
 
 補足:
 
 - `brand_name / price / purchase_url / purchased_at` は purchase_candidates 由来の初期値を item 側で確認・補正して保存できるようにした
 - `brand_name` は item の正本であり、候補保存時も `user_brands` への参照は持たない
-- `size_details` は当面 `note` を持つ JSON オブジェクトで保持し、実寸の詳細化は後続で拡張する
+- `size_note` はサイズ感・着用感の補足メモとして使う
+- `size_details` は `structured` と `custom_fields` を持つ JSON で保存する
+- `structured` は category / shape ごとの固定実寸項目を持ち、単位は cm 固定、小数可、未入力キーは保存しない
+- `custom_fields` は `{ label, value, sort_order }` を持つ自由実寸項目配列で、`value` は cm の数値、並び順の正本は `sort_order` とする
+- 旧 `size_details.note` は current では廃止する
+- current の固定実寸セット:
+  - ジャケット: `shoulder_width`(肩幅) / `body_width`(身幅) / `body_length`(着丈) / `sleeve_length`(袖丈) / `sleeve_width`(袖幅) / `cuff_width`(袖口幅)
+  - シャツ・Yシャツ: `shoulder_width`(肩幅) / `body_width`(身幅) / `body_length`(着丈) / `sleeve_length`(袖丈) / `neck_circumference`(襟周り)
+  - Tシャツ: `shoulder_width`(肩幅) / `body_width`(身幅) / `body_length`(着丈) / `sleeve_length`(袖丈)
+  - ブラウス: `shoulder_width`(肩幅) / `body_width`(身幅) / `body_length`(着丈) / `sleeve_length`(袖丈)
+  - パンツ: `waist`(ウエスト) / `hip`(ヒップ) / `rise`(股上) / `inseam`(股下) / `hem_width`(裾幅) / `thigh_width`(わたり幅)
+  - スカート: `waist`(ウエスト) / `hip`(ヒップ) / `total_length`(総丈)
+  - ワンピース: `shoulder_width`(肩幅) / `body_width`(身幅) / `sleeve_length`(袖丈) / `total_length`(総丈)
 
 ### item_images
 

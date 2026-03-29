@@ -271,7 +271,16 @@ class ItemsEndpointsTest extends TestCase
             'size_label' => 'M',
             'size_note' => '厚手ニット込み',
             'size_details' => [
-                'note' => '裄丈 78cm',
+                'structured' => [
+                    'shoulder_width' => 42.0,
+                ],
+                'custom_fields' => [
+                    [
+                        'label' => '裄丈',
+                        'value' => 78.0,
+                        'sort_order' => 1,
+                    ],
+                ],
             ],
             'is_rain_ok' => true,
             'category' => 'outer',
@@ -307,7 +316,9 @@ class ItemsEndpointsTest extends TestCase
             ->assertJsonPath('item.size_gender', 'women')
             ->assertJsonPath('item.size_label', 'M')
             ->assertJsonPath('item.size_note', '厚手ニット込み')
-            ->assertJsonPath('item.size_details.note', '裄丈 78cm')
+            ->assertJsonPath('item.size_details.structured.shoulder_width', 42)
+            ->assertJsonPath('item.size_details.custom_fields.0.label', '裄丈')
+            ->assertJsonPath('item.size_details.custom_fields.0.value', 78)
             ->assertJsonPath('item.is_rain_ok', true)
             ->assertJsonPath('item.images.0.is_primary', true);
 
@@ -368,6 +379,34 @@ class ItemsEndpointsTest extends TestCase
 
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['size_gender']);
+    }
+
+    public function test_post_items_rejects_legacy_size_details_note(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/items', [
+            'name' => 'サイズ確認アイテム',
+            'category' => 'tops',
+            'shape' => 'tshirt',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'white',
+                'hex' => '#eeeeee',
+                'label' => 'ホワイト',
+            ]],
+            'size_details' => [
+                'note' => '裄丈 78cm',
+            ],
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['size_details']);
     }
 
     public function test_post_items_can_save_brand_name_and_add_brand_candidate(): void
@@ -918,7 +957,18 @@ class ItemsEndpointsTest extends TestCase
             'size_gender' => 'unisex',
             'size_label' => 'FREE',
             'size_note' => '袖丈長め',
-            'size_details' => ['note' => '着丈 120cm'],
+            'size_details' => [
+                'structured' => [
+                    'body_length' => 120.0,
+                ],
+                'custom_fields' => [
+                    [
+                        'label' => '裄丈',
+                        'value' => 84.0,
+                        'sort_order' => 1,
+                    ],
+                ],
+            ],
             'is_rain_ok' => true,
             'category' => 'outer',
             'shape' => 'trench',
@@ -945,7 +995,8 @@ class ItemsEndpointsTest extends TestCase
             ->assertJsonPath('item.price', 22000)
             ->assertJsonPath('item.purchase_url', 'https://example.test/detail')
             ->assertJsonPath('item.memo', 'detail memo')
-            ->assertJsonPath('item.size_details.note', '着丈 120cm')
+            ->assertJsonPath('item.size_details.structured.body_length', 120)
+            ->assertJsonPath('item.size_details.custom_fields.0.label', '裄丈')
             ->assertJsonPath('item.is_rain_ok', true)
             ->assertJsonPath('item.images.0.path', 'items/1/coat.png');
     }
@@ -985,7 +1036,16 @@ class ItemsEndpointsTest extends TestCase
             'size_label' => 'L',
             'size_note' => '袖丈確認済み',
             'size_details' => [
-                'note' => '肩幅 42cm',
+                'structured' => [
+                    'shoulder_width' => 42.0,
+                ],
+                'custom_fields' => [
+                    [
+                        'label' => '裾幅',
+                        'value' => 52.0,
+                        'sort_order' => 1,
+                    ],
+                ],
             ],
             'is_rain_ok' => true,
             'category' => 'outer',

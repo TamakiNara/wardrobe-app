@@ -25,6 +25,37 @@ export type LegwearSpec = {
   coverage_type?: string | null;
 };
 
+export type StructuredSizeFieldName =
+  | "shoulder_width"
+  | "body_width"
+  | "body_length"
+  | "sleeve_length"
+  | "sleeve_width"
+  | "cuff_width"
+  | "neck_circumference"
+  | "waist"
+  | "hip"
+  | "rise"
+  | "inseam"
+  | "hem_width"
+  | "thigh_width"
+  | "total_length";
+
+export type ItemStructuredSizeDetails = Partial<
+  Record<StructuredSizeFieldName, number>
+>;
+
+export type ItemCustomSizeField = {
+  label: string;
+  value: number;
+  sort_order: number;
+};
+
+export type ItemSizeDetails = {
+  structured?: ItemStructuredSizeDetails;
+  custom_fields?: ItemCustomSizeField[];
+};
+
 export type ItemSpec = {
   tops?: TopsSpec | null;
   bottoms?: BottomsSpec | null;
@@ -57,9 +88,7 @@ export type CreateItemPayload = {
   size_gender: "women" | "men" | "unisex" | null;
   size_label: string | null;
   size_note: string | null;
-  size_details: {
-    note: string | null;
-  } | null;
+  size_details: ItemSizeDetails | null;
   is_rain_ok: boolean;
   category: string;
   shape: string;
@@ -86,9 +115,7 @@ export type ItemRecord = {
   size_gender?: "women" | "men" | "unisex" | null;
   size_label?: string | null;
   size_note?: string | null;
-  size_details?: {
-    note?: string | null;
-  } | null;
+  size_details?: ItemSizeDetails | null;
   is_rain_ok?: boolean;
   category: string;
   shape: string;

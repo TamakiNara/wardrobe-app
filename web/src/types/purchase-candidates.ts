@@ -1,3 +1,5 @@
+import type { ItemSizeDetails } from "@/types/items";
+
 export type PurchaseCandidateStatus =
   | "considering"
   | "on_hold"
@@ -124,7 +126,7 @@ export type PurchaseCandidateItemDraftPayload = {
   size_label: string | null;
   size_note: string | null;
   purchased_at: string | null;
-  size_details: string | null;
+  size_details: ItemSizeDetails | null;
   spec: Record<string, unknown> | null;
   is_rain_ok: boolean;
   colors: PurchaseCandidateColor[];

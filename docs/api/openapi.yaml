@@ -2091,6 +2091,102 @@ components:
           $ref: '#/components/schemas/LegwearSpec'
       additionalProperties: true
 
+    ItemSizeStructuredDetails:
+      type: object
+      description: |
+        category / shape に応じた固定実寸項目。単位は cm 固定で、保存値には単位を含めない。
+        小数を許容し、未入力キーは保存しない。
+      properties:
+        shoulder_width:
+          type: number
+          format: float
+          description: 肩幅
+        body_width:
+          type: number
+          format: float
+          description: 身幅
+        body_length:
+          type: number
+          format: float
+          description: 着丈
+        sleeve_length:
+          type: number
+          format: float
+          description: 袖丈
+        sleeve_width:
+          type: number
+          format: float
+          description: 袖幅
+        cuff_width:
+          type: number
+          format: float
+          description: 袖口幅
+        neck_circumference:
+          type: number
+          format: float
+          description: 襟周り
+        waist:
+          type: number
+          format: float
+          description: ウエスト
+        hip:
+          type: number
+          format: float
+          description: ヒップ
+        rise:
+          type: number
+          format: float
+          description: 股上
+        inseam:
+          type: number
+          format: float
+          description: 股下
+        hem_width:
+          type: number
+          format: float
+          description: 裾幅
+        thigh_width:
+          type: number
+          format: float
+          description: わたり幅
+        total_length:
+          type: number
+          format: float
+          description: 総丈
+
+    ItemSizeCustomField:
+      type: object
+      required:
+        - label
+        - value
+        - sort_order
+      properties:
+        label:
+          type: string
+          description: 自由入力の実寸項目名
+        value:
+          type: number
+          format: float
+          description: cm 単位の数値
+        sort_order:
+          type: integer
+          minimum: 1
+          description: 表示順の正本
+
+    ItemSizeDetails:
+      type: object
+      description: |
+        構造化された実寸情報。`size_note` はサイズ感・着用感の補足メモとして別に持ち、
+        `size_details` には実寸だけを保存する。旧 `size_details.note` は current では廃止。
+      properties:
+        structured:
+          $ref: '#/components/schemas/ItemSizeStructuredDetails'
+        custom_fields:
+          type: array
+          maxItems: 10
+          items:
+            $ref: '#/components/schemas/ItemSizeCustomField'
+
     ItemRecord:
       type: object
       required:
@@ -2152,13 +2248,11 @@ components:
         size_note:
           type: string
           nullable: true
+          description: サイズ感・着用感の補足メモ。
         size_details:
-          type: object
+          allOf:
+            - $ref: '#/components/schemas/ItemSizeDetails'
           nullable: true
-          properties:
-            note:
-              type: string
-              nullable: true
         is_rain_ok:
           type: boolean
         category:
@@ -2251,13 +2345,14 @@ components:
         size_note:
           type: string
           nullable: true
+          description: サイズ感・着用感の補足メモ。
         size_details:
-          type: object
+          allOf:
+            - $ref: '#/components/schemas/ItemSizeDetails'
           nullable: true
-          properties:
-            note:
-              type: string
-              nullable: true
+          description: |
+            構造化された実寸情報。`structured` は category / shape ごとの固定実寸、
+            `custom_fields` は自由項目。値は cm 固定の数値で、未入力キーは保存しない。
         is_rain_ok:
           type: boolean
         category:
@@ -3573,15 +3668,18 @@ components:
           type: string
           nullable: true
           example: 厚手インナー込みで試したい
+          description: サイズ感・着用感の補足メモ。
         purchased_at:
           type: string
           format: date
           nullable: true
           example: null
         size_details:
-          type: object
+          allOf:
+            - $ref: '#/components/schemas/ItemSizeDetails'
           nullable: true
-          additionalProperties: true
+          description: |
+            item 作成初期値として渡す実寸情報。candidate 側で十分な情報がない場合は `null` を許容する。
         spec:
           allOf:
             - $ref: '#/components/schemas/ItemSpec'

@@ -232,7 +232,18 @@ describe("NewItemPage", () => {
           size_label: "M",
           size_note: "厚手ニット込み",
           purchased_at: null,
-          size_details: "裄丈 78cm",
+          size_details: {
+            structured: {
+              shoulder_width: 42,
+            },
+            custom_fields: [
+              {
+                label: "裄丈",
+                value: 78,
+                sort_order: 1,
+              },
+            ],
+          },
           spec: null,
           is_rain_ok: true,
           colors: [],
@@ -271,8 +282,15 @@ describe("NewItemPage", () => {
       container.querySelector<HTMLInputElement>("#size-label");
     const sizeNoteInput =
       container.querySelector<HTMLInputElement>("#size-note");
-    const sizeDetailsTextarea =
-      container.querySelector<HTMLTextAreaElement>("#size-details-note");
+    const shoulderWidthInput = container.querySelector<HTMLInputElement>(
+      "#structured-size-shoulder_width",
+    );
+    const customLabelInput = container.querySelector<HTMLInputElement>(
+      'input[placeholder="項目名"]',
+    );
+    const customValueInput = container.querySelector<HTMLInputElement>(
+      'input[placeholder="値"]',
+    );
     const rainCheckbox = Array.from(container.querySelectorAll("label"))
       .find((element) => element.textContent?.includes("雨対応"))
       ?.querySelector<HTMLInputElement>('input[type="checkbox"]');
@@ -288,7 +306,9 @@ describe("NewItemPage", () => {
     expect(sizeGenderSelect?.value).toBe("women");
     expect(sizeLabelInput?.value).toBe("M");
     expect(sizeNoteInput?.value).toBe("厚手ニット込み");
-    expect(sizeDetailsTextarea?.value).toBe("裄丈 78cm");
+    expect(shoulderWidthInput?.value).toBe("42");
+    expect(customLabelInput?.value).toBe("裄丈");
+    expect(customValueInput?.value).toBe("78");
     expect(rainCheckbox?.checked).toBe(true);
     expect(categorySelect?.value).toBe("tops");
     expect(careStatusSelect?.value).toBe("");

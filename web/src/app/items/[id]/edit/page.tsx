@@ -77,7 +77,16 @@ import {
   ITEM_SIZE_GENDER_LABELS,
   normalizeItemImages,
 } from "@/lib/items/metadata";
+import {
+  buildItemSizeDetailsPayload,
+  buildSizeDetailDuplicateWarnings,
+  formatSizeDetailValue,
+  getStructuredSizeFieldDefinitions,
+  normalizeItemSizeDetails,
+  type EditableCustomSizeField,
+} from "@/lib/items/size-details";
 import type { SkinTonePreset, UserTpoRecord } from "@/types/settings";
+import type { StructuredSizeFieldName } from "@/types/items";
 
 export default function EditItemPage({
   params,
@@ -102,7 +111,12 @@ export default function EditItemPage({
   );
   const [sizeLabel, setSizeLabel] = useState("");
   const [sizeNote, setSizeNote] = useState("");
-  const [sizeDetailsNote, setSizeDetailsNote] = useState("");
+  const [structuredSizeValues, setStructuredSizeValues] = useState<
+    Partial<Record<StructuredSizeFieldName, string>>
+  >({});
+  const [customSizeFields, setCustomSizeFields] = useState<
+    EditableCustomSizeField[]
+  >([]);
   const [isRainOk, setIsRainOk] = useState(false);
   const [itemImages, setItemImages] = useState<ItemImageRecord[]>([]);
   const [pendingImages, setPendingImages] = useState<File[]>([]);
@@ -212,6 +226,18 @@ export default function EditItemPage({
     if (!topsRule) return [];
     return TOPS_FITS.filter((item) => topsRule.fits.includes(item.value));
   }, [topsRule]);
+  const structuredSizeFieldDefinitions = useMemo(
+    () => getStructuredSizeFieldDefinitions(category, shape),
+    [category, shape],
+  );
+  const sizeDetailDuplicateWarnings = useMemo(
+    () =>
+      buildSizeDetailDuplicateWarnings(
+        structuredSizeFieldDefinitions,
+        customSizeFields.map((field) => field.label),
+      ),
+    [customSizeFields, structuredSizeFieldDefinitions],
+  );
 
   useEffect(() => {
     let active = true;
@@ -285,7 +311,26 @@ export default function EditItemPage({
         setSizeGender(item.size_gender ?? "");
         setSizeLabel(item.size_label ?? "");
         setSizeNote(item.size_note ?? "");
-        setSizeDetailsNote(item.size_details?.note ?? "");
+        const normalizedSizeDetails = normalizeItemSizeDetails(
+          item.size_details,
+        );
+        setStructuredSizeValues(
+          Object.fromEntries(
+            Object.entries(normalizedSizeDetails?.structured ?? {}).map(
+              ([fieldName, fieldValue]) => [
+                fieldName,
+                formatSizeDetailValue(fieldValue),
+              ],
+            ),
+          ) as Partial<Record<StructuredSizeFieldName, string>>,
+        );
+        setCustomSizeFields(
+          (normalizedSizeDetails?.custom_fields ?? []).map((field, index) => ({
+            id: `edit-size-field-${index}`,
+            label: field.label,
+            value: formatSizeDetailValue(field.value),
+          })),
+        );
         setIsRainOk(item.is_rain_ok ?? false);
         setItemImages(normalizeItemImages(item.images ?? []));
         setCategory(item.category as ItemCategory);
@@ -507,6 +552,46 @@ export default function EditItemPage({
     );
   }
 
+  function createCustomSizeField(): EditableCustomSizeField {
+    return {
+      id: `size-field-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+      label: "",
+      value: "",
+    };
+  }
+
+  function updateStructuredSizeValue(
+    fieldName: StructuredSizeFieldName,
+    value: string,
+  ) {
+    setStructuredSizeValues((current) => ({
+      ...current,
+      [fieldName]: value,
+    }));
+  }
+
+  function updateCustomSizeField(
+    fieldId: string,
+    key: "label" | "value",
+    value: string,
+  ) {
+    setCustomSizeFields((current) =>
+      current.map((field) =>
+        field.id === fieldId ? { ...field, [key]: value } : field,
+      ),
+    );
+  }
+
+  function addCustomSizeField() {
+    setCustomSizeFields((current) => [...current, createCustomSizeField()]);
+  }
+
+  function removeCustomSizeField(fieldId: string) {
+    setCustomSizeFields((current) =>
+      current.filter((field) => field.id !== fieldId),
+    );
+  }
+
   function buildPayload(): CreateItemPayload {
     const colors: ItemFormColor[] = [];
 
@@ -548,9 +633,11 @@ export default function EditItemPage({
       size_gender: sizeGender || null,
       size_label: sizeLabel.trim() || null,
       size_note: sizeNote.trim() || null,
-      size_details: sizeDetailsNote.trim()
-        ? { note: sizeDetailsNote.trim() }
-        : null,
+      size_details: buildItemSizeDetailsPayload(
+        structuredSizeFieldDefinitions,
+        structuredSizeValues,
+        customSizeFields,
+      ),
       is_rain_ok: isRainOk,
       category,
       shape,
@@ -1565,31 +1652,132 @@ export default function EditItemPage({
                   htmlFor="size-note"
                   className="mb-1 block text-sm font-medium text-gray-700"
                 >
-                  サイズ補足
+                  サイズ感メモ
                 </label>
                 <input
                   id="size-note"
                   type="text"
                   value={sizeNote}
                   onChange={(e) => setSizeNote(e.target.value)}
+                  placeholder="例: 普段Mだが小さめ"
                   className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                 />
               </div>
 
-              <div>
-                <label
-                  htmlFor="size-details-note"
-                  className="mb-1 block text-sm font-medium text-gray-700"
-                >
-                  実寸メモ
-                </label>
-                <textarea
-                  id="size-details-note"
-                  value={sizeDetailsNote}
-                  onChange={(e) => setSizeDetailsNote(e.target.value)}
-                  rows={3}
-                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                />
+              <div className="space-y-4 rounded-xl border border-gray-200 bg-gray-50 p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">実寸</p>
+                    <p className="mt-1 text-xs text-gray-500">
+                      実寸は cm 単位で入力します。未入力の項目は保存しません。
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={addCustomSizeField}
+                    className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
+                  >
+                    自由項目を追加
+                  </button>
+                </div>
+
+                {structuredSizeFieldDefinitions.length > 0 ? (
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {structuredSizeFieldDefinitions.map((field) => (
+                      <div key={field.name}>
+                        <label
+                          htmlFor={`structured-size-${field.name}`}
+                          className="mb-1 block text-sm font-medium text-gray-700"
+                        >
+                          {field.label}
+                        </label>
+                        <div className="flex items-center rounded-lg border border-gray-300 bg-white pr-4 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100">
+                          <input
+                            id={`structured-size-${field.name}`}
+                            type="number"
+                            inputMode="decimal"
+                            step="0.1"
+                            min="0"
+                            value={structuredSizeValues[field.name] ?? ""}
+                            onChange={(e) =>
+                              updateStructuredSizeValue(
+                                field.name,
+                                e.target.value,
+                              )
+                            }
+                            className="w-full rounded-lg bg-transparent px-4 py-3 text-gray-900 outline-none"
+                          />
+                          <span className="text-sm text-gray-500">cm</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500">
+                    現在のカテゴリと形に対応する固定実寸はありません。必要なら自由項目を追加してください。
+                  </p>
+                )}
+
+                {customSizeFields.length > 0 ? (
+                  <div className="space-y-3">
+                    <p className="text-sm font-medium text-gray-700">
+                      自由項目
+                    </p>
+                    {customSizeFields.map((field) => (
+                      <div
+                        key={field.id}
+                        className="grid gap-3 rounded-lg border border-gray-200 bg-white p-3 md:grid-cols-[minmax(0,1fr)_9rem_auto]"
+                      >
+                        <input
+                          type="text"
+                          placeholder="項目名"
+                          value={field.label}
+                          onChange={(e) =>
+                            updateCustomSizeField(
+                              field.id,
+                              "label",
+                              e.target.value,
+                            )
+                          }
+                          className="w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                        />
+                        <div className="flex items-center rounded-lg border border-gray-300 pr-4 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100">
+                          <input
+                            type="number"
+                            inputMode="decimal"
+                            step="0.1"
+                            min="0"
+                            placeholder="値"
+                            value={field.value}
+                            onChange={(e) =>
+                              updateCustomSizeField(
+                                field.id,
+                                "value",
+                                e.target.value,
+                              )
+                            }
+                            className="w-full rounded-lg bg-transparent px-4 py-3 text-gray-900 outline-none"
+                          />
+                          <span className="text-sm text-gray-500">cm</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => removeCustomSizeField(field.id)}
+                          className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
+                        >
+                          削除
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+
+                {sizeDetailDuplicateWarnings.hasStructuredDuplicates ||
+                sizeDetailDuplicateWarnings.hasCustomDuplicates ? (
+                  <p className="text-xs text-amber-600">
+                    固定項目または自由項目で同名の実寸があります。必要に応じて整理してください。
+                  </p>
+                ) : null}
               </div>
             </ItemFormSection>
 
