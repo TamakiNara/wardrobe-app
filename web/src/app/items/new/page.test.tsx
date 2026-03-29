@@ -128,6 +128,20 @@ async function waitForEffects() {
   await new Promise((resolve) => setTimeout(resolve, 0));
 }
 
+function setNativeInputValue(
+  element: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement,
+  value: string,
+) {
+  const prototype =
+    element instanceof HTMLTextAreaElement
+      ? window.HTMLTextAreaElement.prototype
+      : element instanceof HTMLSelectElement
+        ? window.HTMLSelectElement.prototype
+        : window.HTMLInputElement.prototype;
+  const descriptor = Object.getOwnPropertyDescriptor(prototype, "value");
+  descriptor?.set?.call(element, value);
+}
+
 describe("NewItemPage", () => {
   let container: HTMLDivElement;
   let root: ReturnType<typeof createRoot>;
@@ -211,6 +225,9 @@ describe("NewItemPage", () => {
     expect(container.textContent).toContain("メインカラー");
     expect(container.textContent).toContain("ブランド候補にも追加する");
     expect(container.textContent).toContain("クリックして画像を選択");
+    expect(container.textContent).not.toContain(
+      "実寸は cm 単位で入力します。未入力の項目は保存しません。",
+    );
   });
 
   it("purchase candidate draft から名前とカテゴリ初期値を読み込む", async () => {
@@ -443,6 +460,60 @@ describe("NewItemPage", () => {
 
     expect(container.textContent).toContain(
       "レッグウェアの種類を選択してください。",
+    );
+  });
+
+  it("固定項目と自由項目の重複は短い警告文で表示する", async () => {
+    const { default: NewItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(NewItemPage));
+      await waitForEffects();
+    });
+
+    const categorySelect =
+      container.querySelector<HTMLSelectElement>("#category");
+    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
+    expect(categorySelect).not.toBeNull();
+    expect(shapeSelect).not.toBeNull();
+
+    await act(async () => {
+      categorySelect!.value = "tops";
+      categorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    await act(async () => {
+      shapeSelect!.value = "tshirt";
+      shapeSelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    const addButton = Array.from(container.querySelectorAll("button")).find(
+      (element) => element.textContent?.includes("自由項目を追加"),
+    );
+    expect(addButton).not.toBeUndefined();
+
+    await act(async () => {
+      addButton!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    const customLabelInput = container.querySelector<HTMLInputElement>(
+      'input[placeholder="項目名"]',
+    );
+    expect(customLabelInput).not.toBeNull();
+
+    await act(async () => {
+      setNativeInputValue(customLabelInput!, "肩幅");
+      customLabelInput!.dispatchEvent(new Event("input", { bubbles: true }));
+      customLabelInput!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain("同名の実寸項目があります。");
+    expect(container.textContent).not.toContain(
+      "固定項目または自由項目で同名の実寸があります。必要に応じて整理してください。",
     );
   });
 

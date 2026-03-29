@@ -5,7 +5,7 @@ import type {
   StructuredSizeFieldName,
 } from "@/types/items";
 
-type StructuredSizeFieldDefinition = {
+export type StructuredSizeFieldDefinition = {
   name: StructuredSizeFieldName;
   label: string;
 };
