@@ -51,7 +51,7 @@ class TestSeedUsersSeederTest extends TestCase
 
         $this->assertNotNull($standardUser->visible_category_ids);
         $this->assertCount(40, $standardUser->visible_category_ids);
-        $this->assertCount(8, $standardUser->outfits);
+        $this->assertCount(9, $standardUser->outfits);
         $this->assertCount(27, $standardUser->items);
         $standardCandidates = PurchaseCandidate::query()
             ->where('user_id', $standardUser->id)
@@ -140,6 +140,9 @@ class TestSeedUsersSeederTest extends TestCase
         ));
         $this->assertTrue($standardUser->outfits->contains(
             fn ($outfit) => $outfit->name === 'ワンピース重ねコーデ'
+        ));
+        $this->assertTrue($standardUser->outfits->contains(
+            fn ($outfit) => $outfit->name === 'ワンピースパンツ重ねコーデ'
         ));
         $this->assertTrue($standardUser->outfits->contains(
             fn ($outfit) => $outfit->name === 'オールインワン羽織りコーデ'
