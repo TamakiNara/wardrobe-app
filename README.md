@@ -132,7 +132,7 @@ git clone <repository-url>
 cd wardrobe-app
 ```
 
-Backend と Frontend はそれぞれ `api/` と `web/` でセットアップします。詳細な手順とテスト用 seed アカウントは `docs/setup.md` へ分離する方針です。
+Backend と Frontend はそれぞれ `api/` と `web/` でセットアップします。詳細な手順とテスト用 seed アカウントは `docs/setup.md` へ分離する方針です。開発を始める前に `git config core.hooksPath .githooks` で Git hook を有効化してください。確認方法や Windows 前提を含む詳細は `docs/setup.md` に記載しています。
 
 ---
 

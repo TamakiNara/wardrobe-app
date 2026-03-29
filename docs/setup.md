@@ -23,6 +23,45 @@ cd wardrobe-app
 
 ---
 
+## Git hooks （pre-commit）の初期設定
+
+このリポジトリでは `core.hooksPath=.githooks` を使用します。`git clone` 後の初回セットアップで、以下を 1 度実行して Git hook を有効化してください。
+
+```bash
+git config core.hooksPath .githooks
+```
+
+有効化を確認するときは、以下で読み出し元と設定値を確認します。
+
+```bash
+git config --show-origin --get core.hooksPath
+```
+
+実行結果で `.githooks` が返り、その読み出し元が現在のリポジトリまたはグローバル Git 設定であることを確認してください。
+
+Windows 環境では、`.githooks/pre-commit` は Bash スクリプトなので Git for Windows / Git Bash で動作する前提です。PowerShell 単体や `cmd.exe` 単体で hook を実行する運用は想定していません。
+
+### `pre-commit` が実際に動いているかの確認
+
+最初の 1 回だけ確認したい場合は、`.githooks/pre-commit` に一時的に `echo` と `exit 1` を追記し、テスト用の commit を実行します。
+
+```bash
+# .githooks/pre-commit に一時的に追記
+echo "[pre-commit] test hook"
+exit 1
+
+# 適当な変更を staged したうえで確認
+git commit -m "test"
+```
+
+`[pre-commit] test hook` が表示され、commit が失敗すれば hook は有効です。確認後は必ず一時追記した `echo` と `exit 1` を元に戻してください。
+
+### hook をスキップする場合
+
+一時的に hook をスキップしたい場合は `git commit --no-verify` を使えます。ただし、通常は `.githooks/pre-commit` のチェックを通す運用を前提とします。
+
+---
+
 ## Backend （Laravel）
 
 ### 1. 依存パッケージのインストール

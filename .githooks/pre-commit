@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "[pre-commit] start"
+
+# ステージ済みの追加・変更・リネーム済みファイルだけを見る
+STAGED_FILES="$(git diff --cached --name-only --diff-filter=ACMR)"
+
+if [ -z "${STAGED_FILES}" ]; then
+  echo "[pre-commit] no staged files"
+  exit 0
+fi
+
+# 対象判定
+API_PHP_FILES="$(printf '%s\n' "$STAGED_FILES" | grep -E '^api/.*\.php$' || true)"
+WEB_FILES="$(printf '%s\n' "$STAGED_FILES" | grep -E '^web/' || true)"
+OPENAPI_FILES="$(printf '%s\n' "$STAGED_FILES" | grep -E '^docs/api/openapi\.ya?ml$' || true)"
+
+# --------------------------------------------------
+# api: staged PHP files only
+# --------------------------------------------------
+if [ -n "$API_PHP_FILES" ]; then
+  echo "[pre-commit] api php style check (staged files only)"
+
+  while IFS= read -r file; do
+    [ -z "$file" ] && continue
+    rel_path="${file#api/}"
+    (
+      cd api
+      php vendor/bin/pint --test "$rel_path"
+    )
+  done <<EOF
+$API_PHP_FILES
+EOF
+fi
+
+# --------------------------------------------------
+# web: lint / prettier
+# まずは web 配下に変更があった時だけ実行
+# 必要なら今後さらに changed files のみに絞る
+# --------------------------------------------------
+if [ -n "$WEB_FILES" ]; then
+  echo "[pre-commit] web lint"
+  (
+    cd web
+    npm run lint
+    npx prettier --check .
+  )
+fi
+
+# --------------------------------------------------
+# openapi yaml syntax check
+# --------------------------------------------------
+if [ -n "$OPENAPI_FILES" ]; then
+  echo "[pre-commit] openapi yaml check"
+  python - <<'PY'
+from pathlib import Path
+import yaml
+
+path = Path("docs/api/openapi.yaml")
+yaml.safe_load(path.read_text(encoding="utf-8"))
+print("openapi yaml ok")
+PY
+fi
+
+echo "[pre-commit] done"
