@@ -88,7 +88,7 @@ describe("OutfitColorThumbnail", () => {
       container.querySelector('[data-testid="thumbnail-tops"]'),
     ).not.toBeNull();
     expect(
-      container.querySelector('[data-testid="thumbnail-bottoms"]'),
+      container.querySelector('[data-testid="thumbnail-lower-body"]'),
     ).not.toBeNull();
     expect(
       container.querySelector('[data-testid="thumbnail-others"]'),
@@ -228,7 +228,7 @@ describe("OutfitColorThumbnail", () => {
               { role: "main", hex: "#eeeeee", label: "白" },
               { role: "sub", hex: "#333333", label: "黒" },
             ]),
-            renderOutfitItem(2, "bottoms", [
+            renderOutfitItem(2, "tops", [
               { role: "main", hex: "#2255cc", label: "青" },
             ]),
           ],
@@ -237,7 +237,7 @@ describe("OutfitColorThumbnail", () => {
     });
 
     const allBands = container.querySelectorAll(
-      '[data-testid="thumbnail-tops-segment"], [data-testid="thumbnail-bottoms-segment"]',
+      '[data-testid="thumbnail-tops-segment"]',
     );
     const firstMain = allBands[0]?.querySelector("span > span");
     const firstSub = allBands[0]?.querySelector("span > span + span");

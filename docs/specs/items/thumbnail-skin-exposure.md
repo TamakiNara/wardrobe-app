@@ -386,6 +386,15 @@ stockings のような半透明レイヤーにはしない。
 - `spec.legwear.coverage_type` に応じて、覆い方の素の表現を持つ
 - ボトムスとの最終合成までは行わない
 
+### tops / one-piece / dress item
+
+- item SVG は画像がない場合の代替表現として、角丸四角ベースの簡潔な記号化を使う
+- `tops` と `dress` は shape ごとの個別 SVG を使わず、カテゴリ単位の共通表現で描く
+- メインカラーを本体色とし、サブカラーがある場合のみ右下に三角形を作るようなラインを引いて存在を示す
+- このサブカラーラインは塗りつぶしではなく線表現とし、item 単体の二色指定を軽く示す用途に留める
+- tops spec は current では保存・表示に利用するが、item SVG 描画では shape 差分の判断に使わない
+- outfit 側は item と責務が異なるため、既存の重ね着 / 分割 / 合成ルールを維持する
+
 ### lower-body preview のサブカラー
 
 - lower-body preview の主色はメインカラーとする

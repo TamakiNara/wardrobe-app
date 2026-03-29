@@ -56,6 +56,101 @@ describe("ItemThumbnailPreview", () => {
     expect(markers[1]?.getAttribute("y1")).toBe("102");
   });
 
+  it("トップス item SVG は shape 差分ではなく共通の角丸四角ベースで描く", async () => {
+    await act(async () => {
+      root.render(
+        <div>
+          <ItemThumbnailPreview
+            category="tops"
+            shape="tshirt"
+            mainColorHex="#2563EB"
+            topsSpecRaw={{ shape: "tshirt", sleeve: "short" }}
+            size="small"
+          />
+          <ItemThumbnailPreview
+            category="tops"
+            shape="shirt"
+            mainColorHex="#2563EB"
+            topsSpecRaw={{ shape: "shirt", sleeve: "long" }}
+            size="small"
+          />
+        </div>,
+      );
+    });
+
+    const svgs = Array.from(
+      container.querySelectorAll('[data-testid="item-toplike-preview-svg"]'),
+    );
+    expect(svgs).toHaveLength(2);
+    const rects = svgs.map((svg) => {
+      return svg.querySelector("rect[fill]");
+    });
+    expect(rects[0]?.getAttribute("x")).toBe("22");
+    expect(rects[0]?.getAttribute("y")).toBe("20");
+    expect(rects[0]?.getAttribute("width")).toBe("76");
+    expect(rects[0]?.getAttribute("height")).toBe("72");
+    expect(rects[1]?.getAttribute("x")).toBe("22");
+    expect(rects[1]?.getAttribute("y")).toBe("20");
+    expect(rects[1]?.getAttribute("width")).toBe("76");
+    expect(rects[1]?.getAttribute("height")).toBe("72");
+  });
+
+  it("ワンピース item もトップスと同じ共通 SVG を使う", async () => {
+    await act(async () => {
+      root.render(
+        <ItemThumbnailPreview
+          category="dress"
+          shape="onepiece"
+          mainColorHex="#7C3AED"
+          size="small"
+        />,
+      );
+    });
+
+    expect(
+      container.querySelector('[data-testid="item-toplike-preview-svg"]'),
+    ).not.toBeNull();
+    expect(container.textContent).not.toContain("SVG プレビュー");
+  });
+
+  it("トップス系のサブカラーは右下三角ラインで表現する", async () => {
+    await act(async () => {
+      root.render(
+        <div>
+          <ItemThumbnailPreview
+            category="tops"
+            shape="knit"
+            mainColorHex="#1F2937"
+            subColorHex="#F59E0B"
+            size="small"
+          />
+          <ItemThumbnailPreview
+            category="tops"
+            shape="knit"
+            mainColorHex="#1F2937"
+            size="small"
+          />
+        </div>,
+      );
+    });
+
+    const lines = Array.from(
+      container.querySelectorAll('[data-testid="item-toplike-subcolor-line"]'),
+    );
+    const svgs = Array.from(
+      container.querySelectorAll('[data-testid="item-toplike-preview-svg"]'),
+    );
+
+    expect(lines).toHaveLength(1);
+    expect(lines[0]?.getAttribute("x")).toBe("22");
+    expect(lines[0]?.getAttribute("y")).toBe("20");
+    expect(lines[0]?.getAttribute("width")).toBe("76");
+    expect(lines[0]?.getAttribute("height")).toBe("6");
+    expect(
+      svgs[1]?.querySelector('[data-testid="item-toplike-subcolor-line"]'),
+    ).toBeNull();
+  });
+
   it("ソックスは coverage_type に応じて下側から覆う長さが変わる", async () => {
     await act(async () => {
       root.render(

@@ -1,4 +1,3 @@
-import TopsPreviewSvg from "@/components/items/preview-svg/tops-preview-svg";
 import LowerBodyPreviewSvg from "@/components/items/item-lower-body-thumbnail-svg";
 import { COLOR_THUMBNAIL_FALLBACK_COLOR } from "@/lib/color-thumbnails/shared";
 import {
@@ -8,6 +7,7 @@ import {
 import { resolveSkinToneColor } from "@/lib/master-data/skin-tone-presets";
 import type { ItemImageRecord, ItemSpec } from "@/types/items";
 import type { SkinTonePreset } from "@/types/settings";
+import { useId } from "react";
 
 type ItemThumbnailPreviewProps = {
   category: string;
@@ -27,12 +27,70 @@ type ItemThumbnailPreviewProps = {
   skinTonePreset?: SkinTonePreset;
 };
 
+function TopLikeItemPreviewSvg({
+  mainColorHex,
+  subColorHex,
+  category,
+}: {
+  mainColorHex?: string;
+  subColorHex?: string;
+  category: string;
+}) {
+  const ariaLabel =
+    category === "dress" ? "ワンピースプレビュー" : "トップスプレビュー";
+  const clipPathId = useId().replace(/:/g, "");
+
+  return (
+    <svg
+      viewBox="0 0 120 120"
+      className="h-full w-full"
+      role="img"
+      aria-label={ariaLabel}
+      data-testid="item-toplike-preview-svg"
+    >
+      <defs>
+        <clipPath id={clipPathId}>
+          <rect x="22" y="20" width="76" height="72" rx="18" />
+        </clipPath>
+      </defs>
+      <g clipPath={`url(#${clipPathId})`}>
+        <rect
+          x="22"
+          y="20"
+          width="76"
+          height="72"
+          fill={mainColorHex ?? COLOR_THUMBNAIL_FALLBACK_COLOR}
+        />
+        {subColorHex ? (
+          <rect
+            x="22"
+            y="20"
+            width="76"
+            height="6"
+            fill={subColorHex}
+            data-testid="item-toplike-subcolor-line"
+          />
+        ) : null}
+      </g>
+      <rect
+        x="22"
+        y="20"
+        width="76"
+        height="72"
+        rx="18"
+        fill="none"
+        stroke="#D1D5DB"
+        strokeWidth="2"
+      />
+    </svg>
+  );
+}
+
 export default function ItemThumbnailPreview({
   category,
   shape,
   mainColorHex,
   subColorHex,
-  topsSpecRaw,
   spec,
   images,
   size = "large",
@@ -57,6 +115,8 @@ export default function ItemThumbnailPreview({
   const shouldRenderLowerBody =
     category === "bottoms" ||
     (category === "legwear" && Boolean(legwearPreviewCoverageType));
+  const shouldRenderTopLikePreview =
+    category === "tops" || category === "dress";
 
   if (primaryImage?.url) {
     return (
@@ -73,19 +133,15 @@ export default function ItemThumbnailPreview({
     );
   }
 
-  if (category === "tops" && topsSpecRaw?.shape) {
+  if (shouldRenderTopLikePreview) {
     return (
       <div
         className={`flex items-center justify-center border border-dashed border-gray-300 bg-white ${sizeClass} ${contentPaddingClass}`}
       >
-        <TopsPreviewSvg
-          shape={topsSpecRaw.shape}
-          sleeve={topsSpecRaw.sleeve ?? undefined}
-          neck={topsSpecRaw.neck ?? undefined}
-          design={topsSpecRaw.design ?? undefined}
-          fit={topsSpecRaw.fit ?? undefined}
-          mainColor={mainColorHex}
-          subColor={subColorHex}
+        <TopLikeItemPreviewSvg
+          mainColorHex={mainColorHex}
+          subColorHex={subColorHex}
+          category={category}
         />
       </div>
     );
