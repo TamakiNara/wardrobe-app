@@ -43,7 +43,7 @@ export default function ItemThumbnailPreview({
     size === "small"
       ? "h-20 w-20 rounded-2xl"
       : "aspect-square w-full rounded-2xl";
-  const contentPaddingClass = size === "small" ? "p-2" : "p-3";
+  const contentPaddingClass = size === "small" ? "p-2" : "p-4";
   const legwearPreviewCoverageType = resolveLegwearCoverageTypeForPreview(
     category,
     shape,
@@ -122,19 +122,16 @@ export default function ItemThumbnailPreview({
     >
       <div className="text-center">
         <div
-          className={`mx-auto rounded-2xl border border-gray-300 ${size === "small" ? "h-12 w-12" : "h-16 w-16"}`}
+          className={`mx-auto rounded-2xl border border-gray-300 ${size === "small" ? "h-14 w-14" : "h-20 w-20"}`}
           style={{
             backgroundColor: mainColorHex ?? COLOR_THUMBNAIL_FALLBACK_COLOR,
           }}
         />
         {subColorHex ? (
           <div
-            className={`mt-2 ml-auto rounded-full border border-gray-300 ${size === "small" ? "h-3 w-3" : "h-4 w-4"}`}
+            className={`mt-2 ml-auto rounded-full border border-gray-300 ${size === "small" ? "h-3.5 w-3.5" : "h-4 w-4"}`}
             style={{ backgroundColor: subColorHex }}
           />
-        ) : null}
-        {size === "large" ? (
-          <p className="mt-2 text-xs text-gray-500">SVG プレビュー</p>
         ) : null}
       </div>
     </div>

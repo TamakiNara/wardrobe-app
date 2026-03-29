@@ -197,16 +197,18 @@ describe("NewItemPage", () => {
       "ルームウェア・インナー",
       "レッグウェア",
     ]);
-    expect(container.textContent).toContain(
-      "「必須」が付いた項目は登録に必要です。",
-    );
     expect(container.textContent).toContain("カテゴリ");
     expect(container.textContent).toContain("形");
+    expect(container.textContent).toContain("分類");
+    expect(container.textContent).toContain("詳細属性");
+    expect(container.textContent).toContain("色とプレビュー");
+    expect(container.textContent).toContain("利用条件・状態");
+    expect(container.textContent).toContain("サイズ");
+    expect(container.textContent).toContain("購入・補足");
     expect(container.textContent).toContain("ケア状態");
     expect(container.textContent).toContain("メインカラー");
     expect(container.textContent).toContain("ブランド候補にも追加する");
     expect(container.textContent).toContain("クリックして画像を選択");
-    expect(container.textContent?.match(/必須/g)?.length).toBe(4);
   });
 
   it("purchase candidate draft から名前とカテゴリ初期値を読み込む", async () => {

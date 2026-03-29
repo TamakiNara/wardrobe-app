@@ -102,6 +102,19 @@ const sampleGroups: CategoryGroupRecord[] = [
       },
     ],
   },
+  {
+    id: "legwear",
+    name: "レッグウェア",
+    sortOrder: 35,
+    categories: [
+      {
+        id: "legwear_socks",
+        groupId: "legwear",
+        name: "ソックス",
+        sortOrder: 10,
+      },
+    ],
+  },
 ];
 
 async function waitForEffects() {
@@ -127,6 +140,7 @@ describe("EditItemPage", () => {
         "bottoms_straight",
         "dress_onepiece",
         "inner_roomwear",
+        "legwear_socks",
       ],
     });
     fetchUserPreferencesMock.mockResolvedValue({
@@ -232,12 +246,16 @@ describe("EditItemPage", () => {
       "ボトムス",
       "ワンピース・オールインワン",
       "ルームウェア・インナー",
+      "レッグウェア",
     ]);
-    expect(container.textContent).toContain(
-      "「必須」が付いた項目は更新に必要です。",
-    );
     expect(container.textContent).toContain("カテゴリ");
     expect(container.textContent).toContain("形");
+    expect(container.textContent).toContain("分類");
+    expect(container.textContent).toContain("詳細属性");
+    expect(container.textContent).toContain("色とプレビュー");
+    expect(container.textContent).toContain("利用条件・状態");
+    expect(container.textContent).toContain("サイズ");
+    expect(container.textContent).toContain("購入・補足");
     expect(container.textContent).toContain("ケア状態");
     expect(container.textContent).toContain("メインカラー");
     expect(container.textContent).toContain("ブランド候補にも追加する");

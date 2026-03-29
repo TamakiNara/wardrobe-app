@@ -1,4 +1,4 @@
-﻿import ItemThumbnailPreview from "@/components/items/item-thumbnail-preview";
+import ItemThumbnailPreview from "@/components/items/item-thumbnail-preview";
 import {
   findBottomsLengthLabel,
   findLegwearCoverageLabel,
@@ -39,6 +39,7 @@ type ItemPreviewCardProps = {
   spec?: ItemSpec | null;
   images?: ItemImageRecord[];
   skinTonePreset?: SkinTonePreset;
+  compact?: boolean;
 };
 
 function ColorDot({
@@ -82,6 +83,7 @@ export default function ItemPreviewCard({
   spec,
   images,
   skinTonePreset,
+  compact = false,
 }: ItemPreviewCardProps) {
   const showDebugDetails = isItemPreviewDebugEnabled();
   const categoryLabel = findItemCategoryLabel(category) || "カテゴリ未選択";
@@ -114,11 +116,13 @@ export default function ItemPreviewCard({
   ];
 
   return (
-    <section className="rounded-2xl border border-gray-200 bg-gray-50 p-5">
+    <section className={`rounded-2xl border border-gray-200 bg-gray-50 p-4`}>
       <div className="flex items-center justify-between gap-4">
         <div>
           <p className="text-sm text-gray-500">プレビュー</p>
-          <h2 className="mt-1 text-lg font-semibold text-gray-900">
+          <h2
+            className={`mt-1 font-semibold text-gray-900 ${compact ? "text-base" : "text-lg"}`}
+          >
             {name || "名称未設定"}
           </h2>
           <p className="mt-1 text-sm text-gray-600">
@@ -128,32 +132,46 @@ export default function ItemPreviewCard({
         </div>
       </div>
 
-      <div className="mt-4 grid gap-4 md:grid-cols-[140px_1fr]">
-        <ItemThumbnailPreview
-          category={category}
-          shape={shape}
-          mainColorHex={mainColorHex}
-          subColorHex={subColorHex}
-          topsSpecRaw={topsSpecRaw}
-          spec={spec}
-          images={images}
-          skinTonePreset={skinTonePreset}
-          size="large"
-        />
+      <div
+        className={`mt-4 ${compact ? "grid grid-cols-[88px_1fr] items-start gap-3" : "space-y-4"}`}
+      >
+        <div className={compact ? "" : "flex justify-center"}>
+          <div className={compact ? "" : "w-full max-w-[9.5rem]"}>
+            <ItemThumbnailPreview
+              category={category}
+              shape={shape}
+              mainColorHex={mainColorHex}
+              subColorHex={subColorHex}
+              topsSpecRaw={topsSpecRaw}
+              spec={spec}
+              images={images}
+              skinTonePreset={skinTonePreset}
+              size={compact ? "small" : "large"}
+            />
+          </div>
+        </div>
 
         {showDebugDetails ? (
-          <div className="space-y-4">
-            <div className="flex flex-wrap gap-2">
+          <div
+            className={compact ? "space-y-2 self-start pt-0.5" : "space-y-3"}
+          >
+            <div className={`flex flex-wrap gap-2 ${compact ? "text-xs" : ""}`}>
               <ColorDot hex={mainColorHex} label={mainColorLabel} tone="main" />
               <ColorDot hex={subColorHex} label={subColorLabel} tone="sub" />
             </div>
 
-            <div className="rounded-xl border border-gray-200 bg-white p-4">
-              <p className="mb-3 text-sm font-medium text-gray-700">
-                プレビュー詳細
+            <div
+              className={`rounded-xl border border-gray-200 bg-white ${compact ? "p-3" : "p-3.5"}`}
+            >
+              <p
+                className={`font-medium text-gray-700 ${compact ? "mb-2 text-xs" : "mb-2 text-sm"}`}
+              >
+                {compact ? "確認中の設定" : "プレビュー詳細"}
               </p>
 
-              <dl className="grid gap-2 text-sm text-gray-600 md:grid-cols-2">
+              <dl
+                className={`grid text-gray-600 ${compact ? "gap-1 text-xs" : "gap-1.5 text-sm"}`}
+              >
                 {previewMeta.map((item) => (
                   <div key={item.label}>
                     <dt className="font-medium text-gray-700">{item.label}</dt>
@@ -164,12 +182,18 @@ export default function ItemPreviewCard({
             </div>
 
             {category === "tops" && topsSpec ? (
-              <div className="rounded-xl border border-gray-200 bg-white p-4">
-                <p className="mb-3 text-sm font-medium text-gray-700">
+              <div
+                className={`rounded-xl border border-gray-200 bg-white ${compact ? "p-3" : "p-3.5"}`}
+              >
+                <p
+                  className={`font-medium text-gray-700 ${compact ? "mb-2 text-xs" : "mb-2 text-sm"}`}
+                >
                   トップス仕様
                 </p>
 
-                <dl className="grid gap-2 text-sm text-gray-600 md:grid-cols-2">
+                <dl
+                  className={`grid text-gray-600 ${compact ? "gap-1 text-xs" : "gap-1.5 text-sm"}`}
+                >
                   <div>
                     <dt className="font-medium text-gray-700">形</dt>
                     <dd>{topsSpec.shape || "未選択"}</dd>
@@ -199,12 +223,18 @@ export default function ItemPreviewCard({
             ) : null}
 
             {bottomsLengthLabel ? (
-              <div className="rounded-xl border border-gray-200 bg-white p-4">
-                <p className="mb-3 text-sm font-medium text-gray-700">
+              <div
+                className={`rounded-xl border border-gray-200 bg-white ${compact ? "p-3" : "p-3.5"}`}
+              >
+                <p
+                  className={`font-medium text-gray-700 ${compact ? "mb-2 text-xs" : "mb-2 text-sm"}`}
+                >
                   ボトムス仕様
                 </p>
 
-                <dl className="grid gap-2 text-sm text-gray-600 md:grid-cols-2">
+                <dl
+                  className={`grid text-gray-600 ${compact ? "gap-1 text-xs" : "gap-1.5 text-sm"}`}
+                >
                   <div>
                     <dt className="font-medium text-gray-700">ボトムス丈</dt>
                     <dd>{bottomsLengthLabel}</dd>
@@ -214,12 +244,18 @@ export default function ItemPreviewCard({
             ) : null}
 
             {legwearCoverageLabel ? (
-              <div className="rounded-xl border border-gray-200 bg-white p-4">
-                <p className="mb-3 text-sm font-medium text-gray-700">
+              <div
+                className={`rounded-xl border border-gray-200 bg-white ${compact ? "p-3" : "p-3.5"}`}
+              >
+                <p
+                  className={`font-medium text-gray-700 ${compact ? "mb-2 text-xs" : "mb-2 text-sm"}`}
+                >
                   レッグウェア仕様
                 </p>
 
-                <dl className="grid gap-2 text-sm text-gray-600 md:grid-cols-2">
+                <dl
+                  className={`grid text-gray-600 ${compact ? "gap-1 text-xs" : "gap-1.5 text-sm"}`}
+                >
                   <div>
                     <dt className="font-medium text-gray-700">レッグウェア</dt>
                     <dd>{legwearCoverageLabel}</dd>

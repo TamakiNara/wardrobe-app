@@ -1,5 +1,6 @@
 "use client";
 
+import { Save } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
@@ -27,6 +28,9 @@ import BrandNameField from "@/components/items/brand-name-field";
 import ColorChip from "@/components/items/color-chip";
 import ColorSelect from "@/components/items/color-select";
 import ItemImageUploader from "@/components/items/item-image-uploader";
+import ItemImagesOverview from "@/components/items/item-images-overview";
+import ItemFormPreviewPanel from "@/components/items/item-form-preview-panel";
+import ItemFormSection from "@/components/items/item-form-section";
 import ItemPreviewCard from "@/components/items/item-preview-card";
 import { SEASON_OPTIONS } from "@/lib/master-data/item-attributes";
 import { DEFAULT_SKIN_TONE_PRESET } from "@/lib/master-data/skin-tone-presets";
@@ -780,9 +784,35 @@ export default function EditItemPage({
         }
       : undefined,
   };
+  const previewSummary =
+    selectedMainColor || selectedSubColor ? (
+      <div className="rounded-xl border border-gray-200 bg-gray-50 p-3">
+        <p className="mb-2 text-sm font-medium text-gray-700">選択中の色</p>
+        <div className="flex flex-wrap gap-2">
+          {selectedMainColor && (
+            <ColorChip
+              label={selectedMainColor.label}
+              hex={selectedMainColor.hex}
+              tone="main"
+            />
+          )}
+          {selectedSubColor && (
+            <ColorChip
+              label={selectedSubColor.label}
+              hex={selectedSubColor.hex}
+              tone="sub"
+            />
+          )}
+        </div>
+      </div>
+    ) : null;
+  const detailEmptyMessage =
+    !category || (!isTopsCategory && !shape)
+      ? "カテゴリと形を選ぶと、必要な詳細情報がここに表示されます。"
+      : "現在の選択では追加の詳細情報はありません。";
   if (loading) {
     return (
-      <main className="min-h-screen bg-gray-100 p-6 md:p-10">
+      <main className="min-h-screen bg-gray-100 p-6 pb-28 md:p-10 md:pb-10">
         <div className="mx-auto max-w-3xl rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
           <p className="text-sm text-gray-600">読み込み中です...</p>
         </div>
@@ -791,8 +821,8 @@ export default function EditItemPage({
   }
 
   return (
-    <main className="min-h-screen bg-gray-100 p-6 md:p-10">
-      <div className="mx-auto max-w-3xl space-y-6">
+    <main className="min-h-screen bg-gray-100 p-6 pb-28 md:p-10 md:pb-10">
+      <div className="mx-auto max-w-7xl space-y-6">
         <nav className="text-sm text-gray-500">
           <Link href="/" className="hover:underline">
             ホーム
@@ -801,14 +831,13 @@ export default function EditItemPage({
           <Link href="/items" className="hover:underline">
             アイテム一覧
           </Link>
-          {" / "}
-          <span className="text-gray-700">編集</span>
+          {" / 編集"}
         </nav>
 
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <p className="text-sm text-gray-500">アイテム管理</p>
-            <h1 className="text-2xl font-bold text-gray-900">アイテム編集</h1>
+            <h1 className="text-2xl font-bold text-gray-900">編集</h1>
           </div>
 
           <Link
@@ -821,15 +850,50 @@ export default function EditItemPage({
 
         <form
           onSubmit={handleSubmit}
-          className="space-y-6 rounded-2xl border border-gray-200 bg-white p-8 shadow-sm"
+          className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start lg:gap-6"
         >
-          <section className="space-y-4">
-            <h2 className="text-lg font-semibold text-gray-900">基本情報</h2>
-            <p className="text-sm text-gray-500">
-              「必須」が付いた項目は更新に必要です。
-            </p>
+          <div className="hidden lg:col-start-2 lg:row-start-1 lg:block lg:sticky lg:top-6 lg:self-start">
+            <ItemFormPreviewPanel
+              showHeader={false}
+              summary={previewSummary}
+              preview={
+                <ItemPreviewCard
+                  name={name}
+                  category={category}
+                  shape={shape}
+                  mainColorHex={selectedMainColor?.hex}
+                  mainColorLabel={selectedMainColor?.label}
+                  subColorHex={selectedSubColor?.hex}
+                  subColorLabel={selectedSubColor?.label}
+                  topsSpec={previewTopsSpec}
+                  topsSpecRaw={previewTopsSpecRaw}
+                  spec={previewSpec}
+                  images={itemImages}
+                  skinTonePreset={skinTonePreset}
+                />
+              }
+              imagesOverview={
+                <ItemImagesOverview
+                  images={itemImages}
+                  title="現在登録されている画像の確認"
+                  emptyMessage="まだ確認できる画像はありません。"
+                />
+              }
+            />
+          </div>
+          <div className="space-y-5 lg:col-start-1">
+            <ItemFormSection title="基本情報">
+              <div>
+                <FieldLabel htmlFor="name" label="名前" />
+                <input
+                  id="name"
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                />
+              </div>
 
-            <div className="grid gap-4 md:grid-cols-2">
               <BrandNameField
                 inputId="brand-name"
                 value={brandName}
@@ -838,92 +902,680 @@ export default function EditItemPage({
                 onSaveAsCandidateChange={setSaveBrandAsCandidate}
                 disabled={submitting}
               />
+            </ItemFormSection>
+
+            <ItemFormSection title="分類">
+              <div>
+                <FieldLabel htmlFor="category" label="カテゴリ" required />
+                <select
+                  id="category"
+                  value={category}
+                  onChange={(e) => handleCategoryChange(e.target.value)}
+                  className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors.category ? "border-red-400" : "border-gray-300"}`}
+                >
+                  <option value="">選択してください</option>
+                  {categoryOptions.map((item) => (
+                    <option key={item.value} value={item.value}>
+                      {item.label}
+                    </option>
+                  ))}
+                </select>
+                {errors.category && (
+                  <p className="mt-2 text-sm text-red-600">{errors.category}</p>
+                )}
+              </div>
+
+              <div>
+                <FieldLabel htmlFor="shape" label="形" required />
+                <select
+                  id="shape"
+                  value={shape}
+                  onChange={(e) => handleShapeChange(e.target.value)}
+                  disabled={!category || isTopsCategory}
+                  className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors.shape ? "border-red-400" : "border-gray-300"}`}
+                >
+                  <option value="">選択してください</option>
+                  {shapeOptions.map((item) => (
+                    <option key={item.value} value={item.value}>
+                      {item.label}
+                    </option>
+                  ))}
+                </select>
+                {errors.shape && (
+                  <p className="mt-2 text-sm text-red-600">{errors.shape}</p>
+                )}
+              </div>
+            </ItemFormSection>
+
+            <ItemFormSection title="詳細属性">
+              {isTopsCategory && (
+                <div className="space-y-4 rounded-xl border border-gray-200 bg-gray-50 p-4">
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">
+                      トップス仕様
+                    </p>
+                    <p className="mt-1 text-xs text-gray-500">
+                      保存済みのトップス仕様を編集しながら、preview
+                      に反映します。
+                    </p>
+                  </div>
+
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div>
+                      <label
+                        htmlFor="tops-shape"
+                        className="mb-1 block text-sm font-medium text-gray-700"
+                      >
+                        形
+                      </label>
+                      <select
+                        id="tops-shape"
+                        value={topsShape}
+                        onChange={(e) => handleTopsShapeChange(e.target.value)}
+                        className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                      >
+                        <option value="">選択してください</option>
+                        {TOPS_SHAPES.map((item) => (
+                          <option key={item.value} value={item.value}>
+                            {item.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="tops-sleeve"
+                        className="mb-1 block text-sm font-medium text-gray-700"
+                      >
+                        袖
+                      </label>
+                      <select
+                        id="tops-sleeve"
+                        value={topsSleeve}
+                        onChange={(e) =>
+                          setTopsSleeve(e.target.value as TopsSleeveValue | "")
+                        }
+                        disabled={!topsShape}
+                        className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                      >
+                        <option value="">選択してください</option>
+                        {availableTopsSleeves.map((item) => (
+                          <option key={item.value} value={item.value}>
+                            {item.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="tops-length"
+                        className="mb-1 block text-sm font-medium text-gray-700"
+                      >
+                        丈
+                      </label>
+                      <select
+                        id="tops-length"
+                        value={topsLength}
+                        onChange={(e) =>
+                          setTopsLength(e.target.value as TopsLengthValue | "")
+                        }
+                        disabled={!topsShape}
+                        className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                      >
+                        <option value="">選択してください</option>
+                        {availableTopsLengths.map((item) => (
+                          <option key={item.value} value={item.value}>
+                            {item.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="tops-neck"
+                        className="mb-1 block text-sm font-medium text-gray-700"
+                      >
+                        首元
+                      </label>
+                      <select
+                        id="tops-neck"
+                        value={topsNeck}
+                        onChange={(e) =>
+                          setTopsNeck(e.target.value as TopsNeckValue | "")
+                        }
+                        disabled={!topsShape}
+                        className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                      >
+                        <option value="">選択してください</option>
+                        {availableTopsNecks.map((item) => (
+                          <option key={item.value} value={item.value}>
+                            {item.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="tops-design"
+                        className="mb-1 block text-sm font-medium text-gray-700"
+                      >
+                        デザイン
+                      </label>
+                      <select
+                        id="tops-design"
+                        value={topsDesign}
+                        onChange={(e) =>
+                          setTopsDesign(e.target.value as TopsDesignValue | "")
+                        }
+                        disabled={
+                          !topsShape || availableTopsDesigns.length === 0
+                        }
+                        className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                      >
+                        <option value="">
+                          {availableTopsDesigns.length
+                            ? "選択してください"
+                            : "選択肢がありません"}
+                        </option>
+                        {availableTopsDesigns.map((item) => (
+                          <option key={item.value} value={item.value}>
+                            {item.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="tops-fit"
+                        className="mb-1 block text-sm font-medium text-gray-700"
+                      >
+                        シルエット
+                      </label>
+                      <select
+                        id="tops-fit"
+                        value={topsFit}
+                        onChange={(e) =>
+                          setTopsFit(e.target.value as TopsFitValue)
+                        }
+                        disabled={!topsShape}
+                        className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                      >
+                        {availableTopsFits.map((item) => (
+                          <option key={item.value} value={item.value}>
+                            {item.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {isBottomsSpecVisible ? (
+                <div className="space-y-4 rounded-xl border border-gray-200 bg-gray-50 p-4">
+                  <p className="text-sm font-medium text-gray-700">
+                    ボトムス仕様
+                  </p>
+                  <div>
+                    <label
+                      htmlFor="bottoms-length-type"
+                      className="mb-1 block text-sm font-medium text-gray-700"
+                    >
+                      ボトムス丈
+                    </label>
+                    <select
+                      id="bottoms-length-type"
+                      value={bottomsLengthType}
+                      onChange={(e) =>
+                        setBottomsLengthType(
+                          e.target.value as BottomsLengthType | "",
+                        )
+                      }
+                      className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors["spec.bottoms.length_type"] ? "border-red-400" : "border-gray-300"}`}
+                    >
+                      <option value="">選択してください</option>
+                      {BOTTOMS_LENGTH_OPTIONS.map((item) => (
+                        <option key={item.value} value={item.value}>
+                          {item.label}
+                        </option>
+                      ))}
+                    </select>
+                    {errors["spec.bottoms.length_type"] && (
+                      <p className="mt-2 text-sm text-red-600">
+                        {errors["spec.bottoms.length_type"]}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ) : null}
+
+              {isLegwearSpecVisible ? (
+                <div className="space-y-4 rounded-xl border border-gray-200 bg-gray-50 p-4">
+                  <p className="text-sm font-medium text-gray-700">
+                    レッグウェア仕様
+                  </p>
+                  {isLegwearCoverageSelectVisible ? (
+                    <div>
+                      <label
+                        htmlFor="legwear-coverage-type"
+                        className="mb-1 block text-sm font-medium text-gray-700"
+                      >
+                        レッグウェア
+                      </label>
+                      <select
+                        id="legwear-coverage-type"
+                        value={legwearCoverageType}
+                        onChange={(e) =>
+                          setLegwearCoverageType(
+                            e.target.value as LegwearCoverageType | "",
+                          )
+                        }
+                        className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors["spec.legwear.coverage_type"] ? "border-red-400" : "border-gray-300"}`}
+                      >
+                        <option value="">選択してください</option>
+                        {legwearCoverageOptions.map((item) => (
+                          <option key={item.value} value={item.value}>
+                            {item.label}
+                          </option>
+                        ))}
+                      </select>
+                      {errors["spec.legwear.coverage_type"] && (
+                        <p className="mt-2 text-sm text-red-600">
+                          {errors["spec.legwear.coverage_type"]}
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-600">
+                      レッグウェア：{" "}
+                      {shape === "stockings" ? "ストッキング" : "タイツ"}
+                    </p>
+                  )}
+                </div>
+              ) : null}
+
+              {!isTopsCategory &&
+              !isBottomsSpecVisible &&
+              !isLegwearSpecVisible ? (
+                <p className="rounded-xl border border-dashed border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-500">
+                  {detailEmptyMessage}
+                </p>
+              ) : null}
+            </ItemFormSection>
+
+            <ItemFormSection title="色とプレビュー">
+              <div className="grid gap-6 md:grid-cols-2">
+                <div className="space-y-3">
+                  <FieldLabel
+                    as="div"
+                    label="メインカラー"
+                    required
+                    className=""
+                  />
+                  <label className="flex items-center gap-2 text-sm text-gray-700">
+                    <input
+                      type="checkbox"
+                      checked={useCustomMainColor}
+                      onChange={(e) => {
+                        setUseCustomMainColor(e.target.checked);
+                        if (e.target.checked) setMainColor("");
+                      }}
+                      className="h-4 w-4"
+                    />
+                    カスタムカラーを使う
+                  </label>
+
+                  {useCustomMainColor ? (
+                    <div className="flex items-center gap-3 rounded-xl border border-gray-300 bg-white px-4 py-3">
+                      <input
+                        type="color"
+                        value={customMainHex}
+                        onChange={(e) => setCustomMainHex(e.target.value)}
+                        className="h-10 w-14 cursor-pointer rounded border border-gray-300 bg-white p-1"
+                      />
+                      <input
+                        type="text"
+                        value={customMainHex}
+                        onChange={(e) => setCustomMainHex(e.target.value)}
+                        className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors.mainColor ? "border-red-400" : "border-gray-300"}`}
+                      />
+                    </div>
+                  ) : (
+                    <ColorSelect
+                      value={mainColor}
+                      onChange={setMainColor}
+                      placeholder="選択してください"
+                    />
+                  )}
+                  {errors.mainColor && (
+                    <p className="mt-2 text-sm text-red-600">
+                      {errors.mainColor}
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-3">
+                  <label className="block text-sm font-medium text-gray-700">
+                    サブカラー
+                  </label>
+                  <label className="flex items-center gap-2 text-sm text-gray-700">
+                    <input
+                      type="checkbox"
+                      checked={useCustomSubColor}
+                      onChange={(e) => {
+                        setUseCustomSubColor(e.target.checked);
+                        if (e.target.checked) setSubColor("");
+                      }}
+                      className="h-4 w-4"
+                    />
+                    カスタムカラーを使う
+                  </label>
+
+                  {useCustomSubColor ? (
+                    <div className="flex items-center gap-3 rounded-xl border border-gray-300 bg-white px-4 py-3">
+                      <input
+                        type="color"
+                        value={customSubHex}
+                        onChange={(e) => setCustomSubHex(e.target.value)}
+                        className="h-10 w-14 cursor-pointer rounded border border-gray-300 bg-white p-1"
+                      />
+                      <input
+                        type="text"
+                        value={customSubHex}
+                        onChange={(e) => setCustomSubHex(e.target.value)}
+                        className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                      />
+                    </div>
+                  ) : (
+                    <ColorSelect
+                      value={subColor}
+                      onChange={setSubColor}
+                      placeholder="未選択"
+                      emptyOptionLabel="色を選ばない"
+                    />
+                  )}
+                </div>
+              </div>
+
+              <div className="lg:hidden">
+                <ItemFormPreviewPanel
+                  compact
+                  showHeader={false}
+                  summary={previewSummary}
+                  preview={
+                    <ItemPreviewCard
+                      name={name}
+                      category={category}
+                      shape={shape}
+                      mainColorHex={selectedMainColor?.hex}
+                      mainColorLabel={selectedMainColor?.label}
+                      subColorHex={selectedSubColor?.hex}
+                      subColorLabel={selectedSubColor?.label}
+                      topsSpec={previewTopsSpec}
+                      topsSpecRaw={previewTopsSpecRaw}
+                      spec={previewSpec}
+                      images={itemImages}
+                      skinTonePreset={skinTonePreset}
+                      compact
+                    />
+                  }
+                  imagesOverview={
+                    <ItemImagesOverview
+                      compact
+                      images={itemImages}
+                      title="画像確認"
+                      emptyMessage="画像はまだありません。"
+                    />
+                  }
+                />
+              </div>
+            </ItemFormSection>
+
+            <ItemFormSection title="利用条件・状態">
+              <div>
+                <p className="mb-2 text-sm font-medium">季節</p>
+                <div className="flex flex-wrap gap-3">
+                  {SEASON_OPTIONS.map((season) => {
+                    const checked = selectedSeasons.includes(season);
+                    return (
+                      <label
+                        key={season}
+                        className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition ${checked ? "border-blue-500 bg-blue-50 text-blue-700" : "border-gray-300 bg-white text-gray-700"}`}
+                      >
+                        <input
+                          type="checkbox"
+                          className="h-4 w-4"
+                          checked={checked}
+                          onChange={() =>
+                            toggleValue(
+                              season,
+                              selectedSeasons,
+                              setSelectedSeasons,
+                            )
+                          }
+                        />
+                        {season}
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <p className="mb-2 text-sm font-medium">TPO</p>
+                <div className="flex flex-wrap gap-3">
+                  {tpoOptions.map((tpo) => {
+                    const checked = selectedTpoIds.includes(tpo.id);
+                    return (
+                      <label
+                        key={tpo.id}
+                        className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition ${checked ? "border-blue-500 bg-blue-50 text-blue-700" : "border-gray-300 bg-white text-gray-700"} ${!tpo.isActive ? "border-amber-300 bg-amber-50 text-amber-800" : ""}`}
+                      >
+                        <input
+                          type="checkbox"
+                          className="h-4 w-4"
+                          checked={checked}
+                          onChange={() =>
+                            toggleValue(
+                              tpo.id,
+                              selectedTpoIds,
+                              setSelectedTpoIds,
+                            )
+                          }
+                        />
+                        {tpo.name}
+                      </label>
+                    );
+                  })}
+                  {tpoOptions.length === 0 ? (
+                    <p className="text-sm text-gray-500">
+                      有効な TPO はまだありません。設定から追加できます。
+                    </p>
+                  ) : null}
+                </div>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <div
+                    className="mb-1 block text-sm font-medium text-gray-700"
+                    aria-hidden="true"
+                  >
+                    雨対応
+                  </div>
+                  <label className="inline-flex h-[50px] w-full items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700">
+                    <input
+                      type="checkbox"
+                      checked={isRainOk}
+                      onChange={(e) => setIsRainOk(e.target.checked)}
+                      className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    雨対応
+                  </label>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="care-status"
+                    className="mb-1 block text-sm font-medium text-gray-700"
+                  >
+                    ケア状態
+                  </label>
+                  <select
+                    id="care-status"
+                    value={careStatus}
+                    onChange={(e) =>
+                      setCareStatus(e.target.value as ItemCareStatus | "")
+                    }
+                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  >
+                    <option value=""></option>
+                    {Object.entries(ITEM_CARE_STATUS_LABELS).map(
+                      ([value, label]) => (
+                        <option key={value} value={value}>
+                          {label}
+                        </option>
+                      ),
+                    )}
+                  </select>
+                  <p className="mt-1 text-xs text-gray-500">
+                    クリーニング中でもコーデ候補や着用履歴候補からは除外されません。
+                  </p>
+                </div>
+              </div>
+            </ItemFormSection>
+
+            <ItemFormSection title="サイズ">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <label
+                    htmlFor="size-gender"
+                    className="mb-1 block text-sm font-medium text-gray-700"
+                  >
+                    サイズ区分
+                  </label>
+                  <select
+                    id="size-gender"
+                    value={sizeGender}
+                    onChange={(e) =>
+                      setSizeGender(
+                        e.target.value as "women" | "men" | "unisex" | "",
+                      )
+                    }
+                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  >
+                    <option value=""></option>
+                    {Object.entries(ITEM_SIZE_GENDER_LABELS).map(
+                      ([value, label]) => (
+                        <option key={value} value={value}>
+                          {label}
+                        </option>
+                      ),
+                    )}
+                  </select>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="size-label"
+                    className="mb-1 block text-sm font-medium text-gray-700"
+                  >
+                    サイズ表記
+                  </label>
+                  <input
+                    id="size-label"
+                    type="text"
+                    placeholder="例: M / 23.5cm"
+                    value={sizeLabel}
+                    onChange={(e) => setSizeLabel(e.target.value)}
+                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  />
+                </div>
+              </div>
 
               <div>
                 <label
-                  htmlFor="price"
+                  htmlFor="size-note"
                   className="mb-1 block text-sm font-medium text-gray-700"
                 >
-                  実購入価格
+                  サイズ補足
                 </label>
-                <div className="flex items-center rounded-lg border border-gray-300 bg-white pr-4 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100">
-                  <input
-                    id="price"
-                    type="number"
-                    min="0"
-                    inputMode="numeric"
-                    value={price}
-                    onChange={(e) => setPrice(e.target.value)}
-                    className="w-full rounded-lg bg-transparent px-4 py-3 text-gray-900 outline-none"
-                  />
-                  <span className="text-sm text-gray-500">円</span>
-                </div>
-                {price !== "" && (
-                  <p className="mt-1 text-xs text-gray-500">
-                    表示: {formatItemPrice(Number(price))}
-                  </p>
-                )}
+                <input
+                  id="size-note"
+                  type="text"
+                  value={sizeNote}
+                  onChange={(e) => setSizeNote(e.target.value)}
+                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                />
               </div>
-            </div>
 
-            <div>
-              <label
-                htmlFor="name"
-                className="mb-1 block text-sm font-medium text-gray-700"
-              >
-                名前
-              </label>
-              <input
-                id="name"
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-              />
-            </div>
+              <div>
+                <label
+                  htmlFor="size-details-note"
+                  className="mb-1 block text-sm font-medium text-gray-700"
+                >
+                  実寸メモ
+                </label>
+                <textarea
+                  id="size-details-note"
+                  value={sizeDetailsNote}
+                  onChange={(e) => setSizeDetailsNote(e.target.value)}
+                  rows={3}
+                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                />
+              </div>
+            </ItemFormSection>
 
-            <div>
-              <FieldLabel htmlFor="category" label="カテゴリ" required />
-              <select
-                id="category"
-                value={category}
-                onChange={(e) => handleCategoryChange(e.target.value)}
-                className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors.category ? "border-red-400" : "border-gray-300"}`}
-              >
-                <option value="">選択してください</option>
-                {categoryOptions.map((item) => (
-                  <option key={item.value} value={item.value}>
-                    {item.label}
-                  </option>
-                ))}
-              </select>
-              {errors.category && (
-                <p className="mt-2 text-sm text-red-600">{errors.category}</p>
-              )}
-            </div>
+            <ItemFormSection title="購入・補足">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <label
+                    htmlFor="price"
+                    className="mb-1 block text-sm font-medium text-gray-700"
+                  >
+                    実購入価格
+                  </label>
+                  <div className="flex items-center rounded-lg border border-gray-300 bg-white pr-4 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100">
+                    <input
+                      id="price"
+                      type="number"
+                      min="0"
+                      inputMode="numeric"
+                      value={price}
+                      onChange={(e) => setPrice(e.target.value)}
+                      className="w-full rounded-lg bg-transparent px-4 py-3 text-gray-900 outline-none"
+                    />
+                    <span className="text-sm text-gray-500">円</span>
+                  </div>
+                  {price !== "" && (
+                    <p className="mt-1 text-xs text-gray-500">
+                      表示: {formatItemPrice(Number(price))}
+                    </p>
+                  )}
+                </div>
 
-            <div>
-              <FieldLabel htmlFor="shape" label="形" required />
-              <select
-                id="shape"
-                value={shape}
-                onChange={(e) => handleShapeChange(e.target.value)}
-                disabled={!category || isTopsCategory}
-                className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors.shape ? "border-red-400" : "border-gray-300"}`}
-              >
-                <option value="">選択してください</option>
-                {shapeOptions.map((item) => (
-                  <option key={item.value} value={item.value}>
-                    {item.label}
-                  </option>
-                ))}
-              </select>
-              {errors.shape && (
-                <p className="mt-2 text-sm text-red-600">{errors.shape}</p>
-              )}
-            </div>
+                <div>
+                  <label
+                    htmlFor="purchased-at"
+                    className="mb-1 block text-sm font-medium text-gray-700"
+                  >
+                    購入日
+                  </label>
+                  <input
+                    id="purchased-at"
+                    type="date"
+                    value={purchasedAt}
+                    onChange={(e) => setPurchasedAt(e.target.value)}
+                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  />
+                </div>
+              </div>
 
-            <div className="grid gap-4 md:grid-cols-2">
               <div>
                 <label
                   htmlFor="purchase-url"
@@ -942,663 +1594,67 @@ export default function EditItemPage({
 
               <div>
                 <label
-                  htmlFor="purchased-at"
+                  htmlFor="memo"
                   className="mb-1 block text-sm font-medium text-gray-700"
                 >
-                  購入日
+                  メモ
                 </label>
-                <input
-                  id="purchased-at"
-                  type="date"
-                  value={purchasedAt}
-                  onChange={(e) => setPurchasedAt(e.target.value)}
+                <textarea
+                  id="memo"
+                  value={memo}
+                  onChange={(e) => setMemo(e.target.value)}
+                  rows={4}
                   className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                 />
               </div>
-            </div>
+            </ItemFormSection>
 
-            <div>
-              <label
-                htmlFor="memo"
-                className="mb-1 block text-sm font-medium text-gray-700"
-              >
-                メモ
-              </label>
-              <textarea
-                id="memo"
-                value={memo}
-                onChange={(e) => setMemo(e.target.value)}
-                rows={4}
-                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="care-status"
-                className="mb-1 block text-sm font-medium text-gray-700"
-              >
-                ケア状態
-              </label>
-              <select
-                id="care-status"
-                value={careStatus}
-                onChange={(e) =>
-                  setCareStatus(e.target.value as ItemCareStatus | "")
-                }
-                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-              >
-                <option value=""></option>
-                {Object.entries(ITEM_CARE_STATUS_LABELS).map(
-                  ([value, label]) => (
-                    <option key={value} value={value}>
-                      {label}
-                    </option>
-                  ),
-                )}
-              </select>
-              <p className="mt-1 text-xs text-gray-500">
-                クリーニング中でもコーデ候補や着用履歴候補からは除外されません。
-              </p>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2">
-              <div>
-                <label
-                  htmlFor="size-gender"
-                  className="mb-1 block text-sm font-medium text-gray-700"
-                >
-                  サイズ区分
-                </label>
-                <select
-                  id="size-gender"
-                  value={sizeGender}
-                  onChange={(e) =>
-                    setSizeGender(
-                      e.target.value as "women" | "men" | "unisex" | "",
-                    )
-                  }
-                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                >
-                  <option value=""></option>
-                  {Object.entries(ITEM_SIZE_GENDER_LABELS).map(
-                    ([value, label]) => (
-                      <option key={value} value={value}>
-                        {label}
-                      </option>
-                    ),
-                  )}
-                </select>
-              </div>
-
-              <div>
-                <label
-                  htmlFor="size-label"
-                  className="mb-1 block text-sm font-medium text-gray-700"
-                >
-                  サイズ表記
-                </label>
-                <input
-                  id="size-label"
-                  type="text"
-                  placeholder="例: M / 23.5cm"
-                  value={sizeLabel}
-                  onChange={(e) => setSizeLabel(e.target.value)}
-                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                />
-              </div>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-[1fr_auto]">
-              <div>
-                <label
-                  htmlFor="size-note"
-                  className="mb-1 block text-sm font-medium text-gray-700"
-                >
-                  サイズ補足
-                </label>
-                <input
-                  id="size-note"
-                  type="text"
-                  value={sizeNote}
-                  onChange={(e) => setSizeNote(e.target.value)}
-                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                />
-              </div>
-
-              <div>
-                <div
-                  className="mb-1 block text-sm font-medium text-transparent"
-                  aria-hidden="true"
-                >
-                  雨対応
-                </div>
-                <label className="inline-flex h-[50px] w-full items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700">
-                  <input
-                    type="checkbox"
-                    checked={isRainOk}
-                    onChange={(e) => setIsRainOk(e.target.checked)}
-                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  />
-                  雨対応
-                </label>
-              </div>
-            </div>
-
-            <div>
-              <label
-                htmlFor="size-details-note"
-                className="mb-1 block text-sm font-medium text-gray-700"
-              >
-                実寸メモ
-              </label>
-              <textarea
-                id="size-details-note"
-                value={sizeDetailsNote}
-                onChange={(e) => setSizeDetailsNote(e.target.value)}
-                rows={3}
-                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-              />
-            </div>
-          </section>
-
-          <section className="space-y-4 rounded-xl border border-gray-200 bg-gray-50 p-4">
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900">画像</h2>
-              <p className="mt-1 text-sm text-gray-500">
-                既存画像の削除と、新しい item 画像の追加ができます。
-              </p>
-            </div>
-
-            <ItemImageUploader
-              existingImages={itemImages}
-              pendingImages={pendingImages}
-              onPendingImagesChange={setPendingImages}
-              onMoveExistingImage={handleMoveImage}
-              onMakePrimaryExistingImage={handleMakePrimaryImage}
-              onDeleteExistingImage={(image) => {
-                if (!image.id) {
-                  return;
-                }
-
-                void handleDeleteImage(image.id);
-              }}
-              disabled={submitting}
-              helperText="既存画像は並び替えと代表画像の切り替えができます。保存前の追加画像はまとめて反映されます。"
-              existingHeading={
-                itemImages.length > 0 ? "現在登録されている画像" : undefined
-              }
-            />
-          </section>
-
-          {isTopsCategory && (
-            <section className="space-y-4 rounded-xl border border-gray-200 bg-gray-50 p-4">
-              <div>
-                <p className="text-sm font-medium text-gray-700">
-                  トップス仕様
-                </p>
-                <p className="mt-1 text-xs text-gray-500">
-                  保存済みのトップス仕様を編集しながら、下のプレビューに反映します。
-                </p>
-              </div>
-
-              <div className="grid gap-4 md:grid-cols-2">
-                <div>
-                  <label
-                    htmlFor="tops-shape"
-                    className="mb-1 block text-sm font-medium text-gray-700"
-                  >
-                    形
-                  </label>
-                  <select
-                    id="tops-shape"
-                    value={topsShape}
-                    onChange={(e) => handleTopsShapeChange(e.target.value)}
-                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                  >
-                    <option value="">選択してください</option>
-                    {TOPS_SHAPES.map((item) => (
-                      <option key={item.value} value={item.value}>
-                        {item.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="tops-sleeve"
-                    className="mb-1 block text-sm font-medium text-gray-700"
-                  >
-                    袖
-                  </label>
-                  <select
-                    id="tops-sleeve"
-                    value={topsSleeve}
-                    onChange={(e) =>
-                      setTopsSleeve(e.target.value as TopsSleeveValue | "")
-                    }
-                    disabled={!topsShape}
-                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                  >
-                    <option value="">選択してください</option>
-                    {availableTopsSleeves.map((item) => (
-                      <option key={item.value} value={item.value}>
-                        {item.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="tops-length"
-                    className="mb-1 block text-sm font-medium text-gray-700"
-                  >
-                    丈
-                  </label>
-                  <select
-                    id="tops-length"
-                    value={topsLength}
-                    onChange={(e) =>
-                      setTopsLength(e.target.value as TopsLengthValue | "")
-                    }
-                    disabled={!topsShape}
-                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                  >
-                    <option value="">選択してください</option>
-                    {availableTopsLengths.map((item) => (
-                      <option key={item.value} value={item.value}>
-                        {item.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="tops-neck"
-                    className="mb-1 block text-sm font-medium text-gray-700"
-                  >
-                    首元
-                  </label>
-                  <select
-                    id="tops-neck"
-                    value={topsNeck}
-                    onChange={(e) =>
-                      setTopsNeck(e.target.value as TopsNeckValue | "")
-                    }
-                    disabled={!topsShape}
-                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                  >
-                    <option value="">選択してください</option>
-                    {availableTopsNecks.map((item) => (
-                      <option key={item.value} value={item.value}>
-                        {item.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="tops-design"
-                    className="mb-1 block text-sm font-medium text-gray-700"
-                  >
-                    デザイン
-                  </label>
-                  <select
-                    id="tops-design"
-                    value={topsDesign}
-                    onChange={(e) =>
-                      setTopsDesign(e.target.value as TopsDesignValue | "")
-                    }
-                    disabled={!topsShape || availableTopsDesigns.length === 0}
-                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                  >
-                    <option value="">
-                      {availableTopsDesigns.length
-                        ? "選択してください"
-                        : "選択肢がありません"}
-                    </option>
-                    {availableTopsDesigns.map((item) => (
-                      <option key={item.value} value={item.value}>
-                        {item.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="tops-fit"
-                    className="mb-1 block text-sm font-medium text-gray-700"
-                  >
-                    シルエット
-                  </label>
-                  <select
-                    id="tops-fit"
-                    value={topsFit}
-                    onChange={(e) => setTopsFit(e.target.value as TopsFitValue)}
-                    disabled={!topsShape}
-                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                  >
-                    {availableTopsFits.map((item) => (
-                      <option key={item.value} value={item.value}>
-                        {item.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            </section>
-          )}
-
-          {isBottomsSpecVisible && (
-            <section className="space-y-4 rounded-xl border border-gray-200 bg-gray-50 p-4">
-              <div>
-                <p className="text-sm font-medium text-gray-700">
-                  ボトムス仕様
-                </p>
-              </div>
-
-              <div>
-                <label
-                  htmlFor="bottoms-length-type"
-                  className="mb-1 block text-sm font-medium text-gray-700"
-                >
-                  ボトムス丈
-                </label>
-                <select
-                  id="bottoms-length-type"
-                  value={bottomsLengthType}
-                  onChange={(e) =>
-                    setBottomsLengthType(
-                      e.target.value as BottomsLengthType | "",
-                    )
-                  }
-                  className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors["spec.bottoms.length_type"] ? "border-red-400" : "border-gray-300"}`}
-                >
-                  <option value="">選択してください</option>
-                  {BOTTOMS_LENGTH_OPTIONS.map((item) => (
-                    <option key={item.value} value={item.value}>
-                      {item.label}
-                    </option>
-                  ))}
-                </select>
-                {errors["spec.bottoms.length_type"] && (
-                  <p className="mt-2 text-sm text-red-600">
-                    {errors["spec.bottoms.length_type"]}
-                  </p>
-                )}
-              </div>
-            </section>
-          )}
-
-          {isLegwearSpecVisible && (
-            <section className="space-y-4 rounded-xl border border-gray-200 bg-gray-50 p-4">
-              <div>
-                <p className="text-sm font-medium text-gray-700">
-                  レッグウェア仕様
-                </p>
-              </div>
-
-              {isLegwearCoverageSelectVisible ? (
-                <div>
-                  <label
-                    htmlFor="legwear-coverage-type"
-                    className="mb-1 block text-sm font-medium text-gray-700"
-                  >
-                    レッグウェア
-                  </label>
-                  <select
-                    id="legwear-coverage-type"
-                    value={legwearCoverageType}
-                    onChange={(e) =>
-                      setLegwearCoverageType(
-                        e.target.value as LegwearCoverageType | "",
-                      )
-                    }
-                    className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors["spec.legwear.coverage_type"] ? "border-red-400" : "border-gray-300"}`}
-                  >
-                    <option value="">選択してください</option>
-                    {legwearCoverageOptions.map((item) => (
-                      <option key={item.value} value={item.value}>
-                        {item.label}
-                      </option>
-                    ))}
-                  </select>
-                  {errors["spec.legwear.coverage_type"] && (
-                    <p className="mt-2 text-sm text-red-600">
-                      {errors["spec.legwear.coverage_type"]}
-                    </p>
-                  )}
-                </div>
-              ) : (
-                <p className="text-sm text-gray-600">
-                  レッグウェア：{" "}
-                  {shape === "stockings" ? "ストッキング" : "タイツ"}
-                </p>
-              )}
-            </section>
-          )}
-
-          <section className="space-y-4">
-            <h2 className="text-lg font-semibold text-gray-900">色</h2>
-
-            <div className="grid gap-6 md:grid-cols-2">
-              <div className="space-y-3">
-                <FieldLabel
-                  as="div"
-                  label="メインカラー"
-                  required
-                  className=""
-                />
-                <label className="flex items-center gap-2 text-sm text-gray-700">
-                  <input
-                    type="checkbox"
-                    checked={useCustomMainColor}
-                    onChange={(e) => {
-                      setUseCustomMainColor(e.target.checked);
-                      if (e.target.checked) setMainColor("");
-                    }}
-                    className="h-4 w-4"
-                  />
-                  カスタムカラーを使う
-                </label>
-
-                {useCustomMainColor ? (
-                  <div className="flex items-center gap-3 rounded-xl border border-gray-300 bg-white px-4 py-3">
-                    <input
-                      type="color"
-                      value={customMainHex}
-                      onChange={(e) => setCustomMainHex(e.target.value)}
-                      className="h-10 w-14 cursor-pointer rounded border border-gray-300 bg-white p-1"
-                    />
-                    <input
-                      type="text"
-                      value={customMainHex}
-                      onChange={(e) => setCustomMainHex(e.target.value)}
-                      className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors.mainColor ? "border-red-400" : "border-gray-300"}`}
-                    />
-                  </div>
-                ) : (
-                  <ColorSelect
-                    value={mainColor}
-                    onChange={setMainColor}
-                    placeholder="選択してください"
-                  />
-                )}
-                {errors.mainColor && (
-                  <p className="mt-2 text-sm text-red-600">
-                    {errors.mainColor}
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-3">
-                <label className="block text-sm font-medium text-gray-700">
-                  サブカラー
-                </label>
-                <label className="flex items-center gap-2 text-sm text-gray-700">
-                  <input
-                    type="checkbox"
-                    checked={useCustomSubColor}
-                    onChange={(e) => {
-                      setUseCustomSubColor(e.target.checked);
-                      if (e.target.checked) setSubColor("");
-                    }}
-                    className="h-4 w-4"
-                  />
-                  カスタムカラーを使う
-                </label>
-
-                {useCustomSubColor ? (
-                  <div className="flex items-center gap-3 rounded-xl border border-gray-300 bg-white px-4 py-3">
-                    <input
-                      type="color"
-                      value={customSubHex}
-                      onChange={(e) => setCustomSubHex(e.target.value)}
-                      className="h-10 w-14 cursor-pointer rounded border border-gray-300 bg-white p-1"
-                    />
-                    <input
-                      type="text"
-                      value={customSubHex}
-                      onChange={(e) => setCustomSubHex(e.target.value)}
-                      className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                    />
-                  </div>
-                ) : (
-                  <ColorSelect
-                    value={subColor}
-                    onChange={setSubColor}
-                    placeholder="未選択"
-                    emptyOptionLabel="色を選ばない"
-                  />
-                )}
-              </div>
-            </div>
-
-            {(selectedMainColor || selectedSubColor) && (
-              <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
-                <p className="mb-3 text-sm font-medium text-gray-700">
-                  選択中の色
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {selectedMainColor && (
-                    <ColorChip
-                      label={selectedMainColor.label}
-                      hex={selectedMainColor.hex}
-                      tone="main"
-                    />
-                  )}
-                  {selectedSubColor && (
-                    <ColorChip
-                      label={selectedSubColor.label}
-                      hex={selectedSubColor.hex}
-                      tone="sub"
-                    />
-                  )}
-                </div>
-              </div>
-            )}
-          </section>
-
-          <section className="space-y-4">
-            <h2 className="text-lg font-semibold text-gray-900">季節・TPO</h2>
-
-            <div>
-              <p className="mb-2 text-sm font-medium">季節</p>
-              <div className="flex flex-wrap gap-3">
-                {SEASON_OPTIONS.map((season) => {
-                  const checked = selectedSeasons.includes(season);
-                  return (
-                    <label
-                      key={season}
-                      className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition ${checked ? "border-blue-500 bg-blue-50 text-blue-700" : "border-gray-300 bg-white text-gray-700"}`}
-                    >
-                      <input
-                        type="checkbox"
-                        className="h-4 w-4"
-                        checked={checked}
-                        onChange={() =>
-                          toggleValue(
-                            season,
-                            selectedSeasons,
-                            setSelectedSeasons,
-                          )
-                        }
-                      />
-                      {season}
-                    </label>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div>
-              <p className="mb-2 text-sm font-medium">TPO</p>
-              <div className="flex flex-wrap gap-3">
-                {tpoOptions.map((tpo) => {
-                  const checked = selectedTpoIds.includes(tpo.id);
-                  return (
-                    <label
-                      key={tpo.id}
-                      className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition ${checked ? "border-blue-500 bg-blue-50 text-blue-700" : "border-gray-300 bg-white text-gray-700"} ${!tpo.isActive ? "border-amber-300 bg-amber-50 text-amber-800" : ""}`}
-                    >
-                      <input
-                        type="checkbox"
-                        className="h-4 w-4"
-                        checked={checked}
-                        onChange={() =>
-                          toggleValue(tpo.id, selectedTpoIds, setSelectedTpoIds)
-                        }
-                      />
-                      {tpo.name}
-                    </label>
-                  );
-                })}
-                {tpoOptions.length === 0 ? (
-                  <p className="text-sm text-gray-500">
-                    有効な TPO はまだありません。設定から追加できます。
-                  </p>
-                ) : null}
-              </div>
-            </div>
-          </section>
-
-          <div className="flex flex-col gap-3 pt-2 sm:flex-row">
-            <button
-              type="submit"
-              disabled={submitting}
-              className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-3 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+            <ItemFormSection
+              title="画像"
+              description="画像の追加・削除・並び替えは、画像セクションで行います。"
             >
-              {submitting ? "更新中..." : "更新する"}
-            </button>
+              <ItemImageUploader
+                existingImages={itemImages}
+                pendingImages={pendingImages}
+                onPendingImagesChange={setPendingImages}
+                onMoveExistingImage={handleMoveImage}
+                onMakePrimaryExistingImage={handleMakePrimaryImage}
+                onDeleteExistingImage={(image) => {
+                  if (!image.id) {
+                    return;
+                  }
 
-            <Link
-              href={itemId ? `/items/${itemId}` : "/items"}
-              className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
-            >
-              キャンセル
-            </Link>
+                  void handleDeleteImage(image.id);
+                }}
+                disabled={submitting}
+                helperText="既存画像は並び替えと代表画像の切り替えができます。保存前の追加画像はまとめて反映されます。"
+                existingHeading={
+                  itemImages.length > 0 ? "操作対象の画像" : undefined
+                }
+              />
+            </ItemFormSection>
+
+            <div className="rounded-2xl border border-gray-200 bg-gray-50/70 px-5 py-4 shadow-sm">
+              <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center sm:items-center">
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-3 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <Save className="mr-2 h-4 w-4" aria-hidden="true" />
+                  {submitting ? "更新中..." : "更新する"}
+                </button>
+
+                <Link
+                  href={itemId ? `/items/${itemId}` : "/items"}
+                  className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+                >
+                  キャンセル
+                </Link>
+              </div>
+            </div>
           </div>
         </form>
-
-        <ItemPreviewCard
-          name={name}
-          category={category}
-          shape={shape}
-          mainColorHex={selectedMainColor?.hex}
-          mainColorLabel={selectedMainColor?.label}
-          subColorHex={selectedSubColor?.hex}
-          subColorLabel={selectedSubColor?.label}
-          topsSpec={previewTopsSpec}
-          topsSpecRaw={previewTopsSpecRaw}
-          spec={previewSpec}
-          images={itemImages}
-          skinTonePreset={skinTonePreset}
-        />
 
         {submitError && (
           <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
