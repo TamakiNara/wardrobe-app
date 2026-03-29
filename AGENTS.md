@@ -136,6 +136,9 @@
 - commit やコミットメッセージ提案の前に、`.githooks/pre-commit` の実行内容を確認し、必要なら同等コマンドを先に実行する
 - web に変更がある場合、`npm run lint` だけでなく `npx prettier --check .` も事前に実行する
 - 整形コマンドで修正が入った場合は、その差分を再 stage してから commit する
+- bash / WSL 側で `node` や `npx` の実行結果が不安定な場合は、Windows 側の `cmd.exe /c` で `npm run lint` と `npx prettier --check .` を確認する
+- `prettier --write` を実行した後は、index と working tree がずれるため、対象ファイルを必ず `git add` し直してから commit する
+- pre-commit で `Code style issues found` が出た場合は、まず hook が指摘したファイルに対して `prettier --check` を再現し、必要ならそのファイル群だけ `prettier --write` して再 stage する
 
 変更範囲に関係ない大規模修正は行わないこと。
 
@@ -145,6 +148,8 @@
 - api: `php artisan test`
 - web: `npm run lint`
 - web: `npx prettier --check .`
+- web (Windows 側確認): `cmd.exe /c "cd /d C:\DEV\wardrobe-app\web && npm run lint"`
+- web (Windows 側確認): `cmd.exe /c "cd /d C:\DEV\wardrobe-app\web && npx prettier --check ."`
 
 ## Git hooks
 
