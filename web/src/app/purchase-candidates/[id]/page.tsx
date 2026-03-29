@@ -8,6 +8,12 @@ import {
   PURCHASE_CANDIDATE_SIZE_GENDER_LABELS,
   PURCHASE_CANDIDATE_STATUS_LABELS,
 } from "@/lib/purchase-candidates/labels";
+import {
+  formatSizeDetailValue,
+  getStructuredSizeFieldDefinitions,
+  normalizeItemSizeDetails,
+} from "@/lib/items/size-details";
+import { resolvePurchaseCandidateItemCategory } from "@/lib/purchase-candidates/category-map";
 import { fetchLaravelWithCookie } from "@/lib/server/laravel";
 import type { PurchaseCandidateDetailResponse } from "@/types/purchase-candidates";
 
@@ -57,6 +63,20 @@ export default async function PurchaseCandidateDetailPage({
 }) {
   const { id } = await params;
   const candidate = await getPurchaseCandidate(id);
+  const resolvedItemCategory = resolvePurchaseCandidateItemCategory(
+    candidate.category_id,
+  );
+  const normalizedSizeDetails = normalizeItemSizeDetails(
+    candidate.size_details,
+  );
+  const structuredSizeFieldDefinitions = getStructuredSizeFieldDefinitions(
+    resolvedItemCategory?.category,
+    resolvedItemCategory?.shape,
+  );
+  const visibleStructuredSizeFields = structuredSizeFieldDefinitions.filter(
+    (field) => normalizedSizeDetails?.structured?.[field.name] !== undefined,
+  );
+  const visibleCustomSizeFields = normalizedSizeDetails?.custom_fields ?? [];
 
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">
@@ -311,10 +331,59 @@ export default async function PurchaseCandidateDetailPage({
               </dd>
             </div>
             <div>
-              <dt className="text-sm font-medium text-gray-700">サイズメモ</dt>
+              <dt className="text-sm font-medium text-gray-700">
+                サイズ感メモ
+              </dt>
               <dd className="mt-1 text-sm text-gray-600">
                 {candidate.size_note ?? "未設定"}
               </dd>
+            </div>
+            <div className="md:col-span-2">
+              <dt className="text-sm font-medium text-gray-700">実寸</dt>
+              {visibleStructuredSizeFields.length > 0 ||
+              visibleCustomSizeFields.length > 0 ? (
+                <dd className="mt-2 space-y-3 text-sm text-gray-600">
+                  {visibleStructuredSizeFields.length > 0 ? (
+                    <div className="grid gap-2 md:grid-cols-2">
+                      {visibleStructuredSizeFields.map((field) => (
+                        <div
+                          key={field.name}
+                          className="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 px-3 py-2"
+                        >
+                          <span className="text-gray-700">{field.label}</span>
+                          <span>
+                            {formatSizeDetailValue(
+                              normalizedSizeDetails?.structured?.[field.name] ??
+                                0,
+                            )}
+                            cm
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+                  {visibleCustomSizeFields.length > 0 ? (
+                    <div className="space-y-2">
+                      {visibleCustomSizeFields
+                        .slice()
+                        .sort(
+                          (left, right) => left.sort_order - right.sort_order,
+                        )
+                        .map((field) => (
+                          <div
+                            key={`${field.label}-${field.sort_order}`}
+                            className="flex items-center justify-between rounded-lg border border-gray-200 bg-white px-3 py-2"
+                          >
+                            <span className="text-gray-700">{field.label}</span>
+                            <span>{formatSizeDetailValue(field.value)}cm</span>
+                          </div>
+                        ))}
+                    </div>
+                  ) : null}
+                </dd>
+              ) : (
+                <dd className="mt-1 text-sm text-gray-600">未設定</dd>
+              )}
             </div>
           </dl>
         </section>

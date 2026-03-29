@@ -77,6 +77,19 @@ describe("PurchaseCandidateDetailPage", () => {
           size_gender: "women",
           size_label: "M",
           size_note: "厚手対応",
+          size_details: {
+            structured: {
+              waist: 68,
+              inseam: 67,
+            },
+            custom_fields: [
+              {
+                label: "総丈",
+                value: 92,
+                sort_order: 1,
+              },
+            ],
+          },
           is_rain_ok: true,
           converted_item_id: null,
           converted_at: null,
@@ -115,6 +128,9 @@ describe("PurchaseCandidateDetailPage", () => {
     expect(markup).toContain("レディース");
     expect(markup).toContain("理由");
     expect(markup).toContain("厚手対応");
+    expect(markup).toContain("実寸");
+    expect(markup).toContain("総丈");
+    expect(markup).toContain("92cm");
     expect(markup).toContain("item-draft-action");
     expect(markup).toContain("duplicate-action");
     expect(markup).toContain('href="/purchase-candidates/10/edit"');
@@ -142,6 +158,7 @@ describe("PurchaseCandidateDetailPage", () => {
           size_gender: "women",
           size_label: "M",
           size_note: "厚手対応",
+          size_details: null,
           is_rain_ok: true,
           converted_item_id: 55,
           converted_at: "2026-03-25T10:00:00+09:00",
