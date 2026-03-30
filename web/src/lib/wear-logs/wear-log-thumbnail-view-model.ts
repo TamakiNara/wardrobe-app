@@ -4,7 +4,8 @@ import {
   type OutfitLowerBodyPreviewItem,
 } from "@/lib/outfits/lower-body-preview";
 import {
-  resolveOnepieceAllinoneLayerStyle,
+  type OnepieceAllinoneThumbnailDensity,
+  resolveOnepieceAllinoneLayoutMetrics,
   resolveThumbnailMainSubColorHexes,
   resolveTopsOnepieceAllinoneLayerOrder,
 } from "@/lib/color-thumbnails/onepiece-allinone-shared";
@@ -32,6 +33,11 @@ export type WearLogOnepieceAllinoneThumbnailViewModel = {
   onepieceAllinoneLayerStyle: {
     top: string;
     bottom: string;
+  };
+  onepieceAllinoneLayoutMetrics: {
+    topUnderlayHeight: string;
+    topOverlayHeight: string;
+    lowerBodyHeight: string;
   };
   skinToneColor: string;
 };
@@ -99,9 +105,15 @@ export function buildOnepieceAllinoneWearLogThumbnailViewModel(params: {
   representatives: WearLogThumbnailRepresentatives;
   modeResolution: WearLogThumbnailModeResolution;
   skinToneColor: string;
+  density?: OnepieceAllinoneThumbnailDensity;
 }): WearLogOnepieceAllinoneThumbnailViewModel {
-  const { sortedWearLogItems, representatives, modeResolution, skinToneColor } =
-    params;
+  const {
+    sortedWearLogItems,
+    representatives,
+    modeResolution,
+    skinToneColor,
+    density = "default",
+  } = params;
   void modeResolution;
   const { representativeOnepieceAllinone } = representatives;
 
@@ -123,7 +135,8 @@ export function buildOnepieceAllinoneWearLogThumbnailViewModel(params: {
       })),
       representativeOnepieceAllinone.sort_order,
     );
-  const onepieceAllinoneLayerStyle = resolveOnepieceAllinoneLayerStyle({
+  const onepieceAllinoneLayoutMetrics = resolveOnepieceAllinoneLayoutMetrics({
+    density,
     topsAreBelowOnepieceAllinone,
     shouldRenderBottomsLayer: true,
     onepieceAllinoneHasVisibleLowerBody: true,
@@ -140,7 +153,12 @@ export function buildOnepieceAllinoneWearLogThumbnailViewModel(params: {
     onepieceAllinoneSubColorHex,
     topsAreAboveOnepieceAllinone,
     topsAreBelowOnepieceAllinone,
-    onepieceAllinoneLayerStyle,
+    onepieceAllinoneLayerStyle: onepieceAllinoneLayoutMetrics.layerStyle,
+    onepieceAllinoneLayoutMetrics: {
+      topUnderlayHeight: onepieceAllinoneLayoutMetrics.topUnderlayHeight,
+      topOverlayHeight: onepieceAllinoneLayoutMetrics.topOverlayHeight,
+      lowerBodyHeight: onepieceAllinoneLayoutMetrics.lowerBodyHeight,
+    },
     skinToneColor,
   };
 }

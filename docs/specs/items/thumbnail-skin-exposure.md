@@ -91,6 +91,7 @@ shape 固有の切替位置や構造を表すものではなく、lower-body pre
 ### 要再判断
 
 - 一覧の極小サイズで微差が見えにくい場合の簡略化
+- ここでいう「極小サイズ」は画面全体の breakpoint ではなく、一覧やモーダルで使う小さい thumbnail variant を指す
 - tights / stockings のサブカラー表現
 - `onepiece_allinone` 将来対応時の別ルール
 - `bottom_length_type` から描画割合への変換テーブルの最終値

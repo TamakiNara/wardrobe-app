@@ -48,6 +48,7 @@ export default function OutfitColorThumbnail({
           representatives,
           modeResolution,
           skinToneColor,
+          density: size === "small" ? "compact" : "default",
         })
       : null;
 

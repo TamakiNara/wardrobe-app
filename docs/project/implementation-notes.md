@@ -349,6 +349,10 @@ thumbnail の current 確認用パターン一覧を見返すときは `docs/spe
 - 参照正本:
   - current 確認: `docs/specs/items/thumbnail-current-reference.md`
   - 設計正本: `docs/specs/items/thumbnail-skin-exposure.md`
+- ここでいう「極小サイズ」は画面全体の breakpoint ではなく、small 系 thumbnail variant を指す
+  - outfit: `OutfitColorThumbnail` の `size="small"`
+  - wear log list: `WearLogColorThumbnail`
+  - wear log modal: `WearLogModalColorThumbnail`
 - current 前提の再確認:
   - `onepiece + bottoms` は outfit / wear log とも dedicated mode を維持する
   - `allinone + bottoms` は current では standard 維持のまま切り離す

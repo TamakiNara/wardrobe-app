@@ -144,7 +144,7 @@ describe("WearLogColorThumbnail", () => {
     ).toBe("#E9C29B");
   });
 
-  it("onepiece + bottoms は dedicated mode で onepiece 主レイヤーを描画する", async () => {
+  it("onepiece + bottoms は dedicated mode のまま縮小最適化しつつ others バーを維持する", async () => {
     await act(async () => {
       root.render(
         React.createElement(WearLogColorThumbnail, {
@@ -180,6 +180,13 @@ describe("WearLogColorThumbnail", () => {
               sort_order: 5,
               spec: { legwear: { coverage_type: "crew_socks" } },
             },
+            {
+              ...renderThumbnailItem(5, "shoes", [
+                { role: "main", hex: "#cccccc", label: "グレー" },
+              ]),
+              shape: "sneakers",
+              sort_order: 6,
+            },
           ],
           skinTonePreset: "yellow_medium",
         }),
@@ -207,13 +214,34 @@ describe("WearLogColorThumbnail", () => {
       ),
     ).not.toBeNull();
     expect(
+      container.querySelector('[data-testid="wear-log-thumbnail-others-bar"]'),
+    ).not.toBeNull();
+    expect(
       container
         .querySelector('[data-testid="lower-body-skin-base"]')
         ?.getAttribute("fill"),
     ).toBe("#E9C29B");
     expect(
-      container.querySelector('[data-testid="wear-log-thumbnail-others"]'),
-    ).toBeNull();
+      container
+        .querySelector(
+          '[data-testid="wear-log-thumbnail-onepiece-allinone-layer"]',
+        )
+        ?.getAttribute("style"),
+    ).toContain("bottom: 8%");
+    expect(
+      container
+        .querySelector(
+          '[data-testid="wear-log-thumbnail-onepiece-allinone-top-underlay"]',
+        )
+        ?.getAttribute("style"),
+    ).toContain("height: 10%");
+    expect(
+      container
+        .querySelector(
+          '[data-testid="wear-log-thumbnail-onepiece-allinone-lower-body"]',
+        )
+        ?.getAttribute("style"),
+    ).toContain("height: 14%");
   });
 
   it("allinone + bottoms は standard mode のまま描画する", async () => {

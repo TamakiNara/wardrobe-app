@@ -511,7 +511,7 @@ describe("OutfitColorThumbnail current 統合表示", () => {
     ).toBeNull();
   });
 
-  it("onepiece + bottoms では onepiece を主レイヤーにしつつ裾見せ lower-body を出す", async () => {
+  it("small size の onepiece + bottoms では onepiece 主体を保ったまま裾見せと others バーを縮小表示する", async () => {
     await act(async () => {
       root.render(
         React.createElement(OutfitColorThumbnail, {
@@ -532,7 +532,11 @@ describe("OutfitColorThumbnail current 統合表示", () => {
                 spec: { bottoms: { length_type: "full" } },
               },
             ),
+            renderOutfitItem(3, "shoes", [
+              { role: "main", hex: "#cccccc", label: "グレー" },
+            ]),
           ],
+          size: "small",
         }),
       );
     });
@@ -549,7 +553,17 @@ describe("OutfitColorThumbnail current 統合表示", () => {
     ).not.toBeNull();
     expect(
       container.querySelector('[data-testid="thumbnail-others-bar"]'),
-    ).toBeNull();
+    ).not.toBeNull();
+    expect(
+      container
+        .querySelector('[data-testid="thumbnail-onepiece-allinone-layer"]')
+        ?.getAttribute("style"),
+    ).toContain("bottom: 8%");
+    expect(
+      container
+        .querySelector('[data-testid="thumbnail-onepiece-allinone-lower-body"]')
+        ?.getAttribute("style"),
+    ).toContain("height: 14%");
   });
 
   it("onepiece + bottoms + legwear でも legwear は others に戻さず lower-body preview 専用を維持する", async () => {
@@ -716,6 +730,13 @@ describe("OutfitColorThumbnail current 統合表示", () => {
         '[data-testid="thumbnail-onepiece-allinone-lower-body"]',
       ),
     ).not.toBeNull();
+    expect(
+      container
+        .querySelector(
+          '[data-testid="thumbnail-onepiece-allinone-top-overlay"]',
+        )
+        ?.getAttribute("style"),
+    ).toContain("height: 24%");
   });
 
   it("representative bottoms がなければ lower-body preview を表示しない", async () => {

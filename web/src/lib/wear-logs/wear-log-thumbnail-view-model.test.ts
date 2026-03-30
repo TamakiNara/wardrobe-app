@@ -168,6 +168,7 @@ describe("buildStandardWearLogThumbnailViewModel", () => {
       representatives,
       modeResolution,
       skinToneColor: "#E9C29B",
+      density: "compact",
     });
 
     expect(viewModel.layout.tops).toHaveLength(1);
@@ -177,7 +178,11 @@ describe("buildStandardWearLogThumbnailViewModel", () => {
     expect(viewModel.onepieceAllinoneSubColorHex).toBe("#e5d8bd");
     expect(viewModel.topsAreBelowOnepieceAllinone).toBe(true);
     expect(viewModel.topsAreAboveOnepieceAllinone).toBe(false);
-    expect(viewModel.onepieceAllinoneLayerStyle.bottom).toBe("12%");
+    expect(viewModel.onepieceAllinoneLayerStyle.bottom).toBe("8%");
+    expect(viewModel.onepieceAllinoneLayoutMetrics.lowerBodyHeight).toBe("14%");
+    expect(viewModel.onepieceAllinoneLayoutMetrics.topUnderlayHeight).toBe(
+      "10%",
+    );
     expect(viewModel.skinToneColor).toBe("#E9C29B");
     expect(
       viewModel.onepieceAllinoneLowerBodyPreview?.representativeBottomsItemId,

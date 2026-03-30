@@ -138,7 +138,7 @@ describe("WearLogModalColorThumbnail", () => {
     ).toBe("#E9C29B");
   });
 
-  it("onepiece + bottoms は modal でも dedicated mode で描画する", async () => {
+  it("onepiece + bottoms は modal でも dedicated mode の縮小最適化を使う", async () => {
     await act(async () => {
       root.render(
         React.createElement(WearLogModalColorThumbnail, {
@@ -165,6 +165,13 @@ describe("WearLogModalColorThumbnail", () => {
               sort_order: 4,
               spec: { bottoms: { length_type: "full" } },
             },
+            {
+              ...renderThumbnailItem(4, "bag", [
+                { role: "main", hex: "#8b5cf6", label: "パープル" },
+              ]),
+              shape: "bag",
+              sort_order: 5,
+            },
           ],
           skinTonePreset: "yellow_medium",
         }),
@@ -182,10 +189,29 @@ describe("WearLogModalColorThumbnail", () => {
       ),
     ).not.toBeNull();
     expect(
+      container.querySelector(
+        '[data-testid="wear-log-modal-thumbnail-others-bar"]',
+      ),
+    ).not.toBeNull();
+    expect(
       container
         .querySelector('[data-testid="lower-body-skin-base"]')
         ?.getAttribute("fill"),
     ).toBe("#E9C29B");
+    expect(
+      container
+        .querySelector(
+          '[data-testid="wear-log-modal-thumbnail-onepiece-allinone-layer"]',
+        )
+        ?.getAttribute("style"),
+    ).toContain("bottom: 8%");
+    expect(
+      container
+        .querySelector(
+          '[data-testid="wear-log-modal-thumbnail-onepiece-allinone-lower-body"]',
+        )
+        ?.getAttribute("style"),
+    ).toContain("height: 14%");
   });
 
   it("others のみの場合は全体を others で使う", async () => {

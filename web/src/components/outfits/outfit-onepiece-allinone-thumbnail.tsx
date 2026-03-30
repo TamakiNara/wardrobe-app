@@ -15,7 +15,6 @@ export default function OutfitOnepieceAllinoneThumbnail({
 }) {
   const {
     layout,
-    shouldRenderOnepieceWithBottomsLayer,
     onepieceAllinoneLowerBodyPreview,
     onepieceAllinoneHasVisibleLowerBody,
     onepieceAllinoneMainColorHex,
@@ -23,6 +22,7 @@ export default function OutfitOnepieceAllinoneThumbnail({
     topsAreAboveOnepieceAllinone,
     topsAreBelowOnepieceAllinone,
     onepieceAllinoneLayerStyle,
+    onepieceAllinoneLayoutMetrics,
     skinToneColor,
   } = viewModel;
 
@@ -34,7 +34,8 @@ export default function OutfitOnepieceAllinoneThumbnail({
       >
         {topsAreBelowOnepieceAllinone && layout.tops.length > 0 ? (
           <div
-            className="absolute inset-x-0 top-0 z-0 h-[12%] overflow-hidden"
+            className="absolute inset-x-0 top-0 z-0 overflow-hidden"
+            style={{ height: onepieceAllinoneLayoutMetrics.topUnderlayHeight }}
             data-testid="thumbnail-onepiece-allinone-top-underlay"
           >
             <SegmentRow
@@ -47,9 +48,8 @@ export default function OutfitOnepieceAllinoneThumbnail({
         {onepieceAllinoneHasVisibleLowerBody &&
         onepieceAllinoneLowerBodyPreview ? (
           <div
-            className={`absolute inset-x-0 bottom-0 z-0 ${
-              shouldRenderOnepieceWithBottomsLayer ? "h-[20%]" : "h-[34%]"
-            }`}
+            className="absolute inset-x-0 bottom-0 z-0"
+            style={{ height: onepieceAllinoneLayoutMetrics.lowerBodyHeight }}
             data-testid="thumbnail-onepiece-allinone-lower-body"
           >
             <LowerBodyPreviewSvg
@@ -82,7 +82,8 @@ export default function OutfitOnepieceAllinoneThumbnail({
 
         {topsAreAboveOnepieceAllinone && layout.tops.length > 0 ? (
           <div
-            className="absolute inset-x-0 top-0 z-20 h-[40%] overflow-hidden"
+            className="absolute inset-x-0 top-0 z-20 overflow-hidden"
+            style={{ height: onepieceAllinoneLayoutMetrics.topOverlayHeight }}
             data-testid="thumbnail-onepiece-allinone-top-overlay"
           >
             <SegmentRow

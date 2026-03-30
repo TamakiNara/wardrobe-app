@@ -10,6 +10,18 @@ type ThumbnailLayerOrderItem = {
   sortOrder: number;
 };
 
+export type OnepieceAllinoneThumbnailDensity = "default" | "compact";
+
+export type OnepieceAllinoneLayoutMetrics = {
+  topUnderlayHeight: string;
+  topOverlayHeight: string;
+  lowerBodyHeight: string;
+  layerStyle: {
+    top: string;
+    bottom: string;
+  };
+};
+
 export function resolveThumbnailMainSubColorHexes(colors: ThumbnailColor[]) {
   const mainColor = colors.find((color) => color.role === "main");
   const subColor = colors.find((color) => color.role === "sub");
@@ -43,6 +55,7 @@ export function resolveOnepieceAllinoneLayerStyle(params: {
   topsAreBelowOnepieceAllinone: boolean;
   shouldRenderBottomsLayer: boolean;
   onepieceAllinoneHasVisibleLowerBody: boolean;
+  topOffset?: string;
   bottomsLayerBottom?: string;
   visibleLowerBodyBottom?: string;
   noLowerBodyBottom?: string;
@@ -51,17 +64,52 @@ export function resolveOnepieceAllinoneLayerStyle(params: {
     topsAreBelowOnepieceAllinone,
     shouldRenderBottomsLayer,
     onepieceAllinoneHasVisibleLowerBody,
+    topOffset = "12%",
     bottomsLayerBottom = "12%",
     visibleLowerBodyBottom = "22%",
     noLowerBodyBottom = "0",
   } = params;
 
   return {
-    top: topsAreBelowOnepieceAllinone ? "12%" : "0",
+    top: topsAreBelowOnepieceAllinone ? topOffset : "0",
     bottom: shouldRenderBottomsLayer
       ? bottomsLayerBottom
       : onepieceAllinoneHasVisibleLowerBody
         ? visibleLowerBodyBottom
         : noLowerBodyBottom,
+  };
+}
+
+export function resolveOnepieceAllinoneLayoutMetrics(params: {
+  density: OnepieceAllinoneThumbnailDensity;
+  topsAreBelowOnepieceAllinone: boolean;
+  shouldRenderBottomsLayer: boolean;
+  onepieceAllinoneHasVisibleLowerBody: boolean;
+}): OnepieceAllinoneLayoutMetrics {
+  const {
+    density,
+    topsAreBelowOnepieceAllinone,
+    shouldRenderBottomsLayer,
+    onepieceAllinoneHasVisibleLowerBody,
+  } = params;
+  const shouldUseCompactBottomsLayout =
+    density === "compact" && shouldRenderBottomsLayer;
+  const topOffset = shouldUseCompactBottomsLayout ? "10%" : "12%";
+
+  return {
+    topUnderlayHeight: topOffset,
+    topOverlayHeight: shouldUseCompactBottomsLayout ? "24%" : "40%",
+    lowerBodyHeight: shouldRenderBottomsLayer
+      ? shouldUseCompactBottomsLayout
+        ? "14%"
+        : "20%"
+      : "34%",
+    layerStyle: resolveOnepieceAllinoneLayerStyle({
+      topsAreBelowOnepieceAllinone,
+      shouldRenderBottomsLayer,
+      onepieceAllinoneHasVisibleLowerBody,
+      topOffset,
+      bottomsLayerBottom: shouldUseCompactBottomsLayout ? "8%" : "12%",
+    }),
   };
 }

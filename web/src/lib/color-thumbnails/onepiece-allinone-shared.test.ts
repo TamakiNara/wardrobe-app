@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  resolveOnepieceAllinoneLayoutMetrics,
   resolveOnepieceAllinoneLayerStyle,
   resolveThumbnailMainSubColorHexes,
   resolveTopsOnepieceAllinoneLayerOrder,
@@ -63,6 +64,25 @@ describe("onepiece_allinone thumbnail shared helpers", () => {
     ).toEqual({
       top: "0",
       bottom: "22%",
+    });
+  });
+
+  it("onepiece + bottoms の compact 用寸法を組み立てる", () => {
+    expect(
+      resolveOnepieceAllinoneLayoutMetrics({
+        density: "compact",
+        topsAreBelowOnepieceAllinone: true,
+        shouldRenderBottomsLayer: true,
+        onepieceAllinoneHasVisibleLowerBody: true,
+      }),
+    ).toEqual({
+      topUnderlayHeight: "10%",
+      topOverlayHeight: "24%",
+      lowerBodyHeight: "14%",
+      layerStyle: {
+        top: "10%",
+        bottom: "8%",
+      },
     });
   });
 });

@@ -23,6 +23,7 @@ export default function WearLogOnepieceAllinoneThumbnail({
     topsAreAboveOnepieceAllinone,
     topsAreBelowOnepieceAllinone,
     onepieceAllinoneLayerStyle,
+    onepieceAllinoneLayoutMetrics,
     skinToneColor,
   } = viewModel;
 
@@ -34,7 +35,8 @@ export default function WearLogOnepieceAllinoneThumbnail({
       >
         {topsAreBelowOnepieceAllinone && layout.tops.length > 0 ? (
           <div
-            className="absolute inset-x-0 top-0 z-0 h-[12%] overflow-hidden"
+            className="absolute inset-x-0 top-0 z-0 overflow-hidden"
+            style={{ height: onepieceAllinoneLayoutMetrics.topUnderlayHeight }}
             data-testid={`${testIdPrefix}-onepiece-allinone-top-underlay`}
           >
             <SegmentRow
@@ -46,7 +48,8 @@ export default function WearLogOnepieceAllinoneThumbnail({
 
         {onepieceAllinoneLowerBodyPreview ? (
           <div
-            className="absolute inset-x-0 bottom-0 z-0 h-[20%]"
+            className="absolute inset-x-0 bottom-0 z-0"
+            style={{ height: onepieceAllinoneLayoutMetrics.lowerBodyHeight }}
             data-testid={`${testIdPrefix}-onepiece-allinone-lower-body`}
           >
             <LowerBodyPreviewSvg
@@ -79,7 +82,8 @@ export default function WearLogOnepieceAllinoneThumbnail({
 
         {topsAreAboveOnepieceAllinone && layout.tops.length > 0 ? (
           <div
-            className="absolute inset-x-0 top-0 z-20 h-[40%] overflow-hidden"
+            className="absolute inset-x-0 top-0 z-20 overflow-hidden"
+            style={{ height: onepieceAllinoneLayoutMetrics.topOverlayHeight }}
             data-testid={`${testIdPrefix}-onepiece-allinone-top-overlay`}
           >
             <SegmentRow

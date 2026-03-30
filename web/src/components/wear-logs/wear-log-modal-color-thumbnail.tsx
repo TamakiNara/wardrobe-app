@@ -93,6 +93,7 @@ export default function WearLogModalColorThumbnail({
       representatives,
       modeResolution,
       skinToneColor,
+      density: "compact",
     });
 
     return (
