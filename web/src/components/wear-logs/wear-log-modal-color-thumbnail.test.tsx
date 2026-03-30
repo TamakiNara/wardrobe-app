@@ -132,6 +132,50 @@ describe("WearLogModalColorThumbnail", () => {
     ).toBeNull();
   });
 
+  it("onepiece + bottoms は modal でも dedicated mode で描画する", async () => {
+    await act(async () => {
+      root.render(
+        React.createElement(WearLogModalColorThumbnail, {
+          items: [
+            {
+              ...renderThumbnailItem(1, "tops", [
+                { role: "main", hex: "#ffffff", label: "白" },
+              ]),
+              shape: "tshirt",
+              sort_order: 1,
+            },
+            {
+              ...renderThumbnailItem(2, "onepiece_allinone", [
+                { role: "main", hex: "#223355", label: "ネイビー" },
+              ]),
+              shape: "onepiece",
+              sort_order: 3,
+            },
+            {
+              ...renderThumbnailItem(3, "bottoms", [
+                { role: "main", hex: "#111111", label: "黒" },
+              ]),
+              shape: "pants",
+              sort_order: 4,
+              spec: { bottoms: { length_type: "full" } },
+            },
+          ],
+        }),
+      );
+    });
+
+    expect(
+      container.querySelector(
+        '[data-testid="wear-log-modal-thumbnail-onepiece-allinone-main"]',
+      ),
+    ).not.toBeNull();
+    expect(
+      container.querySelector(
+        '[data-testid="wear-log-modal-thumbnail-onepiece-allinone-layer"]',
+      ),
+    ).not.toBeNull();
+  });
+
   it("others のみの場合は全体を others で使う", async () => {
     await act(async () => {
       root.render(

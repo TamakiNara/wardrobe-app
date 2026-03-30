@@ -28,8 +28,15 @@ export function buildWearLogThumbnailLayout(
   items: WearLogThumbnailItem[],
   options?: {
     excludeLegwear?: boolean;
+    excludeOnepieceAllinone?: boolean;
   },
 ): WearLogThumbnailLayout {
+  const excludedCategories = options?.excludeLegwear ? ["legwear"] : [];
+
+  if (options?.excludeOnepieceAllinone) {
+    excludedCategories.push("onepiece_allinone");
+  }
+
   return buildColorThumbnailLayout(
     items.map((item, index) => ({
       id: item.source_item_id ?? -1 * (index + 1),
@@ -39,7 +46,7 @@ export function buildWearLogThumbnailLayout(
     {
       fallbackWhenEmpty: true,
       emptyFallbackId: -1,
-      excludedCategories: options?.excludeLegwear ? ["legwear"] : [],
+      excludedCategories,
     },
   );
 }

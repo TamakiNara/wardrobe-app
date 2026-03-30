@@ -138,6 +138,107 @@ describe("WearLogColorThumbnail", () => {
     ).not.toBeNull();
   });
 
+  it("onepiece + bottoms は dedicated mode で onepiece 主レイヤーを描画する", async () => {
+    await act(async () => {
+      root.render(
+        React.createElement(WearLogColorThumbnail, {
+          items: [
+            {
+              ...renderThumbnailItem(1, "tops", [
+                { role: "main", hex: "#ffffff", label: "白" },
+              ]),
+              shape: "tshirt",
+              sort_order: 1,
+            },
+            {
+              ...renderThumbnailItem(2, "onepiece_allinone", [
+                { role: "main", hex: "#223355", label: "ネイビー" },
+                { role: "sub", hex: "#e5d8bd", label: "ベージュ" },
+              ]),
+              shape: "onepiece",
+              sort_order: 3,
+            },
+            {
+              ...renderThumbnailItem(3, "bottoms", [
+                { role: "main", hex: "#111111", label: "黒" },
+              ]),
+              shape: "pants",
+              sort_order: 4,
+              spec: { bottoms: { length_type: "full" } },
+            },
+            {
+              ...renderThumbnailItem(4, "legwear", [
+                { role: "main", hex: "#888888", label: "グレー" },
+              ]),
+              shape: "socks",
+              sort_order: 5,
+              spec: { legwear: { coverage_type: "crew_socks" } },
+            },
+          ],
+        }),
+      );
+    });
+
+    expect(
+      container.querySelector(
+        '[data-testid="wear-log-thumbnail-onepiece-allinone-main"]',
+      ),
+    ).not.toBeNull();
+    expect(
+      container.querySelector(
+        '[data-testid="wear-log-thumbnail-onepiece-allinone-layer"]',
+      ),
+    ).not.toBeNull();
+    expect(
+      container.querySelector(
+        '[data-testid="wear-log-thumbnail-onepiece-allinone-lower-body"]',
+      ),
+    ).not.toBeNull();
+    expect(
+      container.querySelector(
+        '[data-testid="wear-log-thumbnail-onepiece-allinone-top-underlay"]',
+      ),
+    ).not.toBeNull();
+    expect(
+      container.querySelector('[data-testid="wear-log-thumbnail-others"]'),
+    ).toBeNull();
+  });
+
+  it("allinone + bottoms は standard mode のまま描画する", async () => {
+    await act(async () => {
+      root.render(
+        React.createElement(WearLogColorThumbnail, {
+          items: [
+            {
+              ...renderThumbnailItem(1, "onepiece_allinone", [
+                { role: "main", hex: "#111111", label: "黒" },
+              ]),
+              shape: "allinone",
+              sort_order: 1,
+            },
+            {
+              ...renderThumbnailItem(2, "bottoms", [
+                { role: "main", hex: "#444444", label: "グレー" },
+              ]),
+              shape: "pants",
+              sort_order: 2,
+              spec: { bottoms: { length_type: "full" } },
+            },
+          ],
+        }),
+      );
+    });
+
+    expect(
+      container.querySelector(
+        '[data-testid="wear-log-thumbnail-onepiece-allinone-main"]',
+      ),
+    ).toBeNull();
+    expect(
+      container.querySelector('[data-testid="wear-log-thumbnail-lower-body"]'),
+    ).not.toBeNull();
+  });
+
   it("tops / bottoms 両方ありで others がない場合は 2 層だけを使う", async () => {
     await act(async () => {
       root.render(

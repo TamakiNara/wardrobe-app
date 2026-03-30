@@ -86,7 +86,7 @@ describe("wear log thumbnail mode helpers", () => {
     expect(selectRepresentativeWearLogLegwear(sorted)?.source_item_id).toBe(4);
   });
 
-  it("current では onepiece_allinone があっても standard mode を維持する", () => {
+  it("onepiece + bottoms のときだけ onepiece_allinone mode に入る", () => {
     const sorted = sortWearLogThumbnailItems([
       createThumbnailItem(1, {
         category: "onepiece_allinone",
@@ -96,6 +96,46 @@ describe("wear log thumbnail mode helpers", () => {
         category: "bottoms",
         shape: "pants",
         spec: { bottoms: { length_type: "full" } },
+      }),
+    ]);
+    const representatives = selectWearLogThumbnailRepresentatives(sorted);
+
+    const resolution = resolveWearLogThumbnailMode({
+      sortedWearLogItems: sorted,
+      representatives,
+    });
+
+    expect(resolution.mode).toBe("onepiece_allinone");
+    expect(resolution.shouldRenderOnepieceWithBottomsLayer).toBe(true);
+  });
+
+  it("allinone + bottoms は standard mode を維持する", () => {
+    const sorted = sortWearLogThumbnailItems([
+      createThumbnailItem(1, {
+        category: "onepiece_allinone",
+        shape: "allinone",
+      }),
+      createThumbnailItem(2, {
+        category: "bottoms",
+        shape: "pants",
+        spec: { bottoms: { length_type: "full" } },
+      }),
+    ]);
+    const representatives = selectWearLogThumbnailRepresentatives(sorted);
+
+    expect(
+      resolveWearLogThumbnailMode({
+        sortedWearLogItems: sorted,
+        representatives,
+      }).mode,
+    ).toBe("standard");
+  });
+
+  it("bottoms がない onepiece は current では standard mode のまま", () => {
+    const sorted = sortWearLogThumbnailItems([
+      createThumbnailItem(1, {
+        category: "onepiece_allinone",
+        shape: "onepiece",
       }),
     ]);
     const representatives = selectWearLogThumbnailRepresentatives(sorted);

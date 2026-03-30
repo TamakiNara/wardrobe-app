@@ -1,6 +1,10 @@
 import { COLOR_THUMBNAIL_OTHERS_BAR_CLASS } from "@/lib/color-thumbnails/shared";
 import LowerBodyPreviewSvg from "@/components/items/item-lower-body-thumbnail-svg";
-import { buildStandardWearLogThumbnailViewModel } from "@/lib/wear-logs/wear-log-thumbnail-view-model";
+import WearLogOnepieceAllinoneThumbnail from "@/components/wear-logs/wear-log-onepiece-allinone-thumbnail";
+import {
+  buildOnepieceAllinoneWearLogThumbnailViewModel,
+  buildStandardWearLogThumbnailViewModel,
+} from "@/lib/wear-logs/wear-log-thumbnail-view-model";
 import {
   resolveWearLogThumbnailMode,
   selectWearLogThumbnailRepresentatives,
@@ -75,6 +79,28 @@ export default function WearLogColorThumbnail({
     sortedWearLogItems,
     representatives,
   });
+  if (modeResolution.mode === "onepiece_allinone") {
+    const viewModel = buildOnepieceAllinoneWearLogThumbnailViewModel({
+      sortedWearLogItems,
+      representatives,
+      modeResolution,
+    });
+
+    return (
+      <div
+        className="flex w-14 shrink-0 flex-col gap-1"
+        data-testid="wear-log-color-thumbnail"
+        aria-hidden="true"
+      >
+        <WearLogOnepieceAllinoneThumbnail
+          viewModel={viewModel}
+          mainClassName="h-14"
+          testIdPrefix="wear-log-thumbnail"
+        />
+      </div>
+    );
+  }
+
   const { layout, lowerBodyPreview, hasTopBottomSplit } =
     buildStandardWearLogThumbnailViewModel({
       sortedWearLogItems,

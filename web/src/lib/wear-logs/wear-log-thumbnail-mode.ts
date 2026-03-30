@@ -15,6 +15,7 @@ export type WearLogThumbnailRepresentatives = {
 
 export type WearLogThumbnailModeResolution = {
   mode: WearLogThumbnailMode;
+  shouldRenderOnepieceWithBottomsLayer: boolean;
 };
 
 export function sortWearLogThumbnailItems(items: WearLogThumbnailItem[]) {
@@ -94,10 +95,22 @@ export function resolveWearLogThumbnailMode(params: {
   sortedWearLogItems: WearLogThumbnailItem[];
   representatives: WearLogThumbnailRepresentatives;
 }): WearLogThumbnailModeResolution {
-  void params;
-  // current では wear_log_items 正本の既存レイアウトを維持し、
-  // onepiece_allinone 専用 mode はまだ導入しない。
+  const { representatives } = params;
+  const { representativeOnepieceAllinone, representativeBottoms } =
+    representatives;
+
+  if (
+    representativeOnepieceAllinone?.shape === "onepiece" &&
+    representativeBottoms !== null
+  ) {
+    return {
+      mode: "onepiece_allinone",
+      shouldRenderOnepieceWithBottomsLayer: true,
+    };
+  }
+
   return {
     mode: "standard",
+    shouldRenderOnepieceWithBottomsLayer: false,
   };
 }
