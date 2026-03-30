@@ -72,14 +72,107 @@ function findSubColorHex(
   return colors.find((color) => color.role === "sub")?.hex ?? null;
 }
 
+function buildThumbnailLayoutInput(outfitItems: OutfitColorThumbnailItem[]) {
+  return toLayoutItems(outfitItems);
+}
+
+function buildLowerBodyPreviewInput(outfitItems: OutfitColorThumbnailItem[]) {
+  return toLowerBodyPreviewItems(outfitItems);
+}
+
+function buildStandardThumbnailLayout(outfitItems: OutfitColorThumbnailItem[]) {
+  return buildOutfitThumbnailLayout(buildThumbnailLayoutInput(outfitItems));
+}
+
+function buildOnepieceAllinoneThumbnailLayout(
+  outfitItems: OutfitColorThumbnailItem[],
+) {
+  return buildOutfitThumbnailLayout(buildThumbnailLayoutInput(outfitItems), {
+    excludeOnepieceAllinone: true,
+  });
+}
+
+function resolveItemColorHexes(
+  colors: OutfitColorThumbnailItem["item"]["colors"],
+) {
+  return {
+    mainColorHex: findMainColorHex(colors),
+    subColorHex: findSubColorHex(colors),
+  };
+}
+
+function resolveTopsOnepieceAllinoneLayerOrder(
+  sortedOutfitItems: OutfitColorThumbnailItem[],
+  representativeOnepieceAllinoneSortOrder: number,
+) {
+  const topsItems = sortedOutfitItems.filter(
+    (outfitItem) => outfitItem.item.category === "tops",
+  );
+  const highestTopSortOrder = topsItems.length
+    ? Math.max(...topsItems.map((outfitItem) => outfitItem.sort_order))
+    : null;
+  const topsAreAboveOnepieceAllinone =
+    highestTopSortOrder !== null &&
+    highestTopSortOrder > representativeOnepieceAllinoneSortOrder;
+  const topsAreBelowOnepieceAllinone =
+    highestTopSortOrder !== null &&
+    highestTopSortOrder < representativeOnepieceAllinoneSortOrder;
+
+  return {
+    topsAreAboveOnepieceAllinone,
+    topsAreBelowOnepieceAllinone,
+  };
+}
+
+function hasVisibleOnepieceAllinoneLowerBody(params: {
+  onepieceAllinoneLowerBodyPreview:
+    | OutfitLowerBodyPreviewSource
+    | OutfitOnepieceAllinoneLowerBodyPreviewSource
+    | null;
+  shouldRenderOnepieceWithBottomsLayer: boolean;
+}) {
+  const {
+    onepieceAllinoneLowerBodyPreview,
+    shouldRenderOnepieceWithBottomsLayer,
+  } = params;
+
+  return (
+    onepieceAllinoneLowerBodyPreview !== null &&
+    (shouldRenderOnepieceWithBottomsLayer ||
+      onepieceAllinoneLowerBodyPreview.lengthType !== "full")
+  );
+}
+
+function resolveOnepieceAllinoneLayerStyle(params: {
+  topsAreBelowOnepieceAllinone: boolean;
+  shouldRenderOnepieceWithBottomsLayer: boolean;
+  onepieceAllinoneHasVisibleLowerBody: boolean;
+}) {
+  const {
+    topsAreBelowOnepieceAllinone,
+    shouldRenderOnepieceWithBottomsLayer,
+    onepieceAllinoneHasVisibleLowerBody,
+  } = params;
+
+  return {
+    top: topsAreBelowOnepieceAllinone ? "12%" : "0",
+    bottom: shouldRenderOnepieceWithBottomsLayer
+      ? "12%"
+      : onepieceAllinoneHasVisibleLowerBody
+        ? "22%"
+        : "0",
+  };
+}
+
 export function buildStandardOutfitThumbnailViewModel(params: {
   sortedOutfitItems: OutfitColorThumbnailItem[];
   skinToneColor: string;
 }): OutfitStandardThumbnailViewModel {
   const { sortedOutfitItems, skinToneColor } = params;
-  const layout = buildOutfitThumbnailLayout(toLayoutItems(sortedOutfitItems));
+  const lowerBodyPreviewItems = buildLowerBodyPreviewInput(sortedOutfitItems);
+  const layout = buildStandardThumbnailLayout(sortedOutfitItems);
   const lowerBodyPreview = buildOutfitLowerBodyPreviewSource(
-    toLowerBodyPreviewItems(sortedOutfitItems),
+    lowerBodyPreviewItems,
   );
   const hasTopBottomSplit = layout.tops.length > 0 && layout.bottoms.length > 0;
 
@@ -108,47 +201,33 @@ export function buildOnepieceAllinoneThumbnailViewModel(params: {
     );
   }
 
-  const layout = buildOutfitThumbnailLayout(toLayoutItems(sortedOutfitItems), {
-    excludeOnepieceAllinone: true,
-  });
+  const lowerBodyPreviewItems = buildLowerBodyPreviewInput(sortedOutfitItems);
+  const layout = buildOnepieceAllinoneThumbnailLayout(sortedOutfitItems);
   const lowerBodyPreview = buildOutfitLowerBodyPreviewSource(
-    toLowerBodyPreviewItems(sortedOutfitItems),
+    lowerBodyPreviewItems,
   );
   const onepieceAllinoneLowerBodyPreview = shouldRenderOnepieceWithBottomsLayer
     ? lowerBodyPreview
-    : buildOutfitOnepieceAllinoneLowerBodyPreviewSource(
-        toLowerBodyPreviewItems(sortedOutfitItems),
-      );
-  const topsItems = sortedOutfitItems.filter(
-    (outfitItem) => outfitItem.item.category === "tops",
-  );
-  const highestTopSortOrder = topsItems.length
-    ? Math.max(...topsItems.map((outfitItem) => outfitItem.sort_order))
-    : null;
-  const topsAreAboveOnepieceAllinone =
-    highestTopSortOrder !== null &&
-    highestTopSortOrder > representativeOnepieceAllinone.sort_order;
-  const topsAreBelowOnepieceAllinone =
-    highestTopSortOrder !== null &&
-    highestTopSortOrder < representativeOnepieceAllinone.sort_order;
+    : buildOutfitOnepieceAllinoneLowerBodyPreviewSource(lowerBodyPreviewItems);
+  const { topsAreAboveOnepieceAllinone, topsAreBelowOnepieceAllinone } =
+    resolveTopsOnepieceAllinoneLayerOrder(
+      sortedOutfitItems,
+      representativeOnepieceAllinone.sort_order,
+    );
   const onepieceAllinoneHasVisibleLowerBody =
-    onepieceAllinoneLowerBodyPreview !== null &&
-    (shouldRenderOnepieceWithBottomsLayer ||
-      onepieceAllinoneLowerBodyPreview.lengthType !== "full");
-  const onepieceAllinoneMainColorHex = findMainColorHex(
-    representativeOnepieceAllinone.item.colors,
-  );
-  const onepieceAllinoneSubColorHex = findSubColorHex(
-    representativeOnepieceAllinone.item.colors,
-  );
-  const onepieceAllinoneLayerStyle = {
-    top: topsAreBelowOnepieceAllinone ? "12%" : "0",
-    bottom: shouldRenderOnepieceWithBottomsLayer
-      ? "12%"
-      : onepieceAllinoneHasVisibleLowerBody
-        ? "22%"
-        : "0",
-  };
+    hasVisibleOnepieceAllinoneLowerBody({
+      onepieceAllinoneLowerBodyPreview,
+      shouldRenderOnepieceWithBottomsLayer,
+    });
+  const {
+    mainColorHex: onepieceAllinoneMainColorHex,
+    subColorHex: onepieceAllinoneSubColorHex,
+  } = resolveItemColorHexes(representativeOnepieceAllinone.item.colors);
+  const onepieceAllinoneLayerStyle = resolveOnepieceAllinoneLayerStyle({
+    topsAreBelowOnepieceAllinone,
+    shouldRenderOnepieceWithBottomsLayer,
+    onepieceAllinoneHasVisibleLowerBody,
+  });
 
   return {
     layout,
