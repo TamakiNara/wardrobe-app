@@ -283,6 +283,39 @@ thumbnail の current 確認用パターン一覧を見返すときは `docs/spe
 - wear logs の日詳細モーダルでは、`wear_log_items` 正本を維持した簡略版配色サムネイルを表示する
 - `items=[]` かつ `source_outfit_id` ありで保存した wear log でも、current 実装では source outfit の構成を `wear_log_items` として実体化する
 - 過去に `wear_log_items` が欠けていた outfit ベース record は migration で backfill する
+## thumbnail 共通化候補メモ
+
+- current の outfit / wear log thumbnail は、入力正本が異なるため、まず「どこまでを shared helper にしてよいか」を明示してから進める
+- いま共通化してよい候補:
+  - lower-body preview source build 本体（`buildOutfitLowerBodyPreviewSource` など、入力変換後の描画ソース生成）
+  - main / sub color の hex 解決
+  - `tops` と `onepiece_allinone` の前後判定（`sort_order` 正本）
+  - `onepiece_allinone` layer style 計算
+  - `SegmentRow` / `OnepieceAllinoneLayerBand` のような renderer primitives
+- 分けるべき責務:
+  - representative selection
+  - mode 判定
+  - ViewModel build のうち入力正本依存部分
+  - entry component（outfit 一覧 / wear logs 一覧 / 日詳細モーダルなどの受け口）
+- 共通化はまだ早い候補:
+  - outfit / wear log の ViewModel builder 全体
+  - standard / dedicated renderer の完全共通化
+  - mode 判定と representative 選定の統合 helper
+- 共通化のメリット:
+  - `sort_order` 前後判定や layer style の修正箇所を 1 か所に寄せられる
+  - lower-body preview まわりの色・フォールバック・ `legwear = lower-body 専用` 境界のズレを減らせる
+  - renderer primitives の見た目調整を outfit / wear log で揃えやすい
+- 共通化のデメリット:
+  - 入力正本の違い（outfit items / `wear_log_items`）が helper 境界で見えにくくなる
+  - `allinone + bottoms` のような current / 要再判断境界を shared code に閉じ込めると、挙動差の説明が難しくなる
+  - entry component までまとめると、一覧 / モーダル / 詳細の責務差が崩れやすい
+- 実装するなら順序は次を優先する:
+  1. 色 hex 解決、`tops` と `onepiece_allinone` の前後判定、layer style 計算などの純粋関数を shared helper に寄せる
+  2. `SegmentRow` / `OnepieceAllinoneLayerBand` のような renderer primitives を共通利用に寄せる
+  3. lower-body preview 入力変換のうち、source build に渡す直前の共通部分だけを helper 化する
+  4. representative selection / mode 判定 / ViewModel build は最後まで outfit / wear log 別責務として維持するかを再判断する
+- current 前提として、`onepiece + bottoms` / `allinone + bottoms` / `legwear = lower-body 専用` の境界は、shared helper 化より先に壊さないことを優先する
+
 - wear logs の個別詳細には、まだ配色サムネイルを出していない
 - wear log 個別詳細は主操作画面として扱い、`planned <-> worn` の状態変更はその場で行い、日付・表示順・item 構成の変更は編集画面へ寄せる
 - wear log 個別詳細では、`invalid` outfit / `disposed` item / `in_cleaning` item / 過去 planned を補助 warning として表示する
