@@ -316,6 +316,26 @@ thumbnail の current 確認用パターン一覧を見返すときは `docs/spe
   4. representative selection / mode 判定 / ViewModel build は最後まで outfit / wear log 別責務として維持するかを再判断する
 - current 前提として、`onepiece + bottoms` / `allinone + bottoms` / `legwear = lower-body 専用` の境界は、shared helper 化より先に壊さないことを優先する
 
+## thumbnail 残タスクメモ
+
+- current で十分安定しているため、当面触らなくてよい部分:
+  - outfit / wear log とも、`legwear = lower-body 専用` と `skinTonePreset` 反映の current は固まっている
+  - `onepiece + bottoms` / `allinone + bottoms` / `onepiece_allinone` mode の current 境界は、当面は振る舞い変更よりも保持を優先する
+- planned のまま残す部分:
+  - `tights / stockings` のサブカラー固定
+  - wear log snapshot 導入時の thumbnail 正本見直し
+  - renderer 完全共通化は、input 正本差と current 境界が更に揃うまで後回しにする
+- 要再判断のうち優先度が高いもの:
+  1. `allinone + bottoms` を dedicated mode へ上げるかどうか
+  2. 極小サイズ時の `onepiece + bottoms` 裾見せ量と layer 省略の最終値
+  3. wear log snapshot 導入後も `wear_log_items` 正本の表現を維持するか、snapshot 専用 input へ移すか
+- 共通化を今後進めるなら、まず shared helper / renderer primitives の範囲にとどめ、representative selection / mode 判定 / ViewModel build 全体は outfit / wear log 別責務のまま再判断する
+- 次の着手順候補:
+  1. `allinone + bottoms` の current / planned / 要再判断をサムネイルと表示例で再整理する
+  2. 極小サイズ時の simplified renderer 調整を、current 参照 md と突き合わせて行う
+  3. wear log snapshot 導入時の payload / type / helper 影響を切り出して別タスク化する
+
+
 - wear logs の個別詳細には、まだ配色サムネイルを出していない
 - wear log 個別詳細は主操作画面として扱い、`planned <-> worn` の状態変更はその場で行い、日付・表示順・item 構成の変更は編集画面へ寄せる
 - wear log 個別詳細では、`invalid` outfit / `disposed` item / `in_cleaning` item / 過去 planned を補助 warning として表示する
