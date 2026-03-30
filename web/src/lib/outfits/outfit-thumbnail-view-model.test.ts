@@ -47,7 +47,7 @@ function renderOutfitItem(
   };
 }
 
-describe("buildStandardOutfitThumbnailViewModel", () => {
+describe("buildStandardOutfitThumbnailViewModel current ViewModel 組み立て", () => {
   it("tops / bottoms / others と lower-body preview をまとめる", () => {
     const sortedOutfitItems = sortOutfitColorThumbnailItems([
       renderOutfitItem(1, "tops", [
@@ -91,7 +91,7 @@ describe("buildStandardOutfitThumbnailViewModel", () => {
   });
 });
 
-describe("buildOnepieceAllinoneThumbnailViewModel", () => {
+describe("buildOnepieceAllinoneThumbnailViewModel current ViewModel 組み立て", () => {
   it("onepiece + bottoms では onepiece 主レイヤーと裾見せ lower-body を組み立てる", () => {
     const sortedOutfitItems = sortOutfitColorThumbnailItems([
       renderOutfitItem(
@@ -128,6 +128,54 @@ describe("buildOnepieceAllinoneThumbnailViewModel", () => {
     expect(viewModel.onepieceAllinoneMainColorHex).toBe("#44516A");
     expect(viewModel.onepieceAllinoneSubColorHex).toBe("#D8CBB4");
     expect(viewModel.layout.others).toHaveLength(0);
+  });
+
+  it("onepiece + bottoms + legwear でも legwear は others へ戻さず lower-body 側で扱う", () => {
+    const sortedOutfitItems = sortOutfitColorThumbnailItems([
+      renderOutfitItem(
+        1,
+        "onepiece_allinone",
+        [{ role: "main", hex: "#44516A", label: "ネイビー" }],
+        { sortOrder: 1, shape: "onepiece" },
+      ),
+      renderOutfitItem(
+        2,
+        "bottoms",
+        [{ role: "main", hex: "#111111", label: "黒" }],
+        {
+          sortOrder: 2,
+          shape: "straight",
+          spec: { bottoms: { length_type: "full" } },
+        },
+      ),
+      renderOutfitItem(
+        3,
+        "legwear",
+        [{ role: "main", hex: "#334155", label: "ネイビー" }],
+        {
+          sortOrder: 3,
+          shape: "socks",
+          spec: { legwear: { coverage_type: "crew_socks" } },
+        },
+      ),
+      renderOutfitItem(4, "shoes", [
+        { role: "main", hex: "#888888", label: "グレー" },
+      ]),
+    ]);
+    const modeResolution = resolveOutfitThumbnailMode(sortedOutfitItems);
+
+    const viewModel = buildOnepieceAllinoneThumbnailViewModel({
+      sortedOutfitItems,
+      modeResolution,
+      skinToneColor: "#E9C29B",
+    });
+
+    expect(viewModel.shouldRenderOnepieceWithBottomsLayer).toBe(true);
+    expect(viewModel.onepieceAllinoneLowerBodyPreview?.coverageType).toBe(
+      "crew_socks",
+    );
+    expect(viewModel.layout.others).toHaveLength(1);
+    expect(viewModel.layout.others[0]?.id).toBe(4);
   });
 
   it("tops と onepiece の前後は sort_order から決まる", () => {

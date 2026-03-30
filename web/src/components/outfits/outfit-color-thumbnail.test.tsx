@@ -46,7 +46,7 @@ function renderOutfitItem(
   };
 }
 
-describe("OutfitColorThumbnail", () => {
+describe("OutfitColorThumbnail current 統合表示", () => {
   let container: HTMLDivElement;
   let root: ReturnType<typeof createRoot>;
 
@@ -552,6 +552,58 @@ describe("OutfitColorThumbnail", () => {
     ).toBeNull();
   });
 
+  it("onepiece + bottoms + legwear でも legwear は others に戻さず lower-body preview 専用を維持する", async () => {
+    await act(async () => {
+      root.render(
+        React.createElement(OutfitColorThumbnail, {
+          outfitItems: [
+            renderOutfitItem(
+              1,
+              "onepiece_allinone",
+              [{ role: "main", hex: "#44516A", label: "ネイビー" }],
+              { sortOrder: 1, shape: "onepiece" },
+            ),
+            renderOutfitItem(
+              2,
+              "bottoms",
+              [{ role: "main", hex: "#111111", label: "黒" }],
+              {
+                sortOrder: 2,
+                shape: "straight",
+                spec: { bottoms: { length_type: "full" } },
+              },
+            ),
+            renderOutfitItem(
+              3,
+              "legwear",
+              [{ role: "main", hex: "#334155", label: "ネイビー" }],
+              {
+                sortOrder: 3,
+                shape: "socks",
+                spec: { legwear: { coverage_type: "crew_socks" } },
+              },
+            ),
+            renderOutfitItem(4, "shoes", [
+              { role: "main", hex: "#cccccc", label: "グレー" },
+            ]),
+          ],
+        }),
+      );
+    });
+
+    expect(
+      container.querySelector(
+        '[data-testid="thumbnail-onepiece-allinone-lower-body"]',
+      ),
+    ).not.toBeNull();
+    expect(
+      container.querySelector('[data-testid="thumbnail-others"]'),
+    ).not.toBeNull();
+    expect(
+      container.querySelectorAll('[data-testid="thumbnail-others-segment"]'),
+    ).toHaveLength(1);
+  });
+
   it("allinone + bottoms は current の通常レイアウトを維持する", async () => {
     await act(async () => {
       root.render(
@@ -586,6 +638,40 @@ describe("OutfitColorThumbnail", () => {
     expect(
       container.querySelector('[data-testid="thumbnail-lower-body"]'),
     ).not.toBeNull();
+  });
+
+  it("bottoms がなければ allinone も onepiece_allinone 専用表示へ入る", async () => {
+    await act(async () => {
+      root.render(
+        React.createElement(OutfitColorThumbnail, {
+          outfitItems: [
+            renderOutfitItem(
+              1,
+              "onepiece_allinone",
+              [
+                { role: "main", hex: "#222222", label: "黒" },
+                { role: "sub", hex: "#d8cbb4", label: "ベージュ" },
+              ],
+              { sortOrder: 1, shape: "allinone" },
+            ),
+          ],
+        }),
+      );
+    });
+
+    expect(
+      container.querySelector(
+        '[data-testid="thumbnail-onepiece-allinone-main"]',
+      ),
+    ).not.toBeNull();
+    expect(
+      container.querySelector(
+        '[data-testid="thumbnail-onepiece-allinone-lower-body"]',
+      ),
+    ).toBeNull();
+    expect(
+      container.querySelector('[data-testid="thumbnail-others-full"]'),
+    ).toBeNull();
   });
 
   it("onepiece + tops + bottoms でも tops と onepiece の上下は sort_order に従う", async () => {

@@ -39,7 +39,7 @@ function renderOutfitItem(
   };
 }
 
-describe("resolveOutfitThumbnailMode", () => {
+describe("resolveOutfitThumbnailMode current 仕様境界", () => {
   it("onepiece 単体は onepiece_allinone mode を返す", () => {
     const result = resolveOutfitThumbnailMode([
       renderOutfitItem(1, "onepiece_allinone", { shape: "onepiece" }),
@@ -48,6 +48,16 @@ describe("resolveOutfitThumbnailMode", () => {
     expect(result.mode).toBe("onepiece_allinone");
     expect(result.shouldRenderOnepieceWithBottomsLayer).toBe(false);
     expect(result.representativeOnepieceAllinone?.item.shape).toBe("onepiece");
+  });
+
+  it("bottoms がなければ allinone も onepiece_allinone mode を返す", () => {
+    const result = resolveOutfitThumbnailMode([
+      renderOutfitItem(1, "onepiece_allinone", { shape: "allinone" }),
+    ]);
+
+    expect(result.mode).toBe("onepiece_allinone");
+    expect(result.shouldRenderOnepieceWithBottomsLayer).toBe(false);
+    expect(result.representativeOnepieceAllinone?.item.shape).toBe("allinone");
   });
 
   it("onepiece + bottoms は onepiece_allinone mode を返す", () => {
