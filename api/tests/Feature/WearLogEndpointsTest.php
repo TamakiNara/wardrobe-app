@@ -134,6 +134,87 @@ class WearLogEndpointsTest extends TestCase
             ->assertJsonPath('wearLogs.2.id', $laterSameDay->id);
     }
 
+    public function test_get_wear_logs_applies_keyword_status_date_filters_and_pagination(): void
+    {
+        $user = User::factory()->create();
+        $sourceOutfit = $this->createOutfit($user, [
+            'name' => '在宅コーデ',
+        ]);
+        $matchedItem = $this->createItem($user, [
+            'name' => '在宅パンツ',
+            'category' => 'bottoms',
+            'shape' => 'straight',
+        ]);
+
+        for ($index = 1; $index <= 13; $index++) {
+            $wearLog = $this->createWearLog($user, [
+                'status' => 'planned',
+                'event_date' => '2026-03-24',
+                'display_order' => $index,
+                'source_outfit_id' => $sourceOutfit->id,
+                'memo' => sprintf('在宅メモ%02d', $index),
+            ]);
+            $wearLog->wearLogItems()->create([
+                'source_item_id' => $matchedItem->id,
+                'sort_order' => 1,
+                'item_source_type' => 'manual',
+            ]);
+        }
+
+        $excludedByDate = $this->createWearLog($user, [
+            'status' => 'planned',
+            'event_date' => '2026-03-23',
+            'display_order' => 1,
+            'source_outfit_id' => $sourceOutfit->id,
+            'memo' => '在宅対象外日付',
+        ]);
+        $excludedByDate->wearLogItems()->create([
+            'source_item_id' => $matchedItem->id,
+            'sort_order' => 1,
+            'item_source_type' => 'manual',
+        ]);
+
+        $excludedByStatus = $this->createWearLog($user, [
+            'status' => 'worn',
+            'event_date' => '2026-03-24',
+            'display_order' => 20,
+            'source_outfit_id' => $sourceOutfit->id,
+            'memo' => '在宅対象外状態',
+        ]);
+        $excludedByStatus->wearLogItems()->create([
+            'source_item_id' => $matchedItem->id,
+            'sort_order' => 1,
+            'item_source_type' => 'manual',
+        ]);
+
+        $otherUser = User::factory()->create();
+        $otherWearLog = $this->createWearLog($otherUser, [
+            'status' => 'planned',
+            'event_date' => '2026-03-24',
+            'display_order' => 1,
+            'memo' => '在宅他人分',
+        ]);
+        $otherWearLog->wearLogItems()->create([
+            'source_item_id' => $this->createItem($otherUser, ['name' => '他人パンツ'])->id,
+            'sort_order' => 1,
+            'item_source_type' => 'manual',
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->getJson('/api/wear-logs?keyword=%E5%9C%A8%E5%AE%85&status=planned&date_from=2026-03-24&date_to=2026-03-24&page=2', [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonCount(1, 'wearLogs')
+            ->assertJsonPath('wearLogs.0.display_order', 13)
+            ->assertJsonPath('meta.total', 13)
+            ->assertJsonPath('meta.totalAll', 15)
+            ->assertJsonPath('meta.page', 2)
+            ->assertJsonPath('meta.lastPage', 2);
+    }
+
     public function test_get_wear_logs_returns_thumbnail_items_from_wear_log_items_even_without_source_outfit(): void
     {
         $user = User::factory()->create();
