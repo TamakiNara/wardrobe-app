@@ -344,6 +344,63 @@ thumbnail の current 確認用パターン一覧を見返すときは `docs/spe
   2. 極小サイズ時の simplified renderer 調整を、current 参照 md と突き合わせて行う
   3. wear log snapshot 導入時の payload / type / helper 影響を切り出して別タスク化する
 
+## `onepiece + bottoms` 極小サイズ簡略化メモ
+
+- 参照正本:
+  - current 確認: `docs/specs/items/thumbnail-current-reference.md`
+  - 設計正本: `docs/specs/items/thumbnail-skin-exposure.md`
+- current 前提の再確認:
+  - `onepiece + bottoms` は outfit / wear log とも dedicated mode を維持する
+  - `allinone + bottoms` は current では standard 維持のまま切り離す
+  - `legwear` は `others` に戻さず lower-body preview 専用を維持する
+  - `tops` と `onepiece_allinone` の前後は `sort_order` 正本とし、tops 個別混在は前提にしない
+  - `others` は引き続き別バーを維持する
+- 極小サイズでも最低限残す情報:
+  - `onepiece main` は主役として最優先で残す
+  - `bottoms hem` は `onepiece + bottoms` を読むための補助情報として残す
+  - `tops` は個別混在ではなく、tops 全体が overlay / underlay のどちら側に見えるかだけを残す
+  - `others` は情報量圧縮の対象にしても、存在自体は別バーとして残す
+- どこまで簡略化してよいか:
+  - `onepiece main` の縦方向占有を優先し、`bottoms hem` は最小高さへ圧縮してよい
+  - `tops overlay / underlay` は full 表現を維持せず、極小サイズ専用の薄い帯または短い占有で読めればよい
+  - `legwear` は current どおり lower-body preview 専用のままとし、`others` 側へ逃がさない
+  - `bottoms hem` や `tops` が視認限界を下回る場合でも、dedicated mode 自体は落とさず、省略ルールを dedicated mode 内に閉じ込めるほうが current 境界を壊しにくい
+- A案: current dedicated mode の縮小最適化
+  - メリット: mode 判定を増やさず、outfit / wear log で current の境界を保ちやすい
+  - メリット: current 参照 md の延長で説明しやすく、`onepiece main` / `bottoms hem` / `others` の責務も維持しやすい
+  - デメリット: 極小サイズでは `tops overlay / underlay` と `bottoms hem` の最小可視量の調整が難しく、renderer 条件分岐が段階的に増えやすい
+- B案: 極小サイズ専用の簡略レイアウトを別に持つ
+  - メリット: 極小サイズ向けに情報密度を割り切りやすく、`tops` と `bottoms hem` の省略基準を明示しやすい
+  - デメリット: dedicated mode の中にさらに別レイアウト責務が増え、outfit / wear log で乖離しやすい
+  - デメリット: current 参照 md / 設計正本 / test の更新点が増える
+- 現時点の比較メモ:
+  - 第一候補は A案。極小サイズでも `onepiece + bottoms` dedicated mode を維持する前提を優先し、専用 mode の中で縮小最適化するほうが current と矛盾しにくい
+  - B案は、A案では `tops` と `bottoms hem` の可読性が確保できないと判明した場合の次案として残す
+- outfit / wear log を揃えるか:
+  - mode 境界と最低限残す情報は揃える
+  - ただし入力正本は outfit item / `wear_log_items` で別なので、helper や ViewModel は別責務のまま調整してよい
+- 今決めること:
+  - 極小サイズでも `onepiece + bottoms` は dedicated mode を維持する前提で進める
+  - 最低限残す情報は `onepiece main` / `bottoms hem` / tops 全体の overlay / underlay のどちら側か / `others` とする
+  - `legwear = lower-body 専用`、`allinone + bottoms = standard 維持`、`sort_order` 正本は今回の検討では動かさない
+- まだ保留でよいこと:
+  - `bottoms hem` の最小高さの最終値
+  - `tops overlay / underlay` を帯で表すか、より簡略した占有で表すか
+  - 極小サイズの閾値を viewport 幅基準にするか、thumbnail 実寸基準にするか
+  - A案で足りない場合にだけ B案へ切り出すかどうか
+- 実装する場合の最小着手順:
+  1. current 参照 md に合わせて、極小サイズでも残す要素と省略候補を ViewModel 上で明文化する
+  2. outfit / wear log それぞれで dedicated mode の極小サイズ分岐を追加し、`onepiece main` / `bottoms hem` / tops 全体 / `others` の優先順位を固定する
+  3. renderer を最小調整し、必要なら A案の範囲で `tops` と `bottoms hem` の縮小表現だけを追加する
+  4. test と current 参照 md を突き合わせて、B案が不要か確認する
+- test 観点:
+  - outfit / wear log とも極小サイズでも `onepiece + bottoms` が dedicated mode のままか
+  - `onepiece main` が常に主役として残り、`allinone + bottoms` は standard のままか
+  - `bottoms hem` が dedicated mode 内の補助表現として残り、`others` は別バーを維持するか
+  - `tops` は個別混在ではなく、tops 全体が overlay / underlay のどちら側に見えるかだけを表すか
+  - `legwear` が `others` に戻らず lower-body preview 専用のままか
+
+
 ## `allinone + bottoms` 検討メモ
 
 - A案: dedicated mode へ上げる
