@@ -15,6 +15,7 @@ use App\Services\Items\ItemStoreService;
 use App\Services\Items\ItemUpdateService;
 use App\Services\Settings\UserPreferenceService;
 use App\Services\Settings\UserTpoService;
+use App\Support\HomeSummaryQuery;
 use App\Support\ItemPayloadBuilder;
 use App\Support\ItemsIndexQuery;
 use App\Support\OutfitPayloadBuilder;
@@ -63,6 +64,10 @@ Route::prefix('api')->middleware(['web'])->group(function () {
         });
 
         Route::post('/logout', [AuthController::class, 'logout']);
+    });
+
+    Route::middleware('auth:web')->get('/home/summary', function (Request $request) {
+        return response()->json(HomeSummaryQuery::build($request->user()));
     });
 
     // Settings

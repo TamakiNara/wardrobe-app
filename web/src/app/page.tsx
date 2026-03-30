@@ -1,55 +1,12 @@
 import Link from "next/link";
 import LogoutButton from "@/components/auth/logout-button";
 import { fetchLaravelWithCookie } from "@/lib/server/laravel";
+import { fetchHomeSummary } from "@/lib/server/home-summary";
 
 type User = {
   id: number;
   name: string;
   email: string;
-};
-
-type Item = {
-  id: number;
-};
-
-type ItemsResponse = {
-  items?: Item[];
-  meta?: {
-    totalAll?: number;
-  };
-};
-
-type Outfit = {
-  id: number;
-};
-
-type OutfitsResponse = {
-  outfits?: Outfit[];
-  meta?: {
-    totalAll?: number;
-  };
-};
-
-type WearLog = {
-  id: number;
-};
-
-type WearLogsResponse = {
-  wearLogs?: WearLog[];
-  meta?: {
-    totalAll?: number;
-  };
-};
-
-type PurchaseCandidate = {
-  id: number;
-};
-
-type PurchaseCandidatesResponse = {
-  purchaseCandidates?: PurchaseCandidate[];
-  meta?: {
-    totalAll?: number;
-  };
 };
 
 async function getUser(): Promise<User | null> {
@@ -60,50 +17,6 @@ async function getUser(): Promise<User | null> {
   }
 
   return res.json();
-}
-
-async function getItemsCount(): Promise<number> {
-  const res = await fetchLaravelWithCookie("/api/items");
-
-  if (!res.ok) {
-    return 0;
-  }
-
-  const data = (await res.json()) as ItemsResponse;
-  return data.meta?.totalAll ?? data.items?.length ?? 0;
-}
-
-async function getOutfitsCount(): Promise<number> {
-  const res = await fetchLaravelWithCookie("/api/outfits");
-
-  if (!res.ok) {
-    return 0;
-  }
-
-  const data = (await res.json()) as OutfitsResponse;
-  return data.meta?.totalAll ?? data.outfits?.length ?? 0;
-}
-
-async function getWearLogsCount(): Promise<number> {
-  const res = await fetchLaravelWithCookie("/api/wear-logs");
-
-  if (!res.ok) {
-    return 0;
-  }
-
-  const data = (await res.json()) as WearLogsResponse;
-  return data.meta?.totalAll ?? data.wearLogs?.length ?? 0;
-}
-
-async function getPurchaseCandidatesCount(): Promise<number> {
-  const res = await fetchLaravelWithCookie("/api/purchase-candidates");
-
-  if (!res.ok) {
-    return 0;
-  }
-
-  const data = (await res.json()) as PurchaseCandidatesResponse;
-  return data.meta?.totalAll ?? data.purchaseCandidates?.length ?? 0;
 }
 
 export default async function Home() {
@@ -142,13 +55,8 @@ export default async function Home() {
     );
   }
 
-  const [itemsCount, outfitsCount, wearLogsCount, purchaseCandidatesCount] =
-    await Promise.all([
-      getItemsCount(),
-      getOutfitsCount(),
-      getWearLogsCount(),
-      getPurchaseCandidatesCount(),
-    ]);
+  const { itemsCount, outfitsCount, wearLogsCount, purchaseCandidatesCount } =
+    await fetchHomeSummary();
 
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">

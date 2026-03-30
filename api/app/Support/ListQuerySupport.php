@@ -71,9 +71,9 @@ class ListQuerySupport
         return $visibleCategoryIds->contains($resolvedCategoryId);
     }
 
-    private static function resolveVisibleCategoryIdForItem(Item $item): ?string
+    public static function itemVisibleCategoryMap(): array
     {
-        $map = [
+        return [
             'tops' => [
                 'tshirt' => 'tops_tshirt',
                 'shirt' => 'tops_shirt',
@@ -127,6 +127,11 @@ class ListQuerySupport
                 'accessory' => 'accessories_jewelry',
             ],
         ];
+    }
+
+    private static function resolveVisibleCategoryIdForItem(Item $item): ?string
+    {
+        $map = self::itemVisibleCategoryMap();
 
         $category = is_string($item->category) ? $item->category : null;
         $shape = is_string($item->shape) ? $item->shape : null;

@@ -520,6 +520,27 @@ paths:
                   - $ref: '#/components/schemas/ValidationErrorResponse'
                   - $ref: '#/components/schemas/UnprocessableEntityMessageResponse'
 
+  /api/home/summary:
+    get:
+      tags:
+        - Home
+      summary: ホーム件数取得
+      description: |
+        ホーム画面向けの軽量 summary。
+        一覧 API の payload や filter / sort / paginate / thumbnail 生成は行わず、
+        current 一覧の初期母数に揃えた件数だけを返す。
+      security:
+        - SessionCookieAuth: []
+      responses:
+        '200':
+          description: 取得成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HomeSummaryResponse'
+        '401':
+          description: 未認証
+
   /api/items/{id}:
     get:
       tags:
@@ -1733,6 +1754,35 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/CategoryGroup'
+
+    HomeSummaryResponse:
+      type: object
+      required:
+        - summary
+      properties:
+        summary:
+          $ref: '#/components/schemas/HomeSummary'
+
+    HomeSummary:
+      type: object
+      required:
+        - itemsCount
+        - outfitsCount
+        - wearLogsCount
+        - purchaseCandidatesCount
+      properties:
+        itemsCount:
+          type: integer
+          example: 36
+        outfitsCount:
+          type: integer
+          example: 12
+        wearLogsCount:
+          type: integer
+          example: 14
+        purchaseCandidatesCount:
+          type: integer
+          example: 8
 
     CategoryGroup:
       type: object

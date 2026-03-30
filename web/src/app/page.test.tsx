@@ -22,7 +22,7 @@ describe("Home", () => {
     vi.clearAllMocks();
   });
 
-  it("一覧APIの先頭ページ件数ではなく totalAll を表示する", async () => {
+  it("ホーム件数専用APIの summary を表示する", async () => {
     fetchLaravelWithCookieMock
       .mockResolvedValueOnce({
         ok: true,
@@ -35,35 +35,12 @@ describe("Home", () => {
       .mockResolvedValueOnce({
         ok: true,
         json: async () => ({
-          items: Array.from({ length: 12 }, (_, index) => ({ id: index + 1 })),
-          meta: { totalAll: 36 },
-        }),
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          outfits: Array.from({ length: 12 }, (_, index) => ({
-            id: index + 1,
-          })),
-          meta: { totalAll: 12 },
-        }),
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          wearLogs: Array.from({ length: 12 }, (_, index) => ({
-            id: index + 1,
-          })),
-          meta: { totalAll: 14 },
-        }),
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          purchaseCandidates: Array.from({ length: 8 }, (_, index) => ({
-            id: index + 1,
-          })),
-          meta: { totalAll: 8 },
+          summary: {
+            itemsCount: 36,
+            outfitsCount: 12,
+            wearLogsCount: 14,
+            purchaseCandidatesCount: 8,
+          },
         }),
       });
 
@@ -76,18 +53,9 @@ describe("Home", () => {
     expect(markup).toContain(">14<");
     expect(markup).toContain(">8<");
     expect(fetchLaravelWithCookieMock).toHaveBeenNthCalledWith(1, "/api/me");
-    expect(fetchLaravelWithCookieMock).toHaveBeenNthCalledWith(2, "/api/items");
     expect(fetchLaravelWithCookieMock).toHaveBeenNthCalledWith(
-      3,
-      "/api/outfits",
-    );
-    expect(fetchLaravelWithCookieMock).toHaveBeenNthCalledWith(
-      4,
-      "/api/wear-logs",
-    );
-    expect(fetchLaravelWithCookieMock).toHaveBeenNthCalledWith(
-      5,
-      "/api/purchase-candidates",
+      2,
+      "/api/home/summary",
     );
   });
 });
