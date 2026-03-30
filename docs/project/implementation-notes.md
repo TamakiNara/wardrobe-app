@@ -335,6 +335,36 @@ thumbnail の current 確認用パターン一覧を見返すときは `docs/spe
   2. 極小サイズ時の simplified renderer 調整を、current 参照 md と突き合わせて行う
   3. wear log snapshot 導入時の payload / type / helper 影響を切り出して別タスク化する
 
+## `allinone + bottoms` 検討メモ
+
+- A案: dedicated mode へ上げる
+  - メリット: `onepiece + bottoms` と同じ系統で読める
+  - デメリット: `allinone` は current で full 寄りの衣服として扱っており、`bottoms` を補助表示にしても意味がぶれやすい
+  - 影響: outfit / wear log 両方で mode 判定、ViewModel、renderer、参照 md の更新が必要
+- B案: current どおり standard 維持
+  - メリット: current 実装 / current 参照 md / current test をそのまま保てる
+  - デメリット: `onepiece + bottoms` だけ dedicated mode で、`allinone + bottoms` は standard のままという差が残る
+  - 影響: outfit / wear log とも追加実装は不要で、必要なのは判断材料の追記と表示例整理にとどまる
+- `onepiece + bottoms` と同列に扱えない理由:
+  - current の `allinone` は onepiece よりも body 全体を占める台形が強く、`bottoms` を「裾から少し見える補助」として正当化しにくい
+  - `tops` との前後は dedicated mode を入れても `sort_order` 正本で解決する必要があるが、`allinone + bottoms` では lower-body preview の出し方や `others` へ残す情報が課題になる
+- current のまま残す場合の不整合:
+  - `onepiece_allinone` という総称に対して `onepiece` と `allinone` で mode が分かれる
+  - ただし current 参照 md で明示しているため、実装上の即時修正が必須な不整合ではない
+- 今決めること:
+  - `allinone + bottoms` は current / planned / 要再判断 のうち、引き続き `要再判断` に置き、current では standard 維持とする
+- まだ保留でよいこと:
+  - dedicated mode 化するとした場合の lower-body preview 高さ、`others` との棲み分け、極小サイズ時の省略方法
+- 実装する場合の最小着手順:
+  1. outfit / wear log 両方で `allinone + bottoms` 専用の mode 条件を仮固めする
+  2. dedicated ViewModel の lower-body 扱いと `tops` との前後をサムネイル表示例で確認する
+  3. mode test / ViewModel test / integration test で current 境界との差を固めてから renderer へ入る
+- test 観点:
+  - outfit / wear log とも `allinone + bottoms` が standard のままか、または dedicated mode へ入れたか
+  - `tops` と `allinone` の前後が `sort_order` 正本で崩れないか
+  - `legwear` が `others` に戻らず lower-body preview 専用のままか
+
+
 
 - wear logs の個別詳細には、まだ配色サムネイルを出していない
 - wear log 個別詳細は主操作画面として扱い、`planned <-> worn` の状態変更はその場で行い、日付・表示順・item 構成の変更は編集画面へ寄せる
