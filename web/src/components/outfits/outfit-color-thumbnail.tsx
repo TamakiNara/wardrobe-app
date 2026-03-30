@@ -141,8 +141,13 @@ export default function OutfitColorThumbnail({
     onepieceAllinoneItems.length > 0
       ? onepieceAllinoneItems[onepieceAllinoneItems.length - 1]
       : null;
+  const shouldRenderOnepieceWithBottomsLayer =
+    representativeOnepieceAllinone !== null &&
+    representativeOnepieceAllinone.item.shape === "onepiece" &&
+    hasBottoms;
   const shouldRenderOnepieceAllinoneLayer =
-    representativeOnepieceAllinone !== null && hasBottoms === false;
+    representativeOnepieceAllinone !== null &&
+    (hasBottoms === false || shouldRenderOnepieceWithBottomsLayer);
   const layout = buildOutfitThumbnailLayout(
     sortedOutfitItems.map((outfitItem) => ({
       id: outfitItem.item.id,
@@ -166,18 +171,20 @@ export default function OutfitColorThumbnail({
     })),
   );
   const onepieceAllinoneLowerBodyPreview = shouldRenderOnepieceAllinoneLayer
-    ? buildOutfitOnepieceAllinoneLowerBodyPreviewSource(
-        sortedOutfitItems.map((outfitItem) => ({
-          sort_order: outfitItem.sort_order,
-          item: {
-            id: outfitItem.item.id,
-            category: outfitItem.item.category,
-            shape: outfitItem.item.shape,
-            colors: outfitItem.item.colors,
-            spec: outfitItem.item.spec ?? null,
-          },
-        })),
-      )
+    ? shouldRenderOnepieceWithBottomsLayer
+      ? lowerBodyPreview
+      : buildOutfitOnepieceAllinoneLowerBodyPreviewSource(
+          sortedOutfitItems.map((outfitItem) => ({
+            sort_order: outfitItem.sort_order,
+            item: {
+              id: outfitItem.item.id,
+              category: outfitItem.item.category,
+              shape: outfitItem.item.shape,
+              colors: outfitItem.item.colors,
+              spec: outfitItem.item.spec ?? null,
+            },
+          })),
+        )
     : null;
   const hasTopBottomSplit = layout.tops.length > 0 && layout.bottoms.length > 0;
   const dimensions =
@@ -198,7 +205,8 @@ export default function OutfitColorThumbnail({
     highestTopSortOrder < representativeOnepieceAllinone.sort_order;
   const onepieceAllinoneHasVisibleLowerBody =
     onepieceAllinoneLowerBodyPreview !== null &&
-    onepieceAllinoneLowerBodyPreview.lengthType !== "full";
+    (shouldRenderOnepieceWithBottomsLayer ||
+      onepieceAllinoneLowerBodyPreview.lengthType !== "full");
   const onepieceAllinoneMainColorHex = representativeOnepieceAllinone
     ? findMainColorHex(representativeOnepieceAllinone.item.colors)
     : null;
@@ -207,7 +215,11 @@ export default function OutfitColorThumbnail({
     : null;
   const onepieceAllinoneLayerStyle = {
     top: topsAreBelowOnepieceAllinone ? "12%" : "0",
-    bottom: onepieceAllinoneHasVisibleLowerBody ? "22%" : "0",
+    bottom: shouldRenderOnepieceWithBottomsLayer
+      ? "12%"
+      : onepieceAllinoneHasVisibleLowerBody
+        ? "22%"
+        : "0",
   } as const;
 
   return (
@@ -237,7 +249,9 @@ export default function OutfitColorThumbnail({
             {onepieceAllinoneHasVisibleLowerBody &&
             onepieceAllinoneLowerBodyPreview ? (
               <div
-                className="absolute inset-x-0 bottom-0 z-0 h-[34%]"
+                className={`absolute inset-x-0 bottom-0 z-0 ${
+                  shouldRenderOnepieceWithBottomsLayer ? "h-[20%]" : "h-[34%]"
+                }`}
                 data-testid="thumbnail-onepiece-allinone-lower-body"
               >
                 <LowerBodyPreviewSvg

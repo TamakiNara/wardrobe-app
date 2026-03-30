@@ -511,7 +511,7 @@ describe("OutfitColorThumbnail", () => {
     ).toBeNull();
   });
 
-  it("bottoms 併用時は onepiece_allinone レイヤーへ寄せず current の通常レイアウトを維持する", async () => {
+  it("onepiece + bottoms では onepiece を主レイヤーにしつつ裾見せ lower-body を出す", async () => {
     await act(async () => {
       root.render(
         React.createElement(OutfitColorThumbnail, {
@@ -541,12 +541,94 @@ describe("OutfitColorThumbnail", () => {
       container.querySelector(
         '[data-testid="thumbnail-onepiece-allinone-main"]',
       ),
+    ).not.toBeNull();
+    expect(
+      container.querySelector(
+        '[data-testid="thumbnail-onepiece-allinone-lower-body"]',
+      ),
+    ).not.toBeNull();
+    expect(
+      container.querySelector('[data-testid="thumbnail-others-bar"]'),
+    ).toBeNull();
+  });
+
+  it("allinone + bottoms は current の通常レイアウトを維持する", async () => {
+    await act(async () => {
+      root.render(
+        React.createElement(OutfitColorThumbnail, {
+          outfitItems: [
+            renderOutfitItem(
+              1,
+              "onepiece_allinone",
+              [{ role: "main", hex: "#44516A", label: "ネイビー" }],
+              { sortOrder: 1, shape: "allinone" },
+            ),
+            renderOutfitItem(
+              2,
+              "bottoms",
+              [{ role: "main", hex: "#111111", label: "黒" }],
+              {
+                sortOrder: 2,
+                shape: "straight",
+                spec: { bottoms: { length_type: "full" } },
+              },
+            ),
+          ],
+        }),
+      );
+    });
+
+    expect(
+      container.querySelector(
+        '[data-testid="thumbnail-onepiece-allinone-main"]',
+      ),
     ).toBeNull();
     expect(
       container.querySelector('[data-testid="thumbnail-lower-body"]'),
     ).not.toBeNull();
+  });
+
+  it("onepiece + tops + bottoms でも tops と onepiece の上下は sort_order に従う", async () => {
+    await act(async () => {
+      root.render(
+        React.createElement(OutfitColorThumbnail, {
+          outfitItems: [
+            renderOutfitItem(
+              1,
+              "onepiece_allinone",
+              [{ role: "main", hex: "#22314A", label: "ネイビー" }],
+              { sortOrder: 1, shape: "onepiece" },
+            ),
+            renderOutfitItem(
+              2,
+              "tops",
+              [{ role: "main", hex: "#ffffff", label: "白" }],
+              { sortOrder: 2, shape: "tshirt" },
+            ),
+            renderOutfitItem(
+              3,
+              "bottoms",
+              [{ role: "main", hex: "#111111", label: "黒" }],
+              {
+                sortOrder: 3,
+                shape: "straight",
+                spec: { bottoms: { length_type: "full" } },
+              },
+            ),
+          ],
+        }),
+      );
+    });
+
     expect(
-      container.querySelector('[data-testid="thumbnail-others-bar"]'),
+      container.querySelector(
+        '[data-testid="thumbnail-onepiece-allinone-top-overlay"]',
+      ),
+    ).not.toBeNull();
+    expect(
+      container.querySelector(
+        '[data-testid="thumbnail-onepiece-allinone-lower-body"]',
+      ),
     ).not.toBeNull();
   });
 
