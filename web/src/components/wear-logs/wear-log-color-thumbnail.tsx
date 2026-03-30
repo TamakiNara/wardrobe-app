@@ -1,4 +1,5 @@
 import { COLOR_THUMBNAIL_OTHERS_BAR_CLASS } from "@/lib/color-thumbnails/shared";
+import LowerBodyPreviewSvg from "@/components/items/item-lower-body-thumbnail-svg";
 import { buildStandardWearLogThumbnailViewModel } from "@/lib/wear-logs/wear-log-thumbnail-view-model";
 import {
   resolveWearLogThumbnailMode,
@@ -74,11 +75,12 @@ export default function WearLogColorThumbnail({
     sortedWearLogItems,
     representatives,
   });
-  const { layout, hasTopBottomSplit } = buildStandardWearLogThumbnailViewModel({
-    sortedWearLogItems,
-    representatives,
-    modeResolution,
-  });
+  const { layout, lowerBodyPreview, hasTopBottomSplit } =
+    buildStandardWearLogThumbnailViewModel({
+      sortedWearLogItems,
+      representatives,
+      modeResolution,
+    });
 
   return (
     <div
@@ -116,10 +118,29 @@ export default function WearLogColorThumbnail({
                 className={`min-h-0 ${hasTopBottomSplit ? "h-1/2" : "h-full"}`}
                 data-testid="wear-log-thumbnail-main-bottom"
               >
-                <SegmentRow
-                  segments={layout.bottoms}
-                  testId="wear-log-thumbnail-bottoms"
-                />
+                {lowerBodyPreview ? (
+                  <div
+                    className="h-full w-full"
+                    data-testid="wear-log-thumbnail-lower-body"
+                  >
+                    <LowerBodyPreviewSvg
+                      lengthType={lowerBodyPreview.lengthType}
+                      coverageType={lowerBodyPreview.coverageType}
+                      bottomsMainColor={lowerBodyPreview.bottomsMainColor}
+                      bottomsSubColor={lowerBodyPreview.bottomsSubColor}
+                      legwearMainColor={lowerBodyPreview.legwearMainColor}
+                      legwearSubColor={lowerBodyPreview.legwearSubColor}
+                      ariaLabel="wear log lower-body preview"
+                      frameMode="viewport"
+                      preserveAspectRatio="none"
+                    />
+                  </div>
+                ) : (
+                  <SegmentRow
+                    segments={layout.bottoms}
+                    testId="wear-log-thumbnail-bottoms"
+                  />
+                )}
               </div>
             ) : null}
           </div>

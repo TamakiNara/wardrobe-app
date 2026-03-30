@@ -26,6 +26,9 @@ export function getWearLogThumbnailFallbackColor() {
 
 export function buildWearLogThumbnailLayout(
   items: WearLogThumbnailItem[],
+  options?: {
+    excludeLegwear?: boolean;
+  },
 ): WearLogThumbnailLayout {
   return buildColorThumbnailLayout(
     items.map((item, index) => ({
@@ -36,6 +39,7 @@ export function buildWearLogThumbnailLayout(
     {
       fallbackWhenEmpty: true,
       emptyFallbackId: -1,
+      excludedCategories: options?.excludeLegwear ? ["legwear"] : [],
     },
   );
 }

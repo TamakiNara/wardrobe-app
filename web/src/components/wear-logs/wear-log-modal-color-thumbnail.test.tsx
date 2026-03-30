@@ -56,9 +56,13 @@ describe("WearLogModalColorThumbnail", () => {
             renderThumbnailItem(1, "tops", [
               { role: "main", hex: "#ffffff", label: "白" },
             ]),
-            renderThumbnailItem(2, "bottoms", [
-              { role: "main", hex: "#111111", label: "黒" },
-            ]),
+            {
+              ...renderThumbnailItem(2, "bottoms", [
+                { role: "main", hex: "#111111", label: "黒" },
+              ]),
+              shape: "pants",
+              spec: { bottoms: { length_type: "full" } },
+            },
             renderThumbnailItem(3, "shoes", [
               { role: "main", hex: "#224488", label: "青" },
             ]),
@@ -72,7 +76,7 @@ describe("WearLogModalColorThumbnail", () => {
     ).not.toBeNull();
     expect(
       container.querySelector(
-        '[data-testid="wear-log-modal-thumbnail-bottoms"]',
+        '[data-testid="wear-log-modal-thumbnail-lower-body"]',
       ),
     ).not.toBeNull();
     expect(
@@ -83,6 +87,47 @@ describe("WearLogModalColorThumbnail", () => {
     expect(
       container.querySelector(
         '[data-testid="wear-log-modal-thumbnail-others-full"]',
+      ),
+    ).toBeNull();
+  });
+
+  it("bottoms がある場合は modal でも lower-body preview を優先する", async () => {
+    await act(async () => {
+      root.render(
+        React.createElement(WearLogModalColorThumbnail, {
+          items: [
+            {
+              ...renderThumbnailItem(1, "bottoms", [
+                { role: "main", hex: "#111111", label: "黒" },
+              ]),
+              shape: "pants",
+              spec: { bottoms: { length_type: "full" } },
+            },
+            {
+              ...renderThumbnailItem(2, "legwear", [
+                { role: "main", hex: "#888888", label: "グレー" },
+              ]),
+              shape: "socks",
+              spec: { legwear: { coverage_type: "crew_socks" } },
+            },
+          ],
+        }),
+      );
+    });
+
+    expect(
+      container.querySelector(
+        '[data-testid="wear-log-modal-thumbnail-lower-body"]',
+      ),
+    ).not.toBeNull();
+    expect(
+      container.querySelector(
+        '[data-testid="wear-log-modal-thumbnail-bottoms"]',
+      ),
+    ).toBeNull();
+    expect(
+      container.querySelector(
+        '[data-testid="wear-log-modal-thumbnail-others"]',
       ),
     ).toBeNull();
   });

@@ -56,9 +56,13 @@ describe("WearLogColorThumbnail", () => {
             renderThumbnailItem(1, "tops", [
               { role: "main", hex: "#ffffff", label: "白" },
             ]),
-            renderThumbnailItem(2, "bottoms", [
-              { role: "main", hex: "#111111", label: "黒" },
-            ]),
+            {
+              ...renderThumbnailItem(2, "bottoms", [
+                { role: "main", hex: "#111111", label: "黒" },
+              ]),
+              shape: "pants",
+              spec: { bottoms: { length_type: "full" } },
+            },
             renderThumbnailItem(3, "shoes", [
               { role: "main", hex: "#224488", label: "青" },
             ]),
@@ -71,7 +75,7 @@ describe("WearLogColorThumbnail", () => {
       container.querySelector('[data-testid="wear-log-thumbnail-tops"]'),
     ).not.toBeNull();
     expect(
-      container.querySelector('[data-testid="wear-log-thumbnail-bottoms"]'),
+      container.querySelector('[data-testid="wear-log-thumbnail-lower-body"]'),
     ).not.toBeNull();
     expect(
       container.querySelector('[data-testid="wear-log-thumbnail-others"]'),
@@ -91,6 +95,47 @@ describe("WearLogColorThumbnail", () => {
     expect(
       container.querySelector('[data-testid="wear-log-thumbnail-others-full"]'),
     ).toBeNull();
+  });
+
+  it("bottoms がある場合は legwear を others ではなく lower-body preview で描画する", async () => {
+    await act(async () => {
+      root.render(
+        React.createElement(WearLogColorThumbnail, {
+          items: [
+            renderThumbnailItem(1, "tops", [
+              { role: "main", hex: "#ffffff", label: "白" },
+            ]),
+            {
+              ...renderThumbnailItem(2, "bottoms", [
+                { role: "main", hex: "#111111", label: "黒" },
+              ]),
+              shape: "pants",
+              spec: { bottoms: { length_type: "full" } },
+            },
+            {
+              ...renderThumbnailItem(3, "legwear", [
+                { role: "main", hex: "#888888", label: "グレー" },
+              ]),
+              shape: "socks",
+              spec: { legwear: { coverage_type: "crew_socks" } },
+            },
+          ],
+        }),
+      );
+    });
+
+    expect(
+      container.querySelector('[data-testid="wear-log-thumbnail-lower-body"]'),
+    ).not.toBeNull();
+    expect(
+      container.querySelector('[data-testid="wear-log-thumbnail-bottoms"]'),
+    ).toBeNull();
+    expect(
+      container.querySelector('[data-testid="wear-log-thumbnail-others"]'),
+    ).toBeNull();
+    expect(
+      container.querySelector('[data-testid="lower-body-preview-svg"]'),
+    ).not.toBeNull();
   });
 
   it("tops / bottoms 両方ありで others がない場合は 2 層だけを使う", async () => {
@@ -205,6 +250,34 @@ describe("WearLogColorThumbnail", () => {
     ).toBeNull();
   });
 
+  it("bottoms がない legwear は others に戻さない", async () => {
+    await act(async () => {
+      root.render(
+        React.createElement(WearLogColorThumbnail, {
+          items: [
+            {
+              ...renderThumbnailItem(1, "legwear", [
+                { role: "main", hex: "#888888", label: "グレー" },
+              ]),
+              shape: "socks",
+              spec: { legwear: { coverage_type: "crew_socks" } },
+            },
+          ],
+        }),
+      );
+    });
+
+    expect(
+      container.querySelector('[data-testid="wear-log-thumbnail-others-full"]'),
+    ).toBeNull();
+    expect(
+      container.querySelector('[data-testid="wear-log-thumbnail-others"]'),
+    ).toBeNull();
+    expect(
+      container.querySelector('[data-testid="wear-log-thumbnail-lower-body"]'),
+    ).toBeNull();
+  });
+
   it("main / sub color を 90 / 10 で描画し、sub なしでも表示できる", async () => {
     await act(async () => {
       root.render(
@@ -214,7 +287,7 @@ describe("WearLogColorThumbnail", () => {
               { role: "main", hex: "#eeeeee", label: "白" },
               { role: "sub", hex: "#333333", label: "黒" },
             ]),
-            renderThumbnailItem(2, "bottoms", [
+            renderThumbnailItem(2, "tops", [
               { role: "main", hex: "#2255cc", label: "青" },
             ]),
           ],
@@ -223,7 +296,7 @@ describe("WearLogColorThumbnail", () => {
     });
 
     const allBands = container.querySelectorAll(
-      '[data-testid="wear-log-thumbnail-tops-segment"], [data-testid="wear-log-thumbnail-bottoms-segment"]',
+      '[data-testid="wear-log-thumbnail-tops-segment"]',
     );
     const firstMain = allBands[0]?.querySelector("span > span");
     const firstSub = allBands[0]?.querySelector("span > span + span");

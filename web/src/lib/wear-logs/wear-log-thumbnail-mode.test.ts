@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import type { WearLogThumbnailItem } from "@/types/wear-logs";
 import {
   resolveWearLogThumbnailMode,
+  selectRepresentativeWearLogBottoms,
+  selectRepresentativeWearLogLegwear,
   selectWearLogThumbnailRepresentatives,
   sortWearLogThumbnailItems,
 } from "./wear-log-thumbnail-mode";
@@ -58,6 +60,32 @@ describe("wear log thumbnail mode helpers", () => {
     );
   });
 
+  it("bottoms / legwear representative も wear_log_items 正本で選ぶ", () => {
+    const sorted = sortWearLogThumbnailItems([
+      createThumbnailItem(1, {
+        category: "bottoms",
+        shape: "pants",
+      }),
+      createThumbnailItem(2, {
+        category: "bottoms",
+        shape: "pants",
+        spec: { bottoms: { length_type: "midi" } },
+      }),
+      createThumbnailItem(3, {
+        category: "legwear",
+        shape: "socks",
+      }),
+      createThumbnailItem(4, {
+        category: "legwear",
+        shape: "socks",
+        spec: { legwear: { coverage_type: "crew_socks" } },
+      }),
+    ]);
+
+    expect(selectRepresentativeWearLogBottoms(sorted)?.source_item_id).toBe(2);
+    expect(selectRepresentativeWearLogLegwear(sorted)?.source_item_id).toBe(4);
+  });
+
   it("current では onepiece_allinone があっても standard mode を維持する", () => {
     const sorted = sortWearLogThumbnailItems([
       createThumbnailItem(1, {
@@ -78,5 +106,25 @@ describe("wear log thumbnail mode helpers", () => {
         representatives,
       }).mode,
     ).toBe("standard");
+  });
+
+  it("selectWearLogThumbnailRepresentatives に bottoms / legwear representative も含める", () => {
+    const sorted = sortWearLogThumbnailItems([
+      createThumbnailItem(1, {
+        category: "bottoms",
+        shape: "pants",
+        spec: { bottoms: { length_type: "full" } },
+      }),
+      createThumbnailItem(2, {
+        category: "legwear",
+        shape: "socks",
+        spec: { legwear: { coverage_type: "crew_socks" } },
+      }),
+    ]);
+
+    const representatives = selectWearLogThumbnailRepresentatives(sorted);
+
+    expect(representatives.representativeBottoms?.source_item_id).toBe(1);
+    expect(representatives.representativeLegwear?.source_item_id).toBe(2);
   });
 });

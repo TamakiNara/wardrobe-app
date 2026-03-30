@@ -58,7 +58,10 @@ describe("buildStandardWearLogThumbnailViewModel", () => {
     expect(viewModel.hasTopBottomSplit).toBe(true);
     expect(viewModel.layout.tops).toHaveLength(1);
     expect(viewModel.layout.bottoms).toHaveLength(1);
-    expect(viewModel.layout.others).toHaveLength(1);
+    expect(viewModel.layout.others).toHaveLength(0);
+    expect(viewModel.lowerBodyPreview).not.toBeNull();
+    expect(viewModel.lowerBodyPreview?.representativeBottomsItemId).toBe(2);
+    expect(viewModel.lowerBodyPreview?.representativeLegwearItemId).toBe(3);
   });
 
   it("current では onepiece_allinone も others 側のまま残す", () => {
@@ -84,5 +87,33 @@ describe("buildStandardWearLogThumbnailViewModel", () => {
 
     expect(viewModel.layout.others).toHaveLength(1);
     expect(viewModel.layout.usesFullHeightForOthers).toBe(true);
+    expect(viewModel.lowerBodyPreview).toBeNull();
+  });
+
+  it("bottoms がない場合は legwear を others に戻さず lower-body preview も出さない", () => {
+    const sortedWearLogItems = sortWearLogThumbnailItems([
+      createThumbnailItem(1, {
+        category: "legwear",
+        shape: "socks",
+        spec: { legwear: { coverage_type: "crew_socks" } },
+        colors: [{ role: "main", hex: "#888888", label: "グレー" }],
+      }),
+    ]);
+    const representatives =
+      selectWearLogThumbnailRepresentatives(sortedWearLogItems);
+    const modeResolution = resolveWearLogThumbnailMode({
+      sortedWearLogItems,
+      representatives,
+    });
+
+    const viewModel = buildStandardWearLogThumbnailViewModel({
+      sortedWearLogItems,
+      representatives,
+      modeResolution,
+    });
+
+    expect(viewModel.layout.others).toHaveLength(0);
+    expect(viewModel.layout.usesFullHeightForOthers).toBe(false);
+    expect(viewModel.lowerBodyPreview).toBeNull();
   });
 });
