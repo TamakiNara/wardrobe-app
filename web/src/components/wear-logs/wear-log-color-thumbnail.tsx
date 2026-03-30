@@ -2,6 +2,10 @@ import { COLOR_THUMBNAIL_OTHERS_BAR_CLASS } from "@/lib/color-thumbnails/shared"
 import LowerBodyPreviewSvg from "@/components/items/item-lower-body-thumbnail-svg";
 import WearLogOnepieceAllinoneThumbnail from "@/components/wear-logs/wear-log-onepiece-allinone-thumbnail";
 import {
+  DEFAULT_SKIN_TONE_PRESET,
+  resolveSkinToneColor,
+} from "@/lib/master-data/skin-tone-presets";
+import {
   buildOnepieceAllinoneWearLogThumbnailViewModel,
   buildStandardWearLogThumbnailViewModel,
 } from "@/lib/wear-logs/wear-log-thumbnail-view-model";
@@ -10,6 +14,7 @@ import {
   selectWearLogThumbnailRepresentatives,
   sortWearLogThumbnailItems,
 } from "@/lib/wear-logs/wear-log-thumbnail-mode";
+import type { SkinTonePreset } from "@/types/settings";
 import type { WearLogThumbnailItem } from "@/types/wear-logs";
 
 function ColorBand({
@@ -69,8 +74,10 @@ function SegmentRow({
 
 export default function WearLogColorThumbnail({
   items,
+  skinTonePreset = DEFAULT_SKIN_TONE_PRESET,
 }: {
   items: WearLogThumbnailItem[];
+  skinTonePreset?: SkinTonePreset;
 }) {
   const sortedWearLogItems = sortWearLogThumbnailItems(items);
   const representatives =
@@ -79,11 +86,13 @@ export default function WearLogColorThumbnail({
     sortedWearLogItems,
     representatives,
   });
+  const skinToneColor = resolveSkinToneColor(skinTonePreset);
   if (modeResolution.mode === "onepiece_allinone") {
     const viewModel = buildOnepieceAllinoneWearLogThumbnailViewModel({
       sortedWearLogItems,
       representatives,
       modeResolution,
+      skinToneColor,
     });
 
     return (
@@ -106,6 +115,7 @@ export default function WearLogColorThumbnail({
       sortedWearLogItems,
       representatives,
       modeResolution,
+      skinToneColor,
     });
 
   return (
@@ -156,6 +166,7 @@ export default function WearLogColorThumbnail({
                       bottomsSubColor={lowerBodyPreview.bottomsSubColor}
                       legwearMainColor={lowerBodyPreview.legwearMainColor}
                       legwearSubColor={lowerBodyPreview.legwearSubColor}
+                      skinToneColor={skinToneColor}
                       ariaLabel="wear log lower-body preview"
                       frameMode="viewport"
                       preserveAspectRatio="none"

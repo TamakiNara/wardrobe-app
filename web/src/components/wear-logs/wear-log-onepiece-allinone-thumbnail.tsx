@@ -23,6 +23,7 @@ export default function WearLogOnepieceAllinoneThumbnail({
     topsAreAboveOnepieceAllinone,
     topsAreBelowOnepieceAllinone,
     onepieceAllinoneLayerStyle,
+    skinToneColor,
   } = viewModel;
 
   return (
@@ -57,6 +58,7 @@ export default function WearLogOnepieceAllinoneThumbnail({
                 onepieceAllinoneLowerBodyPreview.legwearMainColor
               }
               legwearSubColor={onepieceAllinoneLowerBodyPreview.legwearSubColor}
+              skinToneColor={skinToneColor}
               ariaLabel="wear log onepiece_allinone lower-body preview"
               frameMode="viewport"
               preserveAspectRatio="none"

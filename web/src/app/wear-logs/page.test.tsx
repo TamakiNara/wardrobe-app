@@ -62,6 +62,7 @@ describe("WearLogsPage", () => {
         json: async () => ({
           preferences: {
             calendarWeekStart: "monday",
+            skinTonePreset: "neutral_medium",
           },
         }),
       });
@@ -157,6 +158,7 @@ describe("WearLogsPage", () => {
         json: async () => ({
           preferences: {
             calendarWeekStart: "monday",
+            skinTonePreset: "neutral_medium",
           },
         }),
       });
@@ -207,6 +209,7 @@ describe("WearLogsPage", () => {
         json: async () => ({
           preferences: {
             calendarWeekStart: "monday",
+            skinTonePreset: "neutral_medium",
           },
         }),
       });

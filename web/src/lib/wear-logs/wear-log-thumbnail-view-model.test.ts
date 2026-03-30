@@ -56,6 +56,7 @@ describe("buildStandardWearLogThumbnailViewModel", () => {
       sortedWearLogItems,
       representatives,
       modeResolution,
+      skinToneColor: "#E9C29B",
     });
 
     expect(viewModel.hasTopBottomSplit).toBe(true);
@@ -65,6 +66,7 @@ describe("buildStandardWearLogThumbnailViewModel", () => {
     expect(viewModel.lowerBodyPreview).not.toBeNull();
     expect(viewModel.lowerBodyPreview?.representativeBottomsItemId).toBe(2);
     expect(viewModel.lowerBodyPreview?.representativeLegwearItemId).toBe(3);
+    expect(viewModel.skinToneColor).toBe("#E9C29B");
   });
 
   it("current では onepiece_allinone も others 側のまま残す", () => {
@@ -86,6 +88,7 @@ describe("buildStandardWearLogThumbnailViewModel", () => {
       sortedWearLogItems,
       representatives,
       modeResolution,
+      skinToneColor: "#E9C29B",
     });
 
     expect(viewModel.layout.others).toHaveLength(1);
@@ -113,6 +116,7 @@ describe("buildStandardWearLogThumbnailViewModel", () => {
       sortedWearLogItems,
       representatives,
       modeResolution,
+      skinToneColor: "#E9C29B",
     });
 
     expect(viewModel.layout.others).toHaveLength(0);
@@ -163,6 +167,7 @@ describe("buildStandardWearLogThumbnailViewModel", () => {
       sortedWearLogItems,
       representatives,
       modeResolution,
+      skinToneColor: "#E9C29B",
     });
 
     expect(viewModel.layout.tops).toHaveLength(1);
@@ -173,6 +178,7 @@ describe("buildStandardWearLogThumbnailViewModel", () => {
     expect(viewModel.topsAreBelowOnepieceAllinone).toBe(true);
     expect(viewModel.topsAreAboveOnepieceAllinone).toBe(false);
     expect(viewModel.onepieceAllinoneLayerStyle.bottom).toBe("12%");
+    expect(viewModel.skinToneColor).toBe("#E9C29B");
     expect(
       viewModel.onepieceAllinoneLowerBodyPreview?.representativeBottomsItemId,
     ).toBe(3);

@@ -120,6 +120,7 @@ describe("WearLogColorThumbnail", () => {
               spec: { legwear: { coverage_type: "crew_socks" } },
             },
           ],
+          skinTonePreset: "yellow_medium",
         }),
       );
     });
@@ -136,6 +137,11 @@ describe("WearLogColorThumbnail", () => {
     expect(
       container.querySelector('[data-testid="lower-body-preview-svg"]'),
     ).not.toBeNull();
+    expect(
+      container
+        .querySelector('[data-testid="lower-body-skin-base"]')
+        ?.getAttribute("fill"),
+    ).toBe("#E9C29B");
   });
 
   it("onepiece + bottoms は dedicated mode で onepiece 主レイヤーを描画する", async () => {
@@ -175,6 +181,7 @@ describe("WearLogColorThumbnail", () => {
               spec: { legwear: { coverage_type: "crew_socks" } },
             },
           ],
+          skinTonePreset: "yellow_medium",
         }),
       );
     });
@@ -199,6 +206,11 @@ describe("WearLogColorThumbnail", () => {
         '[data-testid="wear-log-thumbnail-onepiece-allinone-top-underlay"]',
       ),
     ).not.toBeNull();
+    expect(
+      container
+        .querySelector('[data-testid="lower-body-skin-base"]')
+        ?.getAttribute("fill"),
+    ).toBe("#E9C29B");
     expect(
       container.querySelector('[data-testid="wear-log-thumbnail-others"]'),
     ).toBeNull();

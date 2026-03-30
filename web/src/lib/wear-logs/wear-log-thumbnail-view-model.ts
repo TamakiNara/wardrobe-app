@@ -14,6 +14,7 @@ export type WearLogStandardThumbnailViewModel = {
   layout: ReturnType<typeof buildWearLogThumbnailLayout>;
   lowerBodyPreview: OutfitLowerBodyPreviewSource | null;
   hasTopBottomSplit: boolean;
+  skinToneColor: string;
 };
 
 export type WearLogOnepieceAllinoneThumbnailViewModel = {
@@ -27,6 +28,7 @@ export type WearLogOnepieceAllinoneThumbnailViewModel = {
     top: string;
     bottom: string;
   };
+  skinToneColor: string;
 };
 
 function buildThumbnailLayoutInput(items: WearLogThumbnailItem[]) {
@@ -108,8 +110,9 @@ export function buildStandardWearLogThumbnailViewModel(params: {
   sortedWearLogItems: WearLogThumbnailItem[];
   representatives: WearLogThumbnailRepresentatives;
   modeResolution: WearLogThumbnailModeResolution;
+  skinToneColor: string;
 }): WearLogStandardThumbnailViewModel {
-  const { sortedWearLogItems } = params;
+  const { sortedWearLogItems, skinToneColor } = params;
   const layout = buildStandardThumbnailLayout(sortedWearLogItems);
   const lowerBodyPreview = buildOutfitLowerBodyPreviewSource(
     buildLowerBodyPreviewInput(sortedWearLogItems),
@@ -120,6 +123,7 @@ export function buildStandardWearLogThumbnailViewModel(params: {
     layout,
     lowerBodyPreview,
     hasTopBottomSplit,
+    skinToneColor,
   };
 }
 
@@ -127,8 +131,10 @@ export function buildOnepieceAllinoneWearLogThumbnailViewModel(params: {
   sortedWearLogItems: WearLogThumbnailItem[];
   representatives: WearLogThumbnailRepresentatives;
   modeResolution: WearLogThumbnailModeResolution;
+  skinToneColor: string;
 }): WearLogOnepieceAllinoneThumbnailViewModel {
-  const { sortedWearLogItems, representatives, modeResolution } = params;
+  const { sortedWearLogItems, representatives, modeResolution, skinToneColor } =
+    params;
   void modeResolution;
   const { representativeOnepieceAllinone } = representatives;
 
@@ -163,5 +169,6 @@ export function buildOnepieceAllinoneWearLogThumbnailViewModel(params: {
     topsAreAboveOnepieceAllinone,
     topsAreBelowOnepieceAllinone,
     onepieceAllinoneLayerStyle,
+    skinToneColor,
   };
 }

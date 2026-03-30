@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import WearLogModalColorThumbnail from "@/components/wear-logs/wear-log-modal-color-thumbnail";
 import { ApiClientError, apiFetch } from "@/lib/api/client";
 import { getWearLogStatusLabel } from "@/lib/wear-logs/labels";
+import type { SkinTonePreset } from "@/types/settings";
 import type {
   WearLogByDateResponse,
   WearLogCalendarDaySummary,
@@ -15,6 +16,7 @@ type WearLogCalendarProps = {
   month: string;
   days: WearLogCalendarDaySummary[];
   weekStart?: "monday" | "sunday";
+  skinTonePreset?: SkinTonePreset;
 };
 
 const WEEKDAY_LABELS = {
@@ -117,6 +119,7 @@ export default function WearLogCalendar({
   month,
   days,
   weekStart = "monday",
+  skinTonePreset,
 }: WearLogCalendarProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -345,6 +348,7 @@ export default function WearLogCalendar({
                       <div className="flex min-w-0 flex-1 items-start gap-3">
                         <WearLogModalColorThumbnail
                           items={wearLog.thumbnail_items ?? []}
+                          skinTonePreset={skinTonePreset}
                         />
                         <div className="min-w-0">
                           <p className="text-sm font-medium text-gray-900">

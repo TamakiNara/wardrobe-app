@@ -2,11 +2,13 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import WearLogCalendar from "@/components/wear-logs/wear-log-calendar";
 import WearLogColorThumbnail from "@/components/wear-logs/wear-log-color-thumbnail";
+import { DEFAULT_SKIN_TONE_PRESET } from "@/lib/master-data/skin-tone-presets";
 import { fetchLaravelWithCookie } from "@/lib/server/laravel";
 import {
   WEAR_LOG_STATUS_LABELS,
   getWearLogStatusLabel,
 } from "@/lib/wear-logs/labels";
+import type { SkinTonePreset } from "@/types/settings";
 import type {
   WearLogCalendarResponse,
   WearLogsResponse,
@@ -16,6 +18,7 @@ type WearLogsPageSearchParams = Record<string, string | string[] | undefined>;
 type PreferencesResponse = {
   preferences?: {
     calendarWeekStart?: "monday" | "sunday" | null;
+    skinTonePreset?: SkinTonePreset | null;
   };
 };
 
@@ -126,7 +129,10 @@ async function getWearLogCalendar(
   };
 }
 
-async function getCalendarWeekStart(): Promise<"monday" | "sunday"> {
+async function getWearLogThumbnailPreferences(): Promise<{
+  calendarWeekStart: "monday" | "sunday";
+  skinTonePreset: SkinTonePreset;
+}> {
   const response = await fetchLaravelWithCookie("/api/settings/preferences");
 
   if (response.status === 401) {
@@ -134,11 +140,20 @@ async function getCalendarWeekStart(): Promise<"monday" | "sunday"> {
   }
 
   if (!response.ok) {
-    return "monday";
+    return {
+      calendarWeekStart: "monday",
+      skinTonePreset: DEFAULT_SKIN_TONE_PRESET,
+    };
   }
 
   const data = (await response.json()) as PreferencesResponse;
-  return data.preferences?.calendarWeekStart === "sunday" ? "sunday" : "monday";
+
+  return {
+    calendarWeekStart:
+      data.preferences?.calendarWeekStart === "sunday" ? "sunday" : "monday",
+    skinTonePreset:
+      data.preferences?.skinTonePreset ?? DEFAULT_SKIN_TONE_PRESET,
+  };
 }
 
 export default async function WearLogsPage({
@@ -148,10 +163,10 @@ export default async function WearLogsPage({
 }) {
   const resolvedSearchParams = await searchParams;
   const selectedMonth = normalizeMonth(resolvedSearchParams.month);
-  const [data, calendarData, calendarWeekStart] = await Promise.all([
+  const [data, calendarData, preferences] = await Promise.all([
     getWearLogs(resolvedSearchParams),
     getWearLogCalendar(selectedMonth),
-    getCalendarWeekStart(),
+    getWearLogThumbnailPreferences(),
   ]);
   const flashMessage =
     resolvedSearchParams.message === "deleted"
@@ -303,7 +318,8 @@ export default async function WearLogsPage({
         <WearLogCalendar
           month={calendarData.month}
           days={calendarData.days}
-          weekStart={calendarWeekStart}
+          weekStart={preferences.calendarWeekStart}
+          skinTonePreset={preferences.skinTonePreset}
         />
 
         {data.meta.totalAll === 0 ? (
@@ -350,6 +366,7 @@ export default async function WearLogsPage({
                   <div className="mt-3 flex items-start gap-4">
                     <WearLogColorThumbnail
                       items={wearLog.thumbnail_items ?? []}
+                      skinTonePreset={preferences.skinTonePreset}
                     />
 
                     <div className="min-w-0 flex-1">
