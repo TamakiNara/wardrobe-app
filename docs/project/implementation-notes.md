@@ -198,6 +198,15 @@ thumbnail の current 確認用パターン一覧を見返すときは `docs/spe
 
 ## current 実装メモ
 
+### recent performance improvements
+
+- ホーム件数取得は、一覧 API 4 本を件数目的で呼ぶ current をやめ、`GET /api/home/summary` の軽量 endpoint へ置き換えた
+- `UserTpoNameResolver` は user ごとの name map を一括構築して使い回す形に寄せ、items / outfits 一覧で `user_tpos` をレコードごとに引き直さないようにした
+- `ItemsIndexQuery` / `OutfitsIndexQuery` / `WearLogsIndexQuery` / `PurchaseCandidatesIndexQuery` は、可能な範囲で `filter / sort / paginate` を DB query builder 側へ寄せた
+- 上記は一覧 API の仕様変更ではなく、current のレスポンス形と filter 条件を維持した内部最適化として実施した
+- 残課題は、auth 確認や `no-store` の多用、一覧画面の追加 fetch の見直し、production build を含む実測確認、必要に応じた query log ベースの再調整
+
+
 ### settings
 
 実装済み:
