@@ -17,7 +17,10 @@ function renderThumbnailItem(
 ) {
   return {
     source_item_id: sourceItemId,
+    sort_order: sourceItemId ?? 0,
     category,
+    shape: null,
+    spec: null,
     colors: colors.map((color) => ({
       role: color.role,
       hex: color.hex,

@@ -1,6 +1,11 @@
-import { buildWearLogThumbnailLayout } from "@/lib/wear-logs/color-thumbnail";
 import type { WearLogThumbnailItem } from "@/types/wear-logs";
 import { COLOR_THUMBNAIL_OTHERS_BAR_CLASS } from "@/lib/color-thumbnails/shared";
+import { buildStandardWearLogThumbnailViewModel } from "@/lib/wear-logs/wear-log-thumbnail-view-model";
+import {
+  resolveWearLogThumbnailMode,
+  selectWearLogThumbnailRepresentatives,
+  sortWearLogThumbnailItems,
+} from "@/lib/wear-logs/wear-log-thumbnail-mode";
 
 function ColorBand({
   mainColorHex,
@@ -62,8 +67,18 @@ export default function WearLogModalColorThumbnail({
 }: {
   items: WearLogThumbnailItem[];
 }) {
-  const layout = buildWearLogThumbnailLayout(items);
-  const hasTopBottomSplit = layout.tops.length > 0 && layout.bottoms.length > 0;
+  const sortedWearLogItems = sortWearLogThumbnailItems(items);
+  const representatives =
+    selectWearLogThumbnailRepresentatives(sortedWearLogItems);
+  const modeResolution = resolveWearLogThumbnailMode({
+    sortedWearLogItems,
+    representatives,
+  });
+  const { layout, hasTopBottomSplit } = buildStandardWearLogThumbnailViewModel({
+    sortedWearLogItems,
+    representatives,
+    modeResolution,
+  });
 
   return (
     <div
