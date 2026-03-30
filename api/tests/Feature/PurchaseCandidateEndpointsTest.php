@@ -146,6 +146,60 @@ class PurchaseCandidateEndpointsTest extends TestCase
             ->assertJsonPath('meta.totalAll', 1);
     }
 
+    public function test_get_purchase_candidates_applies_filters_sort_and_pagination(): void
+    {
+        $user = User::factory()->create();
+        $this->createCategory('outer_coat', 'outer', 'コート');
+
+        for ($index = 1; $index <= 13; $index++) {
+            $this->createCandidate($user, [
+                'name' => sprintf('在宅コート%02d', $index),
+                'status' => 'considering',
+                'priority' => 'high',
+                'category_id' => 'outer_coat',
+                'brand_name' => '在宅ブランド',
+                'wanted_reason' => '在宅用を追加したい',
+                'memo' => '在宅候補メモ',
+            ]);
+        }
+
+        $this->createCandidate($user, [
+            'name' => '休日コート',
+            'status' => 'purchased',
+            'priority' => 'medium',
+            'category_id' => 'outer_coat',
+            'brand_name' => '休日ブランド',
+            'wanted_reason' => '休日用',
+            'memo' => '休日候補メモ',
+        ]);
+
+        $otherUser = User::factory()->create();
+        $this->createCandidate($otherUser, [
+            'name' => '在宅コート他人分',
+            'status' => 'considering',
+            'priority' => 'high',
+            'category_id' => 'outer_coat',
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->getJson('/api/purchase-candidates?keyword=%E5%9C%A8%E5%AE%85&status=considering&priority=high&category=outer_coat&sort=name_asc&page=2', [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonCount(1, 'purchaseCandidates')
+            ->assertJsonPath('purchaseCandidates.0.name', '在宅コート13')
+            ->assertJsonPath('meta.total', 13)
+            ->assertJsonPath('meta.totalAll', 14)
+            ->assertJsonPath('meta.page', 2)
+            ->assertJsonPath('meta.lastPage', 2);
+
+        $response->assertJsonMissing([
+            'name' => '休日コート',
+        ]);
+    }
+
     public function test_get_purchase_candidate_returns_detail(): void
     {
         $user = User::factory()->create();
