@@ -4,6 +4,7 @@ namespace App\Support;
 
 use App\Models\Item;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 
 class ItemsIndexQuery
@@ -20,56 +21,37 @@ class ItemsIndexQuery
         $visibleCategoryIds = is_array($visibleCategoryIdsRaw)
             ? collect($visibleCategoryIdsRaw)
             : null;
-
-        $visibleItems = Item::query()
-            ->where('user_id', $user->id)
-            ->where('status', 'active')
-            ->with(['images', 'user'])
-            ->latest()
-            ->get()
-            ->filter(fn (Item $item) => ListQuerySupport::isItemVisibleForList($item, $visibleCategoryIds))
-            ->values();
+        $visibleItemsQuery = self::buildVisibleItemsQuery($user, $visibleCategoryIds);
+        $visibleItems = $visibleItemsQuery
+            ->get(['id', 'category', 'seasons', 'tpo_ids', 'tpos']);
         $tpoNameById = UserTpoNameResolver::buildNameMap(
             $user,
             $visibleItems
                 ->flatMap(fn (Item $item) => is_array($item->tpo_ids) ? $item->tpo_ids : [])
                 ->all()
         );
-
-        $filteredItems = $visibleItems
-            ->filter(function (Item $item) use ($keyword, $category, $season, $tpo, $tpoNameById) {
-                $name = mb_strtolower((string) ($item->name ?? ''), 'UTF-8');
-                $normalizedKeyword = mb_strtolower($keyword, 'UTF-8');
-                $seasons = is_array($item->seasons) ? $item->seasons : [];
-                $tpos = UserTpoNameResolver::resolveNamesFromMap($tpoNameById, $item->tpo_ids ?? [], $item->tpos ?? []);
-
-                $matchKeyword = $normalizedKeyword === '' || str_contains($name, $normalizedKeyword);
-                $matchCategory = $category === '' || $item->category === $category;
-                $matchSeason = $season === '' || in_array($season, $seasons, true);
-                $matchTpo = $tpo === '' || in_array($tpo, $tpos, true);
-
-                return $matchKeyword && $matchCategory && $matchSeason && $matchTpo;
-            })
-            ->values();
-
-        if ($sort === 'name_asc') {
-            $filteredItems = $filteredItems
-                ->sortBy(fn (Item $item) => mb_strtolower((string) ($item->name ?? ''), 'UTF-8'))
-                ->values();
-        }
-
-        $pagination = ListQuerySupport::paginate($filteredItems, $page);
+        $query = self::buildFilteredItemsQuery(
+            $user,
+            $visibleCategoryIds,
+            $keyword,
+            $category,
+            $season,
+            $tpo,
+            $sort,
+            $tpoNameById->all()
+        );
+        $pagination = $query->paginate(ListQuerySupport::PAGE_SIZE, ['*'], 'page', $page);
 
         return [
-            'items' => $pagination['items']
+            'items' => $pagination->getCollection()
                 ->map(fn (Item $item) => ItemPayloadBuilder::buildDetail($item))
                 ->values()
                 ->all(),
             'meta' => [
-                'total' => $pagination['total'],
+                'total' => $pagination->total(),
                 'totalAll' => $visibleItems->count(),
-                'page' => $pagination['page'],
-                'lastPage' => $pagination['lastPage'],
+                'page' => $pagination->currentPage(),
+                'lastPage' => $pagination->lastPage(),
                 'availableCategories' => $visibleItems
                     ->pluck('category')
                     ->filter(fn (mixed $value) => is_string($value) && $value !== '')
@@ -88,5 +70,64 @@ class ItemsIndexQuery
                 ),
             ],
         ];
+    }
+
+    private static function buildVisibleItemsQuery(User $user, ?\Illuminate\Support\Collection $visibleCategoryIds): Builder
+    {
+        return ListQuerySupport::applyVisibleItemFilter(
+            Item::query()
+                ->where('user_id', $user->id)
+                ->where('status', 'active'),
+            $visibleCategoryIds
+        );
+    }
+
+    private static function buildFilteredItemsQuery(
+        User $user,
+        ?\Illuminate\Support\Collection $visibleCategoryIds,
+        string $keyword,
+        string $category,
+        string $season,
+        string $tpo,
+        string $sort,
+        array $tpoNameById
+    ): Builder {
+        $query = self::buildVisibleItemsQuery($user, $visibleCategoryIds)
+            ->with(['images', 'user']);
+
+        if ($keyword !== '') {
+            $query->where('name', 'like', '%'.$keyword.'%');
+        }
+
+        if ($category !== '') {
+            $query->where('category', $category);
+        }
+
+        if ($season !== '') {
+            $query->whereJsonContains('seasons', $season);
+        }
+
+        if ($tpo !== '') {
+            $resolvedTpoIds = collect($tpoNameById)
+                ->filter(fn (string $name) => $name === $tpo)
+                ->keys()
+                ->map(fn (mixed $id) => (int) $id)
+                ->filter(fn (int $id) => $id > 0)
+                ->values();
+
+            $query->where(function (Builder $builder) use ($resolvedTpoIds, $tpo) {
+                $builder->whereJsonContains('tpos', $tpo);
+
+                foreach ($resolvedTpoIds as $resolvedTpoId) {
+                    $builder->orWhereJsonContains('tpo_ids', $resolvedTpoId);
+                }
+            });
+        }
+
+        if ($sort === 'name_asc') {
+            return $query->orderBy('name');
+        }
+
+        return $query->latest();
     }
 }

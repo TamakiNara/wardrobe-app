@@ -209,6 +209,54 @@ class ItemsEndpointsTest extends TestCase
         ]);
     }
 
+    public function test_get_items_resolves_tpo_filter_and_available_tpos_from_tpo_ids(): void
+    {
+        $user = User::factory()->create();
+        $user->forceFill([
+            'visible_category_ids' => ['tops_tshirt'],
+        ])->save();
+
+        $remoteWorkTpo = $this->createUserTpo($user, [
+            'name' => '在宅',
+            'sort_order' => 5,
+            'is_preset' => false,
+        ]);
+
+        $matchedItem = $this->createItem($user, [
+            'name' => '在宅用Tシャツ',
+            'shape' => 'tshirt',
+            'tpo_ids' => [$remoteWorkTpo->id],
+            'tpos' => [],
+        ]);
+
+        $this->createItem($user, [
+            'name' => '休日用Tシャツ',
+            'shape' => 'tshirt',
+            'tpo_ids' => [],
+            'tpos' => ['休日'],
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->getJson('/api/items?tpo=%E5%9C%A8%E5%AE%85', [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonCount(1, 'items')
+            ->assertJsonPath('items.0.id', $matchedItem->id)
+            ->assertJsonPath('items.0.name', '在宅用Tシャツ')
+            ->assertJsonPath('items.0.tpos.0', '在宅')
+            ->assertJsonPath('meta.total', 1)
+            ->assertJsonPath('meta.totalAll', 2)
+            ->assertJsonPath('meta.availableTpos.0', '休日')
+            ->assertJsonPath('meta.availableTpos.1', '在宅');
+
+        $response->assertJsonMissing([
+            'name' => '休日用Tシャツ',
+        ]);
+    }
+
     public function test_get_items_excludes_disposed_items_from_normal_list(): void
     {
         $user = User::factory()->create();

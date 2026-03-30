@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use App\Models\Item;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
 class ListQuerySupport
@@ -127,6 +128,58 @@ class ListQuerySupport
                 'accessory' => 'accessories_jewelry',
             ],
         ];
+    }
+
+    /**
+     * @return array<int, array{category: string, shape: string}>
+     */
+    public static function resolveHiddenItemCategoryShapePairs(Collection $visibleCategoryIds): array
+    {
+        $map = self::itemVisibleCategoryMap();
+
+        return collect($map)
+            ->flatMap(
+                fn (array $shapeMap, string $category) => collect($shapeMap)->map(
+                    fn (string $visibleCategoryId, string $shape) => [
+                        'category' => $category,
+                        'shape' => $shape,
+                        'visibleCategoryId' => $visibleCategoryId,
+                    ]
+                )
+            )
+            ->reject(
+                fn (array $pair) => $visibleCategoryIds->contains($pair['visibleCategoryId'])
+            )
+            ->map(
+                fn (array $pair) => [
+                    'category' => $pair['category'],
+                    'shape' => $pair['shape'],
+                ]
+            )
+            ->values()
+            ->all();
+    }
+
+    public static function applyVisibleItemFilter(Builder $query, ?Collection $visibleCategoryIds): Builder
+    {
+        if ($visibleCategoryIds === null) {
+            return $query;
+        }
+
+        $hiddenPairs = self::resolveHiddenItemCategoryShapePairs($visibleCategoryIds);
+        if ($hiddenPairs === []) {
+            return $query;
+        }
+
+        return $query->whereNot(function (Builder $builder) use ($hiddenPairs) {
+            foreach ($hiddenPairs as $pair) {
+                $builder->orWhere(function (Builder $nested) use ($pair) {
+                    $nested
+                        ->where('category', $pair['category'])
+                        ->where('shape', $pair['shape']);
+                });
+            }
+        });
     }
 
     private static function resolveVisibleCategoryIdForItem(Item $item): ?string
