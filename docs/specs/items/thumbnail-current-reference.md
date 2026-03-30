@@ -72,6 +72,7 @@ current 非対象:
 - `tops` と `onepiece_allinone` の前後は `sort_order` 正本
 - current では、複数 `tops` を個別に前後判定して underlay / overlay を混在表示する前提は置かない
 - `onepiece + bottoms` では、`bottoms` は裾見せ補助レイヤー
+- compact は小さい thumbnail variant を指す補助区分として残るが、`onepiece main / bottoms hem / tops` 全体 / `others` の構造比率は一覧と詳細で変えない
 - `legwear` は lower-body preview 専用のまま維持
 - `skinTonePreset` は lower-body preview に反映する
 
@@ -180,6 +181,7 @@ current 非対象:
 - `bottoms` は裾見せ補助レイヤー
 - `tops` と `onepiece_allinone` の前後は `sort_order` 正本
 - current では、複数 `tops` を個別に前後判定して underlay / overlay を混在表示する前提は置かない
+- compact は小さい thumbnail variant を指す補助区分として残るが、`onepiece main / bottoms hem / tops` 全体 / `others` の構造比率は一覧と詳細で変えない
 - `legwear` は lower-body preview 専用
 - `skinTonePreset` は lower-body preview に反映する
 
