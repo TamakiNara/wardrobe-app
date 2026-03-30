@@ -51,41 +51,85 @@ function findSubColorHex(colors: OutfitThumbnailColor[]): string | null {
   return colors.find((color) => color.role === "sub")?.hex ?? null;
 }
 
-function findRepresentativeBottoms(items: OutfitLowerBodyPreviewItem[]) {
-  const bottomsItems = items
-    .filter((outfitItem) => outfitItem.item.category === "bottoms")
-    .sort((left, right) => left.sort_order - right.sort_order);
+function sortBySortOrder(items: OutfitLowerBodyPreviewItem[]) {
+  return [...items].sort((left, right) => left.sort_order - right.sort_order);
+}
+
+function filterBottoms(items: OutfitLowerBodyPreviewItem[]) {
+  return sortBySortOrder(
+    items.filter((outfitItem) => outfitItem.item.category === "bottoms"),
+  );
+}
+
+function filterLegwear(items: OutfitLowerBodyPreviewItem[]) {
+  return sortBySortOrder(
+    items.filter((outfitItem) => outfitItem.item.category === "legwear"),
+  );
+}
+
+function filterOnepieceAllinone(items: OutfitLowerBodyPreviewItem[]) {
+  return sortBySortOrder(
+    items.filter(
+      (outfitItem) => outfitItem.item.category === "onepiece_allinone",
+    ),
+  );
+}
+
+function hasValidBottomsLengthType(item: OutfitLowerBodyPreviewItem) {
+  return Boolean(
+    resolveBottomsLengthType(item.item.spec?.bottoms?.length_type),
+  );
+}
+
+function hasValidLegwearCoverageType(item: OutfitLowerBodyPreviewItem) {
+  return Boolean(
+    resolveLegwearCoverageType(
+      item.item.category,
+      item.item.shape,
+      item.item.spec?.legwear?.coverage_type,
+    ),
+  );
+}
+
+function isLegwearFallbackCandidate(item: OutfitLowerBodyPreviewItem) {
+  return item.item.shape === "tights" || item.item.shape === "stockings";
+}
+
+function resolveRepresentativeLegwearCoverageType(
+  representativeLegwear: OutfitLowerBodyPreviewItem | null,
+) {
+  return representativeLegwear
+    ? resolveLegwearCoverageTypeForPreview(
+        representativeLegwear.item.category,
+        representativeLegwear.item.shape,
+        representativeLegwear.item.spec?.legwear?.coverage_type,
+      )
+    : null;
+}
+
+export function selectRepresentativeBottoms(
+  items: OutfitLowerBodyPreviewItem[],
+) {
+  const bottomsItems = filterBottoms(items);
 
   return (
-    bottomsItems.find((outfitItem) =>
-      Boolean(
-        resolveBottomsLengthType(outfitItem.item.spec?.bottoms?.length_type),
-      ),
-    ) ??
+    bottomsItems.find((outfitItem) => hasValidBottomsLengthType(outfitItem)) ??
     bottomsItems[0] ??
     null
   );
 }
 
-function findRepresentativeLegwear(items: OutfitLowerBodyPreviewItem[]) {
-  const legwearItems = items
-    .filter((outfitItem) => outfitItem.item.category === "legwear")
-    .sort((left, right) => left.sort_order - right.sort_order);
-  const fallbackLegwear = legwearItems.find(
-    (outfitItem) =>
-      outfitItem.item.shape === "tights" ||
-      outfitItem.item.shape === "stockings",
+export function selectRepresentativeLegwear(
+  items: OutfitLowerBodyPreviewItem[],
+) {
+  const legwearItems = filterLegwear(items);
+  const fallbackLegwear = legwearItems.find((outfitItem) =>
+    isLegwearFallbackCandidate(outfitItem),
   );
 
   return (
     legwearItems.find((outfitItem) =>
-      Boolean(
-        resolveLegwearCoverageType(
-          outfitItem.item.category,
-          outfitItem.item.shape,
-          outfitItem.item.spec?.legwear?.coverage_type,
-        ),
-      ),
+      hasValidLegwearCoverageType(outfitItem),
     ) ??
     fallbackLegwear ??
     legwearItems[0] ??
@@ -93,12 +137,10 @@ function findRepresentativeLegwear(items: OutfitLowerBodyPreviewItem[]) {
   );
 }
 
-function findRepresentativeOnepieceAllinone(
+export function selectRepresentativeOnepieceAllinone(
   items: OutfitLowerBodyPreviewItem[],
 ) {
-  const onepieceAllinoneItems = items
-    .filter((outfitItem) => outfitItem.item.category === "onepiece_allinone")
-    .sort((left, right) => left.sort_order - right.sort_order);
+  const onepieceAllinoneItems = filterOnepieceAllinone(items);
 
   return onepieceAllinoneItems[onepieceAllinoneItems.length - 1] ?? null;
 }
@@ -106,20 +148,16 @@ function findRepresentativeOnepieceAllinone(
 export function buildOutfitLowerBodyPreviewSource(
   items: OutfitLowerBodyPreviewItem[],
 ): OutfitLowerBodyPreviewSource | null {
-  const representativeBottoms = findRepresentativeBottoms(items);
+  const representativeBottoms = selectRepresentativeBottoms(items);
 
   if (representativeBottoms === null) {
     return null;
   }
 
-  const representativeLegwear = findRepresentativeLegwear(items);
-  const coverageType = representativeLegwear
-    ? resolveLegwearCoverageTypeForPreview(
-        representativeLegwear.item.category,
-        representativeLegwear.item.shape,
-        representativeLegwear.item.spec?.legwear?.coverage_type,
-      )
-    : null;
+  const representativeLegwear = selectRepresentativeLegwear(items);
+  const coverageType = resolveRepresentativeLegwearCoverageType(
+    representativeLegwear,
+  );
 
   return {
     representativeBottomsItemId: representativeBottoms.item.id,
@@ -143,20 +181,16 @@ export function buildOutfitOnepieceAllinoneLowerBodyPreviewSource(
   items: OutfitLowerBodyPreviewItem[],
 ): OutfitOnepieceAllinoneLowerBodyPreviewSource | null {
   const representativeOnepieceAllinone =
-    findRepresentativeOnepieceAllinone(items);
+    selectRepresentativeOnepieceAllinone(items);
 
   if (representativeOnepieceAllinone === null) {
     return null;
   }
 
-  const representativeLegwear = findRepresentativeLegwear(items);
-  const coverageType = representativeLegwear
-    ? resolveLegwearCoverageTypeForPreview(
-        representativeLegwear.item.category,
-        representativeLegwear.item.shape,
-        representativeLegwear.item.spec?.legwear?.coverage_type,
-      )
-    : null;
+  const representativeLegwear = selectRepresentativeLegwear(items);
+  const coverageType = resolveRepresentativeLegwearCoverageType(
+    representativeLegwear,
+  );
 
   return {
     representativeOnepieceAllinoneItemId:
