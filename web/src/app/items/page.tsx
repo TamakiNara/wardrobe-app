@@ -1,9 +1,11 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import ItemsList from "@/components/items/items-list";
+import { buildSupportedCategoryOptions } from "@/lib/api/categories";
 import { DEFAULT_SKIN_TONE_PRESET } from "@/lib/master-data/skin-tone-presets";
 import { fetchLaravelWithCookie } from "@/lib/server/laravel";
 import { mapPreferenceSeasonToFilterValue } from "@/lib/settings/preferences";
+import type { CategoryGroupRecord, CategoryOption } from "@/types/categories";
 import type { ItemRecord } from "@/types/items";
 import type { SkinTonePreset } from "@/types/settings";
 
@@ -27,6 +29,14 @@ type PreferencesResponse = {
     currentSeason?: "spring" | "summer" | "autumn" | "winter" | null;
     skinTonePreset?: SkinTonePreset | null;
   };
+};
+
+type CategoriesResponse = {
+  groups?: CategoryGroupRecord[];
+};
+
+type CategoryVisibilitySettingsResponse = {
+  visibleCategoryIds?: string[];
 };
 
 function buildQueryString(searchParams: ItemsPageSearchParams): string {
@@ -108,9 +118,12 @@ export default async function ItemsPage({
 }) {
   const resolvedSearchParams = await searchParams;
   const currentSeason = resolveCurrentSeason(resolvedSearchParams);
-  const preferencesRes = await fetchLaravelWithCookie(
-    "/api/settings/preferences",
-  );
+  const [preferencesRes, categoryGroupsRes, categoryVisibilityRes] =
+    await Promise.all([
+      fetchLaravelWithCookie("/api/settings/preferences"),
+      fetchLaravelWithCookie("/api/categories"),
+      fetchLaravelWithCookie("/api/settings/categories"),
+    ]);
 
   if (preferencesRes.status === 401) {
     redirect("/login");
@@ -118,6 +131,7 @@ export default async function ItemsPage({
 
   let initialSeasonFilter = "";
   let skinTonePreset: SkinTonePreset = DEFAULT_SKIN_TONE_PRESET;
+  let initialCategoryOptions: CategoryOption[] | undefined;
 
   if (preferencesRes.ok) {
     const preferencesData =
@@ -130,6 +144,17 @@ export default async function ItemsPage({
         preferencesData.preferences?.currentSeason ?? null,
       );
     }
+  }
+
+  if (categoryGroupsRes.ok && categoryVisibilityRes.ok) {
+    const categoryGroupsData =
+      (await categoryGroupsRes.json()) as CategoriesResponse;
+    const categoryVisibilityData =
+      (await categoryVisibilityRes.json()) as CategoryVisibilitySettingsResponse;
+    initialCategoryOptions = buildSupportedCategoryOptions(
+      categoryGroupsData.groups ?? [],
+      categoryVisibilityData.visibleCategoryIds,
+    );
   }
 
   const effectiveSearchParams =
@@ -199,6 +224,7 @@ export default async function ItemsPage({
             availableTpos={data.meta.availableTpos}
             initialSeasonFilter={currentSeason ? "" : initialSeasonFilter}
             skinTonePreset={skinTonePreset}
+            initialCategoryOptions={initialCategoryOptions}
           />
         )}
       </div>

@@ -63,6 +63,10 @@ type PreferencesResponse = {
   };
 };
 
+type CategoryVisibilitySettingsResponse = {
+  visibleCategoryIds?: string[];
+};
+
 function buildQueryString(searchParams: OutfitsPageSearchParams): string {
   const params = new URLSearchParams();
 
@@ -150,10 +154,12 @@ export default async function OutfitsPage({
   const currentSeason = resolveCurrentSeason(resolvedSearchParams);
   let initialSeasonFilter = "";
   let skinTonePreset: SkinTonePreset = DEFAULT_SKIN_TONE_PRESET;
+  let initialVisibleCategoryIds: string[] | null | undefined = undefined;
 
-  const preferencesRes = await fetchLaravelWithCookie(
-    "/api/settings/preferences",
-  );
+  const [preferencesRes, categoryVisibilityRes] = await Promise.all([
+    fetchLaravelWithCookie("/api/settings/preferences"),
+    fetchLaravelWithCookie("/api/settings/categories"),
+  ]);
 
   if (preferencesRes.status === 401) {
     redirect("/login");
@@ -170,6 +176,12 @@ export default async function OutfitsPage({
         preferencesData.preferences?.currentSeason ?? null,
       );
     }
+  }
+
+  if (categoryVisibilityRes.ok) {
+    const categoryVisibilityData =
+      (await categoryVisibilityRes.json()) as CategoryVisibilitySettingsResponse;
+    initialVisibleCategoryIds = categoryVisibilityData.visibleCategoryIds ?? [];
   }
 
   const effectiveSearchParams =
@@ -253,6 +265,7 @@ export default async function OutfitsPage({
             availableTpos={data.meta.availableTpos ?? []}
             initialSeasonFilter={currentSeason ? "" : initialSeasonFilter}
             skinTonePreset={skinTonePreset}
+            initialVisibleCategoryIds={initialVisibleCategoryIds}
           />
         )}
       </div>

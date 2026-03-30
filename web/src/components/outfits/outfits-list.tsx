@@ -50,6 +50,7 @@ export type OutfitsListProps = {
   availableTpos: string[];
   initialSeasonFilter?: string;
   skinTonePreset?: SkinTonePreset;
+  initialVisibleCategoryIds?: string[] | null;
 };
 
 type OutfitSortValue = "updated_at_desc" | "name_asc";
@@ -127,6 +128,7 @@ export default function OutfitsList({
   availableTpos,
   initialSeasonFilter = "",
   skinTonePreset,
+  initialVisibleCategoryIds,
 }: OutfitsListProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -141,7 +143,7 @@ export default function OutfitsList({
   const [isComposingKeyword, setIsComposingKeyword] = useState(false);
   const [draftKeyword, setDraftKeyword] = useState(keyword);
   const [visibleCategoryIds, setVisibleCategoryIds] = useState<string[] | null>(
-    null,
+    initialVisibleCategoryIds ?? null,
   );
   const initialSeasonAppliedRef = useRef(false);
 
@@ -188,6 +190,10 @@ export default function OutfitsList({
   }, [initialSeasonFilter, seasonFilter, updateQuery]);
 
   useEffect(() => {
+    if (initialVisibleCategoryIds !== undefined) {
+      return;
+    }
+
     let active = true;
 
     fetchCategoryVisibilitySettings()
@@ -202,7 +208,7 @@ export default function OutfitsList({
     return () => {
       active = false;
     };
-  }, []);
+  }, [initialVisibleCategoryIds]);
 
   useEffect(() => {
     if (isComposingKeyword || draftKeyword === keyword) {

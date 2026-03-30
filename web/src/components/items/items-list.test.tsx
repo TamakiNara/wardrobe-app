@@ -209,6 +209,26 @@ describe("ItemsList", () => {
     );
   });
 
+  it("初期カテゴリ候補が渡されている場合は mount 後の追加 fetch を行わない", async () => {
+    const { default: ItemsList } = await import("./items-list");
+
+    await act(async () => {
+      root.render(
+        React.createElement(ItemsList, {
+          ...defaultListProps,
+          initialCategoryOptions: [
+            { value: "tops", label: "トップス" },
+            { value: "bottoms", label: "ボトムス" },
+          ],
+        }),
+      );
+      await waitForEffects();
+    });
+
+    expect(fetchCategoryGroupsMock).not.toHaveBeenCalled();
+    expect(fetchCategoryVisibilitySettingsMock).not.toHaveBeenCalled();
+  });
+
   it("季節は定義順で表示し、TPO は共通の候補だけを表示する", async () => {
     fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
     fetchCategoryVisibilitySettingsMock.mockResolvedValue({

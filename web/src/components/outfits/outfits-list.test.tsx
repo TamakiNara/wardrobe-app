@@ -151,6 +151,22 @@ describe("OutfitsList", () => {
     ).not.toBeNull();
   });
 
+  it("初期表示設定が渡されている場合は mount 後の追加 fetch を行わない", async () => {
+    const { default: OutfitsList } = await import("./outfits-list");
+
+    await act(async () => {
+      root.render(
+        React.createElement(OutfitsList, {
+          ...defaultListProps,
+          initialVisibleCategoryIds: ["tops_tshirt"],
+        }),
+      );
+      await waitForEffects();
+    });
+
+    expect(fetchCategoryVisibilitySettingsMock).not.toHaveBeenCalled();
+  });
+
   it("ページャ操作で page クエリを更新する", async () => {
     searchParamsValue = "page=2";
     fetchCategoryVisibilitySettingsMock.mockResolvedValue({

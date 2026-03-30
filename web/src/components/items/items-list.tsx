@@ -32,6 +32,7 @@ type ItemsListProps = {
   availableTpos: string[];
   initialSeasonFilter?: string;
   skinTonePreset?: SkinTonePreset;
+  initialCategoryOptions?: CategoryOption[];
 };
 
 type ItemSortValue = "updated_at_desc" | "name_asc";
@@ -146,6 +147,7 @@ export default function ItemsList({
   availableTpos,
   initialSeasonFilter = "",
   skinTonePreset,
+  initialCategoryOptions,
 }: ItemsListProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -162,7 +164,7 @@ export default function ItemsList({
   const [draftKeyword, setDraftKeyword] = useState(keyword);
   const [apiCategoryOptions, setApiCategoryOptions] = useState<
     CategoryOption[]
-  >([...ITEM_CATEGORY_OPTIONS]);
+  >(initialCategoryOptions ?? [...ITEM_CATEGORY_OPTIONS]);
   const [viewMode, setViewMode] = useState<ItemListViewMode>(DEFAULT_VIEW_MODE);
   const initialSeasonAppliedRef = useRef(false);
 
@@ -220,6 +222,10 @@ export default function ItemsList({
   }, [initialSeasonFilter, seasonFilter, updateQuery]);
 
   useEffect(() => {
+    if (initialCategoryOptions) {
+      return;
+    }
+
     let active = true;
 
     Promise.all([fetchCategoryGroups(), fetchCategoryVisibilitySettings()])
@@ -238,7 +244,7 @@ export default function ItemsList({
     return () => {
       active = false;
     };
-  }, []);
+  }, [initialCategoryOptions]);
 
   useEffect(() => {
     if (isComposingKeyword || draftKeyword === keyword) {

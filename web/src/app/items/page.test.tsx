@@ -61,6 +61,18 @@ describe("ItemsPage", () => {
       .mockResolvedValueOnce({
         ok: true,
         json: async () => ({
+          groups: [],
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          visibleCategoryIds: [],
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
           items: [],
           meta: {
             total: 0,
@@ -99,6 +111,18 @@ describe("ItemsPage", () => {
       .mockResolvedValueOnce({
         ok: true,
         json: async () => ({
+          groups: [],
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          visibleCategoryIds: [],
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
           items: [{ id: 1, name: "白T" }],
           meta: {
             total: 1,
@@ -118,7 +142,7 @@ describe("ItemsPage", () => {
     );
 
     expect(fetchMock).toHaveBeenNthCalledWith(
-      2,
+      4,
       "http://localhost:8000/api/items?season=%E6%98%A5",
       expect.any(Object),
     );
@@ -136,6 +160,18 @@ describe("ItemsPage", () => {
             defaultWearLogStatus: null,
             skinTonePreset: "pink_medium",
           },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          groups: [],
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          visibleCategoryIds: [],
         }),
       })
       .mockResolvedValueOnce({
@@ -159,9 +195,9 @@ describe("ItemsPage", () => {
       await ItemsPage({ searchParams: Promise.resolve({ season: "夏" }) }),
     );
 
-    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock).toHaveBeenCalledTimes(4);
     expect(fetchMock).toHaveBeenNthCalledWith(
-      2,
+      4,
       "http://localhost:8000/api/items?season=%E5%A4%8F",
       expect.any(Object),
     );
