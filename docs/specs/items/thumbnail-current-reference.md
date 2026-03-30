@@ -70,6 +70,7 @@ current 非対象:
 
 - `onepiece_allinone` を主レイヤーにする
 - `tops` と `onepiece_allinone` の前後は `sort_order` 正本
+- current では、複数 `tops` を個別に前後判定して underlay / overlay を混在表示する前提は置かない
 - `onepiece + bottoms` では、`bottoms` は裾見せ補助レイヤー
 - `legwear` は lower-body preview 専用のまま維持
 - `skinTonePreset` は lower-body preview に反映する
@@ -79,10 +80,22 @@ ASCII 例:
 ```text
 +------------------+
 | tops underlay    |
-|==================|  <- onepiece_allinone main layer
-|                  |
-|                  |
-|------------------|  <- lower-body preview (optional)
+| onepiece main    |
+| onepiece main    |
+| onepiece main    |
+| bottoms hem      |
++------------------+
+| others           |
++------------------+
+```
+
+```text
++------------------+
+| tops overlay     |
+| onepiece main    |
+| onepiece main    |
+| onepiece main    |
+| bottoms hem      |
 +------------------+
 | others           |
 +------------------+
@@ -97,17 +110,23 @@ current:
 
 確認観点:
 
-- `tops` が下なら underlay
-- `tops` が上なら overlay
+- `tops` 全体が underlay 側として見えるケース
+- `tops` 全体が overlay 側として見えるケース
+- current では、複数 `tops` の一部だけが underlay、別の一部だけが overlay のような混在表現は確認対象にしない
+
+注記:
+
+- `U / O` 記法を使う場合でも current 実装上の状態名ではなく、`tops` 全体の見え方を補助的に説明するための記号として扱う
+- current は `tops` 個別の前後判定結果を図示する前提ではなく、`tops` 全体の代表的な見え方と representative `onepiece_allinone` の `sort_order` 比較で読む
 
 ASCII 例:
 
 ```text
 sort_order: tops < onepiece_allinone
-=> tops underlay
+=> tops 全体が underlay 側に見える
 
 sort_order: tops > onepiece_allinone
-=> tops overlay
+=> tops 全体が overlay 側に見える
 ```
 
 ---
@@ -160,6 +179,7 @@ current 非対象:
 - `onepiece` を主レイヤーにする
 - `bottoms` は裾見せ補助レイヤー
 - `tops` と `onepiece_allinone` の前後は `sort_order` 正本
+- current では、複数 `tops` を個別に前後判定して underlay / overlay を混在表示する前提は置かない
 - `legwear` は lower-body preview 専用
 - `skinTonePreset` は lower-body preview に反映する
 
@@ -168,10 +188,22 @@ ASCII 例:
 ```text
 +------------------+
 | tops underlay    |
-|==================|  <- onepiece main layer
-|                  |
-|                  |
-|------------------|  <- lower-body preview
+| onepiece main    |
+| onepiece main    |
+| onepiece main    |
+| bottoms hem      |
++------------------+
+| others           |
++------------------+
+```
+
+```text
++------------------+
+| tops overlay     |
+| onepiece main    |
+| onepiece main    |
+| onepiece main    |
+| bottoms hem      |
 +------------------+
 | others           |
 +------------------+
