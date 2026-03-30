@@ -98,6 +98,8 @@ function isLegwearFallbackCandidate(item: OutfitLowerBodyPreviewItem) {
 function resolveRepresentativeLegwearCoverageType(
   representativeLegwear: OutfitLowerBodyPreviewItem | null,
 ) {
+  // legwear は current でも lower-body 専用責務。
+  // coverage の欠落時 fallback もここで閉じて解決する。
   return representativeLegwear
     ? resolveLegwearCoverageTypeForPreview(
         representativeLegwear.item.category,
@@ -123,6 +125,8 @@ export function selectRepresentativeLegwear(
   items: OutfitLowerBodyPreviewItem[],
 ) {
   const legwearItems = filterLegwear(items);
+  // tights / stockings は fixed coverage_type を持つため、
+  // spec 未入力でも representative 候補から外さない。
   const fallbackLegwear = legwearItems.find((outfitItem) =>
     isLegwearFallbackCandidate(outfitItem),
   );
@@ -196,6 +200,7 @@ export function buildOutfitOnepieceAllinoneLowerBodyPreviewSource(
     representativeOnepieceAllinoneItemId:
       representativeOnepieceAllinone.item.id,
     representativeLegwearItemId: representativeLegwear?.item.id ?? null,
+    // current では onepiece は固定の裾見せ、allinone は full 扱い。
     lengthType:
       representativeOnepieceAllinone.item.shape === "allinone"
         ? "full"

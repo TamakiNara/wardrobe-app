@@ -87,6 +87,8 @@ function buildStandardThumbnailLayout(outfitItems: OutfitColorThumbnailItem[]) {
 function buildOnepieceAllinoneThumbnailLayout(
   outfitItems: OutfitColorThumbnailItem[],
 ) {
+  // current では onepiece_allinone 専用 mode のときだけ、
+  // 色帯レイアウトから onepiece_allinone 本体を外して専用レイヤーで描く。
   return buildOutfitThumbnailLayout(buildThumbnailLayoutInput(outfitItems), {
     excludeOnepieceAllinone: true,
   });
@@ -136,6 +138,9 @@ function hasVisibleOnepieceAllinoneLowerBody(params: {
     shouldRenderOnepieceWithBottomsLayer,
   } = params;
 
+  // current 特例:
+  // - onepiece + bottoms は裾見せ補助レイヤーとして lower-body を見せる
+  // - allinone + bottoms は専用 mode へ入らないので、この判定には来ない
   return (
     onepieceAllinoneLowerBodyPreview !== null &&
     (shouldRenderOnepieceWithBottomsLayer ||
@@ -155,6 +160,7 @@ function resolveOnepieceAllinoneLayerStyle(params: {
   } = params;
 
   return {
+    // tops と onepiece_allinone の前後は current でも sort_order 正本。
     top: topsAreBelowOnepieceAllinone ? "12%" : "0",
     bottom: shouldRenderOnepieceWithBottomsLayer
       ? "12%"

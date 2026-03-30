@@ -97,7 +97,7 @@ describe("selectRepresentativeLegwear current 選定", () => {
     expect(representative?.item.id).toBe(21);
   });
 
-  it("legwear の全候補が無効なら legwear なし相当で扱う", () => {
+  it("legwear の全候補が無効なら先頭候補を代表として返す", () => {
     const representative = selectRepresentativeLegwear([
       createOutfitItem(20, 1, "legwear", { legwear: {} }, "socks"),
       createOutfitItem(21, 2, "legwear", { legwear: {} }, "leggings"),
