@@ -8,6 +8,7 @@ import {
 } from "@/lib/outfits/lower-body-preview";
 import type {
   OutfitColorThumbnailItem,
+  OutfitThumbnailRepresentatives,
   OutfitThumbnailModeResolution,
 } from "@/lib/outfits/outfit-thumbnail-mode";
 
@@ -92,14 +93,14 @@ export function buildStandardOutfitThumbnailViewModel(params: {
 
 export function buildOnepieceAllinoneThumbnailViewModel(params: {
   sortedOutfitItems: OutfitColorThumbnailItem[];
+  representatives: OutfitThumbnailRepresentatives;
   modeResolution: OutfitThumbnailModeResolution;
   skinToneColor: string;
 }): OutfitOnepieceAllinoneThumbnailViewModel {
-  const { sortedOutfitItems, modeResolution, skinToneColor } = params;
-  const {
-    representativeOnepieceAllinone,
-    shouldRenderOnepieceWithBottomsLayer,
-  } = modeResolution;
+  const { sortedOutfitItems, representatives, modeResolution, skinToneColor } =
+    params;
+  const { representativeOnepieceAllinone } = representatives;
+  const { shouldRenderOnepieceWithBottomsLayer } = modeResolution;
 
   if (representativeOnepieceAllinone === null) {
     throw new Error(

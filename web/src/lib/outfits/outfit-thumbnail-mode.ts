@@ -24,9 +24,12 @@ export type OutfitColorThumbnailItem = {
 
 export type OutfitThumbnailMode = "standard" | "onepiece_allinone";
 
+export type OutfitThumbnailRepresentatives = {
+  representativeOnepieceAllinone: OutfitColorThumbnailItem | null;
+};
+
 export type OutfitThumbnailModeResolution = {
   mode: OutfitThumbnailMode;
-  representativeOnepieceAllinone: OutfitColorThumbnailItem | null;
   shouldRenderOnepieceWithBottomsLayer: boolean;
 };
 
@@ -38,13 +41,9 @@ export function sortOutfitColorThumbnailItems(
   );
 }
 
-export function resolveOutfitThumbnailMode(
-  outfitItems: OutfitColorThumbnailItem[],
-): OutfitThumbnailModeResolution {
-  const sortedOutfitItems = sortOutfitColorThumbnailItems(outfitItems);
-  const hasBottoms = sortedOutfitItems.some(
-    (outfitItem) => outfitItem.item.category === "bottoms",
-  );
+export function selectOutfitThumbnailRepresentatives(
+  sortedOutfitItems: OutfitColorThumbnailItem[],
+): OutfitThumbnailRepresentatives {
   const onepieceAllinoneItems = sortedOutfitItems.filter(
     (outfitItem) => outfitItem.item.category === "onepiece_allinone",
   );
@@ -52,6 +51,21 @@ export function resolveOutfitThumbnailMode(
     onepieceAllinoneItems.length > 0
       ? onepieceAllinoneItems[onepieceAllinoneItems.length - 1]
       : null;
+
+  return {
+    representativeOnepieceAllinone,
+  };
+}
+
+export function resolveOutfitThumbnailMode(params: {
+  sortedOutfitItems: OutfitColorThumbnailItem[];
+  representatives: OutfitThumbnailRepresentatives;
+}): OutfitThumbnailModeResolution {
+  const { sortedOutfitItems, representatives } = params;
+  const hasBottoms = sortedOutfitItems.some(
+    (outfitItem) => outfitItem.item.category === "bottoms",
+  );
+  const { representativeOnepieceAllinone } = representatives;
   const shouldRenderOnepieceWithBottomsLayer =
     representativeOnepieceAllinone !== null &&
     representativeOnepieceAllinone.item.shape === "onepiece" &&
@@ -64,7 +78,6 @@ export function resolveOutfitThumbnailMode(
 
   return {
     mode,
-    representativeOnepieceAllinone,
     shouldRenderOnepieceWithBottomsLayer,
   };
 }

@@ -5,6 +5,7 @@ import {
 } from "./outfit-thumbnail-view-model";
 import {
   resolveOutfitThumbnailMode,
+  selectOutfitThumbnailRepresentatives,
   sortOutfitColorThumbnailItems,
   type OutfitColorThumbnailItem,
 } from "./outfit-thumbnail-mode";
@@ -114,10 +115,16 @@ describe("buildOnepieceAllinoneThumbnailViewModel current ViewModel 組み立て
         },
       ),
     ]);
-    const modeResolution = resolveOutfitThumbnailMode(sortedOutfitItems);
+    const representatives =
+      selectOutfitThumbnailRepresentatives(sortedOutfitItems);
+    const modeResolution = resolveOutfitThumbnailMode({
+      sortedOutfitItems,
+      representatives,
+    });
 
     const viewModel = buildOnepieceAllinoneThumbnailViewModel({
       sortedOutfitItems,
+      representatives,
       modeResolution,
       skinToneColor: "#E9C29B",
     });
@@ -162,10 +169,16 @@ describe("buildOnepieceAllinoneThumbnailViewModel current ViewModel 組み立て
         { role: "main", hex: "#888888", label: "グレー" },
       ]),
     ]);
-    const modeResolution = resolveOutfitThumbnailMode(sortedOutfitItems);
+    const representatives =
+      selectOutfitThumbnailRepresentatives(sortedOutfitItems);
+    const modeResolution = resolveOutfitThumbnailMode({
+      sortedOutfitItems,
+      representatives,
+    });
 
     const viewModel = buildOnepieceAllinoneThumbnailViewModel({
       sortedOutfitItems,
+      representatives,
       modeResolution,
       skinToneColor: "#E9C29B",
     });
@@ -193,10 +206,16 @@ describe("buildOnepieceAllinoneThumbnailViewModel current ViewModel 組み立て
         { sortOrder: 2, shape: "tshirt" },
       ),
     ]);
-    const modeResolution = resolveOutfitThumbnailMode(sortedOutfitItems);
+    const representatives =
+      selectOutfitThumbnailRepresentatives(sortedOutfitItems);
+    const modeResolution = resolveOutfitThumbnailMode({
+      sortedOutfitItems,
+      representatives,
+    });
 
     const viewModel = buildOnepieceAllinoneThumbnailViewModel({
       sortedOutfitItems,
+      representatives,
       modeResolution,
       skinToneColor: "#E9C29B",
     });

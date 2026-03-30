@@ -7,6 +7,7 @@ import {
 } from "@/lib/outfits/outfit-thumbnail-view-model";
 import {
   resolveOutfitThumbnailMode,
+  selectOutfitThumbnailRepresentatives,
   sortOutfitColorThumbnailItems,
   type OutfitColorThumbnailItem as OutfitItem,
 } from "@/lib/outfits/outfit-thumbnail-mode";
@@ -22,7 +23,12 @@ export default function OutfitColorThumbnail({
   size?: "small" | "large";
 }) {
   const sortedOutfitItems = sortOutfitColorThumbnailItems(outfitItems);
-  const modeResolution = resolveOutfitThumbnailMode(sortedOutfitItems);
+  const representatives =
+    selectOutfitThumbnailRepresentatives(sortedOutfitItems);
+  const modeResolution = resolveOutfitThumbnailMode({
+    sortedOutfitItems,
+    representatives,
+  });
   const dimensions =
     size === "large"
       ? { wrapper: "w-20", main: "h-20", othersGap: "gap-1.5" }
@@ -39,6 +45,7 @@ export default function OutfitColorThumbnail({
     modeResolution.mode === "onepiece_allinone"
       ? buildOnepieceAllinoneThumbnailViewModel({
           sortedOutfitItems,
+          representatives,
           modeResolution,
           skinToneColor,
         })
