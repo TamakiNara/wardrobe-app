@@ -29,13 +29,19 @@ class ItemsIndexQuery
             ->get()
             ->filter(fn (Item $item) => ListQuerySupport::isItemVisibleForList($item, $visibleCategoryIds))
             ->values();
+        $tpoNameById = UserTpoNameResolver::buildNameMap(
+            $user,
+            $visibleItems
+                ->flatMap(fn (Item $item) => is_array($item->tpo_ids) ? $item->tpo_ids : [])
+                ->all()
+        );
 
         $filteredItems = $visibleItems
-            ->filter(function (Item $item) use ($user, $keyword, $category, $season, $tpo) {
+            ->filter(function (Item $item) use ($keyword, $category, $season, $tpo, $tpoNameById) {
                 $name = mb_strtolower((string) ($item->name ?? ''), 'UTF-8');
                 $normalizedKeyword = mb_strtolower($keyword, 'UTF-8');
                 $seasons = is_array($item->seasons) ? $item->seasons : [];
-                $tpos = UserTpoNameResolver::resolveNames($user, $item->tpo_ids ?? [], $item->tpos ?? []);
+                $tpos = UserTpoNameResolver::resolveNamesFromMap($tpoNameById, $item->tpo_ids ?? [], $item->tpos ?? []);
 
                 $matchKeyword = $normalizedKeyword === '' || str_contains($name, $normalizedKeyword);
                 $matchCategory = $category === '' || $item->category === $category;
@@ -76,7 +82,7 @@ class ItemsIndexQuery
                 ),
                 'availableTpos' => ListQuerySupport::buildOrderedOptions(
                     $visibleItems->flatMap(
-                        fn (Item $item) => UserTpoNameResolver::resolveNames($user, $item->tpo_ids ?? [], $item->tpos ?? [])
+                        fn (Item $item) => UserTpoNameResolver::resolveNamesFromMap($tpoNameById, $item->tpo_ids ?? [], $item->tpos ?? [])
                     )->all(),
                     ['仕事', '休日', 'フォーマル'],
                 ),

@@ -22,13 +22,19 @@ class OutfitsIndexQuery
             ->with(['outfitItems.item', 'user'])
             ->latest()
             ->get();
+        $tpoNameById = UserTpoNameResolver::buildNameMap(
+            $user,
+            $outfits
+                ->flatMap(fn (Outfit $outfit) => is_array($outfit->tpo_ids) ? $outfit->tpo_ids : [])
+                ->all()
+        );
 
         $filteredOutfits = $outfits
-            ->filter(function (Outfit $outfit) use ($keyword, $season, $tpo, $user) {
+            ->filter(function (Outfit $outfit) use ($keyword, $season, $tpo, $tpoNameById) {
                 $name = mb_strtolower((string) ($outfit->name ?? ''), 'UTF-8');
                 $normalizedKeyword = mb_strtolower($keyword, 'UTF-8');
                 $seasons = is_array($outfit->seasons) ? $outfit->seasons : [];
-                $tpos = UserTpoNameResolver::resolveNames($user, $outfit->tpo_ids ?? [], $outfit->tpos ?? []);
+                $tpos = UserTpoNameResolver::resolveNamesFromMap($tpoNameById, $outfit->tpo_ids ?? [], $outfit->tpos ?? []);
                 $isAllSeason = $seasons === [] || in_array('オール', $seasons, true);
 
                 $matchKeyword = $normalizedKeyword === '' || str_contains($name, $normalizedKeyword);
@@ -60,7 +66,7 @@ class OutfitsIndexQuery
                 'lastPage' => $pagination['lastPage'],
                 'availableTpos' => ListQuerySupport::buildOrderedOptions(
                     $outfits->flatMap(
-                        fn (Outfit $outfit) => UserTpoNameResolver::resolveNames($user, $outfit->tpo_ids ?? [], $outfit->tpos ?? [])
+                        fn (Outfit $outfit) => UserTpoNameResolver::resolveNamesFromMap($tpoNameById, $outfit->tpo_ids ?? [], $outfit->tpos ?? [])
                     )->all(),
                     ['仕事', '休日', 'フォーマル'],
                 ),
