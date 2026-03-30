@@ -869,4 +869,54 @@ class OutfitsEndpointsTest extends TestCase
             'name' => '春コーデ',
         ]);
     }
+
+    public function test_get_outfits_resolves_tpo_filter_and_available_tpos_from_tpo_ids(): void
+    {
+        $user = User::factory()->create();
+        $remoteWorkTpo = $this->createUserTpo($user, [
+            'name' => '在宅',
+            'sort_order' => 5,
+            'is_preset' => false,
+        ]);
+
+        $matchedOutfit = Outfit::query()->create([
+            'user_id' => $user->id,
+            'status' => 'active',
+            'name' => '在宅コーデ',
+            'memo' => null,
+            'seasons' => ['春'],
+            'tpo_ids' => [$remoteWorkTpo->id],
+            'tpos' => [],
+        ]);
+
+        Outfit::query()->create([
+            'user_id' => $user->id,
+            'status' => 'active',
+            'name' => '休日コーデ',
+            'memo' => null,
+            'seasons' => ['春'],
+            'tpo_ids' => [],
+            'tpos' => ['休日'],
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->getJson('/api/outfits?tpo=%E5%9C%A8%E5%AE%85', [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonCount(1, 'outfits')
+            ->assertJsonPath('outfits.0.id', $matchedOutfit->id)
+            ->assertJsonPath('outfits.0.name', '在宅コーデ')
+            ->assertJsonPath('outfits.0.tpos.0', '在宅')
+            ->assertJsonPath('meta.total', 1)
+            ->assertJsonPath('meta.totalAll', 2)
+            ->assertJsonPath('meta.availableTpos.0', '休日')
+            ->assertJsonPath('meta.availableTpos.1', '在宅');
+
+        $response->assertJsonMissing([
+            'name' => '休日コーデ',
+        ]);
+    }
 }
