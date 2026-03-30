@@ -1,3 +1,5 @@
+import type { ItemSpec } from "@/types/items";
+
 export type WearLogStatus = "planned" | "worn";
 
 export type WearLogItemSourceType = "outfit" | "manual";
@@ -10,7 +12,10 @@ export type WearLogThumbnailItemColor = {
 
 export type WearLogThumbnailItem = {
   source_item_id: number | null;
+  sort_order: number;
   category: string | null;
+  shape: string | null;
+  spec?: ItemSpec | null;
   colors: WearLogThumbnailItemColor[];
 };
 

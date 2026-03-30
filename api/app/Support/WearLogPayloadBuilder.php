@@ -23,7 +23,10 @@ class WearLogPayloadBuilder
 
         return [
             'source_item_id' => $wearLogItem->source_item_id,
+            'sort_order' => $wearLogItem->sort_order,
             'category' => $sourceItem?->category,
+            'shape' => $sourceItem?->shape,
+            'spec' => $sourceItem?->spec,
             'colors' => $colors,
         ];
     }

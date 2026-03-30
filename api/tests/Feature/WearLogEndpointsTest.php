@@ -151,6 +151,11 @@ class WearLogEndpointsTest extends TestCase
             'name' => 'ネイビーパンツ',
             'category' => 'bottoms',
             'shape' => 'pants',
+            'spec' => [
+                'bottoms' => [
+                    'length_type' => 'full',
+                ],
+            ],
             'colors' => [[
                 'role' => 'main',
                 'mode' => 'preset',
@@ -192,8 +197,14 @@ class WearLogEndpointsTest extends TestCase
             ->assertJsonPath('wearLogs.0.source_outfit_id', null)
             ->assertJsonCount(2, 'wearLogs.0.thumbnail_items')
             ->assertJsonPath('wearLogs.0.thumbnail_items.0.category', 'tops')
+            ->assertJsonPath('wearLogs.0.thumbnail_items.0.shape', 'tshirt')
+            ->assertJsonPath('wearLogs.0.thumbnail_items.0.sort_order', 1)
+            ->assertJsonPath('wearLogs.0.thumbnail_items.0.spec', null)
             ->assertJsonPath('wearLogs.0.thumbnail_items.0.colors.0.hex', '#eeeeee')
             ->assertJsonPath('wearLogs.0.thumbnail_items.1.category', 'bottoms')
+            ->assertJsonPath('wearLogs.0.thumbnail_items.1.shape', 'pants')
+            ->assertJsonPath('wearLogs.0.thumbnail_items.1.sort_order', 2)
+            ->assertJsonPath('wearLogs.0.thumbnail_items.1.spec.bottoms.length_type', 'full')
             ->assertJsonPath('wearLogs.0.thumbnail_items.1.colors.1.hex', '#bbbbbb');
     }
 
@@ -340,6 +351,8 @@ class WearLogEndpointsTest extends TestCase
             ->assertJsonPath('wearLogs.0.memo', '1件目')
             ->assertJsonCount(1, 'wearLogs.0.thumbnail_items')
             ->assertJsonPath('wearLogs.0.thumbnail_items.0.category', 'tops')
+            ->assertJsonPath('wearLogs.0.thumbnail_items.0.shape', 'tshirt')
+            ->assertJsonPath('wearLogs.0.thumbnail_items.0.sort_order', 1)
             ->assertJsonPath('wearLogs.1.id', $later->id)
             ->assertJsonPath('wearLogs.1.display_order', 2)
             ->assertJsonPath('wearLogs.1.source_outfit_name', null)
@@ -347,6 +360,7 @@ class WearLogEndpointsTest extends TestCase
             ->assertJsonPath('wearLogs.1.memo', '2件目')
             ->assertJsonCount(2, 'wearLogs.1.thumbnail_items')
             ->assertJsonPath('wearLogs.1.thumbnail_items.0.category', 'tops')
+            ->assertJsonPath('wearLogs.1.thumbnail_items.0.sort_order', 1)
             ->assertJsonPath('wearLogs.1.thumbnail_items.1.category', 'bottoms');
     }
 
@@ -408,6 +422,11 @@ class WearLogEndpointsTest extends TestCase
             'name' => 'ネイビーパンツ',
             'category' => 'bottoms',
             'shape' => 'pants',
+            'spec' => [
+                'bottoms' => [
+                    'length_type' => 'full',
+                ],
+            ],
             'colors' => [[
                 'role' => 'main',
                 'mode' => 'preset',
@@ -615,8 +634,12 @@ class WearLogEndpointsTest extends TestCase
             ->assertJsonCount(2, 'wearLogs.0.thumbnail_items')
             ->assertJsonPath('wearLogs.0.thumbnail_items.0.source_item_id', $top->id)
             ->assertJsonPath('wearLogs.0.thumbnail_items.0.category', 'tops')
+            ->assertJsonPath('wearLogs.0.thumbnail_items.0.shape', 'tshirt')
+            ->assertJsonPath('wearLogs.0.thumbnail_items.0.sort_order', 1)
             ->assertJsonPath('wearLogs.0.thumbnail_items.1.source_item_id', $bottom->id)
             ->assertJsonPath('wearLogs.0.thumbnail_items.1.category', 'bottoms')
+            ->assertJsonPath('wearLogs.0.thumbnail_items.1.shape', 'pants')
+            ->assertJsonPath('wearLogs.0.thumbnail_items.1.sort_order', 2)
             ->assertJsonPath('wearLogs.0.thumbnail_items.1.colors.1.hex', '#bbbbbb');
     }
 

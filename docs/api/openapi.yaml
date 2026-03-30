@@ -2921,17 +2921,30 @@ components:
       type: object
       required:
         - source_item_id
+        - sort_order
         - category
+        - shape
         - colors
       properties:
         source_item_id:
           type: integer
           nullable: true
           example: 101
+        sort_order:
+          type: integer
+          example: 2
         category:
           type: string
           nullable: true
           example: tops
+        shape:
+          type: string
+          nullable: true
+          example: tshirt
+        spec:
+          allOf:
+            - $ref: '#/components/schemas/ItemSpec'
+          nullable: true
         colors:
           type: array
           items:
