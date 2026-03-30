@@ -1,5 +1,10 @@
 import { buildOutfitThumbnailLayout } from "@/lib/outfits/color-thumbnail";
 import {
+  resolveOnepieceAllinoneLayerStyle,
+  resolveThumbnailMainSubColorHexes,
+  resolveTopsOnepieceAllinoneLayerOrder,
+} from "@/lib/color-thumbnails/onepiece-allinone-shared";
+import {
   buildOutfitLowerBodyPreviewSource,
   buildOutfitOnepieceAllinoneLowerBodyPreviewSource,
   type OutfitLowerBodyPreviewItem,
@@ -62,16 +67,6 @@ function toLowerBodyPreviewItems(
   }));
 }
 
-function findMainColorHex(colors: OutfitColorThumbnailItem["item"]["colors"]) {
-  return colors.find((color) => color.role === "main")?.hex ?? "#E5E7EB";
-}
-
-function findSubColorHex(
-  colors: OutfitColorThumbnailItem["item"]["colors"],
-): string | null {
-  return colors.find((color) => color.role === "sub")?.hex ?? null;
-}
-
 function buildThumbnailLayoutInput(outfitItems: OutfitColorThumbnailItem[]) {
   return toLayoutItems(outfitItems);
 }
@@ -94,38 +89,6 @@ function buildOnepieceAllinoneThumbnailLayout(
   });
 }
 
-function resolveItemColorHexes(
-  colors: OutfitColorThumbnailItem["item"]["colors"],
-) {
-  return {
-    mainColorHex: findMainColorHex(colors),
-    subColorHex: findSubColorHex(colors),
-  };
-}
-
-function resolveTopsOnepieceAllinoneLayerOrder(
-  sortedOutfitItems: OutfitColorThumbnailItem[],
-  representativeOnepieceAllinoneSortOrder: number,
-) {
-  const topsItems = sortedOutfitItems.filter(
-    (outfitItem) => outfitItem.item.category === "tops",
-  );
-  const highestTopSortOrder = topsItems.length
-    ? Math.max(...topsItems.map((outfitItem) => outfitItem.sort_order))
-    : null;
-  const topsAreAboveOnepieceAllinone =
-    highestTopSortOrder !== null &&
-    highestTopSortOrder > representativeOnepieceAllinoneSortOrder;
-  const topsAreBelowOnepieceAllinone =
-    highestTopSortOrder !== null &&
-    highestTopSortOrder < representativeOnepieceAllinoneSortOrder;
-
-  return {
-    topsAreAboveOnepieceAllinone,
-    topsAreBelowOnepieceAllinone,
-  };
-}
-
 function hasVisibleOnepieceAllinoneLowerBody(params: {
   onepieceAllinoneLowerBodyPreview:
     | OutfitLowerBodyPreviewSource
@@ -146,28 +109,6 @@ function hasVisibleOnepieceAllinoneLowerBody(params: {
     (shouldRenderOnepieceWithBottomsLayer ||
       onepieceAllinoneLowerBodyPreview.lengthType !== "full")
   );
-}
-
-function resolveOnepieceAllinoneLayerStyle(params: {
-  topsAreBelowOnepieceAllinone: boolean;
-  shouldRenderOnepieceWithBottomsLayer: boolean;
-  onepieceAllinoneHasVisibleLowerBody: boolean;
-}) {
-  const {
-    topsAreBelowOnepieceAllinone,
-    shouldRenderOnepieceWithBottomsLayer,
-    onepieceAllinoneHasVisibleLowerBody,
-  } = params;
-
-  return {
-    // tops と onepiece_allinone の前後は current でも sort_order 正本。
-    top: topsAreBelowOnepieceAllinone ? "12%" : "0",
-    bottom: shouldRenderOnepieceWithBottomsLayer
-      ? "12%"
-      : onepieceAllinoneHasVisibleLowerBody
-        ? "22%"
-        : "0",
-  };
 }
 
 export function buildStandardOutfitThumbnailViewModel(params: {
@@ -217,7 +158,10 @@ export function buildOnepieceAllinoneThumbnailViewModel(params: {
     : buildOutfitOnepieceAllinoneLowerBodyPreviewSource(lowerBodyPreviewItems);
   const { topsAreAboveOnepieceAllinone, topsAreBelowOnepieceAllinone } =
     resolveTopsOnepieceAllinoneLayerOrder(
-      sortedOutfitItems,
+      sortedOutfitItems.map((outfitItem) => ({
+        category: outfitItem.item.category,
+        sortOrder: outfitItem.sort_order,
+      })),
       representativeOnepieceAllinone.sort_order,
     );
   const onepieceAllinoneHasVisibleLowerBody =
@@ -228,10 +172,12 @@ export function buildOnepieceAllinoneThumbnailViewModel(params: {
   const {
     mainColorHex: onepieceAllinoneMainColorHex,
     subColorHex: onepieceAllinoneSubColorHex,
-  } = resolveItemColorHexes(representativeOnepieceAllinone.item.colors);
+  } = resolveThumbnailMainSubColorHexes(
+    representativeOnepieceAllinone.item.colors,
+  );
   const onepieceAllinoneLayerStyle = resolveOnepieceAllinoneLayerStyle({
     topsAreBelowOnepieceAllinone,
-    shouldRenderOnepieceWithBottomsLayer,
+    shouldRenderBottomsLayer: shouldRenderOnepieceWithBottomsLayer,
     onepieceAllinoneHasVisibleLowerBody,
   });
 

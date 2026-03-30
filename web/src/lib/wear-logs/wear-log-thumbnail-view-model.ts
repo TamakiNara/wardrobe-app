@@ -3,6 +3,11 @@ import {
   type OutfitLowerBodyPreviewSource,
   type OutfitLowerBodyPreviewItem,
 } from "@/lib/outfits/lower-body-preview";
+import {
+  resolveOnepieceAllinoneLayerStyle,
+  resolveThumbnailMainSubColorHexes,
+  resolveTopsOnepieceAllinoneLayerOrder,
+} from "@/lib/color-thumbnails/onepiece-allinone-shared";
 import { buildWearLogThumbnailLayout } from "@/lib/wear-logs/color-thumbnail";
 import type { WearLogThumbnailItem } from "@/types/wear-logs";
 import type {
@@ -68,44 +73,6 @@ function buildOnepieceAllinoneThumbnailLayout(items: WearLogThumbnailItem[]) {
   });
 }
 
-function findMainColorHex(colors: WearLogThumbnailItem["colors"]) {
-  return colors.find((color) => color.role === "main")?.hex ?? "#E5E7EB";
-}
-
-function findSubColorHex(colors: WearLogThumbnailItem["colors"]) {
-  return colors.find((color) => color.role === "sub")?.hex ?? null;
-}
-
-function resolveTopsOnepieceAllinoneLayerOrder(
-  sortedWearLogItems: WearLogThumbnailItem[],
-  representativeOnepieceAllinoneSortOrder: number,
-) {
-  const topsItems = sortedWearLogItems.filter(
-    (item) => item.category === "tops",
-  );
-  const highestTopSortOrder = topsItems.length
-    ? Math.max(...topsItems.map((item) => item.sort_order))
-    : null;
-
-  return {
-    topsAreAboveOnepieceAllinone:
-      highestTopSortOrder !== null &&
-      highestTopSortOrder > representativeOnepieceAllinoneSortOrder,
-    topsAreBelowOnepieceAllinone:
-      highestTopSortOrder !== null &&
-      highestTopSortOrder < representativeOnepieceAllinoneSortOrder,
-  };
-}
-
-function resolveOnepieceAllinoneLayerStyle(params: {
-  topsAreBelowOnepieceAllinone: boolean;
-}) {
-  return {
-    top: params.topsAreBelowOnepieceAllinone ? "12%" : "0",
-    bottom: "12%",
-  };
-}
-
 export function buildStandardWearLogThumbnailViewModel(params: {
   sortedWearLogItems: WearLogThumbnailItem[];
   representatives: WearLogThumbnailRepresentatives;
@@ -150,22 +117,27 @@ export function buildOnepieceAllinoneWearLogThumbnailViewModel(params: {
   );
   const { topsAreAboveOnepieceAllinone, topsAreBelowOnepieceAllinone } =
     resolveTopsOnepieceAllinoneLayerOrder(
-      sortedWearLogItems,
+      sortedWearLogItems.map((item) => ({
+        category: item.category,
+        sortOrder: item.sort_order,
+      })),
       representativeOnepieceAllinone.sort_order,
     );
   const onepieceAllinoneLayerStyle = resolveOnepieceAllinoneLayerStyle({
     topsAreBelowOnepieceAllinone,
+    shouldRenderBottomsLayer: true,
+    onepieceAllinoneHasVisibleLowerBody: true,
   });
+  const {
+    mainColorHex: onepieceAllinoneMainColorHex,
+    subColorHex: onepieceAllinoneSubColorHex,
+  } = resolveThumbnailMainSubColorHexes(representativeOnepieceAllinone.colors);
 
   return {
     layout,
     onepieceAllinoneLowerBodyPreview,
-    onepieceAllinoneMainColorHex: findMainColorHex(
-      representativeOnepieceAllinone.colors,
-    ),
-    onepieceAllinoneSubColorHex: findSubColorHex(
-      representativeOnepieceAllinone.colors,
-    ),
+    onepieceAllinoneMainColorHex,
+    onepieceAllinoneSubColorHex,
     topsAreAboveOnepieceAllinone,
     topsAreBelowOnepieceAllinone,
     onepieceAllinoneLayerStyle,
