@@ -227,21 +227,21 @@ describe("WearLogColorThumbnail", () => {
           '[data-testid="wear-log-thumbnail-onepiece-allinone-layer"]',
         )
         ?.getAttribute("style"),
-    ).toContain("bottom: 8%");
+    ).toContain("bottom: 12%");
     expect(
       container
         .querySelector(
           '[data-testid="wear-log-thumbnail-onepiece-allinone-top-underlay"]',
         )
         ?.getAttribute("style"),
-    ).toContain("height: 10%");
+    ).toContain("height: 12%");
     expect(
       container
         .querySelector(
           '[data-testid="wear-log-thumbnail-onepiece-allinone-lower-body"]',
         )
         ?.getAttribute("style"),
-    ).toContain("height: 14%");
+    ).toContain("height: 20%");
   });
 
   it("allinone + bottoms は standard mode のまま描画する", async () => {

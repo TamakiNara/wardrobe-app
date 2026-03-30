@@ -132,10 +132,10 @@ describe("buildOnepieceAllinoneThumbnailViewModel current ViewModel 組み立て
 
     expect(viewModel.shouldRenderOnepieceWithBottomsLayer).toBe(true);
     expect(viewModel.onepieceAllinoneHasVisibleLowerBody).toBe(true);
-    expect(viewModel.onepieceAllinoneLayerStyle.bottom).toBe("8%");
-    expect(viewModel.onepieceAllinoneLayoutMetrics.lowerBodyHeight).toBe("14%");
+    expect(viewModel.onepieceAllinoneLayerStyle.bottom).toBe("12%");
+    expect(viewModel.onepieceAllinoneLayoutMetrics.lowerBodyHeight).toBe("20%");
     expect(viewModel.onepieceAllinoneLayoutMetrics.topOverlayHeight).toBe(
-      "24%",
+      "40%",
     );
     expect(viewModel.onepieceAllinoneMainColorHex).toBe("#44516A");
     expect(viewModel.onepieceAllinoneSubColorHex).toBe("#D8CBB4");

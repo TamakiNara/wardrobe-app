@@ -386,6 +386,7 @@ thumbnail の current 確認用パターン一覧を見返すときは `docs/spe
 - 今決めること:
   - 極小サイズでも `onepiece + bottoms` は dedicated mode を維持する前提で進める
   - 最低限残す情報は `onepiece main` / `bottoms hem` / tops 全体の overlay / underlay のどちら側か / `others` とする
+  - compact は小さい thumbnail variant を指す補助区分として残してよいが、一覧 / 詳細で `onepiece main`・`bottoms hem`・tops 全体・`others` の構造比率は変えない
   - `legwear = lower-body 専用`、`allinone + bottoms = standard 維持`、`sort_order` 正本は今回の検討では動かさない
 - まだ保留でよいこと:
   - `bottoms hem` の最小高さの最終値

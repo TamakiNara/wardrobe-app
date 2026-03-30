@@ -87,29 +87,23 @@ export function resolveOnepieceAllinoneLayoutMetrics(params: {
   onepieceAllinoneHasVisibleLowerBody: boolean;
 }): OnepieceAllinoneLayoutMetrics {
   const {
-    density,
     topsAreBelowOnepieceAllinone,
     shouldRenderBottomsLayer,
     onepieceAllinoneHasVisibleLowerBody,
   } = params;
-  const shouldUseCompactBottomsLayout =
-    density === "compact" && shouldRenderBottomsLayer;
-  const topOffset = shouldUseCompactBottomsLayout ? "10%" : "12%";
+  // compact は小さい thumbnail variant を区別するために残すが、
+  // current では一覧と詳細で構造比率を変えない。
+  const topOffset = "12%";
 
   return {
     topUnderlayHeight: topOffset,
-    topOverlayHeight: shouldUseCompactBottomsLayout ? "24%" : "40%",
-    lowerBodyHeight: shouldRenderBottomsLayer
-      ? shouldUseCompactBottomsLayout
-        ? "14%"
-        : "20%"
-      : "34%",
+    topOverlayHeight: "40%",
+    lowerBodyHeight: shouldRenderBottomsLayer ? "20%" : "34%",
     layerStyle: resolveOnepieceAllinoneLayerStyle({
       topsAreBelowOnepieceAllinone,
       shouldRenderBottomsLayer,
       onepieceAllinoneHasVisibleLowerBody,
       topOffset,
-      bottomsLayerBottom: shouldUseCompactBottomsLayout ? "8%" : "12%",
     }),
   };
 }

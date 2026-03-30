@@ -204,14 +204,14 @@ describe("WearLogModalColorThumbnail", () => {
           '[data-testid="wear-log-modal-thumbnail-onepiece-allinone-layer"]',
         )
         ?.getAttribute("style"),
-    ).toContain("bottom: 8%");
+    ).toContain("bottom: 12%");
     expect(
       container
         .querySelector(
           '[data-testid="wear-log-modal-thumbnail-onepiece-allinone-lower-body"]',
         )
         ?.getAttribute("style"),
-    ).toContain("height: 14%");
+    ).toContain("height: 20%");
   });
 
   it("others のみの場合は全体を others で使う", async () => {

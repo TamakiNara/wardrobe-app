@@ -178,10 +178,10 @@ describe("buildStandardWearLogThumbnailViewModel", () => {
     expect(viewModel.onepieceAllinoneSubColorHex).toBe("#e5d8bd");
     expect(viewModel.topsAreBelowOnepieceAllinone).toBe(true);
     expect(viewModel.topsAreAboveOnepieceAllinone).toBe(false);
-    expect(viewModel.onepieceAllinoneLayerStyle.bottom).toBe("8%");
-    expect(viewModel.onepieceAllinoneLayoutMetrics.lowerBodyHeight).toBe("14%");
+    expect(viewModel.onepieceAllinoneLayerStyle.bottom).toBe("12%");
+    expect(viewModel.onepieceAllinoneLayoutMetrics.lowerBodyHeight).toBe("20%");
     expect(viewModel.onepieceAllinoneLayoutMetrics.topUnderlayHeight).toBe(
-      "10%",
+      "12%",
     );
     expect(viewModel.skinToneColor).toBe("#E9C29B");
     expect(

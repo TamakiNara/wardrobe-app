@@ -67,7 +67,7 @@ describe("onepiece_allinone thumbnail shared helpers", () => {
     });
   });
 
-  it("onepiece + bottoms の compact 用寸法を組み立てる", () => {
+  it("compact でも onepiece + bottoms の構造比率は default と揃える", () => {
     expect(
       resolveOnepieceAllinoneLayoutMetrics({
         density: "compact",
@@ -76,12 +76,12 @@ describe("onepiece_allinone thumbnail shared helpers", () => {
         onepieceAllinoneHasVisibleLowerBody: true,
       }),
     ).toEqual({
-      topUnderlayHeight: "10%",
-      topOverlayHeight: "24%",
-      lowerBodyHeight: "14%",
+      topUnderlayHeight: "12%",
+      topOverlayHeight: "40%",
+      lowerBodyHeight: "20%",
       layerStyle: {
-        top: "10%",
-        bottom: "8%",
+        top: "12%",
+        bottom: "12%",
       },
     });
   });

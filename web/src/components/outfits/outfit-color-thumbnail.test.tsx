@@ -558,12 +558,12 @@ describe("OutfitColorThumbnail current 統合表示", () => {
       container
         .querySelector('[data-testid="thumbnail-onepiece-allinone-layer"]')
         ?.getAttribute("style"),
-    ).toContain("bottom: 8%");
+    ).toContain("bottom: 12%");
     expect(
       container
         .querySelector('[data-testid="thumbnail-onepiece-allinone-lower-body"]')
         ?.getAttribute("style"),
-    ).toContain("height: 14%");
+    ).toContain("height: 20%");
   });
 
   it("onepiece + bottoms + legwear でも legwear は others に戻さず lower-body preview 専用を維持する", async () => {
@@ -736,7 +736,7 @@ describe("OutfitColorThumbnail current 統合表示", () => {
           '[data-testid="thumbnail-onepiece-allinone-top-overlay"]',
         )
         ?.getAttribute("style"),
-    ).toContain("height: 24%");
+    ).toContain("height: 40%");
   });
 
   it("representative bottoms がなければ lower-body preview を表示しない", async () => {
