@@ -11,6 +11,8 @@ function getLaravelApiBaseUrl(): string {
 export async function fetchLaravelWithCookie(path: string): Promise<Response> {
   const cookie = (await headers()).get("cookie") ?? "";
 
+  // Server Component からの GET はレスポンスヘッダをそのままブラウザへ返せないため、
+  // upstream の Set-Cookie を受け取れても session refresh の伝播経路にはならない。
   return fetch(`${getLaravelApiBaseUrl()}${path}`, {
     method: "GET",
     headers: {

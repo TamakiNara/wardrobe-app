@@ -152,8 +152,11 @@ export async function forwardGetWithCookie(
   });
 
   const data = await upstreamRes.json().catch(() => ({}));
+  const final = NextResponse.json(data, { status: upstreamRes.status });
 
-  return NextResponse.json(data, { status: upstreamRes.status });
+  appendSetCookies(upstreamRes, final);
+
+  return final;
 }
 
 export async function forwardJsonWithCsrf(

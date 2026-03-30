@@ -27,6 +27,8 @@ describe("GET /api/auth/me", () => {
           status: 200,
           headers: {
             "content-type": "application/json",
+            "set-cookie":
+              "laravel-session=rotated_session; Path=/; HttpOnly; SameSite=Lax",
           },
         },
       ),
@@ -38,6 +40,7 @@ describe("GET /api/auth/me", () => {
         cookie: "laravel-session=test_session",
       },
     });
+    (req as any).nextUrl = new URL(req.url);
 
     const res = await GET(req as any);
     const json = await res.json();
@@ -48,13 +51,16 @@ describe("GET /api/auth/me", () => {
         method: "GET",
         headers: expect.objectContaining({
           Accept: "application/json",
-          cookie: "laravel-session=test_session",
+          Cookie: "laravel-session=test_session",
         }),
         cache: "no-store",
       }),
     );
 
     expect(res.status).toBe(200);
+    expect(res.headers.get("set-cookie")).toContain(
+      "laravel-session=rotated_session",
+    );
     expect(json).toEqual({
       id: 10,
       name: "gqsw",
@@ -80,6 +86,7 @@ describe("GET /api/auth/me", () => {
     const req = new Request("http://localhost:3000/api/auth/me", {
       method: "GET",
     });
+    (req as any).nextUrl = new URL(req.url);
 
     const res = await GET(req as any);
     const json = await res.json();

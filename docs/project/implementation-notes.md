@@ -442,6 +442,8 @@ planned:
 - 更新系リクエストが `419 / CSRF token mismatch` を受けた場合は、CSRF Cookie を再取得して 1 回だけ自動再試行する
 - `DELETE` でも `X-CSRF-TOKEN` を付けて Laravel へ転送するようにした
 - seed 用アカウントでも使えるよう、ログイン / 登録のメールアドレス検証は `email:rfc` を使う
+- BFF の GET でも upstream の `Set-Cookie` をブラウザへ返すようにし、`/api/auth/me` を含む GET 経路で Laravel 側の session refresh が伝播するよう整理した
+- 一方で Server Component から直接 Laravel を読む SSR 用 GET helper は、レスポンスヘッダをそのままブラウザへ返せないため、session refresh の伝播経路にはならないことを明記した
 
 ### items
 

@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  forwardGetWithCookie,
   forwardDeleteWithCookie,
   forwardPatchWithCsrfAndCookie,
   forwardPutWithCsrfAndCookie,
@@ -123,6 +124,55 @@ describe("BFF CSRF forwarding", () => {
     expect(res.headers.get("set-cookie")).toContain(
       "laravel-session=new_session",
     );
+  });
+
+  it("forwards upstream set-cookie headers on GET requests", async () => {
+    global.fetch = vi.fn().mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          id: 1,
+          name: "tester",
+        }),
+        {
+          status: 200,
+          headers: {
+            "content-type": "application/json",
+            "set-cookie":
+              "laravel-session=rotated_session; Path=/; HttpOnly; SameSite=Lax",
+          },
+        },
+      ),
+    ) as typeof fetch;
+
+    const req = new Request("http://localhost:3000/api/auth/me", {
+      method: "GET",
+      headers: {
+        Cookie: "laravel-session=old_session",
+      },
+    });
+    (req as any).nextUrl = new URL(req.url);
+
+    const res = await forwardGetWithCookie(req as any, "/api/me");
+    const json = await res.json();
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      "http://localhost:8000/api/me",
+      expect.objectContaining({
+        method: "GET",
+        headers: expect.objectContaining({
+          Accept: "application/json",
+          Cookie: "laravel-session=old_session",
+        }),
+        cache: "no-store",
+      }),
+    );
+    expect(res.headers.get("set-cookie")).toContain(
+      "laravel-session=rotated_session",
+    );
+    expect(json).toEqual({
+      id: 1,
+      name: "tester",
+    });
   });
 
   it("adds csrf and refreshed session cookies to DELETE requests", async () => {
