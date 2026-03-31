@@ -4,6 +4,7 @@ import DeleteOutfitButton from "@/components/outfits/delete-outfit-button";
 import OutfitColorThumbnail from "@/components/outfits/outfit-color-thumbnail";
 import OutfitDuplicateAction from "@/components/outfits/outfit-duplicate-action";
 import OutfitRestoreAction from "@/components/outfits/outfit-restore-action";
+import { EntityDetailHeader } from "@/components/shared/entity-detail-header";
 import { isItemVisibleByCategorySettings } from "@/lib/api/categories";
 import { DEFAULT_SKIN_TONE_PRESET } from "@/lib/master-data/skin-tone-presets";
 import { fetchLaravelWithCookie } from "@/lib/server/laravel";
@@ -128,91 +129,77 @@ export default async function OutfitDetailPage({
     typeof resolvedSearchParams.return_label === "string"
       ? resolvedSearchParams.return_label
       : null;
+  const backHref = returnToParam
+    ? returnToParam
+    : fromWearLog && wearLogIdParam
+      ? `/wear-logs/${wearLogIdParam}`
+      : "/outfits";
+  const backLabel = returnToParam
+    ? `${returnLabelParam ?? "戻る"}へ戻る`
+    : fromWearLog && wearLogIdParam
+      ? "着用履歴詳細へ戻る"
+      : "一覧に戻る";
 
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">
       <div className="mx-auto max-w-4xl space-y-6">
-        <nav className="text-sm text-gray-500">
-          <Link href="/" className="hover:underline">
-            ホーム
-          </Link>
-          {returnToParam ? (
+        <EntityDetailHeader
+          breadcrumbs={[
+            { label: "ホーム", href: "/" },
+            ...(returnToParam
+              ? [
+                  {
+                    label: returnLabelParam ?? "戻る",
+                    href: returnToParam,
+                  },
+                ]
+              : []),
+            ...(fromWearLog && wearLogIdParam
+              ? [
+                  {
+                    label: "着用履歴詳細",
+                    href: `/wear-logs/${wearLogIdParam}`,
+                  },
+                ]
+              : []),
+            { label: "コーディネート一覧", href: "/outfits" },
+            { label: "詳細" },
+          ]}
+          eyebrow="コーディネート管理"
+          title={outfit.name ?? "名称未設定"}
+          details={
+            outfit.status === "invalid" ? (
+              <div className="flex flex-wrap gap-2">
+                <p className="inline-flex rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-sm font-medium text-amber-800">
+                  無効
+                </p>
+              </div>
+            ) : null
+          }
+          actions={
             <>
-              {" / "}
-              <Link href={returnToParam} className="hover:underline">
-                {returnLabelParam ?? "戻る"}
+              <Link
+                href={backHref}
+                className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+              >
+                {backLabel}
               </Link>
+              {outfit.status !== "invalid" && (
+                <OutfitDuplicateAction
+                  outfitId={outfit.id}
+                  className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:text-gray-400 disabled:no-underline"
+                />
+              )}
+              <Link
+                href={`/outfits/${outfit.id}/edit`}
+                className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
+              >
+                編集
+              </Link>
+              <DeleteOutfitButton outfitId={outfit.id} />
             </>
-          ) : null}
-          {fromWearLog && wearLogIdParam ? (
-            <>
-              {" / "}
-              <Link
-                href={`/wear-logs/${wearLogIdParam}`}
-                className="hover:underline"
-              >
-                着用履歴詳細
-              </Link>
-            </>
-          ) : null}
-          {" / "}
-          <Link href="/outfits" className="hover:underline">
-            コーディネート一覧
-          </Link>
-          {" / "}
-          <span className="text-gray-700">詳細</span>
-        </nav>
-
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <p className="text-sm text-gray-500">コーディネート管理</p>
-            <h1 className="min-h-8 text-2xl font-bold text-gray-900">
-              {outfit.name ?? ""}
-            </h1>
-            {outfit.status === "invalid" && (
-              <p className="mt-3 inline-flex rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-sm font-medium text-amber-800">
-                無効
-              </p>
-            )}
-          </div>
-
-          <div className="flex items-start gap-3">
-            {returnToParam ? (
-              <Link
-                href={returnToParam}
-                className="text-sm font-medium text-blue-600 hover:underline"
-              >
-                {returnLabelParam ?? "戻る"}へ戻る
-              </Link>
-            ) : null}
-            {fromWearLog && wearLogIdParam ? (
-              <Link
-                href={`/wear-logs/${wearLogIdParam}`}
-                className="text-sm font-medium text-blue-600 hover:underline"
-              >
-                着用履歴詳細へ戻る
-              </Link>
-            ) : null}
-            {outfit.status !== "invalid" && (
-              <OutfitDuplicateAction outfitId={outfit.id} />
-            )}
-            <Link
-              href={`/outfits/${outfit.id}/edit`}
-              className="text-sm font-medium text-blue-600 hover:underline"
-            >
-              編集
-            </Link>
-
-            <Link
-              href="/outfits"
-              className="text-sm font-medium text-blue-600 hover:underline"
-            >
-              一覧に戻る
-            </Link>
-
-            <DeleteOutfitButton outfitId={outfit.id} />
-          </div>
-        </div>
+          }
+        />
 
         {outfit.status === "invalid" && (
           <section className="rounded-2xl border border-amber-200 bg-white p-6 shadow-sm">

@@ -121,6 +121,8 @@ describe("ItemPage", () => {
       }),
     );
 
+    expect(markup).toContain("アイテム管理");
+    expect(markup).toContain("レインコート");
     expect(markup).toContain("Sample Brand");
     expect(markup).toContain("19,800円");
     expect(markup).toContain("レディース");
@@ -200,5 +202,7 @@ describe("ItemPage", () => {
 
     expect(markup).toContain('href="/wear-logs/new"');
     expect(markup).toContain("着用履歴フォームへ戻る");
+    expect(markup).toContain('href="/items/1/edit"');
+    expect(markup).toContain("編集");
   });
 });

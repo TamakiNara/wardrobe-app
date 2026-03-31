@@ -122,6 +122,8 @@ describe("OutfitDetailPage", () => {
       }),
     );
 
+    expect(markup).toContain("コーディネート管理");
+    expect(markup).toContain("通勤コーデ");
     expect(markup).toContain("無効");
     expect(markup).toContain("無効の理由");
     expect(markup).toContain(
@@ -136,7 +138,6 @@ describe("OutfitDetailPage", () => {
     expect(markup).toContain("基本情報");
     expect(markup).toContain("手放し済み");
     expect(markup).toContain("restore-disabled");
-    expect(markup).toContain("duplicate-action");
     expect(markup).toContain('href="/outfits/10/edit"');
     expect(markup).toContain('href="/wear-logs/12"');
     expect(markup).toContain("着用履歴詳細へ戻る");
@@ -186,6 +187,10 @@ describe("OutfitDetailPage", () => {
 
     expect(markup).not.toContain("着用履歴詳細へ戻る");
     expect(markup).not.toContain('href="/wear-logs/12"');
+    expect(markup).toContain("休日コーデ");
+    expect(markup).toContain("duplicate-action");
+    expect(markup).toContain('href="/outfits/11/edit"');
+    expect(markup).toContain("一覧に戻る");
   });
 
   it("return_to があるときは着用履歴フォームへの戻りリンクを表示する", async () => {
@@ -235,6 +240,8 @@ describe("OutfitDetailPage", () => {
 
     expect(markup).toContain('href="/wear-logs/new"');
     expect(markup).toContain("着用履歴フォームへ戻る");
+    expect(markup).toContain('href="/outfits/11/edit"');
+    expect(markup).toContain("編集");
   });
 
   it("詳細で representative bottoms があると thumbnail を表示する", async () => {

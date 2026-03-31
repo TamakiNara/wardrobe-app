@@ -4,6 +4,7 @@ import DeleteItemButton from "@/components/items/delete-item-button";
 import ItemCareStatusAction from "@/components/items/item-care-status-action";
 import ItemStatusAction from "@/components/items/item-status-action";
 import ItemPreviewCard from "@/components/items/item-preview-card";
+import { EntityDetailHeader } from "@/components/shared/entity-detail-header";
 import { DEFAULT_SKIN_TONE_PRESET } from "@/lib/master-data/skin-tone-presets";
 import {
   formatItemPrice,
@@ -97,38 +98,33 @@ export default async function ItemPage({
     (field) => normalizedSizeDetails?.structured?.[field.name] !== undefined,
   );
   const visibleCustomSizeFields = normalizedSizeDetails?.custom_fields ?? [];
+  const backHref = returnToParam ?? "/items";
+  const backLabel = returnToParam
+    ? `${returnLabelParam ?? "戻る"}へ戻る`
+    : "一覧に戻る";
 
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">
       <div className="mx-auto max-w-3xl space-y-6">
-        <nav className="text-sm text-gray-500">
-          <Link href="/" className="hover:underline">
-            ホーム
-          </Link>
-          {returnToParam ? (
-            <>
-              {" / "}
-              <Link href={returnToParam} className="hover:underline">
-                {returnLabelParam ?? "戻る"}
-              </Link>
-            </>
-          ) : null}
-          {" / "}
-          <Link href="/items" className="hover:underline">
-            アイテム一覧
-          </Link>
-          {" / "}
-          <span className="text-gray-700">詳細</span>
-        </nav>
-
-        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-          <div>
-            <p className="text-sm text-gray-500">アイテム管理</p>
-            <h1 className="min-h-8 text-2xl font-bold text-gray-900">
-              {item.name ?? "名称未設定"}
-            </h1>
-            {(item.status === "disposed" || item.care_status) && (
-              <div className="mt-2 flex flex-wrap gap-2">
+        <EntityDetailHeader
+          breadcrumbs={[
+            { label: "ホーム", href: "/" },
+            ...(returnToParam
+              ? [
+                  {
+                    label: returnLabelParam ?? "戻る",
+                    href: returnToParam,
+                  },
+                ]
+              : []),
+            { label: "アイテム一覧", href: "/items" },
+            { label: "詳細" },
+          ]}
+          eyebrow="アイテム管理"
+          title={item.name ?? "名称未設定"}
+          details={
+            item.status === "disposed" || item.care_status ? (
+              <div className="flex flex-wrap gap-2">
                 {item.status === "disposed" && (
                   <p className="inline-flex rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-sm font-medium text-amber-800">
                     手放し済み
@@ -140,33 +136,25 @@ export default async function ItemPage({
                   </p>
                 )}
               </div>
-            )}
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3 md:justify-end">
-            {returnToParam ? (
+            ) : null
+          }
+          actions={
+            <>
               <Link
-                href={returnToParam}
-                className="text-sm font-medium text-blue-600 hover:underline"
+                href={backHref}
+                className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
               >
-                {returnLabelParam ?? "戻る"}へ戻る
+                {backLabel}
               </Link>
-            ) : null}
-            <Link
-              href={`/items/${item.id}/edit`}
-              className="text-sm font-medium text-blue-600 hover:underline"
-            >
-              編集
-            </Link>
-
-            <Link
-              href="/items"
-              className="text-sm font-medium text-blue-600 hover:underline"
-            >
-              一覧に戻る
-            </Link>
-          </div>
-        </div>
+              <Link
+                href={`/items/${item.id}/edit`}
+                className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
+              >
+                編集
+              </Link>
+            </>
+          }
+        />
 
         <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-gray-900">状態操作</h2>
