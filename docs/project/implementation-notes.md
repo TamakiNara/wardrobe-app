@@ -2,6 +2,7 @@
 
 このファイルは、現在の実装状況と次に着手する内容を共有するための引き継ぎメモです。
 設計の正本は `docs/` 配下の各資料を参照し、日々の実装状況と判断メモはこのファイルに集約します。
+このファイルでは、current 実装・引き継ぎ事項・短期の確認タスクを優先して扱います。中長期の新規機能候補や優先順位は `docs/specs/planning/next-features.md` に分離し、このファイルでは重複して詳説しません。
 
 実装着手前の確認観点を見返すときは `docs/project/implementation-checklist.md` を参照します。
 item status 変更仕様の正本を確認するときは `docs/specs/items/status-management.md` を参照します。
@@ -32,6 +33,8 @@ thumbnail の current 確認用パターン一覧を見返すときは `docs/spe
 
 ## 直近TODO
 
+この節には「直近の current 確認と引き継ぎに必要なもの」だけを残し、中長期の新規機能候補は `docs/specs/planning/next-features.md` を正本とします。
+
 優先順:
 
 1. docs 正本の整合確認を続ける
@@ -40,21 +43,16 @@ thumbnail の current 確認用パターン一覧を見返すときは `docs/spe
    - `docs/data/database.md`
    - `docs/api/openapi.yaml`
      の間で、仕様 / DB / API のズレがないか確認する
-2. `docs/api/openapi.yaml` の Item / Outfit 関連を引き続き確認する
-   - `ItemRecord.status`
-   - `ItemUpsertRequest` の `status` 非包含方針
-   - `disposed` と delete の役割分担
-   - outfits / wear logs の候補除外前提との整合
-3. 各画面のエラーメッセージと空状態を整理する
+2. 各画面のエラーメッセージと空状態を整理する
    - 未反映画面と細かな文言差分を引き続き詰める
-4. ログ設計の方針を整理する
+3. ログ設計の方針を整理する
    - アプリケーションログと一部イベントログの方針を詰める
    - item `disposed` / outfit `invalid` / 将来の wear logs 状態変更で何を残すか整理する
-5. スマホ実機でキーワード検索入力と IME 変換が安定するかを確認する
+4. スマホ実機でキーワード検索入力と IME 変換が安定するかを確認する
    - Safari 実機が必要なら追加確認する
-6. item SVG の簡略化方針を docs と画面で揃える
+5. item SVG の簡略化方針を docs と画面で揃える
    - tops / `onepiece_allinone` の item SVG は shape 個別表現を増やさず、カテゴリ単位の記号化を維持する
-7. item `care_status` の後続整理
+6. item `care_status` の後続整理
    - item 一覧で `in_cleaning` の絞り込みを追加するか検討する
 
 ## 購入検討 実装メモ
