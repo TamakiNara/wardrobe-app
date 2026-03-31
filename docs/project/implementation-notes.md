@@ -23,6 +23,7 @@ OpenAPI に明示する error response の基準を短く見返すときも `doc
 素材・混率の仕様メモを確認するときは `docs/specs/items/material-composition.md` を参照します。
 settings / calendar / wear logs / care_status の後続設計メモを見返すときは `docs/specs/settings_calendar_wearlog_codex_plan.md` を参照します。
 thumbnail の current 確認用パターン一覧を見返すときは `docs/specs/items/thumbnail-current-reference.md` を参照します。
+画面ヘッダー周辺デザインの整理メモを見返すときは `docs/specs/ui/page-header-guidelines.md` を参照します。
 
 ## 削除導線の共通方針
 
@@ -56,6 +57,7 @@ thumbnail の current 確認用パターン一覧を見返すときは `docs/spe
 6. item `care_status` の後続整理
    - item 一覧で `in_cleaning` の絞り込みを追加するか検討する
 7. 各画面ヘッダー周辺デザインの見直し
+   - 仕様メモは `docs/specs/ui/page-header-guidelines.md` を正本にする
    - パンくず / 小見出し / メイン見出し / 説明文 / 補助リンク / 件数表示 / 主要アクションの置き方を画面横断で揃える
    - 一覧画面どうし、詳細画面どうしでヘッダー周辺の余白・見出しサイズ・境界線・カード上端の情報構造を共通ルール化する
    - current の UI は情報整理はできているが、やや単調で古く見えやすいため、シンプルさは維持しつつもう少しモダンで整った印象へ寄せる

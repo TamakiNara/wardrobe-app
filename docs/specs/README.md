@@ -13,6 +13,7 @@
 - [wear logs: 一覧・詳細・登録・更新・削除](./wears/wear-logs.md)
 - [購入検討（内部: `purchase_candidates`）: 画像・item 昇格](./purchase-candidates.md)
 - [settings: ブランド候補](./settings/brand-candidates.md)
+- [ui: 画面ヘッダー周辺ガイドライン](./ui/page-header-guidelines.md)
 - [planning: 次期機能検討メモ](./planning/next-features.md)
 
 使い分けの目安:
