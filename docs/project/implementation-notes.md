@@ -20,6 +20,7 @@ OpenAPI に明示する error response の基準を短く見返すときも `doc
 購入検討の OpenAPI 定義は `docs/api/openapi.yaml` に反映済みで、current 実装との差分確認はこのファイルを起点に行います。
 購入検討の後続設計メモを見返すときは `docs/project/purchase-candidate-handover.md` を参照します。
 ブランド候補の仕様正本を確認するときは `docs/specs/settings/brand-candidates.md` を参照します。
+素材・混率の仕様メモを確認するときは `docs/specs/items/material-composition.md` を参照します。
 settings / calendar / wear logs / care_status の後続設計メモを見返すときは `docs/specs/settings_calendar_wearlog_codex_plan.md` を参照します。
 thumbnail の current 確認用パターン一覧を見返すときは `docs/specs/items/thumbnail-current-reference.md` を参照します。
 

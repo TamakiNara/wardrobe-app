@@ -5,6 +5,7 @@
 - [items: tops 詳細仕様](./items/tops.md)
 - [items: status 管理](./items/status-management.md)
 - [items: detail status UI](./items/detail-status-ui.md)
+- [items: 素材・混率管理](./items/material-composition.md)
 - [items: クローゼットビュー](./items/closet-view.md)
 - [outfits: 作成・編集・invalid/duplicate](./outfits/create-edit.md)
 - [配色サムネイル](./color-thumbnails.md)

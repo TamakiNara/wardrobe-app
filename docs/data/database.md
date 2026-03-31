@@ -37,6 +37,7 @@ wear logs も本資料の対象とし、その保存方針を定義します。
 
 `purchase_candidates` 系は購入検討用の schema で、`docs/specs/purchase-candidates.md` を正本とします。  
 比較ロジックの詳細は後続検討としつつ、current 実装では candidate 保存・画像管理・item 昇格を支える構造まで含みます。
+素材・混率の planned 方針は `docs/specs/items/material-composition.md` を参照し、current DB へ反映するタイミングは実装着手時に判断する。
 
 ### `purchase_candidates`
 
@@ -254,6 +255,7 @@ wear logs も本資料の対象とし、その保存方針を定義します。
 ## items
 
 ユーザーが登録した服アイテムを保持するテーブルです。
+素材・混率の planned 方針は `docs/specs/items/material-composition.md` を参照し、current columns へはまだ反映していない。
 
 ### Columns
 
