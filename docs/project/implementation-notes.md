@@ -612,6 +612,8 @@ planned:
 
 ## 後回し
 
+この節以降の候補メモは履歴として残しているものを含みます。current の優先順位や active な検討対象は `docs/specs/planning/next-features.md` を正本とし、この節の箇条書きは必要時に参照する補助メモとして扱います。
+
 ### items の現状メモ
 
 現状のデータ項目:
@@ -717,6 +719,8 @@ UI/UX メモ:
 - 将来的に着用履歴へタグを付ける場合は `outfit_log_tags` の追加で拡張する
 
 ## 将来案
+
+この節は長期候補の置き場であり、短中期の優先順位は `docs/specs/planning/next-features.md` を優先します。
 
 ### 将来機能の候補
 

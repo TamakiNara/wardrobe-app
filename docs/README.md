@@ -32,6 +32,7 @@
 - wear logs の `source_outfit_id` / `item_source_type` / `current status` 方針を見たいときは `specs/wears/wear-logs.md`
 - 購入検討の仕様正本と item 昇格前提を見たいときは `specs/purchase-candidates.md`
 - specs の索引から主要仕様へ辿りたいときは `specs/README.md`
+- 今後の新規機能候補と優先順位を見たいときは `specs/planning/next-features.md`
 
 ---
 
@@ -59,6 +60,17 @@
 補足:
 
 - current 実装の正本ではなく、後続判断用の handover 資料
+
+### `specs/planning/next-features.md`
+
+役割:
+
+- 未実装 / 未完成機能の優先順位を整理する
+- 実装前に決めるべきことを短く残す
+
+補足:
+
+- current 実装メモではなく、planning 用の整理先
 
 ### `architecture/system-overview.md`
 
