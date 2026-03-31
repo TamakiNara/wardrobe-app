@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { ItemsPageHeader } from "@/components/items/items-page-header";
 import ItemsList from "@/components/items/items-list";
 import { buildSupportedCategoryOptions } from "@/lib/api/categories";
 import { DEFAULT_SKIN_TONE_PRESET } from "@/lib/master-data/skin-tone-presets";
@@ -170,38 +171,32 @@ export default async function ItemsPage({
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">
       <div className="mx-auto max-w-5xl space-y-6">
-        <nav className="text-sm text-gray-500">
-          <Link href="/" className="hover:underline">
-            ホーム
-          </Link>
-          {" / "}
-          <span className="text-gray-700">アイテム一覧</span>
-        </nav>
-        <header className="flex flex-col gap-4 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm md:flex-row md:items-center md:justify-between">
-          <div>
-            <p className="text-sm text-gray-500">アイテム管理</p>
-            <h1 className="text-2xl font-bold text-gray-900">アイテム一覧</h1>
-            <p className="mt-1 text-sm text-gray-600">
-              服の色・形・季節・TPOを登録して管理します。
-            </p>
-          </div>
+        <ItemsPageHeader
+          breadcrumbs={[
+            { label: "ホーム", href: "/" },
+            { label: "アイテム一覧" },
+          ]}
+          eyebrow="アイテム管理"
+          title="アイテム一覧"
+          description="服の色・形・季節・TPOを登録して管理します。"
+          actions={
+            <>
+              <Link
+                href="/items/disposed"
+                className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+              >
+                手放したアイテム一覧を見る
+              </Link>
 
-          <div className="flex flex-wrap items-center gap-3">
-            <Link
-              href="/items/disposed"
-              className="text-sm font-medium text-blue-600 hover:underline"
-            >
-              手放したアイテム一覧を見る
-            </Link>
-
-            <Link
-              href="/items/new"
-              className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
-            >
-              アイテムを追加
-            </Link>
-          </div>
-        </header>
+              <Link
+                href="/items/new"
+                className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
+              >
+                アイテムを追加
+              </Link>
+            </>
+          }
+        />
 
         {data.meta.totalAll === 0 ? (
           <section className="rounded-2xl border border-dashed border-gray-300 bg-white p-10 text-center shadow-sm">

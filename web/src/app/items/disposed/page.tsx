@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import ItemThumbnailPreview from "@/components/items/item-thumbnail-preview";
+import { ItemsPageHeader } from "@/components/items/items-page-header";
 import { DEFAULT_SKIN_TONE_PRESET } from "@/lib/master-data/skin-tone-presets";
 import { ITEM_CARE_STATUS_LABELS } from "@/lib/items/metadata";
 import {
@@ -116,36 +117,24 @@ export default async function DisposedItemsPage({
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">
       <div className="mx-auto max-w-5xl space-y-6">
-        <nav className="text-sm text-gray-500">
-          <Link href="/" className="hover:underline">
-            ホーム
-          </Link>
-          {" / "}
-          <Link href="/items" className="hover:underline">
-            アイテム一覧
-          </Link>
-          {" / "}
-          <span className="text-gray-700">手放したアイテム一覧</span>
-        </nav>
-
-        <header className="flex flex-col gap-4 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm md:flex-row md:items-center md:justify-between">
-          <div>
-            <p className="text-sm text-gray-500">アイテム管理</p>
-            <h1 className="text-2xl font-bold text-gray-900">
-              手放したアイテム一覧
-            </h1>
-            <p className="mt-1 text-sm text-gray-600">
-              通常一覧とは分けて管理し、必要に応じて所持品に戻せます。
-            </p>
-          </div>
-
-          <Link
-            href="/items"
-            className="text-sm font-medium text-blue-600 hover:underline"
-          >
-            アイテム一覧に戻る
-          </Link>
-        </header>
+        <ItemsPageHeader
+          breadcrumbs={[
+            { label: "ホーム", href: "/" },
+            { label: "アイテム一覧", href: "/items" },
+            { label: "手放したアイテム一覧" },
+          ]}
+          eyebrow="アイテム管理"
+          title="手放したアイテム一覧"
+          description="通常一覧とは分けて管理し、必要に応じて所持品に戻せます。"
+          actions={
+            <Link
+              href="/items"
+              className="text-sm font-medium text-blue-600 hover:underline"
+            >
+              アイテム一覧に戻る
+            </Link>
+          }
+        />
 
         {data.meta.totalAll === 0 ? (
           <section className="rounded-2xl border border-dashed border-gray-300 bg-white p-10 text-center shadow-sm">

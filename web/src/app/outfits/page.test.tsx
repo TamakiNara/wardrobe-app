@@ -149,6 +149,7 @@ describe("OutfitsPage", () => {
     );
     expect(markup).toContain('href="/outfits/invalid"');
     expect(markup).toContain("無効コーディネート一覧");
+    expect(markup).toContain("rounded-lg border border-gray-300");
     expect(markup).toContain('href="/outfits/new"');
     expect(markup).toContain("コーディネートを作成する");
   });

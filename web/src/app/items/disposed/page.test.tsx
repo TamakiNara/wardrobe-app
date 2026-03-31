@@ -84,6 +84,7 @@ describe("DisposedItemsPage", () => {
       await DisposedItemsPage({ searchParams: Promise.resolve({}) }),
     );
 
+    expect(markup).toContain("アイテム管理");
     expect(markup).toContain("手放したアイテム一覧");
     expect(markup).toContain(
       "通常一覧とは分けて管理し、必要に応じて所持品に戻せます。",
@@ -96,6 +97,7 @@ describe("DisposedItemsPage", () => {
     );
     expect(markup).toContain('href="/items"');
     expect(markup).toContain("アイテム一覧に戻る");
+    expect(markup).toContain('href="/items"');
   });
 
   it("手放したアイテムがない場合は専用の空状態を表示する", async () => {
@@ -128,6 +130,7 @@ describe("DisposedItemsPage", () => {
       await DisposedItemsPage({ searchParams: Promise.resolve({}) }),
     );
 
+    expect(markup).toContain("アイテム管理");
     expect(markup).toContain("手放したアイテムはまだありません。");
     expect(markup).toContain(
       "現在、確認や復帰判断が必要な手放し済みアイテムはありません。",
