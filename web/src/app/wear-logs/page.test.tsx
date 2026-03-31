@@ -72,6 +72,9 @@ describe("WearLogsPage", () => {
       await WearLogsPage({ searchParams: Promise.resolve({}) }),
     );
 
+    expect(markup).toContain("着用履歴管理");
+    expect(markup).toContain("着用履歴一覧");
+    expect(markup).toContain("予定 / 着用済み の履歴を日付順で確認します。");
     expect(markup).toContain("着用履歴がまだありません");
     expect(markup).toContain("着用履歴を追加");
     expect(markup).toContain("カレンダー");
@@ -168,6 +171,11 @@ describe("WearLogsPage", () => {
       await WearLogsPage({ searchParams: Promise.resolve({}) }),
     );
 
+    expect(markup).toContain("着用履歴管理");
+    expect(markup).toContain("着用履歴一覧");
+    expect(markup).toContain("予定 / 着用済み の履歴を日付順で確認します。");
+    expect(markup).toContain('href="/wear-logs/new"');
+    expect(markup).toContain("着用履歴を追加");
     expect(markup).toContain("予定");
     expect(markup).toContain("着用済み");
     expect(markup).toContain("通勤コーディネート");
@@ -221,6 +229,8 @@ describe("WearLogsPage", () => {
       }),
     );
 
+    expect(markup).toContain("着用履歴管理");
+    expect(markup).toContain("着用履歴一覧");
     expect(markup).toContain("着用履歴を削除しました。");
   });
 });

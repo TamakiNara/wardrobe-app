@@ -48,6 +48,13 @@ describe("PurchaseCandidatesPage", () => {
       await PurchaseCandidatesPage({ searchParams: Promise.resolve({}) }),
     );
 
+    expect(markup).toContain("購入検討管理");
+    expect(markup).toContain("購入検討一覧");
+    expect(markup).toContain(
+      "検討中・保留中・購入済み・見送りの候補をまとめて確認します。",
+    );
+    expect(markup).toContain('href="/purchase-candidates/new"');
+    expect(markup).toContain("購入検討を追加");
     expect(markup).toContain("購入検討がまだありません");
   });
 
@@ -120,7 +127,13 @@ describe("PurchaseCandidatesPage", () => {
     expect(markup).toContain("19,800円");
     expect(markup).toContain("14,800円");
     expect(markup).toContain("セール価格");
+    expect(markup).toContain("購入検討管理");
     expect(markup).toContain("購入検討一覧");
+    expect(markup).toContain(
+      "検討中・保留中・購入済み・見送りの候補をまとめて確認します。",
+    );
+    expect(markup).toContain('href="/purchase-candidates/new"');
+    expect(markup).toContain("購入検討を追加");
     expect(markup).toContain('href="/purchase-candidates/1"');
     expect(markup).toContain(
       'src="http://localhost:8000/storage/purchase-candidates/1/front.png"',
