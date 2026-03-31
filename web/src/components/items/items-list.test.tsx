@@ -503,6 +503,44 @@ describe("ItemsList", () => {
         images: [],
       },
       {
+        id: 6,
+        name: "ベージュミニスカート",
+        status: "active",
+        category: "bottoms",
+        shape: "mini-skirt",
+        colors: [
+          {
+            role: "main",
+            mode: "preset",
+            value: "beige",
+            hex: "#CBB79D",
+            label: "ベージュ",
+          },
+        ],
+        seasons: ["夏"],
+        tpos: ["休日"],
+        images: [],
+      },
+      {
+        id: 7,
+        name: "ブラウンフレアスカート",
+        status: "active",
+        category: "bottoms",
+        shape: "flare-skirt",
+        colors: [
+          {
+            role: "main",
+            mode: "preset",
+            value: "brown",
+            hex: "#8C6A58",
+            label: "ブラウン",
+          },
+        ],
+        seasons: ["秋"],
+        tpos: ["休日"],
+        images: [],
+      },
+      {
         id: 4,
         name: "処分済みコート",
         status: "disposed",
@@ -559,6 +597,8 @@ describe("ItemsList", () => {
     expect(container.textContent).toContain("Tシャツ/カットソー");
     expect(container.textContent).toContain("シャツ");
     expect(container.textContent).toContain("カーディガン");
+    expect(container.textContent).toContain("ミニスカート");
+    expect(container.textContent).toContain("フレアスカート");
 
     const categoryHeading = Array.from(container.querySelectorAll("h2")).find(
       (heading) => heading.textContent === "トップス",
@@ -591,6 +631,16 @@ describe("ItemsList", () => {
     expect(topsLink?.getAttribute("href")).toBe("/items/1");
     expect(bottomsLink?.getAttribute("href")).toBe("/items/5");
     expect(cardiganLink?.getAttribute("href")).toBe("/items/3");
+    expect(
+      container.querySelector(
+        'a[aria-label="ベージュミニスカート / ミニスカート / ベージュ"]',
+      ),
+    ).not.toBeNull();
+    expect(
+      container.querySelector(
+        'a[aria-label="ブラウンフレアスカート / フレアスカート / ブラウン"]',
+      ),
+    ).not.toBeNull();
     expect(topsLink?.className).toContain("focus-visible:ring-2");
     expect(
       container.querySelector('a[aria-label*="処分済みコート"]'),

@@ -13,8 +13,10 @@
     { value: "tapered", label: "テーパード" },
     { value: "wide", label: "ワイドパンツ" },
     { value: "straight", label: "ストレート" },
+    { value: "mini-skirt", label: "ミニスカート" },
     { value: "tight-skirt", label: "タイトスカート" },
     { value: "a-line-skirt", label: "Aラインスカート" },
+    { value: "flare-skirt", label: "フレアスカート" },
   ],
   outer: [
     { value: "tailored", label: "テーラードジャケット" },
