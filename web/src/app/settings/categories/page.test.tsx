@@ -134,6 +134,9 @@ describe("SettingsCategoriesPage", () => {
     });
 
     expect(container.textContent).toContain("カテゴリ表示設定");
+    expect(container.textContent).toContain(
+      "ON にしたカテゴリのみ、登録や選択時に表示されます。",
+    );
     expect(container.textContent).toContain("1 / 2");
     expect(container.innerHTML).toContain('href="/settings"');
 
@@ -155,6 +158,7 @@ describe("SettingsCategoriesPage", () => {
       await waitForEffects();
     });
 
+    expect(container.textContent).toContain("カテゴリ表示設定");
     expect(getSaveButtons(container)).toHaveLength(2);
     expect(getSaveButtons(container).every((button) => button.disabled)).toBe(
       true,
@@ -197,6 +201,7 @@ describe("SettingsCategoriesPage", () => {
       await waitForEffects();
     });
 
+    expect(container.textContent).toContain("カテゴリ表示設定");
     const checkboxes = getCategoryCheckboxes(container);
     expect(checkboxes).toHaveLength(2);
     expect(checkboxes[0]?.checked).toBe(true);

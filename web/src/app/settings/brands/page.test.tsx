@@ -102,6 +102,10 @@ describe("SettingsBrandsPage", () => {
       await waitForEffects();
     });
 
+    expect(container.textContent).toContain("ブランド候補設定");
+    expect(container.textContent).toContain(
+      "アイテム入力で使うブランド候補を管理できます。既存 item のブランド名は自動更新しません。",
+    );
     expect(container.textContent).toContain("登録済みブランド候補");
     expect(container.textContent).toContain("UNIQLO");
     expect(container.textContent).toContain("ゆにくろ");
@@ -128,6 +132,7 @@ describe("SettingsBrandsPage", () => {
       await waitForEffects();
     });
 
+    expect(container.textContent).toContain("ブランド候補設定");
     const nameInput =
       container.querySelector<HTMLInputElement>("#new-brand-name");
     const kanaInput =
@@ -172,6 +177,7 @@ describe("SettingsBrandsPage", () => {
       await waitForEffects();
     });
 
+    expect(container.textContent).toContain("ブランド候補設定");
     const toggleButton = Array.from(
       container.querySelectorAll<HTMLButtonElement>("button"),
     ).find((button) => button.textContent === "無効にする");

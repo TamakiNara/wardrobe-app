@@ -47,7 +47,14 @@ describe("Home", () => {
     const { default: Home } = await import("./page");
     const markup = renderToStaticMarkup(await Home());
 
+    expect(markup).toContain("ホーム");
     expect(markup).toContain("ようこそ Large User さん");
+    expect(markup).toContain(
+      "登録済みアイテムやコーディネートをここから確認できます。",
+    );
+    expect(markup).toContain("アイテム一覧を見る");
+    expect(markup).toContain("コーディネート一覧を見る");
+    expect(markup).toContain("設定を開く");
     expect(markup).toContain(">36<");
     expect(markup).toContain(">12<");
     expect(markup).toContain(">14<");

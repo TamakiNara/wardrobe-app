@@ -66,6 +66,11 @@ describe("SettingsPage", () => {
       await waitForEffects();
     });
 
+    expect(container.textContent).toContain("設定");
+    expect(container.textContent).toContain("各種設定を変更できます。");
+    expect(container.textContent).toContain(
+      "表示内容や利用方法に関する項目は、ここから調整できます。",
+    );
     expect(container.textContent).toContain("表示・初期値設定");
     expect(container.textContent).toContain("サムネイル肌色");
     expect(container.innerHTML).toContain('href="/settings/categories"');
@@ -94,6 +99,7 @@ describe("SettingsPage", () => {
       await waitForEffects();
     });
 
+    expect(container.textContent).toContain("設定");
     const currentSeasonSelect = container.querySelector<HTMLSelectElement>(
       "#preferences-current-season",
     );

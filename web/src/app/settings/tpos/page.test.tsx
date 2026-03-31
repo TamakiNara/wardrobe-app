@@ -67,6 +67,9 @@ describe("SettingsTposPage", () => {
     });
 
     expect(container.textContent).toContain("TPO 設定");
+    expect(container.textContent).toContain(
+      "アイテムとコーディネートで使う TPO 候補を管理します。無効化した TPO は新規候補に出ません。",
+    );
     expect(container.textContent).toContain("仕事");
     expect(container.textContent).toContain("プリセット");
     expect(container.textContent).toContain("出張");
@@ -117,6 +120,7 @@ describe("SettingsTposPage", () => {
       await waitForEffects();
     });
 
+    expect(container.textContent).toContain("TPO 設定");
     const input =
       container.querySelector<HTMLInputElement>('input[type="text"]');
     const buttons = Array.from(

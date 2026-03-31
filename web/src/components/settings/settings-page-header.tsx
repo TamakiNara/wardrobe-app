@@ -15,18 +15,24 @@ export function SettingsPageHeader({
   backLabel = "設定へ戻る",
 }: SettingsPageHeaderProps) {
   return (
-    <section className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
-      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-        <div>
-          <p className="text-sm text-gray-500">設定</p>
-          <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
-          <p className="mt-2 text-sm text-gray-600">{description}</p>
+    <section className="overflow-hidden rounded-3xl border border-gray-200 bg-white p-6 shadow-sm md:p-7">
+      <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between md:gap-8">
+        <div className="max-w-2xl space-y-3">
+          <p className="text-sm font-medium tracking-wide text-gray-500">
+            設定
+          </p>
+          <div className="space-y-2">
+            <h1 className="text-2xl font-bold tracking-tight text-gray-900">
+              {title}
+            </h1>
+            <div className="text-sm leading-6 text-gray-600">{description}</div>
+          </div>
         </div>
 
         {backHref ? (
           <Link
             href={backHref}
-            className="text-sm font-medium text-blue-600 hover:underline"
+            className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
           >
             {backLabel}
           </Link>

@@ -61,19 +61,88 @@ export default async function Home() {
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">
       <div className="mx-auto max-w-5xl space-y-6">
-        <section className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-              <p className="text-sm text-gray-500">ホーム</p>
-              <h1 className="mt-2 text-3xl font-bold text-gray-900">
-                ようこそ {user.name} さん
-              </h1>
-              <p className="mt-3 text-sm leading-6 text-gray-600">
-                登録済みアイテムやコーディネートをここから確認できます。
-              </p>
+        <section className="overflow-hidden rounded-3xl border border-gray-200 bg-white p-8 shadow-sm">
+          <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
+            <div className="max-w-2xl space-y-5">
+              <div className="space-y-3">
+                <p className="text-sm font-medium tracking-wide text-gray-500">
+                  ホーム
+                </p>
+                <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+                  ようこそ {user.name} さん
+                </h1>
+                <p className="text-sm leading-6 text-gray-600">
+                  登録済みアイテムやコーディネートをここから確認できます。
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3">
+                <Link
+                  href="/items"
+                  className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
+                >
+                  アイテム一覧を見る
+                </Link>
+                <Link
+                  href="/outfits"
+                  className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+                >
+                  コーディネート一覧を見る
+                </Link>
+                <Link
+                  href="/settings"
+                  className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+                >
+                  設定を開く
+                </Link>
+              </div>
             </div>
 
-            <LogoutButton />
+            <div className="flex flex-col gap-4 lg:items-end">
+              <LogoutButton />
+
+              <div className="grid gap-3 sm:grid-cols-2 lg:w-[340px]">
+                <article className="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-4">
+                  <p className="text-xs font-medium tracking-wide text-gray-500">
+                    アイテム
+                  </p>
+                  <p className="mt-2 text-2xl font-bold text-gray-900">
+                    {itemsCount}
+                  </p>
+                  <p className="mt-1 text-sm text-gray-600">登録済み</p>
+                </article>
+
+                <article className="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-4">
+                  <p className="text-xs font-medium tracking-wide text-gray-500">
+                    コーディネート
+                  </p>
+                  <p className="mt-2 text-2xl font-bold text-gray-900">
+                    {outfitsCount}
+                  </p>
+                  <p className="mt-1 text-sm text-gray-600">登録済み</p>
+                </article>
+
+                <article className="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-4">
+                  <p className="text-xs font-medium tracking-wide text-gray-500">
+                    着用履歴
+                  </p>
+                  <p className="mt-2 text-2xl font-bold text-gray-900">
+                    {wearLogsCount}
+                  </p>
+                  <p className="mt-1 text-sm text-gray-600">登録済み</p>
+                </article>
+
+                <article className="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-4">
+                  <p className="text-xs font-medium tracking-wide text-gray-500">
+                    購入検討
+                  </p>
+                  <p className="mt-2 text-2xl font-bold text-gray-900">
+                    {purchaseCandidatesCount}
+                  </p>
+                  <p className="mt-1 text-sm text-gray-600">登録済み</p>
+                </article>
+              </div>
+            </div>
           </div>
         </section>
 
