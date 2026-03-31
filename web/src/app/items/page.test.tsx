@@ -91,8 +91,12 @@ describe("ItemsPage", () => {
       await ItemsPage({ searchParams: Promise.resolve({}) }),
     );
 
-    expect(markup).toContain("まだアイテムが登録されていません");
-    expect(markup).toContain("まずは 1 件追加してみましょう。");
+    expect(markup).toContain("現在、所持品のアイテムはありません");
+    expect(markup).toContain(
+      "新しく登録するか、手放したアイテム一覧から所持品に戻すアイテムがないか確認してください。",
+    );
+    expect(markup).toContain('href="/items/disposed"');
+    expect(markup).toContain("手放したアイテム一覧");
     expect(markup).toContain("アイテムを追加する");
   });
 
@@ -141,6 +145,8 @@ describe("ItemsPage", () => {
       await ItemsPage({ searchParams: Promise.resolve({}) }),
     );
 
+    expect(markup).toContain('href="/items/disposed"');
+    expect(markup).toContain("手放したアイテム一覧");
     expect(fetchMock).toHaveBeenNthCalledWith(
       4,
       "http://localhost:8000/api/items?season=%E6%98%A5",
@@ -196,6 +202,8 @@ describe("ItemsPage", () => {
     );
 
     expect(fetchMock).toHaveBeenCalledTimes(4);
+    expect(markup).toContain('href="/items/disposed"');
+    expect(markup).toContain("手放したアイテム一覧");
     expect(fetchMock).toHaveBeenNthCalledWith(
       4,
       "http://localhost:8000/api/items?season=%E5%A4%8F",

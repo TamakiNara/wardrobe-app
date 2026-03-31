@@ -186,24 +186,39 @@ export default async function ItemsPage({
             </p>
           </div>
 
-          <Link
-            href="/items/new"
-            className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
-          >
-            アイテムを追加
-          </Link>
+          <div className="flex flex-wrap items-center gap-3">
+            <Link
+              href="/items/disposed"
+              className="text-sm font-medium text-blue-600 hover:underline"
+            >
+              手放したアイテム一覧
+            </Link>
+
+            <Link
+              href="/items/new"
+              className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
+            >
+              アイテムを追加
+            </Link>
+          </div>
         </header>
 
         {data.meta.totalAll === 0 ? (
           <section className="rounded-2xl border border-dashed border-gray-300 bg-white p-10 text-center shadow-sm">
             <h2 className="text-lg font-semibold text-gray-900">
-              まだアイテムが登録されていません
+              現在、所持品のアイテムはありません
             </h2>
             <p className="mt-2 text-sm text-gray-600">
-              まずは 1 件追加してみましょう。
+              新しく登録するか、手放したアイテム一覧から所持品に戻すアイテムがないか確認してください。
             </p>
 
-            <div className="mt-6">
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+              <Link
+                href="/items/disposed"
+                className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+              >
+                手放したアイテム一覧を見る
+              </Link>
               <Link
                 href="/items/new"
                 className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"

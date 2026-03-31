@@ -16,6 +16,7 @@ use App\Services\Items\ItemStoreService;
 use App\Services\Items\ItemUpdateService;
 use App\Services\Settings\UserPreferenceService;
 use App\Services\Settings\UserTpoService;
+use App\Support\DisposedItemsIndexQuery;
 use App\Support\HomeSummaryQuery;
 use App\Support\ItemPayloadBuilder;
 use App\Support\ItemsIndexQuery;
@@ -226,6 +227,10 @@ Route::prefix('api')->middleware(['web'])->group(function () {
     // Items
     Route::middleware('auth:web')->get('/items', function (Request $request) {
         return response()->json(ItemsIndexQuery::build($request->user(), $request));
+    });
+
+    Route::middleware('auth:web')->get('/items/disposed', function (Request $request) {
+        return response()->json(DisposedItemsIndexQuery::build($request->user(), $request));
     });
 
     Route::middleware('auth:web')->post('/items', function (ItemStoreRequest $request) {

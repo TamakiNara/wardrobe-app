@@ -294,6 +294,51 @@ class ItemsEndpointsTest extends TestCase
         ]);
     }
 
+    public function test_get_disposed_items_returns_only_current_users_disposed_items(): void
+    {
+        $user = User::factory()->create();
+
+        $disposedItem = $this->createItem($user, [
+            'name' => '手放した白T',
+            'status' => 'disposed',
+            'shape' => 'tshirt',
+        ]);
+
+        $this->createItem($user, [
+            'name' => '表示されない白T',
+            'status' => 'active',
+            'shape' => 'tshirt',
+        ]);
+
+        $otherUser = User::factory()->create();
+        $this->createItem($otherUser, [
+            'name' => '他人の手放しアイテム',
+            'status' => 'disposed',
+            'shape' => 'tshirt',
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->getJson('/api/items/disposed', [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonCount(1, 'items')
+            ->assertJsonPath('items.0.id', $disposedItem->id)
+            ->assertJsonPath('items.0.name', '手放した白T')
+            ->assertJsonPath('items.0.status', 'disposed')
+            ->assertJsonPath('meta.total', 1)
+            ->assertJsonPath('meta.totalAll', 1);
+
+        $response->assertJsonMissing([
+            'name' => '表示されない白T',
+        ]);
+        $response->assertJsonMissing([
+            'name' => '他人の手放しアイテム',
+        ]);
+    }
+
     public function test_post_items_stores_purchase_fields_and_images(): void
     {
         Storage::fake('public');

@@ -166,6 +166,35 @@ class ItemStatusEndpointsTest extends TestCase
         ]);
     }
 
+    public function test_reactivate_removes_item_from_disposed_list(): void
+    {
+        $user = User::factory()->create();
+        $item = $this->createItem($user, [
+            'status' => 'disposed',
+        ]);
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $this->getJson('/api/items/disposed', [
+            'Accept' => 'application/json',
+        ])->assertOk()
+            ->assertJsonCount(1, 'items')
+            ->assertJsonPath('items.0.id', $item->id);
+
+        $this->postJson("/api/items/{$item->id}/reactivate", [], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ])->assertOk();
+
+        $this->getJson('/api/items/disposed', [
+            'Accept' => 'application/json',
+        ])->assertOk()
+            ->assertJsonCount(0, 'items')
+            ->assertJsonPath('meta.total', 0)
+            ->assertJsonPath('meta.totalAll', 0);
+    }
+
     public function test_item_status_routes_return_404_for_other_users_item(): void
     {
         $user = User::factory()->create();

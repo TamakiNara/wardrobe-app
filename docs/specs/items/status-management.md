@@ -156,6 +156,7 @@ MVP では、item status に次の 2 値を持つ。
 - 通常の create / update payload に `status` は含めない
 - `dispose` / `reactivate` は item 詳細画面からの専用操作導線として扱う
 - `disposed` item は通常一覧、outfit 候補、wear logs 候補から除外する
+- `disposed` item は `GET /api/items/disposed` と `/items/disposed` の dedicated 一覧で確認し、詳細画面から `reactivate` する
 - item を `disposed` にした時、その item を含む `active` outfit は `invalid` に遷移する
 - `reactivate` しても related outfit は自動 `restore` しない
 - `care_status = in_cleaning` は補助状態として扱い、候補除外や invalid 化の主制御には使わない
@@ -168,7 +169,6 @@ MVP では、item status に次の 2 値を持つ。
 
 ### 未確定
 
-- `disposed` item 一覧を dedicated で持つか、通常一覧 filter で扱うか
 - `disposed_at` / `dispose_reason` を current schema に追加するか
 - event log で `item_disposed` / `item_reactivated` をどこまで current に含めるか
 - `delete` をどの条件まで許容し、どこから `disposed` へ誘導するか

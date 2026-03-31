@@ -520,6 +520,27 @@ paths:
                   - $ref: '#/components/schemas/ValidationErrorResponse'
                   - $ref: '#/components/schemas/UnprocessableEntityMessageResponse'
 
+  /api/items/disposed:
+    get:
+      tags:
+        - Items
+      summary: 手放したアイテム一覧取得
+      description: |
+        `status=disposed` の item だけを返す dedicated 一覧。
+        通常の `/api/items` と責務を分け、手放した item の確認と詳細遷移を主目的にする。
+        response 形式は items 配列と meta.total / meta.totalAll / meta.page / meta.lastPage を含む。
+      security:
+        - SessionCookieAuth: []
+      responses:
+        '200':
+          description: 取得成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ItemsResponse'
+        '401':
+          description: 未認証
+
   /api/home/summary:
     get:
       tags:
