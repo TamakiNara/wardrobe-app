@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { OutfitsPageHeader } from "@/components/outfits/outfits-page-header";
 import OutfitsList from "@/components/outfits/outfits-list";
 import { DEFAULT_SKIN_TONE_PRESET } from "@/lib/master-data/skin-tone-presets";
 import { mapPreferenceSeasonToFilterValue } from "@/lib/settings/preferences";
@@ -198,40 +199,32 @@ export default async function OutfitsPage({
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">
       <div className="mx-auto max-w-5xl space-y-6">
-        <nav className="text-sm text-gray-500">
-          <Link href="/" className="hover:underline">
-            ホーム
-          </Link>
-          {" / "}
-          <span className="text-gray-700">コーディネート一覧</span>
-        </nav>
-        <header className="flex flex-col gap-4 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm md:flex-row md:items-center md:justify-between">
-          <div>
-            <p className="text-sm text-gray-500">コーディネート管理</p>
-            <h1 className="text-2xl font-bold text-gray-900">
-              コーディネート一覧
-            </h1>
-            <p className="mt-1 text-sm text-gray-600">
-              登録したアイテムを組み合わせてコーディネートを管理します。
-            </p>
-          </div>
+        <OutfitsPageHeader
+          breadcrumbs={[
+            { label: "ホーム", href: "/" },
+            { label: "コーディネート一覧" },
+          ]}
+          eyebrow="コーディネート管理"
+          title="コーディネート一覧"
+          description="登録したアイテムを組み合わせてコーディネートを管理します。"
+          actions={
+            <>
+              <Link
+                href="/outfits/invalid"
+                className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+              >
+                無効コーディネート一覧
+              </Link>
 
-          <div className="flex flex-wrap items-center gap-3">
-            <Link
-              href="/outfits/invalid"
-              className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
-            >
-              無効コーディネート一覧
-            </Link>
-
-            <Link
-              href="/outfits/new"
-              className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
-            >
-              コーディネートを追加
-            </Link>
-          </div>
-        </header>
+              <Link
+                href="/outfits/new"
+                className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
+              >
+                コーディネートを追加
+              </Link>
+            </>
+          }
+        />
 
         {data.meta.totalAll === 0 ? (
           <section className="rounded-2xl border border-dashed border-gray-300 bg-white p-10 text-center shadow-sm">

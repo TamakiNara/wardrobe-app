@@ -90,6 +90,8 @@ describe("OutfitsPage", () => {
       await OutfitsPage({ searchParams: Promise.resolve({}) }),
     );
 
+    expect(markup).toContain("コーディネート管理");
+    expect(markup).toContain("コーディネート一覧");
     expect(markup).toContain("まだコーディネートが登録されていません");
     expect(markup).toContain(
       "先にアイテムを登録して、組み合わせを作れる状態にしましょう。",
@@ -144,6 +146,8 @@ describe("OutfitsPage", () => {
       await OutfitsPage({ searchParams: Promise.resolve({}) }),
     );
 
+    expect(markup).toContain("コーディネート管理");
+    expect(markup).toContain("コーディネート一覧");
     expect(markup).toContain(
       "手持ちのアイテムを組み合わせて作ってみましょう。",
     );
@@ -190,6 +194,10 @@ describe("OutfitsPage", () => {
       await OutfitsPage({ searchParams: Promise.resolve({}) }),
     );
 
+    expect(markup).toContain("コーディネート管理");
+    expect(markup).toContain("コーディネート一覧");
+    expect(markup).toContain("無効コーディネート一覧");
+    expect(markup).toContain("rounded-lg border border-gray-300");
     expect(fetchMock).toHaveBeenNthCalledWith(
       3,
       "http://localhost:8000/api/outfits?season=%E7%A7%8B",
@@ -236,6 +244,10 @@ describe("OutfitsPage", () => {
     );
 
     expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(markup).toContain("コーディネート管理");
+    expect(markup).toContain("コーディネート一覧");
+    expect(markup).toContain("無効コーディネート一覧");
+    expect(markup).toContain("rounded-lg border border-gray-300");
     expect(fetchMock).toHaveBeenNthCalledWith(
       3,
       "http://localhost:8000/api/outfits?season=%E5%A4%8F",

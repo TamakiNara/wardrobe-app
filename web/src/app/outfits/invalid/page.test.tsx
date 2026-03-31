@@ -61,12 +61,14 @@ describe("InvalidOutfitsPage", () => {
       await InvalidOutfitsPage({ searchParams: Promise.resolve({}) }),
     );
 
+    expect(markup).toContain("コーディネート管理");
     expect(markup).toContain("無効コーディネート一覧");
+    expect(markup).toContain(
+      "通常一覧とは分けて管理し、無効理由の確認や再利用判断を行います。",
+    );
     expect(markup).toContain('href="/outfits"');
     expect(markup).toContain("コーディネート一覧に戻る");
-    expect(markup).toContain(
-      "通常一覧から分けて保持し、詳細確認や再利用判断を行います。",
-    );
+    expect(markup).toContain("rounded-lg border border-gray-300");
     expect(markup).toContain("invalid-outfits-list");
   });
 });
