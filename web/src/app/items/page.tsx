@@ -191,7 +191,7 @@ export default async function ItemsPage({
               href="/items/disposed"
               className="text-sm font-medium text-blue-600 hover:underline"
             >
-              手放したアイテム一覧
+              手放したアイテム一覧を見る
             </Link>
 
             <Link

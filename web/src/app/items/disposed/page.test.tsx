@@ -86,7 +86,7 @@ describe("DisposedItemsPage", () => {
 
     expect(markup).toContain("手放したアイテム一覧");
     expect(markup).toContain(
-      "通常一覧とは分けて保持し、詳細確認や所持品に戻す判断を行います。",
+      "通常一覧とは分けて管理し、必要に応じて所持品に戻せます。",
     );
     expect(markup).toContain("表示件数: 1 / 1");
     expect(markup).toContain("黒ジャケット");
@@ -128,7 +128,7 @@ describe("DisposedItemsPage", () => {
       await DisposedItemsPage({ searchParams: Promise.resolve({}) }),
     );
 
-    expect(markup).toContain("手放したアイテムはありません");
+    expect(markup).toContain("手放したアイテムはまだありません。");
     expect(markup).toContain(
       "現在、確認や復帰判断が必要な手放し済みアイテムはありません。",
     );

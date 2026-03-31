@@ -135,7 +135,7 @@ export default async function DisposedItemsPage({
               手放したアイテム一覧
             </h1>
             <p className="mt-1 text-sm text-gray-600">
-              通常一覧とは分けて保持し、詳細確認や所持品に戻す判断を行います。
+              通常一覧とは分けて管理し、必要に応じて所持品に戻せます。
             </p>
           </div>
 
@@ -150,7 +150,7 @@ export default async function DisposedItemsPage({
         {data.meta.totalAll === 0 ? (
           <section className="rounded-2xl border border-dashed border-gray-300 bg-white p-10 text-center shadow-sm">
             <h2 className="text-lg font-semibold text-gray-900">
-              手放したアイテムはありません
+              手放したアイテムはまだありません。
             </h2>
             <p className="mt-2 text-sm text-gray-600">
               現在、確認や復帰判断が必要な手放し済みアイテムはありません。
