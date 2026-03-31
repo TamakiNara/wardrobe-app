@@ -145,10 +145,13 @@ thumbnail の current 確認用パターン一覧を見返すときは `docs/spe
 
 ### docs 上で決定済み
 
-- Item の `status` は `active` / `disposed` とし、通常一覧・outfit・wear logs の候補から `disposed` を除外する
-  - 正本: `docs/specs/items/status-management.md`, `docs/data/database.md`, `docs/api/openapi.yaml`
-- Item の補助状態として `care_status = in_cleaning | null` を持ち、候補除外や invalid 化ではなく補助バッジ・警告・解除導線に使う
-  - 正本: `docs/specs/items/status-management.md`, `docs/specs/items/detail-status-ui.md`, `docs/api/openapi.yaml`
+- Item status の current ルールは `docs/specs/items/status-management.md` を正本とする
+  - `status = active / disposed`
+  - `disposed` は通常一覧・outfit・wear logs 候補から除外
+  - `reactivate` しても related outfit は自動 `restore` しない
+- Item の補助状態として `care_status = in_cleaning | null` を持ち、補助バッジ・警告・解除導線に使う
+  - 詳細画面の UI / 導線は `docs/specs/items/detail-status-ui.md` を参照
+  - 候補除外や invalid 化の主制御には使わない
 - Outfit の `status` は `active` / `invalid` とし、通常保存では `status` を payload に含めない
   - 正本: `docs/specs/outfits/create-edit.md`, `docs/data/database.md`, `docs/api/openapi.yaml`
 - wear logs は `source_outfit_id` を「ベースにした outfit」として持ち、最終的な item 構成は `items` / `wear_log_items` を正本とする

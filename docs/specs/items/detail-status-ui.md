@@ -1,7 +1,8 @@
 # Item Detail Status UI
 
 item 詳細画面で行う status 操作 UI の仕様を整理する。  
-この資料は `item status` の正本を UI 観点で補足するものであり、大きな仕様変更は行わない。
+この資料は `item status` 正本を、item 詳細画面の UI / 導線観点で補足する。  
+`disposed` / `reactivate` / `delete` の役割分担や副作用ルール自体は `docs/specs/items/status-management.md` を正本とする。
 
 関連資料:
 
@@ -14,6 +15,7 @@ item 詳細画面で行う status 操作 UI の仕様を整理する。
 
 ## 基本方針
 
+- 状態管理ルールの正本は `docs/specs/items/status-management.md` とし、この資料では item 詳細画面に何を出すかだけを扱う
 - item status の変更操作は item 詳細画面から行う
 - 通常編集フォームに status を混ぜない
 - status 変更は通常の create / update とは別導線で扱う
