@@ -130,6 +130,16 @@ describe("ItemPage", () => {
     expect(markup).toContain("購入後メモ");
     expect(markup).toContain("対応");
     expect(markup).toContain("クリーニング中");
+    expect(markup).toContain("状態操作");
+    expect(markup).toContain("所持状態");
+    expect(markup).toContain("ケア状態");
+    expect(markup).toContain("削除");
+    expect(markup).toContain("status-action");
+    expect(markup).toContain("care-status-action");
+    expect(markup).toContain("delete");
+    expect(markup).toContain(
+      "登録ミスなど、履歴を残さず削除したい場合だけ使います。",
+    );
     expect(markup).toContain("ボトムス丈： ミディ丈");
     expect(markup).toContain("レッグウェア： タイツ");
     expect(markup).toContain("画像");

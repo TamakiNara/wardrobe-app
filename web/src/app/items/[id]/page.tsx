@@ -152,12 +152,6 @@ export default async function ItemPage({
                 {returnLabelParam ?? "戻る"}へ戻る
               </Link>
             ) : null}
-            <ItemCareStatusAction
-              itemId={item.id}
-              careStatus={item.care_status}
-            />
-            <ItemStatusAction itemId={item.id} status={item.status} />
-
             <Link
               href={`/items/${item.id}/edit`}
               className="text-sm font-medium text-blue-600 hover:underline"
@@ -171,10 +165,55 @@ export default async function ItemPage({
             >
               一覧に戻る
             </Link>
-
-            <DeleteItemButton itemId={item.id} />
           </div>
         </div>
+
+        <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <h2 className="text-lg font-semibold text-gray-900">状態操作</h2>
+          <p className="mt-2 text-sm text-gray-600">
+            所持しなくなった場合は「手放す」を使います。削除は登録ミスや履歴を残さず消したい場合に限って使います。
+          </p>
+
+          <div className="mt-4 grid gap-4 md:grid-cols-3">
+            <section className="rounded-xl border border-gray-200 bg-gray-50 p-4">
+              <h3 className="text-sm font-medium text-gray-900">所持状態</h3>
+              <p className="mt-1 text-sm text-gray-600">
+                {item.status === "disposed" ? "手放し済み" : "所持品"}
+              </p>
+              <div className="mt-4">
+                <ItemStatusAction itemId={item.id} status={item.status} />
+              </div>
+            </section>
+
+            <section className="rounded-xl border border-gray-200 bg-gray-50 p-4">
+              <h3 className="text-sm font-medium text-gray-900">ケア状態</h3>
+              <p className="mt-1 text-sm text-gray-600">
+                {item.care_status
+                  ? ITEM_CARE_STATUS_LABELS[item.care_status]
+                  : "未設定"}
+              </p>
+              <p className="mt-1 text-xs text-gray-500">
+                ケア状態は補助情報で、手放し状態とは別に扱います。
+              </p>
+              <div className="mt-4">
+                <ItemCareStatusAction
+                  itemId={item.id}
+                  careStatus={item.care_status}
+                />
+              </div>
+            </section>
+
+            <section className="rounded-xl border border-red-100 bg-red-50 p-4">
+              <h3 className="text-sm font-medium text-red-900">削除</h3>
+              <p className="mt-1 text-sm text-red-700">
+                登録ミスなど、履歴を残さず削除したい場合だけ使います。
+              </p>
+              <div className="mt-4">
+                <DeleteItemButton itemId={item.id} />
+              </div>
+            </section>
+          </div>
+        </section>
 
         <ItemPreviewCard
           name={item.name ?? ""}

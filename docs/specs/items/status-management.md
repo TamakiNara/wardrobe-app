@@ -154,6 +154,7 @@ MVP では、item status に次の 2 値を持つ。
 
 - item status は `active` / `disposed` を持つ
 - 通常の create / update payload に `status` は含めない
+- `dispose` / `reactivate` は item 詳細画面からの専用操作導線として扱う
 - `disposed` item は通常一覧、outfit 候補、wear logs 候補から除外する
 - item を `disposed` にした時、その item を含む `active` outfit は `invalid` に遷移する
 - `reactivate` しても related outfit は自動 `restore` しない
@@ -162,8 +163,7 @@ MVP では、item status に次の 2 値を持つ。
 
 ### planned
 
-- `dispose` / `reactivate` の専用操作導線を前提に、通常編集フォームへ `status` を混ぜない方針を維持する
-- item 詳細を主導線として、確認ダイアログや警告導線を揃える
+- 通常編集フォームへ `status` を混ぜない方針を維持する
 - related outfit invalid 化や wear logs 候補除外を、状態変更操作と一体で分かる UI に寄せる
 
 ### 未確定

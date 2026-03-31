@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\ItemImageController;
+use App\Http\Controllers\Api\ItemStatusController;
 use App\Http\Controllers\Api\PurchaseCandidateController;
 use App\Http\Controllers\Api\SettingsTpoController;
 use App\Http\Controllers\Api\WearLogController;
@@ -263,23 +264,10 @@ Route::prefix('api')->middleware(['web'])->group(function () {
         ]);
     });
 
-    Route::middleware('auth:web')->post('/items/{id}/care-status', function (Request $request, int $id) {
-        $item = Item::query()
-            ->where('user_id', $request->user()->id)
-            ->findOrFail($id);
-
-        $validated = $request->validate([
-            'care_status' => ['nullable', 'string', 'in:in_cleaning'],
-        ]);
-
-        $item->update([
-            'care_status' => $validated['care_status'] ?? null,
-        ]);
-
-        return response()->json([
-            'message' => 'updated',
-            'item' => ItemPayloadBuilder::buildDetail($item->fresh()->load(['images', 'user'])),
-        ]);
+    Route::middleware('auth:web')->controller(ItemStatusController::class)->group(function () {
+        Route::post('/items/{id}/dispose', 'dispose');
+        Route::post('/items/{id}/reactivate', 'reactivate');
+        Route::post('/items/{id}/care-status', 'updateCareStatus');
     });
 
     Route::middleware('auth:web')->delete('/items/{id}', function (Request $request, int $id) {
