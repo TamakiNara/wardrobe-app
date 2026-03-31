@@ -129,7 +129,7 @@ export default async function DisposedItemsPage({
           actions={
             <Link
               href="/items"
-              className="text-sm font-medium text-blue-600 hover:underline"
+              className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
             >
               アイテム一覧に戻る
             </Link>
