@@ -29,7 +29,10 @@ export default async function RootLayout({
     .getAll()
     .some(
       (cookie) =>
-        cookie.name === "laravel-session" || cookie.name.endsWith("-session"),
+        cookie.name === "laravel-session" ||
+        cookie.name === "laravel_session" ||
+        cookie.name.endsWith("-session") ||
+        cookie.name.endsWith("_session"),
     );
 
   return (
