@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ItemThumbnailPreview from "@/components/items/item-thumbnail-preview";
+import { fetchItemsIndex } from "@/lib/api/items";
 import {
   buildSupportedCategoryOptions,
   fetchCategoryGroups,
@@ -166,6 +167,8 @@ export default function ItemsList({
     CategoryOption[]
   >(initialCategoryOptions ?? [...ITEM_CATEGORY_OPTIONS]);
   const [viewMode, setViewMode] = useState<ItemListViewMode>(DEFAULT_VIEW_MODE);
+  const [closetItems, setClosetItems] = useState<ItemRecord[]>(items);
+  const [isClosetLoading, setIsClosetLoading] = useState(false);
   const initialSeasonAppliedRef = useRef(false);
 
   useEffect(() => {
@@ -260,6 +263,64 @@ export default function ItemsList({
     };
   }, [draftKeyword, isComposingKeyword, keyword, updateQuery]);
 
+  useEffect(() => {
+    if (viewMode !== "closet") {
+      return;
+    }
+
+    if (totalCount <= items.length) {
+      setClosetItems(items);
+      setIsClosetLoading(false);
+      return;
+    }
+
+    let active = true;
+    setIsClosetLoading(true);
+
+    fetchItemsIndex({
+      keyword,
+      category: categoryFilter,
+      season: seasonFilter,
+      tpo: tpoFilter,
+      sort,
+      all: true,
+    })
+      .then((response) => {
+        if (!active) {
+          return;
+        }
+
+        setClosetItems(response.items);
+      })
+      .catch(() => {
+        if (!active) {
+          return;
+        }
+
+        setClosetItems(items);
+      })
+      .finally(() => {
+        if (!active) {
+          return;
+        }
+
+        setIsClosetLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [
+    categoryFilter,
+    items,
+    keyword,
+    seasonFilter,
+    sort,
+    tpoFilter,
+    totalCount,
+    viewMode,
+  ]);
+
   const categoryOptions = useMemo(() => {
     return apiCategoryOptions.filter((category) =>
       availableCategoryValues.includes(category.value),
@@ -268,9 +329,10 @@ export default function ItemsList({
 
   const seasonOptions = availableSeasons;
   const tpoOptions = availableTpos;
+  const closetSourceItems = viewMode === "closet" ? closetItems : items;
   const closetGroups = useMemo(
-    () => buildClosetViewGroups(items, categoryOptions),
-    [categoryOptions, items],
+    () => buildClosetViewGroups(closetSourceItems, categoryOptions),
+    [categoryOptions, closetSourceItems],
   );
 
   const hasActiveFilters = Boolean(
@@ -282,7 +344,10 @@ export default function ItemsList({
     currentPage > 1,
   );
   const shouldShowEmptyState =
-    items.length === 0 || (viewMode === "closet" && closetGroups.length === 0);
+    viewMode === "closet"
+      ? !isClosetLoading &&
+        (closetSourceItems.length === 0 || closetGroups.length === 0)
+      : items.length === 0;
 
   return (
     <div className="space-y-6">
@@ -386,7 +451,9 @@ export default function ItemsList({
 
         <div className="mt-4 flex items-center justify-between gap-4">
           <p className="text-sm text-gray-600">
-            表示件数: {items.length} / {totalCount}
+            {viewMode === "closet"
+              ? `表示中: ${closetSourceItems.length}件`
+              : `表示件数: ${items.length} / ${totalCount}`}
           </p>
 
           <div className="flex items-center gap-3">
@@ -419,7 +486,13 @@ export default function ItemsList({
               </button>
               <button
                 type="button"
-                onClick={() => setViewMode("closet")}
+                onClick={() => {
+                  if (totalCount > items.length) {
+                    setIsClosetLoading(true);
+                  }
+
+                  setViewMode("closet");
+                }}
                 aria-label="クローゼットビューに切り替え"
                 aria-pressed={viewMode === "closet"}
                 className={`inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm font-medium transition ${
@@ -478,85 +551,97 @@ export default function ItemsList({
           </p>
         </section>
       ) : viewMode === "closet" ? (
-        <section className="space-y-6">
-          {closetGroups.map((group) => (
-            <section
-              key={group.category}
-              className="rounded-2xl border border-gray-200 bg-white px-4 py-3 shadow-sm"
-            >
-              <h2 className="text-base font-semibold text-gray-900">
-                {group.label}
-              </h2>
-              <div className="mt-2.5 flex flex-wrap items-start gap-x-5 gap-y-3">
-                {group.shapeGroups.map((shapeGroup) => (
-                  <section
-                    key={`${group.category}-${shapeGroup.shape}`}
-                    className={`min-w-fit space-y-1.5 ${
-                      shapeGroup.items.length === 1
-                        ? "text-center"
-                        : "text-left"
-                    }`}
-                  >
-                    <h3 className="text-[11px] font-medium text-gray-500">
-                      {shapeGroup.label}
-                    </h3>
-                    <div
-                      className={`flex flex-wrap gap-2 ${
+        isClosetLoading ? (
+          <section className="rounded-2xl border border-dashed border-gray-300 bg-white p-10 text-center shadow-sm">
+            <h2 className="text-lg font-semibold text-gray-900">
+              クローゼット表示を読み込み中です
+            </h2>
+            <p className="mt-2 text-sm text-gray-600">
+              条件に一致するアイテムをまとめて表示しています。
+            </p>
+          </section>
+        ) : (
+          <section className="space-y-6">
+            {closetGroups.map((group) => (
+              <section
+                key={group.category}
+                className="rounded-2xl border border-gray-200 bg-white px-4 py-3 shadow-sm"
+              >
+                <h2 className="text-base font-semibold text-gray-900">
+                  {group.label}
+                </h2>
+                <div className="mt-2.5 flex flex-wrap items-start gap-x-5 gap-y-3">
+                  {group.shapeGroups.map((shapeGroup) => (
+                    <section
+                      key={`${group.category}-${shapeGroup.shape}`}
+                      className={`min-w-fit space-y-1.5 ${
                         shapeGroup.items.length === 1
-                          ? "justify-center"
-                          : "justify-start"
+                          ? "text-center"
+                          : "text-left"
                       }`}
                     >
-                      {shapeGroup.items.map((item) => {
-                        const mainColor = item.colors.find(
-                          (color) => color.role === "main",
-                        );
-                        const subColor = item.colors.find(
-                          (color) => color.role === "sub",
-                        );
-                        const itemName = item.name || "名称未設定";
-                        const mainColorLabel = mainColor?.label ?? "未設定";
+                      <h3 className="text-[11px] font-medium text-gray-500">
+                        {shapeGroup.label}
+                      </h3>
+                      <div
+                        className={`flex flex-wrap gap-2 ${
+                          shapeGroup.items.length === 1
+                            ? "justify-center"
+                            : "justify-start"
+                        }`}
+                      >
+                        {shapeGroup.items.map((item) => {
+                          const mainColor = item.colors.find(
+                            (color) => color.role === "main",
+                          );
+                          const subColor = item.colors.find(
+                            (color) => color.role === "sub",
+                          );
+                          const itemName = item.name || "名称未設定";
+                          const mainColorLabel = mainColor?.label ?? "未設定";
 
-                        return (
-                          <Link
-                            href={`/items/${item.id}`}
-                            key={item.id}
-                            aria-label={`${itemName} / ${shapeGroup.label} / ${mainColorLabel}`}
-                            className="rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2"
-                          >
-                            <span className="sr-only">
-                              {itemName} / {shapeGroup.label} / {mainColorLabel}
-                            </span>
-                            <span className="relative block h-[5.5rem] w-[2.75rem] overflow-hidden rounded-xl border border-gray-200 bg-gray-50 transition hover:border-blue-300 hover:shadow-sm">
-                              <span
-                                className="absolute inset-y-0 left-0"
-                                style={{
-                                  width: subColor?.hex ? "90%" : "100%",
-                                  backgroundColor:
-                                    mainColor?.hex ??
-                                    COLOR_THUMBNAIL_FALLBACK_COLOR,
-                                }}
-                              />
-                              {subColor?.hex ? (
+                          return (
+                            <Link
+                              href={`/items/${item.id}`}
+                              key={item.id}
+                              aria-label={`${itemName} / ${shapeGroup.label} / ${mainColorLabel}`}
+                              className="rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2"
+                            >
+                              <span className="sr-only">
+                                {itemName} / {shapeGroup.label} /{" "}
+                                {mainColorLabel}
+                              </span>
+                              <span className="relative block h-[5.5rem] w-[2.75rem] overflow-hidden rounded-xl border border-gray-200 bg-gray-50 transition hover:border-blue-300 hover:shadow-sm">
                                 <span
-                                  className="absolute inset-y-0 right-0"
+                                  className="absolute inset-y-0 left-0"
                                   style={{
-                                    width: "10%",
-                                    backgroundColor: subColor.hex,
+                                    width: subColor?.hex ? "90%" : "100%",
+                                    backgroundColor:
+                                      mainColor?.hex ??
+                                      COLOR_THUMBNAIL_FALLBACK_COLOR,
                                   }}
                                 />
-                              ) : null}
-                            </span>
-                          </Link>
-                        );
-                      })}
-                    </div>
-                  </section>
-                ))}
-              </div>
-            </section>
-          ))}
-        </section>
+                                {subColor?.hex ? (
+                                  <span
+                                    className="absolute inset-y-0 right-0"
+                                    style={{
+                                      width: "10%",
+                                      backgroundColor: subColor.hex,
+                                    }}
+                                  />
+                                ) : null}
+                              </span>
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    </section>
+                  ))}
+                </div>
+              </section>
+            ))}
+          </section>
+        )
       ) : (
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {items.map((item) => {
@@ -631,29 +716,31 @@ export default function ItemsList({
         </section>
       )}
 
-      <section className="flex items-center justify-between rounded-2xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
-        <button
-          type="button"
-          onClick={() => updateQuery({ page: currentPage - 1 })}
-          disabled={currentPage <= 1}
-          className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:text-gray-400"
-        >
-          前へ
-        </button>
+      {viewMode === "list" ? (
+        <section className="flex items-center justify-between rounded-2xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
+          <button
+            type="button"
+            onClick={() => updateQuery({ page: currentPage - 1 })}
+            disabled={currentPage <= 1}
+            className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:text-gray-400"
+          >
+            前へ
+          </button>
 
-        <p className="text-sm text-gray-600">
-          {currentPage} / {lastPage}ページ
-          <span className="ml-2 text-gray-400">（全{totalCount}件）</span>
-        </p>
-        <button
-          type="button"
-          onClick={() => updateQuery({ page: currentPage + 1 })}
-          disabled={currentPage >= lastPage}
-          className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:text-gray-400"
-        >
-          次へ
-        </button>
-      </section>
+          <p className="text-sm text-gray-600">
+            {currentPage} / {lastPage}ページ
+            <span className="ml-2 text-gray-400">（全{totalCount}件）</span>
+          </p>
+          <button
+            type="button"
+            onClick={() => updateQuery({ page: currentPage + 1 })}
+            disabled={currentPage >= lastPage}
+            className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:text-gray-400"
+          >
+            次へ
+          </button>
+        </section>
+      ) : null}
     </div>
   );
 }

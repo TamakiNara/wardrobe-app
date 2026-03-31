@@ -9,6 +9,7 @@ import type { ItemRecord } from "@/types/items";
 
 const fetchCategoryGroupsMock = vi.fn();
 const fetchCategoryVisibilitySettingsMock = vi.fn();
+const fetchItemsIndexMock = vi.fn();
 const replaceMock = vi.fn();
 let searchParamsValue = "";
 
@@ -40,6 +41,10 @@ vi.mock("@/lib/api/categories", async () => {
 
 vi.mock("@/lib/api/settings", () => ({
   fetchCategoryVisibilitySettings: fetchCategoryVisibilitySettingsMock,
+}));
+
+vi.mock("@/lib/api/items", () => ({
+  fetchItemsIndex: fetchItemsIndexMock,
 }));
 
 const sampleGroups: CategoryGroupRecord[] = [
@@ -590,6 +595,9 @@ describe("ItemsList", () => {
     expect(
       container.querySelector('a[aria-label*="処分済みコート"]'),
     ).toBeNull();
+    expect(container.textContent).toContain(`表示中: ${closetItems.length}件`);
+    expect(container.textContent).not.toContain("1 / 1ページ");
+    expect(fetchItemsIndexMock).not.toHaveBeenCalled();
   });
 
   it("クローゼットビューでも絞り込み後 0 件なら既存空状態を使う", async () => {
@@ -647,5 +655,162 @@ describe("ItemsList", () => {
       "条件に一致するアイテムがありません",
     );
     expect(container.textContent).toContain("条件を変えてお試しください。");
+  });
+
+  it("クローゼットビューでは全件取得し、ページャーを出さない", async () => {
+    fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
+    fetchCategoryVisibilitySettingsMock.mockResolvedValue({
+      visibleCategoryIds: ["tops_tshirt", "tops_shirt", "bottoms_pants"],
+    });
+    fetchItemsIndexMock.mockResolvedValue({
+      items: [
+        sampleItems[0],
+        sampleItems[1],
+        {
+          id: 3,
+          name: "黒カーディガン",
+          status: "active",
+          category: "tops",
+          shape: "cardigan",
+          colors: [
+            {
+              role: "main",
+              mode: "preset",
+              value: "black",
+              hex: "#1F1F1F",
+              label: "ブラック",
+            },
+          ],
+          seasons: ["冬"],
+          tpos: ["仕事"],
+          images: [],
+        },
+      ],
+      meta: {
+        total: 3,
+        totalAll: 3,
+        page: 1,
+        lastPage: 1,
+        availableCategories: ["tops", "bottoms"],
+        availableSeasons: ["春", "夏", "冬"],
+        availableTpos: ["仕事", "休日"],
+      },
+    });
+
+    const { default: ItemsList } = await import("./items-list");
+
+    await act(async () => {
+      root.render(
+        React.createElement(ItemsList, {
+          ...defaultListProps,
+          items: [sampleItems[0], sampleItems[1]],
+          totalCount: 3,
+          totalAllCount: 3,
+          currentPage: 1,
+          lastPage: 2,
+          availableSeasons: ["春", "夏", "冬"],
+        }),
+      );
+      await waitForEffects();
+    });
+
+    const closetButton = Array.from(container.querySelectorAll("button")).find(
+      (button) =>
+        button.getAttribute("aria-label") === "クローゼットビューに切り替え",
+    );
+
+    await act(async () => {
+      closetButton?.click();
+      await waitForEffects();
+    });
+
+    await act(async () => {
+      await Promise.resolve();
+      await waitForEffects();
+    });
+
+    expect(fetchItemsIndexMock).toHaveBeenCalledWith({
+      keyword: "",
+      category: "",
+      season: "",
+      tpo: "",
+      sort: "updated_at_desc",
+      all: true,
+    });
+    expect(container.textContent).toContain("表示中: 3件");
+    expect(container.textContent).toContain("黒カーディガン");
+    expect(container.textContent).not.toContain("1 / 2ページ");
+    expect(
+      Array.from(container.querySelectorAll("button")).find((button) =>
+        button.textContent?.includes("次へ"),
+      ),
+    ).toBeUndefined();
+  });
+
+  it("クローゼットビューでは絞り込み条件付きでも結果全件を取得する", async () => {
+    searchParamsValue =
+      "keyword=%E7%99%BD&category=tops&season=%E5%A4%8F&tpo=%E4%BC%91%E6%97%A5&sort=name_asc&page=2";
+    fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
+    fetchCategoryVisibilitySettingsMock.mockResolvedValue({
+      visibleCategoryIds: ["tops_tshirt", "tops_shirt"],
+    });
+    fetchItemsIndexMock.mockResolvedValue({
+      items: [sampleItems[0]],
+      meta: {
+        total: 1,
+        totalAll: 2,
+        page: 1,
+        lastPage: 1,
+        availableCategories: ["tops"],
+        availableSeasons: ["夏"],
+        availableTpos: ["休日"],
+      },
+    });
+
+    const { default: ItemsList } = await import("./items-list");
+
+    await act(async () => {
+      root.render(
+        React.createElement(ItemsList, {
+          ...defaultListProps,
+          items: [],
+          totalCount: 1,
+          totalAllCount: 2,
+          currentPage: 2,
+          lastPage: 2,
+          availableSeasons: ["夏"],
+          availableTpos: ["休日"],
+        }),
+      );
+      await waitForEffects();
+    });
+
+    const closetButton = Array.from(container.querySelectorAll("button")).find(
+      (button) =>
+        button.getAttribute("aria-label") === "クローゼットビューに切り替え",
+    );
+
+    await act(async () => {
+      closetButton?.click();
+      await waitForEffects();
+    });
+
+    await act(async () => {
+      await Promise.resolve();
+      await waitForEffects();
+    });
+
+    expect(fetchItemsIndexMock).toHaveBeenCalledWith({
+      keyword: "白",
+      category: "tops",
+      season: "夏",
+      tpo: "休日",
+      sort: "name_asc",
+      all: true,
+    });
+    expect(container.textContent).toContain("表示中: 1件");
+    expect(container.textContent).toContain("トップス");
+    expect(container.textContent).toContain("白T");
+    expect(container.textContent).not.toContain("2 / 2ページ");
   });
 });

@@ -17,6 +17,7 @@ class ItemsIndexQuery
         $tpo = trim((string) $request->query('tpo', ''));
         $sort = $request->query('sort') === 'name_asc' ? 'name_asc' : 'updated_at_desc';
         $page = ListQuerySupport::normalizePage($request->query('page', 1));
+        $shouldReturnAll = filter_var($request->query('all', false), FILTER_VALIDATE_BOOLEAN);
         $visibleCategoryIdsRaw = $user->visible_category_ids;
         $visibleCategoryIds = is_array($visibleCategoryIdsRaw)
             ? collect($visibleCategoryIdsRaw)
@@ -40,18 +41,22 @@ class ItemsIndexQuery
             $sort,
             $tpoNameById->all()
         );
-        $pagination = $query->paginate(ListQuerySupport::PAGE_SIZE, ['*'], 'page', $page);
+        $items = $shouldReturnAll
+            ? $query->get()
+            : $query->paginate(ListQuerySupport::PAGE_SIZE, ['*'], 'page', $page);
+        $filteredItems = $shouldReturnAll ? $items : $items->getCollection();
+        $filteredCount = $shouldReturnAll ? $filteredItems->count() : $items->total();
 
         return [
-            'items' => $pagination->getCollection()
+            'items' => $filteredItems
                 ->map(fn (Item $item) => ItemPayloadBuilder::buildDetail($item))
                 ->values()
                 ->all(),
             'meta' => [
-                'total' => $pagination->total(),
+                'total' => $filteredCount,
                 'totalAll' => $visibleItems->count(),
-                'page' => $pagination->currentPage(),
-                'lastPage' => $pagination->lastPage(),
+                'page' => $shouldReturnAll ? 1 : $items->currentPage(),
+                'lastPage' => $shouldReturnAll ? 1 : $items->lastPage(),
                 'availableCategories' => $visibleItems
                     ->pluck('category')
                     ->filter(fn (mixed $value) => is_string($value) && $value !== '')

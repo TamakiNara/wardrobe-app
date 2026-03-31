@@ -209,6 +209,38 @@ class ItemsEndpointsTest extends TestCase
         ]);
     }
 
+    public function test_get_items_with_all_flag_returns_all_filtered_items_without_pagination(): void
+    {
+        $user = User::factory()->create();
+        $user->forceFill([
+            'visible_category_ids' => ['tops_tshirt'],
+        ])->save();
+
+        for ($index = 1; $index <= 13; $index++) {
+            $this->createItem($user, [
+                'name' => sprintf('白T%02d', $index),
+                'shape' => 'tshirt',
+                'seasons' => ['夏'],
+                'tpos' => ['休日'],
+            ]);
+        }
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->getJson('/api/items?keyword=%E7%99%BD&season=%E5%A4%8F&tpo=%E4%BC%91%E6%97%A5&sort=name_asc&page=2&all=1', [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonCount(13, 'items')
+            ->assertJsonPath('items.0.name', '白T01')
+            ->assertJsonPath('items.12.name', '白T13')
+            ->assertJsonPath('meta.total', 13)
+            ->assertJsonPath('meta.totalAll', 13)
+            ->assertJsonPath('meta.page', 1)
+            ->assertJsonPath('meta.lastPage', 1);
+    }
+
     public function test_get_items_resolves_tpo_filter_and_available_tpos_from_tpo_ids(): void
     {
         $user = User::factory()->create();
