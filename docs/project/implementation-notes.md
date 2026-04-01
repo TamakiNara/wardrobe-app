@@ -84,6 +84,7 @@ thumbnail の current 確認用パターン一覧を見返すときは `docs/spe
 - candidate `memo` は current で item 作成画面の `memo` 初期値へ引き継ぎ、保存後は candidate / item で独立管理とする
 - purchase_candidates の create / edit でも `size_note` をサイズ感・着用感メモ、`size_details` を `structured` / `custom_fields` を持つ構造化実寸として入力できる
 - purchase_candidates のサイズ実寸 UI は items 側の `item-size-details-fields.tsx` と `size-details.ts` を再利用し、item draft でも `size_details` をそのまま引き継ぐ
+- purchase candidate の create / edit は current で 1 枚カードにまとまっているため、後続では item 新規作成に寄せて `基本情報 / 購入情報 / メモ / サイズ・属性 / 素材・混率 / 色 / 季節 / TPO / 画像` をセクションカード分離する方針を優先する
 
 直近または中期 TODO:
 

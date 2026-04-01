@@ -46,18 +46,18 @@ class TestSeedUsersSeederTest extends TestCase
         $this->assertCount(0, PurchaseCandidate::query()->where('user_id', $emptyUser->id)->get());
         $this->assertCount(3, UserTpo::query()->where('user_id', $emptyUser->id)->get());
         $this->assertCount(0, UserBrand::query()->where('user_id', $emptyUser->id)->get());
-        $this->assertDatabaseCount('items', 63);
-        $this->assertDatabaseCount('purchase_candidates', 5);
+        $this->assertDatabaseCount('items', 68);
+        $this->assertDatabaseCount('purchase_candidates', 10);
 
         $this->assertNotNull($standardUser->visible_category_ids);
         $this->assertCount(40, $standardUser->visible_category_ids);
         $this->assertCount(12, $standardUser->outfits);
-        $this->assertCount(27, $standardUser->items);
+        $this->assertCount(32, $standardUser->items);
         $standardCandidates = PurchaseCandidate::query()
             ->where('user_id', $standardUser->id)
             ->orderBy('name')
             ->get();
-        $this->assertCount(3, $standardCandidates);
+        $this->assertCount(8, $standardCandidates);
         $this->assertTrue($standardCandidates->contains(
             fn (PurchaseCandidate $candidate) => $candidate->name === 'Tシャツ候補'
                 && data_get($candidate->size_details, 'structured.shoulder_width') === 45
@@ -66,6 +66,20 @@ class TestSeedUsersSeederTest extends TestCase
             fn (PurchaseCandidate $candidate) => $candidate->name === 'トレンチコート候補'
                 && data_get($candidate->size_details, 'custom_fields.0.label') === '裄丈'
         ));
+        $this->assertTrue($standardCandidates->contains(
+            fn (PurchaseCandidate $candidate) => $candidate->name === '購入素材確認_自由入力素材'
+                && $candidate->materials()->count() === 2
+        ));
+        $this->assertDatabaseHas('purchase_candidate_materials', [
+            'part_label' => '袖口',
+            'material_name' => '綿',
+            'ratio' => 50,
+        ]);
+        $this->assertDatabaseHas('purchase_candidate_materials', [
+            'part_label' => '本体',
+            'material_name' => 'モダール',
+            'ratio' => 60,
+        ]);
         $standardTpos = UserTpo::query()
             ->where('user_id', $standardUser->id)
             ->orderBy('sort_order')
@@ -106,7 +120,7 @@ class TestSeedUsersSeederTest extends TestCase
             ->where('user_id', $standardUser->id)
             ->orderBy('name')
             ->get();
-        $this->assertCount(9, $standardBrands);
+        $this->assertCount(10, $standardBrands);
         $this->assertTrue($standardBrands->contains(fn (UserBrand $brand) => $brand->is_active === false));
         $this->assertTrue($standardBrands->contains(fn (UserBrand $brand) => $brand->kana !== null));
 

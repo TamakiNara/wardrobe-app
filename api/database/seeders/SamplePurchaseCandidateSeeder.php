@@ -106,6 +106,109 @@ class SamplePurchaseCandidateSeeder extends Seeder
                 'seasons' => ['春', '秋'],
                 'tpos' => ['仕事', '休日'],
             ],
+            [
+                'name' => '購入素材確認_本体のみ',
+                'status' => 'considering',
+                'priority' => 'medium',
+                'category_id' => 'tops_tshirt',
+                'brand_name' => '素材確認ブランド',
+                'price' => 2990,
+                'wanted_reason' => '素材表示確認用',
+                'size_gender' => 'women',
+                'size_label' => 'M',
+                'colors' => [
+                    ['role' => 'main', 'mode' => 'preset', 'value' => 'white', 'hex' => '#ECECEC', 'label' => 'ホワイト'],
+                ],
+                'seasons' => ['春', '夏'],
+                'tpos' => ['休日'],
+                'materials' => [
+                    ['part_label' => '本体', 'material_name' => '綿', 'ratio' => 80],
+                    ['part_label' => '本体', 'material_name' => 'ポリエステル', 'ratio' => 20],
+                ],
+            ],
+            [
+                'name' => '購入素材確認_裏地あり',
+                'status' => 'considering',
+                'priority' => 'medium',
+                'category_id' => 'outer_coat',
+                'brand_name' => '素材確認ブランド',
+                'price' => 12800,
+                'wanted_reason' => '複数区分確認用',
+                'size_gender' => 'women',
+                'size_label' => 'FREE',
+                'colors' => [
+                    ['role' => 'main', 'mode' => 'preset', 'value' => 'beige', 'hex' => '#D3C0A4', 'label' => 'ベージュ'],
+                ],
+                'seasons' => ['春', '秋'],
+                'tpos' => ['仕事'],
+                'materials' => [
+                    ['part_label' => '本体', 'material_name' => '綿', 'ratio' => 80],
+                    ['part_label' => '本体', 'material_name' => 'ポリエステル', 'ratio' => 20],
+                    ['part_label' => '裏地', 'material_name' => 'ポリエステル', 'ratio' => 100],
+                ],
+            ],
+            [
+                'name' => '購入素材確認_自由入力区分',
+                'status' => 'considering',
+                'priority' => 'medium',
+                'category_id' => 'tops_shirt',
+                'brand_name' => '素材確認ブランド',
+                'price' => 6900,
+                'wanted_reason' => '自由入力区分確認用',
+                'size_gender' => 'women',
+                'size_label' => 'M',
+                'colors' => [
+                    ['role' => 'main', 'mode' => 'preset', 'value' => 'blue', 'hex' => '#0077D9', 'label' => 'ブルー'],
+                ],
+                'seasons' => ['春', '秋'],
+                'tpos' => ['仕事'],
+                'materials' => [
+                    ['part_label' => '袖口', 'material_name' => '綿', 'ratio' => 50],
+                    ['part_label' => '袖口', 'material_name' => 'ポリエステル', 'ratio' => 50],
+                ],
+            ],
+            [
+                'name' => '購入素材確認_自由入力素材',
+                'status' => 'considering',
+                'priority' => 'medium',
+                'category_id' => 'onepiece',
+                'brand_name' => '素材確認ブランド',
+                'price' => 9900,
+                'wanted_reason' => '自由入力素材確認用',
+                'size_gender' => 'women',
+                'size_label' => 'M',
+                'colors' => [
+                    ['role' => 'main', 'mode' => 'preset', 'value' => 'gray', 'hex' => '#8A9099', 'label' => 'グレー'],
+                ],
+                'seasons' => ['春', '夏'],
+                'tpos' => ['休日'],
+                'materials' => [
+                    ['part_label' => '本体', 'material_name' => 'モダール', 'ratio' => 60],
+                    ['part_label' => '本体', 'material_name' => '綿', 'ratio' => 40],
+                ],
+            ],
+            [
+                'name' => '購入素材確認_複合',
+                'status' => 'on_hold',
+                'priority' => 'low',
+                'category_id' => 'tops_knit',
+                'brand_name' => '素材確認ブランド',
+                'price' => 11800,
+                'wanted_reason' => '複合確認用',
+                'size_gender' => 'women',
+                'size_label' => 'M',
+                'colors' => [
+                    ['role' => 'main', 'mode' => 'preset', 'value' => 'brown', 'hex' => '#7C6556', 'label' => 'ブラウン'],
+                ],
+                'seasons' => ['秋', '冬'],
+                'tpos' => ['休日'],
+                'materials' => [
+                    ['part_label' => '本体', 'material_name' => 'レーヨン', 'ratio' => 70],
+                    ['part_label' => '本体', 'material_name' => 'ナイロン', 'ratio' => 30],
+                    ['part_label' => '別布', 'material_name' => 'モダール', 'ratio' => 50],
+                    ['part_label' => '別布', 'material_name' => '綿', 'ratio' => 50],
+                ],
+            ],
         ];
 
         $this->syncCandidates($user->id, $candidates);
@@ -187,6 +290,7 @@ class SamplePurchaseCandidateSeeder extends Seeder
             PurchaseCandidateColor::query()->where('purchase_candidate_id', $candidate->id)->delete();
             PurchaseCandidateSeason::query()->where('purchase_candidate_id', $candidate->id)->delete();
             PurchaseCandidateTpo::query()->where('purchase_candidate_id', $candidate->id)->delete();
+            $candidate->materials()->delete();
 
             foreach ($definition['colors'] ?? [] as $index => $color) {
                 PurchaseCandidateColor::query()->create([
@@ -210,6 +314,10 @@ class SamplePurchaseCandidateSeeder extends Seeder
                     'tpo' => $tpo,
                     'sort_order' => $index + 1,
                 ]);
+            }
+
+            if (! empty($definition['materials'])) {
+                $candidate->materials()->createMany($definition['materials']);
             }
         }
     }

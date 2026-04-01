@@ -40,6 +40,7 @@ class SampleUserBrandSeeder extends Seeder
             ['name' => 'ZARA', 'kana' => 'ざら', 'is_active' => true],
             ['name' => 'BEAMS', 'kana' => null, 'is_active' => true],
             ['name' => 'UNITED ARROWS', 'kana' => null, 'is_active' => false],
+            ['name' => '確認用', 'kana' => 'かくにんよう', 'is_active' => true],
         ];
 
         $this->createBrands($user->id, $brands);
