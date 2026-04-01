@@ -36,26 +36,26 @@ export function mergeWearLogItemCandidates(
   candidates: WearLogSelectableItem[],
   wearLog: WearLogRecord | null,
 ): WearLogSelectableItem[] {
-  if (wearLog === null) {
-    return candidates;
-  }
+  const currentWearLogItems =
+    wearLog === null
+      ? []
+      : wearLog.items
+          .filter((item) => item.source_item_id !== null)
+          .map((item) => ({
+            id: item.source_item_id as number,
+            name: item.item_name,
+            status: item.source_item_status ?? "active",
+            care_status: null,
+            category: null,
+            shape: null,
+            colors: [],
+            seasons: [],
+            tpos: [],
+          }));
 
-  return [
-    ...wearLog.items
-      .filter((item) => item.source_item_id !== null)
-      .map((item) => ({
-        id: item.source_item_id as number,
-        name: item.item_name,
-        status: item.source_item_status ?? "active",
-        care_status: null,
-        category: null,
-        shape: null,
-        colors: [],
-        seasons: [],
-        tpos: [],
-      })),
-    ...candidates,
-  ].reduce<WearLogSelectableItem[]>((carry, item) => {
+  return [...currentWearLogItems, ...candidates].reduce<
+    WearLogSelectableItem[]
+  >((carry, item) => {
     if (carry.some((current) => current.id === item.id)) {
       return carry;
     }
@@ -98,10 +98,21 @@ export function buildSelectedWearLogItems(
   return wearLog.items
     .filter((item) => item.source_item_id !== null)
     .sort((left, right) => left.sort_order - right.sort_order)
-    .map((item) => ({
-      sourceItemId: item.source_item_id as number,
-      itemSourceType: item.item_source_type,
-    }));
+    .reduce<SelectedWearLogItem[]>((carry, item) => {
+      const sourceItemId = item.source_item_id as number;
+
+      if (carry.some((current) => current.sourceItemId === sourceItemId)) {
+        return carry;
+      }
+
+      return [
+        ...carry,
+        {
+          sourceItemId,
+          itemSourceType: item.item_source_type,
+        },
+      ];
+    }, []);
 }
 
 export function buildWearLogPayload(params: {

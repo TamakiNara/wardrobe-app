@@ -238,7 +238,18 @@ export default function WearLogForm({
         ): item is WearLogSelectableItem & {
           itemSourceType: "outfit" | "manual";
         } => item !== null,
-      );
+      )
+      .reduce<
+        (WearLogSelectableItem & {
+          itemSourceType: "outfit" | "manual";
+        })[]
+      >((carry, item) => {
+        if (carry.some((current) => current.id === item.id)) {
+          return carry;
+        }
+
+        return [...carry, item];
+      }, []);
   }, [candidateItems, selectedItems]);
 
   const currentSourceOutfit = useMemo(() => {
@@ -296,29 +307,37 @@ export default function WearLogForm({
   const filteredItems = useMemo(() => {
     const keyword = itemKeyword.trim().toLowerCase();
 
-    return candidateItems.filter((item) => {
-      const name = (item.name ?? "名称未設定").toLowerCase();
-      const category = (
-        findItemCategoryLabel(item.category) ?? ""
-      ).toLowerCase();
-      const shape = (
-        findItemShapeLabel(item.category, item.shape) ?? ""
-      ).toLowerCase();
-      const seasons = item.seasons ?? [];
-      const tpos = item.tpos ?? [];
-      const matchKeyword =
-        !keyword ||
-        name.includes(keyword) ||
-        category.includes(keyword) ||
-        shape.includes(keyword);
-      const matchCategory =
-        itemCategoryFilter === "" || item.category === itemCategoryFilter;
-      const matchSeason =
-        itemSeasonFilter === "" || seasons.includes(itemSeasonFilter);
-      const matchTpo = itemTpoFilter === "" || tpos.includes(itemTpoFilter);
+    return candidateItems
+      .filter((item) => {
+        const name = (item.name ?? "名称未設定").toLowerCase();
+        const category = (
+          findItemCategoryLabel(item.category) ?? ""
+        ).toLowerCase();
+        const shape = (
+          findItemShapeLabel(item.category, item.shape) ?? ""
+        ).toLowerCase();
+        const seasons = item.seasons ?? [];
+        const tpos = item.tpos ?? [];
+        const matchKeyword =
+          !keyword ||
+          name.includes(keyword) ||
+          category.includes(keyword) ||
+          shape.includes(keyword);
+        const matchCategory =
+          itemCategoryFilter === "" || item.category === itemCategoryFilter;
+        const matchSeason =
+          itemSeasonFilter === "" || seasons.includes(itemSeasonFilter);
+        const matchTpo = itemTpoFilter === "" || tpos.includes(itemTpoFilter);
 
-      return matchKeyword && matchCategory && matchSeason && matchTpo;
-    });
+        return matchKeyword && matchCategory && matchSeason && matchTpo;
+      })
+      .reduce<WearLogSelectableItem[]>((carry, item) => {
+        if (carry.some((current) => current.id === item.id)) {
+          return carry;
+        }
+
+        return [...carry, item];
+      }, []);
   }, [
     candidateItems,
     itemKeyword,

@@ -463,6 +463,55 @@ describe("WearLogForm", () => {
     );
   });
 
+  it("同じ item id の候補が重複して返っても 1 件だけ表示する", async () => {
+    fetchAllPaginatedCandidatesMock
+      .mockResolvedValueOnce({
+        status: 200,
+        entries: [
+          {
+            id: 276,
+            name: "重複トップス",
+            status: "active",
+            category: "tops",
+            shape: "tshirt",
+            colors: [],
+            seasons: ["春"],
+            tpos: ["仕事"],
+          },
+          {
+            id: 276,
+            name: "重複トップス",
+            status: "active",
+            category: "tops",
+            shape: "tshirt",
+            colors: [],
+            seasons: ["春"],
+            tpos: ["仕事"],
+          },
+        ],
+      })
+      .mockResolvedValueOnce({
+        status: 200,
+        entries: [],
+      });
+
+    vi.stubGlobal("fetch", vi.fn());
+
+    const { default: WearLogForm } = await import("./wear-log-form");
+
+    await act(async () => {
+      root.render(React.createElement(WearLogForm, { mode: "create" }));
+    });
+    await act(async () => {
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain("重複トップス");
+    expect(
+      container.querySelectorAll('input[id="wear-log-item-276"]').length,
+    ).toBe(1);
+  });
+
   it("selected item を上下移動して保存順を調整できる", async () => {
     fetchAllPaginatedCandidatesMock
       .mockResolvedValueOnce({
