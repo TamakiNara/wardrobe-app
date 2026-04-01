@@ -199,6 +199,57 @@ export default async function PurchaseCandidateDetailPage({
         </section>
 
         <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <h2 className="text-lg font-semibold text-gray-900">購入情報</h2>
+          <dl className="mt-4 grid gap-4 md:grid-cols-2">
+            <div>
+              <dt className="text-sm font-medium text-gray-700">ブランド</dt>
+              <dd className="mt-1 text-sm text-gray-600">
+                {candidate.brand_name ?? "未設定"}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-sm font-medium text-gray-700">想定価格</dt>
+              <dd className="mt-1 text-sm text-gray-600">
+                {formatPrice(candidate.price)}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-sm font-medium text-gray-700">セール価格</dt>
+              <dd
+                className={`mt-1 text-sm ${candidate.sale_price !== null ? "text-rose-700" : "text-gray-600"}`}
+              >
+                {formatPrice(candidate.sale_price)}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-sm font-medium text-gray-700">
+                セール終了予定
+              </dt>
+              <dd className="mt-1 text-sm text-gray-600">
+                {formatDateTime(candidate.sale_ends_at)}
+              </dd>
+            </div>
+            <div className="md:col-span-2">
+              <dt className="text-sm font-medium text-gray-700">購入 URL</dt>
+              <dd className="mt-1 text-sm text-gray-600">
+                {candidate.purchase_url ? (
+                  <a
+                    href={candidate.purchase_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-blue-600 hover:underline"
+                  >
+                    開く
+                  </a>
+                ) : (
+                  "未設定"
+                )}
+              </dd>
+            </div>
+          </dl>
+        </section>
+
+        <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-gray-900">
             色 / 季節 / TPO
           </h2>
@@ -333,57 +384,6 @@ export default async function PurchaseCandidateDetailPage({
               ))}
             </div>
           )}
-        </section>
-
-        <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-gray-900">購入情報</h2>
-          <dl className="mt-4 grid gap-4 md:grid-cols-2">
-            <div>
-              <dt className="text-sm font-medium text-gray-700">ブランド</dt>
-              <dd className="mt-1 text-sm text-gray-600">
-                {candidate.brand_name ?? "未設定"}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-700">想定価格</dt>
-              <dd className="mt-1 text-sm text-gray-600">
-                {formatPrice(candidate.price)}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-700">セール価格</dt>
-              <dd
-                className={`mt-1 text-sm ${candidate.sale_price !== null ? "text-rose-700" : "text-gray-600"}`}
-              >
-                {formatPrice(candidate.sale_price)}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-700">
-                セール終了予定
-              </dt>
-              <dd className="mt-1 text-sm text-gray-600">
-                {formatDateTime(candidate.sale_ends_at)}
-              </dd>
-            </div>
-            <div className="md:col-span-2">
-              <dt className="text-sm font-medium text-gray-700">購入 URL</dt>
-              <dd className="mt-1 text-sm text-gray-600">
-                {candidate.purchase_url ? (
-                  <a
-                    href={candidate.purchase_url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-blue-600 hover:underline"
-                  >
-                    開く
-                  </a>
-                ) : (
-                  "未設定"
-                )}
-              </dd>
-            </div>
-          </dl>
         </section>
 
         <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
