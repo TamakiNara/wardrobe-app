@@ -110,6 +110,13 @@ describe("NewOutfitPage", () => {
     expect(container.textContent).not.toContain(
       "登録済みアイテムがありません。",
     );
+    expect(container.textContent).toContain("コーディネート管理");
+    expect(container.textContent).toContain("コーディネート登録");
+    expect(container.textContent).toContain(
+      "組み合わせるアイテムや季節・TPOを選んで、新しいコーディネートを登録します。",
+    );
+    expect(container.innerHTML).toContain('href="/outfits"');
+    expect(container.textContent).toContain("一覧に戻る");
     expect(container.textContent).toContain(
       "「必須」が付いた項目は登録に必要です。",
     );

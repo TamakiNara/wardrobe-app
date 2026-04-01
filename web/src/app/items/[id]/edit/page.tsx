@@ -4,6 +4,7 @@ import { Save } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { FormPageHeader } from "@/components/shared/form-page-header";
 import {
   ITEM_CATEGORIES,
   ITEM_SHAPES,
@@ -1015,6 +1016,7 @@ export default function EditItemPage({
         .filter((entry): entry is [string, string] => entry !== null),
     );
   }
+
   if (loading) {
     return (
       <main className="min-h-screen bg-gray-100 p-6 pb-28 md:p-10 md:pb-10">
@@ -1028,30 +1030,25 @@ export default function EditItemPage({
   return (
     <main className="min-h-screen bg-gray-100 p-6 pb-28 md:p-10 md:pb-10">
       <div className="mx-auto max-w-7xl space-y-6">
-        <nav className="text-sm text-gray-500">
-          <Link href="/" className="hover:underline">
-            ホーム
-          </Link>
-          {" / "}
-          <Link href="/items" className="hover:underline">
-            アイテム一覧
-          </Link>
-          {" / 編集"}
-        </nav>
-
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <p className="text-sm text-gray-500">アイテム管理</p>
-            <h1 className="text-2xl font-bold text-gray-900">編集</h1>
-          </div>
-
-          <Link
-            href={itemId ? `/items/${itemId}` : "/items"}
-            className="text-sm font-medium text-blue-600 hover:underline"
-          >
-            詳細に戻る
-          </Link>
-        </div>
+        <FormPageHeader
+          breadcrumbs={[
+            { label: "ホーム", href: "/" },
+            { label: "アイテム一覧", href: "/items" },
+            ...(itemId ? [{ label: "詳細", href: `/items/${itemId}` }] : []),
+            { label: "編集" },
+          ]}
+          eyebrow="アイテム管理"
+          title="編集"
+          description="登録済みのアイテム情報を見直して更新します。"
+          actions={
+            <Link
+              href={itemId ? `/items/${itemId}` : "/items"}
+              className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+            >
+              詳細に戻る
+            </Link>
+          }
+        />
 
         <form
           onSubmit={handleSubmit}

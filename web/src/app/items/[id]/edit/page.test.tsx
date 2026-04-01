@@ -257,6 +257,13 @@ describe("EditItemPage", () => {
       container.querySelector<HTMLSelectElement>("#category");
     expect(categorySelect).not.toBeNull();
     expect(categorySelect!.value).toBe("tops");
+    expect(container.textContent).toContain("アイテム管理");
+    expect(container.textContent).toContain("編集");
+    expect(container.textContent).toContain(
+      "登録済みのアイテム情報を見直して更新します。",
+    );
+    expect(container.innerHTML).toContain('href="/items/1"');
+    expect(container.textContent).toContain("詳細に戻る");
 
     const optionLabels = Array.from(categorySelect!.options).map(
       (option) => option.textContent,

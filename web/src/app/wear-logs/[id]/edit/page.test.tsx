@@ -46,8 +46,11 @@ describe("EditWearLogPage", () => {
       await EditWearLogPage({ params: Promise.resolve({ id: "12" }) }),
     );
 
+    expect(markup).toContain("着用履歴管理");
     expect(markup).toContain("着用履歴編集");
+    expect(markup).toContain("登録済みの着用履歴内容を見直して更新します。");
     expect(markup).toContain('href="/wear-logs/12"');
+    expect(markup).toContain("詳細へ戻る");
     expect(markup).toContain('data-cancel-href="/wear-logs/12"');
     expect(markup).toContain('data-initial-status=""');
     expect(markup).toContain("wear-log-form:12");

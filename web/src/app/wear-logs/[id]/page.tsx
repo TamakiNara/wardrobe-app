@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import DeleteWearLogButton from "@/components/wear-logs/delete-wear-log-button";
 import WearLogStatusAction from "@/components/wear-logs/wear-log-status-action";
+import { EntityDetailHeader } from "@/components/shared/entity-detail-header";
 import { ITEM_CARE_STATUS_LABELS } from "@/lib/items/metadata";
 import { fetchLaravelWithCookie } from "@/lib/server/laravel";
 import { getWearLogStatusLabel } from "@/lib/wear-logs/labels";
@@ -67,23 +68,16 @@ export default async function WearLogDetailPage({
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">
       <div className="mx-auto max-w-4xl space-y-6">
-        <nav className="text-sm text-gray-500">
-          <Link href="/" className="hover:underline">
-            ホーム
-          </Link>
-          {" / "}
-          <Link href="/wear-logs" className="hover:underline">
-            着用履歴一覧
-          </Link>
-          {" / "}
-          <span className="text-gray-700">詳細</span>
-        </nav>
-
-        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-          <div>
-            <p className="text-sm text-gray-500">着用履歴管理</p>
-            <h1 className="text-2xl font-bold text-gray-900">着用履歴詳細</h1>
-            <div className="mt-3 flex flex-wrap items-center gap-2">
+        <EntityDetailHeader
+          breadcrumbs={[
+            { label: "ホーム", href: "/" },
+            { label: "着用履歴一覧", href: "/wear-logs" },
+            { label: "詳細" },
+          ]}
+          eyebrow="着用履歴管理"
+          title="着用履歴詳細"
+          details={
+            <div className="flex flex-wrap items-center gap-2">
               <span
                 className={`rounded-full border px-3 py-1 text-sm font-medium ${getWearLogStatusBadgeClass(wearLog.status)}`}
               >
@@ -93,17 +87,24 @@ export default async function WearLogDetailPage({
                 {wearLog.event_date} / {wearLog.display_order}件目
               </span>
             </div>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3 md:justify-end">
-            <Link
-              href="/wear-logs"
-              className="text-sm font-medium text-blue-600 hover:underline"
-            >
-              一覧へ戻る
-            </Link>
-          </div>
-        </div>
+          }
+          actions={
+            <>
+              <Link
+                href="/wear-logs"
+                className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+              >
+                一覧へ戻る
+              </Link>
+              <Link
+                href={`/wear-logs/${wearLog.id}/edit`}
+                className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
+              >
+                編集
+              </Link>
+            </>
+          }
+        />
 
         <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -116,12 +117,6 @@ export default async function WearLogDetailPage({
             </div>
             <div className="flex w-full shrink-0 flex-wrap items-center justify-start gap-3 md:ml-auto md:w-auto md:justify-end">
               <WearLogStatusAction wearLog={wearLog} />
-              <Link
-                href={`/wear-logs/${wearLog.id}/edit`}
-                className="inline-flex rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
-              >
-                編集
-              </Link>
               <DeleteWearLogButton wearLogId={String(wearLog.id)} />
             </div>
           </div>

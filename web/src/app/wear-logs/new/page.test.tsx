@@ -69,6 +69,13 @@ describe("NewWearLogPage", () => {
       "http://localhost:8000/api/settings/preferences",
       expect.any(Object),
     );
+    expect(markup).toContain("着用履歴管理");
+    expect(markup).toContain("着用履歴登録");
+    expect(markup).toContain(
+      "日付や状態、元のコーディネートやアイテムを選んで着用履歴を登録します。",
+    );
+    expect(markup).toContain('href="/wear-logs"');
+    expect(markup).toContain("一覧に戻る");
     expect(markup).toContain('data-initial-status="worn"');
   });
 

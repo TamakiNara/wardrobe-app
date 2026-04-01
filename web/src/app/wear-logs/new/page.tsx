@@ -1,5 +1,6 @@
 import Link from "next/link";
 import WearLogForm from "@/components/wear-logs/wear-log-form";
+import { FormPageHeader } from "@/components/shared/form-page-header";
 import { fetchLaravelWithCookie } from "@/lib/server/laravel";
 import { redirect } from "next/navigation";
 
@@ -60,31 +61,24 @@ export default async function NewWearLogPage({
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">
       <div className="mx-auto max-w-4xl space-y-6">
-        <nav className="text-sm text-gray-500">
-          <Link href="/" className="hover:underline">
-            ホーム
-          </Link>
-          {" / "}
-          <Link href="/wear-logs" className="hover:underline">
-            着用履歴一覧
-          </Link>
-          {" / "}
-          <span className="text-gray-700">新規登録</span>
-        </nav>
-
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm text-gray-500">着用履歴管理</p>
-            <h1 className="text-2xl font-bold text-gray-900">着用履歴登録</h1>
-          </div>
-
-          <Link
-            href="/wear-logs"
-            className="text-sm font-medium text-blue-600 hover:underline"
-          >
-            一覧に戻る
-          </Link>
-        </div>
+        <FormPageHeader
+          breadcrumbs={[
+            { label: "ホーム", href: "/" },
+            { label: "着用履歴一覧", href: "/wear-logs" },
+            { label: "新規登録" },
+          ]}
+          eyebrow="着用履歴管理"
+          title="着用履歴登録"
+          description="日付や状態、元のコーディネートやアイテムを選んで着用履歴を登録します。"
+          actions={
+            <Link
+              href="/wear-logs"
+              className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+            >
+              一覧に戻る
+            </Link>
+          }
+        />
 
         <WearLogForm
           mode="create"

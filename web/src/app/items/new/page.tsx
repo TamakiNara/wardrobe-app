@@ -4,6 +4,7 @@ import { Save } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { FormPageHeader } from "@/components/shared/form-page-header";
 import {
   ITEM_CATEGORIES,
   ITEM_SHAPES,
@@ -878,19 +879,24 @@ export default function NewItemPage() {
   return (
     <main className="min-h-screen bg-gray-100 p-6 pb-28 md:p-10 md:pb-10">
       <div className="mx-auto max-w-7xl space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm text-gray-500">アイテム管理</p>
-            <h1 className="text-2xl font-bold text-gray-900">新規作成</h1>
-          </div>
-
-          <Link
-            href="/items"
-            className="text-sm font-medium text-blue-600 hover:underline"
-          >
-            一覧に戻る
-          </Link>
-        </div>
+        <FormPageHeader
+          breadcrumbs={[
+            { label: "ホーム", href: "/" },
+            { label: "アイテム一覧", href: "/items" },
+            { label: "新規作成" },
+          ]}
+          eyebrow="アイテム管理"
+          title="新規作成"
+          description="基本情報や分類を入力して、新しいアイテムを登録します。"
+          actions={
+            <Link
+              href="/items"
+              className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+            >
+              一覧に戻る
+            </Link>
+          }
+        />
 
         {draftInfoMessage && (
           <section className="rounded-2xl border border-blue-200 bg-blue-50 px-5 py-4 text-sm text-blue-700 shadow-sm">

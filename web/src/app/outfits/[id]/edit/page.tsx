@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import FieldLabel from "@/components/forms/field-label";
+import { FormPageHeader } from "@/components/shared/form-page-header";
 import { isItemVisibleByCategorySettings } from "@/lib/api/categories";
 import {
   fetchCategoryVisibilitySettings,
@@ -310,33 +311,27 @@ export default function EditOutfitPage({
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">
       <div className="mx-auto max-w-4xl space-y-6">
-        <nav className="text-sm text-gray-500">
-          <Link href="/" className="hover:underline">
-            ホーム
-          </Link>
-          {" / "}
-          <Link href="/outfits" className="hover:underline">
-            コーディネート一覧
-          </Link>
-          {" / "}
-          <span className="text-gray-700">編集</span>
-        </nav>
-
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm text-gray-500">コーディネート管理</p>
-            <h1 className="text-2xl font-bold text-gray-900">
-              コーディネート編集
-            </h1>
-          </div>
-
-          <Link
-            href={outfitId ? `/outfits/${outfitId}` : "/outfits"}
-            className="text-sm font-medium text-blue-600 hover:underline"
-          >
-            詳細に戻る
-          </Link>
-        </div>
+        <FormPageHeader
+          breadcrumbs={[
+            { label: "ホーム", href: "/" },
+            { label: "コーディネート一覧", href: "/outfits" },
+            ...(outfitId
+              ? [{ label: "詳細", href: `/outfits/${outfitId}` }]
+              : []),
+            { label: "編集" },
+          ]}
+          eyebrow="コーディネート管理"
+          title="コーディネート編集"
+          description="登録済みのコーディネート内容を見直して更新します。"
+          actions={
+            <Link
+              href={outfitId ? `/outfits/${outfitId}` : "/outfits"}
+              className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+            >
+              詳細に戻る
+            </Link>
+          }
+        />
 
         <form
           onSubmit={handleSubmit}

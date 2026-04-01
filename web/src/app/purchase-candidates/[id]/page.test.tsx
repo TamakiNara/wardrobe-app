@@ -136,6 +136,8 @@ describe("PurchaseCandidateDetailPage", () => {
     ).map((match) => match[1]);
 
     expect(markup).toContain("ネイビーコート");
+    expect(markup).toContain("購入検討管理");
+    expect(markup).toContain("一覧へ戻る");
     expect(markup).toContain("アイテム追加");
     expect(sectionTitles).toEqual([
       "アイテム追加",
@@ -169,6 +171,7 @@ describe("PurchaseCandidateDetailPage", () => {
     expect(markup).toContain("92cm");
     expect(markup).toContain("item-draft-action");
     expect(markup).toContain("duplicate-action");
+    expect(markup).toContain('href="/purchase-candidates"');
     expect(markup).toContain('href="/purchase-candidates/10/edit"');
   });
 

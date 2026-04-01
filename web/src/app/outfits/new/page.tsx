@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import FieldLabel from "@/components/forms/field-label";
+import { FormPageHeader } from "@/components/shared/form-page-header";
 import { isItemVisibleByCategorySettings } from "@/lib/api/categories";
 import {
   fetchCategoryVisibilitySettings,
@@ -303,33 +304,25 @@ export default function NewOutfitPage() {
 
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">
-      <nav className="text-sm text-gray-500">
-        <Link href="/" className="hover:underline">
-          ホーム
-        </Link>
-        {" / "}
-        <Link href="/outfits" className="hover:underline">
-          コーディネート一覧
-        </Link>
-        {" / "}
-        <span className="text-gray-700">新規登録</span>
-      </nav>
       <div className="mx-auto max-w-4xl space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm text-gray-500">コーディネート管理</p>
-            <h1 className="text-2xl font-bold text-gray-900">
-              コーディネート登録
-            </h1>
-          </div>
-
-          <Link
-            href="/outfits"
-            className="text-sm font-medium text-blue-600 hover:underline"
-          >
-            一覧に戻る
-          </Link>
-        </div>
+        <FormPageHeader
+          breadcrumbs={[
+            { label: "ホーム", href: "/" },
+            { label: "コーディネート一覧", href: "/outfits" },
+            { label: "新規登録" },
+          ]}
+          eyebrow="コーディネート管理"
+          title="コーディネート登録"
+          description="組み合わせるアイテムや季節・TPOを選んで、新しいコーディネートを登録します。"
+          actions={
+            <Link
+              href="/outfits"
+              className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+            >
+              一覧に戻る
+            </Link>
+          }
+        />
 
         {initializationError && (
           <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">

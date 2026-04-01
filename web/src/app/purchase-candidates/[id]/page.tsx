@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import PurchaseCandidateDuplicateAction from "@/components/purchase-candidates/purchase-candidate-duplicate-action";
 import PurchaseCandidateItemDraftAction from "@/components/purchase-candidates/purchase-candidate-item-draft-action";
+import { EntityDetailHeader } from "@/components/shared/entity-detail-header";
 import { groupItemMaterialsForDisplay } from "@/lib/items/materials";
 import {
   PURCHASE_CANDIDATE_COLOR_ROLE_LABELS,
@@ -83,25 +84,16 @@ export default async function PurchaseCandidateDetailPage({
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">
       <div className="mx-auto max-w-4xl space-y-6">
-        <nav className="text-sm text-gray-500">
-          <Link href="/" className="hover:underline">
-            ホーム
-          </Link>
-          {" / "}
-          <Link href="/purchase-candidates" className="hover:underline">
-            購入検討一覧
-          </Link>
-          {" / "}
-          <span className="text-gray-700">詳細</span>
-        </nav>
-
-        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-          <div>
-            <p className="text-sm text-gray-500">購入検討管理</p>
-            <h1 className="text-2xl font-bold text-gray-900">
-              {candidate.name}
-            </h1>
-            <div className="mt-3 flex flex-wrap items-center gap-2">
+        <EntityDetailHeader
+          breadcrumbs={[
+            { label: "ホーム", href: "/" },
+            { label: "購入検討一覧", href: "/purchase-candidates" },
+            { label: "詳細" },
+          ]}
+          eyebrow="購入検討管理"
+          title={candidate.name}
+          details={
+            <div className="flex flex-wrap items-center gap-2">
               <span className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-sm font-medium text-blue-700">
                 {PURCHASE_CANDIDATE_STATUS_LABELS[candidate.status]}
               </span>
@@ -114,24 +106,28 @@ export default async function PurchaseCandidateDetailPage({
                 </span>
               )}
             </div>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3 md:justify-end">
-            <PurchaseCandidateDuplicateAction candidateId={candidate.id} />
-            <Link
-              href={`/purchase-candidates/${candidate.id}/edit`}
-              className="text-sm font-medium text-blue-600 hover:underline"
-            >
-              編集する
-            </Link>
-            <Link
-              href="/purchase-candidates"
-              className="text-sm font-medium text-blue-600 hover:underline"
-            >
-              一覧へ戻る
-            </Link>
-          </div>
-        </div>
+          }
+          actions={
+            <>
+              <Link
+                href="/purchase-candidates"
+                className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+              >
+                一覧へ戻る
+              </Link>
+              <PurchaseCandidateDuplicateAction
+                candidateId={candidate.id}
+                className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:text-gray-400 disabled:no-underline"
+              />
+              <Link
+                href={`/purchase-candidates/${candidate.id}/edit`}
+                className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
+              >
+                編集する
+              </Link>
+            </>
+          }
+        />
 
         <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-gray-900">アイテム追加</h2>

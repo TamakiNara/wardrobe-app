@@ -216,6 +216,13 @@ describe("NewItemPage", () => {
     expect(container.textContent).toContain("カテゴリ");
     expect(container.textContent).toContain("形");
     expect(container.textContent).toContain("分類");
+    expect(container.textContent).toContain("アイテム管理");
+    expect(container.textContent).toContain("新規作成");
+    expect(container.textContent).toContain(
+      "基本情報や分類を入力して、新しいアイテムを登録します。",
+    );
+    expect(container.innerHTML).toContain('href="/items"');
+    expect(container.textContent).toContain("一覧に戻る");
     expect(container.textContent).not.toContain("詳細属性");
     expect(container.textContent).toContain("色とプレビュー");
     expect(container.textContent).toContain("利用条件・状態");

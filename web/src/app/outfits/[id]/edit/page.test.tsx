@@ -143,6 +143,13 @@ describe("EditOutfitPage", () => {
     expect(container.textContent).not.toContain(
       "登録済みアイテムがありません。",
     );
+    expect(container.textContent).toContain("コーディネート管理");
+    expect(container.textContent).toContain("コーディネート編集");
+    expect(container.textContent).toContain(
+      "登録済みのコーディネート内容を見直して更新します。",
+    );
+    expect(container.innerHTML).toContain('href="/outfits/10"');
+    expect(container.textContent).toContain("詳細に戻る");
     expect(container.textContent).toContain(
       "「必須」が付いた項目は更新に必要です。",
     );

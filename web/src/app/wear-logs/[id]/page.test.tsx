@@ -91,10 +91,12 @@ describe("WearLogDetailPage", () => {
       await WearLogDetailPage({ params: Promise.resolve({ id: "12" }) }),
     );
 
+    expect(markup).toContain("着用履歴管理");
     expect(markup).toContain("着用履歴詳細");
     expect(markup).toContain("着用済み");
     expect(markup).toContain("2026-03-24");
     expect(markup).toContain("2件目");
+    expect(markup).toContain("一覧へ戻る");
     expect(markup).toContain("編集");
     expect(markup).toContain("wear-log-status-action:12:worn");
     expect(markup).toContain("delete-wear-log-button:12");
@@ -117,6 +119,7 @@ describe("WearLogDetailPage", () => {
     expect(markup).toContain("手動追加");
     expect(markup).not.toContain(">元のコーディネート<");
     expect(markup).toContain('href="/wear-logs/12/edit"');
+    expect(markup).toContain('href="/wear-logs"');
     expect(markup).toContain(
       'href="/outfits/8?from=wear-log&amp;wear_log_id=12"',
     );
