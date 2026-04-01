@@ -121,13 +121,23 @@ describe("PurchaseCandidateForm", () => {
   it("日本語ラベルと必須表示を描画できる", async () => {
     await renderForm();
 
-    expect(container.textContent).toContain("基本情報");
-    expect(container.textContent).toContain("購入情報");
-    expect(container.textContent).toContain("メモ");
-    expect(container.textContent).toContain("サイズ・属性");
-    expect(container.textContent).toContain("素材・混率");
-    expect(container.textContent).toContain("色 / 季節 / TPO");
-    expect(container.textContent).toContain("画像");
+    const sectionTitles = [
+      "基本情報",
+      "色 / 季節 / TPO",
+      "サイズ・属性",
+      "素材・混率",
+      "購入情報",
+      "メモ",
+      "画像",
+    ];
+
+    const renderedSectionTitles = Array.from(
+      container.querySelectorAll(
+        "form > section.rounded-2xl.border.border-gray-200.bg-white h2",
+      ),
+    ).map((heading) => heading.textContent);
+    expect(renderedSectionTitles).toEqual(sectionTitles);
+
     expect(container.textContent).toContain("ステータス");
     expect(container.textContent).toContain("優先度");
     expect(container.textContent).toContain("サイズ区分");

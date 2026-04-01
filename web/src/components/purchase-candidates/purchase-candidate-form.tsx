@@ -796,257 +796,6 @@ export default function PurchaseCandidateForm({
         </div>
       </ItemFormSection>
 
-      <ItemFormSection title="購入情報">
-        <div className="grid gap-4 md:grid-cols-2">
-          <div>
-            <label
-              htmlFor="brand_name"
-              className="mb-1 block text-sm font-medium text-gray-700"
-            >
-              ブランド
-            </label>
-            <input
-              id="brand_name"
-              type="text"
-              value={brandName}
-              onChange={(event) => setBrandName(event.target.value)}
-              disabled={isPurchasedLocked}
-              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-            />
-          </div>
-
-          <div>
-            <label
-              htmlFor="price"
-              className="mb-1 block text-sm font-medium text-gray-700"
-            >
-              想定価格
-            </label>
-            <div className="flex items-center rounded-lg border border-gray-300 bg-white pr-4 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100">
-              <input
-                id="price"
-                type="number"
-                min="0"
-                value={price}
-                onChange={(event) => setPrice(event.target.value)}
-                disabled={isPurchasedLocked}
-                className="w-full rounded-lg bg-transparent px-4 py-3 text-gray-900 outline-none"
-              />
-              <span className="text-sm text-gray-500">円</span>
-            </div>
-          </div>
-
-          <div>
-            <label
-              htmlFor="sale_price"
-              className="mb-1 block text-sm font-medium text-gray-700"
-            >
-              セール価格
-            </label>
-            <div className="flex items-center rounded-lg border border-gray-300 bg-white pr-4 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100">
-              <input
-                id="sale_price"
-                type="number"
-                min="0"
-                value={salePrice}
-                onChange={(event) => setSalePrice(event.target.value)}
-                className="w-full rounded-lg bg-transparent px-4 py-3 text-gray-900 outline-none"
-              />
-              <span className="text-sm text-gray-500">円</span>
-            </div>
-          </div>
-
-          <div>
-            <label
-              htmlFor="sale_ends_at"
-              className="mb-1 block text-sm font-medium text-gray-700"
-            >
-              セール終了予定
-            </label>
-            <input
-              id="sale_ends_at"
-              type="datetime-local"
-              value={saleEndsAt}
-              onChange={(event) => setSaleEndsAt(event.target.value)}
-              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-            />
-          </div>
-        </div>
-
-        <div>
-          <label
-            htmlFor="purchase_url"
-            className="mb-1 block text-sm font-medium text-gray-700"
-          >
-            購入 URL
-          </label>
-          <input
-            id="purchase_url"
-            type="url"
-            value={purchaseUrl}
-            onChange={(event) => setPurchaseUrl(event.target.value)}
-            className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-          />
-        </div>
-      </ItemFormSection>
-
-      <ItemFormSection title="メモ">
-        <div>
-          <label
-            htmlFor="wanted_reason"
-            className="mb-1 block text-sm font-medium text-gray-700"
-          >
-            欲しい理由
-          </label>
-          <textarea
-            id="wanted_reason"
-            value={wantedReason}
-            onChange={(event) => setWantedReason(event.target.value)}
-            rows={3}
-            className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-          />
-        </div>
-
-        <div>
-          <div className="mb-1 flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
-            <label
-              htmlFor="memo"
-              className="block text-sm font-medium text-gray-700"
-            >
-              メモ
-            </label>
-            <p className="text-xs text-gray-500">
-              このメモは購入後アイテムに引き継がれます。
-            </p>
-          </div>
-          <textarea
-            id="memo"
-            value={memo}
-            onChange={(event) => setMemo(event.target.value)}
-            rows={4}
-            className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-          />
-        </div>
-      </ItemFormSection>
-
-      <ItemFormSection title="サイズ・属性">
-        <div className="grid gap-4 md:grid-cols-3">
-          <div>
-            <FieldLabel htmlFor="size_gender" label="サイズ区分" />
-            <select
-              id="size_gender"
-              value={sizeGender}
-              onChange={(event) =>
-                setSizeGender(event.target.value as typeof sizeGender)
-              }
-              disabled={isPurchasedLocked}
-              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-            >
-              <option value=""></option>
-              <option value="women">
-                {PURCHASE_CANDIDATE_SIZE_GENDER_LABELS.women}
-              </option>
-              <option value="men">
-                {PURCHASE_CANDIDATE_SIZE_GENDER_LABELS.men}
-              </option>
-              <option value="unisex">
-                {PURCHASE_CANDIDATE_SIZE_GENDER_LABELS.unisex}
-              </option>
-            </select>
-          </div>
-
-          <div>
-            <label
-              htmlFor="size_label"
-              className="mb-1 block text-sm font-medium text-gray-700"
-            >
-              サイズ表記
-            </label>
-            <input
-              id="size_label"
-              type="text"
-              placeholder="例: M / 23.5cm"
-              value={sizeLabel}
-              onChange={(event) => setSizeLabel(event.target.value)}
-              disabled={isPurchasedLocked}
-              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-            />
-          </div>
-
-          <div>
-            <div
-              className="mb-1 block text-sm font-medium text-transparent"
-              aria-hidden="true"
-            >
-              雨対応
-            </div>
-            <label className="inline-flex h-[50px] w-full items-center gap-3 rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700">
-              <input
-                type="checkbox"
-                checked={isRainOk}
-                onChange={(event) => setIsRainOk(event.target.checked)}
-                disabled={isPurchasedLocked}
-                className="h-4 w-4 rounded border-gray-300 text-blue-600"
-              />
-              雨対応
-            </label>
-          </div>
-        </div>
-
-        <div>
-          <label
-            htmlFor="size_note"
-            className="mb-1 block text-sm font-medium text-gray-700"
-          >
-            サイズ感メモ
-          </label>
-          <textarea
-            id="size_note"
-            value={sizeNote}
-            onChange={(event) => setSizeNote(event.target.value)}
-            disabled={isPurchasedLocked}
-            rows={3}
-            placeholder="例: 普段Mだが小さめ"
-            className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-          />
-        </div>
-
-        <ItemSizeDetailsFields
-          structuredSizeFieldDefinitions={structuredSizeFieldDefinitions}
-          structuredSizeValues={structuredSizeValues}
-          customSizeFields={customSizeFields}
-          hasDuplicateWarnings={
-            sizeDetailDuplicateWarnings.hasStructuredDuplicates ||
-            sizeDetailDuplicateWarnings.hasCustomDuplicates
-          }
-          disabled={isPurchasedLocked}
-          onAddCustomSizeField={addCustomSizeField}
-          onUpdateStructuredSizeValue={updateStructuredSizeValue}
-          onUpdateCustomSizeField={updateCustomSizeField}
-          onRemoveCustomSizeField={removeCustomSizeField}
-        />
-      </ItemFormSection>
-
-      <ItemFormSection
-        title="素材・混率"
-        description="分かる場合だけ入力します。区分ごとの合計が100%になるように設定してください。"
-      >
-        {isPurchasedLocked && (
-          <p className="text-sm text-amber-700">
-            購入済みの購入検討では素材・混率は変更できません。
-          </p>
-        )}
-        <ItemMaterialFields
-          rows={materialRows}
-          errors={errors}
-          totals={materialValidation.totals}
-          disabled={isPurchasedLocked}
-          onChange={updateMaterialRow}
-          onAddRow={addMaterialRow}
-          onRemoveRow={removeMaterialRow}
-        />
-      </ItemFormSection>
-
       <ItemFormSection title="色 / 季節 / TPO">
         <div className="grid gap-4 md:grid-cols-2">
           <div>
@@ -1225,6 +974,257 @@ export default function PurchaseCandidateForm({
               );
             })}
           </div>
+        </div>
+      </ItemFormSection>
+
+      <ItemFormSection title="サイズ・属性">
+        <div className="grid gap-4 md:grid-cols-3">
+          <div>
+            <FieldLabel htmlFor="size_gender" label="サイズ区分" />
+            <select
+              id="size_gender"
+              value={sizeGender}
+              onChange={(event) =>
+                setSizeGender(event.target.value as typeof sizeGender)
+              }
+              disabled={isPurchasedLocked}
+              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            >
+              <option value=""></option>
+              <option value="women">
+                {PURCHASE_CANDIDATE_SIZE_GENDER_LABELS.women}
+              </option>
+              <option value="men">
+                {PURCHASE_CANDIDATE_SIZE_GENDER_LABELS.men}
+              </option>
+              <option value="unisex">
+                {PURCHASE_CANDIDATE_SIZE_GENDER_LABELS.unisex}
+              </option>
+            </select>
+          </div>
+
+          <div>
+            <label
+              htmlFor="size_label"
+              className="mb-1 block text-sm font-medium text-gray-700"
+            >
+              サイズ表記
+            </label>
+            <input
+              id="size_label"
+              type="text"
+              placeholder="例: M / 23.5cm"
+              value={sizeLabel}
+              onChange={(event) => setSizeLabel(event.target.value)}
+              disabled={isPurchasedLocked}
+              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            />
+          </div>
+
+          <div>
+            <div
+              className="mb-1 block text-sm font-medium text-transparent"
+              aria-hidden="true"
+            >
+              雨対応
+            </div>
+            <label className="inline-flex h-[50px] w-full items-center gap-3 rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700">
+              <input
+                type="checkbox"
+                checked={isRainOk}
+                onChange={(event) => setIsRainOk(event.target.checked)}
+                disabled={isPurchasedLocked}
+                className="h-4 w-4 rounded border-gray-300 text-blue-600"
+              />
+              雨対応
+            </label>
+          </div>
+        </div>
+
+        <div>
+          <label
+            htmlFor="size_note"
+            className="mb-1 block text-sm font-medium text-gray-700"
+          >
+            サイズ感メモ
+          </label>
+          <textarea
+            id="size_note"
+            value={sizeNote}
+            onChange={(event) => setSizeNote(event.target.value)}
+            disabled={isPurchasedLocked}
+            rows={3}
+            placeholder="例: 普段Mだが小さめ"
+            className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+          />
+        </div>
+
+        <ItemSizeDetailsFields
+          structuredSizeFieldDefinitions={structuredSizeFieldDefinitions}
+          structuredSizeValues={structuredSizeValues}
+          customSizeFields={customSizeFields}
+          hasDuplicateWarnings={
+            sizeDetailDuplicateWarnings.hasStructuredDuplicates ||
+            sizeDetailDuplicateWarnings.hasCustomDuplicates
+          }
+          disabled={isPurchasedLocked}
+          onAddCustomSizeField={addCustomSizeField}
+          onUpdateStructuredSizeValue={updateStructuredSizeValue}
+          onUpdateCustomSizeField={updateCustomSizeField}
+          onRemoveCustomSizeField={removeCustomSizeField}
+        />
+      </ItemFormSection>
+
+      <ItemFormSection
+        title="素材・混率"
+        description="分かる場合だけ入力します。区分ごとの合計が100%になるように設定してください。"
+      >
+        {isPurchasedLocked && (
+          <p className="text-sm text-amber-700">
+            購入済みの購入検討では素材・混率は変更できません。
+          </p>
+        )}
+        <ItemMaterialFields
+          rows={materialRows}
+          errors={errors}
+          totals={materialValidation.totals}
+          disabled={isPurchasedLocked}
+          onChange={updateMaterialRow}
+          onAddRow={addMaterialRow}
+          onRemoveRow={removeMaterialRow}
+        />
+      </ItemFormSection>
+
+      <ItemFormSection title="購入情報">
+        <div className="grid gap-4 md:grid-cols-2">
+          <div>
+            <label
+              htmlFor="brand_name"
+              className="mb-1 block text-sm font-medium text-gray-700"
+            >
+              ブランド
+            </label>
+            <input
+              id="brand_name"
+              type="text"
+              value={brandName}
+              onChange={(event) => setBrandName(event.target.value)}
+              disabled={isPurchasedLocked}
+              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor="price"
+              className="mb-1 block text-sm font-medium text-gray-700"
+            >
+              想定価格
+            </label>
+            <div className="flex items-center rounded-lg border border-gray-300 bg-white pr-4 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100">
+              <input
+                id="price"
+                type="number"
+                min="0"
+                value={price}
+                onChange={(event) => setPrice(event.target.value)}
+                disabled={isPurchasedLocked}
+                className="w-full rounded-lg bg-transparent px-4 py-3 text-gray-900 outline-none"
+              />
+              <span className="text-sm text-gray-500">円</span>
+            </div>
+          </div>
+
+          <div>
+            <label
+              htmlFor="sale_price"
+              className="mb-1 block text-sm font-medium text-gray-700"
+            >
+              セール価格
+            </label>
+            <div className="flex items-center rounded-lg border border-gray-300 bg-white pr-4 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100">
+              <input
+                id="sale_price"
+                type="number"
+                min="0"
+                value={salePrice}
+                onChange={(event) => setSalePrice(event.target.value)}
+                className="w-full rounded-lg bg-transparent px-4 py-3 text-gray-900 outline-none"
+              />
+              <span className="text-sm text-gray-500">円</span>
+            </div>
+          </div>
+
+          <div>
+            <label
+              htmlFor="sale_ends_at"
+              className="mb-1 block text-sm font-medium text-gray-700"
+            >
+              セール終了予定
+            </label>
+            <input
+              id="sale_ends_at"
+              type="datetime-local"
+              value={saleEndsAt}
+              onChange={(event) => setSaleEndsAt(event.target.value)}
+              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label
+            htmlFor="purchase_url"
+            className="mb-1 block text-sm font-medium text-gray-700"
+          >
+            購入 URL
+          </label>
+          <input
+            id="purchase_url"
+            type="url"
+            value={purchaseUrl}
+            onChange={(event) => setPurchaseUrl(event.target.value)}
+            className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+          />
+        </div>
+      </ItemFormSection>
+
+      <ItemFormSection title="メモ">
+        <div>
+          <label
+            htmlFor="wanted_reason"
+            className="mb-1 block text-sm font-medium text-gray-700"
+          >
+            欲しい理由
+          </label>
+          <textarea
+            id="wanted_reason"
+            value={wantedReason}
+            onChange={(event) => setWantedReason(event.target.value)}
+            rows={3}
+            className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+          />
+        </div>
+
+        <div>
+          <div className="mb-1 flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
+            <label
+              htmlFor="memo"
+              className="block text-sm font-medium text-gray-700"
+            >
+              メモ
+            </label>
+            <p className="text-xs text-gray-500">
+              このメモは購入後アイテムに引き継がれます。
+            </p>
+          </div>
+          <textarea
+            id="memo"
+            value={memo}
+            onChange={(event) => setMemo(event.target.value)}
+            rows={4}
+            className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+          />
         </div>
       </ItemFormSection>
 
