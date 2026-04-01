@@ -242,6 +242,88 @@ describe("PurchaseCandidateForm", () => {
     expect(payload.sale_ends_at).toBe("2026-03-31T18:00");
   });
 
+  it("素材・混率を送信 payload に含められる", async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 201,
+      json: async () => ({
+        purchaseCandidate: {
+          id: 8,
+        },
+      }),
+    });
+
+    await renderForm();
+
+    const nameInput = container.querySelector("#name") as HTMLInputElement;
+    const categorySelect = container.querySelector(
+      "#category_id",
+    ) as HTMLSelectElement;
+    const customMainCheckbox = container.querySelector(
+      'input[aria-label="メインカラーをカラーコードで入力"]',
+    ) as HTMLInputElement;
+    const addMaterialButton = Array.from(
+      container.querySelectorAll("button"),
+    ).find((button) =>
+      button.textContent?.includes("素材を追加"),
+    ) as HTMLButtonElement;
+
+    await act(async () => {
+      setNativeValue(nameInput, "素材付き候補");
+      setNativeValue(categorySelect, "tops_tshirt");
+      customMainCheckbox.click();
+      addMaterialButton.click();
+    });
+
+    const mainColorCodeInput = container.querySelector(
+      'input[aria-label="メインカラーコード"]',
+    ) as HTMLInputElement;
+
+    const partInputs = Array.from(
+      container.querySelectorAll('input[list="item-material-part-options"]'),
+    ) as HTMLInputElement[];
+    const materialInputs = Array.from(
+      container.querySelectorAll('input[list="item-material-name-options"]'),
+    ) as HTMLInputElement[];
+    const ratioInputs = Array.from(
+      container.querySelectorAll('input[id$="-ratio"]'),
+    ) as HTMLInputElement[];
+
+    await act(async () => {
+      setNativeValue(mainColorCodeInput, "#112233");
+      setNativeValue(partInputs[0], "本体");
+      setNativeValue(materialInputs[0], "綿");
+      setNativeValue(ratioInputs[0], "80");
+      setNativeValue(partInputs[1], "本体");
+      setNativeValue(materialInputs[1], "ポリエステル");
+      setNativeValue(ratioInputs[1], "20");
+    });
+
+    const form = container.querySelector("form") as HTMLFormElement;
+
+    await act(async () => {
+      form.dispatchEvent(
+        new Event("submit", { bubbles: true, cancelable: true }),
+      );
+    });
+
+    const [, requestInit] = fetchMock.mock.calls[0];
+    const payload = JSON.parse(requestInit.body as string);
+
+    expect(payload.materials).toEqual([
+      {
+        part_label: "本体",
+        material_name: "綿",
+        ratio: 80,
+      },
+      {
+        part_label: "本体",
+        material_name: "ポリエステル",
+        ratio: 20,
+      },
+    ]);
+  });
+
   it("サイズ実寸の重複は短い警告文で表示する", async () => {
     await renderForm();
 
@@ -359,6 +441,18 @@ describe("PurchaseCandidateForm", () => {
             ],
             seasons: ["春"],
             tpos: ["仕事"],
+            materials: [
+              {
+                part_label: "本体",
+                material_name: "綿",
+                ratio: 80,
+              },
+              {
+                part_label: "本体",
+                material_name: "ポリエステル",
+                ratio: 20,
+              },
+            ],
             images: [],
             created_at: "2026-03-24T10:00:00+09:00",
             updated_at: "2026-03-24T10:00:00+09:00",
@@ -444,5 +538,6 @@ describe("PurchaseCandidateForm", () => {
     expect(payload.name).toBeUndefined();
     expect(payload.category_id).toBeUndefined();
     expect(payload.colors).toBeUndefined();
+    expect(payload.materials).toBeUndefined();
   });
 });

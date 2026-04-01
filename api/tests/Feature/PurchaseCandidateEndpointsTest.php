@@ -17,6 +17,30 @@ class PurchaseCandidateEndpointsTest extends TestCase
 {
     use RefreshDatabase;
 
+    /**
+     * @return array<int, array{part_label:string, material_name:string, ratio:int}>
+     */
+    private function buildMaterialsPayload(): array
+    {
+        return [
+            [
+                'part_label' => '本体',
+                'material_name' => '綿',
+                'ratio' => 80,
+            ],
+            [
+                'part_label' => '本体',
+                'material_name' => 'ポリエステル',
+                'ratio' => 20,
+            ],
+            [
+                'part_label' => '裏地',
+                'material_name' => 'ポリエステル',
+                'ratio' => 100,
+            ],
+        ];
+    }
+
     private function issueCsrfToken(): string
     {
         $this->get('/csrf-cookie', ['Accept' => 'application/json']);
@@ -51,6 +75,8 @@ class PurchaseCandidateEndpointsTest extends TestCase
     private function createCandidate(User $user, array $overrides = []): PurchaseCandidate
     {
         $categoryId = $overrides['category_id'] ?? 'outer_coat';
+        $materials = $overrides['materials'] ?? [];
+        unset($overrides['materials']);
         $this->createCategory($categoryId);
 
         $candidate = PurchaseCandidate::query()->create(array_merge([
@@ -101,7 +127,11 @@ class PurchaseCandidateEndpointsTest extends TestCase
             'sort_order' => 1,
         ]);
 
-        return $candidate->fresh(['category', 'colors', 'seasons', 'tpos', 'images']);
+        if (is_array($materials) && $materials !== []) {
+            $candidate->materials()->createMany($materials);
+        }
+
+        return $candidate->fresh(['category', 'colors', 'seasons', 'tpos', 'images', 'materials']);
     }
 
     private function createFakePng(string $filename): UploadedFile
@@ -217,7 +247,8 @@ class PurchaseCandidateEndpointsTest extends TestCase
             ->assertJsonPath('purchaseCandidate.sale_price', 12800)
             ->assertJsonPath('purchaseCandidate.colors.0.value', 'navy')
             ->assertJsonPath('purchaseCandidate.seasons.0', '春')
-            ->assertJsonPath('purchaseCandidate.tpos.0', '休日');
+            ->assertJsonPath('purchaseCandidate.tpos.0', '休日')
+            ->assertJsonPath('purchaseCandidate.materials', []);
     }
 
     public function test_post_purchase_candidate_creates_candidate_with_array_fields(): void
@@ -278,7 +309,8 @@ class PurchaseCandidateEndpointsTest extends TestCase
             ->assertJsonPath('purchaseCandidate.size_details.structured.shoulder_width', 41.5)
             ->assertJsonPath('purchaseCandidate.size_details.custom_fields.0.label', '裄丈')
             ->assertJsonPath('purchaseCandidate.colors.0.value', 'white')
-            ->assertJsonPath('purchaseCandidate.seasons.1', '秋');
+            ->assertJsonPath('purchaseCandidate.seasons.1', '秋')
+            ->assertJsonPath('purchaseCandidate.materials', []);
 
         $this->assertDatabaseHas('purchase_candidates', [
             'user_id' => $user->id,
@@ -298,6 +330,130 @@ class PurchaseCandidateEndpointsTest extends TestCase
             'purchase_candidate_id' => $response->json('purchaseCandidate.id'),
             'tpo' => '仕事',
         ]);
+    }
+
+    public function test_post_purchase_candidate_stores_materials_when_each_part_totals_100(): void
+    {
+        $user = User::factory()->create();
+        $this->createCategory('tops_shirt', 'tops', 'シャツ / ブラウス');
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $response = $this->postJson('/api/purchase-candidates', [
+            'status' => 'considering',
+            'priority' => 'high',
+            'name' => '素材付き候補',
+            'category_id' => 'tops_shirt',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'white',
+                'hex' => '#ffffff',
+                'label' => 'ホワイト',
+            ]],
+            'materials' => $this->buildMaterialsPayload(),
+        ], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('purchaseCandidate.materials.0.part_label', '本体')
+            ->assertJsonPath('purchaseCandidate.materials.0.material_name', '綿')
+            ->assertJsonPath('purchaseCandidate.materials.0.ratio', 80)
+            ->assertJsonPath('purchaseCandidate.materials.2.part_label', '裏地')
+            ->assertJsonPath('purchaseCandidate.materials.2.ratio', 100);
+
+        $this->assertDatabaseHas('purchase_candidate_materials', [
+            'purchase_candidate_id' => $response->json('purchaseCandidate.id'),
+            'part_label' => '本体',
+            'material_name' => '綿',
+            'ratio' => 80,
+        ]);
+    }
+
+    public function test_post_purchase_candidate_rejects_materials_when_part_total_is_not_100(): void
+    {
+        $user = User::factory()->create();
+        $this->createCategory('tops_shirt', 'tops', 'シャツ / ブラウス');
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $response = $this->postJson('/api/purchase-candidates', [
+            'status' => 'considering',
+            'priority' => 'medium',
+            'name' => '不正素材候補',
+            'category_id' => 'tops_shirt',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'white',
+                'hex' => '#ffffff',
+                'label' => 'ホワイト',
+            ]],
+            'materials' => [
+                [
+                    'part_label' => '本体',
+                    'material_name' => '綿',
+                    'ratio' => 70,
+                ],
+                [
+                    'part_label' => '本体',
+                    'material_name' => 'ポリエステル',
+                    'ratio' => 20,
+                ],
+            ],
+        ], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['materials'])
+            ->assertJsonPath('errors.materials.0', '区分ごとの合計を100%にしてください。（本体: 90%）');
+    }
+
+    public function test_post_purchase_candidate_rejects_duplicate_materials_in_same_part(): void
+    {
+        $user = User::factory()->create();
+        $this->createCategory('tops_shirt', 'tops', 'シャツ / ブラウス');
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $response = $this->postJson('/api/purchase-candidates', [
+            'status' => 'considering',
+            'priority' => 'medium',
+            'name' => '重複素材候補',
+            'category_id' => 'tops_shirt',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'white',
+                'hex' => '#ffffff',
+                'label' => 'ホワイト',
+            ]],
+            'materials' => [
+                [
+                    'part_label' => '本体',
+                    'material_name' => '綿',
+                    'ratio' => 50,
+                ],
+                [
+                    'part_label' => '本体',
+                    'material_name' => '綿',
+                    'ratio' => 50,
+                ],
+            ],
+        ], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['materials.1.material_name']);
     }
 
     public function test_post_purchase_candidate_rejects_unknown_size_gender(): void
@@ -473,8 +629,31 @@ class PurchaseCandidateEndpointsTest extends TestCase
             ->assertJsonPath('item_draft.size_details.structured.shoulder_width', 42)
             ->assertJsonPath('item_draft.size_details.custom_fields.0.label', '裄丈')
             ->assertJsonPath('item_draft.colors.0.value', 'navy')
+            ->assertJsonPath('item_draft.materials', [])
             ->assertJsonMissingPath('item_draft.wanted_reason')
             ->assertJsonPath('candidate_summary.id', $candidate->id);
+    }
+
+    public function test_post_purchase_candidate_item_draft_includes_materials(): void
+    {
+        $user = User::factory()->create();
+        $candidate = $this->createCandidate($user, [
+            'category_id' => 'outer_coat',
+            'materials' => $this->buildMaterialsPayload(),
+        ]);
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $response = $this->postJson("/api/purchase-candidates/{$candidate->id}/item-draft", [], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('item_draft.materials.0.part_label', '本体')
+            ->assertJsonPath('item_draft.materials.0.material_name', '綿')
+            ->assertJsonPath('item_draft.materials.2.part_label', '裏地');
     }
 
     public function test_post_purchase_candidate_duplicate_creates_new_candidate_with_copied_fields_and_files(): void
@@ -522,6 +701,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
             ->assertJsonPath('purchaseCandidate.colors.0.value', 'navy')
             ->assertJsonPath('purchaseCandidate.seasons.0', '春')
             ->assertJsonPath('purchaseCandidate.tpos.0', '休日')
+            ->assertJsonPath('purchaseCandidate.materials', [])
             ->assertJsonCount(1, 'purchaseCandidate.images');
 
         $duplicatedId = $response->json('purchaseCandidate.id');
@@ -657,6 +837,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
                 'hex' => '#cccccc',
                 'label' => 'グレー',
             ]],
+            'materials' => $this->buildMaterialsPayload(),
         ], [
             'Accept' => 'application/json',
             'X-CSRF-TOKEN' => $token,
@@ -665,7 +846,8 @@ class PurchaseCandidateEndpointsTest extends TestCase
         $response->assertStatus(422)
             ->assertJsonPath('errors.name.0', '購入済みの購入検討では変更できません。')
             ->assertJsonPath('errors.category_id.0', '購入済みの購入検討では変更できません。')
-            ->assertJsonPath('errors.colors.0', '購入済みの購入検討では変更できません。');
+            ->assertJsonPath('errors.colors.0', '購入済みの購入検討では変更できません。')
+            ->assertJsonPath('errors.materials.0', '購入済みの購入検討では変更できません。');
 
         $this->assertDatabaseHas('purchase_candidates', [
             'id' => $candidate->id,

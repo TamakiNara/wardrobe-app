@@ -12,6 +12,7 @@ import { useRouter } from "next/navigation";
 import FieldLabel from "@/components/forms/field-label";
 import ColorChip from "@/components/items/color-chip";
 import ColorSelect from "@/components/items/color-select";
+import ItemMaterialFields from "@/components/items/item-material-fields";
 import ItemSizeDetailsFields from "@/components/items/item-size-details-fields";
 import PurchaseCandidateImageUploader from "@/components/purchase-candidates/purchase-candidate-image-uploader";
 import { fetchCategoryGroups } from "@/lib/api/categories";
@@ -22,6 +23,12 @@ import {
   ITEM_COLORS,
   type ItemColorValue,
 } from "@/lib/master-data/item-colors";
+import {
+  buildEditableItemMaterials,
+  createEmptyItemMaterialRow,
+  validateItemMaterials,
+  type EditableItemMaterial,
+} from "@/lib/items/materials";
 import {
   buildItemSizeDetailsPayload,
   buildSizeDetailDuplicateWarnings,
@@ -172,6 +179,9 @@ export default function PurchaseCandidateForm({
     EditableCustomSizeField[]
   >([]);
   const [isRainOk, setIsRainOk] = useState(false);
+  const [materialRows, setMaterialRows] = useState<EditableItemMaterial[]>(() =>
+    buildEditableItemMaterials(),
+  );
 
   const [mainColor, setMainColor] = useState<ItemColorValue | "">("");
   const [subColor, setSubColor] = useState<ItemColorValue | "">("");
@@ -235,6 +245,10 @@ export default function PurchaseCandidateForm({
         customSizeFields.map((field) => field.label),
       ),
     [customSizeFields, structuredSizeFieldDefinitions],
+  );
+  const materialValidation = useMemo(
+    () => validateItemMaterials(materialRows),
+    [materialRows],
   );
 
   useEffect(() => {
@@ -336,6 +350,7 @@ export default function PurchaseCandidateForm({
 
           setSelectedSeasons(candidate.seasons);
           setSelectedTpos(candidate.tpos);
+          setMaterialRows(buildEditableItemMaterials(candidate.materials));
           setExistingImages(candidate.images);
         }
       } catch {
@@ -414,6 +429,29 @@ export default function PurchaseCandidateForm({
     );
   }
 
+  function updateMaterialRow(
+    rowId: string,
+    field: "part_label" | "material_name" | "ratio",
+    value: string,
+  ) {
+    setMaterialRows((current) =>
+      current.map((row) =>
+        row.id === rowId ? { ...row, [field]: value } : row,
+      ),
+    );
+  }
+
+  function addMaterialRow() {
+    setMaterialRows((current) => [...current, createEmptyItemMaterialRow()]);
+  }
+
+  function removeMaterialRow(rowId: string) {
+    setMaterialRows((current) => {
+      const nextRows = current.filter((row) => row.id !== rowId);
+      return nextRows.length > 0 ? nextRows : [createEmptyItemMaterialRow()];
+    });
+  }
+
   function buildPayload(): PurchaseCandidateUpsertPayload {
     if (isPurchasedLocked) {
       return {
@@ -472,6 +510,7 @@ export default function PurchaseCandidateForm({
       colors,
       seasons: selectedSeasons,
       tpos: selectedTpos,
+      materials: materialValidation.payload,
     };
   }
 
@@ -506,6 +545,10 @@ export default function PurchaseCandidateForm({
     ) {
       nextErrors.sub_color =
         "サブカラーのカラーコードを #RRGGBB 形式で入力してください。";
+    }
+
+    if (!isPurchasedLocked) {
+      Object.assign(nextErrors, materialValidation.errors);
     }
 
     setErrors(nextErrors);
@@ -990,6 +1033,29 @@ export default function PurchaseCandidateForm({
           onUpdateStructuredSizeValue={updateStructuredSizeValue}
           onUpdateCustomSizeField={updateCustomSizeField}
           onRemoveCustomSizeField={removeCustomSizeField}
+        />
+      </section>
+
+      <section className="space-y-4">
+        <div>
+          <h2 className="text-lg font-semibold text-gray-900">素材・混率</h2>
+          <p className="mt-1 text-sm text-gray-500">
+            分かる場合だけ入力します。区分ごとの合計が100%になるように設定してください。
+          </p>
+          {isPurchasedLocked && (
+            <p className="mt-2 text-sm text-amber-700">
+              購入済みの購入検討では素材・混率は変更できません。
+            </p>
+          )}
+        </div>
+        <ItemMaterialFields
+          rows={materialRows}
+          errors={errors}
+          totals={materialValidation.totals}
+          disabled={isPurchasedLocked}
+          onChange={updateMaterialRow}
+          onAddRow={addMaterialRow}
+          onRemoveRow={removeMaterialRow}
         />
       </section>
 

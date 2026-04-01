@@ -104,6 +104,18 @@ describe("PurchaseCandidateDetailPage", () => {
           ],
           seasons: ["春"],
           tpos: ["仕事"],
+          materials: [
+            {
+              part_label: "本体",
+              material_name: "綿",
+              ratio: 80,
+            },
+            {
+              part_label: "本体",
+              material_name: "ポリエステル",
+              ratio: 20,
+            },
+          ],
           images: [],
           created_at: "2026-03-24T10:00:00+09:00",
           updated_at: "2026-03-24T10:00:00+09:00",
@@ -128,6 +140,9 @@ describe("PurchaseCandidateDetailPage", () => {
     expect(markup).toContain("レディース");
     expect(markup).toContain("理由");
     expect(markup).toContain("厚手対応");
+    expect(markup).toContain("素材・混率");
+    expect(markup).toContain("本体");
+    expect(markup).toContain("綿 80%、ポリエステル 20%");
     expect(markup).toContain("実寸");
     expect(markup).toContain("総丈");
     expect(markup).toContain("92cm");
@@ -173,6 +188,7 @@ describe("PurchaseCandidateDetailPage", () => {
           ],
           seasons: ["春"],
           tpos: ["仕事"],
+          materials: [],
           images: [],
           created_at: "2026-03-24T10:00:00+09:00",
           updated_at: "2026-03-24T10:00:00+09:00",

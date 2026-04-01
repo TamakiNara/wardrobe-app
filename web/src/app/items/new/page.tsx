@@ -355,7 +355,7 @@ export default function NewItemPage() {
     setShape(draft.shape);
     setSelectedSeasons(draft.seasons);
     setDraftTpoNames(draft.tpos);
-    setMaterialRows(buildEditableItemMaterials());
+    setMaterialRows(buildEditableItemMaterials(draft.materials));
     setMainColor((mainDraftColor?.value as ItemColorValue | undefined) ?? "");
     setSubColor((subDraftColor?.value as ItemColorValue | undefined) ?? "");
     setItemImages(mapPurchaseCandidateImagesToItemImages(draft.images));

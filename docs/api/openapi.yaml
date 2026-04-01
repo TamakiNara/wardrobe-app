@@ -1536,7 +1536,7 @@ paths:
       summary: 購入候補複製
       description: |
         指定 purchase candidate を元に、新しい purchase candidate record を 1 件作成する。
-        status は常に `considering` へ戻し、colors / seasons / tpos / images も引き継ぐ。
+        status は常に `considering` へ戻し、colors / seasons / tpos / images / materials も引き継ぐ。
         画像は record 共有ではなく、新 candidate 用保存先へ物理コピーする。
         元 candidate の status が `purchased` / `dropped` でも複製は許可する。
       security:
@@ -1571,6 +1571,7 @@ paths:
         purchase candidate から item 作成画面用の初期値 payload を生成する。
         保存済み item を返す API ではない。
         candidate に登録済みの全画像を引き継ぎ、sort_order と is_primary も維持する。
+        `materials` も同じ shape のまま item 作成初期値へ含める。
         `memo` は item 作成画面の初期値として含めるが、`wanted_reason` は item へ持ち込まない。
         item 保存成功時の candidate `purchased` 更新と converted 情報の保存は、item create 側で処理する。
         `purchased` の candidate では item 化済み履歴として扱うため、この API は利用しない。
@@ -3413,6 +3414,7 @@ components:
         - colors
         - seasons
         - tpos
+        - materials
         - images
         - created_at
         - updated_at
@@ -3498,6 +3500,10 @@ components:
           type: array
           items:
             type: string
+        materials:
+          type: array
+          items:
+            $ref: '#/components/schemas/ItemMaterialRecord'
         converted_item_id:
           type: integer
           nullable: true
@@ -3596,6 +3602,11 @@ components:
           type: array
           items:
             type: string
+        materials:
+          type: array
+          description: item 側と同じ shape を使う素材・混率明細。未入力時は空配列または未指定を許可する。
+          items:
+            $ref: '#/components/schemas/ItemMaterialRecord'
 
     PurchaseCandidateListResponse:
       type: object
@@ -3747,6 +3758,7 @@ components:
         - colors
         - seasons
         - tpos
+        - materials
         - is_rain_ok
       properties:
         name:
@@ -3829,6 +3841,11 @@ components:
           description: candidate 側の保存構造に関わらず、item 作成用の配列として正規化して返す。
           items:
             type: string
+        materials:
+          type: array
+          description: item 側と同じ shape の素材・混率明細を、そのまま item 作成初期値へ引き継ぐ。
+          items:
+            $ref: '#/components/schemas/ItemMaterialRecord'
 
     PurchaseCandidateItemDraftSummary:
       type: object

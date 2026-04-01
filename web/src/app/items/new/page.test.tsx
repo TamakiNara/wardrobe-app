@@ -267,6 +267,18 @@ describe("NewItemPage", () => {
           colors: [],
           seasons: ["春"],
           tpos: ["休日"],
+          materials: [
+            {
+              part_label: "本体",
+              material_name: "綿",
+              ratio: 80,
+            },
+            {
+              part_label: "本体",
+              material_name: "ポリエステル",
+              ratio: 20,
+            },
+          ],
         },
         candidate_summary: {
           id: 1,
@@ -330,6 +342,18 @@ describe("NewItemPage", () => {
     expect(rainCheckbox?.checked).toBe(true);
     expect(categorySelect?.value).toBe("tops");
     expect(careStatusSelect?.value).toBe("");
+    const materialPartInputs = Array.from(
+      container.querySelectorAll('input[list="item-material-part-options"]'),
+    ) as HTMLInputElement[];
+    const materialNameInputs = Array.from(
+      container.querySelectorAll('input[list="item-material-name-options"]'),
+    ) as HTMLInputElement[];
+    const materialRatioInputs = Array.from(
+      container.querySelectorAll('input[id$="-ratio"]'),
+    ) as HTMLInputElement[];
+    expect(materialPartInputs[0]?.value).toBe("本体");
+    expect(materialNameInputs[0]?.value).toBe("綿");
+    expect(materialRatioInputs[0]?.value).toBe("80");
     expect(container.textContent).toContain(
       "購入検討の内容を初期値として読み込みました。",
     );

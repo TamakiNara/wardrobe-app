@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import PurchaseCandidateDuplicateAction from "@/components/purchase-candidates/purchase-candidate-duplicate-action";
 import PurchaseCandidateItemDraftAction from "@/components/purchase-candidates/purchase-candidate-item-draft-action";
+import { groupItemMaterialsForDisplay } from "@/lib/items/materials";
 import {
   PURCHASE_CANDIDATE_COLOR_ROLE_LABELS,
   PURCHASE_CANDIDATE_PRIORITY_LABELS,
@@ -77,6 +78,7 @@ export default async function PurchaseCandidateDetailPage({
     (field) => normalizedSizeDetails?.structured?.[field.name] !== undefined,
   );
   const visibleCustomSizeFields = normalizedSizeDetails?.custom_fields ?? [];
+  const materialGroups = groupItemMaterialsForDisplay(candidate.materials);
 
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">
@@ -266,6 +268,31 @@ export default async function PurchaseCandidateDetailPage({
                   </dd>
                 </div>
               </dl>
+            </section>
+
+            <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+              <h2 className="text-lg font-semibold text-gray-900">
+                素材・混率
+              </h2>
+              {materialGroups.length === 0 ? (
+                <p className="mt-3 text-sm text-gray-600">未登録</p>
+              ) : (
+                <dl className="mt-4 space-y-3 text-sm text-gray-600">
+                  {materialGroups.map((group) => (
+                    <div
+                      key={group.partLabel}
+                      className="flex items-start justify-between gap-3"
+                    >
+                      <dt className="shrink-0 text-gray-500">
+                        {group.partLabel}
+                      </dt>
+                      <dd className="text-right text-gray-700">
+                        {group.labels.join("、")}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+              )}
             </section>
           </div>
         </section>

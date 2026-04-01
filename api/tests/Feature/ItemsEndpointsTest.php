@@ -64,9 +64,11 @@ class ItemsEndpointsTest extends TestCase
     private function createPurchaseCandidate(User $user, array $overrides = []): PurchaseCandidate
     {
         $categoryId = $overrides['category_id'] ?? 'outer_coat';
+        $materials = $overrides['materials'] ?? [];
+        unset($overrides['materials']);
         $this->createPurchaseCategory($categoryId);
 
-        return PurchaseCandidate::query()->create(array_merge([
+        $candidate = PurchaseCandidate::query()->create(array_merge([
             'user_id' => $user->id,
             'status' => 'considering',
             'priority' => 'medium',
@@ -82,6 +84,12 @@ class ItemsEndpointsTest extends TestCase
             'size_note' => '厚手ニット込み',
             'is_rain_ok' => true,
         ], $overrides));
+
+        if (is_array($materials) && $materials !== []) {
+            $candidate->materials()->createMany($materials);
+        }
+
+        return $candidate->fresh(['materials']);
     }
 
     private function createItem(User $user, array $overrides = []): Item
@@ -400,9 +408,12 @@ class ItemsEndpointsTest extends TestCase
         Storage::fake('public');
 
         $user = User::factory()->create();
-        $candidate = $this->createPurchaseCandidate($user);
+        $candidate = $this->createPurchaseCandidate($user, [
+            'materials' => $this->buildMaterialsPayload(),
+        ]);
+        $sourceImagePath = sprintf('purchase-candidates/%d/image-1.png', $candidate->id);
         Storage::disk('public')->put(
-            'purchase-candidates/1/image-1.png',
+            $sourceImagePath,
             base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wn9nS8AAAAASUVORK5CYII=')
         );
 
@@ -443,9 +454,10 @@ class ItemsEndpointsTest extends TestCase
             ]],
             'seasons' => ['春', '秋'],
             'tpos' => ['仕事'],
+            'materials' => $this->buildMaterialsPayload(),
             'images' => [[
                 'disk' => 'public',
-                'path' => 'purchase-candidates/1/image-1.png',
+                'path' => $sourceImagePath,
                 'original_filename' => 'coat.png',
                 'mime_type' => 'image/png',
                 'file_size' => 2048,
@@ -469,14 +481,16 @@ class ItemsEndpointsTest extends TestCase
             ->assertJsonPath('item.size_details.custom_fields.0.label', '裄丈')
             ->assertJsonPath('item.size_details.custom_fields.0.value', 78)
             ->assertJsonPath('item.is_rain_ok', true)
+            ->assertJsonPath('item.materials.0.part_label', '本体')
+            ->assertJsonPath('item.materials.2.part_label', '裏地')
             ->assertJsonPath('item.images.0.is_primary', true);
 
         $itemId = $response->json('item.id');
         $copiedPath = $response->json('item.images.0.path');
 
-        $this->assertNotSame('purchase-candidates/1/image-1.png', $copiedPath);
+        $this->assertNotSame($sourceImagePath, $copiedPath);
         $this->assertStringStartsWith(sprintf('items/%d/', $itemId), $copiedPath);
-        Storage::disk('public')->assertExists('purchase-candidates/1/image-1.png');
+        Storage::disk('public')->assertExists($sourceImagePath);
         Storage::disk('public')->assertExists($copiedPath);
 
         $this->assertDatabaseHas('items', [
@@ -491,6 +505,12 @@ class ItemsEndpointsTest extends TestCase
             'item_id' => $itemId,
             'path' => $copiedPath,
             'is_primary' => 1,
+        ]);
+        $this->assertDatabaseHas('item_materials', [
+            'item_id' => $itemId,
+            'part_label' => '本体',
+            'material_name' => '綿',
+            'ratio' => 80,
         ]);
         $this->assertDatabaseHas('purchase_candidates', [
             'id' => $candidate->id,

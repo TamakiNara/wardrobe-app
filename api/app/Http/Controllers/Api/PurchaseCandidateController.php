@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Services\PurchaseCandidates\PurchaseCandidateService;
+use App\Support\ItemMaterialSupport;
+use App\Support\ItemMaterialValidator;
 use App\Support\PurchaseCandidatePayloadBuilder;
 use App\Support\PurchaseCandidatesIndexQuery;
 use Illuminate\Http\JsonResponse;
@@ -123,7 +125,9 @@ class PurchaseCandidateController extends Controller
 
     private function validateStoreRequest(Request $request): array
     {
-        return $request->validate([
+        $this->prepareMaterialsForValidation($request);
+
+        $validated = $request->validate([
             'status' => ['nullable', 'string', 'in:considering,on_hold,purchased,dropped'],
             'priority' => ['nullable', 'string', 'in:high,medium,low'],
             'name' => ['required', 'string', 'max:255'],
@@ -170,7 +174,16 @@ class PurchaseCandidateController extends Controller
             'seasons.*' => ['string', 'max:50'],
             'tpos' => ['nullable', 'array'],
             'tpos.*' => ['string', 'max:50'],
+            'materials' => ['nullable', 'array'],
+            'materials.*' => ['array:part_label,material_name,ratio'],
+            'materials.*.part_label' => ['required', 'string', 'max:100'],
+            'materials.*.material_name' => ['required', 'string', 'max:100'],
+            'materials.*.ratio' => ['required', 'integer', 'between:1,100'],
         ]);
+
+        ItemMaterialValidator::validate($validated);
+
+        return $validated;
     }
 
     private function validateUpdateRequest(Request $request, \App\Models\PurchaseCandidate $candidate): array
@@ -207,6 +220,7 @@ class PurchaseCandidateController extends Controller
             'colors',
             'seasons',
             'tpos',
+            'materials',
         ];
 
         $messages = [];
@@ -219,5 +233,30 @@ class PurchaseCandidateController extends Controller
         if ($messages !== []) {
             throw ValidationException::withMessages($messages);
         }
+    }
+
+    private function prepareMaterialsForValidation(Request $request): void
+    {
+        $materials = $request->input('materials');
+
+        if (! is_array($materials)) {
+            return;
+        }
+
+        $normalized = array_map(function ($material) {
+            if (! is_array($material)) {
+                return $material;
+            }
+
+            return [
+                'part_label' => ItemMaterialSupport::normalizeText($material['part_label'] ?? null),
+                'material_name' => ItemMaterialSupport::normalizeText($material['material_name'] ?? null),
+                'ratio' => $material['ratio'] ?? null,
+            ];
+        }, $materials);
+
+        $request->merge([
+            'materials' => $normalized,
+        ]);
     }
 }

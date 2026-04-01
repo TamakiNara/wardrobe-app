@@ -76,4 +76,9 @@ class PurchaseCandidate extends Model
     {
         return $this->hasMany(PurchaseCandidateImage::class);
     }
+
+    public function materials(): HasMany
+    {
+        return $this->hasMany(PurchaseCandidateMaterial::class);
+    }
 }

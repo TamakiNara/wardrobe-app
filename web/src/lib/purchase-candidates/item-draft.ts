@@ -2,7 +2,7 @@ import type {
   PurchaseCandidateImageRecord,
   PurchaseCandidateItemDraftResponse,
 } from "@/types/purchase-candidates";
-import type { ItemSizeDetails } from "@/types/items";
+import type { ItemMaterialRecord, ItemSizeDetails } from "@/types/items";
 
 const ITEM_DRAFT_STORAGE_KEY = "purchase-candidate-item-draft";
 
@@ -25,6 +25,7 @@ export type PurchaseCandidateItemDraft = {
   colors: PurchaseCandidateItemDraftResponse["item_draft"]["colors"];
   seasons: string[];
   tpos: string[];
+  materials: ItemMaterialRecord[];
   images: PurchaseCandidateImageRecord[];
   spec: Record<string, unknown> | null;
   candidateSummary: PurchaseCandidateItemDraftResponse["candidate_summary"];
@@ -79,6 +80,7 @@ export function mapPurchaseCandidateItemDraft(
     colors: payload.item_draft.colors,
     seasons: payload.item_draft.seasons,
     tpos: payload.item_draft.tpos,
+    materials: payload.item_draft.materials,
     images: payload.images,
     spec: payload.item_draft.spec,
     candidateSummary: payload.candidate_summary,

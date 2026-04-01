@@ -7,6 +7,7 @@ use App\Models\PurchaseCandidate;
 use App\Models\PurchaseCandidateImage;
 use App\Models\User;
 use App\Support\PurchaseCandidateCategoryMap;
+use App\Support\PurchaseCandidateMaterialSync;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -42,7 +43,7 @@ class PurchaseCandidateService
 
             $this->syncAttributes($candidate, $validated);
 
-            return $candidate->fresh()->load(['category', 'colors', 'seasons', 'tpos', 'images']);
+            return $candidate->fresh()->load(['category', 'colors', 'seasons', 'tpos', 'images', 'materials']);
         });
     }
 
@@ -61,7 +62,7 @@ class PurchaseCandidateService
                     'wanted_reason' => array_key_exists('wanted_reason', $validated) ? $validated['wanted_reason'] : $candidate->wanted_reason,
                 ]);
 
-                return $candidate->fresh()->load(['category', 'colors', 'seasons', 'tpos', 'images']);
+                return $candidate->fresh()->load(['category', 'colors', 'seasons', 'tpos', 'images', 'materials']);
             });
         }
 
@@ -92,7 +93,7 @@ class PurchaseCandidateService
             $candidate->tpos()->delete();
             $this->syncAttributes($candidate, $validated);
 
-            return $candidate->fresh()->load(['category', 'colors', 'seasons', 'tpos', 'images']);
+            return $candidate->fresh()->load(['category', 'colors', 'seasons', 'tpos', 'images', 'materials']);
         });
     }
 
@@ -176,6 +177,17 @@ class PurchaseCandidateService
                         ->all()
                 );
 
+                PurchaseCandidateMaterialSync::sync(
+                    $duplicatedCandidate,
+                    $sourceCandidate->materials
+                        ->map(fn ($material) => [
+                            'part_label' => $material->part_label,
+                            'material_name' => $material->material_name,
+                            'ratio' => $material->ratio,
+                        ])
+                        ->all(),
+                );
+
                 $duplicatedCandidate->images()->createMany(
                     $sourceCandidate->images
                         ->sortBy('sort_order')
@@ -194,7 +206,7 @@ class PurchaseCandidateService
                         ->all()
                 );
 
-                return $duplicatedCandidate->fresh()->load(['category', 'colors', 'seasons', 'tpos', 'images']);
+                return $duplicatedCandidate->fresh()->load(['category', 'colors', 'seasons', 'tpos', 'images', 'materials']);
             });
         } catch (\Throwable $exception) {
             $this->cleanupCopiedImages($copiedFiles);
@@ -258,7 +270,7 @@ class PurchaseCandidateService
     {
         return PurchaseCandidate::query()
             ->where('user_id', $user->id)
-            ->with(['category', 'colors', 'seasons', 'tpos', 'images'])
+            ->with(['category', 'colors', 'seasons', 'tpos', 'images', 'materials'])
             ->findOrFail($candidateId);
     }
 
@@ -324,6 +336,8 @@ class PurchaseCandidateService
                 ];
             })->all()
         );
+
+        PurchaseCandidateMaterialSync::sync($candidate, $validated['materials'] ?? []);
     }
 
     private function validatePayload(array $validated): void

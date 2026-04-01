@@ -1,4 +1,4 @@
-import type { ItemSizeDetails } from "@/types/items";
+import type { ItemMaterialRecord, ItemSizeDetails } from "@/types/items";
 
 export type PurchaseCandidateStatus =
   | "considering"
@@ -69,6 +69,7 @@ export type PurchaseCandidateRecord = {
   colors: PurchaseCandidateColor[];
   seasons: string[];
   tpos: string[];
+  materials: ItemMaterialRecord[];
   images: PurchaseCandidateImageRecord[];
   created_at: string | null;
   updated_at: string | null;
@@ -108,6 +109,7 @@ export type PurchaseCandidateUpsertPayload = {
   colors: PurchaseCandidateColor[];
   seasons: string[];
   tpos: string[];
+  materials?: ItemMaterialRecord[];
 };
 
 export type PurchaseCandidateMutationResponse = {
@@ -134,6 +136,7 @@ export type PurchaseCandidateItemDraftPayload = {
   colors: PurchaseCandidateColor[];
   seasons: string[];
   tpos: string[];
+  materials: ItemMaterialRecord[];
 };
 
 export type PurchaseCandidateItemDraftResponse = {

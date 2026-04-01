@@ -38,7 +38,7 @@ wear logs も本資料の対象とし、その保存方針を定義します。
 
 `purchase_candidates` 系は購入検討用の schema で、`docs/specs/purchase-candidates.md` を正本とします。  
 比較ロジックの詳細は後続検討としつつ、current 実装では candidate 保存・画像管理・item 昇格を支える構造まで含みます。
-素材・混率の planned 方針は `docs/specs/items/material-composition.md` を参照し、current DB へ反映するタイミングは実装着手時に判断する。
+素材・混率は current で `purchase_candidate_materials` まで実装済みとし、保存 shape・validation・item 化時引き継ぎの正本は `docs/specs/items/material-composition.md` を参照します。
 
 ### `purchase_candidates`
 
@@ -77,6 +77,26 @@ wear logs も本資料の対象とし、その保存方針を定義します。
 - current 実装では、`purchase_candidate_id` 付きの item 作成成功時に `status=purchased`、`converted_item_id`、`converted_at` を更新する
 - current 実装では、candidate 複製時に画像も新 candidate 用保存先へ物理コピーして別 record として保持する
 - current 実装では、`purchased` の candidate 更新は履歴メモ用途に限定し、item 側の正本は更新しない
+
+### `purchase_candidate_materials`
+
+| column | type | description |
+| --- | --- | --- |
+| id | bigint | 主キー |
+| purchase_candidate_id | bigint | 対象 purchase candidate ID |
+| part_label | string | 区分名（`本体` / `裏地` / `別布` / `リブ` または自由入力） |
+| material_name | string | 素材名 |
+| ratio | unsigned tiny integer | 混率（1〜100 の整数） |
+| created_at | timestamp | 作成日時 |
+| updated_at | timestamp | 更新日時 |
+
+補足:
+
+- 保存正本は purchase candidate に紐づく複数明細で、単一文字列カラムは持たない
+- `part_label` / `material_name` は文字列保存とし、素材マスタ FK は持たない
+- current 実装では create / update 時に purchase candidate 側明細を全置換する
+- validation は item 側と揃え、区分ごとの合計 100%、同一区分内の同素材重複不可を current ルールとする
+- item-draft と item 作成 UI を介して、candidate の素材明細を item 側 `item_materials` へ引き継ぐ
 
 ### `purchase_candidate_colors`
 

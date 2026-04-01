@@ -11,6 +11,7 @@ type ItemMaterialFieldsProps = {
   rows: EditableItemMaterial[];
   errors: Record<string, string>;
   totals: Array<{ partLabel: string; total: number }>;
+  disabled?: boolean;
   onChange: (
     rowId: string,
     field: "part_label" | "material_name" | "ratio",
@@ -24,6 +25,7 @@ export default function ItemMaterialFields({
   rows,
   errors,
   totals,
+  disabled = false,
   onChange,
   onAddRow,
   onRemoveRow,
@@ -58,6 +60,7 @@ export default function ItemMaterialFields({
                   id={`${row.id}-part`}
                   list="item-material-part-options"
                   value={row.part_label}
+                  disabled={disabled}
                   onChange={(event) =>
                     onChange(row.id, "part_label", event.target.value)
                   }
@@ -80,6 +83,7 @@ export default function ItemMaterialFields({
                   id={`${row.id}-material`}
                   list="item-material-name-options"
                   value={row.material_name}
+                  disabled={disabled}
                   onChange={(event) =>
                     onChange(row.id, "material_name", event.target.value)
                   }
@@ -106,6 +110,7 @@ export default function ItemMaterialFields({
                     max="100"
                     step="1"
                     value={row.ratio}
+                    disabled={disabled}
                     onChange={(event) =>
                       onChange(row.id, "ratio", event.target.value)
                     }
@@ -123,6 +128,7 @@ export default function ItemMaterialFields({
               <button
                 type="button"
                 onClick={() => onRemoveRow(row.id)}
+                disabled={disabled}
                 className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
               >
                 削除
@@ -165,6 +171,7 @@ export default function ItemMaterialFields({
       <button
         type="button"
         onClick={onAddRow}
+        disabled={disabled}
         className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
       >
         素材を追加

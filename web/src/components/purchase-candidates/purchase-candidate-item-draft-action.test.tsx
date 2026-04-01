@@ -68,6 +68,7 @@ describe("PurchaseCandidateItemDraftAction", () => {
               colors: [],
               seasons: ["春"],
               tpos: ["仕事"],
+              materials: [],
             },
             candidate_summary: {
               id: 10,

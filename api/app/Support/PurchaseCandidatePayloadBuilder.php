@@ -4,6 +4,7 @@ namespace App\Support;
 
 use App\Models\PurchaseCandidate;
 use App\Models\PurchaseCandidateImage;
+use App\Models\PurchaseCandidateMaterial;
 use Illuminate\Support\Facades\Storage;
 
 class PurchaseCandidatePayloadBuilder
@@ -33,7 +34,7 @@ class PurchaseCandidatePayloadBuilder
 
     public static function buildDetail(PurchaseCandidate $candidate): array
     {
-        $candidate->loadMissing(['category', 'colors', 'seasons', 'tpos', 'images']);
+        $candidate->loadMissing(['category', 'colors', 'seasons', 'tpos', 'images', 'materials']);
 
         return [
             'id' => $candidate->id,
@@ -77,6 +78,15 @@ class PurchaseCandidatePayloadBuilder
                 ->pluck('tpo')
                 ->values()
                 ->all(),
+            'materials' => ItemMaterialSupport::buildPayload(
+                $candidate->materials
+                    ->map(fn (PurchaseCandidateMaterial $material) => [
+                        'part_label' => $material->part_label,
+                        'material_name' => $material->material_name,
+                        'ratio' => $material->ratio,
+                    ])
+                    ->all(),
+            ),
             'images' => $candidate->images
                 ->sortBy('sort_order')
                 ->values()
@@ -89,7 +99,7 @@ class PurchaseCandidatePayloadBuilder
 
     public static function buildItemDraft(PurchaseCandidate $candidate): array
     {
-        $candidate->loadMissing(['colors', 'seasons', 'tpos', 'images']);
+        $candidate->loadMissing(['colors', 'seasons', 'tpos', 'images', 'materials']);
 
         $resolvedCategory = PurchaseCandidateCategoryMap::resolveItemDraftCategory($candidate->category_id);
 
@@ -134,6 +144,15 @@ class PurchaseCandidatePayloadBuilder
                 ->pluck('tpo')
                 ->values()
                 ->all(),
+            'materials' => ItemMaterialSupport::buildPayload(
+                $candidate->materials
+                    ->map(fn (PurchaseCandidateMaterial $material) => [
+                        'part_label' => $material->part_label,
+                        'material_name' => $material->material_name,
+                        'ratio' => $material->ratio,
+                    ])
+                    ->all(),
+            ),
         ];
     }
 
