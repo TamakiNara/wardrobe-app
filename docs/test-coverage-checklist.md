@@ -90,38 +90,70 @@
 | SET-PREF-01 | 正常系 | preferences を取得できる | 高 | backendのみ | Feature Test / 手動確認 | |
 | SET-PREF-02 | 正常系 | preferences を更新できる | 高 | backendのみ | Feature Test / 手動確認 | |
 | SET-PREF-03 | 異常系 | 不正 enum でバリデーションエラーになる | 中 | backendのみ | Feature Test | |
-| SET-PREF-04 | 整合性 | currentSeason が一覧初期値に反映される | 高 | 未確認 | 手動確認 | URL 指定との優先関係も確認 |
-| SET-PREF-05 | 整合性 | defaultWearLogStatus が wear-log 新規作成初期値に反映される | 高 | 未確認 | 手動確認 | |
+| SET-PREF-04 | 整合性 | currentSeason が一覧初期値に反映される | 高 | 実装済み | 手動確認 | 保存処理と参照処理は実装済み。items / outfits 一覧で URL に `season` がない時だけ初期 filter に使う。 |
+| SET-PREF-05 | 整合性 | defaultWearLogStatus が wear-log 新規作成初期値に反映される | 高 | 実装済み | 手動確認 | 保存処理と参照処理は実装済み。wear-log 新規作成画面の初期ステータスに使う。 |
 | SET-PREF-06 | 整合性 | calendarWeekStart が着用履歴カレンダー表示に反映される | 中 | 未確認 | 手動確認 | 保存処理と参照処理は実装済み。曜日ヘッダー順、月初セル位置、補完セル位置、月送り後の維持、日別詳細導線の日付ずれを確認する |
 | SET-PREF-07 | 整合性 | skinTonePreset が item サムネイル表示に反映される | 中 | 未確認 | 手動確認 | |
+
+#### SET-PREF-04 補足メモ
+
+- 項目名: `currentSeason`
+- 現時点の仮判定: `実装済み`
+- 主な保存先:
+  - settings 画面の表示・初期値設定
+  - `PUT /api/settings/preferences`
+  - `user_preferences.current_season`
+- 主な反映先:
+  - アイテム一覧
+  - コーディネート一覧
+- 実装済みとした根拠:
+  - settings 画面で保存 UI がある
+  - `/api/settings/preferences` で保存 / 取得できる
+  - items / outfits 一覧で、URL に `season` がない時だけ初期 filter に使う
+- 手動確認で残っている観点:
+  - settings 保存後に items / outfits 一覧の初期季節が変わるか
+  - URL 指定がある時に preference が無視されるか
+
+#### SET-PREF-05 補足メモ
+
+- 項目名: `defaultWearLogStatus`
+- 現時点の仮判定: `実装済み`
+- 主な保存先:
+  - settings 画面の表示・初期値設定
+  - `PUT /api/settings/preferences`
+  - `user_preferences.default_wear_log_status`
+- 主な反映先:
+  - 着用履歴の新規作成画面
+- 実装済みとした根拠:
+  - settings 画面で保存 UI がある
+  - `/api/settings/preferences` で保存 / 取得できる
+  - wear-log 新規画面の初期ステータスに使う
+- 手動確認で残っている観点:
+  - `予定 / 着用済み` の切替後、新規画面初期値が変わるか
+  - URL クエリや他の初期化ロジックと競合しないか
 
 #### SET-PREF-06 補足メモ
 
 - 項目名: `calendarWeekStart`
 - 現時点の仮判定: `未確認`
 - 根拠:
-
   - settings 画面で保存 UI がある
   - `/api/settings/preferences` で保存 / 取得できる
   - wear-logs 一覧が preferences を読み、`WearLogCalendar` に `weekStart` を渡している
   - `WearLogCalendar` は曜日ラベル順と月初セル計算に `weekStart` を使っている
 - 未確認点:
-
   - 月曜始まり / 日曜始まりで実画面の列順が期待どおり変わるか
   - 月送り後も設定が維持されるか
   - 日付クリック時の日別詳細や新規作成導線に日付ずれがないか
 - 手動確認観点:
-
   - 曜日ヘッダー順が切り替わる
   - 月初の日付位置が切り替わる
   - 前月 / 次月の補完セル位置が自然に変わる
   - 月送り後も週開始設定が維持される
   - 日別詳細 / この日で新規作成 の日付が正しい
 - 実装済みへ上げる条件:
-
   - 保存後に着用履歴一覧のカレンダー表示差が実画面で確認できる
   - 月送りと日別詳細導線でも不整合が出ない
-
 
 ### 3-4. TPO 設定
 
