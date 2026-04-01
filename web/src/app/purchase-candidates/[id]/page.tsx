@@ -93,72 +93,71 @@ export default async function PurchaseCandidateDetailPage({
           eyebrow="購入検討管理"
           title={candidate.name}
           details={
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-sm font-medium text-blue-700">
-                {PURCHASE_CANDIDATE_STATUS_LABELS[candidate.status]}
-              </span>
-              <span className="rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-sm font-medium text-gray-700">
-                優先度: {PURCHASE_CANDIDATE_PRIORITY_LABELS[candidate.priority]}
-              </span>
-              {candidate.converted_item_id !== null && (
-                <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-sm font-medium text-emerald-700">
-                  アイテム化済み
+            <div className="space-y-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-sm font-medium text-blue-700">
+                  {PURCHASE_CANDIDATE_STATUS_LABELS[candidate.status]}
                 </span>
+                <span className="rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-sm font-medium text-gray-700">
+                  優先度:{" "}
+                  {PURCHASE_CANDIDATE_PRIORITY_LABELS[candidate.priority]}
+                </span>
+                {candidate.converted_item_id !== null && (
+                  <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-sm font-medium text-emerald-700">
+                    アイテム化済み
+                  </span>
+                )}
+              </div>
+              {candidate.status === "purchased" ? (
+                <div className="space-y-2 text-sm leading-6 text-gray-600">
+                  <p>
+                    この購入検討はアイテム化済みの履歴です。購入検討側の更新はアイテムへ反映されません。
+                  </p>
+                  <p className="text-emerald-700">
+                    新しく検討を続ける場合は「複製する」を使ってください。
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-2 text-sm leading-6 text-gray-600">
+                  <p>
+                    現在の候補内容からアイテム作成画面の初期値を生成します。
+                  </p>
+                  {candidate.converted_item_id !== null && (
+                    <p className="text-emerald-700">
+                      この候補はアイテム化済みです。必要なら初期値を再生成できます。
+                    </p>
+                  )}
+                </div>
               )}
             </div>
           }
           actions={
             <>
+              {candidate.status !== "purchased" && (
+                <PurchaseCandidateItemDraftAction
+                  candidateId={candidate.id}
+                  convertedItemId={candidate.converted_item_id}
+                />
+              )}
               <Link
-                href="/purchase-candidates"
+                href={`/purchase-candidates/${candidate.id}/edit`}
                 className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
               >
-                一覧へ戻る
+                編集する
               </Link>
               <PurchaseCandidateDuplicateAction
                 candidateId={candidate.id}
                 className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:text-gray-400 disabled:no-underline"
               />
               <Link
-                href={`/purchase-candidates/${candidate.id}/edit`}
-                className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
+                href="/purchase-candidates"
+                className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
               >
-                編集する
+                一覧へ戻る
               </Link>
             </>
           }
         />
-
-        <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-gray-900">アイテム追加</h2>
-          {candidate.status === "purchased" ? (
-            <>
-              <p className="mt-2 text-sm text-gray-600">
-                この購入検討はアイテム化済みの履歴です。購入検討側の更新はアイテムへ反映されません。
-              </p>
-              <p className="mt-3 text-sm text-emerald-700">
-                新しく検討を続ける場合は「複製する」を使ってください。
-              </p>
-            </>
-          ) : (
-            <>
-              <p className="mt-2 text-sm text-gray-600">
-                現在の候補内容からアイテム作成画面の初期値を生成します。
-              </p>
-              <div className="mt-4">
-                <PurchaseCandidateItemDraftAction
-                  candidateId={candidate.id}
-                  convertedItemId={candidate.converted_item_id}
-                />
-              </div>
-              {candidate.converted_item_id !== null && (
-                <p className="mt-3 text-sm text-emerald-700">
-                  この候補はアイテム化済みです。必要なら初期値を再生成できます。
-                </p>
-              )}
-            </>
-          )}
-        </section>
 
         <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-gray-900">基本情報</h2>

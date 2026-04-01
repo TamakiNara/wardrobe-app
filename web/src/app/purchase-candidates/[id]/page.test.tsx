@@ -138,9 +138,7 @@ describe("PurchaseCandidateDetailPage", () => {
     expect(markup).toContain("ネイビーコート");
     expect(markup).toContain("購入検討管理");
     expect(markup).toContain("一覧へ戻る");
-    expect(markup).toContain("アイテム追加");
     expect(sectionTitles).toEqual([
-      "アイテム追加",
       "基本情報",
       "購入情報",
       "色 / 季節 / TPO",
@@ -171,6 +169,10 @@ describe("PurchaseCandidateDetailPage", () => {
     expect(markup).toContain("92cm");
     expect(markup).toContain("item-draft-action");
     expect(markup).toContain("duplicate-action");
+    expect(markup).toContain(
+      "現在の候補内容からアイテム作成画面の初期値を生成します。",
+    );
+    expect(markup).not.toContain("アイテム追加");
     expect(markup).toContain('href="/purchase-candidates"');
     expect(markup).toContain('href="/purchase-candidates/10/edit"');
   });
@@ -230,5 +232,6 @@ describe("PurchaseCandidateDetailPage", () => {
     expect(markup).toContain("この購入検討はアイテム化済みの履歴です。");
     expect(markup).toContain("duplicate-action");
     expect(markup).not.toContain("item-draft-action");
+    expect(markup).not.toContain("アイテム追加");
   });
 });

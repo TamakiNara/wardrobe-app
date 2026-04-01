@@ -48,7 +48,7 @@ export function EntityDetailHeader({
     <>
       <EntityDetailBreadcrumbs items={breadcrumbs} />
       <header className="overflow-hidden rounded-3xl border border-gray-200 bg-white p-6 shadow-sm md:p-7">
-        <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between md:gap-8">
+        <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between md:gap-8">
           <div className="min-w-0 max-w-2xl space-y-3">
             <p className="text-sm font-medium tracking-wide text-gray-500">
               {eyebrow}
@@ -62,7 +62,7 @@ export function EntityDetailHeader({
           </div>
 
           {actions ? (
-            <div className="flex w-full flex-wrap items-center gap-3 md:w-auto md:flex-none md:justify-end">
+            <div className="flex w-full flex-wrap items-center gap-3 md:w-auto md:flex-none md:self-center md:justify-end">
               {actions}
             </div>
           ) : null}
