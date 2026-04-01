@@ -174,18 +174,6 @@ export default async function PurchaseCandidateDetailPage({
               </dd>
             </div>
             <div>
-              <dt className="text-sm font-medium text-gray-700">ステータス</dt>
-              <dd className="mt-1 text-sm text-gray-600">
-                {PURCHASE_CANDIDATE_STATUS_LABELS[candidate.status]}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-700">優先度</dt>
-              <dd className="mt-1 text-sm text-gray-600">
-                {PURCHASE_CANDIDATE_PRIORITY_LABELS[candidate.priority]}
-              </dd>
-            </div>
-            <div>
               <dt className="text-sm font-medium text-gray-700">
                 アイテム化状況
               </dt>

@@ -149,6 +149,12 @@ describe("PurchaseCandidateDetailPage", () => {
     ]);
     expect(markup).toContain("保留中");
     expect(markup).toContain("優先度: 中");
+    expect(markup).not.toContain(
+      '<dt class="text-sm font-medium text-gray-700">ステータス</dt>',
+    );
+    expect(markup).not.toContain(
+      '<dt class="text-sm font-medium text-gray-700">優先度</dt>',
+    );
     expect(markup).toContain("14,800円");
     expect(markup).toContain("12,800円");
     expect(markup).toContain("セール終了予定");
