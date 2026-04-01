@@ -121,12 +121,24 @@ describe("PurchaseCandidateForm", () => {
   it("日本語ラベルと必須表示を描画できる", async () => {
     await renderForm();
 
+    expect(container.textContent).toContain("基本情報");
+    expect(container.textContent).toContain("購入情報");
+    expect(container.textContent).toContain("メモ");
+    expect(container.textContent).toContain("サイズ・属性");
+    expect(container.textContent).toContain("素材・混率");
+    expect(container.textContent).toContain("色 / 季節 / TPO");
+    expect(container.textContent).toContain("画像");
     expect(container.textContent).toContain("ステータス");
     expect(container.textContent).toContain("優先度");
     expect(container.textContent).toContain("サイズ区分");
     expect(container.textContent).toContain("必須");
     expect(container.textContent).not.toContain("size_gender");
     expect(container.textContent).not.toContain("priority");
+
+    const sectionCards = container.querySelectorAll(
+      "form > section.rounded-2xl.border.border-gray-200.bg-white",
+    );
+    expect(sectionCards).toHaveLength(7);
   });
 
   it("カスタムカラーコードを送信 payload に含められる", async () => {

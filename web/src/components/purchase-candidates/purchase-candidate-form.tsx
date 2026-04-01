@@ -12,6 +12,7 @@ import { useRouter } from "next/navigation";
 import FieldLabel from "@/components/forms/field-label";
 import ColorChip from "@/components/items/color-chip";
 import ColorSelect from "@/components/items/color-select";
+import ItemFormSection from "@/components/items/item-form-section";
 import ItemMaterialFields from "@/components/items/item-material-fields";
 import ItemSizeDetailsFields from "@/components/items/item-size-details-fields";
 import PurchaseCandidateImageUploader from "@/components/purchase-candidates/purchase-candidate-image-uploader";
@@ -696,15 +697,11 @@ export default function PurchaseCandidateForm({
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="space-y-6 rounded-2xl border border-gray-200 bg-white p-8 shadow-sm"
-    >
-      <section className="space-y-4">
-        <h2 className="text-lg font-semibold text-gray-900">基本情報</h2>
-        <p className="text-sm text-gray-500">
-          「必須」が付いた項目は登録に必要です。
-        </p>
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <ItemFormSection
+        title="基本情報"
+        description="「必須」が付いた項目は登録に必要です。"
+      >
         {isPurchasedLocked && (
           <p className="text-sm text-amber-700">
             購入済みの購入検討では、メモ・欲しい理由・優先度・セール情報・購入
@@ -797,11 +794,9 @@ export default function PurchaseCandidateForm({
             <p className="mt-2 text-sm text-red-600">{errors.category_id}</p>
           )}
         </div>
-      </section>
+      </ItemFormSection>
 
-      <section className="space-y-4">
-        <h2 className="text-lg font-semibold text-gray-900">購入情報</h2>
-
+      <ItemFormSection title="購入情報">
         <div className="grid gap-4 md:grid-cols-2">
           <div>
             <label
@@ -893,11 +888,9 @@ export default function PurchaseCandidateForm({
             className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
           />
         </div>
-      </section>
+      </ItemFormSection>
 
-      <section className="space-y-4">
-        <h2 className="text-lg font-semibold text-gray-900">メモ</h2>
-
+      <ItemFormSection title="メモ">
         <div>
           <label
             htmlFor="wanted_reason"
@@ -934,11 +927,9 @@ export default function PurchaseCandidateForm({
             className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
           />
         </div>
-      </section>
+      </ItemFormSection>
 
-      <section className="space-y-4">
-        <h2 className="text-lg font-semibold text-gray-900">サイズ・属性</h2>
-
+      <ItemFormSection title="サイズ・属性">
         <div className="grid gap-4 md:grid-cols-3">
           <div>
             <FieldLabel htmlFor="size_gender" label="サイズ区分" />
@@ -1034,20 +1025,17 @@ export default function PurchaseCandidateForm({
           onUpdateCustomSizeField={updateCustomSizeField}
           onRemoveCustomSizeField={removeCustomSizeField}
         />
-      </section>
+      </ItemFormSection>
 
-      <section className="space-y-4">
-        <div>
-          <h2 className="text-lg font-semibold text-gray-900">素材・混率</h2>
-          <p className="mt-1 text-sm text-gray-500">
-            分かる場合だけ入力します。区分ごとの合計が100%になるように設定してください。
+      <ItemFormSection
+        title="素材・混率"
+        description="分かる場合だけ入力します。区分ごとの合計が100%になるように設定してください。"
+      >
+        {isPurchasedLocked && (
+          <p className="text-sm text-amber-700">
+            購入済みの購入検討では素材・混率は変更できません。
           </p>
-          {isPurchasedLocked && (
-            <p className="mt-2 text-sm text-amber-700">
-              購入済みの購入検討では素材・混率は変更できません。
-            </p>
-          )}
-        </div>
+        )}
         <ItemMaterialFields
           rows={materialRows}
           errors={errors}
@@ -1057,11 +1045,9 @@ export default function PurchaseCandidateForm({
           onAddRow={addMaterialRow}
           onRemoveRow={removeMaterialRow}
         />
-      </section>
+      </ItemFormSection>
 
-      <section className="space-y-4">
-        <h2 className="text-lg font-semibold text-gray-900">色 / 季節 / TPO</h2>
-
+      <ItemFormSection title="色 / 季節 / TPO">
         <div className="grid gap-4 md:grid-cols-2">
           <div>
             <FieldLabel label="メインカラー" required />
@@ -1240,15 +1226,12 @@ export default function PurchaseCandidateForm({
             })}
           </div>
         </div>
-      </section>
+      </ItemFormSection>
 
-      <section className="space-y-4">
-        <div>
-          <h2 className="text-lg font-semibold text-gray-900">画像</h2>
-          <p className="mt-1 text-sm text-gray-500">
-            5枚まで登録できます。作成 / 更新後に追加画像を反映します。
-          </p>
-        </div>
+      <ItemFormSection
+        title="画像"
+        description="5枚まで登録できます。作成 / 更新後に追加画像を反映します。"
+      >
         <PurchaseCandidateImageUploader
           existingImages={existingImages}
           pendingImages={pendingImages}
@@ -1261,7 +1244,7 @@ export default function PurchaseCandidateForm({
           disabled={submitting}
           helperText="一覧では代表画像を表示し、詳細や編集では画像全体を見やすく表示します。"
         />
-      </section>
+      </ItemFormSection>
 
       {(submitError || submitSuccess) && (
         <section
