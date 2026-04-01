@@ -16,6 +16,7 @@ wear logs も本資料の対象とし、その保存方針を定義します。
 - `users`
 - `items`
 - `item_images`
+- `item_materials`
 - `outfits`
 - `outfit_items`
 - `wear_logs`
@@ -255,7 +256,7 @@ wear logs も本資料の対象とし、その保存方針を定義します。
 ## items
 
 ユーザーが登録した服アイテムを保持するテーブルです。
-素材・混率の planned 方針は `docs/specs/items/material-composition.md` を参照し、current columns へはまだ反映していない。
+素材・混率は current で `item_materials` テーブルへ明細保存し、詳細 API / create / edit UI でも同じ明細構造を扱います。仕様正本は `docs/specs/items/material-composition.md` を参照します。
 
 ### Columns
 
@@ -388,6 +389,27 @@ wear logs も本資料の対象とし、その保存方針を定義します。
 | size_label | string nullable | S / M / L / FREE など |
 | size_note | string nullable | サイズ感・着用感の補足メモ |
 | size_details | json nullable | 実寸の構造化情報 |
+
+### item_materials
+
+| column | type | description |
+| --- | --- | --- |
+| id | bigint | 主キー |
+| item_id | bigint | 対象 item ID |
+| part_label | string | 区分名（`本体` / `裏地` / `別布` / `リブ` または自由入力） |
+| material_name | string | 素材名 |
+| ratio | unsigned tiny integer | 混率（1〜100 の整数） |
+| created_at | timestamp | 作成日時 |
+| updated_at | timestamp | 更新日時 |
+
+補足:
+
+- 保存正本は item に紐づく複数明細で、単一文字列カラムは持たない
+- `part_label` / `material_name` は文字列保存とし、素材マスタ FK は持たない
+- current 実装では create / update 時に item 側明細を全置換する
+- validation は API 側で行い、区分ごとの合計 100%、同一区分内の同素材重複不可を current ルールとする
+- 表示順は `本体 -> 裏地 -> 別布 -> リブ -> 自由入力区分（名前順）`、区分内は `ratio desc -> material_name asc` を正本とする
+
 
 補足:
 

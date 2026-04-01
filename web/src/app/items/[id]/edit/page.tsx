@@ -31,6 +31,7 @@ import ItemImageUploader from "@/components/items/item-image-uploader";
 import ItemImagesOverview from "@/components/items/item-images-overview";
 import ItemFormPreviewPanel from "@/components/items/item-form-preview-panel";
 import ItemFormSection from "@/components/items/item-form-section";
+import ItemMaterialFields from "@/components/items/item-material-fields";
 import ItemPreviewCard from "@/components/items/item-preview-card";
 import ItemSizeDetailsFields from "@/components/items/item-size-details-fields";
 import { SEASON_OPTIONS } from "@/lib/master-data/item-attributes";
@@ -86,6 +87,12 @@ import {
   normalizeItemSizeDetails,
   type EditableCustomSizeField,
 } from "@/lib/items/size-details";
+import {
+  buildEditableItemMaterials,
+  createEmptyItemMaterialRow,
+  validateItemMaterials,
+  type EditableItemMaterial,
+} from "@/lib/items/materials";
 import type { SkinTonePreset, UserTpoRecord } from "@/types/settings";
 import type { StructuredSizeFieldName } from "@/types/items";
 
@@ -118,6 +125,9 @@ export default function EditItemPage({
   const [customSizeFields, setCustomSizeFields] = useState<
     EditableCustomSizeField[]
   >([]);
+  const [materialRows, setMaterialRows] = useState<EditableItemMaterial[]>(() =>
+    buildEditableItemMaterials(),
+  );
   const [isRainOk, setIsRainOk] = useState(false);
   const [itemImages, setItemImages] = useState<ItemImageRecord[]>([]);
   const [pendingImages, setPendingImages] = useState<File[]>([]);
@@ -239,6 +249,10 @@ export default function EditItemPage({
       ),
     [customSizeFields, structuredSizeFieldDefinitions],
   );
+  const materialValidationPreview = useMemo(
+    () => validateItemMaterials(materialRows),
+    [materialRows],
+  );
 
   useEffect(() => {
     let active = true;
@@ -334,6 +348,7 @@ export default function EditItemPage({
         );
         setIsRainOk(item.is_rain_ok ?? false);
         setItemImages(normalizeItemImages(item.images ?? []));
+        setMaterialRows(buildEditableItemMaterials(item.materials));
         setCategory(item.category as ItemCategory);
         setShape(item.shape);
         setSelectedSeasons(item.seasons ?? []);
@@ -621,6 +636,7 @@ export default function EditItemPage({
       shape,
       legwearCoverageType,
     );
+    const materials = validateItemMaterials(materialRows).payload;
 
     return {
       name,
@@ -645,6 +661,7 @@ export default function EditItemPage({
       colors,
       seasons: selectedSeasons,
       tpo_ids: selectedTpoIds,
+      materials,
       spec:
         isTopsCategory && topsShape
           ? {
@@ -790,7 +807,9 @@ export default function EditItemPage({
   }
 
   function validateForm() {
-    const nextErrors: Record<string, string> = {};
+    const nextErrors: Record<string, string> = {
+      ...materialValidationPreview.errors,
+    };
     const resolvedLegwearCoverageType = resolveLegwearCoverageType(
       category,
       shape,
@@ -844,6 +863,13 @@ export default function EditItemPage({
       }
 
       if (!response.ok) {
+        const nextErrors = flattenApiErrors(data?.errors);
+        if (Object.keys(nextErrors).length > 0) {
+          setErrors(nextErrors);
+          scrollToFirstError(nextErrors);
+          setSubmitError("入力内容を確認してください。");
+          return;
+        }
         setSubmitError(data?.message ?? "更新に失敗しました。");
         return;
       }
@@ -934,6 +960,7 @@ export default function EditItemPage({
       "spec.bottoms.length_type",
       "spec.legwear.coverage_type",
       "mainColor",
+      "materials",
     ];
     const firstErrorKey = errorOrder.find((key) => nextErrors[key]);
     if (!firstErrorKey) return;
@@ -942,6 +969,51 @@ export default function EditItemPage({
       `[data-error-key="${firstErrorKey}"]`,
     );
     target?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+
+  function updateMaterialRow(
+    rowId: string,
+    field: "part_label" | "material_name" | "ratio",
+    value: string,
+  ) {
+    setMaterialRows((current) =>
+      current.map((row) =>
+        row.id === rowId ? { ...row, [field]: value } : row,
+      ),
+    );
+  }
+
+  function addMaterialRow() {
+    setMaterialRows((current) => [...current, createEmptyItemMaterialRow()]);
+  }
+
+  function removeMaterialRow(rowId: string) {
+    setMaterialRows((current) => {
+      const nextRows = current.filter((row) => row.id !== rowId);
+      return nextRows.length > 0 ? nextRows : [createEmptyItemMaterialRow()];
+    });
+  }
+
+  function flattenApiErrors(rawErrors: unknown): Record<string, string> {
+    if (!rawErrors || typeof rawErrors !== "object") {
+      return {};
+    }
+
+    return Object.fromEntries(
+      Object.entries(rawErrors as Record<string, unknown>)
+        .map(([key, value]) => {
+          if (Array.isArray(value) && typeof value[0] === "string") {
+            return [key, value[0]];
+          }
+
+          if (typeof value === "string") {
+            return [key, value];
+          }
+
+          return null;
+        })
+        .filter((entry): entry is [string, string] => entry !== null),
+    );
   }
   if (loading) {
     return (
@@ -1677,6 +1749,20 @@ export default function EditItemPage({
                 onUpdateStructuredSizeValue={updateStructuredSizeValue}
                 onUpdateCustomSizeField={updateCustomSizeField}
                 onRemoveCustomSizeField={removeCustomSizeField}
+              />
+            </ItemFormSection>
+
+            <ItemFormSection
+              title="素材・混率"
+              description="分かる場合だけ入力します。区分ごとの合計が100%になるように設定してください。"
+            >
+              <ItemMaterialFields
+                rows={materialRows}
+                errors={errors}
+                totals={materialValidationPreview.totals}
+                onChange={updateMaterialRow}
+                onAddRow={addMaterialRow}
+                onRemoveRow={removeMaterialRow}
               />
             </ItemFormSection>
 

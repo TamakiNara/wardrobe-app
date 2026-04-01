@@ -16,6 +16,7 @@ import {
   getStructuredSizeFieldDefinitions,
   normalizeItemSizeDetails,
 } from "@/lib/items/size-details";
+import { groupItemMaterialsForDisplay } from "@/lib/items/materials";
 import {
   findBottomsLengthLabel,
   findLegwearCoverageLabel,
@@ -98,6 +99,7 @@ export default async function ItemPage({
     (field) => normalizedSizeDetails?.structured?.[field.name] !== undefined,
   );
   const visibleCustomSizeFields = normalizedSizeDetails?.custom_fields ?? [];
+  const groupedMaterials = groupItemMaterialsForDisplay(item.materials);
   const backHref = returnToParam ?? "/items";
   const backLabel = returnToParam
     ? `${returnLabelParam ?? "戻る"}へ戻る`
@@ -259,6 +261,20 @@ export default async function ItemPage({
             <p className="mt-1 text-sm text-gray-600">
               レッグウェア： {legwearCoverageLabel}
             </p>
+          ) : null}
+          {groupedMaterials.length > 0 ? (
+            <div className="mt-4 border-t border-gray-100 pt-4">
+              <h2 className="text-sm font-semibold text-gray-900">
+                素材・混率
+              </h2>
+              <div className="mt-2 space-y-1">
+                {groupedMaterials.map((group) => (
+                  <p key={group.partLabel} className="text-sm text-gray-600">
+                    {group.partLabel}： {group.labels.join("、")}
+                  </p>
+                ))}
+              </div>
+            </div>
           ) : null}
         </div>
 

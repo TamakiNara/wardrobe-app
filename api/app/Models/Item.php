@@ -66,4 +66,9 @@ class Item extends Model
     {
         return $this->hasMany(ItemImage::class)->orderBy('sort_order');
     }
+
+    public function materials(): HasMany
+    {
+        return $this->hasMany(ItemMaterial::class);
+    }
 }

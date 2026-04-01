@@ -3,6 +3,8 @@
 namespace App\Http\Requests;
 
 use App\Support\ItemLegwearSpecValidator;
+use App\Support\ItemMaterialSupport;
+use App\Support\ItemMaterialValidator;
 use Illuminate\Foundation\Http\FormRequest;
 
 abstract class ItemUpsertRequest extends FormRequest
@@ -82,6 +84,11 @@ abstract class ItemUpsertRequest extends FormRequest
             'spec.bottoms.length_type' => ['nullable', 'in:mini,knee,midi,ankle,full'],
             'spec.legwear' => ['nullable', 'array'],
             'spec.legwear.coverage_type' => ['nullable', 'in:ankle_socks,crew_socks,knee_socks,over_knee,stockings,tights,leggings_cropped,leggings_full'],
+            'materials' => ['nullable', 'array'],
+            'materials.*' => ['array:part_label,material_name,ratio'],
+            'materials.*.part_label' => ['required', 'string', 'max:100'],
+            'materials.*.material_name' => ['required', 'string', 'max:100'],
+            'materials.*.ratio' => ['required', 'integer', 'between:1,100'],
             'images' => ['nullable', 'array', 'max:5'],
             'images.*.disk' => ['nullable', 'string', 'max:100'],
             'images.*.path' => ['nullable', 'string'],
@@ -93,8 +100,36 @@ abstract class ItemUpsertRequest extends FormRequest
         ];
     }
 
+    protected function prepareForValidation(): void
+    {
+        $materials = $this->input('materials');
+
+        if (! is_array($materials)) {
+            return;
+        }
+
+        $normalized = array_map(function ($material) {
+            if (! is_array($material)) {
+                return $material;
+            }
+
+            return [
+                'part_label' => ItemMaterialSupport::normalizeText($material['part_label'] ?? null),
+                'material_name' => ItemMaterialSupport::normalizeText($material['material_name'] ?? null),
+                'ratio' => $material['ratio'] ?? null,
+            ];
+        }, $materials);
+
+        $this->merge([
+            'materials' => $normalized,
+        ]);
+    }
+
     protected function passedValidation(): void
     {
-        ItemLegwearSpecValidator::validate($this->validated());
+        $validated = $this->validated();
+
+        ItemLegwearSpecValidator::validate($validated);
+        ItemMaterialValidator::validate($validated);
     }
 }

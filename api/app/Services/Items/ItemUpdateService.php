@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Services\Brands\UserBrandService;
 use App\Services\Settings\UserTpoService;
 use App\Support\ItemImageSync;
+use App\Support\ItemMaterialSync;
 use App\Support\ItemSpecNormalizer;
 use App\Support\TpoSelectionResolver;
 use Illuminate\Support\Facades\DB;
@@ -56,13 +57,14 @@ class ItemUpdateService
                 ]);
 
                 ItemImageSync::sync($item, $validated['images'] ?? [], $copiedFiles);
+                ItemMaterialSync::sync($item, $validated['materials'] ?? []);
                 $this->userBrandService->saveBrandFromItem(
                     $user,
                     $validated['brand_name'] ?? null,
                     (bool) ($validated['save_brand_as_candidate'] ?? false),
                 );
 
-                return $item->fresh()->load(['images', 'user']);
+                return $item->fresh()->load(['images', 'materials', 'user']);
             });
         } catch (Throwable $e) {
             ItemImageSync::cleanupCopied($copiedFiles);

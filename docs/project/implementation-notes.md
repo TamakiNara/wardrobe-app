@@ -652,6 +652,10 @@ UI/UX メモ:
 - 入力中の内容は下部プレビューへ即時反映する
 - 一覧でも tops 形状が分かるよう SVG プレビューを利用する
 
+- item の素材・混率は current で `item_materials` として実装済みで、create / edit / detail まで item 側だけ反映済み
+- 保存正本は `materials[{ part_label, material_name, ratio }]` の明細配列で、区分ごとの合計100%と同一区分内の同素材重複不可を backend validation で担保する
+- purchase candidate 側の素材対応、素材検索、候補マスタ管理はまだ planned のままとする
+
 ### items 追加候補
 
 この節は item 周辺の候補メモを履歴として残す位置づけです。状態管理・素材・検索強化・分析の active な優先順位は `docs/specs/planning/next-features.md` を参照します。

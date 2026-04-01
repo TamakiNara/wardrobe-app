@@ -49,7 +49,7 @@ class ItemsIndexQuery
 
         return [
             'items' => $filteredItems
-                ->map(fn (Item $item) => ItemPayloadBuilder::buildDetail($item))
+                ->map(fn (Item $item) => ItemPayloadBuilder::buildDetail($item, false))
                 ->values()
                 ->all(),
             'meta' => [

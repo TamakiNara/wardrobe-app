@@ -20,7 +20,7 @@ class DisposedItemsIndexQuery
 
         return [
             'items' => $pagination->getCollection()
-                ->map(fn (Item $item) => ItemPayloadBuilder::buildDetail($item))
+                ->map(fn (Item $item) => ItemPayloadBuilder::buildDetail($item, false))
                 ->values()
                 ->all(),
             'meta' => [

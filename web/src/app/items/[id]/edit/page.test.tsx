@@ -197,6 +197,18 @@ describe("EditItemPage", () => {
             tpos: [],
             tpo_ids: [],
             spec: null,
+            materials: [
+              {
+                part_label: "本体",
+                material_name: "綿",
+                ratio: 80,
+              },
+              {
+                part_label: "本体",
+                material_name: "ポリエステル",
+                ratio: 20,
+              },
+            ],
             images: [
               {
                 id: 1,
@@ -258,6 +270,14 @@ describe("EditItemPage", () => {
       "レッグウェア",
     ]);
     expect(container.textContent).toContain("カテゴリ");
+    expect(container.textContent).toContain("素材・混率");
+    expect(container.textContent).toContain(
+      "分かる場合だけ入力します。区分ごとの合計が100%になるように設定してください。",
+    );
+    const materialInput = container.querySelector<HTMLInputElement>(
+      'input[list="item-material-name-options"]',
+    );
+    expect(materialInput?.value).toBe("綿");
     expect(container.textContent).toContain("形");
     expect(container.textContent).toContain("分類");
     expect(container.textContent).toContain("詳細属性");

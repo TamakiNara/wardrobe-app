@@ -247,7 +247,7 @@ Route::prefix('api')->middleware(['web'])->group(function () {
     Route::middleware('auth:web')->get('/items/{id}', function (Request $request, int $id) {
         $item = Item::query()
             ->where('user_id', $request->user()->id)
-            ->with(['images', 'user'])
+            ->with(['images', 'materials', 'user'])
             ->findOrFail($id);
 
         return response()->json([

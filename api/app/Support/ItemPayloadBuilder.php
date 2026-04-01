@@ -4,13 +4,20 @@ namespace App\Support;
 
 use App\Models\Item;
 use App\Models\ItemImage;
+use App\Models\ItemMaterial;
 use Illuminate\Support\Facades\Storage;
 
 class ItemPayloadBuilder
 {
-    public static function buildDetail(Item $item): array
+    public static function buildDetail(Item $item, bool $includeMaterials = true): array
     {
-        $item->loadMissing('images');
+        $relations = ['images'];
+
+        if ($includeMaterials) {
+            $relations[] = 'materials';
+        }
+
+        $item->loadMissing($relations);
 
         return [
             'id' => $item->id,
@@ -36,6 +43,17 @@ class ItemPayloadBuilder
                 : ($item->tpos ?? []),
             'tpo_ids' => $item->tpo_ids ?? [],
             'spec' => $item->spec,
+            'materials' => $includeMaterials
+                ? ItemMaterialSupport::buildPayload(
+                    $item->materials
+                        ->map(fn (ItemMaterial $material) => [
+                            'part_label' => $material->part_label,
+                            'material_name' => $material->material_name,
+                            'ratio' => $material->ratio,
+                        ])
+                        ->all(),
+                )
+                : [],
             'images' => $item->images
                 ->sortBy('sort_order')
                 ->values()

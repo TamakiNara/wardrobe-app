@@ -2354,6 +2354,10 @@ components:
           allOf:
             - $ref: '#/components/schemas/ItemSpec'
           nullable: true
+        materials:
+          type: array
+          items:
+            $ref: '#/components/schemas/ItemMaterialRecord'
         images:
           type: array
           items:
@@ -2455,6 +2459,14 @@ components:
             type: integer
         spec:
           $ref: '#/components/schemas/ItemSpec'
+        materials:
+          type: array
+          nullable: true
+          description: |
+            item の素材・混率明細。未入力なら未指定または空配列を許可する。
+            区分ごとの合計100%、同一区分内の同素材重複不可を current ルールとする。
+          items:
+            $ref: '#/components/schemas/ItemMaterialRecord'
         images:
           type: array
           maxItems: 5
@@ -2512,6 +2524,25 @@ components:
           minimum: 1
         is_primary:
           type: boolean
+
+    ItemMaterialRecord:
+      type: object
+      required:
+        - part_label
+        - material_name
+        - ratio
+      properties:
+        part_label:
+          type: string
+          description: 区分名。`本体` / `裏地` / `別布` / `リブ` を初期候補としつつ自由入力を許可する。
+        material_name:
+          type: string
+          description: 素材名。候補補助はあるが保存正本は文字列とする。
+        ratio:
+          type: integer
+          minimum: 1
+          maximum: 100
+          description: 区分内での混率。current では整数のみを許可する。
 
     ItemImageUpsertPayload:
       type: object

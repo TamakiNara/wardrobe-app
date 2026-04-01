@@ -75,6 +75,12 @@ export type ItemImageRecord = {
   is_primary: boolean;
 };
 
+export type ItemMaterialRecord = {
+  part_label: string;
+  material_name: string;
+  ratio: number;
+};
+
 export type CreateItemPayload = {
   name: string;
   purchase_candidate_id?: number | null;
@@ -97,6 +103,7 @@ export type CreateItemPayload = {
   tpos?: string[];
   tpo_ids: number[];
   spec?: ItemSpec | null;
+  materials?: ItemMaterialRecord[];
   images: ItemImageRecord[];
 };
 
@@ -124,5 +131,6 @@ export type ItemRecord = {
   tpos: string[];
   tpo_ids?: number[];
   spec?: ItemSpec | null;
+  materials?: ItemMaterialRecord[];
   images?: ItemImageRecord[];
 };

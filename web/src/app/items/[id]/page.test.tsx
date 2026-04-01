@@ -86,6 +86,23 @@ describe("ItemPage", () => {
                 coverage_type: "tights",
               },
             },
+            materials: [
+              {
+                part_label: "本体",
+                material_name: "綿",
+                ratio: 80,
+              },
+              {
+                part_label: "本体",
+                material_name: "ポリエステル",
+                ratio: 20,
+              },
+              {
+                part_label: "裏地",
+                material_name: "ポリエステル",
+                ratio: 100,
+              },
+            ],
             images: [
               {
                 id: 1,
@@ -144,6 +161,9 @@ describe("ItemPage", () => {
     );
     expect(markup).toContain("ボトムス丈： ミディ丈");
     expect(markup).toContain("レッグウェア： タイツ");
+    expect(markup).toContain("素材・混率");
+    expect(markup).toContain("本体： 綿 80%、ポリエステル 20%");
+    expect(markup).toContain("裏地： ポリエステル 100%");
     expect(markup).toContain("画像");
     expect(markup).toContain("coat.png");
   });

@@ -147,6 +147,30 @@ class ItemsEndpointsTest extends TestCase
         );
     }
 
+    /**
+     * @return array<int, array{part_label:string, material_name:string, ratio:int}>
+     */
+    private function buildMaterialsPayload(): array
+    {
+        return [
+            [
+                'part_label' => '本体',
+                'material_name' => '綿',
+                'ratio' => 80,
+            ],
+            [
+                'part_label' => '本体',
+                'material_name' => 'ポリエステル',
+                'ratio' => 20,
+            ],
+            [
+                'part_label' => '裏地',
+                'material_name' => 'ポリエステル',
+                'ratio' => 100,
+            ],
+        ];
+    }
+
     public function test_get_items_returns_401_when_unauthenticated(): void
     {
         $response = $this->getJson('/api/items', [
@@ -504,6 +528,159 @@ class ItemsEndpointsTest extends TestCase
 
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['size_gender']);
+    }
+
+    public function test_post_items_allows_empty_materials(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/items', [
+            'name' => '素材未入力アイテム',
+            'category' => 'tops',
+            'shape' => 'tshirt',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'white',
+                'hex' => '#ffffff',
+                'label' => 'ホワイト',
+            ]],
+            'materials' => [],
+            'images' => [],
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('item.materials', []);
+    }
+
+    public function test_post_items_stores_materials_when_each_part_totals_100(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/items', [
+            'name' => '素材ありアイテム',
+            'category' => 'tops',
+            'shape' => 'tshirt',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'white',
+                'hex' => '#ffffff',
+                'label' => 'ホワイト',
+            ]],
+            'materials' => $this->buildMaterialsPayload(),
+            'images' => [],
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('item.materials.0.part_label', '本体')
+            ->assertJsonPath('item.materials.0.material_name', '綿')
+            ->assertJsonPath('item.materials.0.ratio', 80)
+            ->assertJsonPath('item.materials.2.part_label', '裏地')
+            ->assertJsonPath('item.materials.2.ratio', 100);
+
+        $itemId = $response->json('item.id');
+
+        $this->assertDatabaseHas('item_materials', [
+            'item_id' => $itemId,
+            'part_label' => '本体',
+            'material_name' => '綿',
+            'ratio' => 80,
+        ]);
+        $this->assertDatabaseHas('item_materials', [
+            'item_id' => $itemId,
+            'part_label' => '裏地',
+            'material_name' => 'ポリエステル',
+            'ratio' => 100,
+        ]);
+    }
+
+    public function test_post_items_rejects_materials_when_part_total_is_not_100(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/items', [
+            'name' => '素材エラーアイテム',
+            'category' => 'tops',
+            'shape' => 'tshirt',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'white',
+                'hex' => '#ffffff',
+                'label' => 'ホワイト',
+            ]],
+            'materials' => [
+                [
+                    'part_label' => '本体',
+                    'material_name' => '綿',
+                    'ratio' => 70,
+                ],
+                [
+                    'part_label' => '本体',
+                    'material_name' => 'ポリエステル',
+                    'ratio' => 20,
+                ],
+            ],
+            'images' => [],
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['materials'])
+            ->assertJsonPath(
+                'errors.materials.0',
+                '区分ごとの合計を100%にしてください。（本体: 90%）',
+            );
+    }
+
+    public function test_post_items_rejects_duplicate_material_name_within_same_part(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/items', [
+            'name' => '素材重複アイテム',
+            'category' => 'tops',
+            'shape' => 'tshirt',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'white',
+                'hex' => '#ffffff',
+                'label' => 'ホワイト',
+            ]],
+            'materials' => [
+                [
+                    'part_label' => '本体',
+                    'material_name' => '綿',
+                    'ratio' => 50,
+                ],
+                [
+                    'part_label' => '本体',
+                    'material_name' => '綿',
+                    'ratio' => 50,
+                ],
+            ],
+            'images' => [],
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['materials.1.material_name']);
     }
 
     public function test_post_items_rejects_legacy_size_details_note(): void
@@ -1107,6 +1284,7 @@ class ItemsEndpointsTest extends TestCase
             'sort_order' => 1,
             'is_primary' => true,
         ]);
+        $item->materials()->createMany($this->buildMaterialsPayload());
 
         $this->actingAs($user, 'web');
 
@@ -1123,7 +1301,9 @@ class ItemsEndpointsTest extends TestCase
             ->assertJsonPath('item.size_details.structured.body_length', 120)
             ->assertJsonPath('item.size_details.custom_fields.0.label', '裄丈')
             ->assertJsonPath('item.is_rain_ok', true)
-            ->assertJsonPath('item.images.0.path', 'items/1/coat.png');
+            ->assertJsonPath('item.images.0.path', 'items/1/coat.png')
+            ->assertJsonPath('item.materials.0.material_name', '綿')
+            ->assertJsonPath('item.materials.2.part_label', '裏地');
     }
 
     public function test_put_item_updates_purchase_fields_and_image_ordering(): void
@@ -1184,6 +1364,7 @@ class ItemsEndpointsTest extends TestCase
             ]],
             'seasons' => ['春'],
             'tpos' => ['仕事'],
+            'materials' => $this->buildMaterialsPayload(),
             'images' => [
                 [
                     'disk' => 'public',
@@ -1215,6 +1396,7 @@ class ItemsEndpointsTest extends TestCase
             ->assertJsonPath('item.brand_name', 'Updated Brand')
             ->assertJsonPath('item.care_status', 'in_cleaning')
             ->assertJsonPath('item.memo', '更新メモ')
+            ->assertJsonPath('item.materials.0.ratio', 80)
             ->assertJsonPath('item.images.0.sort_order', 1)
             ->assertJsonPath('item.images.0.is_primary', true)
             ->assertJsonPath('item.images.1.sort_order', 2)
@@ -1243,6 +1425,12 @@ class ItemsEndpointsTest extends TestCase
             'path' => $updatedImagePath,
             'sort_order' => 1,
             'is_primary' => 1,
+        ]);
+        $this->assertDatabaseHas('item_materials', [
+            'item_id' => $item->id,
+            'part_label' => '裏地',
+            'material_name' => 'ポリエステル',
+            'ratio' => 100,
         ]);
         $this->assertDatabaseHas('item_images', [
             'item_id' => $item->id,

@@ -220,6 +220,7 @@ describe("NewItemPage", () => {
     expect(container.textContent).toContain("色とプレビュー");
     expect(container.textContent).toContain("利用条件・状態");
     expect(container.textContent).toContain("サイズ");
+    expect(container.textContent).toContain("素材・混率");
     expect(container.textContent).toContain("購入・補足");
     expect(container.textContent).toContain("ケア状態");
     expect(container.textContent).toContain("メインカラー");
