@@ -655,6 +655,9 @@ UI/UX メモ:
 - item の素材・混率は current で `item_materials` として実装済みで、create / edit / detail まで item 側だけ反映済み
 - 保存正本は `materials[{ part_label, material_name, ratio }]` の明細配列で、区分ごとの合計100%と同一区分内の同素材重複不可を backend validation で担保する
 - purchase candidate 側の素材対応、素材検索、候補マスタ管理はまだ planned のままとする
+- 素材・混率の視覚化は後続タスクとし、優先対象は item 詳細画面のみとする
+- create / edit は入力負荷を増やさないため当面テキスト表示のままにし、グラフは入れない
+- 表現候補は区分ごとの横棒表示または比率バーを第一候補とし、円グラフより読みやすさと保守性を優先する
 
 ### items 追加候補
 

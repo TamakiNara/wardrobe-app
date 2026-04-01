@@ -420,6 +420,116 @@ class SampleItemSeeder extends Seeder
                 'spec' => null,
             ],
             [
+                'name' => '素材確認_本体のみ',
+                'brand_name' => '確認用',
+                'category' => 'tops',
+                'shape' => 'tshirt',
+                'colors' => [
+                    ['role' => 'main', 'mode' => 'preset', 'value' => 'white', 'hex' => '#ECECEC', 'label' => 'ホワイト'],
+                ],
+                'seasons' => ['春', '夏'],
+                'tpos' => ['休日'],
+                'spec' => [
+                    'tops' => [
+                        'shape' => 'tshirt',
+                        'sleeve' => 'short',
+                        'length' => 'normal',
+                        'neck' => 'crew',
+                        'design' => null,
+                        'fit' => 'normal',
+                    ],
+                ],
+                'materials' => [
+                    ['part_label' => '本体', 'material_name' => '綿', 'ratio' => 80],
+                    ['part_label' => '本体', 'material_name' => 'ポリエステル', 'ratio' => 20],
+                ],
+            ],
+            [
+                'name' => '素材確認_裏地あり',
+                'brand_name' => '確認用',
+                'category' => 'outer',
+                'shape' => 'trench',
+                'colors' => [
+                    ['role' => 'main', 'mode' => 'preset', 'value' => 'beige', 'hex' => '#D3C0A4', 'label' => 'ベージュ'],
+                ],
+                'seasons' => ['春', '秋'],
+                'tpos' => ['仕事'],
+                'spec' => null,
+                'materials' => [
+                    ['part_label' => '本体', 'material_name' => '綿', 'ratio' => 80],
+                    ['part_label' => '本体', 'material_name' => 'ポリエステル', 'ratio' => 20],
+                    ['part_label' => '裏地', 'material_name' => 'ポリエステル', 'ratio' => 100],
+                ],
+            ],
+            [
+                'name' => '素材確認_自由入力区分',
+                'brand_name' => '確認用',
+                'category' => 'tops',
+                'shape' => 'shirt',
+                'colors' => [
+                    ['role' => 'main', 'mode' => 'preset', 'value' => 'blue', 'hex' => '#0077D9', 'label' => 'ブルー'],
+                ],
+                'seasons' => ['春', '秋'],
+                'tpos' => ['休日'],
+                'spec' => [
+                    'tops' => [
+                        'shape' => 'shirt',
+                        'sleeve' => 'long',
+                        'length' => 'normal',
+                        'neck' => 'crew',
+                        'design' => null,
+                        'fit' => 'normal',
+                    ],
+                ],
+                'materials' => [
+                    ['part_label' => '袖口', 'material_name' => '綿', 'ratio' => 50],
+                    ['part_label' => '袖口', 'material_name' => 'ポリエステル', 'ratio' => 50],
+                ],
+            ],
+            [
+                'name' => '素材確認_自由入力素材',
+                'brand_name' => '確認用',
+                'category' => 'tops',
+                'shape' => 'knit',
+                'colors' => [
+                    ['role' => 'main', 'mode' => 'preset', 'value' => 'ivory', 'hex' => '#F2EEE4', 'label' => 'アイボリー'],
+                ],
+                'seasons' => ['秋', '冬'],
+                'tpos' => ['仕事', '休日'],
+                'spec' => [
+                    'tops' => [
+                        'shape' => 'knit',
+                        'sleeve' => 'long',
+                        'length' => 'normal',
+                        'neck' => 'crew',
+                        'design' => null,
+                        'fit' => 'normal',
+                    ],
+                ],
+                'materials' => [
+                    ['part_label' => '本体', 'material_name' => 'モダール', 'ratio' => 60],
+                    ['part_label' => '本体', 'material_name' => '綿', 'ratio' => 40],
+                ],
+            ],
+            [
+                'name' => '素材確認_複合',
+                'brand_name' => '確認用',
+                'category' => 'onepiece_allinone',
+                'shape' => 'onepiece',
+                'colors' => [
+                    ['role' => 'main', 'mode' => 'preset', 'value' => 'navy', 'hex' => '#44516A', 'label' => 'ネイビー'],
+                ],
+                'seasons' => ['春', '秋'],
+                'tpos' => ['仕事', '休日'],
+                'spec' => null,
+                'materials' => [
+                    ['part_label' => '本体', 'material_name' => 'レーヨン', 'ratio' => 70],
+                    ['part_label' => '本体', 'material_name' => 'ナイロン', 'ratio' => 30],
+                    ['part_label' => '別布', 'material_name' => 'モダール', 'ratio' => 50],
+                    ['part_label' => '別布', 'material_name' => '綿', 'ratio' => 50],
+                ],
+            ],
+            [
                 'name' => 'トートバッグ',
                 'brand_name' => 'ZARA',
                 'category' => 'accessories',
@@ -466,13 +576,15 @@ class SampleItemSeeder extends Seeder
         ];
 
         foreach ($items as $item) {
-            Item::query()->updateOrCreate(
+            $itemRecord = Item::query()->updateOrCreate(
                 ['user_id' => $user->id, 'name' => $item['name']],
                 [
-                    ...$item,
+                    ...collect($item)->except('materials')->all(),
                     'tpo_ids' => $this->resolveTpoIds($user, $item['tpos'] ?? []),
                 ],
             );
+
+            $this->syncMaterials($itemRecord, $item['materials'] ?? []);
         }
     }
 
@@ -519,5 +631,16 @@ class SampleItemSeeder extends Seeder
             ->filter()
             ->values()
             ->all();
+    }
+
+    private function syncMaterials(Item $item, array $materials): void
+    {
+        $item->materials()->delete();
+
+        if ($materials === []) {
+            return;
+        }
+
+        $item->materials()->createMany($materials);
     }
 }
