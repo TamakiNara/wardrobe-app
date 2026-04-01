@@ -60,6 +60,7 @@ export default function LoginPage() {
       }
 
       router.push("/");
+      router.refresh();
     } catch {
       setError("通信に失敗しました。時間をおいて再度お試しください。");
     } finally {

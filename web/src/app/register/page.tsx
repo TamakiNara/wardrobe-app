@@ -83,6 +83,7 @@ export default function RegisterPage() {
       }
 
       router.push("/register/category-preset");
+      router.refresh();
     } catch {
       setError("通信に失敗しました。時間をおいて再度お試しください。");
     } finally {
