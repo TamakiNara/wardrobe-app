@@ -93,7 +93,7 @@
 | SET-PREF-04 | 整合性 | currentSeason が一覧初期値に反映される | 高 | 実装済み | 手動確認 | 保存処理と参照処理は実装済み。items / outfits 一覧で URL に `season` がない時だけ初期 filter に使う。 |
 | SET-PREF-05 | 整合性 | defaultWearLogStatus が wear-log 新規作成初期値に反映される | 高 | 実装済み | 手動確認 | 保存処理と参照処理は実装済み。wear-log 新規作成画面の初期ステータスに使う。 |
 | SET-PREF-06 | 整合性 | calendarWeekStart が着用履歴カレンダー表示に反映される | 中 | 未確認 | 手動確認 | 保存処理と参照処理は実装済み。曜日ヘッダー順、月初セル位置、補完セル位置、月送り後の維持、日別詳細導線の日付ずれを確認する |
-| SET-PREF-07 | 整合性 | skinTonePreset が item サムネイル表示に反映される | 中 | 未確認 | 手動確認 | |
+| SET-PREF-07 | 整合性 | skinTonePreset がサムネイル表示に反映される | 中 | 実装済み | 手動確認 | 保存処理と参照処理は実装済み。items / outfits / wear logs 系の thumbnail 表示で使う。 |
 
 #### SET-PREF-04 補足メモ
 
@@ -154,6 +154,27 @@
 - 実装済みへ上げる条件:
   - 保存後に着用履歴一覧のカレンダー表示差が実画面で確認できる
   - 月送りと日別詳細導線でも不整合が出ない
+
+#### SET-PREF-07 補足メモ
+
+- 項目名: `skinTonePreset`
+- 現時点の仮判定: `実装済み`
+- 主な保存先:
+  - settings 画面の表示・初期値設定
+  - `PUT /api/settings/preferences`
+  - `user_preferences.skin_tone_preset`
+- 主な反映先:
+  - アイテム一覧 / 詳細のサムネイル表示
+  - コーディネート一覧 / 詳細のサムネイル表示
+  - 着用履歴一覧 / カレンダー / 日別詳細のサムネイル表示
+- 実装済みとした根拠:
+  - settings 画面で保存 UI がある
+  - `/api/settings/preferences` で保存 / 取得できる
+  - items / outfits / wear logs 系の thumbnail 表示で参照している
+- 手動確認で残っている観点:
+  - preset 切替時に一覧 / 詳細 thumbnail の色味が変わるか
+  - 画面によって適用粒度に差がないか
+  - purchase candidate 側にも同じ考え方を広げるかは別途整理余地がある
 
 ### 3-4. TPO 設定
 
