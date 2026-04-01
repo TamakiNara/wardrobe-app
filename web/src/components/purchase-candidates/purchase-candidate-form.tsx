@@ -796,6 +796,100 @@ export default function PurchaseCandidateForm({
         </div>
       </ItemFormSection>
 
+      <ItemFormSection title="購入情報">
+        <div className="grid gap-4 md:grid-cols-2">
+          <div>
+            <label
+              htmlFor="brand_name"
+              className="mb-1 block text-sm font-medium text-gray-700"
+            >
+              ブランド
+            </label>
+            <input
+              id="brand_name"
+              type="text"
+              value={brandName}
+              onChange={(event) => setBrandName(event.target.value)}
+              disabled={isPurchasedLocked}
+              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor="price"
+              className="mb-1 block text-sm font-medium text-gray-700"
+            >
+              想定価格
+            </label>
+            <div className="flex items-center rounded-lg border border-gray-300 bg-white pr-4 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100">
+              <input
+                id="price"
+                type="number"
+                min="0"
+                value={price}
+                onChange={(event) => setPrice(event.target.value)}
+                disabled={isPurchasedLocked}
+                className="w-full rounded-lg bg-transparent px-4 py-3 text-gray-900 outline-none"
+              />
+              <span className="text-sm text-gray-500">円</span>
+            </div>
+          </div>
+
+          <div>
+            <label
+              htmlFor="sale_price"
+              className="mb-1 block text-sm font-medium text-gray-700"
+            >
+              セール価格
+            </label>
+            <div className="flex items-center rounded-lg border border-gray-300 bg-white pr-4 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100">
+              <input
+                id="sale_price"
+                type="number"
+                min="0"
+                value={salePrice}
+                onChange={(event) => setSalePrice(event.target.value)}
+                className="w-full rounded-lg bg-transparent px-4 py-3 text-gray-900 outline-none"
+              />
+              <span className="text-sm text-gray-500">円</span>
+            </div>
+          </div>
+
+          <div>
+            <label
+              htmlFor="sale_ends_at"
+              className="mb-1 block text-sm font-medium text-gray-700"
+            >
+              セール終了予定
+            </label>
+            <input
+              id="sale_ends_at"
+              type="datetime-local"
+              value={saleEndsAt}
+              onChange={(event) => setSaleEndsAt(event.target.value)}
+              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label
+            htmlFor="purchase_url"
+            className="mb-1 block text-sm font-medium text-gray-700"
+          >
+            購入 URL
+          </label>
+          <input
+            id="purchase_url"
+            type="url"
+            value={purchaseUrl}
+            onChange={(event) => setPurchaseUrl(event.target.value)}
+            className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+          />
+        </div>
+      </ItemFormSection>
+
       <ItemFormSection title="色 / 季節 / TPO">
         <div className="grid gap-4 md:grid-cols-2">
           <div>
@@ -1093,100 +1187,6 @@ export default function PurchaseCandidateForm({
           onAddRow={addMaterialRow}
           onRemoveRow={removeMaterialRow}
         />
-      </ItemFormSection>
-
-      <ItemFormSection title="購入情報">
-        <div className="grid gap-4 md:grid-cols-2">
-          <div>
-            <label
-              htmlFor="brand_name"
-              className="mb-1 block text-sm font-medium text-gray-700"
-            >
-              ブランド
-            </label>
-            <input
-              id="brand_name"
-              type="text"
-              value={brandName}
-              onChange={(event) => setBrandName(event.target.value)}
-              disabled={isPurchasedLocked}
-              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-            />
-          </div>
-
-          <div>
-            <label
-              htmlFor="price"
-              className="mb-1 block text-sm font-medium text-gray-700"
-            >
-              想定価格
-            </label>
-            <div className="flex items-center rounded-lg border border-gray-300 bg-white pr-4 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100">
-              <input
-                id="price"
-                type="number"
-                min="0"
-                value={price}
-                onChange={(event) => setPrice(event.target.value)}
-                disabled={isPurchasedLocked}
-                className="w-full rounded-lg bg-transparent px-4 py-3 text-gray-900 outline-none"
-              />
-              <span className="text-sm text-gray-500">円</span>
-            </div>
-          </div>
-
-          <div>
-            <label
-              htmlFor="sale_price"
-              className="mb-1 block text-sm font-medium text-gray-700"
-            >
-              セール価格
-            </label>
-            <div className="flex items-center rounded-lg border border-gray-300 bg-white pr-4 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100">
-              <input
-                id="sale_price"
-                type="number"
-                min="0"
-                value={salePrice}
-                onChange={(event) => setSalePrice(event.target.value)}
-                className="w-full rounded-lg bg-transparent px-4 py-3 text-gray-900 outline-none"
-              />
-              <span className="text-sm text-gray-500">円</span>
-            </div>
-          </div>
-
-          <div>
-            <label
-              htmlFor="sale_ends_at"
-              className="mb-1 block text-sm font-medium text-gray-700"
-            >
-              セール終了予定
-            </label>
-            <input
-              id="sale_ends_at"
-              type="datetime-local"
-              value={saleEndsAt}
-              onChange={(event) => setSaleEndsAt(event.target.value)}
-              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-            />
-          </div>
-        </div>
-
-        <div>
-          <label
-            htmlFor="purchase_url"
-            className="mb-1 block text-sm font-medium text-gray-700"
-          >
-            購入 URL
-          </label>
-          <input
-            id="purchase_url"
-            type="url"
-            value={purchaseUrl}
-            onChange={(event) => setPurchaseUrl(event.target.value)}
-            className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-          />
-        </div>
       </ItemFormSection>
 
       <ItemFormSection title="メモ">

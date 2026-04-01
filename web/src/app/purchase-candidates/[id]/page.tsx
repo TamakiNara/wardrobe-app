@@ -133,168 +133,69 @@ export default async function PurchaseCandidateDetailPage({
           </div>
         </div>
 
-        <section className="grid gap-6 md:grid-cols-[1.4fr_1fr]">
-          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-gray-900">画像</h2>
-
-            {candidate.images.length === 0 ? (
-              <p className="mt-3 text-sm text-gray-600">
-                画像はまだありません。
+        <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <h2 className="text-lg font-semibold text-gray-900">アイテム追加</h2>
+          {candidate.status === "purchased" ? (
+            <>
+              <p className="mt-2 text-sm text-gray-600">
+                この購入検討はアイテム化済みの履歴です。購入検討側の更新はアイテムへ反映されません。
               </p>
-            ) : (
-              <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                {candidate.images.map((image) => (
-                  <article
-                    key={image.id}
-                    className="overflow-hidden rounded-xl border border-gray-200"
-                  >
-                    {image.url ? (
-                      <div className="flex aspect-[3/4] items-center justify-center bg-gray-50 p-2">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={image.url}
-                          alt={image.original_filename ?? candidate.name}
-                          className="h-full w-full object-contain"
-                        />
-                      </div>
-                    ) : (
-                      <div className="flex aspect-[4/3] items-center justify-center bg-gray-100 text-sm text-gray-400">
-                        画像なし
-                      </div>
-                    )}
-                    <div className="p-3 text-sm text-gray-600">
-                      {image.sort_order}枚目
-                      {image.is_primary ? " / 代表画像" : ""}
-                    </div>
-                  </article>
-                ))}
+              <p className="mt-3 text-sm text-emerald-700">
+                新しく検討を続ける場合は「複製する」を使ってください。
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="mt-2 text-sm text-gray-600">
+                現在の候補内容からアイテム作成画面の初期値を生成します。
+              </p>
+              <div className="mt-4">
+                <PurchaseCandidateItemDraftAction
+                  candidateId={candidate.id}
+                  convertedItemId={candidate.converted_item_id}
+                />
               </div>
-            )}
-          </div>
-
-          <div className="space-y-6">
-            <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-              <h2 className="text-lg font-semibold text-gray-900">
-                アイテム追加
-              </h2>
-              {candidate.status === "purchased" ? (
-                <>
-                  <p className="mt-2 text-sm text-gray-600">
-                    この購入検討はアイテム化済みの履歴です。購入検討側の更新はアイテムへ反映されません。
-                  </p>
-                  <p className="mt-3 text-sm text-emerald-700">
-                    新しく検討を続ける場合は「複製する」を使ってください。
-                  </p>
-                </>
-              ) : (
-                <>
-                  <p className="mt-2 text-sm text-gray-600">
-                    現在の候補内容からアイテム作成画面の初期値を生成します。
-                  </p>
-                  <div className="mt-4">
-                    <PurchaseCandidateItemDraftAction
-                      candidateId={candidate.id}
-                      convertedItemId={candidate.converted_item_id}
-                    />
-                  </div>
-                  {candidate.converted_item_id !== null && (
-                    <p className="mt-3 text-sm text-emerald-700">
-                      この候補はアイテム化済みです。必要なら初期値を再生成できます。
-                    </p>
-                  )}
-                </>
+              {candidate.converted_item_id !== null && (
+                <p className="mt-3 text-sm text-emerald-700">
+                  この候補はアイテム化済みです。必要なら初期値を再生成できます。
+                </p>
               )}
-            </section>
+            </>
+          )}
+        </section>
 
-            <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-              <h2 className="text-lg font-semibold text-gray-900">基本情報</h2>
-              <dl className="mt-4 space-y-3 text-sm text-gray-600">
-                <div className="flex items-center justify-between gap-3">
-                  <dt>カテゴリ</dt>
-                  <dd>{candidate.category_name ?? candidate.category_id}</dd>
-                </div>
-                <div className="flex items-center justify-between gap-3">
-                  <dt>ブランド</dt>
-                  <dd>{candidate.brand_name ?? "未設定"}</dd>
-                </div>
-                <div className="flex items-center justify-between gap-3">
-                  <dt>想定価格</dt>
-                  <dd>{formatPrice(candidate.price)}</dd>
-                </div>
-                {(candidate.sale_price !== null ||
-                  candidate.sale_ends_at !== null) && (
-                  <>
-                    {candidate.sale_price !== null && (
-                      <div className="flex items-center justify-between gap-3 text-rose-700">
-                        <dt>セール価格</dt>
-                        <dd>{formatPrice(candidate.sale_price)}</dd>
-                      </div>
-                    )}
-                    <div className="flex items-center justify-between gap-3">
-                      <dt>セール終了予定</dt>
-                      <dd>{formatDateTime(candidate.sale_ends_at)}</dd>
-                    </div>
-                  </>
-                )}
-                <div className="flex items-center justify-between gap-3">
-                  <dt>雨対応</dt>
-                  <dd>{candidate.is_rain_ok ? "対応" : "未対応"}</dd>
-                </div>
-                <div className="flex items-center justify-between gap-3">
-                  <dt>サイズ区分</dt>
-                  <dd>
-                    {candidate.size_gender
-                      ? (PURCHASE_CANDIDATE_SIZE_GENDER_LABELS[
-                          candidate.size_gender
-                        ] ?? "未設定")
-                      : "未設定"}
-                  </dd>
-                </div>
-                <div className="flex items-center justify-between gap-3">
-                  <dt>購入 URL</dt>
-                  <dd>
-                    {candidate.purchase_url ? (
-                      <a
-                        href={candidate.purchase_url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-blue-600 hover:underline"
-                      >
-                        開く
-                      </a>
-                    ) : (
-                      "未設定"
-                    )}
-                  </dd>
-                </div>
-              </dl>
-            </section>
-
-            <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-              <h2 className="text-lg font-semibold text-gray-900">
-                素材・混率
-              </h2>
-              {materialGroups.length === 0 ? (
-                <p className="mt-3 text-sm text-gray-600">未登録</p>
-              ) : (
-                <dl className="mt-4 space-y-3 text-sm text-gray-600">
-                  {materialGroups.map((group) => (
-                    <div
-                      key={group.partLabel}
-                      className="flex items-start justify-between gap-3"
-                    >
-                      <dt className="shrink-0 text-gray-500">
-                        {group.partLabel}
-                      </dt>
-                      <dd className="text-right text-gray-700">
-                        {group.labels.join("、")}
-                      </dd>
-                    </div>
-                  ))}
-                </dl>
-              )}
-            </section>
-          </div>
+        <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <h2 className="text-lg font-semibold text-gray-900">基本情報</h2>
+          <dl className="mt-4 grid gap-4 md:grid-cols-2">
+            <div>
+              <dt className="text-sm font-medium text-gray-700">カテゴリ</dt>
+              <dd className="mt-1 text-sm text-gray-600">
+                {candidate.category_name ?? candidate.category_id}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-sm font-medium text-gray-700">ステータス</dt>
+              <dd className="mt-1 text-sm text-gray-600">
+                {PURCHASE_CANDIDATE_STATUS_LABELS[candidate.status]}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-sm font-medium text-gray-700">優先度</dt>
+              <dd className="mt-1 text-sm text-gray-600">
+                {PURCHASE_CANDIDATE_PRIORITY_LABELS[candidate.priority]}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-sm font-medium text-gray-700">
+                アイテム化状況
+              </dt>
+              <dd className="mt-1 text-sm text-gray-600">
+                {candidate.converted_item_id !== null
+                  ? "アイテム化済み"
+                  : "未実施"}
+              </dd>
+            </div>
+          </dl>
         </section>
 
         <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
@@ -337,24 +238,28 @@ export default async function PurchaseCandidateDetailPage({
         </section>
 
         <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-gray-900">理由・メモ</h2>
+          <h2 className="text-lg font-semibold text-gray-900">サイズ・属性</h2>
           <dl className="mt-4 grid gap-4 md:grid-cols-2">
             <div>
-              <dt className="text-sm font-medium text-gray-700">欲しい理由</dt>
+              <dt className="text-sm font-medium text-gray-700">サイズ区分</dt>
               <dd className="mt-1 text-sm text-gray-600">
-                {candidate.wanted_reason ?? "未設定"}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-700">メモ</dt>
-              <dd className="mt-1 text-sm text-gray-600">
-                {candidate.memo ?? "未設定"}
+                {candidate.size_gender
+                  ? (PURCHASE_CANDIDATE_SIZE_GENDER_LABELS[
+                      candidate.size_gender
+                    ] ?? "未設定")
+                  : "未設定"}
               </dd>
             </div>
             <div>
               <dt className="text-sm font-medium text-gray-700">サイズ表記</dt>
               <dd className="mt-1 text-sm text-gray-600">
                 {candidate.size_label ?? "未設定"}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-sm font-medium text-gray-700">雨対応</dt>
+              <dd className="mt-1 text-sm text-gray-600">
+                {candidate.is_rain_ok ? "対応" : "未対応"}
               </dd>
             </div>
             <div>
@@ -413,6 +318,126 @@ export default async function PurchaseCandidateDetailPage({
               )}
             </div>
           </dl>
+        </section>
+
+        <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <h2 className="text-lg font-semibold text-gray-900">素材・混率</h2>
+          {materialGroups.length === 0 ? (
+            <p className="mt-3 text-sm text-gray-600">未登録</p>
+          ) : (
+            <div className="mt-4 space-y-1">
+              {materialGroups.map((group) => (
+                <p key={group.partLabel} className="text-sm text-gray-600">
+                  {group.partLabel}: {group.labels.join("、")}
+                </p>
+              ))}
+            </div>
+          )}
+        </section>
+
+        <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <h2 className="text-lg font-semibold text-gray-900">購入情報</h2>
+          <dl className="mt-4 grid gap-4 md:grid-cols-2">
+            <div>
+              <dt className="text-sm font-medium text-gray-700">ブランド</dt>
+              <dd className="mt-1 text-sm text-gray-600">
+                {candidate.brand_name ?? "未設定"}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-sm font-medium text-gray-700">想定価格</dt>
+              <dd className="mt-1 text-sm text-gray-600">
+                {formatPrice(candidate.price)}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-sm font-medium text-gray-700">セール価格</dt>
+              <dd
+                className={`mt-1 text-sm ${candidate.sale_price !== null ? "text-rose-700" : "text-gray-600"}`}
+              >
+                {formatPrice(candidate.sale_price)}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-sm font-medium text-gray-700">
+                セール終了予定
+              </dt>
+              <dd className="mt-1 text-sm text-gray-600">
+                {formatDateTime(candidate.sale_ends_at)}
+              </dd>
+            </div>
+            <div className="md:col-span-2">
+              <dt className="text-sm font-medium text-gray-700">購入 URL</dt>
+              <dd className="mt-1 text-sm text-gray-600">
+                {candidate.purchase_url ? (
+                  <a
+                    href={candidate.purchase_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-blue-600 hover:underline"
+                  >
+                    開く
+                  </a>
+                ) : (
+                  "未設定"
+                )}
+              </dd>
+            </div>
+          </dl>
+        </section>
+
+        <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <h2 className="text-lg font-semibold text-gray-900">メモ</h2>
+          <dl className="mt-4 grid gap-4 md:grid-cols-2">
+            <div>
+              <dt className="text-sm font-medium text-gray-700">欲しい理由</dt>
+              <dd className="mt-1 text-sm text-gray-600">
+                {candidate.wanted_reason ?? "未設定"}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-sm font-medium text-gray-700">メモ</dt>
+              <dd className="mt-1 text-sm text-gray-600">
+                {candidate.memo ?? "未設定"}
+              </dd>
+            </div>
+          </dl>
+        </section>
+
+        <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <h2 className="text-lg font-semibold text-gray-900">画像</h2>
+
+          {candidate.images.length === 0 ? (
+            <p className="mt-3 text-sm text-gray-600">画像はまだありません。</p>
+          ) : (
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              {candidate.images.map((image) => (
+                <article
+                  key={image.id}
+                  className="overflow-hidden rounded-xl border border-gray-200"
+                >
+                  {image.url ? (
+                    <div className="flex aspect-[3/4] items-center justify-center bg-gray-50 p-2">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={image.url}
+                        alt={image.original_filename ?? candidate.name}
+                        className="h-full w-full object-contain"
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex aspect-[4/3] items-center justify-center bg-gray-100 text-sm text-gray-400">
+                      画像なし
+                    </div>
+                  )}
+                  <div className="p-3 text-sm text-gray-600">
+                    {image.sort_order}枚目
+                    {image.is_primary ? " / 代表画像" : ""}
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
         </section>
       </div>
     </main>

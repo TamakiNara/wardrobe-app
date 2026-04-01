@@ -85,6 +85,10 @@ thumbnail の current 確認用パターン一覧を見返すときは `docs/spe
 - purchase_candidates の create / edit でも `size_note` をサイズ感・着用感メモ、`size_details` を `structured` / `custom_fields` を持つ構造化実寸として入力できる
 - purchase_candidates のサイズ実寸 UI は items 側の `item-size-details-fields.tsx` と `size-details.ts` を再利用し、item draft でも `size_details` をそのまま引き継ぐ
 - purchase candidate の create / edit は current で 1 枚カードにまとまっているため、後続では item 新規作成に寄せて `基本情報 / 購入情報 / メモ / サイズ・属性 / 素材・混率 / 色 / 季節 / TPO / 画像` をセクションカード分離する方針を優先する
+- item / purchase candidate のカテゴリ入力 UI はどちらも整理途中であり、candidate 側だけを場当たりで直さず、カテゴリ入力 UI 全体を見直す後続 task として扱う
+- 後続では分類体系・選択の段階構造・表示ラベル・候補の並び・未選択時の見せ方・item 化後にどのカテゴリへ入るかの対応関係を揃える前提で整理する
+- 画面用途ごとの差は残してよいが、少なくとも同じカテゴリ体系を同じ意味で選んでいると分かる状態を目指す
+- item 側カテゴリ UI も完成扱いにせず、purchase candidate 側と合わせて後で着手が必要な設計課題として保持する
 
 直近または中期 TODO:
 

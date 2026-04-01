@@ -129,9 +129,24 @@ describe("PurchaseCandidateDetailPage", () => {
         params: Promise.resolve({ id: "10" }),
       }),
     );
+    const sectionTitles = Array.from(
+      markup.matchAll(
+        /<h2 class="text-lg font-semibold text-gray-900">([^<]+)<\/h2>/g,
+      ),
+    ).map((match) => match[1]);
 
     expect(markup).toContain("ネイビーコート");
     expect(markup).toContain("アイテム追加");
+    expect(sectionTitles).toEqual([
+      "アイテム追加",
+      "基本情報",
+      "色 / 季節 / TPO",
+      "サイズ・属性",
+      "素材・混率",
+      "購入情報",
+      "メモ",
+      "画像",
+    ]);
     expect(markup).toContain("保留中");
     expect(markup).toContain("優先度: 中");
     expect(markup).toContain("14,800円");

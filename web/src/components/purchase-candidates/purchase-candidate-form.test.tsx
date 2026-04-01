@@ -123,10 +123,10 @@ describe("PurchaseCandidateForm", () => {
 
     const sectionTitles = [
       "基本情報",
+      "購入情報",
       "色 / 季節 / TPO",
       "サイズ・属性",
       "素材・混率",
-      "購入情報",
       "メモ",
       "画像",
     ];
