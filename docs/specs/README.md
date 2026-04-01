@@ -22,3 +22,4 @@
 - API の request / response を見たいときは `../api/openapi.yaml` を参照する
 - DB 保存方針を見たいときは `../data/database.md` を参照する
 - 実装メモや未対応事項を見たいときは `../project/implementation-notes.md` を参照する
+- docs の表現ルールを確認したいときは `../project/docs-writing-guidelines.md` を参照する

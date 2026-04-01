@@ -79,7 +79,7 @@
 
 - `null` は「未設定」を表す
 - user 登録時に preferences record を同時作成してもよいし、初回 settings 保存時作成でもよい
-- MVP では 1 record 集約のシンプル構成を優先する
+- 初期実装範囲では 1 record 集約のシンプル構成を優先する
 - `calendar_week_start = null` の場合は、wear log カレンダーを月曜始まりで扱う
 
 ---
