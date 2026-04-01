@@ -459,7 +459,7 @@ items は非表示ではなく **状態管理** とする。
 
 - 通常 item 一覧には出さない
 - wear log 登録時の選択候補にも出さない
-- 別途 **disposed item 一覧** を持つ方向
+- 別途 **disposed item 一覧** を持つ
 
 ### item 削除時の扱い
 
