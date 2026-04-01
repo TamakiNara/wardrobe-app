@@ -334,12 +334,12 @@ server behavior:
 サジェスト仕様:
 
 - 検索対象は `name` / `kana`
-- current 実装は前方一致
+- 現状の実装は前方一致
 - `is_active = true` のみ対象
 - 表示はブランド名を主表示
 - 必要なら読み仮名を補助表示
 - 選択時に入力欄へ入るのはブランド名
-- current 実装では item 新規作成 / 編集画面で候補サジェスト UI を提供する
+- 現時点の実装では item 新規作成 / 編集画面で候補サジェスト UI を提供する
 
 保存ルール:
 
@@ -530,7 +530,7 @@ server behavior:
 
 ---
 
-## 16. current 実装メモ
+## 16. 現状の実装メモ
 
 - `items.brand_name` は DB / API / frontend payload に実装済み
 - `user_brands` と `BrandNormalizer` は実装済み
@@ -538,7 +538,7 @@ server behavior:
 - item create / update は `save_brand_as_candidate` を受け取り、Laravel 側で候補追加を試行する
 - `save_brand_as_candidate=true` かつ重複時は候補追加をスキップし、item 保存自体は成功させる
 - item 新規作成 / 編集画面では `GET /api/settings/brands` を使ったブランド候補サジェスト UI を実装済み
-- current 実装の画面パスは `/settings/brands`
+- 現状の実装の画面パスは `/settings/brands`
 - settings トップはハブ画面とし、ブランド候補設定本体は別ページで管理する
 - ブランド候補設定画面ではブランド候補一覧 / 追加 / 編集 / 有効無効切替 UI を実装済み
 - `/settings/brands` ではキーワード絞り込み、更新日時表示、無効候補の折りたたみ表示まで実装済み

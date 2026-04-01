@@ -81,7 +81,7 @@ item 詳細画面で行う status 操作 UI の仕様を整理する。
 
 ## `care_status` 操作
 
-### current 実装
+### 現状の実装
 
 - item 詳細画面から `in_cleaning` の付与 / 解除を行う
 - `care_status` は通常の create / update payload に含めてもよいが、詳細画面には即時切替導線も置く

@@ -161,7 +161,7 @@ DBテーブル構成の詳細は `docs/data/database.md` を参照する。
 
 ## UI構造
 
-- current 実装の画面パスは `/settings/categories`
+- 現状の実装の画面パスは `/settings/categories`
 - settings トップはハブ画面とし、カテゴリ設定本体は別ページで管理する
 
 大分類ごとに折りたたみ表示。

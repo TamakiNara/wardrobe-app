@@ -43,7 +43,7 @@ MVP では、item status に次の 2 値を持つ。
   - 状態管理の代替ではなく、登録ミスや不要 record の整理に限定して扱う
 - `care_status`
   - 主 status ではなく補助状態
-  - current では `in_cleaning` のみを持ち、候補除外や invalid 化の主制御には使わない
+  - 現時点では `in_cleaning` のみを持ち、候補除外や invalid 化の主制御には使わない
 
 ---
 
@@ -58,7 +58,7 @@ MVP では、item status に次の 2 値を持つ。
 ## `care_status` の意味
 
 - `care_status` は主 status ではなく補助状態として扱う
-- current 実装の許可値は `in_cleaning` のみ
+- 現状の実装の許可値は `in_cleaning` のみ
 - `in_cleaning` は「クリーニング中」を表す
 - 主制御ではなく、バッジ表示・警告・解除導線などの補助 UI に使う
 - `disposed` と同列の強い状態にはしない
@@ -148,9 +148,9 @@ MVP では、item status に次の 2 値を持つ。
 
 ---
 
-## current / planned / 未確定
+## 現状の実装 / 今後対応 / 未確定
 
-### current
+### 現状の実装
 
 - item status は `active` / `disposed` を持つ
 - 通常の create / update payload に `status` は含めない
@@ -162,15 +162,15 @@ MVP では、item status に次の 2 値を持つ。
 - `care_status = in_cleaning` は補助状態として扱い、候補除外や invalid 化の主制御には使わない
 - wear logs や過去参照を残す前提で、物理削除より `disposed` を優先する
 
-### planned
+### 今後対応
 
 - 通常編集フォームへ `status` を混ぜない方針を維持する
 - related outfit invalid 化や wear logs 候補除外を、状態変更操作と一体で分かる UI に寄せる
 
 ### 未確定
 
-- `disposed_at` / `dispose_reason` を current schema に追加するか
-- event log で `item_disposed` / `item_reactivated` をどこまで current に含めるか
+- `disposed_at` / `dispose_reason` を 現在の schema に追加するか
+- event log で `item_disposed` / `item_reactivated` をどこまで現状の範囲に含めるか
 - `delete` をどの条件まで許容し、どこから `disposed` へ誘導するか
 
 ---

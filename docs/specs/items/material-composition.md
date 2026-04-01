@@ -13,9 +13,9 @@ item に対して、素材と混率を扱えるようにする。
 
 - 優先順位と planning は `docs/specs/planning/next-features.md` を参照する
 - item / purchase candidate の保存方針は `docs/data/database.md` を参照する
-- current API schema は `docs/api/openapi.yaml` を参照し、materials 反映は実装タイミングで判断する
+- 現状の API schema は `docs/api/openapi.yaml` を参照し、materials 反映は実装タイミングで判断する
 - purchase candidate 側の仕様正本は `docs/specs/purchase-candidates.md` を参照する
-- current 実装メモは `docs/project/implementation-notes.md` を参照する
+- 現状の実装メモは `docs/project/implementation-notes.md` を参照する
 
 ---
 
@@ -334,7 +334,7 @@ item と purchase candidate で、同じ構造を使う前提とする。
 
 - 候補は入力補助
 - 自由入力可
-- current では settings 管理しない
+- 現時点では settings 管理しない
 - 保存正本は文字列
 
 ### 素材候補
@@ -356,7 +356,7 @@ item と purchase candidate で、同じ構造を使う前提とする。
 
 - 候補は入力補助
 - 自由入力可
-- current では settings 管理しない
+- 現時点では settings 管理しない
 - 保存正本は文字列
 
 ---
@@ -397,11 +397,11 @@ item と purchase candidate で、同じ構造を使う前提とする。
 
 ## 要確認事項
 
-- `part_label` の保存値は current では自由文字列前提だが、将来コード化するかは未確定
+- `part_label` の保存値は 現時点では自由文字列前提だが、将来コード化するかは未確定
 - 区分候補・素材候補は入力補助として書くに留め、settings 管理や master 管理へ広げるかは後続判断
 - purchase candidate 側への実装タイミングと、item 化時にどこまで無変換で引き継ぐかは別途確認が必要
-- OpenAPI / `docs/data/database.md` には、実装着手の段階で current 反映する。現時点では planned 扱いに留める
-- validation は spec で業務ルールを示し、OpenAPI は request / response の最小説明、実装メモは current 挙動補足に留める
+- OpenAPI / `docs/data/database.md` には、実装着手の段階で反映する。現時点では今回は未対応に留める
+- validation は spec で業務ルールを示し、OpenAPI は request / response の最小説明、実装メモは現時点の挙動補足に留める
 
 ---
 
@@ -414,7 +414,7 @@ item と purchase candidate で、同じ構造を使う前提とする。
 - 区分候補は `本体 / 裏地 / 別布 / リブ`
 - `その他` は置かない
 - 素材候補は入力補助として扱う
-- current では settings 管理しない
+- 現時点では settings 管理しない
 - DB は明細テーブル前提
 - `sort_order` は持たない
 

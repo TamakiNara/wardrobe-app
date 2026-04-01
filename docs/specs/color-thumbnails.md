@@ -1,6 +1,6 @@
 # Color Thumbnails
 
-item 画像の代わりではなく、構成色を補助表示するための「配色サムネイル」の current 仕様を整理する。
+item 画像の代わりではなく、構成色を補助表示するための「配色サムネイル」の 現在の仕様を整理する。
 
 関連資料:
 
@@ -35,7 +35,7 @@ item 画像の代わりではなく、構成色を補助表示するための「
 - `others` がない場合はバーを表示しない
 - tops / bottoms のどちらか一方だけがある場合は、メインコンテナ全体をそのグループで使う
 - `others` のみの場合は、サムネイル全体を `others` で使う
-- current 実装では、メインコンテナと `others` バーを wrapper 上も分けて扱う
+- 現時点の実装では、メインコンテナと `others` バーを wrapper 上も分けて扱う
 - `others` バーは、メインの四角コンテナの内側ではなく外側下部に独立して配置する
 
 ---
@@ -53,7 +53,7 @@ item 画像の代わりではなく、構成色を補助表示するための「
 - sub color は右端の細帯で表現する
 - sub color がない場合は単色で描画する
 - item の現在の `main / sub` 色情報を使う
-- current 実装では outfit / wear logs ともに共通の segment helper を使うが、正本の取り方は機能ごとに分ける
+- 現時点の実装では outfit / wear logs ともに共通の segment helper を使うが、正本の取り方は機能ごとに分ける
 
 ---
 
@@ -64,10 +64,10 @@ item 画像の代わりではなく、構成色を補助表示するための「
 
 ---
 
-## current の適用範囲
+## 現状の適用範囲
 
 - outfit 一覧
-  - current outfit の item 構成を正本にして描画する
+  - 現在の outfit の item 構成を正本にして描画する
 - wear logs 一覧
   - `wear_log_items` を正本にして描画する
   - `source_outfit_id` は描画正本として使わない
@@ -75,5 +75,5 @@ item 画像の代わりではなく、構成色を補助表示するための「
   - `wear_log_items` を正本にした簡略版サムネイルを表示する
   - 一覧用 helper を土台にしつつ、component はモーダル用に分ける
 - クローゼットビュー
-  - item の current 色情報を正本にし、図形の main / sub 表現にも同じフォールバック色を使う
+  - item の現在の色情報を正本にし、図形の main / sub 表現にも同じフォールバック色を使う
 - outfit 詳細 / wear log 個別詳細への展開もまだ行わない

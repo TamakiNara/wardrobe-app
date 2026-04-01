@@ -197,7 +197,7 @@
 - outfit ベースの wear log は、sample data でも `wear_log_items` を実体化した状態で再投入する
 - ブランド候補は `empty-user@example.com` 0 件、`standard-user@example.com` 9 件、`large-user@example.com` 24 件を投入し、標準 / 多件数 / inactive 混在の確認ができる
 - `php artisan migrate:fresh --seed` と `php artisan db:seed --class=TestDatasetSeeder` は実行確認済み
-- TODO: wear log の sample date は固定日ではなく、seed 実行日を基準に前後日・月またぎを確認できる相対日付投入へ寄せる
+- 将来タスク: wear log の sample date は固定日ではなく、seed 実行日を基準に前後日・月またぎを確認できる相対日付投入へ寄せる
 
 
 - `TestDatasetSeeder` 単体実行時でも category 系 master とユーザーの `visible_category_ids` が整合するように修正済み

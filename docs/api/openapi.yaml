@@ -549,7 +549,7 @@ paths:
       description: |
         ホーム画面向けの軽量 summary。
         一覧 API の payload や filter / sort / paginate / thumbnail 生成は行わず、
-        current 一覧の初期母数に揃えた件数だけを返す。
+        現在の一覧の初期母数に揃えた件数だけを返す。
       security:
         - SessionCookieAuth: []
       responses:
@@ -803,7 +803,7 @@ paths:
       summary: アイテムのケア状態を更新
       description: |
         item の補助状態 `care_status` を更新する。
-        current 実装の許可値は `in_cleaning` のみで、`null` は補助状態なしを表す。
+        現状の実装の許可値は `in_cleaning` のみで、`null` は補助状態なしを表す。
         `care_status` はバッジ表示・警告・解除導線に使い、候補除外や invalid 化の主制御には使わない。
         response には更新後の item を含む。
       security:
@@ -1067,7 +1067,7 @@ paths:
         一覧用の補助配色サムネイルは `thumbnail_items` で返し、
         描画正本は `source_outfit_id` ではなく `wear_log_items` とする。
         `items=[]` かつ `source_outfit_id` ありで保存した record でも、
-        current 実装では source outfit の構成を `wear_log_items` として実体化する。
+        現時点の実装では source outfit の構成を `wear_log_items` として実体化する。
       parameters:
         - name: page
           in: query
@@ -1758,7 +1758,7 @@ components:
       description: |
         field 単位の `errors` を持たない 422 response。
         業務ルール違反や認証失敗など、message のみで補助説明を返す。
-        current API では競合系も原則 409 ではなく 422 に寄せ、この schema を使う。
+        現状の API では競合系も原則 409 ではなく 422 に寄せ、この schema を使う。
       type: object
       required:
         - message
@@ -2249,7 +2249,7 @@ components:
       type: object
       description: |
         構造化された実寸情報。`size_note` はサイズ感・着用感の補足メモとして別に持ち、
-        `size_details` には実寸だけを保存する。旧 `size_details.note` は current では廃止。
+        `size_details` には実寸だけを保存する。旧 `size_details.note` は 現時点では廃止。
       properties:
         structured:
           $ref: '#/components/schemas/ItemSizeStructuredDetails'
@@ -2451,7 +2451,7 @@ components:
           deprecated: true
           description: |
             旧 name ベース request との互換用フィールド。
-            current 実装では `tpo_ids` を正本として扱う。
+            現時点の実装では `tpo_ids` を正本として扱う。
           items:
             type: string
         tpo_ids:
@@ -2465,7 +2465,7 @@ components:
           nullable: true
           description: |
             item の素材・混率明細。未入力なら未指定または空配列を許可する。
-            区分ごとの合計100%、同一区分内の同素材重複不可を current ルールとする。
+            区分ごとの合計100%、同一区分内の同素材重複不可を 現在のルールとする。
           items:
             $ref: '#/components/schemas/ItemMaterialRecord'
         images:
@@ -2543,7 +2543,7 @@ components:
           type: integer
           minimum: 1
           maximum: 100
-          description: 区分内での混率。current では整数のみを許可する。
+          description: 区分内での混率。現時点では整数のみを許可する。
 
     ItemImageUpsertPayload:
       type: object
@@ -2757,7 +2757,7 @@ components:
           deprecated: true
           description: |
             旧 name ベース request との互換用フィールド。
-            current 実装では `tpo_ids` を正本として扱う。
+            現時点の実装では `tpo_ids` を正本として扱う。
           items:
             type: string
         tpo_ids:
@@ -3748,7 +3748,7 @@ components:
     PurchaseCandidateItemDraftPayload:
       type: object
       description: |
-        current POST /api/items に合わせた初期値を返し、
+        現在の POST /api/items に合わせた初期値を返し、
         candidate 側の category_id は source_category_id として補助的に保持する。
       required:
         - name
@@ -3773,11 +3773,11 @@ components:
         category:
           type: string
           example: outer
-          description: current POST /api/items の category にそのまま渡す値。
+          description: 現在の POST /api/items の category にそのまま渡す値。
         shape:
           type: string
           example: trench
-          description: current POST /api/items の shape にそのまま渡す値。
+          description: 現在の POST /api/items の shape にそのまま渡す値。
         brand_name:
           type: string
           nullable: true

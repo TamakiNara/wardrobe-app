@@ -33,7 +33,7 @@ item 詳細画面での status 操作 UI は `docs/specs/items/detail-status-ui.
 - 誤操作防止の confirm を前提とし、高頻度削除が必要な機能だけ例外扱いにする
 - 正本: `docs/project/implementation-notes.md`, `docs/specs/wears/wear-logs.md`
 
-- event_logs は future テーブル案として整理済み
+- event_logs は 将来タスクのテーブル案として整理済み
 - MVP では重要な状態変化を優先対象とし、`disposed / invalid / restore / duplicate` を残す方針とする
 - 正本: `docs/data/database.md`, `docs/specs/logging/logging-policy.md`
 
@@ -51,14 +51,14 @@ item 詳細画面での status 操作 UI は `docs/specs/items/detail-status-ui.
 - 正本: `docs/specs/wears/wear-logs.md`, `docs/data/database.md`, `docs/api/openapi.yaml`
 
 - wear logs snapshot は **未実装の保留論点** として残す
-- 現時点では current データ参照ベースで進め、snapshot なしでも一覧・登録・更新の最小実用は成立している
+- 現時点では 現在のデータ参照ベースで進め、snapshot なしでも一覧・登録・更新の最小実用は成立している
 - 未完了タスク: 保存タイミング、保存対象、表示用途、集計用途、既存データ移行の方針整理
 - 導入時の影響範囲: DB schema、API response、wear logs 一覧 / 編集 / 将来詳細 UI、集計ロジック
 
 - purchase_candidates の MVP は CRUD / 画像 / item-draft まで実装済み
 - item 側では purchase_candidates 由来の `brand_name / price / purchase_url / purchased_at / size_* / is_rain_ok / item_images` を受ける土台まで実装済み
 - 実装済み: 一覧・詳細・作成・更新・削除、画像追加 / 削除、`POST /api/purchase-candidates/{id}/item-draft`
-- `item-draft` は `source_category_id` を保持しつつ current item API 互換の `category` / `shape` と配列項目を返す
+- `item-draft` は `source_category_id` を保持しつつ 現在の item API 互換の `category` / `shape` と配列項目を返す
 - purchase_candidates は主要導線としてボトムナビへ追加済み
 - フォームでは必須表示、custom color code、季節 `オール` の排他制御を実装済み
 - 未実装: 比較ロジックの高度化、item 保存成功時の `purchased` 反映自動化、item 画像 upload / delete UI
@@ -77,10 +77,10 @@ item 詳細画面での status 操作 UI は `docs/specs/items/detail-status-ui.
 
 ---
 
-## future API
+## 将来タスクの API
 
-- 現時点の wear logs 関連 future API はなし
-- purchase_candidates 関連の future API は現時点ではなし
+- 現時点の wear logs 関連 将来タスクの API はなし
+- purchase_candidates 関連の 将来タスクの API は現時点ではなし
 - 正本: `docs/api/openapi.yaml`
 
 ---
@@ -139,4 +139,4 @@ item 詳細画面での status 操作 UI は `docs/specs/items/detail-status-ui.
 - 仕様確認は `docs/specs/` を優先し、保存方針は `docs/data/database.md`、API schema は `docs/api/openapi.yaml` を優先する
 - 実装時に docs と差異が出た場合は、このチェックリストではなく正本側を更新する
 - `docs/project/implementation-notes.md` は進捗共有と引き継ぎメモ、`implementation-checklist.md` は実装前確認の整理用として使い分ける
-- ボトムナビは major feature 追加時に都度見直し、現時点では purchase_candidates を表示対象に含め、wear logs の表示対象追加は TODO として残す
+- ボトムナビは major feature 追加時に都度見直し、現時点では purchase_candidates を表示対象に含め、wear logs の表示対象追加は 将来タスク として残す

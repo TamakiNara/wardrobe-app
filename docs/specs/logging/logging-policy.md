@@ -415,7 +415,7 @@ MVP では、次はイベントログに残さない。
 
 #### メリット
 
-- current MVP をそのまま維持できる
+- 現在の MVP をそのまま維持できる
 - DB / API / UI の追加コストがない
 
 #### デメリット
@@ -447,7 +447,7 @@ MVP では、次はイベントログに残さない。
 
 - 監査用途と UI 用途が混ざりやすい
 - DB / API / UI / 文言設計コストが一気に増える
-- current MVP には過剰
+- 現在の MVP には過剰
 
 ---
 
@@ -457,7 +457,7 @@ MVP では、次はイベントログに残さない。
 
 ### 推奨理由
 
-- current MVP は event log なしで成立している
+- 現在の MVP は event log なしで成立している
 - まず必要なのは履歴 UI ではなく、重要な状態変化の因果関係を後から確認できること
 - snapshot や event log を同時に広げると、wear logs / purchase_candidates / outfits の責務整理が重くなる
 

@@ -2,9 +2,9 @@
 
 ## 今回の結論
 
-第1弾（preferences 基盤 + settings API/UI + 初期表示連動）は current 実装済み。
+第1弾（preferences 基盤 + settings API/UI + 初期表示連動）は 現状の実装済み。
 本メモでは、第1弾までの前提整理を残しつつ、主に第2弾以降の後続実装判断に使う。
-カレンダーAPIや `care_status` を current 化する段階では、必要に応じて `docs/specs/` 配下の正式 spec へ分解する。
+カレンダーAPIや `care_status` を 実装する段階では、必要に応じて `docs/specs/` 配下の正式 spec へ分解する。
 
 優先度順は以下とする。
 
@@ -358,7 +358,7 @@ settings には「重い設定」と「軽い設定」を分けて置くが、AP
 - コーデ作成時は除外しない
 - 着用履歴で使用する時は注意を出す
 
-### planned / worn での警告
+### 今後対応 / worn での警告
 
 - planned 保存時: 軽い警告
 - worn 保存時: より明確な警告
@@ -368,7 +368,7 @@ settings には「重い設定」と「軽い設定」を分けて置くが、AP
 
 - 警告だけで終わらせない
 - 初期版では item 詳細へ移動できる導線を置く
-- 将来は警告UI内でクリーニング解除できるクイック操作を TODO とする
+- 将来は警告UI内でクリーニング解除できるクイック操作を 将来タスク とする
 
 ---
 
@@ -378,7 +378,7 @@ settings には「重い設定」と「軽い設定」を分けて置くが、AP
 
 preferences 基盤 + settings API/UI
 
-current:
+現状の実装:
 
 - `user_preferences` 導入
 - `GET /api/settings/preferences`
@@ -391,7 +391,7 @@ current:
 
 カレンダーAPI + 月表示 / 日詳細シート
 
-current:
+現状の実装:
 
 - `GET /api/wear-logs/calendar`
 - `GET /api/wear-logs/by-date`
@@ -404,7 +404,7 @@ current:
 
 `care_status` 導入
 
-current:
+現状の実装:
 
 - `items.care_status` 追加
 - item create / edit / detail / list
