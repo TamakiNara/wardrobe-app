@@ -3,7 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ApiClientError, apiFetch } from "@/lib/api/client";
-import type { PurchaseCandidateMutationResponse } from "@/types/purchase-candidates";
+import { savePurchaseCandidateDuplicatePayload } from "@/lib/purchase-candidates/duplicate";
+import type { PurchaseCandidateDuplicateResponse } from "@/types/purchase-candidates";
 
 type PurchaseCandidateDuplicateActionProps = {
   candidateId: number;
@@ -25,7 +26,7 @@ export default function PurchaseCandidateDuplicateAction({
     setError(null);
 
     try {
-      const data = await apiFetch<PurchaseCandidateMutationResponse>(
+      const data = await apiFetch<PurchaseCandidateDuplicateResponse>(
         `/api/purchase-candidates/${candidateId}/duplicate`,
         {
           method: "POST",
@@ -37,12 +38,12 @@ export default function PurchaseCandidateDuplicateAction({
       );
 
       if (!data.purchaseCandidate) {
-        setError("複製に失敗しました。");
+        setError("複製の初期値を作成できませんでした。");
         return;
       }
 
-      router.push(`/purchase-candidates/${data.purchaseCandidate.id}`);
-      router.refresh();
+      savePurchaseCandidateDuplicatePayload(data.purchaseCandidate);
+      router.push("/purchase-candidates/new?source=duplicate");
     } catch (error) {
       if (error instanceof ApiClientError) {
         if (error.status === 401) {
@@ -56,7 +57,7 @@ export default function PurchaseCandidateDuplicateAction({
           return;
         }
 
-        setError(error.data?.message ?? "複製に失敗しました。");
+        setError(error.data?.message ?? "複製の初期値を作成できませんでした。");
         return;
       }
 

@@ -4,11 +4,12 @@ import Link from "next/link";
 import {
   useEffect,
   useMemo,
+  useRef,
   useState,
   type FormEvent,
   type ReactNode,
 } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import FieldLabel from "@/components/forms/field-label";
 import ColorChip from "@/components/items/color-chip";
 import ColorSelect from "@/components/items/color-select";
@@ -42,10 +43,15 @@ import {
   PURCHASE_CANDIDATE_SIZE_GENDER_LABELS,
   PURCHASE_CANDIDATE_STATUS_LABELS,
 } from "@/lib/purchase-candidates/labels";
+import {
+  clearPurchaseCandidateDuplicatePayload,
+  loadPurchaseCandidateDuplicatePayload,
+} from "@/lib/purchase-candidates/duplicate";
 import { resolvePurchaseCandidateItemCategory } from "@/lib/purchase-candidates/category-map";
 import type { CategoryGroupRecord, CategoryOption } from "@/types/categories";
 import type {
   PurchaseCandidateDetailResponse,
+  PurchaseCandidateDuplicateImageRecord,
   PurchaseCandidateImageRecord,
   PurchaseCandidatePriority,
   PurchaseCandidateRecord,
@@ -153,6 +159,8 @@ export default function PurchaseCandidateForm({
   footerAction,
 }: PurchaseCandidateFormProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const hasAppliedDuplicateDraftRef = useRef(false);
 
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -197,9 +205,18 @@ export default function PurchaseCandidateForm({
   const [existingImages, setExistingImages] = useState<
     PurchaseCandidateImageRecord[]
   >([]);
+  const [duplicateImages, setDuplicateImages] = useState<
+    PurchaseCandidateDuplicateImageRecord[]
+  >([]);
   const [pendingImages, setPendingImages] = useState<File[]>([]);
 
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [initializationError, setInitializationError] = useState<string | null>(
+    null,
+  );
+  const [initializationSuccess, setInitializationSuccess] = useState<
+    string | null
+  >(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -251,6 +268,21 @@ export default function PurchaseCandidateForm({
     () => validateItemMaterials(materialRows),
     [materialRows],
   );
+  const imageHelperText =
+    duplicateImages.length > 0
+      ? [
+          "購入検討から引き継ぐ画像です。",
+          "保存すると新しい購入検討へ画像をコピーします。",
+        ].join("")
+      : [
+          "一覧では代表画像を表示し、",
+          "詳細や編集では画像全体を見やすく表示します。",
+        ].join("");
+  const formMessage =
+    initializationError ??
+    submitError ??
+    initializationSuccess ??
+    submitSuccess;
 
   useEffect(() => {
     async function loadInitialData() {
@@ -353,6 +385,7 @@ export default function PurchaseCandidateForm({
           setSelectedTpos(candidate.tpos);
           setMaterialRows(buildEditableItemMaterials(candidate.materials));
           setExistingImages(candidate.images);
+          setDuplicateImages([]);
         }
       } catch {
         setLoadError("購入検討フォームの初期化に失敗しました。");
@@ -363,6 +396,105 @@ export default function PurchaseCandidateForm({
 
     loadInitialData();
   }, [candidateId, mode, router]);
+
+  useEffect(() => {
+    if (mode !== "create") {
+      return;
+    }
+
+    if (searchParams.get("source") !== "duplicate") {
+      return;
+    }
+
+    if (loading) {
+      return;
+    }
+
+    if (hasAppliedDuplicateDraftRef.current) {
+      return;
+    }
+
+    hasAppliedDuplicateDraftRef.current = true;
+
+    const payload = loadPurchaseCandidateDuplicatePayload();
+    clearPurchaseCandidateDuplicatePayload();
+    router.replace("/purchase-candidates/new");
+    setInitializationError(null);
+    setInitializationSuccess(null);
+
+    if (!payload) {
+      setInitializationError(
+        "複製の初期値を読み込めませんでした。通常の新規作成として続けてください。",
+      );
+      return;
+    }
+
+    const main = payload.colors.find((color) => color.role === "main");
+    const sub = payload.colors.find((color) => color.role === "sub");
+
+    setStatus(payload.status);
+    setPriority(payload.priority);
+    setName(payload.name);
+    setCategoryId(payload.category_id);
+    setBrandName(payload.brand_name ?? "");
+    setPrice(payload.price === null ? "" : String(payload.price));
+    setSalePrice(payload.sale_price === null ? "" : String(payload.sale_price));
+    setSaleEndsAt(toDateTimeLocalValue(payload.sale_ends_at));
+    setPurchaseUrl(payload.purchase_url ?? "");
+    setWantedReason(payload.wanted_reason ?? "");
+    setMemo(payload.memo ?? "");
+    setSizeGender(payload.size_gender ?? "");
+    setSizeLabel(payload.size_label ?? "");
+    setSizeNote(payload.size_note ?? "");
+
+    const normalizedSizeDetails = normalizeItemSizeDetails(
+      payload.size_details,
+    );
+    setStructuredSizeValues(
+      normalizedSizeDetails?.structured
+        ? Object.fromEntries(
+            Object.entries(normalizedSizeDetails.structured).map(
+              ([fieldName, fieldValue]) => [fieldName, String(fieldValue)],
+            ),
+          )
+        : {},
+    );
+    setCustomSizeFields(
+      normalizedSizeDetails?.custom_fields?.map((field, index) => ({
+        id: `duplicate-${index}`,
+        label: field.label,
+        value: String(field.value),
+      })) ?? [],
+    );
+    setIsRainOk(payload.is_rain_ok);
+
+    if (main?.mode === "custom") {
+      setUseCustomMainColor(true);
+      setCustomMainHex(main.hex);
+      setMainColor("");
+    } else {
+      setUseCustomMainColor(false);
+      setMainColor((main?.value as ItemColorValue | undefined) ?? "");
+    }
+
+    if (sub?.mode === "custom") {
+      setUseCustomSubColor(true);
+      setCustomSubHex(sub.hex);
+      setSubColor("");
+    } else {
+      setUseCustomSubColor(false);
+      setSubColor((sub?.value as ItemColorValue | undefined) ?? "");
+    }
+
+    setSelectedSeasons(payload.seasons);
+    setSelectedTpos(payload.tpos);
+    setMaterialRows(buildEditableItemMaterials(payload.materials));
+    setExistingImages(payload.images);
+    setDuplicateImages(payload.images);
+    setPendingImages([]);
+    setErrors({});
+    setInitializationSuccess("複製元の内容を初期値として読み込みました。");
+  }, [loading, mode, router, searchParams]);
 
   function toggleValue(
     value: string,
@@ -512,6 +644,12 @@ export default function PurchaseCandidateForm({
       seasons: selectedSeasons,
       tpos: selectedTpos,
       materials: materialValidation.payload,
+      duplicate_images:
+        mode === "create" && duplicateImages.length > 0
+          ? duplicateImages.map((image) => ({
+              source_image_id: image.source_image_id,
+            }))
+          : undefined,
     };
   }
 
@@ -586,6 +724,8 @@ export default function PurchaseCandidateForm({
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
+    setInitializationError(null);
+    setInitializationSuccess(null);
     setSubmitError(null);
     setSubmitSuccess(null);
 
@@ -1242,19 +1382,19 @@ export default function PurchaseCandidateForm({
               : undefined
           }
           disabled={submitting}
-          helperText="一覧では代表画像を表示し、詳細や編集では画像全体を見やすく表示します。"
+          helperText={imageHelperText}
         />
       </ItemFormSection>
 
-      {(submitError || submitSuccess) && (
+      {formMessage && (
         <section
           className={`rounded-xl border px-4 py-3 text-sm ${
-            submitError
+            initializationError || submitError
               ? "border-red-200 bg-red-50 text-red-700"
               : "border-green-200 bg-green-50 text-green-700"
           }`}
         >
-          {submitError ?? submitSuccess}
+          {formMessage}
         </section>
       )}
 

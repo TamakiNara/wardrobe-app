@@ -8,6 +8,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const pushMock = vi.fn();
 const refreshMock = vi.fn();
 const apiFetchMock = vi.fn();
+const saveDuplicatePayloadMock = vi.fn();
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({
@@ -28,6 +29,11 @@ vi.mock("@/lib/api/client", () => ({
     }
   },
   apiFetch: (...args: unknown[]) => apiFetchMock(...args),
+}));
+
+vi.mock("@/lib/purchase-candidates/duplicate", () => ({
+  savePurchaseCandidateDuplicatePayload: (...args: unknown[]) =>
+    saveDuplicatePayloadMock(...args),
 }));
 
 async function waitForEffects() {
@@ -55,11 +61,31 @@ describe("PurchaseCandidateDuplicateAction", () => {
     globalThis.IS_REACT_ACT_ENVIRONMENT = false;
   });
 
-  it("複製成功時は新しい購入検討詳細へ遷移する", async () => {
+  it("複製成功時は初期値 payload を保存して新規作成画面へ遷移する", async () => {
     apiFetchMock.mockResolvedValue({
-      message: "created",
+      message: "duplicated_payload_ready",
       purchaseCandidate: {
-        id: 11,
+        name: "春コート（コピー）",
+        status: "considering",
+        priority: "medium",
+        category_id: "outer_coat",
+        brand_name: "Sample",
+        price: 14800,
+        sale_price: 12800,
+        sale_ends_at: null,
+        purchase_url: "https://example.test/products/1",
+        memo: "メモ",
+        wanted_reason: "欲しい理由",
+        size_gender: "women",
+        size_label: "M",
+        size_note: null,
+        size_details: null,
+        is_rain_ok: true,
+        colors: [],
+        seasons: [],
+        tpos: [],
+        materials: [],
+        images: [],
       },
     });
 
@@ -86,7 +112,15 @@ describe("PurchaseCandidateDuplicateAction", () => {
       "/api/purchase-candidates/10/duplicate",
       expect.objectContaining({ method: "POST" }),
     );
-    expect(pushMock).toHaveBeenCalledWith("/purchase-candidates/11");
-    expect(refreshMock).toHaveBeenCalled();
+    expect(saveDuplicatePayloadMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: "春コート（コピー）",
+        status: "considering",
+      }),
+    );
+    expect(pushMock).toHaveBeenCalledWith(
+      "/purchase-candidates/new?source=duplicate",
+    );
+    expect(refreshMock).not.toHaveBeenCalled();
   });
 });

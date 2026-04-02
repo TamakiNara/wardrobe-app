@@ -7,13 +7,16 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const pushMock = vi.fn();
 const refreshMock = vi.fn();
+const replaceMock = vi.fn();
 const routerMock = {
   push: pushMock,
   refresh: refreshMock,
+  replace: replaceMock,
 };
 const fetchCategoryGroupsMock = vi.fn();
 const fetchCategoryVisibilitySettingsMock = vi.fn();
 const fetchMock = vi.fn();
+let searchParamsValue = "";
 
 vi.mock("next/link", () => ({
   default: ({ children, href, ...props }: React.ComponentProps<"a">) =>
@@ -22,6 +25,7 @@ vi.mock("next/link", () => ({
 
 vi.mock("next/navigation", () => ({
   useRouter: () => routerMock,
+  useSearchParams: () => new URLSearchParams(searchParamsValue),
 }));
 
 vi.mock("@/lib/api/categories", () => ({
@@ -39,6 +43,8 @@ describe("PurchaseCandidateForm", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     globalThis.IS_REACT_ACT_ENVIRONMENT = true;
+    searchParamsValue = "";
+    window.sessionStorage.clear();
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
@@ -412,6 +418,95 @@ describe("PurchaseCandidateForm", () => {
 
     expect(summerButton.getAttribute("aria-pressed")).toBe("true");
     expect(allSeasonButton.getAttribute("aria-pressed")).toBe("false");
+  });
+
+  it("duplicate 初期値を読み込み、保存時に duplicate_images を送る", async () => {
+    searchParamsValue = "source=duplicate";
+    window.sessionStorage.setItem(
+      "purchase-candidate-duplicate-payload",
+      JSON.stringify({
+        status: "considering",
+        priority: "high",
+        name: "春コート（コピー）",
+        category_id: "outer_coat",
+        brand_name: "Sample Brand",
+        price: 14800,
+        sale_price: 12800,
+        sale_ends_at: null,
+        purchase_url: "https://example.test/products/1",
+        memo: "メモ",
+        wanted_reason: "欲しい理由",
+        size_gender: "women",
+        size_label: "M",
+        size_note: "",
+        size_details: null,
+        is_rain_ok: true,
+        colors: [
+          {
+            role: "main",
+            mode: "preset",
+            value: "navy",
+            hex: "#1F3A5F",
+            label: "ネイビー",
+          },
+        ],
+        seasons: ["春"],
+        tpos: ["休日"],
+        materials: [],
+        images: [
+          {
+            id: 7,
+            source_image_id: 7,
+            purchase_candidate_id: 10,
+            disk: "public",
+            path: "purchase-candidates/10/source.png",
+            url: "/storage/purchase-candidates/10/source.png",
+            original_filename: "source.png",
+            mime_type: "image/png",
+            file_size: 1234,
+            sort_order: 1,
+            is_primary: true,
+          },
+        ],
+      }),
+    );
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 201,
+      json: async () => ({
+        purchaseCandidate: {
+          id: 12,
+        },
+      }),
+    });
+
+    await renderForm();
+
+    expect(container.querySelector<HTMLInputElement>("#name")?.value).toBe(
+      "春コート（コピー）",
+    );
+    expect(container.textContent).toContain(
+      "複製元の内容を初期値として読み込みました。",
+    );
+    expect(container.textContent).toContain("source.png");
+    expect(container.textContent).toContain(
+      "購入検討から引き継ぐ画像です。保存すると新しい購入検討へ画像をコピーします。",
+    );
+    expect(replaceMock).toHaveBeenCalledWith("/purchase-candidates/new");
+
+    const form = container.querySelector("form") as HTMLFormElement;
+
+    await act(async () => {
+      form.dispatchEvent(
+        new Event("submit", { bubbles: true, cancelable: true }),
+      );
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [, requestInit] = fetchMock.mock.calls[0];
+    const payload = JSON.parse(requestInit.body as string);
+
+    expect(payload.duplicate_images).toEqual([{ source_image_id: 7 }]);
   });
 
   it("購入済みの購入検討では編集可能項目だけ送信する", async () => {

@@ -29,8 +29,11 @@ describe("POST /api/purchase-candidates/[id]/duplicate", () => {
       )
       .mockResolvedValueOnce(
         new Response(
-          JSON.stringify({ message: "created", purchaseCandidate: { id: 11 } }),
-          { status: 201, headers: { "content-type": "application/json" } },
+          JSON.stringify({
+            message: "duplicated_payload_ready",
+            purchaseCandidate: { name: "候補（コピー）" },
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
         ),
       ) as typeof fetch;
 
@@ -56,6 +59,6 @@ describe("POST /api/purchase-candidates/[id]/duplicate", () => {
       "http://localhost:8000/api/purchase-candidates/1/duplicate",
       expect.objectContaining({ method: "POST" }),
     );
-    expect(json.purchaseCandidate.id).toBe(11);
+    expect(json.purchaseCandidate.name).toBe("候補（コピー）");
   });
 });

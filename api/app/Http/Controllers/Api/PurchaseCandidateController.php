@@ -57,12 +57,12 @@ class PurchaseCandidateController extends Controller
 
     public function duplicate(Request $request, int $id): JsonResponse
     {
-        $candidate = $this->purchaseCandidateService->duplicate($request->user(), $id);
+        $payload = $this->purchaseCandidateService->duplicate($request->user(), $id);
 
         return response()->json([
-            'message' => 'created',
-            'purchaseCandidate' => PurchaseCandidatePayloadBuilder::buildDetail($candidate),
-        ], 201);
+            'message' => 'duplicated_payload_ready',
+            'purchaseCandidate' => $payload,
+        ]);
     }
 
     public function destroy(Request $request, int $id): JsonResponse
@@ -179,6 +179,9 @@ class PurchaseCandidateController extends Controller
             'materials.*.part_label' => ['required', 'string', 'max:100'],
             'materials.*.material_name' => ['required', 'string', 'max:100'],
             'materials.*.ratio' => ['required', 'integer', 'between:1,100'],
+            'duplicate_images' => ['nullable', 'array'],
+            'duplicate_images.*' => ['array:source_image_id'],
+            'duplicate_images.*.source_image_id' => ['required', 'integer', 'distinct'],
         ]);
 
         ItemMaterialValidator::validate($validated);

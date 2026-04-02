@@ -110,11 +110,31 @@ export type PurchaseCandidateUpsertPayload = {
   seasons: string[];
   tpos: string[];
   materials?: ItemMaterialRecord[];
+  duplicate_images?: {
+    source_image_id: number;
+  }[];
 };
 
 export type PurchaseCandidateMutationResponse = {
   message: string;
   purchaseCandidate: PurchaseCandidateRecord;
+};
+
+export type PurchaseCandidateDuplicateImageRecord =
+  PurchaseCandidateImageRecord & {
+    source_image_id: number;
+  };
+
+export type PurchaseCandidateDuplicatePayload = Omit<
+  PurchaseCandidateUpsertPayload,
+  "duplicate_images"
+> & {
+  images: PurchaseCandidateDuplicateImageRecord[];
+};
+
+export type PurchaseCandidateDuplicateResponse = {
+  message: string;
+  purchaseCandidate: PurchaseCandidateDuplicatePayload;
 };
 
 export type PurchaseCandidateItemDraftPayload = {

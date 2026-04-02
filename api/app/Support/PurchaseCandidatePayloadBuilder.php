@@ -156,6 +156,67 @@ class PurchaseCandidatePayloadBuilder
         ];
     }
 
+    public static function buildDuplicateDraft(
+        PurchaseCandidate $candidate,
+        string $duplicatedName,
+    ): array {
+        $candidate->loadMissing(['colors', 'seasons', 'tpos', 'images', 'materials']);
+
+        return [
+            'status' => 'considering',
+            'priority' => $candidate->priority,
+            'name' => $duplicatedName,
+            'category_id' => $candidate->category_id,
+            'brand_name' => $candidate->brand_name,
+            'price' => $candidate->price,
+            'sale_price' => $candidate->sale_price,
+            'sale_ends_at' => $candidate->sale_ends_at?->toISOString(),
+            'purchase_url' => $candidate->purchase_url,
+            'memo' => $candidate->memo,
+            'wanted_reason' => $candidate->wanted_reason,
+            'size_gender' => $candidate->size_gender,
+            'size_label' => $candidate->size_label,
+            'size_note' => $candidate->size_note,
+            'size_details' => $candidate->size_details,
+            'is_rain_ok' => $candidate->is_rain_ok,
+            'colors' => $candidate->colors
+                ->sortBy('sort_order')
+                ->values()
+                ->map(fn ($color) => [
+                    'role' => $color->role,
+                    'mode' => $color->mode,
+                    'value' => $color->value,
+                    'hex' => $color->hex,
+                    'label' => $color->label,
+                ])
+                ->all(),
+            'seasons' => $candidate->seasons
+                ->sortBy('sort_order')
+                ->pluck('season')
+                ->values()
+                ->all(),
+            'tpos' => $candidate->tpos
+                ->sortBy('sort_order')
+                ->pluck('tpo')
+                ->values()
+                ->all(),
+            'materials' => ItemMaterialSupport::buildPayload(
+                $candidate->materials
+                    ->map(fn (PurchaseCandidateMaterial $material) => [
+                        'part_label' => $material->part_label,
+                        'material_name' => $material->material_name,
+                        'ratio' => $material->ratio,
+                    ])
+                    ->all(),
+            ),
+            'images' => $candidate->images
+                ->sortBy('sort_order')
+                ->values()
+                ->map(fn (PurchaseCandidateImage $image) => self::buildDuplicateImage($image))
+                ->all(),
+        ];
+    }
+
     public static function buildCandidateSummary(PurchaseCandidate $candidate): array
     {
         return [
@@ -182,6 +243,13 @@ class PurchaseCandidatePayloadBuilder
             'sort_order' => $image->sort_order,
             'is_primary' => $image->is_primary,
         ];
+    }
+
+    public static function buildDuplicateImage(PurchaseCandidateImage $image): array
+    {
+        return array_merge(self::buildImage($image), [
+            'source_image_id' => $image->id,
+        ]);
     }
 
     private static function resolvePrimaryImage(PurchaseCandidate $candidate): ?PurchaseCandidateImage

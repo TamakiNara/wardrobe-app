@@ -19,32 +19,44 @@ class PurchaseCandidateService
     public function store(User $user, array $validated): PurchaseCandidate
     {
         $this->validatePayload($validated);
+        $copiedFiles = [];
 
-        return DB::transaction(function () use ($user, $validated) {
-            $candidate = PurchaseCandidate::query()->create([
-                'user_id' => $user->id,
-                'status' => $validated['status'] ?? 'considering',
-                'priority' => $validated['priority'] ?? 'medium',
-                'name' => $validated['name'],
-                'category_id' => $validated['category_id'],
-                'brand_name' => $validated['brand_name'] ?? null,
-                'price' => $validated['price'] ?? null,
-                'sale_price' => $validated['sale_price'] ?? null,
-                'sale_ends_at' => $validated['sale_ends_at'] ?? null,
-                'purchase_url' => $validated['purchase_url'] ?? null,
-                'memo' => $validated['memo'] ?? null,
-                'wanted_reason' => $validated['wanted_reason'] ?? null,
-                'size_gender' => $validated['size_gender'] ?? null,
-                'size_label' => $validated['size_label'] ?? null,
-                'size_note' => $validated['size_note'] ?? null,
-                'size_details' => $validated['size_details'] ?? null,
-                'is_rain_ok' => (bool) ($validated['is_rain_ok'] ?? false),
-            ]);
+        try {
+            return DB::transaction(function () use ($user, $validated, &$copiedFiles) {
+                $candidate = PurchaseCandidate::query()->create([
+                    'user_id' => $user->id,
+                    'status' => $validated['status'] ?? 'considering',
+                    'priority' => $validated['priority'] ?? 'medium',
+                    'name' => $validated['name'],
+                    'category_id' => $validated['category_id'],
+                    'brand_name' => $validated['brand_name'] ?? null,
+                    'price' => $validated['price'] ?? null,
+                    'sale_price' => $validated['sale_price'] ?? null,
+                    'sale_ends_at' => $validated['sale_ends_at'] ?? null,
+                    'purchase_url' => $validated['purchase_url'] ?? null,
+                    'memo' => $validated['memo'] ?? null,
+                    'wanted_reason' => $validated['wanted_reason'] ?? null,
+                    'size_gender' => $validated['size_gender'] ?? null,
+                    'size_label' => $validated['size_label'] ?? null,
+                    'size_note' => $validated['size_note'] ?? null,
+                    'size_details' => $validated['size_details'] ?? null,
+                    'is_rain_ok' => (bool) ($validated['is_rain_ok'] ?? false),
+                ]);
 
-            $this->syncAttributes($candidate, $validated);
+                $this->syncAttributes($candidate, $validated);
+                $this->copyDuplicateImagesFromSources(
+                    $candidate,
+                    $user,
+                    $validated['duplicate_images'] ?? [],
+                    $copiedFiles,
+                );
 
-            return $candidate->fresh()->load(['category', 'colors', 'seasons', 'tpos', 'images', 'materials']);
-        });
+                return $candidate->fresh()->load(['category', 'colors', 'seasons', 'tpos', 'images', 'materials']);
+            });
+        } catch (\Throwable $exception) {
+            $this->cleanupCopiedImages($copiedFiles);
+            throw $exception;
+        }
     }
 
     public function update(User $user, int $candidateId, array $validated): PurchaseCandidate
@@ -111,107 +123,14 @@ class PurchaseCandidateService
         });
     }
 
-    public function duplicate(User $user, int $candidateId): PurchaseCandidate
+    public function duplicate(User $user, int $candidateId): array
     {
         $sourceCandidate = $this->findOwnedCandidate($user, $candidateId);
-        $copiedFiles = [];
 
-        try {
-            return DB::transaction(function () use ($sourceCandidate, &$copiedFiles) {
-                $duplicatedCandidate = PurchaseCandidate::query()->create([
-                    'user_id' => $sourceCandidate->user_id,
-                    'status' => 'considering',
-                    'priority' => $sourceCandidate->priority,
-                    'name' => $sourceCandidate->name,
-                    'category_id' => $sourceCandidate->category_id,
-                    'brand_name' => $sourceCandidate->brand_name,
-                    'price' => $sourceCandidate->price,
-                    'sale_price' => $sourceCandidate->sale_price,
-                    'sale_ends_at' => $sourceCandidate->sale_ends_at,
-                    'purchase_url' => $sourceCandidate->purchase_url,
-                    'memo' => $sourceCandidate->memo,
-                    'wanted_reason' => $sourceCandidate->wanted_reason,
-                    'size_gender' => $sourceCandidate->size_gender,
-                    'size_label' => $sourceCandidate->size_label,
-                    'size_note' => $sourceCandidate->size_note,
-                    'size_details' => $sourceCandidate->size_details,
-                    'is_rain_ok' => $sourceCandidate->is_rain_ok,
-                    'converted_item_id' => null,
-                    'converted_at' => null,
-                ]);
-
-                $duplicatedCandidate->colors()->createMany(
-                    $sourceCandidate->colors
-                        ->sortBy('sort_order')
-                        ->values()
-                        ->map(fn ($color) => [
-                            'role' => $color->role,
-                            'mode' => $color->mode,
-                            'value' => $color->value,
-                            'hex' => $color->hex,
-                            'label' => $color->label,
-                            'sort_order' => $color->sort_order,
-                        ])
-                        ->all()
-                );
-
-                $duplicatedCandidate->seasons()->createMany(
-                    $sourceCandidate->seasons
-                        ->sortBy('sort_order')
-                        ->values()
-                        ->map(fn ($season) => [
-                            'season' => $season->season,
-                            'sort_order' => $season->sort_order,
-                        ])
-                        ->all()
-                );
-
-                $duplicatedCandidate->tpos()->createMany(
-                    $sourceCandidate->tpos
-                        ->sortBy('sort_order')
-                        ->values()
-                        ->map(fn ($tpo) => [
-                            'tpo' => $tpo->tpo,
-                            'sort_order' => $tpo->sort_order,
-                        ])
-                        ->all()
-                );
-
-                PurchaseCandidateMaterialSync::sync(
-                    $duplicatedCandidate,
-                    $sourceCandidate->materials
-                        ->map(fn ($material) => [
-                            'part_label' => $material->part_label,
-                            'material_name' => $material->material_name,
-                            'ratio' => $material->ratio,
-                        ])
-                        ->all(),
-                );
-
-                $duplicatedCandidate->images()->createMany(
-                    $sourceCandidate->images
-                        ->sortBy('sort_order')
-                        ->values()
-                        ->map(function (PurchaseCandidateImage $image) use ($duplicatedCandidate, &$copiedFiles) {
-                            return [
-                                'disk' => $image->disk,
-                                'path' => $this->copyPurchaseCandidateImage($duplicatedCandidate, $image, $copiedFiles),
-                                'original_filename' => $image->original_filename,
-                                'mime_type' => $image->mime_type,
-                                'file_size' => $image->file_size,
-                                'sort_order' => $image->sort_order,
-                                'is_primary' => $image->is_primary,
-                            ];
-                        })
-                        ->all()
-                );
-
-                return $duplicatedCandidate->fresh()->load(['category', 'colors', 'seasons', 'tpos', 'images', 'materials']);
-            });
-        } catch (\Throwable $exception) {
-            $this->cleanupCopiedImages($copiedFiles);
-            throw $exception;
-        }
+        return \App\Support\PurchaseCandidatePayloadBuilder::buildDuplicateDraft(
+            $sourceCandidate,
+            $this->buildDuplicateName($sourceCandidate->name),
+        );
     }
 
     public function addImage(User $user, int $candidateId, UploadedFile $image, ?int $sortOrder = null, ?bool $isPrimary = null): PurchaseCandidateImage
@@ -358,6 +277,79 @@ class PurchaseCandidateService
                 'category_id' => 'このカテゴリはまだ購入候補に対応していません。',
             ]);
         }
+    }
+
+    private function copyDuplicateImagesFromSources(
+        PurchaseCandidate $candidate,
+        User $user,
+        array $duplicateImages,
+        array &$copiedFiles,
+    ): void {
+        if ($duplicateImages === []) {
+            return;
+        }
+
+        $sourceImageIds = collect($duplicateImages)
+            ->map(fn ($image) => is_array($image) ? (int) ($image['source_image_id'] ?? 0) : 0)
+            ->filter(fn (int $imageId) => $imageId > 0)
+            ->values();
+
+        if ($sourceImageIds->isEmpty()) {
+            return;
+        }
+
+        $sourceImages = PurchaseCandidateImage::query()
+            ->whereIn('id', $sourceImageIds)
+            ->whereHas('purchaseCandidate', function ($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })
+            ->get()
+            ->keyBy('id');
+
+        if ($sourceImages->count() !== $sourceImageIds->unique()->count()) {
+            throw ValidationException::withMessages([
+                'duplicate_images' => '複製元画像が見つかりません。',
+            ]);
+        }
+
+        $copiedImages = $sourceImageIds
+            ->values()
+            ->map(function (int $sourceImageId, int $index) use ($candidate, $sourceImages, &$copiedFiles) {
+                /** @var PurchaseCandidateImage $sourceImage */
+                $sourceImage = $sourceImages->get($sourceImageId);
+
+                return [
+                    'disk' => $sourceImage->disk,
+                    'path' => $this->copyPurchaseCandidateImage($candidate, $sourceImage, $copiedFiles),
+                    'original_filename' => $sourceImage->original_filename,
+                    'mime_type' => $sourceImage->mime_type,
+                    'file_size' => $sourceImage->file_size,
+                    'sort_order' => $index + 1,
+                    'is_primary' => $sourceImage->is_primary,
+                ];
+            })
+            ->all();
+
+        if ($copiedImages !== [] && ! collect($copiedImages)->contains('is_primary', true)) {
+            $copiedImages[0]['is_primary'] = true;
+        }
+
+        $candidate->images()->createMany($copiedImages);
+    }
+
+    private function buildDuplicateName(?string $name): string
+    {
+        $baseName = $name ?? '';
+
+        if ($baseName === '') {
+            return '（コピー）';
+        }
+
+        if (str_ends_with($baseName, '（コピー）')) {
+            return $baseName;
+        }
+
+        return $baseName.'（コピー）';
     }
 
     private function deleteStoredImage(PurchaseCandidateImage $image): void

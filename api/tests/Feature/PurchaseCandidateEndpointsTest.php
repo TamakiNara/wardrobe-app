@@ -656,7 +656,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
             ->assertJsonPath('item_draft.materials.2.part_label', '裏地');
     }
 
-    public function test_post_purchase_candidate_duplicate_creates_new_candidate_with_copied_fields_and_files(): void
+    public function test_post_purchase_candidate_duplicate_returns_payload_without_creating_new_candidate(): void
     {
         Storage::fake('public');
 
@@ -681,6 +681,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
             $sourcePath,
             base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wn9nS8AAAAASUVORK5CYII=')
         );
+        $beforeCount = PurchaseCandidate::query()->count();
 
         $this->actingAs($user, 'web');
         $token = $this->issueCsrfToken();
@@ -690,33 +691,125 @@ class PurchaseCandidateEndpointsTest extends TestCase
             'X-CSRF-TOKEN' => $token,
         ]);
 
-        $response->assertCreated()
-            ->assertJsonPath('message', 'created')
+        $response->assertOk()
+            ->assertJsonPath('message', 'duplicated_payload_ready')
             ->assertJsonPath('purchaseCandidate.status', 'considering')
             ->assertJsonPath('purchaseCandidate.priority', 'high')
-            ->assertJsonPath('purchaseCandidate.name', $candidate->name)
+            ->assertJsonPath('purchaseCandidate.name', $candidate->name.'（コピー）')
+            ->assertJsonPath('purchaseCandidate.category_id', 'tops_shirt')
             ->assertJsonPath('purchaseCandidate.sale_price', 12800)
-            ->assertJsonPath('purchaseCandidate.converted_item_id', null)
-            ->assertJsonPath('purchaseCandidate.converted_at', null)
             ->assertJsonPath('purchaseCandidate.colors.0.value', 'navy')
             ->assertJsonPath('purchaseCandidate.seasons.0', '春')
             ->assertJsonPath('purchaseCandidate.tpos.0', '休日')
             ->assertJsonPath('purchaseCandidate.materials', [])
-            ->assertJsonCount(1, 'purchaseCandidate.images');
+            ->assertJsonCount(1, 'purchaseCandidate.images')
+            ->assertJsonPath('purchaseCandidate.images.0.source_image_id', $candidate->images()->first()->id)
+            ->assertJsonPath('purchaseCandidate.images.0.path', $sourcePath);
 
-        $duplicatedId = $response->json('purchaseCandidate.id');
-        $duplicatedPath = $response->json('purchaseCandidate.images.0.path');
-
-        $this->assertNotSame($candidate->id, $duplicatedId);
-        $this->assertStringStartsWith("purchase-candidates/{$duplicatedId}/", $duplicatedPath);
-        $this->assertDatabaseHas('purchase_candidates', [
-            'id' => $duplicatedId,
-            'status' => 'considering',
-            'converted_item_id' => null,
-            'sale_price' => 12800,
-        ]);
+        $response->assertJsonMissingPath('purchaseCandidate.converted_item_id');
+        $response->assertJsonMissingPath('purchaseCandidate.converted_at');
+        $this->assertSame($beforeCount, PurchaseCandidate::query()->count());
         Storage::disk('public')->assertExists($sourcePath);
-        Storage::disk('public')->assertExists($duplicatedPath);
+    }
+
+    public function test_post_purchase_candidate_duplicate_does_not_append_copy_suffix_twice(): void
+    {
+        $user = User::factory()->create();
+        $candidate = $this->createCandidate($user, [
+            'name' => '春コート（コピー）',
+        ]);
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $response = $this->postJson("/api/purchase-candidates/{$candidate->id}/duplicate", [], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('purchaseCandidate.name', '春コート（コピー）');
+    }
+
+    public function test_post_purchase_candidate_store_copies_duplicate_source_images(): void
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->create();
+        $sourceCandidate = $this->createCandidate($user, [
+            'category_id' => 'tops_shirt',
+        ]);
+        $sourcePath = "purchase-candidates/{$sourceCandidate->id}/source.png";
+
+        $sourceImage = $sourceCandidate->images()->create([
+            'disk' => 'public',
+            'path' => $sourcePath,
+            'original_filename' => 'source.png',
+            'mime_type' => 'image/png',
+            'file_size' => 1234,
+            'sort_order' => 1,
+            'is_primary' => true,
+        ]);
+        Storage::disk('public')->put(
+            $sourcePath,
+            base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wn9nS8AAAAASUVORK5CYII=')
+        );
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $response = $this->postJson('/api/purchase-candidates', [
+            'status' => 'considering',
+            'priority' => 'medium',
+            'name' => '複製テスト候補',
+            'category_id' => 'tops_shirt',
+            'brand_name' => 'Sample Brand',
+            'price' => 14800,
+            'sale_price' => 12800,
+            'sale_ends_at' => '2026-04-01T12:00:00+09:00',
+            'purchase_url' => 'https://example.test/products/1',
+            'memo' => 'メモ',
+            'wanted_reason' => '欲しい理由',
+            'size_gender' => 'women',
+            'size_label' => 'M',
+            'size_note' => '厚手インナー込み',
+            'is_rain_ok' => true,
+            'colors' => [
+                [
+                    'role' => 'main',
+                    'mode' => 'preset',
+                    'value' => 'navy',
+                    'hex' => '#1F3A5F',
+                    'label' => 'ネイビー',
+                ],
+            ],
+            'seasons' => ['春'],
+            'tpos' => ['休日'],
+            'materials' => [],
+            'duplicate_images' => [
+                [
+                    'source_image_id' => $sourceImage->id,
+                ],
+            ],
+        ], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('purchaseCandidate.images.0.original_filename', 'source.png');
+
+        $newCandidateId = $response->json('purchaseCandidate.id');
+        $newPath = $response->json('purchaseCandidate.images.0.path');
+
+        $this->assertDatabaseHas('purchase_candidates', [
+            'id' => $newCandidateId,
+            'name' => '複製テスト候補',
+        ]);
+        $this->assertSame(2, PurchaseCandidate::query()->count());
+        $this->assertStringStartsWith("purchase-candidates/{$newCandidateId}/", $newPath);
+        Storage::disk('public')->assertExists($sourcePath);
+        Storage::disk('public')->assertExists($newPath);
     }
 
     public function test_post_purchase_candidate_duplicate_is_not_available_for_other_users_candidate(): void
@@ -734,15 +827,17 @@ class PurchaseCandidateEndpointsTest extends TestCase
         ])->assertStatus(404);
     }
 
-    public function test_post_purchase_candidate_duplicate_rolls_back_when_source_image_is_missing(): void
+    public function test_post_purchase_candidate_store_rejects_missing_duplicate_source_image(): void
     {
         Storage::fake('public');
 
         $user = User::factory()->create();
-        $candidate = $this->createCandidate($user);
-        $candidate->images()->create([
+        $sourceCandidate = $this->createCandidate($user, [
+            'category_id' => 'tops_shirt',
+        ]);
+        $sourceImage = $sourceCandidate->images()->create([
             'disk' => 'public',
-            'path' => "purchase-candidates/{$candidate->id}/missing.png",
+            'path' => "purchase-candidates/{$sourceCandidate->id}/missing.png",
             'original_filename' => 'missing.png',
             'mime_type' => 'image/png',
             'file_size' => 1234,
@@ -755,7 +850,28 @@ class PurchaseCandidateEndpointsTest extends TestCase
         $this->actingAs($user, 'web');
         $token = $this->issueCsrfToken();
 
-        $response = $this->postJson("/api/purchase-candidates/{$candidate->id}/duplicate", [], [
+        $response = $this->postJson('/api/purchase-candidates', [
+            'status' => 'considering',
+            'priority' => 'medium',
+            'name' => '複製失敗候補',
+            'category_id' => 'tops_shirt',
+            'brand_name' => 'Sample Brand',
+            'price' => 14800,
+            'colors' => [
+                [
+                    'role' => 'main',
+                    'mode' => 'preset',
+                    'value' => 'navy',
+                    'hex' => '#1F3A5F',
+                    'label' => 'ネイビー',
+                ],
+            ],
+            'duplicate_images' => [
+                [
+                    'source_image_id' => $sourceImage->id,
+                ],
+            ],
+        ], [
             'Accept' => 'application/json',
             'X-CSRF-TOKEN' => $token,
         ]);
