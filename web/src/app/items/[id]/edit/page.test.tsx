@@ -324,6 +324,7 @@ describe("EditItemPage", () => {
     expect(container.textContent).toContain("クリックして画像を選択");
     expect(container.textContent).toContain("代表画像");
     expect(container.textContent).toContain("削除");
+    expect(container.textContent).not.toContain("現在登録されている画像の確認");
     expect(
       (container.querySelector("#care-status") as HTMLSelectElement | null)
         ?.value,

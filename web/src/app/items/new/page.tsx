@@ -32,7 +32,6 @@ import ItemFormPreviewPanel from "@/components/items/item-form-preview-panel";
 import ItemFormSection from "@/components/items/item-form-section";
 import ItemMaterialFields from "@/components/items/item-material-fields";
 import ItemImageUploader from "@/components/items/item-image-uploader";
-import ItemImagesOverview from "@/components/items/item-images-overview";
 import ItemSizeDetailsFields from "@/components/items/item-size-details-fields";
 import type {
   CreateItemPayload,
@@ -932,17 +931,7 @@ export default function NewItemPage() {
                   spec={previewSpec}
                   images={itemImages}
                   skinTonePreset={skinTonePreset}
-                />
-              }
-              imagesOverview={
-                <ItemImagesOverview
-                  images={itemImages}
-                  title={
-                    draftInfoMessage
-                      ? "引き継ぎ画像の確認"
-                      : "アップロード済み画像の確認"
-                  }
-                  emptyMessage="まだ確認できる画像はありません。"
+                  showDebugDetails={false}
                 />
               }
             />
@@ -1405,14 +1394,7 @@ export default function NewItemPage() {
                       images={itemImages}
                       skinTonePreset={skinTonePreset}
                       compact
-                    />
-                  }
-                  imagesOverview={
-                    <ItemImagesOverview
-                      compact
-                      images={itemImages}
-                      title={draftInfoMessage ? "引き継ぎ画像" : "画像確認"}
-                      emptyMessage="画像はまだありません。"
+                      showDebugDetails={false}
                     />
                   }
                 />

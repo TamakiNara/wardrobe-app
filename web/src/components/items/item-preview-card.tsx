@@ -40,6 +40,7 @@ type ItemPreviewCardProps = {
   images?: ItemImageRecord[];
   skinTonePreset?: SkinTonePreset;
   compact?: boolean;
+  showDebugDetails?: boolean;
 };
 
 function ColorDot({
@@ -84,8 +85,10 @@ export default function ItemPreviewCard({
   images,
   skinTonePreset,
   compact = false,
+  showDebugDetails,
 }: ItemPreviewCardProps) {
-  const showDebugDetails = isItemPreviewDebugEnabled();
+  const shouldShowDebugDetails =
+    showDebugDetails ?? isItemPreviewDebugEnabled();
   const categoryLabel = findItemCategoryLabel(category) || "カテゴリ未選択";
   const shapeLabel = findItemShapeLabel(category, shape);
   const bottomsLengthLabel = findBottomsLengthLabel(spec?.bottoms?.length_type);
@@ -151,7 +154,7 @@ export default function ItemPreviewCard({
           </div>
         </div>
 
-        {showDebugDetails ? (
+        {shouldShowDebugDetails ? (
           <div
             className={compact ? "space-y-2 self-start pt-0.5" : "space-y-3"}
           >

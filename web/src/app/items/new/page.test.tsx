@@ -367,6 +367,7 @@ describe("NewItemPage", () => {
     expect(container.textContent).toContain(
       "引き継いだ画像も保存前に取り除けます。",
     );
+    expect(container.textContent).not.toContain("引き継ぎ画像の確認");
     expect(container.textContent).toContain("ブランド候補にも追加する");
   });
 

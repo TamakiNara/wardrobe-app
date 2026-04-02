@@ -29,7 +29,6 @@ import BrandNameField from "@/components/items/brand-name-field";
 import ColorChip from "@/components/items/color-chip";
 import ColorSelect from "@/components/items/color-select";
 import ItemImageUploader from "@/components/items/item-image-uploader";
-import ItemImagesOverview from "@/components/items/item-images-overview";
 import ItemFormPreviewPanel from "@/components/items/item-form-preview-panel";
 import ItemFormSection from "@/components/items/item-form-section";
 import ItemMaterialFields from "@/components/items/item-material-fields";
@@ -1072,13 +1071,7 @@ export default function EditItemPage({
                   spec={previewSpec}
                   images={itemImages}
                   skinTonePreset={skinTonePreset}
-                />
-              }
-              imagesOverview={
-                <ItemImagesOverview
-                  images={itemImages}
-                  title="現在登録されている画像の確認"
-                  emptyMessage="まだ確認できる画像はありません。"
+                  showDebugDetails={false}
                 />
               }
             />
@@ -1539,14 +1532,7 @@ export default function EditItemPage({
                       images={itemImages}
                       skinTonePreset={skinTonePreset}
                       compact
-                    />
-                  }
-                  imagesOverview={
-                    <ItemImagesOverview
-                      compact
-                      images={itemImages}
-                      title="画像確認"
-                      emptyMessage="画像はまだありません。"
+                      showDebugDetails={false}
                     />
                   }
                 />
