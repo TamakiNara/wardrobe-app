@@ -207,6 +207,10 @@
 | ITEM-17 | 整合性 | dispose で関連 outfit が invalid 化される | 高 | backendのみ | Feature Test / 手動確認 | 重要 |
 | ITEM-18 | 整合性 | reactivate しても outfit は自動 restore されない | 高 | backendのみ | Feature Test / 手動確認 | 重要 |
 | ITEM-19 | 整合性 | disposed item が新規 outfit 候補に入らない | 高 | 未確認 | 手動確認 | |
+| ITEM-STATE-01 | 整合性 | dispose 実行後、通常一覧から消えて disposed 一覧へ移る | 高 | 未確認 | 手動確認 / Feature Test | 詳細から手放した後の一覧反映を見たい |
+| ITEM-STATE-02 | 整合性 | reactivate 実行後、disposed 一覧から消えて通常一覧へ戻る | 高 | 未確認 | 手動確認 / Feature Test | 復帰後の一覧反映と関連画面への影響を見たい |
+| ITEM-STATE-03 | 整合性 | disposed item を含む outfit が invalid 一覧へ移る | 高 | 未確認 | 手動確認 / Feature Test | item 側の状態変化が outfit 一覧 / 詳細へ自然に波及するか確認 |
+| ITEM-STATE-04 | 整合性 | care status は補助状態として表示され、dispose と独立に扱われる | 中 | 実装済み | 手動確認 / Feature Test | ケア状態は詳細 / 着用履歴側でも補助情報として一貫している |
 | ITEM-20 | UI/UX | 未画像時でも一覧・詳細が破綻しない | 中 | 未確認 | 手動確認 | |
 | ITEM-21 | UI/UX | サイズ・素材・色など複数項目入力が過度に分かりにくくない | 中 | 未確認 | 手動確認 | |
 | ITEM-22 | テスト | CRUD + 状態変更 + 権限系の Feature Test がある | 高 | 未着手/不足 | Feature Test | |
