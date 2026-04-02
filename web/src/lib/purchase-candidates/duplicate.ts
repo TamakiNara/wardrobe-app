@@ -2,10 +2,28 @@ import type { PurchaseCandidateDuplicatePayload } from "@/types/purchase-candida
 
 const DUPLICATE_STORAGE_KEY = "purchase-candidate-duplicate-payload";
 
+export function ensurePurchaseCandidateDuplicateName(name: string): string {
+  if (name === "") {
+    return "（コピー）";
+  }
+
+  if (name.endsWith("（コピー）")) {
+    return name;
+  }
+
+  return `${name}（コピー）`;
+}
+
 export function savePurchaseCandidateDuplicatePayload(
   payload: PurchaseCandidateDuplicatePayload,
 ) {
-  window.sessionStorage.setItem(DUPLICATE_STORAGE_KEY, JSON.stringify(payload));
+  window.sessionStorage.setItem(
+    DUPLICATE_STORAGE_KEY,
+    JSON.stringify({
+      ...payload,
+      name: ensurePurchaseCandidateDuplicateName(payload.name),
+    }),
+  );
 }
 
 export function loadPurchaseCandidateDuplicatePayload(): PurchaseCandidateDuplicatePayload | null {

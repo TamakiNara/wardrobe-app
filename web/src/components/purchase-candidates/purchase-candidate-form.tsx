@@ -45,6 +45,7 @@ import {
 } from "@/lib/purchase-candidates/labels";
 import {
   clearPurchaseCandidateDuplicatePayload,
+  ensurePurchaseCandidateDuplicateName,
   loadPurchaseCandidateDuplicatePayload,
 } from "@/lib/purchase-candidates/duplicate";
 import { resolvePurchaseCandidateItemCategory } from "@/lib/purchase-candidates/category-map";
@@ -434,7 +435,7 @@ export default function PurchaseCandidateForm({
 
     setStatus(payload.status);
     setPriority(payload.priority);
-    setName(payload.name);
+    setName(ensurePurchaseCandidateDuplicateName(payload.name));
     setCategoryId(payload.category_id);
     setBrandName(payload.brand_name ?? "");
     setPrice(payload.price === null ? "" : String(payload.price));
