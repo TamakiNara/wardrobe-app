@@ -279,11 +279,8 @@ export default function PurchaseCandidateForm({
           "一覧では代表画像を表示し、",
           "詳細や編集では画像全体を見やすく表示します。",
         ].join("");
-  const formMessage =
-    initializationError ??
-    submitError ??
-    initializationSuccess ??
-    submitSuccess;
+  const initializationMessage = initializationError ?? initializationSuccess;
+  const submitMessage = submitError ?? submitSuccess;
 
   useEffect(() => {
     async function loadInitialData() {
@@ -839,6 +836,18 @@ export default function PurchaseCandidateForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {initializationMessage && (
+        <section
+          className={`rounded-xl border px-4 py-3 text-sm ${
+            initializationError
+              ? "border-red-200 bg-red-50 text-red-700"
+              : "border-green-200 bg-green-50 text-green-700"
+          }`}
+        >
+          {initializationMessage}
+        </section>
+      )}
+
       <ItemFormSection
         title="基本情報"
         description="「必須」が付いた項目は登録に必要です。"
@@ -1387,15 +1396,15 @@ export default function PurchaseCandidateForm({
         />
       </ItemFormSection>
 
-      {formMessage && (
+      {submitMessage && (
         <section
           className={`rounded-xl border px-4 py-3 text-sm ${
-            initializationError || submitError
+            submitError
               ? "border-red-200 bg-red-50 text-red-700"
               : "border-green-200 bg-green-50 text-green-700"
           }`}
         >
-          {formMessage}
+          {submitMessage}
         </section>
       )}
 
