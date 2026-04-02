@@ -611,6 +611,18 @@ thumbnail の現状確認用パターン一覧を見返すときは `docs/specs/
 - invalid outfit 一覧は通常一覧と分離し、一覧では短い invalid 理由と `詳細 / 複製` を主導線にし、復旧は詳細で条件確認して行う
 - invalid outfit 詳細は「無効の理由」と次操作をまとめて示し、複製を主導線、復旧を補助導線として配置している
 - invalid outfit 詳細の memo / season / tpo は `基本情報` セクションでまとめて確認する
+- 将来タスク: invalid outfit 複製時の warning 文言改善
+  - 優先度: 高
+  - 背景: disposed item を初期選択から外す動きは正しいが、warning は「外しました」中心で、次に何をすれば保存できるかが少し弱い
+  - やりたいこと: `保存するには利用できるアイテムを選び直してください` など、次の行動が分かる文言に寄せる
+- 将来タスク: invalid outfit 複製時の unavailable item 識別補強
+  - 優先度: 高
+  - 背景: 現状は `2番目のアイテム` など順序情報中心で、どの item が unavailable だったか分かりにくい
+  - やりたいこと: item 名も含めて、どの item が初期選択から外れたのか分かりやすくする
+- 保留メモ
+  - duplicate 直後の追加案内メッセージ
+  - invalid detail と new page の文言トーン統一
+  - unavailable item の表示位置見直し
 
 項目:
 
