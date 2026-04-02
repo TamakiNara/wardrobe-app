@@ -238,6 +238,9 @@
 | OUTFIT-14 | 整合性 | item dispose に応じて invalid 化される | 高 | backendのみ | Feature Test / 手動確認 | 重要 |
 | OUTFIT-15 | 整合性 | invalid outfit は構成 item が全部 active の時だけ restore できる | 高 | backendのみ | Feature Test / 手動確認 | 重要 |
 | OUTFIT-16 | 整合性 | duplicate 時に disposed item は selectable=false になる | 中 | backendのみ | Feature Test / 手動確認 | |
+| OUTFIT-STATE-01 | 整合性 | invalid outfit は通常一覧から除外され invalid 一覧へ出る | 高 | 実装済み | 手動確認 / Feature Test | 通常一覧除外、invalid 一覧表示、detail での invalid 表示を現状の実装と Feature Test で確認済み | |
+| OUTFIT-STATE-02 | 整合性 | restore は active item のみで構成される場合だけ成功する | 高 | 実装済み | 手動確認 / Feature Test | restore 成功条件、disposed item を含む場合の 422、detail の復帰可否表示を現状の実装と Feature Test で確認済み | |
+| OUTFIT-STATE-03 | 整合性 | invalid outfit の duplicate では disposed item が初期選択から外れる | 中 | 未確認 | 手動確認 / Feature Test | duplicate payload では selectable=false になり、new / edit 側も警告を持つが実画面確認は未実施 | |
 | OUTFIT-17 | UI/UX | invalid の意味と復帰不可理由が分かる | 中 | 未確認 | 手動確認 | |
 | OUTFIT-18 | テスト | CRUD + invalid/restore/duplicate の Feature Test がある | 高 | 未着手/不足 | Feature Test | |
 | OUTFIT-19 | seed | active / invalid の両方の outfit がある | 高 | 要確認 | seed確認 | |
@@ -290,6 +293,10 @@
 | PC-14 | 異常系 | purchased candidate の更新不可項目を弾ける | 高 | backendのみ | Feature Test | 重要 |
 | PC-15 | 整合性 | item 化後に candidate 状態が適切に更新される | 高 | backendのみ | Feature Test / 手動確認 | 重要 |
 | PC-16 | 整合性 | candidate 画像と item 画像の役割が混ざらない | 中 | 要確認 | Feature Test / 手動確認 | |
+| PURCHASE-STATE-01 | 整合性 | item-draft で item 作成用初期値が生成される | 高 | 実装済み | 手動確認 / Feature Test | detail からの導線があり、item-draft payload に colors / seasons / tpos / materials / images を含むことを現状の実装と Feature Test で確認済み | |
+| PURCHASE-STATE-02 | 整合性 | purchased 状態や item 化導線の制約が UI と整合している | 高 | 実装済み | 手動確認 / Feature Test | purchased では item-draft を出さず、更新可能項目も制限されることを API / page / form test で確認済み | |
+| PURCHASE-STATE-03 | 整合性 | purchase candidate 画像と item 側画像の役割が混線しない | 中 | 未確認 | 手動確認 / Feature Test | item 化時に item 用保存先へ別管理する設計と Feature Test はあるが、実画面での確認は未実施 | |
+| PURCHASE-STATE-04 | 整合性 | duplicate 後も購入検討として自然に再利用できる | 中 | 未確認 | 手動確認 / Feature Test | duplicate で considering に戻し、converted 情報を引き継がないことは Feature Test があるが、実画面導線の確認は未実施 | |
 | PC-17 | UI/UX | status / priority / converted 情報が見やすい | 中 | 未確認 | 手動確認 | |
 | PC-18 | テスト | CRUD + item-draft + purchased 制約の Feature Test がある | 高 | 未着手/不足 | Feature Test | |
 | PC-19 | seed | considering / on_hold / purchased / dropped を用意 | 高 | 要確認 | seed確認 | |
