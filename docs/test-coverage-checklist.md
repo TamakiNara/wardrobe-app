@@ -295,8 +295,8 @@
 | PC-16 | 整合性 | 購入検討画像と item 画像の役割が混ざらない | 中 | 要確認 | Feature テスト / 手動確認 | |
 | PURCHASE-STATE-01 | 整合性 | item-draft で item 作成用初期値が生成される | 高 | 実装済み | 手動確認 / Feature テスト | 詳細からの導線があり、item-draft payload に colors / seasons / tpos / materials / images を含むことを現状の実装と Feature テストで確認済み | |
 | PURCHASE-STATE-02 | 整合性 | purchased 状態や item 化導線の制約が UI と整合している | 高 | 実装済み | 手動確認 / Feature テスト | purchased では item-draft を出さず、更新可能項目も制限されることを API / page / form test で確認済み | |
-| PURCHASE-STATE-03 | 整合性 | 購入検討画像と item 側画像の役割が混線しない | 中 | 要修正 | 手動確認 / Feature テスト | item 化時の別管理と Feature テストはあるが、item 作成画面で画像表示が 2 箇所に分かれて見え、役割が分かりにくい | |
-| PURCHASE-STATE-04 | 整合性 | 複製後も購入検討として自然に再利用できる | 中 | 要修正 | 手動確認 / Feature テスト | 複製後は詳細画面へ遷移し、コピー識別も弱いため、再利用導線として見直し余地がある | |
+| PURCHASE-STATE-03 | 整合性 | 購入検討画像と item 側画像の役割が混線しない | 中 | 実装済み | 手動確認 / Feature テスト | item 新規 / 編集で画像表示責務を整理し、左=画像操作、右=最終確認プレビューとして確認できることを手動確認済み | |
+| PURCHASE-STATE-04 | 整合性 | 複製後も購入検討として自然に再利用できる | 中 | 実装済み | 手動確認 / Feature テスト | duplicate は payload 返却方式へ変更済みで、保存前に件数は増えず、新規作成画面へ遷移して `（コピー）` 付き初期値を再利用できることを手動確認済み | |
 | PC-17 | UI/UX | status / priority / converted 情報が見やすい | 中 | 未確認 | 手動確認 | |
 | PC-18 | テスト | CRUD + item-draft + purchased 制約の Feature テストがある | 高 | 未着手/不足 | Feature テスト | |
 | PC-19 | seed | considering / on_hold / purchased / dropped を用意 | 高 | 要確認 | シード確認 | |
