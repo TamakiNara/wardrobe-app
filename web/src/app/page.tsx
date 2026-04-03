@@ -1,11 +1,13 @@
 import Link from "next/link";
 import {
   CalendarDays,
+  LogIn,
   Settings,
   Shirt,
   ShoppingBag,
   Sparkles,
   User,
+  UserPlus,
 } from "lucide-react";
 import LogoutButton from "@/components/auth/logout-button";
 import { fetchAuthenticatedUser } from "@/lib/server/auth";
@@ -16,24 +18,34 @@ export default async function Home() {
 
   if (!user) {
     return (
-      <main className="min-h-screen bg-gray-100 p-6 md:p-10">
-        <div className="mx-auto max-w-3xl space-y-6">
-          <section className="rounded-2xl border border-gray-200 bg-white px-8 py-10 shadow-sm">
+      <main className="flex min-h-screen items-center bg-gray-100 p-6 md:p-10">
+        <div className="mx-auto w-full max-w-md">
+          <section className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
             <p className="text-center text-sm leading-6 text-gray-600">
-              服・コーディネート・着用履歴・購入検討をまとめて管理できます。
+              服やコーディネートをまとめて管理できます。
             </p>
 
             <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
               <Link
                 href="/login"
-                className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-3 text-sm font-medium text-white transition hover:bg-blue-700"
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3 text-sm font-medium text-white transition hover:bg-blue-700"
               >
+                <LogIn
+                  aria-hidden="true"
+                  className="h-4 w-4"
+                  strokeWidth={1.8}
+                />
                 ログイン
               </Link>
               <Link
                 href="/register"
-                className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+                className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
               >
+                <UserPlus
+                  aria-hidden="true"
+                  className="h-4 w-4"
+                  strokeWidth={1.8}
+                />
                 新規登録
               </Link>
             </div>

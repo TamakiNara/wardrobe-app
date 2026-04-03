@@ -113,9 +113,7 @@ describe("Home", () => {
     const { default: Home } = await import("./page");
     const markup = renderToStaticMarkup(await Home());
 
-    expect(markup).toContain(
-      "服・コーディネート・着用履歴・購入検討をまとめて管理できます。",
-    );
+    expect(markup).toContain("服やコーディネートをまとめて管理できます。");
     expect(markup).toContain('href="/login"');
     expect(markup).toContain('href="/register"');
     expect(markup).not.toContain("Wardrobe App");
