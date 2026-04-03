@@ -739,7 +739,7 @@ export default function WearLogForm({
         <div className="scroll-mt-24 space-y-2" data-error-key="selection">
           <FieldLabel
             as="div"
-            label="元のコーディネート / アイテム"
+            label="コーディネート / アイテム"
             required
             className="text-lg font-semibold text-gray-900"
           />
@@ -755,10 +755,10 @@ export default function WearLogForm({
 
         <section className="space-y-4">
           <h2 className="text-lg font-semibold text-gray-900">
-            元のコーディネート
+            コーディネートを選択
           </h2>
           <p className="text-sm text-gray-500">
-            名前、構成数、季節、TPOを見ながらベースにするコーディネートを選べます。
+            名前、構成数、季節、TPOを見ながら選べます。
           </p>
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700">
@@ -914,7 +914,9 @@ export default function WearLogForm({
 
         <section className="space-y-4">
           <div className="flex items-center justify-between gap-4">
-            <h2 className="text-lg font-semibold text-gray-900">アイテム</h2>
+            <h2 className="text-lg font-semibold text-gray-900">
+              アイテムを選択
+            </h2>
             <span className="rounded-full border border-gray-300 bg-gray-50 px-3 py-1 text-sm text-gray-700">
               選択中 {selectedItems.length} 件
             </span>

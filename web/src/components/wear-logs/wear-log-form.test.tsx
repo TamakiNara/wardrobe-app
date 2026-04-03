@@ -118,8 +118,9 @@ describe("WearLogForm", () => {
     );
     expect(container.textContent).toContain("状態");
     expect(container.textContent).toContain("日付");
-    expect(container.textContent).toContain("元のコーディネート / アイテム");
-    expect(container.textContent).toContain("アイテム");
+    expect(container.textContent).toContain("コーディネート / アイテム");
+    expect(container.textContent).toContain("コーディネートを選択");
+    expect(container.textContent).toContain("アイテムを選択");
     expect(container.textContent?.match(/必須/g)?.length).toBe(4);
     expect(container.textContent).toContain("通勤コーデ");
     expect(container.textContent).toContain("構成アイテム 2 件");
@@ -325,7 +326,7 @@ describe("WearLogForm", () => {
     expect(container.textContent).toContain(
       "「必須」が付いた項目は更新に必要です。",
     );
-    expect(container.textContent).toContain("元のコーディネート / アイテム");
+    expect(container.textContent).toContain("コーディネート / アイテム");
     expect(container.textContent?.match(/必須/g)?.length).toBe(4);
     expect(container.textContent).toContain(
       "現在は候補に使えないデータが含まれていますが、この記録の内容確認と更新は続けられます。",
