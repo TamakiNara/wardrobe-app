@@ -172,6 +172,8 @@ class PurchaseCandidateEndpointsTest extends TestCase
             ->assertJsonPath('purchaseCandidates.0.id', $candidate->id)
             ->assertJsonPath('purchaseCandidates.0.name', '自分の候補')
             ->assertJsonPath('purchaseCandidates.0.sale_price', 12800)
+            ->assertJsonPath('purchaseCandidates.0.purchase_url', 'https://example.test/products/1')
+            ->assertJsonPath('purchaseCandidates.0.colors.0.hex', '#1F3A5F')
             ->assertJsonPath('availableBrands.0', 'Sample Brand')
             ->assertJsonPath('meta.total', 1)
             ->assertJsonPath('meta.totalAll', 1);

@@ -71,7 +71,7 @@ class PurchaseCandidatesIndexQuery
         string $sort
     ): Builder {
         $query = self::buildVisibleCandidatesQuery($user)
-            ->with(['category', 'images']);
+            ->with(['category', 'images', 'colors']);
 
         if ($keyword !== '') {
             $query->where(function (Builder $builder) use ($keyword) {

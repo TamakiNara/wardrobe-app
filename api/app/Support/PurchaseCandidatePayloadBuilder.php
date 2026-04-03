@@ -11,7 +11,7 @@ class PurchaseCandidatePayloadBuilder
 {
     public static function buildListItem(PurchaseCandidate $candidate): array
     {
-        $candidate->loadMissing(['category', 'images']);
+        $candidate->loadMissing(['category', 'images', 'colors']);
 
         $primaryImage = self::resolvePrimaryImage($candidate);
 
@@ -26,6 +26,19 @@ class PurchaseCandidatePayloadBuilder
             'price' => $candidate->price,
             'sale_price' => $candidate->sale_price,
             'sale_ends_at' => $candidate->sale_ends_at?->toISOString(),
+            'purchase_url' => $candidate->purchase_url,
+            'colors' => $candidate->colors
+                ->sortBy('sort_order')
+                ->take(4)
+                ->values()
+                ->map(fn ($color) => [
+                    'role' => $color->role,
+                    'mode' => $color->mode,
+                    'value' => $color->value,
+                    'hex' => $color->hex,
+                    'label' => $color->label,
+                ])
+                ->all(),
             'converted_item_id' => $candidate->converted_item_id,
             'converted_at' => $candidate->converted_at?->toISOString(),
             'primary_image' => $primaryImage === null ? null : self::buildImage($primaryImage),

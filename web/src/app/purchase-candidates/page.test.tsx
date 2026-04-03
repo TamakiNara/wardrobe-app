@@ -155,6 +155,23 @@ describe("PurchaseCandidatesPage", () => {
             price: 19800,
             sale_price: 14800,
             sale_ends_at: "2026-03-31T18:00:00+09:00",
+            purchase_url: "https://example.test/products/coat",
+            colors: [
+              {
+                role: "main",
+                mode: "preset",
+                value: "navy",
+                hex: "#1F3A5F",
+                label: "ネイビー",
+              },
+              {
+                role: "sub",
+                mode: "preset",
+                value: "white",
+                hex: "#F9FAFB",
+                label: "ホワイト",
+              },
+            ],
             converted_item_id: null,
             converted_at: null,
             primary_image: {
@@ -182,6 +199,8 @@ describe("PurchaseCandidatesPage", () => {
             price: null,
             sale_price: null,
             sale_ends_at: null,
+            purchase_url: null,
+            colors: [],
             converted_item_id: null,
             converted_at: null,
             primary_image: null,
@@ -209,9 +228,11 @@ describe("PurchaseCandidatesPage", () => {
     expect(markup).toContain("コート");
     expect(markup).toContain("検討中");
     expect(markup).toContain("優先度: 高");
+    expect(markup).toContain("価格");
     expect(markup).toContain("19,800円");
-    expect(markup).toContain("14,800円");
-    expect(markup).toContain("セール価格");
+    expect(markup).toContain("14,800");
+    expect(markup).toContain("セール中");
+    expect(markup).toContain("セール終了予定");
     expect(markup).toContain("購入検討管理");
     expect(markup).toContain("購入検討一覧");
     expect(markup).toContain(
@@ -231,10 +252,14 @@ describe("PurchaseCandidatesPage", () => {
     expect(markup).toContain(
       'src="http://localhost:8000/storage/purchase-candidates/1/front.png"',
     );
+    expect(markup).toContain('style="background-color:#1F3A5F"');
     expect(markup).toContain("詳細を見る");
+    expect(markup).toContain('href="https://example.test/products/coat"');
+    expect(markup).toContain("商品ページ");
     expect(markup).toContain("画像なし");
     expect(markup).toContain("ブランド未設定");
     expect(markup).toContain("在宅ブランド");
+    expect(markup).not.toContain("更新日");
     expect(markup).toContain("表示件数: 2 / 2");
     expect(markup).toContain("1 / 1ページ");
     expect(markup).not.toContain('href="/purchase-candidates/1/edit"');
@@ -257,6 +282,8 @@ describe("PurchaseCandidatesPage", () => {
             price: 11800,
             sale_price: null,
             sale_ends_at: null,
+            purchase_url: null,
+            colors: [],
             converted_item_id: null,
             converted_at: null,
             primary_image: null,
