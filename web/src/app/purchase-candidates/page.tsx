@@ -246,7 +246,9 @@ export default async function PurchaseCandidatesPage({
                       )}
                       <div className="flex items-center justify-between gap-3">
                         <dt>更新日</dt>
-                        <dd>{candidate.updated_at?.slice(0, 10) ?? "未設定"}</dd>
+                        <dd>
+                          {candidate.updated_at?.slice(0, 10) ?? "未設定"}
+                        </dd>
                       </div>
                     </dl>
 
