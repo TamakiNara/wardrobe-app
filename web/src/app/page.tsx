@@ -8,42 +8,22 @@ import {
   User,
 } from "lucide-react";
 import LogoutButton from "@/components/auth/logout-button";
-import { fetchLaravelWithCookie } from "@/lib/server/laravel";
+import { fetchAuthenticatedUser } from "@/lib/server/auth";
 import { fetchHomeSummary } from "@/lib/server/home-summary";
 
-type User = {
-  id: number;
-  name: string;
-  email: string;
-};
-
-async function getUser(): Promise<User | null> {
-  const res = await fetchLaravelWithCookie("/api/me");
-
-  if (!res.ok) {
-    return null;
-  }
-
-  return res.json();
-}
-
 export default async function Home() {
-  const user = await getUser();
+  const user = await fetchAuthenticatedUser();
 
   if (!user) {
     return (
       <main className="min-h-screen bg-gray-100 p-6 md:p-10">
         <div className="mx-auto max-w-3xl space-y-6">
-          <section className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
-            <p className="text-sm text-gray-500">Wardrobe App</p>
-            <h1 className="mt-2 text-3xl font-bold text-gray-900">
-              服とコーディネートを管理するアプリ
-            </h1>
-            <p className="mt-3 text-sm leading-6 text-gray-600">
-              アイテムの色・形・季節・TPOを登録し、コーディネートとして管理できます。
+          <section className="rounded-2xl border border-gray-200 bg-white px-8 py-10 shadow-sm">
+            <p className="text-center text-sm leading-6 text-gray-600">
+              服・コーディネート・着用履歴・購入検討をまとめて管理できます。
             </p>
 
-            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+            <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
               <Link
                 href="/login"
                 className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-3 text-sm font-medium text-white transition hover:bg-blue-700"

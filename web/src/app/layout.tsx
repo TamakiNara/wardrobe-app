@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import { cookies } from "next/headers";
 import { Geist, Geist_Mono } from "next/font/google";
 import AppShell from "@/components/navigation/app-shell";
+import { hasAuthenticatedUser } from "@/lib/server/auth";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -24,16 +24,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const cookieStore = await cookies();
-  const hasSession = cookieStore
-    .getAll()
-    .some(
-      (cookie) =>
-        cookie.name === "laravel-session" ||
-        cookie.name === "laravel_session" ||
-        cookie.name.endsWith("-session") ||
-        cookie.name.endsWith("_session"),
-    );
+  const hasSession = await hasAuthenticatedUser();
 
   return (
     <html lang="en">

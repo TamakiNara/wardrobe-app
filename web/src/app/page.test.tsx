@@ -103,4 +103,25 @@ describe("Home", () => {
       "/api/home/summary",
     );
   });
+
+  it("未ログイン時はログインと新規登録中心の案内だけを表示する", async () => {
+    fetchLaravelWithCookieMock.mockResolvedValueOnce({
+      ok: false,
+      json: async () => ({}),
+    });
+
+    const { default: Home } = await import("./page");
+    const markup = renderToStaticMarkup(await Home());
+
+    expect(markup).toContain(
+      "服・コーディネート・着用履歴・購入検討をまとめて管理できます。",
+    );
+    expect(markup).toContain('href="/login"');
+    expect(markup).toContain('href="/register"');
+    expect(markup).not.toContain("Wardrobe App");
+    expect(markup).not.toContain("現在の登録状況");
+    expect(markup).not.toContain("アイテムを追加");
+    expect(fetchLaravelWithCookieMock).toHaveBeenCalledTimes(1);
+    expect(fetchLaravelWithCookieMock).toHaveBeenCalledWith("/api/me");
+  });
 });
