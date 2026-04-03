@@ -13,6 +13,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import FieldLabel from "@/components/forms/field-label";
 import ColorChip from "@/components/items/color-chip";
 import ColorSelect from "@/components/items/color-select";
+import BrandNameField from "@/components/items/brand-name-field";
 import ItemFormSection from "@/components/items/item-form-section";
 import ItemMaterialFields from "@/components/items/item-material-fields";
 import ItemSizeDetailsFields from "@/components/items/item-size-details-fields";
@@ -171,6 +172,7 @@ export default function PurchaseCandidateForm({
   const [name, setName] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [brandName, setBrandName] = useState("");
+  const [saveBrandAsCandidate, setSaveBrandAsCandidate] = useState(false);
   const [price, setPrice] = useState("");
   const [salePrice, setSalePrice] = useState("");
   const [saleEndsAt, setSaleEndsAt] = useState("");
@@ -324,6 +326,7 @@ export default function PurchaseCandidateForm({
           setName(candidate.name);
           setCategoryId(candidate.category_id);
           setBrandName(candidate.brand_name ?? "");
+          setSaveBrandAsCandidate(false);
           setPrice(candidate.price === null ? "" : String(candidate.price));
           setSalePrice(
             candidate.sale_price === null ? "" : String(candidate.sale_price),
@@ -435,6 +438,7 @@ export default function PurchaseCandidateForm({
     setName(ensurePurchaseCandidateDuplicateName(payload.name));
     setCategoryId(payload.category_id);
     setBrandName(payload.brand_name ?? "");
+    setSaveBrandAsCandidate(false);
     setPrice(payload.price === null ? "" : String(payload.price));
     setSalePrice(payload.sale_price === null ? "" : String(payload.sale_price));
     setSaleEndsAt(toDateTimeLocalValue(payload.sale_ends_at));
@@ -623,6 +627,7 @@ export default function PurchaseCandidateForm({
       name: name.trim(),
       category_id: categoryId,
       brand_name: normalizeNullableString(brandName) || null,
+      save_brand_as_candidate: saveBrandAsCandidate,
       price: price === "" ? null : Number(price),
       sale_price: salePrice === "" ? null : Number(salePrice),
       sale_ends_at: saleEndsAt === "" ? null : saleEndsAt,
@@ -949,19 +954,14 @@ export default function PurchaseCandidateForm({
       <ItemFormSection title="購入情報">
         <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <label
-              htmlFor="brand_name"
-              className="mb-1 block text-sm font-medium text-gray-700"
-            >
-              ブランド
-            </label>
-            <input
-              id="brand_name"
-              type="text"
+            <BrandNameField
+              inputId="brand-name"
               value={brandName}
-              onChange={(event) => setBrandName(event.target.value)}
+              onChange={setBrandName}
+              saveAsCandidate={saveBrandAsCandidate}
+              onSaveAsCandidateChange={setSaveBrandAsCandidate}
               disabled={isPurchasedLocked}
-              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              error={errors.brand_name ?? null}
             />
           </div>
 

@@ -6,6 +6,7 @@ use App\Models\CategoryMaster;
 use App\Models\PurchaseCandidate;
 use App\Models\PurchaseCandidateImage;
 use App\Models\User;
+use App\Services\Brands\UserBrandService;
 use App\Support\PurchaseCandidateCategoryMap;
 use App\Support\PurchaseCandidateMaterialSync;
 use Illuminate\Http\UploadedFile;
@@ -16,6 +17,10 @@ use Illuminate\Validation\ValidationException;
 
 class PurchaseCandidateService
 {
+    public function __construct(
+        private readonly UserBrandService $userBrandService,
+    ) {}
+
     public function store(User $user, array $validated): PurchaseCandidate
     {
         $this->validatePayload($validated);
@@ -50,6 +55,11 @@ class PurchaseCandidateService
                     $validated['duplicate_images'] ?? [],
                     $copiedFiles,
                 );
+                $this->userBrandService->saveBrandFromItem(
+                    $user,
+                    $validated['brand_name'] ?? null,
+                    (bool) ($validated['save_brand_as_candidate'] ?? false),
+                );
 
                 return $candidate->fresh()->load(['category', 'colors', 'seasons', 'tpos', 'images', 'materials']);
             });
@@ -80,7 +90,7 @@ class PurchaseCandidateService
 
         $this->validatePayload($validated);
 
-        return DB::transaction(function () use ($candidate, $validated) {
+        return DB::transaction(function () use ($user, $candidate, $validated) {
             $candidate->update([
                 'status' => $validated['status'] ?? 'considering',
                 'priority' => $validated['priority'] ?? 'medium',
@@ -104,6 +114,11 @@ class PurchaseCandidateService
             $candidate->seasons()->delete();
             $candidate->tpos()->delete();
             $this->syncAttributes($candidate, $validated);
+            $this->userBrandService->saveBrandFromItem(
+                $user,
+                $validated['brand_name'] ?? null,
+                (bool) ($validated['save_brand_as_candidate'] ?? false),
+            );
 
             return $candidate->fresh()->load(['category', 'colors', 'seasons', 'tpos', 'images', 'materials']);
         });

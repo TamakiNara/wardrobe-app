@@ -884,6 +884,46 @@ class PurchaseCandidateEndpointsTest extends TestCase
         $this->assertSame(1, DB::table('purchase_candidate_images')->count());
     }
 
+    public function test_post_purchase_candidate_store_can_add_brand_candidate(): void
+    {
+        $user = User::factory()->create();
+        $this->createCategory('tops_shirt');
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $response = $this->postJson('/api/purchase-candidates', [
+            'status' => 'considering',
+            'priority' => 'medium',
+            'name' => 'ブランド候補追加テスト',
+            'category_id' => 'tops_shirt',
+            'brand_name' => 'UNIQLO',
+            'save_brand_as_candidate' => true,
+            'price' => 14800,
+            'colors' => [
+                [
+                    'role' => 'main',
+                    'mode' => 'preset',
+                    'value' => 'navy',
+                    'hex' => '#1F3A5F',
+                    'label' => 'ネイビー',
+                ],
+            ],
+        ], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('purchaseCandidate.brand_name', 'UNIQLO');
+
+        $this->assertDatabaseHas('user_brands', [
+            'user_id' => $user->id,
+            'name' => 'UNIQLO',
+            'is_active' => true,
+        ]);
+    }
+
     public function test_put_purchased_purchase_candidate_updates_only_allowed_fields(): void
     {
         $user = User::factory()->create();

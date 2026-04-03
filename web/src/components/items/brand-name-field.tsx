@@ -12,6 +12,8 @@ type BrandNameFieldProps = {
   saveAsCandidate: boolean;
   onSaveAsCandidateChange: (checked: boolean) => void;
   disabled?: boolean;
+  showSaveAsCandidate?: boolean;
+  error?: string | null;
 };
 
 export default function BrandNameField({
@@ -21,11 +23,13 @@ export default function BrandNameField({
   saveAsCandidate,
   onSaveAsCandidateChange,
   disabled = false,
+  showSaveAsCandidate = true,
+  error: fieldError = null,
 }: BrandNameFieldProps) {
   const [suggestions, setSuggestions] = useState<UserBrandRecord[]>([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [suggestionError, setSuggestionError] = useState<string | null>(null);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const blurTimeoutRef = useRef<number | null>(null);
 
@@ -46,7 +50,7 @@ export default function BrandNameField({
         if (!active) return;
         setSuggestions([]);
         setHighlightedIndex(-1);
-        setError("ブランド候補の取得に失敗しました。");
+        setSuggestionError("ブランド候補の取得に失敗しました。");
       })
       .finally(() => {
         if (!active) return;
@@ -124,12 +128,12 @@ export default function BrandNameField({
         onChange={(event) => {
           onChange(event.target.value);
           setLoading(true);
-          setError(null);
+          setSuggestionError(null);
           setOpen(true);
         }}
         onFocus={() => {
           setLoading(true);
-          setError(null);
+          setSuggestionError(null);
           setOpen(true);
         }}
         onBlur={() => {
@@ -141,9 +145,16 @@ export default function BrandNameField({
         autoComplete="off"
         aria-autocomplete="list"
         aria-controls={`${inputId}-suggestions`}
-        className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+        className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:ring-2 ${
+          fieldError
+            ? "border-red-400 focus:border-red-500 focus:ring-red-100"
+            : "border-gray-300 focus:border-blue-500 focus:ring-blue-100"
+        }`}
         disabled={disabled}
       />
+      {fieldError ? (
+        <p className="mt-2 text-sm text-red-600">{fieldError}</p>
+      ) : null}
       <p className="mt-1 text-xs text-gray-500">
         候補がなくても自由入力できます。
       </p>
@@ -157,8 +168,8 @@ export default function BrandNameField({
             <p className="px-3 py-2 text-sm text-gray-500">
               ブランド候補を読み込んでいます。
             </p>
-          ) : error ? (
-            <p className="px-3 py-2 text-sm text-red-600">{error}</p>
+          ) : suggestionError ? (
+            <p className="px-3 py-2 text-sm text-red-600">{suggestionError}</p>
           ) : suggestions.length === 0 ? (
             <p className="px-3 py-2 text-sm text-gray-500">
               一致するブランド候補はありません。
@@ -195,16 +206,18 @@ export default function BrandNameField({
         </div>
       ) : null}
 
-      <label className="mt-2 flex items-center gap-2 text-sm text-gray-600">
-        <input
-          type="checkbox"
-          checked={saveAsCandidate}
-          onChange={(event) => onSaveAsCandidateChange(event.target.checked)}
-          className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-          disabled={disabled}
-        />
-        ブランド候補にも追加する
-      </label>
+      {showSaveAsCandidate ? (
+        <label className="mt-2 flex items-center gap-2 text-sm text-gray-600">
+          <input
+            type="checkbox"
+            checked={saveAsCandidate}
+            onChange={(event) => onSaveAsCandidateChange(event.target.checked)}
+            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            disabled={disabled}
+          />
+          ブランド候補にも追加する
+        </label>
+      ) : null}
     </div>
   );
 }

@@ -95,6 +95,7 @@ export type PurchaseCandidateUpsertPayload = {
   name: string;
   category_id: string;
   brand_name: string | null;
+  save_brand_as_candidate?: boolean;
   price: number | null;
   sale_price: number | null;
   sale_ends_at: string | null;

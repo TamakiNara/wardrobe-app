@@ -15,6 +15,7 @@ const routerMock = {
 };
 const fetchCategoryGroupsMock = vi.fn();
 const fetchCategoryVisibilitySettingsMock = vi.fn();
+const fetchUserBrandsMock = vi.fn();
 const fetchMock = vi.fn();
 let searchParamsValue = "";
 
@@ -34,6 +35,7 @@ vi.mock("@/lib/api/categories", () => ({
 
 vi.mock("@/lib/api/settings", () => ({
   fetchCategoryVisibilitySettings: () => fetchCategoryVisibilitySettingsMock(),
+  fetchUserBrands: (...args: unknown[]) => fetchUserBrandsMock(...args),
 }));
 
 describe("PurchaseCandidateForm", () => {
@@ -76,6 +78,7 @@ describe("PurchaseCandidateForm", () => {
     fetchCategoryVisibilitySettingsMock.mockResolvedValue({
       visibleCategoryIds: ["outer_coat", "tops_tshirt"],
     });
+    fetchUserBrandsMock.mockResolvedValue({ brands: [] });
   });
 
   afterEach(() => {
@@ -155,6 +158,114 @@ describe("PurchaseCandidateForm", () => {
       "form > section.rounded-2xl.border.border-gray-200.bg-white",
     );
     expect(sectionCards).toHaveLength(7);
+  });
+
+  it("ブランド候補を表示し、候補選択と自由入力を両立できる", async () => {
+    fetchUserBrandsMock
+      .mockResolvedValueOnce({
+        brands: [{ id: 1, name: "UNIQLO", kana: "ゆにくろ", is_active: true }],
+      })
+      .mockResolvedValueOnce({ brands: [] });
+
+    await renderForm();
+
+    const input = container.querySelector<HTMLInputElement>("#brand-name");
+    expect(input).not.toBeNull();
+
+    await act(async () => {
+      input!.focus();
+      setNativeValue(input!, "UNI");
+      await Promise.resolve();
+      await Promise.resolve();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    expect(fetchUserBrandsMock.mock.calls).toContainEqual(["UNI", true]);
+    expect(container.textContent).toContain("UNIQLO");
+    expect(container.textContent).toContain("ゆにくろ");
+    expect(container.textContent).toContain("候補がなくても自由入力できます。");
+    expect(container.textContent).toContain("ブランド候補にも追加する");
+
+    const suggestionButton = Array.from(
+      container.querySelectorAll("button"),
+    ).find((button) => button.textContent?.includes("UNIQLO"));
+    expect(suggestionButton).not.toBeUndefined();
+
+    await act(async () => {
+      suggestionButton!.dispatchEvent(
+        new MouseEvent("mousedown", { bubbles: true }),
+      );
+      await Promise.resolve();
+      await Promise.resolve();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    expect(input?.value).toBe("UNIQLO");
+
+    await act(async () => {
+      setNativeValue(input!, "NoBrand");
+      await Promise.resolve();
+      await Promise.resolve();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    expect(fetchUserBrandsMock.mock.calls).toContainEqual(["NoBrand", true]);
+    expect(input?.value).toBe("NoBrand");
+    expect(container.textContent).toContain(
+      "一致するブランド候補はありません。",
+    );
+  });
+
+  it("ブランド候補にも追加するを送信 payload に含められる", async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 201,
+      json: async () => ({
+        purchaseCandidate: {
+          id: 7,
+        },
+      }),
+    });
+
+    await renderForm();
+
+    const nameInput = container.querySelector("#name") as HTMLInputElement;
+    const categorySelect = container.querySelector(
+      "#category_id",
+    ) as HTMLSelectElement;
+    const brandNameInput = container.querySelector(
+      "#brand-name",
+    ) as HTMLInputElement;
+    const saveBrandCheckbox = Array.from(
+      container.querySelectorAll<HTMLInputElement>('input[type="checkbox"]'),
+    ).find((input) =>
+      input.parentElement?.textContent?.includes("ブランド候補にも追加する"),
+    );
+    const customMainCheckbox = container.querySelector(
+      'input[aria-label="メインカラーをカラーコードで入力"]',
+    ) as HTMLInputElement;
+    const form = container.querySelector("form") as HTMLFormElement;
+
+    expect(saveBrandCheckbox).not.toBeUndefined();
+
+    await act(async () => {
+      setNativeValue(nameInput, "ブランド候補追加テスト");
+      setNativeValue(categorySelect, "outer_coat");
+      setNativeValue(brandNameInput, "UNIQLO");
+      saveBrandCheckbox!.click();
+      customMainCheckbox.click();
+    });
+
+    await act(async () => {
+      form.dispatchEvent(
+        new Event("submit", { bubbles: true, cancelable: true }),
+      );
+    });
+
+    const [, requestInit] = fetchMock.mock.calls[0];
+    const payload = JSON.parse(requestInit.body as string);
+
+    expect(payload.save_brand_as_candidate).toBe(true);
   });
 
   it("カスタムカラーコードを送信 payload に含められる", async () => {
