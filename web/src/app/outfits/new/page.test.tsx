@@ -227,4 +227,68 @@ describe("NewOutfitPage", () => {
     );
     expect(container.textContent).toContain("白T");
   });
+
+  it("422 の field error を項目近くに表示する", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn()
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => ({
+            items: [
+              {
+                id: 1,
+                name: "白T",
+                category: "tops",
+                shape: "tshirt",
+                colors: [],
+                seasons: [],
+                tpos: [],
+              },
+            ],
+          }),
+        })
+        .mockResolvedValueOnce({
+          ok: false,
+          status: 422,
+          json: async () => ({
+            errors: {
+              name: ["名前は255文字以内で入力してください。"],
+              tpo_ids: ["TPO を選び直してください。"],
+            },
+          }),
+        }),
+    );
+
+    const { default: NewOutfitPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(NewOutfitPage));
+      await waitForEffects();
+    });
+
+    const checkboxes = container.querySelectorAll<HTMLInputElement>(
+      'input[type="checkbox"]',
+    );
+    const checkbox = checkboxes[checkboxes.length - 1] ?? null;
+    const submitButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent?.includes("登録する"),
+    );
+
+    await act(async () => {
+      checkbox?.click();
+      submitButton?.click();
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain(
+      "名前は255文字以内で入力してください。",
+    );
+    expect(container.textContent).toContain("TPO を選び直してください。");
+    expect(container.textContent).not.toContain(
+      "コーディネートの登録に失敗しました。",
+    );
+  });
 });

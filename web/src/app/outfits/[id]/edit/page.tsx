@@ -35,6 +35,33 @@ type Outfit = {
   outfitItems?: OutfitItem[];
 };
 
+function flattenFieldErrors(rawErrors: unknown): Record<string, string> {
+  if (!rawErrors || typeof rawErrors !== "object") {
+    return {};
+  }
+
+  return Object.entries(rawErrors).reduce<Record<string, string>>(
+    (carry, [key, value]) => {
+      if (Array.isArray(value) && value.length > 0) {
+        return {
+          ...carry,
+          [key]: String(value[0]),
+        };
+      }
+
+      if (typeof value === "string" && value !== "") {
+        return {
+          ...carry,
+          [key]: value,
+        };
+      }
+
+      return carry;
+    },
+    {},
+  );
+}
+
 export default function EditOutfitPage({
   params,
 }: {
@@ -273,10 +300,10 @@ export default function EditOutfitPage({
 
       if (!res.ok) {
         if (data?.errors) {
-          const firstError = Object.values(data.errors)[0];
-          if (Array.isArray(firstError) && firstError.length > 0) {
-            setSubmitError(String(firstError[0]));
-          } else {
+          const nextErrors = flattenFieldErrors(data.errors);
+          setErrors(nextErrors);
+
+          if (Object.keys(nextErrors).length === 0) {
             setSubmitError("更新に失敗しました。");
           }
         } else {
@@ -356,8 +383,15 @@ export default function EditOutfitPage({
                 placeholder="未入力でも登録できます"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 placeholder:text-gray-400 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                className={`w-full rounded-lg bg-white px-4 py-3 text-gray-900 placeholder:text-gray-400 outline-none transition focus:ring-2 ${
+                  errors.name
+                    ? "border border-red-300 focus:border-red-500 focus:ring-red-100"
+                    : "border border-gray-300 focus:border-blue-500 focus:ring-blue-100"
+                }`}
               />
+              {errors.name && (
+                <p className="mt-2 text-sm text-red-600">{errors.name}</p>
+              )}
             </div>
 
             <div>
@@ -372,8 +406,15 @@ export default function EditOutfitPage({
                 rows={3}
                 value={memo}
                 onChange={(e) => setMemo(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                className={`w-full rounded-lg bg-white px-4 py-3 text-gray-900 outline-none transition focus:ring-2 ${
+                  errors.memo
+                    ? "border border-red-300 focus:border-red-500 focus:ring-red-100"
+                    : "border border-gray-300 focus:border-blue-500 focus:ring-blue-100"
+                }`}
               />
+              {errors.memo && (
+                <p className="mt-2 text-sm text-red-600">{errors.memo}</p>
+              )}
             </div>
           </section>
 
@@ -406,6 +447,9 @@ export default function EditOutfitPage({
                   );
                 })}
               </div>
+              {errors.seasons && (
+                <p className="mt-2 text-sm text-red-600">{errors.seasons}</p>
+              )}
             </div>
 
             <div>
@@ -442,6 +486,9 @@ export default function EditOutfitPage({
                   </p>
                 ) : null}
               </div>
+              {errors.tpo_ids && (
+                <p className="mt-2 text-sm text-red-600">{errors.tpo_ids}</p>
+              )}
             </div>
           </section>
 

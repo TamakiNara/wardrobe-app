@@ -241,4 +241,99 @@ describe("EditOutfitPage", () => {
     );
     expect(submitButton?.hasAttribute("disabled")).toBe(true);
   });
+
+  it("422 の field error を項目近くに表示する", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn()
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => ({
+            outfit: {
+              id: 10,
+              name: "通勤コーデ",
+              memo: null,
+              seasons: [],
+              tpos: [],
+              tpo_ids: [],
+              outfitItems: [
+                {
+                  id: 201,
+                  item_id: 1,
+                  sort_order: 1,
+                  item: {
+                    id: 1,
+                    name: "白T",
+                    status: "active",
+                    category: "tops",
+                    shape: "tshirt",
+                    colors: [],
+                    seasons: [],
+                    tpos: [],
+                    tpo_ids: [],
+                  },
+                },
+              ],
+            },
+          }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => ({
+            items: [
+              {
+                id: 1,
+                name: "白T",
+                status: "active",
+                category: "tops",
+                shape: "tshirt",
+                colors: [],
+                seasons: [],
+                tpos: [],
+                tpo_ids: [],
+              },
+            ],
+          }),
+        })
+        .mockResolvedValueOnce({
+          ok: false,
+          status: 422,
+          json: async () => ({
+            errors: {
+              memo: ["メモは1000文字以内で入力してください。"],
+              seasons: ["季節の指定を見直してください。"],
+            },
+          }),
+        }),
+    );
+
+    const { default: EditOutfitPage } = await import("./page");
+
+    await act(async () => {
+      root.render(
+        React.createElement(EditOutfitPage, {
+          params: Promise.resolve({ id: "10" }),
+        }),
+      );
+      await waitForEffects();
+    });
+
+    const submitButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent?.includes("更新する"),
+    );
+
+    await act(async () => {
+      submitButton?.click();
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain(
+      "メモは1000文字以内で入力してください。",
+    );
+    expect(container.textContent).toContain("季節の指定を見直してください。");
+    expect(container.textContent).not.toContain("更新に失敗しました。");
+  });
 });

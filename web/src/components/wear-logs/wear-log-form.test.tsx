@@ -865,4 +865,83 @@ describe("WearLogForm", () => {
       "条件に一致するアイテム候補がありません。",
     );
   });
+
+  it("422 の field error を項目近くに表示し、items error は選択エラーとして見せる", async () => {
+    fetchAllPaginatedCandidatesMock
+      .mockResolvedValueOnce({
+        status: 200,
+        entries: [
+          {
+            id: 1,
+            name: "白T",
+            status: "active",
+            category: "tops",
+            shape: "tshirt",
+            colors: [],
+            seasons: [],
+            tpos: [],
+          },
+        ],
+      })
+      .mockResolvedValueOnce({
+        status: 200,
+        entries: [],
+      });
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValueOnce({
+        ok: false,
+        status: 422,
+        json: async () => ({
+          errors: {
+            display_order: ["同じ日の表示順が重複しています。"],
+            items: ["コーディネートまたはアイテムの内容を確認してください。"],
+            memo: ["メモは1000文字以内で入力してください。"],
+          },
+        }),
+      }),
+    );
+
+    const { default: WearLogForm } = await import("./wear-log-form");
+
+    await act(async () => {
+      root.render(React.createElement(WearLogForm, { mode: "create" }));
+    });
+    await act(async () => {
+      await waitForEffects();
+    });
+
+    const dateInput =
+      container.querySelector<HTMLInputElement>('input[type="date"]');
+    const checkbox = container.querySelector<HTMLInputElement>(
+      'input[type="checkbox"]',
+    );
+    const submitButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent?.includes("登録する"),
+    );
+
+    await act(async () => {
+      const setter = Object.getOwnPropertyDescriptor(
+        window.HTMLInputElement.prototype,
+        "value",
+      )?.set;
+      setter?.call(dateInput, "2026-03-24");
+      dateInput?.dispatchEvent(new Event("input", { bubbles: true }));
+      checkbox?.click();
+      submitButton?.click();
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain("同じ日の表示順が重複しています。");
+    expect(container.textContent).toContain(
+      "コーディネートまたはアイテムの内容を確認してください。",
+    );
+    expect(container.textContent).toContain(
+      "メモは1000文字以内で入力してください。",
+    );
+    expect(container.textContent).not.toContain(
+      "着用履歴を保存できませんでした。",
+    );
+  });
 });

@@ -59,6 +59,35 @@ const WEAR_LOG_FILTER_SEASONS = SEASON_OPTIONS.filter(
   (season) => season !== "オール",
 );
 
+function flattenFieldErrors(rawErrors: unknown): Record<string, string> {
+  if (!rawErrors || typeof rawErrors !== "object") {
+    return {};
+  }
+
+  return Object.entries(rawErrors).reduce<Record<string, string>>(
+    (carry, [key, value]) => {
+      const nextKey = key === "items" ? "selection" : key;
+
+      if (Array.isArray(value) && value.length > 0) {
+        return {
+          ...carry,
+          [nextKey]: String(value[0]),
+        };
+      }
+
+      if (typeof value === "string" && value !== "") {
+        return {
+          ...carry,
+          [nextKey]: value,
+        };
+      }
+
+      return carry;
+    },
+    {},
+  );
+}
+
 export default function WearLogForm({
   mode,
   wearLogId,
@@ -490,11 +519,10 @@ export default function WearLogForm({
 
       if (!response.ok) {
         if (data?.errors) {
-          const firstError = Object.values(data.errors)[0];
+          const nextErrors = flattenFieldErrors(data.errors);
+          setErrors(nextErrors);
 
-          if (Array.isArray(firstError) && firstError.length > 0) {
-            setSubmitError(String(firstError[0]));
-          } else {
+          if (Object.keys(nextErrors).length === 0) {
             setSubmitError("着用履歴を保存できませんでした。");
           }
         } else {
@@ -607,11 +635,18 @@ export default function WearLogForm({
           <select
             value={status}
             onChange={(event) => setStatus(event.target.value as WearLogStatus)}
-            className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            className={`w-full rounded-lg bg-white px-4 py-3 text-gray-900 outline-none transition focus:ring-2 ${
+              errors.status
+                ? "border border-red-300 focus:border-red-500 focus:ring-red-100"
+                : "border border-gray-300 focus:border-blue-500 focus:ring-blue-100"
+            }`}
           >
             <option value="planned">{WEAR_LOG_STATUS_LABELS.planned}</option>
             <option value="worn">{WEAR_LOG_STATUS_LABELS.worn}</option>
           </select>
+          {errors.status && (
+            <p className="mt-2 text-sm text-red-600">{errors.status}</p>
+          )}
         </div>
 
         <div className="grid gap-4 md:grid-cols-2">
@@ -621,7 +656,11 @@ export default function WearLogForm({
               type="date"
               value={eventDate}
               onChange={(event) => setEventDate(event.target.value)}
-              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              className={`w-full rounded-lg bg-white px-4 py-3 text-gray-900 outline-none transition focus:ring-2 ${
+                errors.event_date
+                  ? "border border-red-300 focus:border-red-500 focus:ring-red-100"
+                  : "border border-gray-300 focus:border-blue-500 focus:ring-blue-100"
+              }`}
             />
             {errors.event_date && (
               <p className="mt-2 text-sm text-red-600">{errors.event_date}</p>
@@ -637,7 +676,11 @@ export default function WearLogForm({
               min={1}
               value={displayOrder}
               onChange={(event) => setDisplayOrder(Number(event.target.value))}
-              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              className={`w-full rounded-lg bg-white px-4 py-3 text-gray-900 outline-none transition focus:ring-2 ${
+                errors.display_order
+                  ? "border border-red-300 focus:border-red-500 focus:ring-red-100"
+                  : "border border-gray-300 focus:border-blue-500 focus:ring-blue-100"
+              }`}
             />
             {errors.display_order && (
               <p className="mt-2 text-sm text-red-600">
@@ -1050,8 +1093,13 @@ export default function WearLogForm({
           rows={3}
           value={memo}
           onChange={(event) => setMemo(event.target.value)}
-          className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+          className={`w-full rounded-lg bg-white px-4 py-3 text-gray-900 outline-none transition focus:ring-2 ${
+            errors.memo
+              ? "border border-red-300 focus:border-red-500 focus:ring-red-100"
+              : "border border-gray-300 focus:border-blue-500 focus:ring-blue-100"
+          }`}
         />
+        {errors.memo && <p className="text-sm text-red-600">{errors.memo}</p>}
       </section>
 
       <div
