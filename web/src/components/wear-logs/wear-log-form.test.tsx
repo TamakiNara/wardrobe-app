@@ -118,6 +118,7 @@ describe("WearLogForm", () => {
     );
     expect(container.textContent).toContain("状態");
     expect(container.textContent).toContain("日付");
+    expect(container.textContent).toContain("元のコーディネート / アイテム");
     expect(container.textContent).toContain("アイテム");
     expect(container.textContent?.match(/必須/g)?.length).toBe(4);
     expect(container.textContent).toContain("通勤コーデ");
@@ -324,6 +325,7 @@ describe("WearLogForm", () => {
     expect(container.textContent).toContain(
       "「必須」が付いた項目は更新に必要です。",
     );
+    expect(container.textContent).toContain("元のコーディネート / アイテム");
     expect(container.textContent?.match(/必須/g)?.length).toBe(4);
     expect(container.textContent).toContain(
       "現在は候補に使えないデータが含まれていますが、この記録の内容確認と更新は続けられます。",
@@ -940,6 +942,7 @@ describe("WearLogForm", () => {
     expect(container.textContent).toContain(
       "メモは1000文字以内で入力してください。",
     );
+    expect(container.textContent).toContain("入力内容を確認してください。");
     expect(container.textContent).not.toContain(
       "着用履歴を保存できませんでした。",
     );

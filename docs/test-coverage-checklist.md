@@ -317,7 +317,7 @@
 
 | ID | 観点 | 確認内容 | 優先 | 実装状況 | 確認方法 | メモ |
 | --- | --- | --- | --- | --- | --- | --- |
-| CROSS-ERR-01 | UI/UX | field error が画面上で項目に紐づいて見える | 高 | 要修正 | 手動確認 | item / purchase candidate は項目単位エラーが比較的厚い一方、outfit / wear log は上部メッセージ寄りで横断パターンが揃っていない |
+| CROSS-ERR-01 | UI/UX | field error が画面上で項目に紐づいて見える | 高 | 実装済み | 手動確認 | outfit / wear log でも field error を項目近くに表示するよう整理し、項目紐づけ可能な error は各入力近く、message only は上部に出る横断パターンが current UI で成立することを確認 |
 | CROSS-ERR-02 | UI/UX | message only の 422 が自然に表示される | 高 | 実装済み | 手動確認 | field error がない 422 でも message が自然に表示される |
 | CROSS-ERR-03 | UI/UX | 404 / 401 時に画面が破綻しない | 高 | 実装済み | 手動確認 | 401 は login へ戻し、404 は一覧 fallback があり画面破綻しない |
 
