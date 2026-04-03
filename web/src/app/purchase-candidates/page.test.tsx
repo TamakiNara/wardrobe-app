@@ -140,6 +140,70 @@ describe("PurchaseCandidatesPage", () => {
     );
     expect(markup).toContain("詳細を見る");
     expect(markup).toContain("画像なし");
+    expect(markup).toContain("表示件数: 2 / 2");
+    expect(markup).toContain("1 / 1ページ");
     expect(markup).not.toContain('href="/purchase-candidates/1/edit"');
+  });
+
+  it("ページング UI を表示し、クエリを維持して前後ページへ移動できる", async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        purchaseCandidates: [
+          {
+            id: 13,
+            status: "considering",
+            priority: "medium",
+            name: "在宅コート13",
+            category_id: "outer_coat",
+            category_name: "コート",
+            price: 11800,
+            sale_price: null,
+            sale_ends_at: null,
+            converted_item_id: null,
+            converted_at: null,
+            primary_image: null,
+            updated_at: "2026-03-24T10:00:00+09:00",
+          },
+        ],
+        meta: {
+          total: 13,
+          totalAll: 14,
+          page: 2,
+          lastPage: 3,
+        },
+      }),
+    });
+
+    const { default: PurchaseCandidatesPage } = await import("./page");
+    const markup = renderToStaticMarkup(
+      await PurchaseCandidatesPage({
+        searchParams: Promise.resolve({
+          keyword: "在宅",
+          status: "considering",
+          priority: "high",
+          category: "outer_coat",
+          sort: "name_asc",
+          page: "2",
+        }),
+      }),
+    );
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining(
+        "/api/purchase-candidates?keyword=%E5%9C%A8%E5%AE%85&status=considering&priority=high&category=outer_coat&sort=name_asc&page=2",
+      ),
+      expect.any(Object),
+    );
+    expect(markup).toContain("表示件数: 1 / 13");
+    expect(markup).toContain("2 / 3ページ");
+    expect(markup).toContain("（全13件）");
+    expect(markup).toContain(
+      'href="/purchase-candidates?keyword=%E5%9C%A8%E5%AE%85&amp;status=considering&amp;priority=high&amp;category=outer_coat&amp;sort=name_asc"',
+    );
+    expect(markup).toContain(
+      'href="/purchase-candidates?keyword=%E5%9C%A8%E5%AE%85&amp;status=considering&amp;priority=high&amp;category=outer_coat&amp;sort=name_asc&amp;page=3"',
+    );
   });
 });

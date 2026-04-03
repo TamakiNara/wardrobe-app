@@ -8,8 +8,57 @@ import {
 import { fetchLaravelWithCookie } from "@/lib/server/laravel";
 import type { PurchaseCandidatesResponse } from "@/types/purchase-candidates";
 
-async function getPurchaseCandidates(): Promise<PurchaseCandidatesResponse> {
-  const response = await fetchLaravelWithCookie("/api/purchase-candidates");
+type PurchaseCandidatesPageSearchParams = Record<
+  string,
+  string | string[] | undefined
+>;
+
+function buildQueryString(
+  searchParams: PurchaseCandidatesPageSearchParams,
+): string {
+  const params = new URLSearchParams();
+
+  for (const [key, value] of Object.entries(searchParams)) {
+    if (key === "message") {
+      continue;
+    }
+
+    if (Array.isArray(value)) {
+      const firstValue = value[0];
+      if (firstValue) {
+        params.set(key, firstValue);
+      }
+      continue;
+    }
+
+    if (value) {
+      params.set(key, value);
+    }
+  }
+
+  return params.toString();
+}
+
+function buildPageHref(
+  searchParams: PurchaseCandidatesPageSearchParams,
+  page: number,
+): string {
+  const query = buildQueryString({
+    ...searchParams,
+    page: page <= 1 ? undefined : String(page),
+  });
+
+  return query ? `/purchase-candidates?${query}` : "/purchase-candidates";
+}
+
+async function getPurchaseCandidates(
+  searchParams: PurchaseCandidatesPageSearchParams,
+): Promise<PurchaseCandidatesResponse> {
+  const query = buildQueryString(searchParams);
+  const endpoint = query
+    ? `/api/purchase-candidates?${query}`
+    : "/api/purchase-candidates";
+  const response = await fetchLaravelWithCookie(endpoint);
 
   if (response.status === 401) {
     redirect("/login");
@@ -65,14 +114,16 @@ function formatDateTime(value: string | null): string {
 export default async function PurchaseCandidatesPage({
   searchParams,
 }: {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
+  searchParams: Promise<PurchaseCandidatesPageSearchParams>;
 }) {
   const resolvedSearchParams = await searchParams;
-  const data = await getPurchaseCandidates();
+  const data = await getPurchaseCandidates(resolvedSearchParams);
   const flashMessage =
     resolvedSearchParams.message === "deleted"
       ? "購入検討を削除しました。"
       : null;
+  const currentPage = data.meta.page;
+  const lastPage = data.meta.lastPage;
 
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">
@@ -112,98 +163,141 @@ export default async function PurchaseCandidatesPage({
             </p>
           </section>
         ) : (
-          <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {data.purchaseCandidates.map((candidate) => (
-              <article
-                key={candidate.id}
-                className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm"
-              >
-                <Link
-                  href={`/purchase-candidates/${candidate.id}`}
-                  className="block outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2"
+          <>
+            <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+              <p className="text-sm text-gray-600">
+                表示件数: {data.purchaseCandidates.length} / {data.meta.total}
+              </p>
+            </section>
+
+            <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {data.purchaseCandidates.map((candidate) => (
+                <article
+                  key={candidate.id}
+                  className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm"
                 >
-                  <div className="flex aspect-[4/3] items-center justify-center bg-gray-50 p-3 transition hover:bg-gray-100">
-                    {candidate.primary_image?.url ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={candidate.primary_image.url}
-                        alt={candidate.name}
-                        className="h-full w-full object-contain"
-                      />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center rounded-xl border border-dashed border-gray-300 bg-white text-sm text-gray-400">
-                        画像なし
-                      </div>
-                    )}
-                  </div>
-                </Link>
-
-                <div className="space-y-4 p-5">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
-                      {PURCHASE_CANDIDATE_STATUS_LABELS[candidate.status]}
-                    </span>
-                    <span className="rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-xs font-medium text-gray-600">
-                      優先度:{" "}
-                      {PURCHASE_CANDIDATE_PRIORITY_LABELS[candidate.priority]}
-                    </span>
-                    {candidate.converted_item_id !== null && (
-                      <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
-                        アイテム化済み
-                      </span>
-                    )}
-                  </div>
-
                   <Link
                     href={`/purchase-candidates/${candidate.id}`}
-                    className="block rounded-lg outline-none transition hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-blue-400"
+                    className="block outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2"
                   >
-                    <h2 className="text-lg font-semibold text-gray-900">
-                      {candidate.name}
-                    </h2>
-                    <p className="mt-1 text-sm text-gray-500">
-                      {candidate.category_name ?? candidate.category_id}
-                    </p>
+                    <div className="flex aspect-[4/3] items-center justify-center bg-gray-50 p-3 transition hover:bg-gray-100">
+                      {candidate.primary_image?.url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={candidate.primary_image.url}
+                          alt={candidate.name}
+                          className="h-full w-full object-contain"
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center rounded-xl border border-dashed border-gray-300 bg-white text-sm text-gray-400">
+                          画像なし
+                        </div>
+                      )}
+                    </div>
                   </Link>
 
-                  <dl className="space-y-2 text-sm text-gray-600">
-                    <div className="flex items-center justify-between gap-3">
-                      <dt>想定価格</dt>
-                      <dd>{formatPrice(candidate.price)}</dd>
+                  <div className="space-y-4 p-5">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
+                        {PURCHASE_CANDIDATE_STATUS_LABELS[candidate.status]}
+                      </span>
+                      <span className="rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-xs font-medium text-gray-600">
+                        優先度:{" "}
+                        {PURCHASE_CANDIDATE_PRIORITY_LABELS[candidate.priority]}
+                      </span>
+                      {candidate.converted_item_id !== null && (
+                        <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                          アイテム化済み
+                        </span>
+                      )}
                     </div>
-                    {(candidate.sale_price !== null ||
-                      candidate.sale_ends_at !== null) && (
-                      <>
-                        {candidate.sale_price !== null && (
-                          <div className="flex items-center justify-between gap-3 text-rose-700">
-                            <dt>セール価格</dt>
-                            <dd>{formatPrice(candidate.sale_price)}</dd>
-                          </div>
-                        )}
-                        <div className="flex items-center justify-between gap-3">
-                          <dt>終了予定</dt>
-                          <dd>{formatDateTime(candidate.sale_ends_at)}</dd>
-                        </div>
-                      </>
-                    )}
-                    <div className="flex items-center justify-between gap-3">
-                      <dt>更新日</dt>
-                      <dd>{candidate.updated_at?.slice(0, 10) ?? "未設定"}</dd>
-                    </div>
-                  </dl>
 
-                  <div className="flex items-center gap-3">
                     <Link
                       href={`/purchase-candidates/${candidate.id}`}
-                      className="text-sm font-medium text-blue-600 hover:underline"
+                      className="block rounded-lg outline-none transition hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-blue-400"
                     >
-                      詳細を見る
+                      <h2 className="text-lg font-semibold text-gray-900">
+                        {candidate.name}
+                      </h2>
+                      <p className="mt-1 text-sm text-gray-500">
+                        {candidate.category_name ?? candidate.category_id}
+                      </p>
                     </Link>
+
+                    <dl className="space-y-2 text-sm text-gray-600">
+                      <div className="flex items-center justify-between gap-3">
+                        <dt>想定価格</dt>
+                        <dd>{formatPrice(candidate.price)}</dd>
+                      </div>
+                      {(candidate.sale_price !== null ||
+                        candidate.sale_ends_at !== null) && (
+                        <>
+                          {candidate.sale_price !== null && (
+                            <div className="flex items-center justify-between gap-3 text-rose-700">
+                              <dt>セール価格</dt>
+                              <dd>{formatPrice(candidate.sale_price)}</dd>
+                            </div>
+                          )}
+                          <div className="flex items-center justify-between gap-3">
+                            <dt>終了予定</dt>
+                            <dd>{formatDateTime(candidate.sale_ends_at)}</dd>
+                          </div>
+                        </>
+                      )}
+                      <div className="flex items-center justify-between gap-3">
+                        <dt>更新日</dt>
+                        <dd>{candidate.updated_at?.slice(0, 10) ?? "未設定"}</dd>
+                      </div>
+                    </dl>
+
+                    <div className="flex items-center gap-3">
+                      <Link
+                        href={`/purchase-candidates/${candidate.id}`}
+                        className="text-sm font-medium text-blue-600 hover:underline"
+                      >
+                        詳細を見る
+                      </Link>
+                    </div>
                   </div>
-                </div>
-              </article>
-            ))}
-          </section>
+                </article>
+              ))}
+            </section>
+
+            <section className="flex items-center justify-between rounded-2xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
+              {currentPage > 1 ? (
+                <Link
+                  href={buildPageHref(resolvedSearchParams, currentPage - 1)}
+                  className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+                >
+                  前へ
+                </Link>
+              ) : (
+                <span className="rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-400">
+                  前へ
+                </span>
+              )}
+
+              <p className="text-sm text-gray-600">
+                {currentPage} / {lastPage}ページ
+                <span className="ml-2 text-gray-400">
+                  （全{data.meta.total}件）
+                </span>
+              </p>
+
+              {currentPage < lastPage ? (
+                <Link
+                  href={buildPageHref(resolvedSearchParams, currentPage + 1)}
+                  className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+                >
+                  次へ
+                </Link>
+              ) : (
+                <span className="rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-400">
+                  次へ
+                </span>
+              )}
+            </section>
+          </>
         )}
       </div>
     </main>
