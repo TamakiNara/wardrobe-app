@@ -36,6 +36,7 @@ export type PurchaseCandidateListItem = {
   name: string;
   category_id: string;
   category_name: string | null;
+  brand_name: string | null;
   price: number | null;
   sale_price: number | null;
   sale_ends_at: string | null;
@@ -77,6 +78,7 @@ export type PurchaseCandidateRecord = {
 
 export type PurchaseCandidatesResponse = {
   purchaseCandidates: PurchaseCandidateListItem[];
+  availableBrands?: string[];
   meta: {
     total: number;
     totalAll: number;

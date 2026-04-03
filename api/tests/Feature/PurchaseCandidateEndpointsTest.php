@@ -172,6 +172,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
             ->assertJsonPath('purchaseCandidates.0.id', $candidate->id)
             ->assertJsonPath('purchaseCandidates.0.name', '自分の候補')
             ->assertJsonPath('purchaseCandidates.0.sale_price', 12800)
+            ->assertJsonPath('availableBrands.0', 'Sample Brand')
             ->assertJsonPath('meta.total', 1)
             ->assertJsonPath('meta.totalAll', 1);
     }
@@ -203,6 +204,16 @@ class PurchaseCandidateEndpointsTest extends TestCase
             'memo' => '休日候補メモ',
         ]);
 
+        $this->createCandidate($user, [
+            'name' => '在宅コートブランド違い',
+            'status' => 'considering',
+            'priority' => 'high',
+            'category_id' => 'outer_coat',
+            'brand_name' => '別ブランド',
+            'wanted_reason' => '在宅用を追加したい',
+            'memo' => '在宅候補メモ',
+        ]);
+
         $otherUser = User::factory()->create();
         $this->createCandidate($otherUser, [
             'name' => '在宅コート他人分',
@@ -213,20 +224,26 @@ class PurchaseCandidateEndpointsTest extends TestCase
 
         $this->actingAs($user, 'web');
 
-        $response = $this->getJson('/api/purchase-candidates?keyword=%E5%9C%A8%E5%AE%85&status=considering&priority=high&category=outer_coat&sort=name_asc&page=2', [
+        $response = $this->getJson('/api/purchase-candidates?keyword=%E5%9C%A8%E5%AE%85&status=considering&priority=high&category=outer_coat&brand=%E5%9C%A8%E5%AE%85%E3%83%96%E3%83%A9%E3%83%B3%E3%83%89&sort=name_asc&page=2', [
             'Accept' => 'application/json',
         ]);
 
         $response->assertOk()
             ->assertJsonCount(1, 'purchaseCandidates')
             ->assertJsonPath('purchaseCandidates.0.name', '在宅コート13')
+            ->assertJsonPath('availableBrands.0', '休日ブランド')
+            ->assertJsonPath('availableBrands.1', '別ブランド')
+            ->assertJsonPath('availableBrands.2', '在宅ブランド')
             ->assertJsonPath('meta.total', 13)
-            ->assertJsonPath('meta.totalAll', 14)
+            ->assertJsonPath('meta.totalAll', 15)
             ->assertJsonPath('meta.page', 2)
             ->assertJsonPath('meta.lastPage', 2);
 
         $response->assertJsonMissing([
             'name' => '休日コート',
+        ]);
+        $response->assertJsonMissing([
+            'name' => '在宅コートブランド違い',
         ]);
     }
 

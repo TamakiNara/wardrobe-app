@@ -15,16 +15,28 @@ class PurchaseCandidatesIndexQuery
         $status = trim((string) $request->query('status', ''));
         $priority = trim((string) $request->query('priority', ''));
         $categoryId = trim((string) $request->query('category', ''));
+        $brand = trim((string) $request->query('brand', ''));
         $sort = $request->query('sort') === 'name_asc' ? 'name_asc' : 'updated_at_desc';
         $page = ListQuerySupport::normalizePage($request->query('page', 1));
         $visibleCandidatesQuery = self::buildVisibleCandidatesQuery($user);
         $visibleCandidatesCount = (clone $visibleCandidatesQuery)->count();
+        $availableBrands = (clone $visibleCandidatesQuery)
+            ->whereNotNull('brand_name')
+            ->where('brand_name', '!=', '')
+            ->distinct()
+            ->orderBy('brand_name')
+            ->pluck('brand_name')
+            ->map(fn (?string $brandName) => trim((string) $brandName))
+            ->filter(fn (string $brandName) => $brandName !== '')
+            ->values()
+            ->all();
         $query = self::buildFilteredCandidatesQuery(
             $user,
             $keyword,
             $status,
             $priority,
             $categoryId,
+            $brand,
             $sort
         );
         $pagination = $query->paginate(ListQuerySupport::PAGE_SIZE, ['*'], 'page', $page);
@@ -33,6 +45,7 @@ class PurchaseCandidatesIndexQuery
             'purchaseCandidates' => $pagination->getCollection()
                 ->map(fn (PurchaseCandidate $candidate) => PurchaseCandidatePayloadBuilder::buildListItem($candidate))
                 ->all(),
+            'availableBrands' => $availableBrands,
             'meta' => [
                 'total' => $pagination->total(),
                 'totalAll' => $visibleCandidatesCount,
@@ -54,6 +67,7 @@ class PurchaseCandidatesIndexQuery
         string $status,
         string $priority,
         string $categoryId,
+        string $brand,
         string $sort
     ): Builder {
         $query = self::buildVisibleCandidatesQuery($user)
@@ -79,6 +93,10 @@ class PurchaseCandidatesIndexQuery
 
         if ($categoryId !== '') {
             $query->where('category_id', $categoryId);
+        }
+
+        if ($brand !== '') {
+            $query->where('brand_name', 'like', '%'.$brand.'%');
         }
 
         if ($sort === 'name_asc') {

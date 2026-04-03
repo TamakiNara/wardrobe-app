@@ -22,6 +22,7 @@ class PurchaseCandidatePayloadBuilder
             'name' => $candidate->name,
             'category_id' => $candidate->category_id,
             'category_name' => $candidate->category?->name,
+            'brand_name' => $candidate->brand_name,
             'price' => $candidate->price,
             'sale_price' => $candidate->sale_price,
             'sale_ends_at' => $candidate->sale_ends_at?->toISOString(),

@@ -28,12 +28,90 @@ describe("PurchaseCandidatesPage", () => {
     vi.stubGlobal("fetch", fetchMock);
   });
 
+  function mockCategoryGroupsResponse() {
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        groups: [
+          {
+            id: "outer",
+            name: "アウター",
+            sortOrder: 1,
+            categories: [
+              {
+                id: "outer_coat",
+                groupId: "outer",
+                name: "コート",
+                sortOrder: 1,
+              },
+            ],
+          },
+          {
+            id: "tops",
+            name: "トップス",
+            sortOrder: 2,
+            categories: [
+              {
+                id: "tops_tshirt",
+                groupId: "tops",
+                name: "Tシャツ",
+                sortOrder: 1,
+              },
+            ],
+          },
+        ],
+      }),
+    });
+  }
+
+  function mockBrandOptionsResponse() {
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        brands: [
+          {
+            id: 1,
+            name: "在宅ブランド",
+            kana: "ざいたくぶらんど",
+            is_active: true,
+            updated_at: "2026-03-24T10:00:00+09:00",
+          },
+        ],
+      }),
+    });
+  }
+
+  it("ブランド候補設定と既存購入検討ブランドを統合して候補を作れる", async () => {
+    const { mergePurchaseCandidateBrandOptions } = await import("./page");
+
+    const merged = mergePurchaseCandidateBrandOptions(
+      [
+        {
+          id: 1,
+          name: "在宅ブランド",
+          kana: "ざいたくぶらんど",
+          is_active: true,
+          updated_at: "2026-03-24T10:00:00+09:00",
+        },
+      ],
+      [" 既存候補ブランド ", "在宅ブランド", ""],
+    );
+
+    expect(merged.map((brand) => brand.name)).toEqual([
+      "既存候補ブランド",
+      "在宅ブランド",
+    ]);
+  });
+
   it("空状態を表示できる", async () => {
-    fetchMock.mockResolvedValue({
+    fetchMock.mockResolvedValueOnce({
       ok: true,
       status: 200,
       json: async () => ({
         purchaseCandidates: [],
+        availableBrands: [],
         meta: {
           total: 0,
           totalAll: 0,
@@ -42,6 +120,8 @@ describe("PurchaseCandidatesPage", () => {
         },
       }),
     });
+    mockCategoryGroupsResponse();
+    mockBrandOptionsResponse();
 
     const { default: PurchaseCandidatesPage } = await import("./page");
     const markup = renderToStaticMarkup(
@@ -59,7 +139,7 @@ describe("PurchaseCandidatesPage", () => {
   });
 
   it("候補一覧を表示できる", async () => {
-    fetchMock.mockResolvedValue({
+    fetchMock.mockResolvedValueOnce({
       ok: true,
       status: 200,
       json: async () => ({
@@ -71,6 +151,7 @@ describe("PurchaseCandidatesPage", () => {
             name: "ネイビーコート",
             category_id: "outer_coat",
             category_name: "コート",
+            brand_name: "在宅ブランド",
             price: 19800,
             sale_price: 14800,
             sale_ends_at: "2026-03-31T18:00:00+09:00",
@@ -97,6 +178,7 @@ describe("PurchaseCandidatesPage", () => {
             name: "画像なし候補",
             category_id: "tops_tshirt",
             category_name: "Tシャツ",
+            brand_name: null,
             price: null,
             sale_price: null,
             sale_ends_at: null,
@@ -106,6 +188,7 @@ describe("PurchaseCandidatesPage", () => {
             updated_at: "2026-03-24T10:00:00+09:00",
           },
         ],
+        availableBrands: ["在宅ブランド", "候補から生成したブランド"],
         meta: {
           total: 2,
           totalAll: 2,
@@ -114,6 +197,8 @@ describe("PurchaseCandidatesPage", () => {
         },
       }),
     });
+    mockCategoryGroupsResponse();
+    mockBrandOptionsResponse();
 
     const { default: PurchaseCandidatesPage } = await import("./page");
     const markup = renderToStaticMarkup(
@@ -134,19 +219,29 @@ describe("PurchaseCandidatesPage", () => {
     );
     expect(markup).toContain('href="/purchase-candidates/new"');
     expect(markup).toContain("購入検討を追加");
+    expect(markup).toContain("キーワード");
+    expect(markup).toContain("状態");
+    expect(markup).toContain("優先度");
+    expect(markup).toContain("カテゴリ");
+    expect(markup).toContain("ブランド");
+    expect(markup).toContain("並び順");
+    expect(markup).toContain("名前・ブランド・メモで検索");
+    expect(markup).toContain("ブランド名で絞り込み");
     expect(markup).toContain('href="/purchase-candidates/1"');
     expect(markup).toContain(
       'src="http://localhost:8000/storage/purchase-candidates/1/front.png"',
     );
     expect(markup).toContain("詳細を見る");
     expect(markup).toContain("画像なし");
+    expect(markup).toContain("ブランド未設定");
+    expect(markup).toContain("在宅ブランド");
     expect(markup).toContain("表示件数: 2 / 2");
     expect(markup).toContain("1 / 1ページ");
     expect(markup).not.toContain('href="/purchase-candidates/1/edit"');
   });
 
   it("ページング UI を表示し、クエリを維持して前後ページへ移動できる", async () => {
-    fetchMock.mockResolvedValue({
+    fetchMock.mockResolvedValueOnce({
       ok: true,
       status: 200,
       json: async () => ({
@@ -158,6 +253,7 @@ describe("PurchaseCandidatesPage", () => {
             name: "在宅コート13",
             category_id: "outer_coat",
             category_name: "コート",
+            brand_name: "在宅ブランド",
             price: 11800,
             sale_price: null,
             sale_ends_at: null,
@@ -167,6 +263,7 @@ describe("PurchaseCandidatesPage", () => {
             updated_at: "2026-03-24T10:00:00+09:00",
           },
         ],
+        availableBrands: ["在宅ブランド"],
         meta: {
           total: 13,
           totalAll: 14,
@@ -175,6 +272,8 @@ describe("PurchaseCandidatesPage", () => {
         },
       }),
     });
+    mockCategoryGroupsResponse();
+    mockBrandOptionsResponse();
 
     const { default: PurchaseCandidatesPage } = await import("./page");
     const markup = renderToStaticMarkup(
@@ -184,6 +283,7 @@ describe("PurchaseCandidatesPage", () => {
           status: "considering",
           priority: "high",
           category: "outer_coat",
+          brand: "在宅ブランド",
           sort: "name_asc",
           page: "2",
         }),
@@ -192,7 +292,7 @@ describe("PurchaseCandidatesPage", () => {
 
     expect(fetchMock).toHaveBeenCalledWith(
       expect.stringContaining(
-        "/api/purchase-candidates?keyword=%E5%9C%A8%E5%AE%85&status=considering&priority=high&category=outer_coat&sort=name_asc&page=2",
+        "/api/purchase-candidates?keyword=%E5%9C%A8%E5%AE%85&status=considering&priority=high&category=outer_coat&brand=%E5%9C%A8%E5%AE%85%E3%83%96%E3%83%A9%E3%83%B3%E3%83%89&sort=name_asc&page=2",
       ),
       expect.any(Object),
     );
@@ -200,10 +300,43 @@ describe("PurchaseCandidatesPage", () => {
     expect(markup).toContain("2 / 3ページ");
     expect(markup).toContain("（全13件）");
     expect(markup).toContain(
-      'href="/purchase-candidates?keyword=%E5%9C%A8%E5%AE%85&amp;status=considering&amp;priority=high&amp;category=outer_coat&amp;sort=name_asc"',
+      'href="/purchase-candidates?keyword=%E5%9C%A8%E5%AE%85&amp;status=considering&amp;priority=high&amp;category=outer_coat&amp;brand=%E5%9C%A8%E5%AE%85%E3%83%96%E3%83%A9%E3%83%B3%E3%83%89&amp;sort=name_asc"',
     );
     expect(markup).toContain(
-      'href="/purchase-candidates?keyword=%E5%9C%A8%E5%AE%85&amp;status=considering&amp;priority=high&amp;category=outer_coat&amp;sort=name_asc&amp;page=3"',
+      'href="/purchase-candidates?keyword=%E5%9C%A8%E5%AE%85&amp;status=considering&amp;priority=high&amp;category=outer_coat&amp;brand=%E5%9C%A8%E5%AE%85%E3%83%96%E3%83%A9%E3%83%B3%E3%83%89&amp;sort=name_asc&amp;page=3"',
     );
+    expect(markup).toContain('value="在宅ブランド"');
+  });
+
+  it("条件一致0件時は絞り込み用の空状態を表示できる", async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        purchaseCandidates: [],
+        availableBrands: ["候補ブランド"],
+        meta: {
+          total: 0,
+          totalAll: 3,
+          page: 1,
+          lastPage: 1,
+        },
+      }),
+    });
+    mockCategoryGroupsResponse();
+    mockBrandOptionsResponse();
+
+    const { default: PurchaseCandidatesPage } = await import("./page");
+    const markup = renderToStaticMarkup(
+      await PurchaseCandidatesPage({
+        searchParams: Promise.resolve({
+          brand: "候補ブランド",
+        }),
+      }),
+    );
+
+    expect(markup).toContain("条件に一致する購入検討がありません");
+    expect(markup).toContain("条件を変えてお試しください。");
+    expect(markup).toContain('value="候補ブランド"');
   });
 });
