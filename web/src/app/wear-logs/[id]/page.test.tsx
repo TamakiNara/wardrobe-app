@@ -115,7 +115,7 @@ describe("WearLogDetailPage", () => {
     expect(markup).toContain(
       "クリーニング中ですが、予定・着用履歴ともに保持できます。",
     );
-    expect(markup).toContain("元コーディネート");
+    expect(markup).toContain("参照コーディネート");
     expect(markup).toContain("手動追加");
     expect(markup).not.toContain(">元のコーディネート<");
     expect(markup).toContain('href="/wear-logs/12/edit"');

@@ -15,7 +15,7 @@ function getWearLogStatusBadgeClass(status: WearLogRecord["status"]): string {
 }
 
 function getItemSourceTypeLabel(itemSourceType: "outfit" | "manual"): string {
-  return itemSourceType === "outfit" ? "元コーディネート" : "手動追加";
+  return itemSourceType === "outfit" ? "参照コーディネート" : "手動追加";
 }
 
 function getTodayYmd(): string {
@@ -248,7 +248,7 @@ export default async function WearLogDetailPage({
                             href={`/outfits/${wearLog.source_outfit_id}?from=wear-log&wear_log_id=${wearLog.id}`}
                             className="font-medium text-blue-600 hover:underline"
                           >
-                            元コーディネート
+                            参照コーディネート
                           </Link>
                         ) : (
                           getItemSourceTypeLabel(item.item_source_type)
