@@ -12,6 +12,7 @@ class ItemsIndexQuery
     public static function build(User $user, Request $request): array
     {
         $keyword = trim((string) $request->query('keyword', ''));
+        $brand = trim((string) $request->query('brand', ''));
         $category = trim((string) $request->query('category', ''));
         $season = trim((string) $request->query('season', ''));
         $tpo = trim((string) $request->query('tpo', ''));
@@ -24,7 +25,7 @@ class ItemsIndexQuery
             : null;
         $visibleItemsQuery = self::buildVisibleItemsQuery($user, $visibleCategoryIds);
         $visibleItems = $visibleItemsQuery
-            ->get(['id', 'category', 'seasons', 'tpo_ids', 'tpos']);
+            ->get(['id', 'category', 'brand_name', 'seasons', 'tpo_ids', 'tpos']);
         $tpoNameById = UserTpoNameResolver::buildNameMap(
             $user,
             $visibleItems
@@ -35,6 +36,7 @@ class ItemsIndexQuery
             $user,
             $visibleCategoryIds,
             $keyword,
+            $brand,
             $category,
             $season,
             $tpo,
@@ -61,6 +63,14 @@ class ItemsIndexQuery
                     ->pluck('category')
                     ->filter(fn (mixed $value) => is_string($value) && $value !== '')
                     ->unique()
+                    ->values()
+                    ->all(),
+                'availableBrands' => $visibleItems
+                    ->pluck('brand_name')
+                    ->map(fn (mixed $value) => is_string($value) ? trim($value) : '')
+                    ->filter()
+                    ->unique()
+                    ->sort()
                     ->values()
                     ->all(),
                 'availableSeasons' => ListQuerySupport::buildOrderedOptions(
@@ -91,6 +101,7 @@ class ItemsIndexQuery
         User $user,
         ?\Illuminate\Support\Collection $visibleCategoryIds,
         string $keyword,
+        string $brand,
         string $category,
         string $season,
         string $tpo,
@@ -102,6 +113,10 @@ class ItemsIndexQuery
 
         if ($keyword !== '') {
             $query->where('name', 'like', '%'.$keyword.'%');
+        }
+
+        if ($brand !== '') {
+            $query->where('brand_name', 'like', '%'.$brand.'%');
         }
 
         if ($category !== '') {

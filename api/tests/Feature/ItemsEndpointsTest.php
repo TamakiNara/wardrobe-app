@@ -198,6 +198,7 @@ class ItemsEndpointsTest extends TestCase
         for ($index = 1; $index <= 13; $index++) {
             $this->createItem($user, [
                 'name' => sprintf('白T%02d', $index),
+                'brand_name' => ' UNIQLO ',
                 'shape' => 'tshirt',
                 'seasons' => ['夏'],
                 'tpos' => ['休日'],
@@ -206,7 +207,17 @@ class ItemsEndpointsTest extends TestCase
 
         $this->createItem($user, [
             'name' => '白シャツ',
+            'brand_name' => 'MUJI',
             'shape' => 'shirt',
+            'seasons' => ['夏'],
+            'tpos' => ['休日'],
+        ]);
+
+        $this->createItem($user, [
+            'name' => '手放した白T',
+            'brand_name' => 'ZARA',
+            'status' => 'disposed',
+            'shape' => 'tshirt',
             'seasons' => ['夏'],
             'tpos' => ['休日'],
         ]);
@@ -214,6 +225,7 @@ class ItemsEndpointsTest extends TestCase
         $otherUser = User::factory()->create();
         $this->createItem($otherUser, [
             'name' => '他人の白T',
+            'brand_name' => 'Other Brand',
             'shape' => 'tshirt',
             'seasons' => ['夏'],
             'tpos' => ['休日'],
@@ -221,7 +233,7 @@ class ItemsEndpointsTest extends TestCase
 
         $this->actingAs($user, 'web');
 
-        $response = $this->getJson('/api/items?keyword=%E7%99%BD&season=%E5%A4%8F&tpo=%E4%BC%91%E6%97%A5&sort=name_asc&page=2', [
+        $response = $this->getJson('/api/items?keyword=%E7%99%BD&brand=UNIQLO&season=%E5%A4%8F&tpo=%E4%BC%91%E6%97%A5&sort=name_asc&page=2', [
             'Accept' => 'application/json',
         ]);
 
@@ -233,11 +245,15 @@ class ItemsEndpointsTest extends TestCase
             ->assertJsonPath('meta.page', 2)
             ->assertJsonPath('meta.lastPage', 2)
             ->assertJsonPath('meta.availableCategories.0', 'tops')
+            ->assertJsonPath('meta.availableBrands.0', 'UNIQLO')
             ->assertJsonPath('meta.availableSeasons.0', '夏')
             ->assertJsonPath('meta.availableTpos.0', '休日');
 
         $response->assertJsonMissing([
             'name' => '白シャツ',
+        ]);
+        $response->assertJsonMissing([
+            'name' => '手放した白T',
         ]);
     }
 

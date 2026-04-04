@@ -8,6 +8,7 @@ type PurchaseCandidateBrandFilterFieldProps = {
   name: string;
   defaultValue?: string;
   brands: UserBrandRecord[];
+  onValueChange?: (value: string) => void;
 };
 
 function normalizeSearchText(value: string): string {
@@ -19,6 +20,7 @@ export default function PurchaseCandidateBrandFilterField({
   name,
   defaultValue = "",
   brands,
+  onValueChange,
 }: PurchaseCandidateBrandFilterFieldProps) {
   const [value, setValue] = useState(defaultValue);
   const [open, setOpen] = useState(false);
@@ -44,6 +46,7 @@ export default function PurchaseCandidateBrandFilterField({
 
   function handleSelectSuggestion(brand: UserBrandRecord) {
     setValue(brand.name);
+    onValueChange?.(brand.name);
     setOpen(false);
     setHighlightedIndex(-1);
   }
@@ -96,7 +99,9 @@ export default function PurchaseCandidateBrandFilterField({
         type="text"
         value={value}
         onChange={(event) => {
-          setValue(event.target.value);
+          const nextValue = event.target.value;
+          setValue(nextValue);
+          onValueChange?.(nextValue);
           setOpen(true);
           setHighlightedIndex(0);
         }}

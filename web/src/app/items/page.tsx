@@ -20,6 +20,7 @@ type ItemsResponse = {
     page: number;
     lastPage: number;
     availableCategories: string[];
+    availableBrands: string[];
     availableSeasons: string[];
     availableTpos: string[];
   };
@@ -90,6 +91,7 @@ async function getItems(
         page: 1,
         lastPage: 1,
         availableCategories: [],
+        availableBrands: [],
         availableSeasons: [],
         availableTpos: [],
       },
@@ -106,6 +108,7 @@ async function getItems(
       page: data.meta?.page ?? 1,
       lastPage: data.meta?.lastPage ?? 1,
       availableCategories: data.meta?.availableCategories ?? [],
+      availableBrands: data.meta?.availableBrands ?? [],
       availableSeasons: data.meta?.availableSeasons ?? [],
       availableTpos: data.meta?.availableTpos ?? [],
     },
@@ -230,6 +233,7 @@ export default async function ItemsPage({
             currentPage={data.meta.page}
             lastPage={data.meta.lastPage}
             availableCategoryValues={data.meta.availableCategories}
+            availableBrands={data.meta.availableBrands}
             availableSeasons={data.meta.availableSeasons}
             availableTpos={data.meta.availableTpos}
             initialSeasonFilter={currentSeason ? "" : initialSeasonFilter}

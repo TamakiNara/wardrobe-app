@@ -9,6 +9,7 @@ type ItemsResponse = {
     page?: number;
     lastPage?: number;
     availableCategories?: string[];
+    availableBrands?: string[];
     availableSeasons?: string[];
     availableTpos?: string[];
   };
@@ -21,6 +22,7 @@ export async function fetchItems(): Promise<ItemRecord[]> {
 
 type FetchItemsIndexParams = {
   keyword?: string;
+  brand?: string;
   category?: string;
   season?: string;
   tpo?: string;
@@ -34,6 +36,10 @@ export async function fetchItemsIndex(params: FetchItemsIndexParams = {}) {
 
   if (params.keyword) {
     searchParams.set("keyword", params.keyword);
+  }
+
+  if (params.brand) {
+    searchParams.set("brand", params.brand);
   }
 
   if (params.category) {
@@ -72,6 +78,7 @@ export async function fetchItemsIndex(params: FetchItemsIndexParams = {}) {
       page: data.meta?.page ?? 1,
       lastPage: data.meta?.lastPage ?? 1,
       availableCategories: data.meta?.availableCategories ?? [],
+      availableBrands: data.meta?.availableBrands ?? [],
       availableSeasons: data.meta?.availableSeasons ?? [],
       availableTpos: data.meta?.availableTpos ?? [],
     },

@@ -598,7 +598,8 @@ thumbnail の現状確認用パターン一覧を見返すときは `docs/specs/
 - create / edit / list のカテゴリ選択肢は categories API を読む下地を追加した
 - Item 新規作成 / 編集のカテゴリ候補に `onepiece_allinone` と `inner` を追加し、ワンピース / オールインワンとルームウェア・インナーも設定連動で選べるようにした
 - tops の形表示は `Tシャツ/カットソー` `ニット/セーター` など、画面間で揺れない名称に整理した
-- items 一覧は `keyword / category / season / tpo / sort` を URL クエリを正本として扱い、再読み込みや戻る操作後も条件を復元できる
+- items 一覧は `keyword / brand / category / season / tpo / sort` を URL クエリを正本として扱い、再読み込みや戻る操作後も条件を復元できる
+- item 一覧の `brand` filter は、`active` かつ表示対象カテゴリの item に入っている `brand_name` を候補ソースとし、空文字除外・trim・重複除去だけを行った実データ探索用 filter として追加した
 - 複数条件は AND で絞り込み、`sort` は `updated_at_desc / name_asc` で切り替える
 - キーワード入力は IME 変換中に URL 更新を止め、変換確定後に検索条件へ反映する
 - BFF の GET は URL クエリを Laravel へそのまま転送し、Laravel 側で検索・並び替え・`page` を適用する
@@ -611,7 +612,7 @@ thumbnail の現状確認用パターン一覧を見返すときは `docs/specs/
 
 - item SVG の簡略化方針を docs と実装メモで揃え続ける
 - 一覧カードに tops 仕様の要約表示を出すか検討する
-- item 一覧にブランド絞り込みを追加する task を将来候補として残す。ブランド候補設定と一覧探索の役割差を踏まえつつ、入力補助ではなく既存データを探しやすくする filter として整理する。候補ソースを `user_brands` に限定するか、一覧データ由来のブランド名も含めるかは purchase candidate 一覧の実装方針と比較して再判断する。
+- item 一覧のブランド絞り込みは実装済み。`keyword` の対象を `brand_name` にも広げるか、`user_brands` と候補統合するか、表記ゆれをどこまで正規化するかは将来の再判断とする。
 
 ### outfits
 

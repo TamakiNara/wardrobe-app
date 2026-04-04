@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ItemThumbnailPreview from "@/components/items/item-thumbnail-preview";
+import PurchaseCandidateBrandFilterField from "@/components/purchase-candidates/purchase-candidate-brand-filter-field";
 import { fetchItemsIndex } from "@/lib/api/items";
 import {
   buildSupportedCategoryOptions,
@@ -20,7 +21,7 @@ import {
 } from "@/lib/master-data/item-shapes";
 import type { CategoryOption } from "@/types/categories";
 import type { ItemRecord } from "@/types/items";
-import type { SkinTonePreset } from "@/types/settings";
+import type { SkinTonePreset, UserBrandRecord } from "@/types/settings";
 
 type ItemsListProps = {
   items: ItemRecord[];
@@ -29,6 +30,7 @@ type ItemsListProps = {
   currentPage: number;
   lastPage: number;
   availableCategoryValues: string[];
+  availableBrands: string[];
   availableSeasons: string[];
   availableTpos: string[];
   initialSeasonFilter?: string;
@@ -70,6 +72,7 @@ function normalizePage(value: string | null): number {
 
 function buildQueryString({
   keyword,
+  brand,
   category,
   season,
   tpo,
@@ -77,6 +80,7 @@ function buildQueryString({
   page,
 }: {
   keyword: string;
+  brand: string;
   category: string;
   season: string;
   tpo: string;
@@ -87,6 +91,10 @@ function buildQueryString({
 
   if (keyword) {
     params.set("keyword", keyword);
+  }
+
+  if (brand) {
+    params.set("brand", brand);
   }
 
   if (category) {
@@ -144,6 +152,7 @@ export default function ItemsList({
   currentPage,
   lastPage,
   availableCategoryValues,
+  availableBrands,
   availableSeasons,
   availableTpos,
   initialSeasonFilter = "",
@@ -155,6 +164,7 @@ export default function ItemsList({
   const searchParams = useSearchParams();
 
   const keyword = normalizeKeyword(searchParams.get("keyword"));
+  const brandFilter = normalizeKeyword(searchParams.get("brand"));
   const categoryFilter = searchParams.get("category") ?? "";
   const seasonFilter = searchParams.get("season") ?? "";
   const tpoFilter = searchParams.get("tpo") ?? "";
@@ -179,6 +189,7 @@ export default function ItemsList({
     (
       nextValues: Partial<{
         keyword: string;
+        brand: string;
         category: string;
         season: string;
         tpo: string;
@@ -188,6 +199,7 @@ export default function ItemsList({
     ) => {
       const nextQuery = buildQueryString({
         keyword: nextValues.keyword ?? keyword,
+        brand: nextValues.brand ?? brandFilter,
         category: nextValues.category ?? categoryFilter,
         season: nextValues.season ?? seasonFilter,
         tpo: nextValues.tpo ?? tpoFilter,
@@ -200,6 +212,7 @@ export default function ItemsList({
       });
     },
     [
+      brandFilter,
       categoryFilter,
       keyword,
       page,
@@ -279,6 +292,7 @@ export default function ItemsList({
 
     fetchItemsIndex({
       keyword,
+      brand: brandFilter,
       category: categoryFilter,
       season: seasonFilter,
       tpo: tpoFilter,
@@ -311,6 +325,7 @@ export default function ItemsList({
       active = false;
     };
   }, [
+    brandFilter,
     categoryFilter,
     items,
     keyword,
@@ -327,6 +342,18 @@ export default function ItemsList({
     );
   }, [apiCategoryOptions, availableCategoryValues]);
 
+  const brandOptions = useMemo<UserBrandRecord[]>(() => {
+    return availableBrands
+      .filter((brand) => brand !== "")
+      .map((brand, index) => ({
+        id: -(index + 1),
+        name: brand,
+        kana: null,
+        is_active: true,
+        updated_at: "",
+      }));
+  }, [availableBrands]);
+
   const seasonOptions = availableSeasons;
   const tpoOptions = availableTpos;
   const closetSourceItems = viewMode === "closet" ? closetItems : items;
@@ -337,6 +364,7 @@ export default function ItemsList({
 
   const hasActiveFilters = Boolean(
     keyword ||
+    brandFilter ||
     categoryFilter ||
     seasonFilter ||
     tpoFilter ||
@@ -352,7 +380,7 @@ export default function ItemsList({
   return (
     <div className="space-y-6">
       <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-6">
           <div className="xl:col-span-2">
             <label className="mb-1 block text-sm font-medium text-gray-700">
               キーワード
@@ -391,6 +419,25 @@ export default function ItemsList({
                 </option>
               ))}
             </select>
+          </div>
+
+          <div>
+            <label
+              htmlFor="item-list-brand"
+              className="mb-1 block text-sm font-medium text-gray-700"
+            >
+              ブランド
+            </label>
+            <PurchaseCandidateBrandFilterField
+              key={`item-list-brand-filter:${brandFilter}`}
+              inputId="item-list-brand"
+              name="brand"
+              defaultValue={brandFilter}
+              brands={brandOptions}
+              onValueChange={(value) =>
+                updateQuery({ brand: value.trim(), page: 1 })
+              }
+            />
           </div>
 
           <div>

@@ -149,6 +149,7 @@ const defaultListProps = {
   currentPage: 1,
   lastPage: 1,
   availableCategoryValues: ["tops", "bottoms", "outer"],
+  availableBrands: ["GU", "UNIQLO"],
   availableSeasons: ["春", "夏"],
   availableTpos: ["仕事", "休日"],
 };
@@ -299,7 +300,8 @@ describe("ItemsList", () => {
   });
 
   it("URL クエリの初期値を反映し、条件クリアで URL も戻す", async () => {
-    searchParamsValue = "keyword=%E7%99%BD&season=%E5%A4%8F&sort=name_asc";
+    searchParamsValue =
+      "keyword=%E7%99%BD&brand=UNIQLO&season=%E5%A4%8F&sort=name_asc";
     fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
     fetchCategoryVisibilitySettingsMock.mockResolvedValue({
       visibleCategoryIds: ["tops_tshirt", "tops_shirt"],
@@ -322,12 +324,15 @@ describe("ItemsList", () => {
     const input = container.querySelector<HTMLInputElement>(
       'input[type="search"]',
     );
+    const brandInput =
+      container.querySelector<HTMLInputElement>("#item-list-brand");
     const selects = Array.from(container.querySelectorAll("select"));
     const clearButton = Array.from(container.querySelectorAll("button")).find(
       (button) => button.textContent?.includes("クリア"),
     );
 
     expect(input?.value).toBe("白");
+    expect(brandInput?.value).toBe("UNIQLO");
     expect((selects[1] as HTMLSelectElement).value).toBe("夏");
     expect((selects[3] as HTMLSelectElement).value).toBe("name_asc");
     expect(replaceMock).not.toHaveBeenCalled();
@@ -338,6 +343,38 @@ describe("ItemsList", () => {
     });
 
     expect(replaceMock).toHaveBeenCalledWith("/items", { scroll: false });
+  });
+
+  it("ブランド絞り込みを URL クエリへ反映する", async () => {
+    fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
+    fetchCategoryVisibilitySettingsMock.mockResolvedValue({
+      visibleCategoryIds: ["tops_tshirt", "tops_shirt"],
+    });
+
+    const { default: ItemsList } = await import("./items-list");
+
+    await act(async () => {
+      root.render(React.createElement(ItemsList, defaultListProps));
+      await waitForEffects();
+    });
+
+    const brandInput =
+      container.querySelector<HTMLInputElement>("#item-list-brand");
+
+    await act(async () => {
+      const valueSetter = Object.getOwnPropertyDescriptor(
+        window.HTMLInputElement.prototype,
+        "value",
+      )?.set;
+      valueSetter?.call(brandInput, "UNIQLO");
+      brandInput!.dispatchEvent(new Event("input", { bubbles: true }));
+      brandInput!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    expect(replaceMock).toHaveBeenCalledWith("/items?brand=UNIQLO", {
+      scroll: false,
+    });
   });
 
   it("検索結果が 0 件のときは空状態文言を表示する", async () => {
@@ -781,6 +818,7 @@ describe("ItemsList", () => {
 
     expect(fetchItemsIndexMock).toHaveBeenCalledWith({
       keyword: "",
+      brand: "",
       category: "",
       season: "",
       tpo: "",
@@ -799,7 +837,7 @@ describe("ItemsList", () => {
 
   it("クローゼットビューでは絞り込み条件付きでも結果全件を取得する", async () => {
     searchParamsValue =
-      "keyword=%E7%99%BD&category=tops&season=%E5%A4%8F&tpo=%E4%BC%91%E6%97%A5&sort=name_asc&page=2";
+      "keyword=%E7%99%BD&brand=UNIQLO&category=tops&season=%E5%A4%8F&tpo=%E4%BC%91%E6%97%A5&sort=name_asc&page=2";
     fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
     fetchCategoryVisibilitySettingsMock.mockResolvedValue({
       visibleCategoryIds: ["tops_tshirt", "tops_shirt"],
@@ -852,6 +890,7 @@ describe("ItemsList", () => {
 
     expect(fetchItemsIndexMock).toHaveBeenCalledWith({
       keyword: "白",
+      brand: "UNIQLO",
       category: "tops",
       season: "夏",
       tpo: "休日",

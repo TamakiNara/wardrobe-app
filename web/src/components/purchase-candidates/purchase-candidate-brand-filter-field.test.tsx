@@ -3,7 +3,7 @@
 import React from "react";
 import { act } from "react";
 import { createRoot } from "react-dom/client";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { UserBrandRecord } from "@/types/settings";
 
 describe("PurchaseCandidateBrandFilterField", () => {
@@ -125,5 +125,42 @@ describe("PurchaseCandidateBrandFilterField", () => {
 
     const input = container.querySelector<HTMLInputElement>("#brand");
     expect(input?.value).toBe("UNIQLO");
+  });
+
+  it("入力変更と候補選択を親へ通知できる", async () => {
+    const onValueChange = vi.fn();
+    const { default: PurchaseCandidateBrandFilterField } =
+      await import("./purchase-candidate-brand-filter-field");
+
+    await act(async () => {
+      root.render(
+        React.createElement(PurchaseCandidateBrandFilterField, {
+          inputId: "brand",
+          name: "brand",
+          brands,
+          onValueChange,
+        }),
+      );
+    });
+
+    const input = container.querySelector<HTMLInputElement>("#brand");
+
+    await act(async () => {
+      setInputValue(input!, "UNI");
+    });
+
+    expect(onValueChange).toHaveBeenCalledWith("UNI");
+
+    const suggestionButton = Array.from(
+      container.querySelectorAll("button"),
+    ).find((button) => button.textContent?.includes("UNIQLO"));
+
+    await act(async () => {
+      suggestionButton!.dispatchEvent(
+        new MouseEvent("mousedown", { bubbles: true }),
+      );
+    });
+
+    expect(onValueChange).toHaveBeenLastCalledWith("UNIQLO");
   });
 });
