@@ -829,6 +829,7 @@ outfit と tag の多対多関連テーブル案です。
 - 同一 wear log 内で同一 `source_item_id` の重複は不可
 - 同一 wear log 内で同一 `sort_order` の重複は不可
 - `sort_order` は `1, 2, 3...` の連番を前提とする
+- 現行実装では frontend が `sort_order` を `1, 2, 3...` で採番して送信し、backend は重複確認のみを行って受け取った値を保存する
 - `wear_log_id` は `wear_logs.id` への FK 連動削除を持ち、wear log 削除時に孤児化しない
 - wear logs 全体の詳細仕様は `docs/specs/wears/wear-logs.md` を参照
 

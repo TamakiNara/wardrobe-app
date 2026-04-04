@@ -708,7 +708,9 @@ wear log 自体の仕様ではないが、`source_outfit_id` の再利用や inv
 
 - `1, 2, 3...` の連番を前提とする
 - form 上では、selected item 一覧の並び替え UI から最終順序を調整できる
-- 保存時は UI 上の並び順に従って `sort_order` を連番で再採番する
+- 現行実装では frontend が、UI 上の並び順に従って `sort_order` を `1, 2, 3...` で連番採番して request に含める
+- backend は現時点では再採番せず、重複していないことを確認したうえで受け取った `sort_order` を保存する
+- そのため、current 方針としては「重複がなければよい」ではなく、欠番のない `1, 2, 3...` を期待する
 
 ### display_order
 
