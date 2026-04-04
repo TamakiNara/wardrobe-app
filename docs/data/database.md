@@ -613,6 +613,16 @@ outfit と item の関連テーブルです。
 - API / フロントの JSON では `groupId` を使う
 - `group_id` は `category_groups.id` を参照する
 
+
+
+### 再編時の注意
+
+- `category_groups` / `category_master` は現時点の 2 階層正本だが、大分類・中分類の追加や改名は seed だけの変更では済まない
+- `users.visible_category_ids` は中分類 ID を直接保持するため、中分類 ID の改名や統合は settings 保存値と onboarding プリセットの再投入方針を同時に決める必要がある
+- purchase candidate は `category_id` を正本として持ち、Laravel 側で item の `category` / `shape` へ変換しているため、category master 再編時は `PurchaseCandidateCategoryMap` と frontend 側 category map の更新が必須になる
+- item 側では現時点で `バッグ` を `accessories` の shape として扱っており、category master の大分類と item の `category / shape` にズレがあるため、この差は再編時の優先確認対象とする
+
+
 ### Example Records
 
 - `tops_tshirt`

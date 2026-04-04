@@ -312,6 +312,14 @@ thumbnail の現状確認用パターン一覧を見返すときは `docs/specs/
 - onboarding のプリセット選択は、最終的には `user_category_settings` の初期投入で表現する方向を優先し、登録直後の保存と通常設定変更をできるだけ同じ責務で扱える形を目指す
 - 今すぐ全面移行はしないが、カテゴリ設定に新しい保存項目を足す場合は `visible_category_ids` へ安易に追加せず、専用テーブル案と比較してから進める
 - 将来検討の論点は、中分類行の初期投入方法、表示順の保持要否、一覧絞り込み候補 / 作成・編集候補 / 既存データ表示での参照ルール共通化、`user_settings` とカテゴリ専用設定の責務境界とする
+- カテゴリ体系見直しメモ:
+- 現行の `category_groups` / `category_master` は初期実装としては成立しているが、実運用を考えると `ボトムス`、`ワンピース / オールインワン`、`小物` の粒度が粗い
+- 第一候補は、大分類を `トップス`、`ジャケット / アウター`、`パンツ`、`スカート`、`ワンピース / ドレス`、`オールインワン`、`ルームウェア・インナー`、`レッグウェア`、`シューズ`、`バッグ`、`ファッション小物` へ寄せる案とする
+- 影響が大きいのは seed だけではなく、`settings/categories`、onboarding プリセット、item / outfit / purchase candidate の create-edit 候補、一覧絞り込み候補、`category_id -> category / shape` 変換、クローゼットビューのカテゴリ / shape 表示である
+- 現行実装では category master の `バッグ` を item 側 `accessories` へ寄せており、`バッグ` と `小物` の責務差が `category_id` と item `category / shape` でずれているため、この差は再編時の優先整理対象とする
+- purchase candidate の `category_id` は Laravel 側で item の `category` / `shape` へ変換しているため、中分類追加だけでなく大分類再編でも `PurchaseCandidateCategoryMap` と frontend 側 category map の同時更新が必要になる
+- `パーカー / スウェット`、`キャミソール / タンクトップ`、`ワンピース / ドレス`、`バッグ / 小物` は現行の命名や責務が曖昧で、一覧比較や settings 表示でも後から説明しづらくなるため、分類再編時に優先して解消する
+- 今回は全面実装には入らないが、次に category master を追加・再編するときは、seed、settings、onboarding、candidate 変換、item `category / shape` のどこまで同時に直すかを一括で決めてから着手する
 - item 一覧 / outfits 一覧では、URL に季節条件がない場合のみ `currentSeason` を初期値として適用する
 - `currentSeason` の保存値は英語 enum だが、一覧 UI / URL の季節 filter 値は既存どおり日本語を維持し、初期適用時だけ変換する
 - wear log 新規作成では `defaultWearLogStatus` を初期値として使い、edit では既存 record の `status` を優先する
