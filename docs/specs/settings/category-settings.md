@@ -29,7 +29,10 @@ DBテーブル構成の詳細は `docs/data/database.md` を参照する。
 
 ---
 
-# 2. カテゴリ一覧
+# 2. 現行カテゴリ一覧
+
+この節は、**現行実装のカテゴリ構造**を記録する正本です。  
+次回の category master 再編候補は `2-1. カテゴリ体系再編の採用候補` を参照します。
 
 ## トップス
 
@@ -94,31 +97,209 @@ DBテーブル構成の詳細は `docs/data/database.md` を参照する。
 * アクセサリー
 * その他小物
 
-## 2-1. カテゴリ体系見直しの第一候補
+## 2-1. カテゴリ体系再編の採用候補
 
-現行の 2 階層構造は維持しつつ、次の大分類再編を第一候補とする。
+この節は、**次回再編時に採用したい候補案**です。  
+現時点の seed / API / 画面実装の正本ではありません。
 
-- `アウター` → `ジャケット / アウター`
-- `ボトムス` を `パンツ` と `スカート` に分離
-- `ワンピース / オールインワン` を `ワンピース / ドレス` と `オールインワン` に分離
-- `小物` は `ファッション小物` へ寄せ、バッグとは責務を分ける
+現行の 2 階層構造は維持しつつ、次に category master を再編する場合は次の大分類・中分類を第一候補とする。
 
-補足:
+基本方針:
 
-- 参考粒度は ZOZOTOWN と Rakuten Fashion を参照するが、そのままコピーせず、クローゼットアプリとして扱いやすい粒度を優先する
-- 現行分類で不足が目立つのは、`ボトムス` の一括扱い、`ワンピース / オールインワン` の一括扱い、`バッグ` と `小物` の境界、トップス内の `パーカー / スウェット` や `キャミソール / タンクトップ` の粗さである
-- 一方で、カテゴリを細かくしすぎると settings、onboarding、一覧 filter、candidate から item へのカテゴリ変換、item 側 `category / shape` の対応が先に壊れやすくなるため、初回見直しでは「大分類の整理」と「曖昧さの大きい中分類の追加」を優先する
+- 参考粒度は ZOZOTOWN と Rakuten Fashion を参照するが、そのままコピーせず、クローゼットアプリで登録・検索・設定しやすい粒度を優先する
+- 中分類は「一般的な登録時に迷いにくい名称」を優先し、詳細シルエット差は item 側 `shape` や spec で吸収する
+- 一方で、現行の `ボトムス`、`ワンピース・オールインワン`、`小物` のように責務が広すぎる大分類は分割する
+- `その他○○` は、利用頻度が高く今後も新規追加余地が大きい大分類だけに持つ
+- この節で示す内部名の候補は、**次回再編を実施する場合の採用候補**であり、現行の内部名正本は `#16. 現行の大分類ID一覧` と `#17. 現行の中分類ID一覧` を参照する
 
-大分類ごとの第一候補:
+### 大分類の最終候補
 
-- `トップス`: `スウェット`、`パーカー`、`タンクトップ / ノースリーブ`、`キャミソール` を分ける候補を優先する
-- `ジャケット / アウター`: 現行の `ジャケット`、`コート`、`ブルゾン`、`ダウン / 中綿` は維持しつつ、必要なら `アウターベスト` と `レインアウター` を後続候補にする
-- `パンツ`: まず `パンツ` と `ショートパンツ` を持てるようにし、詳細なシルエット差は item 側 `shape` で吸収する
-- `スカート`: まずは大分類独立を優先し、中分類の細分化は後続候補にする
-- `ワンピース / ドレス`: `ワンピース` と `ドレス` を分ける候補を優先する
-- `オールインワン`: `オールインワン` と `サロペット` の分離を後続候補にする
-- `バッグ`、`シューズ`、`レッグウェア` は現行の粒度を大きく崩さず、名称整理を優先する
-- `ルームウェア・インナー` と `ファッション小物` は、実運用データを見て将来分離を再判断する
+| 表示名 | 内部名 | 備考 |
+| --- | --- | --- |
+| トップス | `tops` | 現行維持 |
+| ジャケット・アウター | `outerwear` | 現行 `outer` から名称と内部名を見直す候補 |
+| パンツ | `pants` | 現行 `bottoms` から分離 |
+| スカート | `skirts` | 現行 `bottoms` から分離 |
+| ワンピース・ドレス | `onepiece_dress` | 現行 `onepiece_allinone` から分離 |
+| オールインワン | `allinone` | 現行 `onepiece_allinone` から分離 |
+| ルームウェア・インナー | `roomwear_inner` | 今回は統合維持 |
+| レッグウェア | `legwear` | 現行維持 |
+| シューズ | `shoes` | 現行維持 |
+| バッグ | `bags` | 現行維持 |
+| ファッション小物 | `fashion_accessories` | 現行 `accessories` を改名する候補 |
+| 水着 | `swimwear` | 新設候補 |
+| 着物 | `kimono` | 新設候補 |
+
+### 中分類の最終候補
+
+#### トップス (`tops`)
+
+- `tops_tshirt_cutsew` : Tシャツ・カットソー
+- `tops_shirt_blouse` : シャツ・ブラウス
+- `tops_knit_sweater` : ニット・セーター
+- `tops_cardigan` : カーディガン
+- `tops_polo_shirt` : ポロシャツ
+- `tops_sweat_trainer` : スウェット・トレーナー
+- `tops_hoodie` : パーカー・フーディー
+- `tops_vest_gilet` : ベスト・ジレ
+- `tops_camisole` : キャミソール
+- `tops_tanktop` : タンクトップ・ノースリーブ
+- `tops_other` : その他トップス
+
+#### ジャケット・アウター (`outerwear`)
+
+- `outerwear_jacket` : ジャケット
+- `outerwear_blouson` : ブルゾン
+- `outerwear_down_padded` : ダウンジャケット・中綿ジャケット
+- `outerwear_coat` : コート
+- `outerwear_mountain_parka` : マウンテンパーカー
+- `outerwear_other` : その他アウター
+
+#### パンツ (`pants`)
+
+- `pants_pants` : パンツ
+- `pants_denim` : ジーンズ・デニムパンツ
+- `pants_slacks` : スラックス・ドレスパンツ
+- `pants_short` : ショートパンツ
+- `pants_other` : その他パンツ
+
+#### スカート (`skirts`)
+
+- `skirts_skirt` : スカート
+- `skirts_other` : その他スカート
+
+#### ワンピース・ドレス (`onepiece_dress`)
+
+- `onepiece_dress_onepiece` : ワンピース
+- `onepiece_dress_dress` : ドレス
+- `onepiece_dress_other` : その他ワンピース・ドレス
+
+#### オールインワン (`allinone`)
+
+- `allinone_allinone` : オールインワン
+- `allinone_salopette` : サロペット
+- `allinone_other` : その他オールインワン
+
+#### ルームウェア・インナー (`roomwear_inner`)
+
+- `roomwear_inner_roomwear` : ルームウェア
+- `roomwear_inner_underwear` : インナー
+- `roomwear_inner_pajamas` : パジャマ
+
+#### レッグウェア (`legwear`)
+
+- `legwear_socks` : ソックス
+- `legwear_stockings` : ストッキング
+- `legwear_tights` : タイツ
+- `legwear_leggings` : レギンス
+- `legwear_other` : その他レッグウェア
+
+#### シューズ (`shoes`)
+
+- `shoes_sneakers` : スニーカー
+- `shoes_loafers_leather` : ローファー・革靴
+- `shoes_pumps` : パンプス
+- `shoes_boots` : ブーツ
+- `shoes_sandals` : サンダル
+- `shoes_other` : その他シューズ
+
+#### バッグ (`bags`)
+
+- `bags_bag` : バッグ
+- `bags_other` : その他バッグ
+
+#### ファッション小物 (`fashion_accessories`)
+
+- `fashion_accessories_hat` : 帽子
+- `fashion_accessories_belt` : ベルト
+- `fashion_accessories_scarf_stole` : マフラー・ストール
+- `fashion_accessories_gloves` : 手袋
+- `fashion_accessories_jewelry` : アクセサリー
+- `fashion_accessories_wallet_case` : 財布・カードケース
+- `fashion_accessories_hair` : ヘアアクセサリー
+- `fashion_accessories_eyewear` : 眼鏡・サングラス
+- `fashion_accessories_watch` : 腕時計
+- `fashion_accessories_other` : その他ファッション小物
+
+#### 水着 (`swimwear`)
+
+- `swimwear_swimwear` : 水着
+- `swimwear_rashguard` : ラッシュガード
+- `swimwear_other` : その他水着
+
+#### 着物 (`kimono`)
+
+- `kimono_kimono` : 着物
+- `kimono_other` : その他着物
+
+### 境界整理
+
+- `バッグ` と `ファッション小物` は分ける
+  - バッグは持ち運び用途の主アイテム
+  - ファッション小物は帽子・ベルト・アクセサリー・財布・眼鏡などの補助アイテム
+- `ワンピース・ドレス` と `オールインワン` は分ける
+  - 1 枚で上下がつながっていても、スカート型とパンツ型で登録・検索意図が違うため
+- 大分類と同名の中分類は許容する
+  - 例として `スカート > スカート` は不自然ではなく、詳細シルエット差を item 側 `shape` や spec へ逃がしたい時に有効
+  - 同名中分類は「その大分類の代表カテゴリ」を表す
+  - 一方で `その他○○` は、既存の代表カテゴリに入れにくいものを受け止める受け皿カテゴリとして扱う
+  - 代表カテゴリと受け皿カテゴリは役割が違うため、同時に置く場合も意味が重ならないようにする
+- `パンツ > パンツ`、`バッグ > バッグ`、`シューズ > シューズ`、`着物 > 着物` も同じ考え方で許容する
+  - 一覧・設定・登録で迷いにくい代表カテゴリを先に置き、細かい型差は必要なものだけ中分類へ残す
+- `ルームウェア・インナー` は今回は統合維持
+  - さらに分ける余地はあるが、現段階では優先度を下げる
+  - `インナー` の中にブラ・ショーツなどの下着をどこまで含めるかは要検討とし、初回再編では広げすぎない
+- `水着` と `着物` は独立大分類とする
+  - 通常衣類と混ぜると settings や onboarding で扱いづらいため
+- `デニムスカート` は今回は中分類に含めない
+  - 素材差として扱う余地が大きく、初回再編では `スカート > スカート` や item 側 spec / shape で吸収する方を優先する
+- `シャツワンピース` や `ニットワンピース` のような型差は今回は中分類に含めない
+  - ワンピース・ドレスの代表カテゴリを優先し、素材差や型差は shape / spec 側で扱う余地を残す
+- アウターの細かい型差やバッグの用途差も、初回再編では中分類へ入れすぎない
+  - 登録時に迷いにくい代表カテゴリを優先し、後から実データを見て追加要否を再判断する
+
+## 2-2. `shape` / `spec` に寄せる前提の最小設計メモ
+
+カテゴリ再編で中分類を代表カテゴリ中心に絞る場合でも、`shape` / `spec` 側がまったく未整理だと登録時に情報を逃がせない。  
+現時点で具体化できている範囲と、再編に合わせて次に詰めるべき範囲を次のように整理する。
+
+### 現時点で比較的具体化されているもの
+
+- `tops`
+  - `spec.tops` を保存対象として使用している
+  - 想定キーは `shape / sleeve / length / neck / design / fit`
+  - 詳細は `docs/specs/items/tops.md` を参照する
+- `bottoms`
+  - `spec.bottoms.length_type` があり、丈感の補助情報を持てる
+  - 詳細は `docs/specs/items/thumbnail-skin-exposure.md` を参照する
+- `legwear`
+  - `spec.legwear.coverage_type` があり、覆い方の補助情報を持てる
+  - 詳細は `docs/specs/items/thumbnail-skin-exposure.md` を参照する
+
+### 再編に合わせて次に詰めるべきもの
+
+- `pants`
+  - `パンツ > パンツ` を代表カテゴリにしたうえで、シルエット差は `shape` 側へ寄せる
+  - まずは `straight / tapered / wide` 程度の差を維持できればよい
+- `skirts`
+  - `スカート > スカート` を代表カテゴリにし、`タイト / フレア / プリーツ` のような型差は `shape` または `spec` 側で吸収する
+  - 初回再編では中分類よりも `shape` 側の受け皿整備を優先する
+- `outerwear`
+  - `ジャケット・アウター` は同名中分類を置かず、`jacket / blouson / coat / mountain_parka / down_padded` のような最小 shape へ寄せる前提で整理する
+  - ただし、初回は `jacket / blouson / coat / mountain_parka / down_padded` 程度の最小 shape でもよい
+- `onepiece_dress`
+  - `シャツワンピース` や `ニットワンピース` を中分類に持たない代わりに、必要なら素材差や袖丈差を `spec` 側で扱える余地を残す
+- `bags`
+  - 初回は `バッグ > バッグ` を代表カテゴリにし、用途差は shape 未導入でもよい
+  - ただし、一覧・クローゼット表示で必要なら将来 `tote / shoulder / backpack` などを shape 候補に戻す余地を残す
+- `kimono`
+  - 初回は `着物 > 着物` を代表カテゴリにし、`浴衣` や和装小物は広げない
+
+### 現時点の判断
+
+- `shape` / `spec` は **方向性としては使えるが、再編全体をそのまま受け止められるほど全面的には詰まっていない**
+- かなり具体化されているのは `tops` と `bottoms.length_type`、`legwear.coverage_type` まで
+- そのため、次に実装へ進むときは category master 追加だけでなく、少なくとも `pants` と `skirts` の `shape` の持ち方を同時に決める前提で進める
 
 
 ---
@@ -521,7 +702,7 @@ API では `groupId` として返す。
 
 ---
 
-# 16. 大分類ID一覧
+# 16. 現行の大分類ID一覧
 
 | 大分類 | ID |
 | ------ | ------ |
@@ -534,6 +715,7 @@ API では `groupId` として返す。
 | バッグ | `bags` |
 | 小物 | `accessories` |
 
+この節は、**現行実装で使っている大分類IDの正本**です。  
 大分類IDはカテゴリグループの親キーとして使う。
 
 補足:
@@ -542,7 +724,10 @@ API では `groupId` として返す。
 
 ---
 
-# 17. 中分類ID一覧
+# 17. 現行の中分類ID一覧
+
+この節は、**現行実装で使っている中分類IDの正本**です。  
+`2-1. カテゴリ体系再編の採用候補` に出てくる `outerwear` / `pants` / `skirts` / `onepiece_dress` / `allinone` / `fashion_accessories` などは、現時点ではまだ採用前の候補名です。
 
 ## トップス
 
