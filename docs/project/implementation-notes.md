@@ -600,6 +600,7 @@ thumbnail の現状確認用パターン一覧を見返すときは `docs/specs/
 - tops の形表示は `Tシャツ/カットソー` `ニット/セーター` など、画面間で揺れない名称に整理した
 - items 一覧は `keyword / brand / category / season / tpo / sort` を URL クエリを正本として扱い、再読み込みや戻る操作後も条件を復元できる
 - item 一覧の `brand` filter は、`active` かつ表示対象カテゴリの item に入っている `brand_name` を候補ソースとし、空文字除外・trim・重複除去だけを行った実データ探索用 filter として追加した
+- item 一覧の `brand` filter UI は purchase candidate 一覧と同系統の候補 UI に寄せた。入力補助用の `user_brands` は今回は使わず、一覧内の実データ探索を優先している
 - 複数条件は AND で絞り込み、`sort` は `updated_at_desc / name_asc` で切り替える
 - キーワード入力は IME 変換中に URL 更新を止め、変換確定後に検索条件へ反映する
 - BFF の GET は URL クエリを Laravel へそのまま転送し、Laravel 側で検索・並び替え・`page` を適用する
