@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import DeleteItemButton from "@/components/items/delete-item-button";
 import ItemCareStatusAction from "@/components/items/item-care-status-action";
 import ItemStatusAction from "@/components/items/item-status-action";
 import ItemPreviewCard from "@/components/items/item-preview-card";
@@ -161,10 +160,10 @@ export default async function ItemPage({
         <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-gray-900">状態操作</h2>
           <p className="mt-2 text-sm text-gray-600">
-            所持しなくなった場合は「手放す」を使います。削除は登録ミスや履歴を残さず消したい場合に限って使います。
+            所持しなくなった場合は「手放す」を使います。必要になった時は「クローゼットに戻す」で通常状態へ戻せます。
           </p>
 
-          <div className="mt-4 grid gap-4 md:grid-cols-3">
+          <div className="mt-4 grid gap-4 md:grid-cols-2">
             <section className="rounded-xl border border-gray-200 bg-gray-50 p-4">
               <h3 className="text-sm font-medium text-gray-900">所持状態</h3>
               <p className="mt-1 text-sm text-gray-600">
@@ -190,16 +189,6 @@ export default async function ItemPage({
                   itemId={item.id}
                   careStatus={item.care_status}
                 />
-              </div>
-            </section>
-
-            <section className="rounded-xl border border-red-100 bg-red-50 p-4">
-              <h3 className="text-sm font-medium text-red-900">削除</h3>
-              <p className="mt-1 text-sm text-red-700">
-                登録ミスなど、履歴を残さず削除したい場合だけ使います。
-              </p>
-              <div className="mt-4">
-                <DeleteItemButton itemId={item.id} />
               </div>
             </section>
           </div>

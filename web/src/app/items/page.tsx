@@ -207,7 +207,7 @@ export default async function ItemsPage({
               現在、所持品のアイテムはありません
             </h2>
             <p className="mt-2 text-sm text-gray-600">
-              新しく登録するか、手放したアイテム一覧から所持品に戻すアイテムがないか確認してください。
+              新しく登録するか、手放したアイテム一覧からクローゼットに戻すアイテムがないか確認してください。
             </p>
 
             <div className="mt-6 flex flex-wrap items-center justify-center gap-3">

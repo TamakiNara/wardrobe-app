@@ -210,6 +210,7 @@ thumbnail の現状確認用パターン一覧を見返すときは `docs/specs/
   - `disposed` は通常一覧・outfit・wear logs 候補から除外
   - `reactivate` しても related outfit は自動 `restore` しない
   - item 詳細画面で `dispose` / `reactivate` の専用操作導線を実装済み
+  - 通常 UI では物理削除を主操作に置かず、`手放す` / `クローゼットに戻す` を所有状態変更の主導線として扱う
   - `disposed` item の dedicated 一覧として `GET /api/items/disposed` と `/items/disposed` を実装済み
 - Item の補助状態として `care_status = in_cleaning | null` を持ち、補助バッジ・警告・解除導線に使う
   - 詳細画面の UI / 導線は `docs/specs/items/detail-status-ui.md` を参照

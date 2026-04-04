@@ -2,7 +2,7 @@
 
 item 詳細画面で行う status 操作 UI の仕様を整理する。  
 この資料は `item status` 正本を、item 詳細画面の UI / 導線観点で補足する。  
-`disposed` / `reactivate` / `delete` の役割分担や副作用ルール自体は `docs/specs/items/status-management.md` を正本とする。
+`disposed` / `reactivate` の役割分担や副作用ルール自体は `docs/specs/items/status-management.md` を正本とする。
 
 関連資料:
 
@@ -20,6 +20,7 @@ item 詳細画面で行う status 操作 UI の仕様を整理する。
 - 通常編集フォームに status を混ぜない
 - status 変更は通常の create / update とは別導線で扱う
 - UI は現在の status に応じて 1 つだけ主要アクションを表示する
+- 通常の UI 主導線には物理削除を置かない
 - `care_status` は item 詳細から付与 / 解除する
 - `care_status` は主 status と別導線で扱い、通常編集フォームには混ぜても主 status の代替にはしない
 
@@ -33,7 +34,7 @@ item 詳細画面で行う status 操作 UI の仕様を整理する。
 
 ### `disposed` item の場合
 
-- 「所持品に戻す」を表示する
+- 「クローゼットに戻す」を表示する
 
 ### 補足
 
@@ -64,11 +65,11 @@ item 詳細画面で行う status 操作 UI の仕様を整理する。
 
 ---
 
-## 「所持品に戻す」操作
+## 「クローゼットに戻す」操作
 
 ### 実行方針
 
-- `disposed` item の詳細画面では「所持品に戻す」を表示する
+- `disposed` item の詳細画面では「クローゼットに戻す」を表示する
 - 実行後、item 自体は `active` に戻す
 - ただし関連 outfit は自動 `restore` しない前提とする
 
@@ -119,7 +120,7 @@ item 詳細画面で行う status 操作 UI の仕様を整理する。
 - 成功時は画面上部のバナーまたはトーストで結果を短く伝える
 - 初期文言案:
   - `アイテムを手放しました。`
-  - `アイテムを所持品に戻しました。`
+  - `アイテムをクローゼットに戻しました。`
 
 ### 失敗時
 
@@ -139,7 +140,7 @@ item 詳細画面で行う status 操作 UI の仕様を整理する。
 ## API との対応
 
 - 「手放す」は `POST /api/items/{id}/dispose` を想定する
-- 「所持品に戻す」は `POST /api/items/{id}/reactivate` を想定する
+- 「クローゼットに戻す」は `POST /api/items/{id}/reactivate` を想定する
 - `care_status` の付与 / 解除は `POST /api/items/{id}/care-status` を想定する
 - どちらも通常の `ItemUpsertRequest` とは分けて扱う
 
@@ -148,7 +149,7 @@ item 詳細画面で行う status 操作 UI の仕様を整理する。
 ## 現時点のまとめ
 
 - `active` item では「手放す」を表示する
-- `disposed` item では「所持品に戻す」を表示する
+- `disposed` item では「クローゼットに戻す」を表示する
 - 通常編集フォームに status を混ぜない
 - 「手放す」実行前には確認ダイアログを出す
 - 確認文言では「このアイテムを含むコーディネートは無効になります」と明記する

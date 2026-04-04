@@ -128,7 +128,7 @@ describe("ItemStatusAction", () => {
       await waitForEffects();
     });
 
-    expect(container.textContent).toContain("所持品に戻す");
+    expect(container.textContent).toContain("クローゼットに戻す");
 
     const button = container.querySelector("button");
 
@@ -147,6 +147,8 @@ describe("ItemStatusAction", () => {
       body: JSON.stringify({}),
     });
     expect(refreshMock).toHaveBeenCalled();
-    expect(container.textContent).toContain("アイテムを所持品に戻しました。");
+    expect(container.textContent).toContain(
+      "アイテムをクローゼットに戻しました。",
+    );
   });
 });

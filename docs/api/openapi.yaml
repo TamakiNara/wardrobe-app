@@ -619,9 +619,10 @@ paths:
     delete:
       tags:
         - Items
-      summary: アイテム削除
+      summary: アイテム物理削除
       description: |
-        item record を物理削除する。
+        item record を物理削除する例外導線。
+        通常の所有状態変更は `dispose` / `reactivate` を使い、通常 UI では `disposed` を中心に扱う。
         response は message のみを返し、削除結果の正本は後続の一覧 / 詳細取得結果で確認する。
       security:
         - SessionCookieAuth: []

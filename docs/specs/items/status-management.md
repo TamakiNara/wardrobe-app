@@ -41,6 +41,7 @@ item status は、item を通常利用対象として扱うかどうかを管理
 - `delete`
   - item record 自体を削除する操作
   - 状態管理の代替ではなく、登録ミスや不要 record の整理に限定して扱う
+  - 通常の UI 主導線には置かず、例外用途の API として扱う
 - `care_status`
   - 主 status ではなく補助状態
   - 現時点では `in_cleaning` のみを持ち、候補除外や invalid 化の主制御には使わない
@@ -145,6 +146,7 @@ item status は、item を通常利用対象として扱うかどうかを管理
 
 - 「所持していない」と「履歴上も不要」は分けて扱う
 - 初期実装範囲では、参照整合や副作用を考えると `disposed` を優先する
+- 通常の画面導線では `手放す` / `クローゼットに戻す` を主操作にし、物理削除を前面に出さない
 
 ---
 
@@ -157,6 +159,7 @@ item status は、item を通常利用対象として扱うかどうかを管理
 - `dispose` / `reactivate` は item 詳細画面からの専用操作導線として扱う
 - `disposed` item は通常一覧、outfit 候補、wear logs 候補から除外する
 - `disposed` item は `GET /api/items/disposed` と `/items/disposed` の dedicated 一覧で確認し、詳細画面から `reactivate` する
+- 物理削除 API は残すが、通常の UI 主導線には置かない
 - item を `disposed` にした時、その item を含む `active` outfit は `invalid` に遷移する
 - `reactivate` しても related outfit は自動 `restore` しない
 - `care_status = in_cleaning` は補助状態として扱い、候補除外や invalid 化の主制御には使わない
@@ -195,3 +198,4 @@ item status は、item を通常利用対象として扱うかどうかを管理
 - item を `disposed` にした時、関連 `active` outfit を `invalid` にする
 - item が `active` に戻っても outfit は自動 `restore` しない
 - delete と `disposed` は役割を分け、初期実装範囲では `disposed` を優先する
+- 通常のユーザー向け主操作は `手放す` / `クローゼットに戻す` とする

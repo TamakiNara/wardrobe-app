@@ -95,7 +95,7 @@ describe("ItemsPage", () => {
     expect(markup).toContain("アイテム一覧");
     expect(markup).toContain("現在、所持品のアイテムはありません");
     expect(markup).toContain(
-      "新しく登録するか、手放したアイテム一覧から所持品に戻すアイテムがないか確認してください。",
+      "新しく登録するか、手放したアイテム一覧からクローゼットに戻すアイテムがないか確認してください。",
     );
     expect(markup).toContain('href="/items/disposed"');
     expect(markup).toContain("手放したアイテム一覧を見る");

@@ -20,9 +20,9 @@ function getActionConfig(status: ItemStatus) {
   if (status === "disposed") {
     return {
       endpoint: "reactivate",
-      buttonLabel: "所持品に戻す",
+      buttonLabel: "クローゼットに戻す",
       submittingLabel: "更新中...",
-      successMessage: "アイテムを所持品に戻しました。",
+      successMessage: "アイテムをクローゼットに戻しました。",
     };
   }
 

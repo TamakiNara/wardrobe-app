@@ -13,7 +13,9 @@ export default function DeleteItemButton({ itemId }: DeleteItemButtonProps) {
   const [error, setError] = useState<string | null>(null);
 
   async function handleDelete() {
-    const ok = window.confirm("このアイテムを削除しますか？");
+    const ok = window.confirm(
+      "このアイテムを完全に削除しますか？\n登録ミスなど、履歴を残さず消したい場合に限って使います。",
+    );
     if (!ok) return;
 
     setSubmitting(true);
@@ -33,7 +35,7 @@ export default function DeleteItemButton({ itemId }: DeleteItemButtonProps) {
       }
 
       if (!res.ok) {
-        setError(data?.message ?? "削除に失敗しました。");
+        setError(data?.message ?? "完全削除に失敗しました。");
         return;
       }
 
@@ -54,7 +56,7 @@ export default function DeleteItemButton({ itemId }: DeleteItemButtonProps) {
         disabled={submitting}
         className="rounded-lg border border-red-300 bg-red-50 px-4 py-2 text-sm font-medium text-red-700 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {submitting ? "削除中..." : "削除"}
+        {submitting ? "削除中..." : "完全に削除"}
       </button>
 
       {error && <p className="text-sm text-red-600">{error}</p>}
