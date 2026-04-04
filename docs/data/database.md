@@ -393,6 +393,7 @@ wear logs も本資料の対象とし、その保存方針を定義します。
 - `care_status` は補助状態であり、候補除外や invalid 化の主制御には使わない
 - wear logs や過去の参照の都合上、物理削除より `disposed` を優先する
 - 通常の UI 導線では物理削除を主操作に置かず、所有状態の変更は `active` / `disposed` で扱う
+- `outfit_items` や `wear_log_items` から参照されている item は物理削除せず、`disposed` への状態変更を優先する
 - TPO の選択肢正本は `user_tpos` で、item 側の保存正本は `tpo_ids`
 - `tpos` は API / 画面表示用の resolved name として扱い、旧保存構造との互換も残す
 - API schema は `docs/api/openapi.yaml` の `ItemRecord` / `ItemUpsertRequest` を参照

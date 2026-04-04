@@ -623,6 +623,7 @@ paths:
       description: |
         item record を物理削除する例外導線。
         通常の所有状態変更は `dispose` / `reactivate` を使い、通常 UI では `disposed` を中心に扱う。
+        `outfit_items` や `wear_log_items` から参照されている item は物理削除せず、`disposed` への状態変更を優先する。
         response は message のみを返し、削除結果の正本は後続の一覧 / 詳細取得結果で確認する。
       security:
         - SessionCookieAuth: []
@@ -640,6 +641,8 @@ paths:
           description: 未認証
         '404':
           description: 未検出（対象なし・他人データ秘匿を含む）
+        '422':
+          description: 参照中 item のため物理削除できない。通常は `disposed` を使う
 
   /api/items/{id}/images:
     post:

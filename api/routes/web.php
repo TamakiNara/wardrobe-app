@@ -280,6 +280,15 @@ Route::prefix('api')->middleware(['web'])->group(function () {
             ->where('user_id', $request->user()->id)
             ->findOrFail($id);
 
+        $hasOutfitReference = $item->outfitItems()->exists();
+        $hasWearLogReference = $item->wearLogItems()->exists();
+
+        if ($hasOutfitReference || $hasWearLogReference) {
+            return response()->json([
+                'message' => 'このアイテムは参照中のため完全に削除できません。手放す操作を利用してください。',
+            ], 422);
+        }
+
         $item->delete();
 
         return response()->json([

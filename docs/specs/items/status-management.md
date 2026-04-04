@@ -141,6 +141,7 @@ item status は、item を通常利用対象として扱うかどうかを管理
 
 - item レコード自体を削除する操作
 - wear logs で参照されている場合は安易に物理削除させず、まず `disposed` を優先誘導する
+- `outfit_items` / `wear_log_items` から参照されている item は、物理削除ではなく `disposed` を優先する
 
 ### 方針
 
@@ -160,6 +161,7 @@ item status は、item を通常利用対象として扱うかどうかを管理
 - `disposed` item は通常一覧、outfit 候補、wear logs 候補から除外する
 - `disposed` item は `GET /api/items/disposed` と `/items/disposed` の dedicated 一覧で確認し、詳細画面から `reactivate` する
 - 物理削除 API は残すが、通常の UI 主導線には置かない
+- `outfit_items` / `wear_log_items` 参照がある item の物理削除は `422` で拒否する
 - item を `disposed` にした時、その item を含む `active` outfit は `invalid` に遷移する
 - `reactivate` しても related outfit は自動 `restore` しない
 - `care_status = in_cleaning` は補助状態として扱い、候補除外や invalid 化の主制御には使わない

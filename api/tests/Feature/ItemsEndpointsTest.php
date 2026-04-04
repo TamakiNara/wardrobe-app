@@ -1654,6 +1654,92 @@ class ItemsEndpointsTest extends TestCase
         $response->assertNotFound();
     }
 
+    public function test_delete_item_deletes_unreferenced_item(): void
+    {
+        $user = User::factory()->create();
+        $item = $this->createItem($user, [
+            'name' => '誤登録アイテム',
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->deleteJson("/api/items/{$item->id}", [], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('message', 'deleted');
+
+        $this->assertDatabaseMissing('items', [
+            'id' => $item->id,
+        ]);
+    }
+
+    public function test_delete_item_returns_422_when_item_is_referenced_by_outfit(): void
+    {
+        $user = User::factory()->create();
+        $item = $this->createItem($user, [
+            'name' => '参照中トップス',
+        ]);
+        $outfit = \App\Models\Outfit::query()->create([
+            'user_id' => $user->id,
+            'name' => '参照中コーデ',
+            'status' => 'active',
+            'seasons' => ['春'],
+            'tpos' => ['休日'],
+        ]);
+        $outfit->outfitItems()->create([
+            'item_id' => $item->id,
+            'sort_order' => 1,
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->deleteJson("/api/items/{$item->id}", [], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonPath('message', 'このアイテムは参照中のため完全に削除できません。手放す操作を利用してください。');
+
+        $this->assertDatabaseHas('items', [
+            'id' => $item->id,
+        ]);
+    }
+
+    public function test_delete_item_returns_422_when_item_is_referenced_by_wear_log(): void
+    {
+        $user = User::factory()->create();
+        $item = $this->createItem($user, [
+            'name' => '参照中ボトムス',
+        ]);
+        $wearLog = \App\Models\WearLog::query()->create([
+            'user_id' => $user->id,
+            'event_date' => '2026-04-01',
+            'status' => 'worn',
+            'display_order' => 1,
+            'memo' => null,
+        ]);
+        $wearLog->wearLogItems()->create([
+            'source_item_id' => $item->id,
+            'item_source_type' => 'manual',
+            'sort_order' => 1,
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->deleteJson("/api/items/{$item->id}", [], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonPath('message', 'このアイテムは参照中のため完全に削除できません。手放す操作を利用してください。');
+
+        $this->assertDatabaseHas('items', [
+            'id' => $item->id,
+        ]);
+    }
+
     public function test_post_item_care_status_updates_and_clears_care_status(): void
     {
         $user = User::factory()->create();
