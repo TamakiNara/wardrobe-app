@@ -303,12 +303,15 @@ thumbnail の現状確認用パターン一覧を見返すときは `docs/specs/
 - TPO の選択肢正本は `user_tpos` とし、Phase 1 では settings + item + outfit を ID ベースで接続済み
 - item / outfit は `tpo_ids` を保存正本とし、`tpos` は表示用の resolved name として返す
 - inactive TPO は新規候補に出さず、既存 item / outfit に含まれる場合は表示・保持できる
-### 要再判断: カテゴリ表示設定を JSON に寄せすぎない
+### 現時点の方針: カテゴリ表示設定を JSON に寄せすぎない
 
-- 現時点では current 実装を維持してよいが、カテゴリ表示設定が大分類 ON/OFF だけでなく、中分類 ON/OFF、表示順、初期プリセット、追加設定へ広がる場合は JSON 偏重のまま進めない方が安全
-- `visible_category_ids` のまま拡張し続けると、部分更新・制約・差分確認・テストが徐々に重くなるため、`user_settings` と `user_category_settings` の責務分離や row ベース正規化の再検討余地を残す
-- onboarding のプリセット選択と保存後の個別調整を同じ保存形式で扱えるか、一覧 filter 候補 / create-edit 候補 / 既存データ表示で設定参照ルールをどこまで共通化できるかを後続で再確認する
-- 今すぐ全面移行はしないが、settings 追加が続く場合は JSON のまま拡張し続けず、DB 正規化案を比較してから進める
+- 現在の保存正本は `users.visible_category_ids` とし、`GET /api/settings/categories` / `PUT /api/settings/categories` もこの保存形式を前提に維持する
+- ただし、これは「中分類の表示可否だけを持つ現行仕様を支える現行実装」であり、大分類 ON/OFF、中分類 ON/OFF、表示順、onboarding プリセット、一覧絞り込み候補、作成 / 編集候補を JSON のまま増やし続ける前提にはしない
+- `user_settings` は全体設定に寄せ、カテゴリ表示設定は将来的に `user_category_settings` のような専用テーブルへ分離する方向を第一候補とする
+- 将来の行単位の正本では、カテゴリ master の階層は `category_groups` / `category_master` をそのまま使い、ユーザー側は `user_id + category_id` 単位で表示可否や将来の拡張項目を持つ想定とする
+- onboarding のプリセット選択は、最終的には `user_category_settings` の初期投入で表現する方向を優先し、登録直後の保存と通常設定変更をできるだけ同じ責務で扱える形を目指す
+- 今すぐ全面移行はしないが、カテゴリ設定に新しい保存項目を足す場合は `visible_category_ids` へ安易に追加せず、専用テーブル案と比較してから進める
+- 将来検討の論点は、中分類行の初期投入方法、表示順の保持要否、一覧絞り込み候補 / 作成・編集候補 / 既存データ表示での参照ルール共通化、`user_settings` とカテゴリ専用設定の責務境界とする
 - item 一覧 / outfits 一覧では、URL に季節条件がない場合のみ `currentSeason` を初期値として適用する
 - `currentSeason` の保存値は英語 enum だが、一覧 UI / URL の季節 filter 値は既存どおり日本語を維持し、初期適用時だけ変換する
 - wear log 新規作成では `defaultWearLogStatus` を初期値として使い、edit では既存 record の `status` を優先する

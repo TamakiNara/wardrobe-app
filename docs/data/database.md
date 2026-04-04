@@ -243,6 +243,8 @@ wear logs も本資料の対象とし、その保存方針を定義します。
 - 空配列 `[]` を保存した場合は「すべてOFF」として扱う
 - 保存値は中分類ID配列であり、大分類状態は保存しない
 - 大分類の `ON / 一部ON / OFF` は、画面側で中分類の件数から算出する
+- 現時点では現行実装を維持するが、カテゴリ表示設定の保存責務を `users.visible_category_ids` に増やし続ける前提にはしない
+- `user_preferences` は全体設定の正本とし、カテゴリ表示設定は将来的に `user_category_settings` のような専用テーブルへ分離する方向を第一候補とする
 
 ---
 
@@ -668,6 +670,44 @@ outfit と item の関連テーブルです。
 - `category_preset_id` は `category_presets.id` を参照する
 - `category_id` は `category_master.id` を参照する
 - 同一 `category_preset_id` と `category_id` の重複は不可
+
+---
+
+## user_category_settings (将来対応)
+
+カテゴリ表示設定を行単位で持つ将来テーブル案です。  
+現時点では未実装で、現行実装は `users.visible_category_ids` を使います。
+
+前提方針:
+
+- `user_settings` / `user_preferences` にはカテゴリ個別設定を増やさない
+- category master の階層は `category_groups` / `category_master` を正本とする
+- ユーザー側では `user_id + category_id` 単位で表示可否を持つ
+- onboarding のプリセット適用も、最終的にはこの行データの初期投入で表現する方向を優先する
+
+### Columns
+
+| column | type | description |
+| --- | --- | --- |
+| id | bigint | 主キー |
+| user_id | bigint | 所有ユーザーID |
+| category_id | string | 中分類ID |
+| is_visible | boolean | 表示可否 |
+| sort_order_override | unsigned int nullable | 将来の表示順上書き用。現時点では未実装想定 |
+| created_at | timestamp | 作成日時 |
+| updated_at | timestamp | 更新日時 |
+
+### Constraints
+
+- unique(`user_id`, `category_id`)
+- `user_id` は `users.id` を参照する
+- `category_id` は `category_master.id` を参照する
+
+補足:
+
+- 大分類状態は行データ群から算出し、専用列は持たない
+- 表示順上書きが不要な段階では `sort_order_override` を持たない縮小案でもよい
+- 表記ゆれや onboarding プリセット差分は、保存形式ではなく初期投入ルールで吸収する方向を優先する
 
 ---
 

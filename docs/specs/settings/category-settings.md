@@ -359,6 +359,16 @@ visible_category_ids
 - `visible_category_ids` はキー自体を必ず送る
 - 空配列 `[]` は「すべてOFF」の意味で保存可能とする
 - キー欠落と空配列は別物として扱う
+- 現行実装では `users.visible_category_ids` に保存する
+- これは中分類の表示可否だけを支える現行保存形式であり、カテゴリ設定の拡張項目を JSON として増やし続ける前提にはしない
+
+## 将来の正本方針
+
+- `user_settings` は全体設定へ寄せ、カテゴリ表示設定は将来的に `user_category_settings` のような専用テーブルへ分離する方向を第一候補とする
+- カテゴリ master 側の階層は `category_groups` / `category_master` を正本とし、ユーザー側では `user_id + category_id` 単位で表示可否を管理する想定とする
+- 大分類の状態は将来も行データから算出し、専用の大分類状態列は持たない
+- 表示順や onboarding プリセットの反映が必要になった場合も、まずは行単位で表現できるかを優先して検討する
+- そのため、今後カテゴリ表示設定に新しい保存項目を足す場合は、`visible_category_ids` へ追加せず専用テーブル案と比較してから進める
 
 ---
 
@@ -379,6 +389,7 @@ visible_category_ids
 - 中分類ごとの ON / OFF は `visibleCategoryIds` に含まれるかどうかで判定する
 - 大分類の `ON / 一部ON / OFF` は、中分類の ON 件数から毎回算出する
 - そのため、大分類状態自体は DB には保存しない
+- onboarding プリセットも現時点では最終的に `visible_category_ids` へ反映しているが、将来的にはカテゴリ設定行の初期投入で表現する方向を優先する
 
 ## 保存UIの扱い
 
