@@ -802,6 +802,7 @@ outfit と tag の多対多関連テーブル案です。
 - `status` は `planned` / `worn`
 - 同一ユーザー・同一 `event_date` に対して `display_order` は重複不可
 - `source_outfit_id` は「完全一致したコーデ」ではなく、「ベースにした outfit」を表す
+- `source_outfit_id` は由来参照であり、wear log 内 item 構成の正本ではない
 - outfit の詳細仕様は `docs/specs/outfits/create-edit.md` を参照
 - API schema は `docs/api/openapi.yaml` の `WearLogUpsertRequest` / `WearLogListItem` / `WearLogDetail` を参照
 
@@ -822,10 +823,13 @@ outfit と tag の多対多関連テーブル案です。
 #### Constraints / Notes
 
 - `wear_log_id` は `wear_logs.id` を参照する
-- `source_item_id` は `items.id` を参照する
-- `item_source_type` は `outfit` / `manual`
+- `source_item_id` は `items.id` を参照し、snapshot なし継続の間は現在の item 参照を前提とする
+- `source_item_id` は nullable のままにし、物理削除が入った場合も履歴 record 自体は残せる退避余地を持つ
+- `item_source_type` は request のバリデーション上 `outfit` / `manual` に固定する
 - 同一 wear log 内で同一 `source_item_id` の重複は不可
+- 同一 wear log 内で同一 `sort_order` の重複は不可
 - `sort_order` は `1, 2, 3...` の連番を前提とする
+- `wear_log_id` は `wear_logs.id` への FK 連動削除を持ち、wear log 削除時に孤児化しない
 - wear logs 全体の詳細仕様は `docs/specs/wears/wear-logs.md` を参照
 
 ### Design Notes
@@ -836,8 +840,9 @@ outfit と tag の多対多関連テーブル案です。
 - 同日複数件を許容する
 - 時刻は持たず、`event_date + display_order` で順序を表現する
 - outfit は任意で、item なしの記録も許可する
-- item を指定した場合、保存時は最終的な item 群を `wear_log_items` に持つ
+- item を指定した場合、保存時は最終的な item 群を `wear_log_items` に持ち、これを wear log 内 item 構成の正本とする
 - 初期実装範囲では snapshot カラムは持たない
+- snapshot なし継続のため、item は原則物理削除せず `disposed` を優先して現在の item 参照を維持する
 - `disposed` item や `invalid` outfit は新規登録・更新時の候補から除外する
 - 編集時は、既存 record に含まれる現在候補外の item / outfit を同一 record の再保存に限り保持できる
 - `current status` は履歴の主表示ではなく補助情報として扱う

@@ -778,6 +778,45 @@ class WearLogEndpointsTest extends TestCase
             ->assertJsonPath('errors.items.0', '手放したアイテムは選択できません。');
     }
 
+    public function test_post_wear_log_returns_422_when_item_sort_order_is_duplicated(): void
+    {
+        $user = User::factory()->create();
+        $firstItem = $this->createItem($user, ['name' => '白シャツ']);
+        $secondItem = $this->createItem($user, [
+            'name' => 'ネイビーパンツ',
+            'category' => 'bottoms',
+            'shape' => 'pants',
+        ]);
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $response = $this->postJson('/api/wear-logs', [
+            'status' => 'planned',
+            'event_date' => '2026-03-24',
+            'display_order' => 1,
+            'source_outfit_id' => null,
+            'items' => [
+                [
+                    'source_item_id' => $firstItem->id,
+                    'sort_order' => 1,
+                    'item_source_type' => 'manual',
+                ],
+                [
+                    'source_item_id' => $secondItem->id,
+                    'sort_order' => 1,
+                    'item_source_type' => 'manual',
+                ],
+            ],
+        ], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonPath('errors.items.0', '同じ表示順を重複して登録することはできません。');
+    }
+
     public function test_post_wear_log_returns_422_when_invalid_outfit_is_specified(): void
     {
         $user = User::factory()->create();

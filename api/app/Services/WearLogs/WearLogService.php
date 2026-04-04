@@ -165,6 +165,17 @@ class WearLogService
 
     private function validateItems(User $user, Collection $items, ?WearLog $wearLog): void
     {
+        $sortOrders = $items
+            ->pluck('sort_order')
+            ->filter(fn ($value) => is_int($value))
+            ->values();
+
+        if ($sortOrders->count() !== $sortOrders->unique()->count()) {
+            throw ValidationException::withMessages([
+                'items' => '同じ表示順を重複して登録することはできません。',
+            ]);
+        }
+
         $itemIds = $items
             ->pluck('source_item_id')
             ->filter(fn ($value) => is_int($value))
