@@ -176,6 +176,20 @@ class WearLogService
             ]);
         }
 
+        if ($sortOrders->isNotEmpty()) {
+            $expectedSortOrders = range(1, $sortOrders->count());
+            $actualSortOrders = $sortOrders
+                ->sort()
+                ->values()
+                ->all();
+
+            if ($actualSortOrders !== $expectedSortOrders) {
+                throw ValidationException::withMessages([
+                    'items' => '表示順は 1 からの連番で指定してください。',
+                ]);
+            }
+        }
+
         $itemIds = $items
             ->pluck('source_item_id')
             ->filter(fn ($value) => is_int($value))
