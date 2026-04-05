@@ -225,6 +225,11 @@ export default function EditItemPage({
     () => getTopsShapeOptions(subcategory),
     [subcategory],
   );
+  const currentShapeOptions = isTopsCategory ? topsShapeOptions : shapeOptions;
+  const currentShapeValue = isTopsCategory ? topsShape : shape;
+  const isShapeAutoSelected =
+    currentShapeOptions.length === 1 &&
+    currentShapeOptions[0]?.value === currentShapeValue;
 
   const selectedMainColor = useMemo(() => {
     if (useCustomMainColor) {
@@ -1315,18 +1320,31 @@ export default function EditItemPage({
                 <FieldLabel htmlFor="shape" label="形" required />
                 <select
                   id="shape"
-                  value={shape}
-                  onChange={(e) => handleShapeChange(e.target.value)}
-                  disabled={!category || isTopsCategory}
+                  value={currentShapeValue}
+                  onChange={(e) =>
+                    isTopsCategory
+                      ? handleTopsShapeChange(e.target.value)
+                      : handleShapeChange(e.target.value)
+                  }
+                  disabled={
+                    !category ||
+                    currentShapeOptions.length === 0 ||
+                    isShapeAutoSelected
+                  }
                   className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors.shape ? "border-red-400" : "border-gray-300"}`}
                 >
                   <option value="">選択してください</option>
-                  {shapeOptions.map((item) => (
+                  {currentShapeOptions.map((item) => (
                     <option key={item.value} value={item.value}>
                       {item.label}
                     </option>
                   ))}
                 </select>
+                {isShapeAutoSelected && (
+                  <p className="mt-2 text-xs text-gray-500">
+                    種類に応じて自動で設定されます。
+                  </p>
+                )}
                 {errors.shape && (
                   <p className="mt-2 text-sm text-red-600">{errors.shape}</p>
                 )}
@@ -1342,36 +1360,12 @@ export default function EditItemPage({
                         トップス仕様
                       </p>
                       <p className="mt-1 text-xs text-gray-500">
-                        保存済みのトップス仕様を編集しながら、preview
-                        に反映します。
+                        保存済みのトップス仕様を編集しながら、袖・丈・首回り・デザイン・シルエットを
+                        preview に反映します。
                       </p>
                     </div>
 
                     <div className="grid gap-4 md:grid-cols-2">
-                      <div>
-                        <label
-                          htmlFor="tops-shape"
-                          className="mb-1 block text-sm font-medium text-gray-700"
-                        >
-                          形
-                        </label>
-                        <select
-                          id="tops-shape"
-                          value={topsShape}
-                          onChange={(e) =>
-                            handleTopsShapeChange(e.target.value)
-                          }
-                          className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                        >
-                          <option value="">選択してください</option>
-                          {topsShapeOptions.map((item) => (
-                            <option key={item.value} value={item.value}>
-                              {item.label}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
                       <div>
                         <label
                           htmlFor="tops-sleeve"

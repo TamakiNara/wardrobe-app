@@ -727,6 +727,45 @@ describe("NewItemPage", () => {
     expect(shapeSelect!.value).toBe("salopette");
   });
 
+  it("tops は形を分類セクションで扱い、1候補時は自動設定する", async () => {
+    const { default: NewItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(NewItemPage));
+      await waitForEffects();
+    });
+
+    const categorySelect =
+      container.querySelector<HTMLSelectElement>("#category");
+    expect(categorySelect).not.toBeNull();
+
+    await act(async () => {
+      categorySelect!.value = "tops";
+      categorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    const subcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
+    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
+    expect(subcategorySelect).not.toBeNull();
+    expect(shapeSelect).not.toBeNull();
+
+    await act(async () => {
+      subcategorySelect!.value = "hoodie";
+      subcategorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    expect(
+      Array.from(shapeSelect!.options).map((option) => option.value),
+    ).toEqual(["", "tshirt"]);
+    expect(shapeSelect!.value).toBe("tshirt");
+    expect(shapeSelect!.disabled).toBe(true);
+    expect(container.textContent).toContain("種類に応じて自動で設定されます。");
+    expect(container.querySelector("#tops-shape")).toBeNull();
+  });
+
   it("固定項目と自由項目の重複は短い警告文で表示する", async () => {
     const { default: NewItemPage } = await import("./page");
 

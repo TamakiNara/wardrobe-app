@@ -542,4 +542,25 @@ describe("EditItemPage", () => {
       Array.from(shapeSelect!.options).map((option) => option.value),
     ).toEqual(["", "straight", "tapered", "wide", "culottes"]);
   });
+
+  it("編集画面でも tops の形は分類セクション側で扱う", async () => {
+    const { default: EditItemPage } = await import("./page");
+
+    act(() => {
+      root.render(
+        React.createElement(EditItemPage, {
+          params: Promise.resolve({ id: "1" }),
+        }),
+      );
+    });
+
+    await act(async () => {
+      await waitForEffects();
+    });
+
+    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
+    expect(shapeSelect).not.toBeNull();
+    expect(shapeSelect!.value).toBe("tshirt");
+    expect(container.querySelector("#tops-shape")).toBeNull();
+  });
 });
