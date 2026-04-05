@@ -383,10 +383,17 @@ wear logs も本資料の対象とし、その保存方針を定義します。
 補足:
 
 - 現行の item データモデルは `category + shape + spec` を保存し、`subcategory` はまだ専用カラムを持たない
+- `subcategory` を正式導入する場合の第一候補は、`items.subcategory` を独立カラムとして追加する案
+- カラム仕様の第一候補は、`string`、nullable、default なし、非 unique、`category` と `subcategory` の組み合わせで読む前提とする
+- index は `category` と `subcategory` の複合 index を第一候補とし、`subcategory` 単独での一意性は前提にしない
 - `spec` は nullable
 - Phase 1 では bottoms は `spec.bottoms.length_type`、legwear は `spec.legwear.coverage_type` を持てる
 - 現時点の役割分担では、`category` は大分類、`subcategory` は種類名として定着した下位分類、`shape` は同じ `category` / `subcategory` 内の見た目・構造・型の差、`spec` は丈・覆い方・機能・補助属性の保存領域として扱う
+- `subcategory` の保存値は `pants_denim` のような fully-qualified 値ではなく、`denim`、`slacks`、`hoodie` のような単体値を第一候補とし、意味は `category` と組み合わせて読む
+- settings 側の中分類 ID とは、`pants_denim` ⇔ `category = pants` かつ `subcategory = denim` のように対応づけて扱う
 - `subcategory` を正式導入する場合も、categories 設定の ON / OFF 対象は `category` 直下の種類 ID までに留め、`shape` / `spec` は設定対象に広げない前提を優先する
+- migration 時の旧データ互換では、安全に補完できるものだけ backfill し、補完できないものは `subcategory = null` を許容する前提を優先する
+- UI の主表示は `subcategory` 優先とし、`null` や未移行データでは current の bridge で補助ラベルを出す
 - lower-body 系では、丈は原則 `spec` に寄せ、テーパード / フレアのような型差は `shape` に寄せる前提を優先する
 - `pants` の `spec.bottoms.length_type` は、まず `mini / short / half / cropped / full` を候補とし、短さの違いは category ではなく spec で持つ前提を優先する
 - `tops` は現行実装では `spec.tops.shape` に種類名が含まれるが、カテゴリ再編の方針としては種類名として定着したものを中分類に寄せ、首元・袖・fit・丈を `shape / spec` 側へ寄せる方向で整理する
