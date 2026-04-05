@@ -307,9 +307,9 @@ DBテーブル構成の詳細は `docs/data/database.md` を参照する。
 - かなり具体化されているのは `tops` と `bottoms.length_type`、`legwear.coverage_type` まで
 - `pants` / `skirts` / `outerwear` / `onepiece_dress` / `allinone` は現在の item category と最小 shape までは導入したが、spec の責務分解はまだ最小限に留めている
 
-## 2-3. `category` / `shape` / `spec` の責務整理
+## 2-3. `category` / `subcategory` / `shape` / `spec` の責務整理
 
-カテゴリ再編を続ける前提として、`category` / `shape` / `spec` の役割は次のように分ける。
+カテゴリ再編を続ける前提として、`category` / `subcategory` / `shape` / `spec` の役割は次のように分ける。
 
 ### `category`
 
@@ -318,9 +318,17 @@ DBテーブル構成の詳細は `docs/data/database.md` を参照する。
 - settings、onboarding、一覧絞り込み、候補表示、purchase candidate 変換の基準になる
 - そのため、登録時に迷いにくい代表カテゴリを優先し、細かい型差まで抱え込まない
 
+### `subcategory`
+
+- 種類名として定着している下位分類
+- 一般ユーザーが「別物」として認識しやすいものを置く
+- 現在のカテゴリ設定で扱う中分類 ID は、この `subcategory` に相当するものとして扱う
+- settings と onboarding の ON / OFF 対象は、当面 `category` 直下の `subcategory` までに留める
+- 全カテゴリで必須ではなく、必要なカテゴリだけ値を持てる前提を優先する
+
 ### `shape`
 
-- 同じ `category` の中での見た目・構造・型の差
+- 同じ `category` / `subcategory` の中での見た目・構造・型の差
 - サムネイル、一覧補助表示、作成 / 編集時の第2段階の選択肢として使う
 - ただし、素材名や丈名を何でも `shape` に入れるのではなく、「見た目や構造の差として説明しやすいもの」を優先する
 
@@ -332,10 +340,18 @@ DBテーブル構成の詳細は `docs/data/database.md` を参照する。
 
 ### 混ざりやすい論点
 
-- 「種類名として定着した素材名」は `category` / `shape` のどちらに置くかを個別判断する
+- 「種類名として定着したもの」は、まず `subcategory` に置けるかを優先して判断する
 - 「丈」は原則 `spec` に寄せる
 - 「シルエット差」は原則 `shape` に寄せる
 - 「売り場として独立して見たいもの」は `category` に残す
+
+### カテゴリ設定との関係
+
+- docs 上では、`大分類 = category`、`中分類（種類） = subcategory` と読めるように整理する
+- `users.visible_category_ids` は、当面「表示対象の種類 ID 配列」として読む
+- `shape` と `spec` はカテゴリ設定の ON / OFF 対象に広げない
+- item 入力フォームは、できるだけ `カテゴリ / 種類 / 形 / 詳細` の並びへ寄せ、使わない欄は非表示または未選択可で扱う
+- これにより、カテゴリごとに入力項目の意味は変えても、フォーム全体の見た目は大きく変えすぎない
 
 ## 2-4. lower-body 系の優先方針
 

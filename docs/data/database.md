@@ -243,6 +243,7 @@ wear logs も本資料の対象とし、その保存方針を定義します。
 - 空配列 `[]` を保存した場合は「すべてOFF」として扱う
 - 保存値は中分類ID配列であり、大分類状態は保存しない
 - 大分類の `ON / 一部ON / OFF` は、画面側で中分類の件数から算出する
+- current の思想整理では、`visible_category_ids` は「表示対象の種類 ID 配列」として読む
 - 現時点では現行実装を維持するが、カテゴリ表示設定の保存責務を `users.visible_category_ids` に増やし続ける前提にはしない
 - `user_preferences` は全体設定の正本とし、カテゴリ表示設定は将来的に `user_category_settings` のような専用テーブルへ分離する方向を第一候補とする
 
@@ -289,7 +290,7 @@ wear logs も本資料の対象とし、その保存方針を定義します。
 | status | string default 'active' | アイテム状態 (`active` / `disposed`) |
 | care_status | string nullable | 補助ケア状態 (`in_cleaning`) |
 | name | string nullable | アイテム名 |
-| category | string | カテゴリ |
+| category | string | 大分類 |
 | shape | string | 形 |
 | colors | json | 色情報 |
 | seasons | json nullable | 季節配列 |
@@ -381,9 +382,11 @@ wear logs も本資料の対象とし、その保存方針を定義します。
 
 補足:
 
+- 現行の item データモデルは `category + shape + spec` を保存し、`subcategory` はまだ専用カラムを持たない
 - `spec` は nullable
 - Phase 1 では bottoms は `spec.bottoms.length_type`、legwear は `spec.legwear.coverage_type` を持てる
-- 現時点の役割分担では、`category` は用途・売り場・一覧探索の単位、`shape` は同じカテゴリ内の見た目・構造・型の差、`spec` は丈・覆い方・機能・補助属性の保存領域として扱う
+- 現時点の役割分担では、`category` は大分類、`subcategory` は種類名として定着した下位分類、`shape` は同じ `category` / `subcategory` 内の見た目・構造・型の差、`spec` は丈・覆い方・機能・補助属性の保存領域として扱う
+- `subcategory` を正式導入する場合も、categories 設定の ON / OFF 対象は `category` 直下の種類 ID までに留め、`shape` / `spec` は設定対象に広げない前提を優先する
 - lower-body 系では、丈は原則 `spec` に寄せ、テーパード / フレアのような型差は `shape` に寄せる前提を優先する
 - `pants` の `spec.bottoms.length_type` は、まず `mini / short / half / cropped / full` を候補とし、短さの違いは category ではなく spec で持つ前提を優先する
 - `tops` は現行実装では `spec.tops.shape` に種類名が含まれるが、カテゴリ再編の方針としては種類名として定着したものを中分類に寄せ、首元・袖・fit・丈を `shape / spec` 側へ寄せる方向で整理する
