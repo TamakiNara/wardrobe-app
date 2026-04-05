@@ -383,6 +383,8 @@ wear logs も本資料の対象とし、その保存方針を定義します。
 
 - `spec` は nullable
 - Phase 1 では bottoms は `spec.bottoms.length_type`、legwear は `spec.legwear.coverage_type` を持てる
+- 現時点の役割分担では、`category` は用途・売り場・一覧探索の単位、`shape` は同じカテゴリ内の見た目・構造・型の差、`spec` は丈・覆い方・機能・補助属性の保存領域として扱う
+- lower-body 系では、丈は原則 `spec` に寄せ、テーパード / フレアのような型差は `shape` に寄せる前提を優先する
 - `is_rain_ok` は正式項目として持ち、初期値は `false` とする
 - 雨対応はまず boolean で表現し、`weather_tags` のような拡張は後回しにする
 - 詳細仕様の定義は `docs/specs/items/tops.md` と `docs/specs/items/thumbnail-skin-exposure.md` を参照

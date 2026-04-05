@@ -325,6 +325,11 @@ thumbnail の現状確認用パターン一覧を見返すときは `docs/specs/
 - `パーカー・スウェット`、`キャミソール・タンクトップ`、`ワンピース・ドレス`、`バッグ・小物` は現行の命名や責務が曖昧で、一覧比較や settings 表示でも後から説明しづらくなるため、分類再編時に優先して解消する
 - `水着` と `着物` は通常衣類に混ぜるより独立大分類へ置く方が settings と onboarding で扱いやすい
 - `shape / spec` はカテゴリ再編の受け皿として使う前提だが、現時点でかなり具体化されているのは `tops` と `spec.bottoms.length_type`、`spec.legwear.coverage_type` までであり、`pants` / `skirts` / `outerwear` / `onepiece_dress` / `allinone` / `bags` / `kimono` は「壊れない最小限の shape / spec」まで追随済み、全面再設計は後続に残す
+- 現時点の整理では、`category` は用途・売り場・一覧探索の単位、`shape` は同じカテゴリ内での見た目・構造・型の差、`spec` は丈・覆い方・機能・補助属性を持つ責務とする
+- lower-body 系は、`pants` / `skirts` とも丈を原則 `spec` に寄せ、テーパード / フレアのような型差は `shape` に寄せる
+- ただし `ジーンズ・デニムパンツ` や `ショートパンツ` のように種類名として定着しているものは、中分類に残してよい
+- `デニムスカート` は初回再編では中分類に入れず、代表カテゴリ `skirts_skirt` と素材・spec 側の情報で扱う前提を優先する
+- バッグの用途差は初回再編では中分類を増やしすぎず、トート / ショルダー / リュックなどは current item の `shape` で吸収する
 - 今回は全面実装には入らないが、次に category master を追加・再編するときは、seed、settings、onboarding、candidate 変換、item `category / shape` のどこまで同時に直すかを一括で決めてから着手する
 - item 一覧 / outfits 一覧では、URL に季節条件がない場合のみ `currentSeason` を初期値として適用する
 - `currentSeason` の保存値は英語 enum だが、一覧 UI / URL の季節 filter 値は既存どおり日本語を維持し、初期適用時だけ変換する
