@@ -620,9 +620,10 @@ outfit と item の関連テーブルです。
 - `category_groups` / `category_master` は現時点の 2 階層正本だが、大分類・中分類の追加や改名は seed だけの変更では済まない
 - `users.visible_category_ids` は中分類 ID を直接保持するため、中分類 ID の改名や統合は settings 保存値と onboarding プリセットの再投入方針を同時に決める必要がある
 - purchase candidate は `category_id` を正本として持ち、Laravel 側で item の `category` / `shape` へ変換しているため、category master 再編時は `PurchaseCandidateCategoryMap` と frontend 側 category map の更新が必須になる
-- item 側では現時点で `バッグ` を `accessories` の shape として扱っており、category master の大分類と item の `category / shape` にズレがあるため、この差は再編時の優先確認対象とする
-- 次回の大分類再編では、`outer` → `outerwear`、`bottoms` → `pants` / `skirts`、`onepiece_allinone` → `onepiece_dress` / `allinone`、`accessories` → `fashion_accessories` を第一候補とする
-- `swimwear` と `kimono` は独立大分類の追加候補とし、通常衣類とは別に settings と onboarding で ON / OFF を持てるようにする
+- item 側では `bags`・`fashion_accessories`・`swimwear`・`kimono` を current category として扱い始め、category master の責務差をそのまま current item category にも反映する
+- 次回の大分類再編では、`outer` → `outerwear`、`bottoms` → `pants` / `skirts`、`onepiece_allinone` → `onepiece_dress` / `allinone`、`accessories` → `bags` / `fashion_accessories` を第一候補とする
+- 実装第1弾では `swimwear` と `kimono` も含めて `visible_category_ids` と category master の新しい中分類 ID を導入し、item の `category` / `shape` は `bags`・`fashion_accessories`・`swimwear`・`kimono` を新案側へ進めつつ、それ以外は必要な箇所だけ対応表で橋渡しする
+- `swimwear` と `kimono` は独立大分類として settings と onboarding で ON / OFF を持てる前提にする
 
 
 ### Example Records

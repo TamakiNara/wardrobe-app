@@ -53,34 +53,44 @@ const sampleGroups: CategoryGroupRecord[] = [
     name: "トップス",
     sortOrder: 10,
     categories: [
-      { id: "tops_tshirt", groupId: "tops", name: "Tシャツ", sortOrder: 10 },
       {
-        id: "tops_shirt",
+        id: "tops_tshirt_cutsew",
         groupId: "tops",
-        name: "シャツ / ブラウス",
+        name: "Tシャツ・カットソー",
+        sortOrder: 10,
+      },
+      {
+        id: "tops_shirt_blouse",
+        groupId: "tops",
+        name: "シャツ・ブラウス",
         sortOrder: 20,
       },
     ],
   },
   {
-    id: "bottoms",
-    name: "ボトムス",
+    id: "pants",
+    name: "パンツ",
     sortOrder: 20,
     categories: [
       {
-        id: "bottoms_pants",
-        groupId: "bottoms",
+        id: "pants_pants",
+        groupId: "pants",
         name: "パンツ",
         sortOrder: 10,
       },
     ],
   },
   {
-    id: "outer",
-    name: "アウター",
+    id: "outerwear",
+    name: "ジャケット・アウター",
     sortOrder: 30,
     categories: [
-      { id: "outer_coat", groupId: "outer", name: "コート", sortOrder: 10 },
+      {
+        id: "outerwear_coat",
+        groupId: "outerwear",
+        name: "コート",
+        sortOrder: 10,
+      },
     ],
   },
 ];
@@ -186,7 +196,7 @@ describe("ItemsList", () => {
   it("カテゴリ表示設定に応じて一覧の表示対象を絞り込む", async () => {
     fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
     fetchCategoryVisibilitySettingsMock.mockResolvedValue({
-      visibleCategoryIds: ["tops_tshirt"],
+      visibleCategoryIds: ["tops_tshirt_cutsew"],
     });
 
     const { default: ItemsList } = await import("./items-list");
@@ -238,7 +248,7 @@ describe("ItemsList", () => {
   it("季節は定義順で表示し、TPO は共通の候補だけを表示する", async () => {
     fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
     fetchCategoryVisibilitySettingsMock.mockResolvedValue({
-      visibleCategoryIds: ["tops_tshirt", "tops_shirt"],
+      visibleCategoryIds: ["tops_tshirt_cutsew", "tops_shirt_blouse"],
     });
 
     const { default: ItemsList } = await import("./items-list");
@@ -266,7 +276,7 @@ describe("ItemsList", () => {
     searchParamsValue = "page=2";
     fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
     fetchCategoryVisibilitySettingsMock.mockResolvedValue({
-      visibleCategoryIds: ["tops_tshirt", "tops_shirt"],
+      visibleCategoryIds: ["tops_tshirt_cutsew", "tops_shirt_blouse"],
     });
 
     const { default: ItemsList } = await import("./items-list");
@@ -304,7 +314,7 @@ describe("ItemsList", () => {
       "keyword=%E7%99%BD&brand=UNIQLO&season=%E5%A4%8F&sort=name_asc";
     fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
     fetchCategoryVisibilitySettingsMock.mockResolvedValue({
-      visibleCategoryIds: ["tops_tshirt", "tops_shirt"],
+      visibleCategoryIds: ["tops_tshirt_cutsew", "tops_shirt_blouse"],
     });
 
     const { default: ItemsList } = await import("./items-list");
@@ -348,7 +358,7 @@ describe("ItemsList", () => {
   it("ブランド絞り込みを URL クエリへ反映する", async () => {
     fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
     fetchCategoryVisibilitySettingsMock.mockResolvedValue({
-      visibleCategoryIds: ["tops_tshirt", "tops_shirt"],
+      visibleCategoryIds: ["tops_tshirt_cutsew", "tops_shirt_blouse"],
     });
 
     const { default: ItemsList } = await import("./items-list");
@@ -381,7 +391,7 @@ describe("ItemsList", () => {
     searchParamsValue = "keyword=%E9%9D%92";
     fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
     fetchCategoryVisibilitySettingsMock.mockResolvedValue({
-      visibleCategoryIds: ["tops_tshirt", "tops_shirt"],
+      visibleCategoryIds: ["tops_tshirt_cutsew", "tops_shirt_blouse"],
     });
 
     const { default: ItemsList } = await import("./items-list");
@@ -409,7 +419,7 @@ describe("ItemsList", () => {
     searchParamsValue = "keyword=%E7%99%BDT%E3%82%B7%E3%83%A3%E3%83%84";
     fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
     fetchCategoryVisibilitySettingsMock.mockResolvedValue({
-      visibleCategoryIds: ["tops_tshirt", "tops_shirt"],
+      visibleCategoryIds: ["tops_tshirt_cutsew", "tops_shirt_blouse"],
     });
 
     const { default: ItemsList } = await import("./items-list");
@@ -448,7 +458,7 @@ describe("ItemsList", () => {
   it("URL に season がない場合は初期季節を 1 回だけ query に反映する", async () => {
     fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
     fetchCategoryVisibilitySettingsMock.mockResolvedValue({
-      visibleCategoryIds: ["tops_tshirt", "tops_shirt"],
+      visibleCategoryIds: ["tops_tshirt_cutsew", "tops_shirt_blouse"],
     });
 
     const { default: ItemsList } = await import("./items-list");
@@ -472,7 +482,7 @@ describe("ItemsList", () => {
     searchParamsValue = "season=summer";
     fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
     fetchCategoryVisibilitySettingsMock.mockResolvedValue({
-      visibleCategoryIds: ["tops_tshirt", "tops_shirt"],
+      visibleCategoryIds: ["tops_tshirt_cutsew", "tops_shirt_blouse"],
     });
 
     const { default: ItemsList } = await import("./items-list");
@@ -495,7 +505,11 @@ describe("ItemsList", () => {
   it("表示切替でクローゼットビューを開き、中分類ごとに表示する", async () => {
     fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
     fetchCategoryVisibilitySettingsMock.mockResolvedValue({
-      visibleCategoryIds: ["tops_tshirt", "tops_shirt", "bottoms_pants"],
+      visibleCategoryIds: [
+        "tops_tshirt_cutsew",
+        "tops_shirt_blouse",
+        "pants_pants",
+      ],
     });
 
     const closetItems: ItemRecord[] = [
@@ -691,10 +705,10 @@ describe("ItemsList", () => {
     fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
     fetchCategoryVisibilitySettingsMock.mockResolvedValue({
       visibleCategoryIds: [
-        "tops_tshirt",
-        "tops_shirt",
-        "bottoms_pants",
-        "outer_coat",
+        "tops_tshirt_cutsew",
+        "tops_shirt_blouse",
+        "pants_pants",
+        "outerwear_coat",
       ],
     });
 
@@ -747,7 +761,11 @@ describe("ItemsList", () => {
   it("クローゼットビューでは全件取得し、ページャーを出さない", async () => {
     fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
     fetchCategoryVisibilitySettingsMock.mockResolvedValue({
-      visibleCategoryIds: ["tops_tshirt", "tops_shirt", "bottoms_pants"],
+      visibleCategoryIds: [
+        "tops_tshirt_cutsew",
+        "tops_shirt_blouse",
+        "pants_pants",
+      ],
     });
     fetchItemsIndexMock.mockResolvedValue({
       items: [
@@ -840,7 +858,7 @@ describe("ItemsList", () => {
       "keyword=%E7%99%BD&brand=UNIQLO&category=tops&season=%E5%A4%8F&tpo=%E4%BC%91%E6%97%A5&sort=name_asc&page=2";
     fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
     fetchCategoryVisibilitySettingsMock.mockResolvedValue({
-      visibleCategoryIds: ["tops_tshirt", "tops_shirt"],
+      visibleCategoryIds: ["tops_tshirt_cutsew", "tops_shirt_blouse"],
     });
     fetchItemsIndexMock.mockResolvedValue({
       items: [sampleItems[0]],

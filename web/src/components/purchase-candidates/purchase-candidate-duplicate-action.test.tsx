@@ -68,7 +68,7 @@ describe("PurchaseCandidateDuplicateAction", () => {
         name: "春コート（コピー）",
         status: "considering",
         priority: "medium",
-        category_id: "outer_coat",
+        category_id: "outerwear_coat",
         brand_name: "Sample",
         price: 14800,
         sale_price: 12800,

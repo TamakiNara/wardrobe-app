@@ -67,7 +67,7 @@ describe("/api/purchase-candidates/[id] route", () => {
       },
       body: JSON.stringify({
         name: "更新候補",
-        category_id: "tops_tshirt",
+        category_id: "tops_tshirt_cutsew",
         colors: [
           {
             role: "main",

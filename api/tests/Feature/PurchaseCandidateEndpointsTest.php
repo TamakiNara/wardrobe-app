@@ -48,7 +48,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
         return session()->token();
     }
 
-    private function createCategory(string $id = 'outer_coat', string $groupId = 'outer', string $name = 'コート'): void
+    private function createCategory(string $id = 'outerwear_coat', string $groupId = 'outerwear', string $name = 'コート'): void
     {
         CategoryGroup::query()->updateOrCreate(
             ['id' => $groupId],
@@ -74,7 +74,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
 
     private function createCandidate(User $user, array $overrides = []): PurchaseCandidate
     {
-        $categoryId = $overrides['category_id'] ?? 'outer_coat';
+        $categoryId = $overrides['category_id'] ?? 'outerwear_coat';
         $materials = $overrides['materials'] ?? [];
         unset($overrides['materials']);
         $this->createCategory($categoryId);
@@ -182,14 +182,14 @@ class PurchaseCandidateEndpointsTest extends TestCase
     public function test_get_purchase_candidates_applies_filters_sort_and_pagination(): void
     {
         $user = User::factory()->create();
-        $this->createCategory('outer_coat', 'outer', 'コート');
+        $this->createCategory('outerwear_coat', 'outer', 'コート');
 
         for ($index = 1; $index <= 13; $index++) {
             $this->createCandidate($user, [
                 'name' => sprintf('在宅コート%02d', $index),
                 'status' => 'considering',
                 'priority' => 'high',
-                'category_id' => 'outer_coat',
+                'category_id' => 'outerwear_coat',
                 'brand_name' => '在宅ブランド',
                 'wanted_reason' => '在宅用を追加したい',
                 'memo' => '在宅候補メモ',
@@ -200,7 +200,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
             'name' => '休日コート',
             'status' => 'purchased',
             'priority' => 'medium',
-            'category_id' => 'outer_coat',
+            'category_id' => 'outerwear_coat',
             'brand_name' => '休日ブランド',
             'wanted_reason' => '休日用',
             'memo' => '休日候補メモ',
@@ -210,7 +210,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
             'name' => '在宅コートブランド違い',
             'status' => 'considering',
             'priority' => 'high',
-            'category_id' => 'outer_coat',
+            'category_id' => 'outerwear_coat',
             'brand_name' => '別ブランド',
             'wanted_reason' => '在宅用を追加したい',
             'memo' => '在宅候補メモ',
@@ -221,12 +221,12 @@ class PurchaseCandidateEndpointsTest extends TestCase
             'name' => '在宅コート他人分',
             'status' => 'considering',
             'priority' => 'high',
-            'category_id' => 'outer_coat',
+            'category_id' => 'outerwear_coat',
         ]);
 
         $this->actingAs($user, 'web');
 
-        $response = $this->getJson('/api/purchase-candidates?keyword=%E5%9C%A8%E5%AE%85&status=considering&priority=high&category=outer_coat&brand=%E5%9C%A8%E5%AE%85%E3%83%96%E3%83%A9%E3%83%B3%E3%83%89&sort=name_asc&page=2', [
+        $response = $this->getJson('/api/purchase-candidates?keyword=%E5%9C%A8%E5%AE%85&status=considering&priority=high&category=outerwear_coat&brand=%E5%9C%A8%E5%AE%85%E3%83%96%E3%83%A9%E3%83%B3%E3%83%89&sort=name_asc&page=2', [
             'Accept' => 'application/json',
         ]);
 
@@ -262,7 +262,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
 
         $response->assertOk()
             ->assertJsonPath('purchaseCandidate.id', $candidate->id)
-            ->assertJsonPath('purchaseCandidate.category_id', 'outer_coat')
+            ->assertJsonPath('purchaseCandidate.category_id', 'outerwear_coat')
             ->assertJsonPath('purchaseCandidate.sale_price', 12800)
             ->assertJsonPath('purchaseCandidate.colors.0.value', 'navy')
             ->assertJsonPath('purchaseCandidate.seasons.0', '春')
@@ -273,7 +273,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
     public function test_post_purchase_candidate_creates_candidate_with_array_fields(): void
     {
         $user = User::factory()->create();
-        $this->createCategory('tops_shirt', 'tops', 'シャツ / ブラウス');
+        $this->createCategory('tops_shirt_blouse', 'tops', 'シャツ・ブラウス');
 
         $this->actingAs($user, 'web');
         $token = $this->issueCsrfToken();
@@ -282,7 +282,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
             'status' => 'considering',
             'priority' => 'high',
             'name' => '白シャツ候補',
-            'category_id' => 'tops_shirt',
+            'category_id' => 'tops_shirt_blouse',
             'brand_name' => 'Brand',
             'price' => 9800,
             'sale_price' => 8800,
@@ -323,7 +323,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
         $response->assertCreated()
             ->assertJsonPath('message', 'created')
             ->assertJsonPath('purchaseCandidate.name', '白シャツ候補')
-            ->assertJsonPath('purchaseCandidate.category_id', 'tops_shirt')
+            ->assertJsonPath('purchaseCandidate.category_id', 'tops_shirt_blouse')
             ->assertJsonPath('purchaseCandidate.sale_price', 8800)
             ->assertJsonPath('purchaseCandidate.size_details.structured.shoulder_width', 41.5)
             ->assertJsonPath('purchaseCandidate.size_details.custom_fields.0.label', '裄丈')
@@ -334,7 +334,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
         $this->assertDatabaseHas('purchase_candidates', [
             'user_id' => $user->id,
             'name' => '白シャツ候補',
-            'category_id' => 'tops_shirt',
+            'category_id' => 'tops_shirt_blouse',
             'sale_price' => 8800,
         ]);
         $this->assertDatabaseHas('purchase_candidate_colors', [
@@ -354,7 +354,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
     public function test_post_purchase_candidate_stores_materials_when_each_part_totals_100(): void
     {
         $user = User::factory()->create();
-        $this->createCategory('tops_shirt', 'tops', 'シャツ / ブラウス');
+        $this->createCategory('tops_shirt_blouse', 'tops', 'シャツ・ブラウス');
 
         $this->actingAs($user, 'web');
         $token = $this->issueCsrfToken();
@@ -363,7 +363,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
             'status' => 'considering',
             'priority' => 'high',
             'name' => '素材付き候補',
-            'category_id' => 'tops_shirt',
+            'category_id' => 'tops_shirt_blouse',
             'colors' => [[
                 'role' => 'main',
                 'mode' => 'preset',
@@ -395,7 +395,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
     public function test_post_purchase_candidate_rejects_materials_when_part_total_is_not_100(): void
     {
         $user = User::factory()->create();
-        $this->createCategory('tops_shirt', 'tops', 'シャツ / ブラウス');
+        $this->createCategory('tops_shirt_blouse', 'tops', 'シャツ・ブラウス');
 
         $this->actingAs($user, 'web');
         $token = $this->issueCsrfToken();
@@ -404,7 +404,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
             'status' => 'considering',
             'priority' => 'medium',
             'name' => '不正素材候補',
-            'category_id' => 'tops_shirt',
+            'category_id' => 'tops_shirt_blouse',
             'colors' => [[
                 'role' => 'main',
                 'mode' => 'preset',
@@ -437,7 +437,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
     public function test_post_purchase_candidate_rejects_duplicate_materials_in_same_part(): void
     {
         $user = User::factory()->create();
-        $this->createCategory('tops_shirt', 'tops', 'シャツ / ブラウス');
+        $this->createCategory('tops_shirt_blouse', 'tops', 'シャツ・ブラウス');
 
         $this->actingAs($user, 'web');
         $token = $this->issueCsrfToken();
@@ -446,7 +446,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
             'status' => 'considering',
             'priority' => 'medium',
             'name' => '重複素材候補',
-            'category_id' => 'tops_shirt',
+            'category_id' => 'tops_shirt_blouse',
             'colors' => [[
                 'role' => 'main',
                 'mode' => 'preset',
@@ -478,7 +478,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
     public function test_post_purchase_candidate_rejects_unknown_size_gender(): void
     {
         $user = User::factory()->create();
-        $this->createCategory('tops_shirt', 'tops', 'シャツ / ブラウス');
+        $this->createCategory('tops_shirt_blouse', 'tops', 'シャツ・ブラウス');
 
         $this->actingAs($user, 'web');
         $token = $this->issueCsrfToken();
@@ -487,7 +487,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
             'status' => 'considering',
             'priority' => 'medium',
             'name' => '白シャツ候補',
-            'category_id' => 'tops_shirt',
+            'category_id' => 'tops_shirt_blouse',
             'colors' => [[
                 'role' => 'main',
                 'mode' => 'preset',
@@ -510,8 +510,8 @@ class PurchaseCandidateEndpointsTest extends TestCase
     public function test_put_purchase_candidate_updates_candidate(): void
     {
         $user = User::factory()->create();
-        $candidate = $this->createCandidate($user, ['category_id' => 'tops_shirt']);
-        $this->createCategory('tops_knit', 'tops', 'ニット / セーター');
+        $candidate = $this->createCandidate($user, ['category_id' => 'tops_shirt_blouse']);
+        $this->createCategory('tops_knit_sweater', 'tops', 'ニット・セーター');
 
         $this->actingAs($user, 'web');
         $token = $this->issueCsrfToken();
@@ -520,7 +520,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
             'status' => 'on_hold',
             'priority' => 'low',
             'name' => '更新後候補',
-            'category_id' => 'tops_knit',
+            'category_id' => 'tops_knit_sweater',
             'brand_name' => null,
             'price' => 12000,
             'sale_price' => 9800,
@@ -554,7 +554,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
         $response->assertOk()
             ->assertJsonPath('message', 'updated')
             ->assertJsonPath('purchaseCandidate.status', 'on_hold')
-            ->assertJsonPath('purchaseCandidate.category_id', 'tops_knit')
+            ->assertJsonPath('purchaseCandidate.category_id', 'tops_knit_sweater')
             ->assertJsonPath('purchaseCandidate.sale_price', 9800)
             ->assertJsonPath('purchaseCandidate.size_details.structured.body_length', 68)
             ->assertJsonPath('purchaseCandidate.colors.0.value', 'gray');
@@ -562,7 +562,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
         $this->assertDatabaseHas('purchase_candidates', [
             'id' => $candidate->id,
             'status' => 'on_hold',
-            'category_id' => 'tops_knit',
+            'category_id' => 'tops_knit_sweater',
             'sale_price' => 9800,
         ]);
         $this->assertDatabaseMissing('purchase_candidate_colors', [
@@ -607,7 +607,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
 
         $this->putJson("/api/purchase-candidates/{$candidate->id}", [
             'name' => '更新不可',
-            'category_id' => 'outer_coat',
+            'category_id' => 'outerwear_coat',
             'colors' => [[
                 'role' => 'main',
                 'mode' => 'preset',
@@ -629,7 +629,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
     public function test_post_purchase_candidate_item_draft_returns_expected_shape(): void
     {
         $user = User::factory()->create();
-        $candidate = $this->createCandidate($user, ['category_id' => 'outer_coat']);
+        $candidate = $this->createCandidate($user, ['category_id' => 'outerwear_coat']);
 
         $this->actingAs($user, 'web');
         $token = $this->issueCsrfToken();
@@ -641,7 +641,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
 
         $response->assertOk()
             ->assertJsonPath('message', 'item_draft_ready')
-            ->assertJsonPath('item_draft.source_category_id', 'outer_coat')
+            ->assertJsonPath('item_draft.source_category_id', 'outerwear_coat')
             ->assertJsonPath('item_draft.category', 'outer')
             ->assertJsonPath('item_draft.shape', 'trench')
             ->assertJsonPath('item_draft.memo', 'メモ')
@@ -653,11 +653,39 @@ class PurchaseCandidateEndpointsTest extends TestCase
             ->assertJsonPath('candidate_summary.id', $candidate->id);
     }
 
+    public function test_post_purchase_candidate_item_draft_supports_fashion_accessories_swimwear_and_kimono(): void
+    {
+        $user = User::factory()->create();
+
+        $cases = [
+            'fashion_accessories_wallet_case' => ['category' => 'fashion_accessories', 'shape' => 'wallet-case'],
+            'swimwear_rashguard' => ['category' => 'swimwear', 'shape' => 'rashguard'],
+            'kimono_kimono' => ['category' => 'kimono', 'shape' => 'kimono'],
+        ];
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        foreach ($cases as $categoryId => $expected) {
+            $candidate = $this->createCandidate($user, ['category_id' => $categoryId]);
+
+            $response = $this->postJson("/api/purchase-candidates/{$candidate->id}/item-draft", [], [
+                'Accept' => 'application/json',
+                'X-CSRF-TOKEN' => $token,
+            ]);
+
+            $response->assertOk()
+                ->assertJsonPath('item_draft.source_category_id', $categoryId)
+                ->assertJsonPath('item_draft.category', $expected['category'])
+                ->assertJsonPath('item_draft.shape', $expected['shape']);
+        }
+    }
+
     public function test_post_purchase_candidate_item_draft_includes_materials(): void
     {
         $user = User::factory()->create();
         $candidate = $this->createCandidate($user, [
-            'category_id' => 'outer_coat',
+            'category_id' => 'outerwear_coat',
             'materials' => $this->buildMaterialsPayload(),
         ]);
 
@@ -683,7 +711,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
         $candidate = $this->createCandidate($user, [
             'status' => 'purchased',
             'priority' => 'high',
-            'category_id' => 'tops_shirt',
+            'category_id' => 'tops_shirt_blouse',
         ]);
         $sourcePath = "purchase-candidates/{$candidate->id}/source.png";
 
@@ -715,7 +743,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
             ->assertJsonPath('purchaseCandidate.status', 'considering')
             ->assertJsonPath('purchaseCandidate.priority', 'high')
             ->assertJsonPath('purchaseCandidate.name', $candidate->name.'（コピー）')
-            ->assertJsonPath('purchaseCandidate.category_id', 'tops_shirt')
+            ->assertJsonPath('purchaseCandidate.category_id', 'tops_shirt_blouse')
             ->assertJsonPath('purchaseCandidate.sale_price', 12800)
             ->assertJsonPath('purchaseCandidate.colors.0.value', 'navy')
             ->assertJsonPath('purchaseCandidate.seasons.0', '春')
@@ -756,7 +784,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
 
         $user = User::factory()->create();
         $sourceCandidate = $this->createCandidate($user, [
-            'category_id' => 'tops_shirt',
+            'category_id' => 'tops_shirt_blouse',
         ]);
         $sourcePath = "purchase-candidates/{$sourceCandidate->id}/source.png";
 
@@ -781,7 +809,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
             'status' => 'considering',
             'priority' => 'medium',
             'name' => '複製テスト候補',
-            'category_id' => 'tops_shirt',
+            'category_id' => 'tops_shirt_blouse',
             'brand_name' => 'Sample Brand',
             'price' => 14800,
             'sale_price' => 12800,
@@ -852,7 +880,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
 
         $user = User::factory()->create();
         $sourceCandidate = $this->createCandidate($user, [
-            'category_id' => 'tops_shirt',
+            'category_id' => 'tops_shirt_blouse',
         ]);
         $sourceImage = $sourceCandidate->images()->create([
             'disk' => 'public',
@@ -873,7 +901,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
             'status' => 'considering',
             'priority' => 'medium',
             'name' => '複製失敗候補',
-            'category_id' => 'tops_shirt',
+            'category_id' => 'tops_shirt_blouse',
             'brand_name' => 'Sample Brand',
             'price' => 14800,
             'colors' => [
@@ -906,7 +934,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
     public function test_post_purchase_candidate_store_can_add_brand_candidate(): void
     {
         $user = User::factory()->create();
-        $this->createCategory('tops_shirt');
+        $this->createCategory('tops_shirt_blouse');
 
         $this->actingAs($user, 'web');
         $token = $this->issueCsrfToken();
@@ -915,7 +943,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
             'status' => 'considering',
             'priority' => 'medium',
             'name' => 'ブランド候補追加テスト',
-            'category_id' => 'tops_shirt',
+            'category_id' => 'tops_shirt_blouse',
             'brand_name' => 'UNIQLO',
             'save_brand_as_candidate' => true,
             'price' => 14800,
@@ -1004,7 +1032,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
 
         $response = $this->putJson("/api/purchase-candidates/{$candidate->id}", [
             'name' => '変更不可',
-            'category_id' => 'tops_shirt',
+            'category_id' => 'tops_shirt_blouse',
             'colors' => [[
                 'role' => 'main',
                 'mode' => 'preset',
@@ -1027,7 +1055,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
         $this->assertDatabaseHas('purchase_candidates', [
             'id' => $candidate->id,
             'name' => 'ネイビーのレインコート',
-            'category_id' => 'outer_coat',
+            'category_id' => 'outerwear_coat',
         ]);
     }
 
@@ -1087,7 +1115,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
     {
         $user = User::factory()->create();
         $candidate = $this->createCandidate($user, [
-            'category_id' => 'outer_coat',
+            'category_id' => 'outerwear_coat',
             'name' => 'トレンチ候補',
         ]);
 

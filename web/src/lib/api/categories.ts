@@ -10,39 +10,57 @@ const SUPPORTED_CATEGORY_VALUES = new Set<string>(
   ITEM_CATEGORIES.map((item) => item.value),
 );
 
+const MASTER_GROUP_TO_ITEM_CATEGORY: Record<string, string> = {
+  tops: "tops",
+  outerwear: "outer",
+  pants: "bottoms",
+  skirts: "bottoms",
+  onepiece_dress: "onepiece_allinone",
+  allinone: "onepiece_allinone",
+  roomwear_inner: "inner",
+  legwear: "legwear",
+  shoes: "shoes",
+  bags: "bags",
+  fashion_accessories: "fashion_accessories",
+  swimwear: "swimwear",
+  kimono: "kimono",
+};
+
 const ITEM_CATEGORY_ID_BY_SHAPE: Record<string, Record<string, string>> = {
   tops: {
-    tshirt: "tops_tshirt",
-    shirt: "tops_shirt",
-    blouse: "tops_shirt",
-    knit: "tops_knit",
+    tshirt: "tops_tshirt_cutsew",
+    shirt: "tops_shirt_blouse",
+    blouse: "tops_shirt_blouse",
+    knit: "tops_knit_sweater",
     cardigan: "tops_cardigan",
-    camisole: "tops_vest",
-    tanktop: "tops_vest",
-    jacket: "tops_vest",
+    camisole: "tops_camisole",
+    tanktop: "tops_tanktop",
+    jacket: "tops_other",
   },
   bottoms: {
-    tapered: "bottoms_pants",
-    wide: "bottoms_pants",
-    straight: "bottoms_pants",
-    "tight-skirt": "bottoms_skirt",
-    "a-line-skirt": "bottoms_skirt",
+    tapered: "pants_pants",
+    wide: "pants_pants",
+    straight: "pants_pants",
+    "mini-skirt": "skirts_skirt",
+    "tight-skirt": "skirts_skirt",
+    "a-line-skirt": "skirts_skirt",
+    "flare-skirt": "skirts_skirt",
   },
   outer: {
-    tailored: "outer_jacket",
-    trench: "outer_coat",
-    chester: "outer_coat",
-    down: "outer_down",
-    "outer-cardigan": "outer_other",
+    tailored: "outerwear_jacket",
+    trench: "outerwear_coat",
+    chester: "outerwear_coat",
+    down: "outerwear_down_padded",
+    "outer-cardigan": "outerwear_blouson",
   },
   onepiece_allinone: {
-    onepiece: "onepiece",
-    allinone: "allinone",
+    onepiece: "onepiece_dress_onepiece",
+    allinone: "allinone_allinone",
   },
   inner: {
-    roomwear: "inner_roomwear",
-    underwear: "inner_underwear",
-    pajamas: "inner_pajamas",
+    roomwear: "roomwear_inner_roomwear",
+    underwear: "roomwear_inner_underwear",
+    pajamas: "roomwear_inner_pajamas",
   },
   legwear: {
     socks: "legwear_socks",
@@ -56,12 +74,40 @@ const ITEM_CATEGORY_ID_BY_SHAPE: Record<string, Record<string, string>> = {
     "short-boots": "shoes_boots",
     sandals: "shoes_sandals",
   },
+  bags: {
+    bag: "bags_bag",
+    tote: "bags_bag",
+    shoulder: "bags_bag",
+    backpack: "bags_bag",
+    clutch: "bags_bag",
+  },
+  fashion_accessories: {
+    hat: "fashion_accessories_hat",
+    belt: "fashion_accessories_belt",
+    "scarf-stole": "fashion_accessories_scarf_stole",
+    gloves: "fashion_accessories_gloves",
+    jewelry: "fashion_accessories_jewelry",
+    "wallet-case": "fashion_accessories_wallet_case",
+    "hair-accessory": "fashion_accessories_hair",
+    eyewear: "fashion_accessories_eyewear",
+    watch: "fashion_accessories_watch",
+    other: "fashion_accessories_other",
+  },
+  swimwear: {
+    swimwear: "swimwear_swimwear",
+    rashguard: "swimwear_rashguard",
+    other: "swimwear_other",
+  },
+  kimono: {
+    kimono: "kimono_kimono",
+    other: "kimono_other",
+  },
   accessories: {
-    tote: "bags_tote",
-    shoulder: "bags_shoulder",
-    backpack: "bags_backpack",
-    hat: "accessories_hat",
-    accessory: "accessories_jewelry",
+    tote: "bags_bag",
+    shoulder: "bags_bag",
+    backpack: "bags_bag",
+    hat: "fashion_accessories_hat",
+    accessory: "fashion_accessories_other",
   },
 };
 
@@ -80,7 +126,11 @@ export function buildSupportedCategoryOptions(
 
   return groups
     .filter((group: CategoryGroupRecord) => {
-      if (!SUPPORTED_CATEGORY_VALUES.has(group.id)) {
+      const itemCategoryValue = MASTER_GROUP_TO_ITEM_CATEGORY[group.id];
+      if (
+        !itemCategoryValue ||
+        !SUPPORTED_CATEGORY_VALUES.has(itemCategoryValue)
+      ) {
         return false;
       }
 
@@ -92,10 +142,17 @@ export function buildSupportedCategoryOptions(
         visibleCategoryIdSet.has(category.id),
       );
     })
-    .map((group: CategoryGroupRecord) => ({
-      value: group.id,
-      label: group.name,
-    }));
+    .map(
+      (group: CategoryGroupRecord) => MASTER_GROUP_TO_ITEM_CATEGORY[group.id],
+    )
+    .filter((value, index, values) => values.indexOf(value) === index)
+    .map(
+      (value) =>
+        ITEM_CATEGORIES.find((item) => item.value === value) ?? {
+          value,
+          label: value,
+        },
+    );
 }
 
 export function findVisibleCategoryIdForItem(

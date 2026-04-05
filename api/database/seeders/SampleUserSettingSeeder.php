@@ -19,9 +19,9 @@ class SampleUserSettingSeeder extends Seeder
             ->all();
 
         $standardHiddenIds = [
-            'inner_pajamas',
+            'roomwear_inner_pajamas',
             'shoes_boots',
-            'accessories_gloves',
+            'fashion_accessories_gloves',
         ];
 
         User::query()->where('email', TestSeedUsers::EMPTY_EMAIL)->update([

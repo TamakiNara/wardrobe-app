@@ -65,7 +65,7 @@ class SettingsCategoriesEndpointsTest extends TestCase
     public function test_get_settings_categories_returns_saved_visible_category_ids(): void
     {
         $user = User::factory()->create([
-            'visible_category_ids' => ['tops_tshirt', 'outer_jacket'],
+            'visible_category_ids' => ['tops_tshirt_cutsew', 'outerwear_jacket'],
         ]);
 
         $this->actingAs($user, 'web');
@@ -76,7 +76,7 @@ class SettingsCategoriesEndpointsTest extends TestCase
 
         $response->assertOk()
             ->assertJson([
-                'visibleCategoryIds' => ['tops_tshirt', 'outer_jacket'],
+                'visibleCategoryIds' => ['tops_tshirt_cutsew', 'outerwear_jacket'],
             ]);
     }
 
@@ -90,7 +90,7 @@ class SettingsCategoriesEndpointsTest extends TestCase
         $token = $this->issueCsrfToken();
 
         $response = $this->putJson('/api/settings/categories', [
-            'visibleCategoryIds' => ['tops_tshirt', 'tops_shirt', 'outer_jacket'],
+            'visibleCategoryIds' => ['tops_tshirt_cutsew', 'tops_shirt_blouse', 'outerwear_jacket'],
         ], [
             'Accept' => 'application/json',
             'X-CSRF-TOKEN' => $token,
@@ -99,7 +99,7 @@ class SettingsCategoriesEndpointsTest extends TestCase
         $response->assertOk()
             ->assertJsonPath('message', 'updated')
             ->assertJson([
-                'visibleCategoryIds' => ['tops_tshirt', 'tops_shirt', 'outer_jacket'],
+                'visibleCategoryIds' => ['tops_tshirt_cutsew', 'tops_shirt_blouse', 'outerwear_jacket'],
             ]);
 
         $this->assertDatabaseHas('users', [
@@ -107,7 +107,7 @@ class SettingsCategoriesEndpointsTest extends TestCase
         ]);
 
         $this->assertSame(
-            ['tops_tshirt', 'tops_shirt', 'outer_jacket'],
+            ['tops_tshirt_cutsew', 'tops_shirt_blouse', 'outerwear_jacket'],
             $user->fresh()->visible_category_ids,
         );
     }
@@ -115,7 +115,7 @@ class SettingsCategoriesEndpointsTest extends TestCase
     public function test_put_settings_categories_allows_saving_empty_visible_category_ids(): void
     {
         $user = User::factory()->create([
-            'visible_category_ids' => ['tops_tshirt', 'outer_jacket'],
+            'visible_category_ids' => ['tops_tshirt_cutsew', 'outerwear_jacket'],
         ]);
 
         $this->actingAs($user, 'web');
@@ -147,7 +147,7 @@ class SettingsCategoriesEndpointsTest extends TestCase
         $token = $this->issueCsrfToken();
 
         $response = $this->putJson('/api/settings/categories', [
-            'visibleCategoryIds' => ['tops_tshirt', 'invalid_category_id'],
+            'visibleCategoryIds' => ['tops_tshirt_cutsew', 'invalid_category_id'],
         ], [
             'Accept' => 'application/json',
             'X-CSRF-TOKEN' => $token,

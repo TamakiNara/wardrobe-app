@@ -30,37 +30,49 @@ const sampleGroups: CategoryGroupRecord[] = [
     name: "トップス",
     sortOrder: 10,
     categories: [
-      { id: "tops_tshirt", groupId: "tops", name: "Tシャツ", sortOrder: 10 },
+      {
+        id: "tops_tshirt_cutsew",
+        groupId: "tops",
+        name: "Tシャツ・カットソー",
+        sortOrder: 10,
+      },
     ],
   },
   {
-    id: "bottoms",
-    name: "ボトムス",
+    id: "skirts",
+    name: "スカート",
     sortOrder: 20,
     categories: [
       {
-        id: "bottoms_skirt",
-        groupId: "bottoms",
+        id: "skirts_skirt",
+        groupId: "skirts",
         name: "スカート",
         sortOrder: 10,
       },
     ],
   },
   {
-    id: "onepiece_allinone",
-    name: "ワンピース / オールインワン",
+    id: "onepiece_dress",
+    name: "ワンピース・ドレス",
     sortOrder: 30,
     categories: [
       {
-        id: "onepiece",
-        groupId: "onepiece_allinone",
+        id: "onepiece_dress_onepiece",
+        groupId: "onepiece_dress",
         name: "ワンピース",
         sortOrder: 10,
       },
+    ],
+  },
+  {
+    id: "allinone",
+    name: "オールインワン",
+    sortOrder: 35,
+    categories: [
       {
-        id: "allinone",
-        groupId: "onepiece_allinone",
-        name: "オールインワン / サロペット",
+        id: "allinone_allinone",
+        groupId: "allinone",
+        name: "オールインワン",
         sortOrder: 20,
       },
     ],
@@ -107,7 +119,7 @@ describe("CategoryPresetSelectionPage", () => {
 
   it("male プリセットを保存できる", async () => {
     updateCategoryVisibilitySettingsMock.mockResolvedValue({
-      visibleCategoryIds: ["tops_tshirt"],
+      visibleCategoryIds: ["tops_tshirt_cutsew"],
     });
 
     const { default: Page } = await import("./page");
@@ -130,7 +142,7 @@ describe("CategoryPresetSelectionPage", () => {
     });
 
     expect(updateCategoryVisibilitySettingsMock).toHaveBeenCalledWith({
-      visibleCategoryIds: ["tops_tshirt"],
+      visibleCategoryIds: ["tops_tshirt_cutsew"],
     });
     expect(pushMock).toHaveBeenCalledWith("/");
   });

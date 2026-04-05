@@ -37,7 +37,7 @@ class ItemsEndpointsTest extends TestCase
         );
     }
 
-    private function createPurchaseCategory(string $id = 'outer_coat', string $groupId = 'outer', string $name = 'コート'): void
+    private function createPurchaseCategory(string $id = 'outerwear_coat', string $groupId = 'outerwear', string $name = 'コート'): void
     {
         CategoryGroup::query()->updateOrCreate(
             ['id' => $groupId],
@@ -63,7 +63,7 @@ class ItemsEndpointsTest extends TestCase
 
     private function createPurchaseCandidate(User $user, array $overrides = []): PurchaseCandidate
     {
-        $categoryId = $overrides['category_id'] ?? 'outer_coat';
+        $categoryId = $overrides['category_id'] ?? 'outerwear_coat';
         $materials = $overrides['materials'] ?? [];
         unset($overrides['materials']);
         $this->createPurchaseCategory($categoryId);
@@ -192,7 +192,7 @@ class ItemsEndpointsTest extends TestCase
     {
         $user = User::factory()->create();
         $user->forceFill([
-            'visible_category_ids' => ['tops_tshirt'],
+            'visible_category_ids' => ['tops_tshirt_cutsew'],
         ])->save();
 
         for ($index = 1; $index <= 13; $index++) {
@@ -261,7 +261,7 @@ class ItemsEndpointsTest extends TestCase
     {
         $user = User::factory()->create();
         $user->forceFill([
-            'visible_category_ids' => ['tops_tshirt'],
+            'visible_category_ids' => ['tops_tshirt_cutsew'],
         ])->save();
 
         for ($index = 1; $index <= 13; $index++) {
@@ -293,7 +293,7 @@ class ItemsEndpointsTest extends TestCase
     {
         $user = User::factory()->create();
         $user->forceFill([
-            'visible_category_ids' => ['tops_tshirt'],
+            'visible_category_ids' => ['tops_tshirt_cutsew'],
         ])->save();
 
         $remoteWorkTpo = $this->createUserTpo($user, [
@@ -341,7 +341,7 @@ class ItemsEndpointsTest extends TestCase
     {
         $user = User::factory()->create();
         $user->forceFill([
-            'visible_category_ids' => ['tops_tshirt'],
+            'visible_category_ids' => ['tops_tshirt_cutsew'],
         ])->save();
 
         $activeItem = $this->createItem($user, [

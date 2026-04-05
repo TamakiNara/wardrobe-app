@@ -16,7 +16,7 @@ class HomeSummaryEndpointsTest extends TestCase
 {
     use RefreshDatabase;
 
-    private function createCategory(string $id = 'tops_tshirt', string $groupId = 'tops', string $name = 'Tシャツ'): void
+    private function createCategory(string $id = 'tops_tshirt_cutsew', string $groupId = 'tops', string $name = 'Tシャツ・カットソー'): void
     {
         CategoryGroup::query()->updateOrCreate(
             ['id' => $groupId],
@@ -71,10 +71,10 @@ class HomeSummaryEndpointsTest extends TestCase
     public function test_get_home_summary_returns_lightweight_counts_matching_current_home_bases(): void
     {
         $user = User::factory()->create([
-            'visible_category_ids' => ['tops_tshirt'],
+            'visible_category_ids' => ['tops_tshirt_cutsew'],
         ]);
         $otherUser = User::factory()->create();
-        $this->createCategory('tops_tshirt', 'tops', 'Tシャツ');
+        $this->createCategory('tops_tshirt_cutsew', 'tops', 'Tシャツ・カットソー');
 
         $this->createItem($user, ['category' => 'tops', 'shape' => 'tshirt']);
         $this->createItem($user, ['category' => 'bottoms', 'shape' => 'wide']);
@@ -130,21 +130,21 @@ class HomeSummaryEndpointsTest extends TestCase
             'name' => '候補A',
             'status' => 'considering',
             'priority' => 'medium',
-            'category_id' => 'tops_tshirt',
+            'category_id' => 'tops_tshirt_cutsew',
         ]);
         PurchaseCandidate::query()->create([
             'user_id' => $user->id,
             'name' => '候補B',
             'status' => 'purchased',
             'priority' => 'medium',
-            'category_id' => 'tops_tshirt',
+            'category_id' => 'tops_tshirt_cutsew',
         ]);
         PurchaseCandidate::query()->create([
             'user_id' => $otherUser->id,
             'name' => '他人の候補',
             'status' => 'considering',
             'priority' => 'medium',
-            'category_id' => 'tops_tshirt',
+            'category_id' => 'tops_tshirt_cutsew',
         ]);
 
         $this->actingAs($user, 'web');

@@ -68,7 +68,7 @@ describe("BFF CSRF forwarding", () => {
         Cookie: "laravel-session=old_session; XSRF-TOKEN=stale_token",
       },
       body: JSON.stringify({
-        visibleCategoryIds: ["tops_tshirt"],
+        visibleCategoryIds: ["tops_tshirt_cutsew"],
       }),
     });
 
@@ -76,7 +76,7 @@ describe("BFF CSRF forwarding", () => {
       req as any,
       "/api/settings/categories",
       {
-        visibleCategoryIds: ["tops_tshirt"],
+        visibleCategoryIds: ["tops_tshirt_cutsew"],
       },
     );
     const json = await res.json();

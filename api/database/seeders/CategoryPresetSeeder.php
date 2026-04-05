@@ -22,13 +22,18 @@ class CategoryPresetSeeder extends Seeder
             );
         }
 
-        $allCategoryIds = DB::table('category_master')->orderBy('id')->pluck('id')->all();
-        $maleExcludedIds = [
-            'bottoms_skirt',
-            'onepiece',
-            'allinone',
-            'shoes_pumps',
-        ];
+        $allCategories = DB::table('category_master')
+            ->select(['id', 'group_id'])
+            ->orderBy('id')
+            ->get();
+        $allCategoryIds = $allCategories->pluck('id')->all();
+        $maleExcludedIds = $allCategories
+            ->filter(fn ($category) => in_array($category->group_id, ['skirts', 'onepiece_dress', 'allinone'], true))
+            ->pluck('id')
+            ->push('shoes_pumps')
+            ->unique()
+            ->values()
+            ->all();
 
         $presetCategoryMap = [
             'male' => array_values(array_diff($allCategoryIds, $maleExcludedIds)),

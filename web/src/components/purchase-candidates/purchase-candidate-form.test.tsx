@@ -54,11 +54,16 @@ describe("PurchaseCandidateForm", () => {
 
     fetchCategoryGroupsMock.mockResolvedValue([
       {
-        id: "outer",
-        name: "アウター",
+        id: "outerwear",
+        name: "ジャケット・アウター",
         sortOrder: 10,
         categories: [
-          { id: "outer_coat", groupId: "outer", name: "コート", sortOrder: 10 },
+          {
+            id: "outerwear_coat",
+            groupId: "outerwear",
+            name: "コート",
+            sortOrder: 10,
+          },
         ],
       },
       {
@@ -67,16 +72,16 @@ describe("PurchaseCandidateForm", () => {
         sortOrder: 20,
         categories: [
           {
-            id: "tops_tshirt",
+            id: "tops_tshirt_cutsew",
             groupId: "tops",
-            name: "Tシャツ",
+            name: "Tシャツ・カットソー",
             sortOrder: 10,
           },
         ],
       },
     ]);
     fetchCategoryVisibilitySettingsMock.mockResolvedValue({
-      visibleCategoryIds: ["outer_coat", "tops_tshirt"],
+      visibleCategoryIds: ["outerwear_coat", "tops_tshirt_cutsew"],
     });
     fetchUserBrandsMock.mockResolvedValue({ brands: [] });
   });
@@ -250,10 +255,18 @@ describe("PurchaseCandidateForm", () => {
 
     await act(async () => {
       setNativeValue(nameInput, "ブランド候補追加テスト");
-      setNativeValue(categorySelect, "outer_coat");
+      setNativeValue(categorySelect, "outerwear_coat");
       setNativeValue(brandNameInput, "UNIQLO");
       saveBrandCheckbox!.click();
       customMainCheckbox.click();
+    });
+
+    const mainColorCodeInput = container.querySelector(
+      'input[aria-label="メインカラーコード"]',
+    ) as HTMLInputElement;
+
+    await act(async () => {
+      setNativeValue(mainColorCodeInput, "#112233");
     });
 
     await act(async () => {
@@ -300,7 +313,7 @@ describe("PurchaseCandidateForm", () => {
 
     await act(async () => {
       setNativeValue(nameInput, "レインコート候補");
-      setNativeValue(categorySelect, "tops_tshirt");
+      setNativeValue(categorySelect, "tops_tshirt_cutsew");
       setNativeValue(salePriceInput, "12800");
       setNativeValue(saleEndsAtInput, "2026-03-31T18:00");
       setNativeValue(sizeNoteInput, "厚手対応");
@@ -409,7 +422,7 @@ describe("PurchaseCandidateForm", () => {
 
     await act(async () => {
       setNativeValue(nameInput, "素材付き候補");
-      setNativeValue(categorySelect, "tops_tshirt");
+      setNativeValue(categorySelect, "tops_tshirt_cutsew");
       customMainCheckbox.click();
       addMaterialButton.click();
     });
@@ -471,7 +484,7 @@ describe("PurchaseCandidateForm", () => {
     ) as HTMLSelectElement;
 
     await act(async () => {
-      setNativeValue(categorySelect, "tops_tshirt");
+      setNativeValue(categorySelect, "tops_tshirt_cutsew");
     });
 
     const addButton = Array.from(container.querySelectorAll("button")).find(
@@ -539,7 +552,7 @@ describe("PurchaseCandidateForm", () => {
         status: "considering",
         priority: "high",
         name: "春コート（コピー）",
-        category_id: "outer_coat",
+        category_id: "outerwear_coat",
         brand_name: "Sample Brand",
         price: 14800,
         sale_price: 12800,
@@ -631,7 +644,7 @@ describe("PurchaseCandidateForm", () => {
             status: "purchased",
             priority: "medium",
             name: "購入済み候補",
-            category_id: "outer_coat",
+            category_id: "outerwear_coat",
             category_name: "コート",
             brand_name: "Brand",
             price: 14800,

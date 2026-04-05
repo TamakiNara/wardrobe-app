@@ -130,6 +130,8 @@ DBテーブル構成の詳細は `docs/data/database.md` を参照する。
 | 水着 | `swimwear` | 新設候補 |
 | 着物 | `kimono` | 新設候補 |
 
+実装第1弾では、`swimwear` と `kimono` を含む大分類までを対象にし、`users.visible_category_ids`・settings・onboarding・purchase candidate の `category_id` を新しい中分類 ID へ寄せる。item 側では `bottoms` / `outer` / `onepiece_allinone` などは現行値を維持する一方、`bags`・`fashion_accessories`・`swimwear`・`kimono` は current item category にも切り出し、橋渡しは必要な箇所だけに限定する。
+
 ### 中分類の最終候補
 
 #### トップス (`tops`)
@@ -256,7 +258,7 @@ DBテーブル構成の詳細は `docs/data/database.md` を参照する。
 - `シャツワンピース` や `ニットワンピース` のような型差は今回は中分類に含めない
   - ワンピース・ドレスの代表カテゴリを優先し、素材差や型差は shape / spec 側で扱う余地を残す
 - アウターの細かい型差やバッグの用途差も、初回再編では中分類へ入れすぎない
-  - 登録時に迷いにくい代表カテゴリを優先し、後から実データを見て追加要否を再判断する
+  - 登録時に迷いにくい代表カテゴリを優先し、バッグの用途差は current item shape で吸収しつつ、後から実データを見て追加要否を再判断する
 
 ## 2-2. `shape` / `spec` に寄せる前提の最小設計メモ
 
@@ -290,8 +292,8 @@ DBテーブル構成の詳細は `docs/data/database.md` を参照する。
 - `onepiece_dress`
   - `シャツワンピース` や `ニットワンピース` を中分類に持たない代わりに、必要なら素材差や袖丈差を `spec` 側で扱える余地を残す
 - `bags`
-  - 初回は `バッグ > バッグ` を代表カテゴリにし、用途差は shape 未導入でもよい
-  - ただし、一覧・クローゼット表示で必要なら将来 `tote / shoulder / backpack` などを shape 候補に戻す余地を残す
+  - 初回は `バッグ > バッグ` を代表カテゴリにし、中分類は増やしすぎない
+  - 一方で current item shape としては `bag / tote / shoulder / backpack / clutch` 程度を持ち、用途差は shape で吸収する
 - `kimono`
   - 初回は `着物 > 着物` を代表カテゴリにし、`浴衣` や和装小物は広げない
 
@@ -300,7 +302,6 @@ DBテーブル構成の詳細は `docs/data/database.md` を参照する。
 - `shape` / `spec` は **方向性としては使えるが、再編全体をそのまま受け止められるほど全面的には詰まっていない**
 - かなり具体化されているのは `tops` と `bottoms.length_type`、`legwear.coverage_type` まで
 - そのため、次に実装へ進むときは category master 追加だけでなく、少なくとも `pants` と `skirts` の `shape` の持ち方を同時に決める前提で進める
-
 
 ---
 
@@ -436,6 +437,7 @@ DBテーブル構成の詳細は `docs/data/database.md` を参照する。
 配下の中分類をすべてONにする。
 
 設定画面の `すべてON` ボタン押下時は、確認ダイアログを表示しない。
+
 ---
 
 # 7. 中分類操作
@@ -605,7 +607,6 @@ visible_category_ids
 - 中分類または大分類の ON / OFF を変更すると、保存ボタンを活性化する
 - 未保存変更がある状態でブラウザ再読み込み / タブを閉じる操作をした場合は、離脱警告を表示する
 - ページ内遷移時の警告は今後の検討対象とする
-
 
 ---
 

@@ -20,7 +20,6 @@ import ItemSizeDetailsFields from "@/components/items/item-size-details-fields";
 import PurchaseCandidateImageUploader from "@/components/purchase-candidates/purchase-candidate-image-uploader";
 import { fetchCategoryGroups } from "@/lib/api/categories";
 import { fetchCategoryVisibilitySettings } from "@/lib/api/settings";
-import { ITEM_CATEGORIES } from "@/lib/master-data/item-shapes";
 import { SEASON_OPTIONS, TPO_OPTIONS } from "@/lib/master-data/item-attributes";
 import {
   ITEM_COLORS,
@@ -69,32 +68,26 @@ type PurchaseCandidateFormProps = {
   footerAction?: ReactNode;
 };
 
-const SUPPORTED_GROUP_IDS = new Set<string>(
-  ITEM_CATEGORIES.map((item) => item.value),
-);
-
 function buildCategoryOptions(
   groups: CategoryGroupRecord[],
   visibleCategoryIds?: string[],
 ): CategoryOption[] {
   const visibleSet = visibleCategoryIds ? new Set(visibleCategoryIds) : null;
 
-  return groups
-    .filter((group) => SUPPORTED_GROUP_IDS.has(group.id))
-    .flatMap((group) =>
-      group.categories
-        .filter((category) => {
-          if (!visibleSet) {
-            return true;
-          }
+  return groups.flatMap((group) =>
+    group.categories
+      .filter((category) => {
+        if (!visibleSet) {
+          return true;
+        }
 
-          return visibleSet.has(category.id);
-        })
-        .map((category) => ({
-          value: category.id,
-          label: `${group.name} / ${category.name}`,
-        })),
-    );
+        return visibleSet.has(category.id);
+      })
+      .map((category) => ({
+        value: category.id,
+        label: `${group.name} / ${category.name}`,
+      })),
+  );
 }
 
 function normalizeNullableString(value: string): string {

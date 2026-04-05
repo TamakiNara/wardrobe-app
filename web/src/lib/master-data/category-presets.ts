@@ -21,12 +21,8 @@ export const CATEGORY_PRESET_OPTIONS = [
 export type CategoryPresetValue =
   (typeof CATEGORY_PRESET_OPTIONS)[number]["value"];
 
-const MALE_HIDDEN_CATEGORY_IDS = new Set([
-  "bottoms_skirt",
-  "onepiece",
-  "allinone",
-  "shoes_pumps",
-]);
+const MALE_HIDDEN_GROUP_IDS = new Set(["skirts", "onepiece_dress", "allinone"]);
+const MALE_HIDDEN_CATEGORY_IDS = new Set(["shoes_pumps"]);
 
 export function collectAllCategoryIds(groups: CategoryGroupRecord[]): string[] {
   return groups
@@ -41,8 +37,15 @@ export function buildVisibleCategoryIdsForPreset(
   const allCategoryIds = collectAllCategoryIds(groups);
 
   if (preset === "male") {
+    const hiddenCategoryIds = new Set([
+      ...groups
+        .filter((group) => MALE_HIDDEN_GROUP_IDS.has(group.id))
+        .flatMap((group) => group.categories.map((category) => category.id)),
+      ...MALE_HIDDEN_CATEGORY_IDS,
+    ]);
+
     return allCategoryIds.filter(
-      (categoryId) => !MALE_HIDDEN_CATEGORY_IDS.has(categoryId),
+      (categoryId) => !hiddenCategoryIds.has(categoryId),
     );
   }
 

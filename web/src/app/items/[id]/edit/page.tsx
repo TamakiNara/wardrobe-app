@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { FormPageHeader } from "@/components/shared/form-page-header";
 import {
+  findItemCategoryLabel,
   ITEM_CATEGORIES,
   ITEM_SHAPES,
   type ItemCategory,
@@ -286,7 +287,17 @@ export default function EditItemPage({
       const currentOption = ITEM_CATEGORIES.find(
         (option) => option.value === category,
       );
-      return currentOption ? [...current, currentOption] : current;
+      if (currentOption) {
+        return [...current, currentOption];
+      }
+
+      return [
+        ...current,
+        {
+          value: category,
+          label: findItemCategoryLabel(category),
+        },
+      ];
     });
   }, [category]);
   useEffect(() => {

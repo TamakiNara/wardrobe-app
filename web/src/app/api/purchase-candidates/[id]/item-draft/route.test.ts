@@ -32,7 +32,7 @@ describe("POST /api/purchase-candidates/[id]/item-draft", () => {
           JSON.stringify({
             message: "item_draft_ready",
             item_draft: {
-              source_category_id: "outer_coat",
+              source_category_id: "outerwear_coat",
               category: "outer",
               shape: "trench",
             },

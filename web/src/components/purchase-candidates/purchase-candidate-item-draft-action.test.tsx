@@ -49,7 +49,7 @@ describe("PurchaseCandidateItemDraftAction", () => {
             message: "item_draft_ready",
             item_draft: {
               name: "コート候補",
-              source_category_id: "outer_coat",
+              source_category_id: "outerwear_coat",
               category: "outer",
               shape: "trench",
               size_note: "厚手ニット込み",
@@ -113,7 +113,7 @@ describe("PurchaseCandidateItemDraftAction", () => {
       "purchase-candidate-item-draft",
     );
 
-    expect(rawDraft).toContain("outer_coat");
+    expect(rawDraft).toContain("outerwear_coat");
     expect(rawDraft).toContain("厚手ニット込み");
     expect(rawDraft).toContain("shoulder_width");
     expect(pushMock).toHaveBeenCalledWith(

@@ -46,6 +46,34 @@
     { value: "short-boots", label: "ショートブーツ" },
     { value: "sandals", label: "サンダル" },
   ],
+  bags: [
+    { value: "bag", label: "バッグ" },
+    { value: "tote", label: "トートバッグ" },
+    { value: "shoulder", label: "ショルダーバッグ" },
+    { value: "backpack", label: "リュック" },
+    { value: "clutch", label: "クラッチバッグ" },
+  ],
+  fashion_accessories: [
+    { value: "hat", label: "帽子" },
+    { value: "belt", label: "ベルト" },
+    { value: "scarf-stole", label: "マフラー・ストール" },
+    { value: "gloves", label: "手袋" },
+    { value: "jewelry", label: "アクセサリー" },
+    { value: "wallet-case", label: "財布・カードケース" },
+    { value: "hair-accessory", label: "ヘアアクセサリー" },
+    { value: "eyewear", label: "眼鏡・サングラス" },
+    { value: "watch", label: "腕時計" },
+    { value: "other", label: "その他ファッション小物" },
+  ],
+  swimwear: [
+    { value: "swimwear", label: "水着" },
+    { value: "rashguard", label: "ラッシュガード" },
+    { value: "other", label: "その他水着" },
+  ],
+  kimono: [
+    { value: "kimono", label: "着物" },
+    { value: "other", label: "その他着物" },
+  ],
   accessories: [
     { value: "tote", label: "トートバッグ" },
     { value: "shoulder", label: "ショルダーバッグ" },
@@ -63,13 +91,17 @@ export const ITEM_CATEGORIES = [
   { value: "inner", label: "ルームウェア・インナー" },
   { value: "legwear", label: "レッグウェア" },
   { value: "shoes", label: "シューズ" },
-  { value: "accessories", label: "小物" },
+  { value: "bags", label: "バッグ" },
+  { value: "fashion_accessories", label: "ファッション小物" },
+  { value: "swimwear", label: "水着" },
+  { value: "kimono", label: "着物" },
 ] as const;
 
 export type ItemCategory = keyof typeof ITEM_SHAPES;
 
 export function findItemCategoryLabel(category?: string | null) {
   if (!category) return "";
+  if (category === "accessories") return "小物";
   return (
     ITEM_CATEGORIES.find((item) => item.value === category)?.label ?? category
   );

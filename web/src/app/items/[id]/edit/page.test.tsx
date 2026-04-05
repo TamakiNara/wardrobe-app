@@ -60,43 +60,61 @@ const sampleGroups: CategoryGroupRecord[] = [
     name: "トップス",
     sortOrder: 10,
     categories: [
-      { id: "tops_tshirt", groupId: "tops", name: "Tシャツ", sortOrder: 10 },
-    ],
-  },
-  {
-    id: "bottoms",
-    name: "ボトムス",
-    sortOrder: 15,
-    categories: [
       {
-        id: "bottoms_straight",
-        groupId: "bottoms",
-        name: "ストレート",
+        id: "tops_tshirt_cutsew",
+        groupId: "tops",
+        name: "Tシャツ・カットソー",
         sortOrder: 10,
       },
     ],
   },
   {
-    id: "onepiece_allinone",
-    name: "ワンピース / オールインワン",
+    id: "pants",
+    name: "パンツ",
+    sortOrder: 15,
+    categories: [
+      {
+        id: "pants_pants",
+        groupId: "pants",
+        name: "パンツ",
+        sortOrder: 10,
+      },
+    ],
+  },
+  {
+    id: "onepiece_dress",
+    name: "ワンピース・ドレス",
     sortOrder: 20,
     categories: [
       {
-        id: "onepiece",
-        groupId: "onepiece_allinone",
+        id: "onepiece_dress_onepiece",
+        groupId: "onepiece_dress",
         name: "ワンピース",
         sortOrder: 10,
       },
     ],
   },
   {
-    id: "inner",
+    id: "allinone",
+    name: "オールインワン",
+    sortOrder: 25,
+    categories: [
+      {
+        id: "allinone_allinone",
+        groupId: "allinone",
+        name: "オールインワン",
+        sortOrder: 10,
+      },
+    ],
+  },
+  {
+    id: "roomwear_inner",
     name: "ルームウェア・インナー",
     sortOrder: 30,
     categories: [
       {
-        id: "inner_roomwear",
-        groupId: "inner",
+        id: "roomwear_inner_roomwear",
+        groupId: "roomwear_inner",
         name: "ルームウェア",
         sortOrder: 10,
       },
@@ -136,10 +154,11 @@ describe("EditItemPage", () => {
     fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
     fetchCategoryVisibilitySettingsMock.mockResolvedValue({
       visibleCategoryIds: [
-        "tops_tshirt",
-        "bottoms_straight",
-        "onepiece",
-        "inner_roomwear",
+        "tops_tshirt_cutsew",
+        "pants_pants",
+        "onepiece_dress_onepiece",
+        "allinone_allinone",
+        "roomwear_inner_roomwear",
         "legwear_socks",
       ],
     });

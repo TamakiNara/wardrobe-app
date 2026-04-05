@@ -51,11 +51,16 @@ const sampleGroups: CategoryGroupRecord[] = [
     name: "トップス",
     sortOrder: 10,
     categories: [
-      { id: "tops_tshirt", groupId: "tops", name: "Tシャツ", sortOrder: 10 },
       {
-        id: "tops_shirt",
+        id: "tops_tshirt_cutsew",
         groupId: "tops",
-        name: "シャツ / ブラウス",
+        name: "Tシャツ・カットソー",
+        sortOrder: 10,
+      },
+      {
+        id: "tops_shirt_blouse",
+        groupId: "tops",
+        name: "シャツ・ブラウス",
         sortOrder: 20,
       },
     ],
@@ -111,7 +116,7 @@ describe("SettingsCategoriesPage", () => {
     root = createRoot(container);
     fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
     fetchCategoryVisibilitySettingsMock.mockResolvedValue({
-      visibleCategoryIds: ["tops_tshirt"],
+      visibleCategoryIds: ["tops_tshirt_cutsew"],
     });
     fetchItemsMock.mockResolvedValue(sampleItems);
     searchParamsValue = "";
@@ -148,7 +153,7 @@ describe("SettingsCategoriesPage", () => {
 
   it("未保存変更があると保存ボタンが有効になり、保存後に戻る", async () => {
     updateCategoryVisibilitySettingsMock.mockResolvedValue({
-      visibleCategoryIds: ["tops_tshirt", "tops_shirt"],
+      visibleCategoryIds: ["tops_tshirt_cutsew", "tops_shirt_blouse"],
     });
 
     const { default: SettingsCategoriesPage } = await import("./page");
@@ -181,7 +186,7 @@ describe("SettingsCategoriesPage", () => {
     });
 
     expect(updateCategoryVisibilitySettingsMock).toHaveBeenCalledWith({
-      visibleCategoryIds: ["tops_shirt", "tops_tshirt"],
+      visibleCategoryIds: ["tops_shirt_blouse", "tops_tshirt_cutsew"],
     });
     expect(getSaveButtons(container).every((button) => button.disabled)).toBe(
       true,
@@ -191,7 +196,7 @@ describe("SettingsCategoriesPage", () => {
   it("custom onboarding では初期状態で保存でき、保存後にホームへ進む", async () => {
     searchParamsValue = "mode=onboarding&preset=custom";
     updateCategoryVisibilitySettingsMock.mockResolvedValue({
-      visibleCategoryIds: ["tops_shirt", "tops_tshirt"],
+      visibleCategoryIds: ["tops_shirt_blouse", "tops_tshirt_cutsew"],
     });
 
     const { default: SettingsCategoriesPage } = await import("./page");
@@ -218,7 +223,7 @@ describe("SettingsCategoriesPage", () => {
     });
 
     expect(updateCategoryVisibilitySettingsMock).toHaveBeenCalledWith({
-      visibleCategoryIds: ["tops_shirt", "tops_tshirt"],
+      visibleCategoryIds: ["tops_shirt_blouse", "tops_tshirt_cutsew"],
     });
     expect(pushMock).toHaveBeenCalledWith("/");
   });

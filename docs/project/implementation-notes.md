@@ -315,10 +315,12 @@ thumbnail の現状確認用パターン一覧を見返すときは `docs/specs/
 - カテゴリ体系見直しメモ:
 - 現行の `category_groups` / `category_master` は初期実装としては成立しているが、実運用を考えると `ボトムス`、`ワンピース・オールインワン`、`小物` の粒度が粗い
 - 次回再編の第一候補は、大分類を `tops`、`outerwear`、`pants`、`skirts`、`onepiece_dress`、`allinone`、`roomwear_inner`、`legwear`、`shoes`、`bags`、`fashion_accessories`、`swimwear`、`kimono` に寄せる案とする
+- 実装第1弾では `swimwear` と `kimono` を含む大分類までを対象にし、settings / onboarding / purchase candidate の `category_id` と visible 判定まで一貫して追随する
 - 中分類は「大分類で責務を分け、中分類では一般的な登録名を持ち、詳細シルエット差は item 側 `shape` や spec へ寄せる」方針を優先する
 - 影響が大きいのは seed だけではなく、`settings/categories`、onboarding プリセット、item / outfit / purchase candidate の create-edit 候補、一覧絞り込み候補、`category_id -> category / shape` 変換、クローゼットビューのカテゴリ / shape 表示である
-- 現行実装では category master の `バッグ` を item 側 `accessories` へ寄せており、`バッグ` と `小物` の責務差が `category_id` と item `category / shape` でずれているため、この差は再編時の最優先整理対象とする
+- `バッグ` と `ファッション小物` は、第1弾で item 側 current category も分ける。`bags` はバッグ本体、`fashion_accessories` は帽子・ベルト・マフラー・ストール・手袋・アクセサリー・財布・カードケース・ヘアアクセサリー・眼鏡・サングラス・腕時計・その他を持つ前提にする
 - purchase candidate の `category_id` は Laravel 側で item の `category` / `shape` へ変換しているため、中分類追加だけでなく大分類再編でも `PurchaseCandidateCategoryMap` と frontend 側 category map の同時更新が必要になる
+- 実装第1弾では category master の中分類 ID は新案へ寄せつつ、item の `category` / `shape` も `bags`・`fashion_accessories`・`swimwear`・`kimono` は新案側へ進め、`bottoms` / `outer` / `onepiece_allinone` などは必要な箇所だけ対応表で橋渡しする
 - `パーカー・スウェット`、`キャミソール・タンクトップ`、`ワンピース・ドレス`、`バッグ・小物` は現行の命名や責務が曖昧で、一覧比較や settings 表示でも後から説明しづらくなるため、分類再編時に優先して解消する
 - `水着` と `着物` は通常衣類に混ぜるより独立大分類へ置く方が settings と onboarding で扱いやすい
 - `shape / spec` はカテゴリ再編の受け皿として使う前提だが、現時点でかなり具体化されているのは `tops` と `spec.bottoms.length_type`、`spec.legwear.coverage_type` までであり、`pants` / `skirts` / `outerwear` / `onepiece_dress` / `bags` / `kimono` は後続で最小 shape / spec 設計を詰める必要がある

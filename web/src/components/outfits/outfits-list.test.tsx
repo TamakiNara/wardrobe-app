@@ -131,7 +131,7 @@ describe("OutfitsList", () => {
 
   it("カテゴリ表示設定に応じて表示アイテム数と案内を切り替える", async () => {
     fetchCategoryVisibilitySettingsMock.mockResolvedValue({
-      visibleCategoryIds: ["tops_tshirt"],
+      visibleCategoryIds: ["tops_tshirt_cutsew"],
     });
 
     const { default: OutfitsList } = await import("./outfits-list");
@@ -158,7 +158,7 @@ describe("OutfitsList", () => {
       root.render(
         React.createElement(OutfitsList, {
           ...defaultListProps,
-          initialVisibleCategoryIds: ["tops_tshirt"],
+          initialVisibleCategoryIds: ["tops_tshirt_cutsew"],
         }),
       );
       await waitForEffects();
@@ -170,7 +170,7 @@ describe("OutfitsList", () => {
   it("ページャ操作で page クエリを更新する", async () => {
     searchParamsValue = "page=2";
     fetchCategoryVisibilitySettingsMock.mockResolvedValue({
-      visibleCategoryIds: ["tops_tshirt", "tops_shirt"],
+      visibleCategoryIds: ["tops_tshirt_cutsew", "tops_shirt_blouse"],
     });
 
     const { default: OutfitsList } = await import("./outfits-list");
@@ -206,7 +206,7 @@ describe("OutfitsList", () => {
   it("URL クエリの初期値を反映し、条件クリアで URL も戻す", async () => {
     searchParamsValue = "keyword=%E5%A4%8F&season=%E5%A4%8F&sort=name_asc";
     fetchCategoryVisibilitySettingsMock.mockResolvedValue({
-      visibleCategoryIds: ["tops_tshirt", "tops_shirt"],
+      visibleCategoryIds: ["tops_tshirt_cutsew", "tops_shirt_blouse"],
     });
 
     const { default: OutfitsList } = await import("./outfits-list");
@@ -249,7 +249,7 @@ describe("OutfitsList", () => {
   it("検索結果が 0 件のときは空状態文言を表示する", async () => {
     searchParamsValue = "keyword=%E5%86%AC";
     fetchCategoryVisibilitySettingsMock.mockResolvedValue({
-      visibleCategoryIds: ["tops_tshirt", "tops_shirt"],
+      visibleCategoryIds: ["tops_tshirt_cutsew", "tops_shirt_blouse"],
     });
 
     const { default: OutfitsList } = await import("./outfits-list");
@@ -276,7 +276,7 @@ describe("OutfitsList", () => {
   it("キーワード削除中は debounce 後に URL を更新する", async () => {
     searchParamsValue = "keyword=%E5%A4%8F%E3%82%B3%E3%83%BC%E3%83%87";
     fetchCategoryVisibilitySettingsMock.mockResolvedValue({
-      visibleCategoryIds: ["tops_tshirt", "tops_shirt"],
+      visibleCategoryIds: ["tops_tshirt_cutsew", "tops_shirt_blouse"],
     });
 
     const { default: OutfitsList } = await import("./outfits-list");
@@ -317,7 +317,7 @@ describe("OutfitsList", () => {
 
   it("URL に season がない場合は初期季節を 1 回だけ query に反映する", async () => {
     fetchCategoryVisibilitySettingsMock.mockResolvedValue({
-      visibleCategoryIds: ["tops_tshirt", "tops_shirt"],
+      visibleCategoryIds: ["tops_tshirt_cutsew", "tops_shirt_blouse"],
     });
 
     const { default: OutfitsList } = await import("./outfits-list");
@@ -340,7 +340,7 @@ describe("OutfitsList", () => {
   it("URL に season がある場合は初期季節を上書きしない", async () => {
     searchParamsValue = "season=summer";
     fetchCategoryVisibilitySettingsMock.mockResolvedValue({
-      visibleCategoryIds: ["tops_tshirt", "tops_shirt"],
+      visibleCategoryIds: ["tops_tshirt_cutsew", "tops_shirt_blouse"],
     });
 
     const { default: OutfitsList } = await import("./outfits-list");

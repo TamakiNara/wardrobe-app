@@ -35,13 +35,13 @@ describe("PurchaseCandidatesPage", () => {
       json: async () => ({
         groups: [
           {
-            id: "outer",
-            name: "アウター",
+            id: "outerwear",
+            name: "ジャケット・アウター",
             sortOrder: 1,
             categories: [
               {
-                id: "outer_coat",
-                groupId: "outer",
+                id: "outerwear_coat",
+                groupId: "outerwear",
                 name: "コート",
                 sortOrder: 1,
               },
@@ -53,9 +53,9 @@ describe("PurchaseCandidatesPage", () => {
             sortOrder: 2,
             categories: [
               {
-                id: "tops_tshirt",
+                id: "tops_tshirt_cutsew",
                 groupId: "tops",
-                name: "Tシャツ",
+                name: "Tシャツ・カットソー",
                 sortOrder: 1,
               },
             ],
@@ -149,7 +149,7 @@ describe("PurchaseCandidatesPage", () => {
             status: "considering",
             priority: "high",
             name: "ネイビーコート",
-            category_id: "outer_coat",
+            category_id: "outerwear_coat",
             category_name: "コート",
             brand_name: "在宅ブランド",
             price: 19800,
@@ -193,7 +193,7 @@ describe("PurchaseCandidatesPage", () => {
             status: "on_hold",
             priority: "low",
             name: "画像なし候補",
-            category_id: "tops_tshirt",
+            category_id: "tops_tshirt_cutsew",
             category_name: "Tシャツ",
             brand_name: null,
             price: null,
@@ -276,7 +276,7 @@ describe("PurchaseCandidatesPage", () => {
             status: "considering",
             priority: "medium",
             name: "在宅コート13",
-            category_id: "outer_coat",
+            category_id: "outerwear_coat",
             category_name: "コート",
             brand_name: "在宅ブランド",
             price: 11800,
@@ -309,7 +309,7 @@ describe("PurchaseCandidatesPage", () => {
           keyword: "在宅",
           status: "considering",
           priority: "high",
-          category: "outer_coat",
+          category: "outerwear_coat",
           brand: "在宅ブランド",
           sort: "name_asc",
           page: "2",
@@ -319,7 +319,7 @@ describe("PurchaseCandidatesPage", () => {
 
     expect(fetchMock).toHaveBeenCalledWith(
       expect.stringContaining(
-        "/api/purchase-candidates?keyword=%E5%9C%A8%E5%AE%85&status=considering&priority=high&category=outer_coat&brand=%E5%9C%A8%E5%AE%85%E3%83%96%E3%83%A9%E3%83%B3%E3%83%89&sort=name_asc&page=2",
+        "/api/purchase-candidates?keyword=%E5%9C%A8%E5%AE%85&status=considering&priority=high&category=outerwear_coat&brand=%E5%9C%A8%E5%AE%85%E3%83%96%E3%83%A9%E3%83%B3%E3%83%89&sort=name_asc&page=2",
       ),
       expect.any(Object),
     );
@@ -327,10 +327,10 @@ describe("PurchaseCandidatesPage", () => {
     expect(markup).toContain("2 / 3ページ");
     expect(markup).toContain("（全13件）");
     expect(markup).toContain(
-      'href="/purchase-candidates?keyword=%E5%9C%A8%E5%AE%85&amp;status=considering&amp;priority=high&amp;category=outer_coat&amp;brand=%E5%9C%A8%E5%AE%85%E3%83%96%E3%83%A9%E3%83%B3%E3%83%89&amp;sort=name_asc"',
+      'href="/purchase-candidates?keyword=%E5%9C%A8%E5%AE%85&amp;status=considering&amp;priority=high&amp;category=outerwear_coat&amp;brand=%E5%9C%A8%E5%AE%85%E3%83%96%E3%83%A9%E3%83%B3%E3%83%89&amp;sort=name_asc"',
     );
     expect(markup).toContain(
-      'href="/purchase-candidates?keyword=%E5%9C%A8%E5%AE%85&amp;status=considering&amp;priority=high&amp;category=outer_coat&amp;brand=%E5%9C%A8%E5%AE%85%E3%83%96%E3%83%A9%E3%83%B3%E3%83%89&amp;sort=name_asc&amp;page=3"',
+      'href="/purchase-candidates?keyword=%E5%9C%A8%E5%AE%85&amp;status=considering&amp;priority=high&amp;category=outerwear_coat&amp;brand=%E5%9C%A8%E5%AE%85%E3%83%96%E3%83%A9%E3%83%B3%E3%83%89&amp;sort=name_asc&amp;page=3"',
     );
     expect(markup).toContain('value="在宅ブランド"');
   });

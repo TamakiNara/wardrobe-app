@@ -24,24 +24,24 @@ describe("settings api helpers", () => {
 
   it("fetchCategoryVisibilitySettings calls the settings endpoint", async () => {
     vi.mocked(apiFetch).mockResolvedValueOnce({
-      visibleCategoryIds: ["tops_tshirt"],
+      visibleCategoryIds: ["tops_tshirt_cutsew"],
     });
 
     const result = await fetchCategoryVisibilitySettings();
 
     expect(apiFetch).toHaveBeenCalledWith("/api/settings/categories");
     expect(result).toEqual({
-      visibleCategoryIds: ["tops_tshirt"],
+      visibleCategoryIds: ["tops_tshirt_cutsew"],
     });
   });
 
   it("updateCategoryVisibilitySettings sends a PUT request with JSON body", async () => {
     vi.mocked(apiFetch).mockResolvedValueOnce({
-      visibleCategoryIds: ["tops_tshirt", "outer_jacket"],
+      visibleCategoryIds: ["tops_tshirt_cutsew", "outerwear_jacket"],
     });
 
     const payload = {
-      visibleCategoryIds: ["tops_tshirt", "outer_jacket"],
+      visibleCategoryIds: ["tops_tshirt_cutsew", "outerwear_jacket"],
     };
 
     const result = await updateCategoryVisibilitySettings(payload);

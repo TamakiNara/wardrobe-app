@@ -24,7 +24,7 @@ class CategoriesEndpointTest extends TestCase
     public function test_categories_endpoint_returns_active_groups_and_categories(): void
     {
         CategoryGroup::query()->where('id', 'bags')->update(['is_active' => false]);
-        CategoryMaster::query()->where('id', 'tops_vest')->update(['is_active' => false]);
+        CategoryMaster::query()->where('id', 'tops_vest_gilet')->update(['is_active' => false]);
 
         $response = $this->getJson('/api/categories', [
             'Accept' => 'application/json',
@@ -42,8 +42,8 @@ class CategoriesEndpointTest extends TestCase
 
         $this->assertNotNull($topsGroup);
         $this->assertSame('トップス', $topsGroup['name']);
-        $this->assertContains('tops_tshirt', array_column($topsGroup['categories'], 'id'));
-        $this->assertNotContains('tops_vest', array_column($topsGroup['categories'], 'id'));
+        $this->assertContains('tops_tshirt_cutsew', array_column($topsGroup['categories'], 'id'));
+        $this->assertNotContains('tops_vest_gilet', array_column($topsGroup['categories'], 'id'));
     }
 
     public function test_categories_endpoint_returns_group_id_as_group_id_in_json(): void
@@ -65,8 +65,8 @@ class CategoriesEndpointTest extends TestCase
 
     public function test_categories_endpoint_returns_groups_and_categories_in_sort_order(): void
     {
-        CategoryGroup::query()->where('id', 'accessories')->update(['sort_order' => 0]);
-        CategoryMaster::query()->where('id', 'tops_vest')->update(['sort_order' => 0]);
+        CategoryGroup::query()->where('id', 'fashion_accessories')->update(['sort_order' => 0]);
+        CategoryMaster::query()->where('id', 'tops_vest_gilet')->update(['sort_order' => 0]);
 
         $response = $this->getJson('/api/categories', [
             'Accept' => 'application/json',
@@ -75,10 +75,10 @@ class CategoriesEndpointTest extends TestCase
         $response->assertOk();
 
         $groups = $response->json('groups');
-        $this->assertSame('accessories', $groups[0]['id']);
+        $this->assertSame('fashion_accessories', $groups[0]['id']);
 
         $topsGroup = collect($groups)->firstWhere('id', 'tops');
         $this->assertNotNull($topsGroup);
-        $this->assertSame('tops_vest', $topsGroup['categories'][0]['id']);
+        $this->assertSame('tops_vest_gilet', $topsGroup['categories'][0]['id']);
     }
 }
