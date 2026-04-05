@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import ItemThumbnailPreview from "@/components/items/item-thumbnail-preview";
 import { ItemsPageHeader } from "@/components/items/items-page-header";
+import { resolveCurrentItemCategoryValue } from "@/lib/api/categories";
 import { DEFAULT_SKIN_TONE_PRESET } from "@/lib/master-data/skin-tone-presets";
 import { ITEM_CARE_STATUS_LABELS } from "@/lib/items/metadata";
 import {
@@ -165,7 +166,10 @@ export default async function DisposedItemsPage({
               {data.items.map((item) => {
                 const mainColor = item.colors.find((c) => c.role === "main");
                 const subColor = item.colors.find((c) => c.role === "sub");
-                const categoryLabel = findItemCategoryLabel(item.category);
+                const currentCategory =
+                  resolveCurrentItemCategoryValue(item.category, item.shape) ??
+                  item.category;
+                const categoryLabel = findItemCategoryLabel(currentCategory);
                 const shapeLabel = findItemShapeLabel(
                   item.category,
                   item.shape,

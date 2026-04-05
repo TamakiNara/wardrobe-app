@@ -218,5 +218,6 @@ describe("ItemPage", () => {
     expect(markup).toContain("着用履歴フォームへ戻る");
     expect(markup).toContain('href="/items/1/edit"');
     expect(markup).toContain("編集");
+    expect(markup).toContain("ジャケット・アウター / トレンチコート");
   });
 });

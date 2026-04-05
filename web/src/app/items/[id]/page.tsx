@@ -24,6 +24,7 @@ import {
   buildTopsSpecLabels,
   buildTopsSpecRaw,
 } from "@/lib/master-data/item-tops";
+import { resolveCurrentItemCategoryValue } from "@/lib/api/categories";
 import {
   findItemCategoryLabel,
   findItemShapeLabel,
@@ -86,7 +87,9 @@ export default async function ItemPage({
   const legwearCoverageLabel = findLegwearCoverageLabel(
     item.spec?.legwear?.coverage_type,
   );
-  const categoryLabel = findItemCategoryLabel(item.category);
+  const currentCategory =
+    resolveCurrentItemCategoryValue(item.category, item.shape) ?? item.category;
+  const categoryLabel = findItemCategoryLabel(currentCategory);
   const shapeLabel = findItemShapeLabel(item.category, item.shape);
   const itemImages = item.images ?? [];
   const normalizedSizeDetails = normalizeItemSizeDetails(item.size_details);

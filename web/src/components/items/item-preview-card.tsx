@@ -1,4 +1,5 @@
 import ItemThumbnailPreview from "@/components/items/item-thumbnail-preview";
+import { resolveCurrentItemCategoryValue } from "@/lib/api/categories";
 import {
   findBottomsLengthLabel,
   findLegwearCoverageLabel,
@@ -89,7 +90,10 @@ export default function ItemPreviewCard({
 }: ItemPreviewCardProps) {
   const shouldShowDebugDetails =
     showDebugDetails ?? isItemPreviewDebugEnabled();
-  const categoryLabel = findItemCategoryLabel(category) || "カテゴリ未選択";
+  const currentCategory =
+    resolveCurrentItemCategoryValue(category, shape) ?? category;
+  const categoryLabel =
+    findItemCategoryLabel(currentCategory) || "カテゴリ未選択";
   const shapeLabel = findItemShapeLabel(category, shape);
   const bottomsLengthLabel = findBottomsLengthLabel(spec?.bottoms?.length_type);
   const legwearCoverageLabel = findLegwearCoverageLabel(

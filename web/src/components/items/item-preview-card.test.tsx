@@ -46,6 +46,7 @@ describe("ItemPreviewCard", () => {
     });
 
     expect(container.textContent).toContain("プレビュー詳細");
+    expect(container.textContent).toContain("スカート / フレアスカート");
     expect(container.textContent).toContain("メインカラー");
     expect(container.textContent).toContain("ベージュ (#CBB79D)");
     expect(container.textContent).toContain("サブカラー");
@@ -102,6 +103,7 @@ describe("ItemPreviewCard", () => {
     });
 
     expect(container.textContent).not.toContain("プレビュー詳細");
+    expect(container.textContent).toContain("スカート / フレアスカート");
     expect(container.textContent).not.toContain("メインカラー");
     expect(container.textContent).not.toContain("skinTonePreset");
     expect(container.textContent).not.toContain("ボトムス仕様");
