@@ -7,7 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { FormPageHeader } from "@/components/shared/form-page-header";
 import {
   ITEM_CATEGORIES,
-  ITEM_SHAPES,
+  getItemShapeOptions,
   type ItemCategory,
 } from "@/lib/master-data/item-shapes";
 import {
@@ -58,8 +58,8 @@ import {
   TOPS_LENGTHS,
   TOPS_NECKS,
   TOPS_RULES,
-  TOPS_SHAPES,
   TOPS_SLEEVES,
+  getTopsShapeOptions,
   type TopsDesignValue,
   type TopsFitValue,
   type TopsLengthValue,
@@ -202,13 +202,17 @@ export default function NewItemPage() {
 
   const shapeOptions = useMemo(() => {
     if (!category) return [];
-    return ITEM_SHAPES[category];
-  }, [category]);
+    return getItemShapeOptions(category, subcategory);
+  }, [category, subcategory]);
   const subcategoryOptions = useMemo(
     () => getItemSubcategoryOptions(category),
     [category],
   );
   const isSubcategoryRequired = isItemSubcategoryRequired(category);
+  const topsShapeOptions = useMemo(
+    () => getTopsShapeOptions(subcategory),
+    [subcategory],
+  );
 
   const selectedMainColor = useMemo(() => {
     if (useCustomMainColor) {
@@ -413,6 +417,94 @@ export default function NewItemPage() {
 
     setSelectedTpoIds(matchedIds);
   }, [draftTpoNames, selectedTpoIds.length, tpoOptions]);
+
+  useEffect(() => {
+    if (!category || !subcategory) {
+      return;
+    }
+
+    if (isTopsCategory) {
+      const allowedValues = topsShapeOptions.map((item) => item.value);
+      const nextShape = allowedValues[0] ?? "";
+
+      if (allowedValues.length === 1 && topsShape !== nextShape) {
+        const rule = TOPS_RULES[nextShape];
+        setTopsShape(nextShape as TopsShapeValue);
+        setTopsSleeve(rule?.defaults?.sleeve ?? "");
+        setTopsLength(rule?.defaults?.length ?? "");
+        setTopsNeck(rule?.defaults?.neck ?? "");
+        setTopsDesign(rule?.defaults?.design ?? "");
+        setTopsFit(rule?.defaults?.fit ?? DEFAULT_TOPS_FIT);
+        setShape(nextShape);
+        clearErrorsFor(["shape"]);
+        return;
+      }
+
+      if (topsShape && !allowedValues.includes(topsShape)) {
+        if (!nextShape) {
+          resetTopsState();
+          setShape("");
+        } else {
+          const rule = TOPS_RULES[nextShape];
+          setTopsShape(nextShape as TopsShapeValue);
+          setTopsSleeve(rule?.defaults?.sleeve ?? "");
+          setTopsLength(rule?.defaults?.length ?? "");
+          setTopsNeck(rule?.defaults?.neck ?? "");
+          setTopsDesign(rule?.defaults?.design ?? "");
+          setTopsFit(rule?.defaults?.fit ?? DEFAULT_TOPS_FIT);
+          setShape(nextShape);
+        }
+        clearErrorsFor(["shape"]);
+      }
+
+      return;
+    }
+
+    const allowedValues = shapeOptions.map((item) => item.value);
+    const nextShape = allowedValues[0] ?? "";
+
+    if (allowedValues.length === 1 && shape !== nextShape) {
+      setShape(nextShape);
+      clearErrorsFor(["shape", "spec.legwear.coverage_type"]);
+      if (isLegwearSpecCategory(category)) {
+        setLegwearCoverageType(
+          (resolveLegwearCoverageType(
+            category,
+            nextShape,
+            legwearCoverageType,
+          ) as LegwearCoverageType | null) ?? "",
+        );
+      } else {
+        resetLegwearSpecState();
+      }
+      return;
+    }
+
+    if (shape && !allowedValues.includes(shape)) {
+      setShape(nextShape);
+      clearErrorsFor(["shape", "spec.legwear.coverage_type"]);
+      if (isLegwearSpecCategory(category) && nextShape) {
+        setLegwearCoverageType(
+          (resolveLegwearCoverageType(
+            category,
+            nextShape,
+            legwearCoverageType,
+          ) as LegwearCoverageType | null) ?? "",
+        );
+      } else {
+        resetLegwearSpecState();
+      }
+    }
+  }, [
+    category,
+    legwearCoverageType,
+    isTopsCategory,
+    shape,
+    shapeOptions,
+    subcategory,
+    topsShape,
+    topsShapeOptions,
+  ]);
 
   function resetTopsState() {
     setTopsShape("");
@@ -1111,7 +1203,7 @@ export default function NewItemPage() {
                           className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                         >
                           <option value="">選択してください</option>
-                          {TOPS_SHAPES.map((item) => (
+                          {topsShapeOptions.map((item) => (
                             <option key={item.value} value={item.value}>
                               {item.label}
                             </option>

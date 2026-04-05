@@ -133,6 +133,77 @@ export const ITEM_CATEGORIES = [
 
 export type ItemCategory = keyof typeof ITEM_SHAPES;
 
+const SHAPE_VALUES_BY_SUBCATEGORY: Partial<
+  Record<ItemCategory, Record<string, string[]>>
+> = {
+  pants: {
+    pants: ["straight", "tapered", "wide", "culottes"],
+    denim: ["straight", "tapered", "wide", "culottes"],
+    slacks: ["straight", "tapered", "wide", "culottes"],
+    cargo: ["straight", "tapered", "wide", "culottes"],
+    chino: ["straight", "tapered", "wide", "culottes"],
+    sweat_jersey: ["straight", "tapered", "wide", "culottes"],
+    other: ["pants", "straight", "tapered", "wide", "culottes"],
+  },
+  skirts: {
+    skirt: ["skirt", "tight", "flare", "a_line", "pleated"],
+    other: ["skirt", "tight", "flare", "a_line", "pleated"],
+  },
+  outerwear: {
+    jacket: ["jacket"],
+    coat: ["coat"],
+    blouson: ["blouson"],
+    down_padded: ["down-padded"],
+    mountain_parka: ["mountain-parka"],
+    other: [
+      "jacket",
+      "blouson",
+      "down-padded",
+      "coat",
+      "mountain-parka",
+      "other",
+    ],
+  },
+  onepiece_dress: {
+    onepiece: ["onepiece"],
+    dress: ["dress"],
+    other: ["onepiece", "dress", "other"],
+  },
+  allinone: {
+    allinone: ["allinone"],
+    salopette: ["salopette"],
+    other: ["allinone", "salopette", "other"],
+  },
+  bags: {
+    bag: ["bag", "tote", "shoulder", "backpack", "clutch"],
+    other: ["bag", "tote", "shoulder", "backpack", "clutch"],
+  },
+};
+
+export function getItemShapeOptions(
+  category?: string | null,
+  subcategory?: string | null,
+) {
+  if (!category) {
+    return [];
+  }
+
+  const shapes = ITEM_SHAPES[category as ItemCategory] ?? [];
+
+  if (!subcategory) {
+    return shapes;
+  }
+
+  const allowedValues =
+    SHAPE_VALUES_BY_SUBCATEGORY[category as ItemCategory]?.[subcategory];
+
+  if (!allowedValues?.length) {
+    return shapes;
+  }
+
+  return shapes.filter((item) => allowedValues.includes(item.value));
+}
+
 export function findItemCategoryLabel(category?: string | null) {
   if (!category) return "";
   if (category === "accessories") return "小物";

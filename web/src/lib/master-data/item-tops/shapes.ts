@@ -9,3 +9,31 @@ export const TOPS_SHAPES = [
 ] as const;
 
 export type TopsShapeValue = (typeof TOPS_SHAPES)[number]["value"];
+
+const TOPS_SHAPE_VALUES_BY_SUBCATEGORY: Record<string, TopsShapeValue[]> = {
+  tshirt_cutsew: ["tshirt"],
+  shirt_blouse: ["shirt", "blouse"],
+  knit_sweater: ["knit"],
+  cardigan: ["cardigan"],
+  polo_shirt: ["shirt"],
+  sweat_trainer: ["tshirt"],
+  hoodie: ["tshirt"],
+  vest_gilet: ["camisole"],
+  camisole: ["camisole"],
+  tanktop: ["tanktop"],
+  other: [...TOPS_SHAPES.map((item) => item.value)],
+};
+
+export function getTopsShapeOptions(subcategory?: string | null) {
+  if (!subcategory) {
+    return TOPS_SHAPES;
+  }
+
+  const allowedValues = TOPS_SHAPE_VALUES_BY_SUBCATEGORY[subcategory];
+
+  if (!allowedValues?.length) {
+    return TOPS_SHAPES;
+  }
+
+  return TOPS_SHAPES.filter((item) => allowedValues.includes(item.value));
+}

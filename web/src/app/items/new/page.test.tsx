@@ -416,6 +416,18 @@ describe("NewItemPage", () => {
       await waitForEffects();
     });
 
+    const subcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
+    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
+    expect(subcategorySelect).not.toBeNull();
+    expect(shapeSelect).not.toBeNull();
+
+    await act(async () => {
+      subcategorySelect!.value = "denim";
+      subcategorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
     expect(container.textContent).toContain("ボトムス仕様");
     expect(container.textContent).toContain("ボトムス丈");
     expect(container.textContent).toContain(
@@ -423,6 +435,9 @@ describe("NewItemPage", () => {
     );
     expect(container.querySelector("#bottoms-length-type")).not.toBeNull();
     expect(container.querySelector("#legwear-coverage-type")).toBeNull();
+    expect(
+      Array.from(shapeSelect!.options).map((option) => option.value),
+    ).toEqual(["", "straight", "tapered", "wide", "culottes"]);
 
     await act(async () => {
       categorySelect!.value = "legwear";
@@ -431,9 +446,6 @@ describe("NewItemPage", () => {
     });
 
     expect(container.querySelector("#legwear-coverage-type")).toBeNull();
-
-    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
-    expect(shapeSelect).not.toBeNull();
 
     await act(async () => {
       shapeSelect!.value = "socks";
@@ -484,13 +496,23 @@ describe("NewItemPage", () => {
 
     const categorySelect =
       container.querySelector<HTMLSelectElement>("#category");
-    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
     expect(categorySelect).not.toBeNull();
-    expect(shapeSelect).not.toBeNull();
 
     await act(async () => {
       categorySelect!.value = "pants";
       categorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    const subcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
+    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
+    expect(subcategorySelect).not.toBeNull();
+    expect(shapeSelect).not.toBeNull();
+
+    await act(async () => {
+      subcategorySelect!.value = "denim";
+      subcategorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
       await waitForEffects();
     });
 
@@ -535,6 +557,41 @@ describe("NewItemPage", () => {
     expect(container.textContent).toContain(
       "レッグウェアの種類を選択してください。",
     );
+  });
+
+  it("pants の種類に応じて shape 候補を絞り込む", async () => {
+    const { default: NewItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(NewItemPage));
+      await waitForEffects();
+    });
+
+    const categorySelect =
+      container.querySelector<HTMLSelectElement>("#category");
+    expect(categorySelect).not.toBeNull();
+
+    await act(async () => {
+      categorySelect!.value = "pants";
+      categorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    const subcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
+    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
+    expect(subcategorySelect).not.toBeNull();
+    expect(shapeSelect).not.toBeNull();
+
+    await act(async () => {
+      subcategorySelect!.value = "denim";
+      subcategorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    expect(
+      Array.from(shapeSelect!.options).map((option) => option.value),
+    ).toEqual(["", "straight", "tapered", "wide", "culottes"]);
   });
 
   it("固定項目と自由項目の重複は短い警告文で表示する", async () => {

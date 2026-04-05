@@ -501,4 +501,45 @@ describe("EditItemPage", () => {
       "有効な TPO はまだありません。",
     );
   });
+
+  it("編集画面でも pants の種類に応じて shape 候補を絞り込める", async () => {
+    const { default: EditItemPage } = await import("./page");
+
+    act(() => {
+      root.render(
+        React.createElement(EditItemPage, {
+          params: Promise.resolve({ id: "1" }),
+        }),
+      );
+    });
+
+    await act(async () => {
+      await waitForEffects();
+    });
+
+    const categorySelect =
+      container.querySelector<HTMLSelectElement>("#category");
+    const subcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
+    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
+    expect(categorySelect).not.toBeNull();
+    expect(subcategorySelect).not.toBeNull();
+    expect(shapeSelect).not.toBeNull();
+
+    await act(async () => {
+      categorySelect!.value = "pants";
+      categorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    await act(async () => {
+      subcategorySelect!.value = "denim";
+      subcategorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    expect(
+      Array.from(shapeSelect!.options).map((option) => option.value),
+    ).toEqual(["", "straight", "tapered", "wide", "culottes"]);
+  });
 });
