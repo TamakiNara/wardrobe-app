@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { FormPageHeader } from "@/components/shared/form-page-header";
 import {
   findItemCategoryLabel,
+  findItemShapeLabel,
   ITEM_CATEGORIES,
   getItemShapeOptions,
   resolveCurrentItemCategoryValue,
@@ -198,10 +199,23 @@ export default function EditItemPage({
     shape,
   );
 
-  const shapeOptions = useMemo(() => {
+  const baseShapeOptions = useMemo(() => {
     if (!category) return [];
     return getItemShapeOptions(category, subcategory);
   }, [category, subcategory]);
+  const shapeOptions = useMemo(() => {
+    if (!shape || baseShapeOptions.some((item) => item.value === shape)) {
+      return baseShapeOptions;
+    }
+
+    return [
+      ...baseShapeOptions,
+      {
+        value: shape,
+        label: findItemShapeLabel(category, shape),
+      },
+    ];
+  }, [baseShapeOptions, category, shape]);
   const subcategoryOptions = useMemo(
     () => getItemSubcategoryOptions(category),
     [category],
@@ -570,7 +584,7 @@ export default function EditItemPage({
       return;
     }
 
-    const allowedValues = shapeOptions.map((item) => item.value);
+    const allowedValues = baseShapeOptions.map((item) => item.value);
     const nextShape = allowedValues[0] ?? "";
 
     if (allowedValues.length === 1 && shape !== nextShape) {
@@ -610,7 +624,7 @@ export default function EditItemPage({
     isTopsCategory,
     legwearCoverageType,
     shape,
-    shapeOptions,
+    baseShapeOptions,
     subcategory,
     topsShape,
     topsShapeOptions,

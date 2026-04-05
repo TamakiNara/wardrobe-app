@@ -15,6 +15,12 @@ describe("getItemShapeOptions", () => {
     ).toEqual(["coat"]);
   });
 
+  it("skirts の代表カテゴリでは shape 候補を厚めに絞り込む", () => {
+    expect(
+      getItemShapeOptions("skirts", "skirt").map((item) => item.value),
+    ).toEqual(["tight", "flare", "a_line", "pleated"]);
+  });
+
   it("種類未設定の旧データでは category 単位の候補へ戻す", () => {
     expect(
       getItemShapeOptions("pants", null).map((item) => item.value),

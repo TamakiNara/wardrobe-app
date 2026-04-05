@@ -146,7 +146,7 @@ const SHAPE_VALUES_BY_SUBCATEGORY: Partial<
     other: ["pants", "straight", "tapered", "wide", "culottes"],
   },
   skirts: {
-    skirt: ["skirt", "tight", "flare", "a_line", "pleated"],
+    skirt: ["tight", "flare", "a_line", "pleated"],
     other: ["skirt", "tight", "flare", "a_line", "pleated"],
   },
   outerwear: {

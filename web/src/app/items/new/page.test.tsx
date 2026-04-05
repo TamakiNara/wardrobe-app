@@ -594,6 +594,69 @@ describe("NewItemPage", () => {
     ).toEqual(["", "straight", "tapered", "wide", "culottes"]);
   });
 
+  it("skirts の代表カテゴリでは shape 候補を厚めに絞り込む", async () => {
+    fetchCategoryGroupsMock.mockResolvedValueOnce([
+      ...sampleGroups,
+      {
+        id: "skirts",
+        name: "スカート",
+        sortOrder: 16,
+        categories: [
+          {
+            id: "skirts_skirt",
+            groupId: "skirts",
+            name: "スカート",
+            sortOrder: 10,
+          },
+        ],
+      },
+    ]);
+    fetchCategoryVisibilitySettingsMock.mockResolvedValueOnce({
+      visibleCategoryIds: [
+        "tops_tshirt_cutsew",
+        "pants_pants",
+        "skirts_skirt",
+        "onepiece_dress_onepiece",
+        "allinone_allinone",
+        "roomwear_inner_roomwear",
+        "legwear_socks",
+      ],
+    });
+
+    const { default: NewItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(NewItemPage));
+      await waitForEffects();
+    });
+
+    const categorySelect =
+      container.querySelector<HTMLSelectElement>("#category");
+    expect(categorySelect).not.toBeNull();
+
+    await act(async () => {
+      categorySelect!.value = "skirts";
+      categorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    const subcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
+    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
+    expect(subcategorySelect).not.toBeNull();
+    expect(shapeSelect).not.toBeNull();
+
+    await act(async () => {
+      subcategorySelect!.value = "skirt";
+      subcategorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    expect(
+      Array.from(shapeSelect!.options).map((option) => option.value),
+    ).toEqual(["", "tight", "flare", "a_line", "pleated"]);
+  });
+
   it("固定項目と自由項目の重複は短い警告文で表示する", async () => {
     const { default: NewItemPage } = await import("./page");
 
