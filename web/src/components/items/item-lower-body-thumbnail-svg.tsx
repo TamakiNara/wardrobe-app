@@ -34,9 +34,9 @@ const LEGACY_FRAME_HEIGHT = 84;
 
 const BOTTOMS_HEM_Y: Record<string, number> = {
   mini: 48,
-  knee: 62,
-  midi: 74,
-  ankle: 88,
+  short: 56,
+  half: 64,
+  cropped: 78,
   full: 102,
 };
 
@@ -160,7 +160,7 @@ export default function LowerBodyPreviewSvg({
 
   if (hasBottoms && lengthType) {
     const hemY = remapViewportY(
-      BOTTOMS_HEM_Y[lengthType] ?? BOTTOMS_HEM_Y.midi,
+      BOTTOMS_HEM_Y[lengthType] ?? BOTTOMS_HEM_Y.cropped,
       frameMode,
     );
 

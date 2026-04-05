@@ -221,7 +221,7 @@ describe("buildOutfitOnepieceAllinoneLowerBodyPreviewSource current source build
     ]);
 
     expect(source?.representativeOnepieceAllinoneItemId).toBe(10);
-    expect(source?.lengthType).toBe("midi");
+    expect(source?.lengthType).toBe("cropped");
     expect(source?.coverageType).toBe("stockings");
   });
 

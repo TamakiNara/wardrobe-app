@@ -319,7 +319,7 @@ describe("ItemThumbnailPreview", () => {
     await act(async () => {
       root.render(
         <LowerBodyPreviewSvg
-          lengthType="knee"
+          lengthType="half"
           coverageType="full_length_fallback"
           bottomsMainColor="#1F2937"
           legwearMainColor="#334155"

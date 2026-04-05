@@ -11,14 +11,17 @@
   ],
   pants: [
     { value: "pants", label: "パンツ" },
-    { value: "denim", label: "ジーンズ・デニムパンツ" },
-    { value: "slacks", label: "スラックス・ドレスパンツ" },
-    { value: "short-pants", label: "ショートパンツ" },
-    { value: "other", label: "その他パンツ" },
+    { value: "straight", label: "ストレート" },
+    { value: "tapered", label: "テーパード" },
+    { value: "wide", label: "ワイド" },
+    { value: "culottes", label: "キュロット" },
   ],
   skirts: [
     { value: "skirt", label: "スカート" },
-    { value: "other", label: "その他スカート" },
+    { value: "tight", label: "タイト" },
+    { value: "flare", label: "フレア" },
+    { value: "a_line", label: "Aライン" },
+    { value: "pleated", label: "プリーツ" },
   ],
   bottoms: [
     { value: "tapered", label: "テーパード" },
@@ -148,6 +151,131 @@ export function findItemShapeLabel(
   if (!shape) return "";
   if (!category) return shape;
 
-  const shapes = ITEM_SHAPES[category as ItemCategory];
-  return shapes?.find((item) => item.value === shape)?.label ?? shape;
+  const normalizedCategory = resolveCurrentItemCategoryValue(category, shape);
+  const normalizedShape = resolveCurrentItemShapeValue(category, shape);
+
+  const shapes = ITEM_SHAPES[(normalizedCategory ?? category) as ItemCategory];
+  const normalizedLabel = shapes?.find(
+    (item) => item.value === normalizedShape,
+  )?.label;
+  if (normalizedLabel) {
+    return normalizedLabel;
+  }
+
+  const currentShapes = ITEM_SHAPES[category as ItemCategory];
+  return currentShapes?.find((item) => item.value === shape)?.label ?? shape;
+}
+
+export function resolveCurrentItemCategoryValue(
+  category?: string | null,
+  shape?: string | null,
+) {
+  if (!category) {
+    return null;
+  }
+
+  if (category === "outer" || category === "outerwear") {
+    return "outerwear";
+  }
+
+  if (category === "onepiece_allinone") {
+    if (shape === "onepiece") {
+      return "onepiece_dress";
+    }
+
+    if (shape === "allinone") {
+      return "allinone";
+    }
+  }
+
+  if (category === "bottoms") {
+    if (shape === "mini-skirt" || shape === "tight-skirt") {
+      return "skirts";
+    }
+
+    if (shape === "a-line-skirt" || shape === "flare-skirt") {
+      return "skirts";
+    }
+
+    return "pants";
+  }
+
+  if (category === "accessories") {
+    if (
+      shape === "tote" ||
+      shape === "shoulder" ||
+      shape === "backpack" ||
+      shape === "clutch"
+    ) {
+      return "bags";
+    }
+
+    return "fashion_accessories";
+  }
+
+  return category;
+}
+
+export function resolveCurrentItemShapeValue(
+  category?: string | null,
+  shape?: string | null,
+) {
+  if (!shape) {
+    return null;
+  }
+
+  const currentCategory = resolveCurrentItemCategoryValue(category, shape);
+
+  if (category === "bottoms") {
+    return (
+      {
+        tapered: "tapered",
+        wide: "wide",
+        straight: "straight",
+        "mini-skirt": "skirt",
+        "tight-skirt": "tight",
+        "a-line-skirt": "a_line",
+        "flare-skirt": "flare",
+      }[shape] ?? shape
+    );
+  }
+
+  if (currentCategory === "pants") {
+    return (
+      {
+        pants: "pants",
+        denim: "pants",
+        slacks: "pants",
+        "short-pants": "pants",
+        other: "pants",
+        tapered: "tapered",
+        wide: "wide",
+        straight: "straight",
+        culottes: "culottes",
+      }[shape] ?? shape
+    );
+  }
+
+  if (currentCategory === "skirts") {
+    return (
+      {
+        skirt: "skirt",
+        other: "skirt",
+        tight: "tight",
+        flare: "flare",
+        a_line: "a_line",
+        pleated: "pleated",
+      }[shape] ?? shape
+    );
+  }
+
+  return (
+    {
+      tailored: "jacket",
+      trench: "coat",
+      chester: "coat",
+      down: "down-padded",
+      "outer-cardigan": "blouson",
+    }[shape] ?? shape
+  );
 }

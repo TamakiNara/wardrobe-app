@@ -822,7 +822,40 @@ class ItemsEndpointsTest extends TestCase
         $this->actingAs($user, 'web');
 
         $response = $this->postJson('/api/items', [
-            'name' => 'ミディ丈スカート',
+            'name' => 'クロップド丈スカート',
+            'category' => 'skirts',
+            'shape' => 'a_line',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'navy',
+                'hex' => '#123456',
+                'label' => 'ネイビー',
+            ]],
+            'spec' => [
+                'bottoms' => [
+                    'length_type' => 'cropped',
+                ],
+            ],
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('item.spec.bottoms.length_type', 'cropped');
+
+        $item = Item::query()->findOrFail($response->json('item.id'));
+        $this->assertSame('cropped', data_get($item->spec, 'bottoms.length_type'));
+    }
+
+    public function test_post_items_normalizes_legacy_bottoms_length_type_spec(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/items', [
+            'name' => '旧値スカート',
             'category' => 'bottoms',
             'shape' => 'a-line-skirt',
             'colors' => [[
@@ -842,10 +875,10 @@ class ItemsEndpointsTest extends TestCase
         ]);
 
         $response->assertCreated()
-            ->assertJsonPath('item.spec.bottoms.length_type', 'midi');
+            ->assertJsonPath('item.spec.bottoms.length_type', 'cropped');
 
         $item = Item::query()->findOrFail($response->json('item.id'));
-        $this->assertSame('midi', data_get($item->spec, 'bottoms.length_type'));
+        $this->assertSame('cropped', data_get($item->spec, 'bottoms.length_type'));
     }
 
     public function test_post_items_requires_bottoms_length_type_spec(): void
@@ -857,7 +890,7 @@ class ItemsEndpointsTest extends TestCase
         $response = $this->postJson('/api/items', [
             'name' => '丈未設定スカート',
             'category' => 'bottoms',
-            'shape' => 'a-line-skirt',
+            'shape' => 'a_line',
             'colors' => [[
                 'role' => 'main',
                 'mode' => 'preset',

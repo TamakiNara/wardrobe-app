@@ -399,6 +399,9 @@ DBテーブル構成の詳細は `docs/data/database.md` を参照する。
 - その理由は、丈を `category` や `shape` に混ぜると一覧探索と描画補助の責務が混ざりやすいため
 - `pants` と `skirts` の `length_type` は、まず `mini / short / half / cropped / full` を共通候補として持つ
 - short 系の見え方は中分類ではなく `length_type` で揃える
+- 現行実装では lower-body 系の新規保存と編集を `pants` / `skirts` 前提へ寄せ、`spec.bottoms.length_type` も `mini / short / half / cropped / full` を正本候補として扱う
+- 旧 `bottoms` データは互換のため読み取りを残し、`knee` は `half`、`midi` は `cropped`、`ankle` は `full` へ正規化して扱う
+- 現在の item データモデルには lower-body 専用の中分類保持欄がないため、`pants_denim`、`pants_slacks`、`pants_cargo`、`pants_chino`、`pants_sweat_jersey` などは item の現在 `category / shape` へ取り込む段階では代表カテゴリ `pants` に寄せている
 
 ### `tops`
 

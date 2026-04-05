@@ -76,7 +76,7 @@ describe("ItemPage", () => {
             tpos: ["仕事"],
             spec: {
               bottoms: {
-                length_type: "midi",
+                length_type: "cropped",
               },
               legwear: {
                 coverage_type: "tights",
@@ -153,7 +153,7 @@ describe("ItemPage", () => {
     expect(markup).toContain(
       "所持しなくなった場合は「手放す」を使います。必要になった時は「クローゼットに戻す」で通常状態へ戻せます。",
     );
-    expect(markup).toContain("ボトムス丈： ミディ丈");
+    expect(markup).toContain("ボトムス丈： クロップド丈");
     expect(markup).toContain("レッグウェア： タイツ");
     expect(markup).toContain("素材・混率");
     expect(markup).toContain("本体： 綿 80%、ポリエステル 20%");
@@ -218,6 +218,6 @@ describe("ItemPage", () => {
     expect(markup).toContain("着用履歴フォームへ戻る");
     expect(markup).toContain('href="/items/1/edit"');
     expect(markup).toContain("編集");
-    expect(markup).toContain("ジャケット・アウター / トレンチコート");
+    expect(markup).toContain("ジャケット・アウター / コート");
   });
 });

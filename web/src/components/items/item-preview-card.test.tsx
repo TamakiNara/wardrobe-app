@@ -32,21 +32,21 @@ describe("ItemPreviewCard", () => {
     await act(async () => {
       root.render(
         <ItemPreviewCard
-          name="ミディスカート"
+          name="クロップドスカート"
           category="bottoms"
           shape="flare-skirt"
           mainColorHex="#CBB79D"
           mainColorLabel="ベージュ"
           subColorHex="#8A9099"
           subColorLabel="グレー"
-          spec={{ bottoms: { length_type: "midi" } }}
+          spec={{ bottoms: { length_type: "cropped" } }}
           skinTonePreset="neutral_medium"
         />,
       );
     });
 
     expect(container.textContent).toContain("プレビュー詳細");
-    expect(container.textContent).toContain("スカート / フレアスカート");
+    expect(container.textContent).toContain("スカート / フレア");
     expect(container.textContent).toContain("メインカラー");
     expect(container.textContent).toContain("ベージュ (#CBB79D)");
     expect(container.textContent).toContain("サブカラー");
@@ -57,7 +57,7 @@ describe("ItemPreviewCard", () => {
     );
     expect(container.textContent).toContain("ボトムス仕様");
     expect(container.textContent).toContain("ボトムス丈");
-    expect(container.textContent).toContain("ミディ丈");
+    expect(container.textContent).toContain("クロップド丈");
   });
 
   it("レッグウェア仕様も同じ重さで表示できる", async () => {
@@ -89,21 +89,21 @@ describe("ItemPreviewCard", () => {
     await act(async () => {
       root.render(
         <ItemPreviewCard
-          name="ミディスカート"
+          name="クロップドスカート"
           category="bottoms"
           shape="flare-skirt"
           mainColorHex="#CBB79D"
           mainColorLabel="ベージュ"
           subColorHex="#8A9099"
           subColorLabel="グレー"
-          spec={{ bottoms: { length_type: "midi" } }}
+          spec={{ bottoms: { length_type: "cropped" } }}
           skinTonePreset="neutral_medium"
         />,
       );
     });
 
     expect(container.textContent).not.toContain("プレビュー詳細");
-    expect(container.textContent).toContain("スカート / フレアスカート");
+    expect(container.textContent).toContain("スカート / フレア");
     expect(container.textContent).not.toContain("メインカラー");
     expect(container.textContent).not.toContain("skinTonePreset");
     expect(container.textContent).not.toContain("ボトムス仕様");

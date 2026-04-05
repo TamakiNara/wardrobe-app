@@ -1,8 +1,8 @@
 export const BOTTOMS_LENGTH_OPTIONS = [
   { value: "mini", label: "ミニ丈" },
-  { value: "knee", label: "ひざ丈" },
-  { value: "midi", label: "ミディ丈" },
-  { value: "ankle", label: "アンクル丈" },
+  { value: "short", label: "ショート丈" },
+  { value: "half", label: "ハーフ丈" },
+  { value: "cropped", label: "クロップド丈" },
   { value: "full", label: "フルレングス" },
 ] as const;
 
@@ -129,9 +129,42 @@ export function resolveLegwearCoverageTypeForPreview(
 }
 
 export function resolveBottomsLengthType(value?: string | null) {
-  return BOTTOMS_LENGTH_TYPES.includes(value as BottomsLengthType)
-    ? value
-    : null;
+  if (BOTTOMS_LENGTH_TYPES.includes(value as BottomsLengthType)) {
+    return value;
+  }
+
+  return (
+    {
+      knee: "half",
+      midi: "cropped",
+      ankle: "full",
+    }[value ?? ""] ?? null
+  );
+}
+
+export function resolveBottomsLengthTypeForItem(
+  category?: string | null,
+  shape?: string | null,
+  value?: string | null,
+) {
+  const resolved = resolveBottomsLengthType(value);
+  if (resolved) {
+    return resolved;
+  }
+
+  if (category === "bottoms") {
+    if (shape === "mini-skirt") {
+      return "mini";
+    }
+
+    return null;
+  }
+
+  if (category === "pants" && shape === "short-pants") {
+    return "short";
+  }
+
+  return null;
 }
 
 export function resolveBottomsLengthTypeForPreview(value?: string | null) {
@@ -140,8 +173,10 @@ export function resolveBottomsLengthTypeForPreview(value?: string | null) {
 
 export function findBottomsLengthLabel(value?: string | null) {
   if (!value) return "";
+  const resolved = resolveBottomsLengthType(value);
   return (
-    BOTTOMS_LENGTH_OPTIONS.find((item) => item.value === value)?.label ?? value
+    BOTTOMS_LENGTH_OPTIONS.find((item) => item.value === resolved)?.label ??
+    value
   );
 }
 

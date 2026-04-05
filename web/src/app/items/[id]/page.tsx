@@ -28,6 +28,7 @@ import { resolveCurrentItemCategoryValue } from "@/lib/api/categories";
 import {
   findItemCategoryLabel,
   findItemShapeLabel,
+  resolveCurrentItemShapeValue,
 } from "@/lib/master-data/item-shapes";
 import { fetchLaravelWithCookie } from "@/lib/server/laravel";
 import type { ItemRecord } from "@/types/items";
@@ -89,13 +90,15 @@ export default async function ItemPage({
   );
   const currentCategory =
     resolveCurrentItemCategoryValue(item.category, item.shape) ?? item.category;
+  const currentShape =
+    resolveCurrentItemShapeValue(item.category, item.shape) ?? item.shape;
   const categoryLabel = findItemCategoryLabel(currentCategory);
   const shapeLabel = findItemShapeLabel(item.category, item.shape);
   const itemImages = item.images ?? [];
   const normalizedSizeDetails = normalizeItemSizeDetails(item.size_details);
   const structuredSizeFieldDefinitions = getStructuredSizeFieldDefinitions(
-    item.category,
-    item.shape,
+    currentCategory,
+    currentShape,
   );
   const visibleStructuredSizeFields = structuredSizeFieldDefinitions.filter(
     (field) => normalizedSizeDetails?.structured?.[field.name] !== undefined,

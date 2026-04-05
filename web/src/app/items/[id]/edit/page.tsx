@@ -9,6 +9,8 @@ import {
   findItemCategoryLabel,
   ITEM_CATEGORIES,
   ITEM_SHAPES,
+  resolveCurrentItemCategoryValue,
+  resolveCurrentItemShapeValue,
   type ItemCategory,
 } from "@/lib/master-data/item-shapes";
 import {
@@ -69,6 +71,7 @@ import {
   isBottomsLengthTypeRequired,
   isLegwearCoverageTypeRequired,
   isLegwearSpecCategory,
+  resolveBottomsLengthTypeForItem,
   resolveLegwearCoverageType,
   shouldShowLegwearCoverageSelect,
   type BottomsLengthType,
@@ -360,8 +363,13 @@ export default function EditItemPage({
         setIsRainOk(item.is_rain_ok ?? false);
         setItemImages(normalizeItemImages(item.images ?? []));
         setMaterialRows(buildEditableItemMaterials(item.materials));
-        setCategory(item.category as ItemCategory);
-        setShape(item.shape);
+        const currentCategory =
+          resolveCurrentItemCategoryValue(item.category, item.shape) ??
+          item.category;
+        const currentShape =
+          resolveCurrentItemShapeValue(item.category, item.shape) ?? item.shape;
+        setCategory(currentCategory as ItemCategory);
+        setShape(currentShape);
         setSelectedSeasons(item.seasons ?? []);
         setSelectedTpoIds(item.tpo_ids ?? []);
         const selectedInactiveTpos = (item.tpo_ids ?? []).map(
@@ -421,8 +429,8 @@ export default function EditItemPage({
           }
         }
 
-        if (item.category === "tops") {
-          const resolvedShape = (tops?.shape ?? item.shape) as TopsShapeValue;
+        if (currentCategory === "tops") {
+          const resolvedShape = (tops?.shape ?? currentShape) as TopsShapeValue;
           setTopsShape(resolvedShape);
 
           const rule = TOPS_RULES[resolvedShape];
@@ -453,18 +461,21 @@ export default function EditItemPage({
           );
         }
 
-        if (isBottomsSpecCategory(item.category)) {
+        if (isBottomsSpecCategory(currentCategory)) {
           setBottomsLengthType(
-            (bottoms?.length_type as BottomsLengthType | null | undefined) ??
-              "",
+            (resolveBottomsLengthTypeForItem(
+              item.category,
+              item.shape,
+              bottoms?.length_type,
+            ) as BottomsLengthType | null) ?? "",
           );
         }
 
-        if (item.category === "legwear") {
+        if (currentCategory === "legwear") {
           setLegwearCoverageType(
             (resolveLegwearCoverageType(
-              item.category,
-              item.shape,
+              currentCategory,
+              currentShape,
               legwear?.coverage_type as LegwearCoverageType | null | undefined,
             ) as LegwearCoverageType | null) ?? "",
           );

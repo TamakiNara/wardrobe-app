@@ -330,6 +330,8 @@ thumbnail の現状確認用パターン一覧を見返すときは `docs/specs/
 - `pants` は `pants_pants`、`pants_denim`、`pants_slacks`、`pants_cargo`、`pants_chino`、`pants_sweat_jersey`、`pants_other` を中分類の第一候補とし、短さは `spec.length_type` で扱う
 - `pants` の `spec.length_type` は、まず `mini / short / half / cropped / full` を候補とし、`mini` と `short` は分ける
 - `キュロット` は `pants` の中分類ではなく、見た目と構造の差として `shape` に置く前提を優先する
+- 現行実装では lower-body 系の新規保存・編集・詳細表示を `pants` / `skirts` と `spec.bottoms.length_type` の新方針へ寄せ、旧 `bottoms` データの `knee / midi / ankle` は `half / cropped / full` へ正規化して扱う
+- ただし current item のデータモデルには lower-body 専用の中分類保持欄がないため、`pants_denim`、`pants_slacks`、`pants_cargo`、`pants_chino`、`pants_sweat_jersey` は item の現在 `category / shape` へ取り込む段階では代表カテゴリ `pants` に寄せる実装が残る
 - `tops` では `パーカー・フーディー`、`スウェット・トレーナー`、`ポロシャツ`、`キャミソール`、`タンクトップ・ノースリーブ` のような種類名として定着しているものを中分類に残し、首元・袖・fit・丈は `shape / spec` 側で扱う
 - `デニムスカート` は初回再編では中分類に入れず、代表カテゴリ `skirts_skirt` と素材・spec 側の情報で扱う前提を優先する
 - バッグの用途差は初回再編では中分類を増やしすぎず、トート / ショルダー / リュックなどは現在の item の `shape` で吸収する

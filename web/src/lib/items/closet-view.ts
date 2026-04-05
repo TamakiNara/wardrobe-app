@@ -2,6 +2,7 @@ import {
   findItemCategoryLabel,
   findItemShapeLabel,
   ITEM_SHAPES,
+  resolveCurrentItemShapeValue,
 } from "@/lib/master-data/item-shapes";
 import { resolveCurrentItemCategoryValue } from "@/lib/api/categories";
 import { compareByMainColorSort } from "@/lib/colors/main-color-order";
@@ -29,9 +30,11 @@ export function buildClosetViewGroups(
     const currentCategory =
       resolveCurrentItemCategoryValue(item.category, item.shape) ??
       item.category;
+    const currentShape =
+      resolveCurrentItemShapeValue(item.category, item.shape) ?? item.shape;
     const categoryMap =
       grouped.get(currentCategory) ?? new Map<string, ItemRecord[]>();
-    const shapeKey = item.shape || "";
+    const shapeKey = currentShape || "";
     const current = categoryMap.get(shapeKey) ?? [];
     current.push(item);
     categoryMap.set(shapeKey, current);

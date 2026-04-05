@@ -70,7 +70,14 @@ function resolveStructuredSizeFieldGroup(
   }
 
   if (category === "bottoms") {
-    if (shape === "tight-skirt" || shape === "a-line-skirt") return "skirt";
+    if (
+      shape === "mini-skirt" ||
+      shape === "tight-skirt" ||
+      shape === "a-line-skirt" ||
+      shape === "flare-skirt"
+    ) {
+      return "skirt";
+    }
     if (shape === "tapered" || shape === "wide" || shape === "straight") {
       return "pants";
     }
@@ -79,17 +86,23 @@ function resolveStructuredSizeFieldGroup(
   if (category === "pants") {
     if (
       shape === "pants" ||
-      shape === "denim" ||
-      shape === "slacks" ||
-      shape === "short-pants" ||
-      shape === "other"
+      shape === "straight" ||
+      shape === "tapered" ||
+      shape === "wide" ||
+      shape === "culottes"
     ) {
       return "pants";
     }
   }
 
   if (category === "skirts") {
-    if (shape === "skirt" || shape === "other") {
+    if (
+      shape === "skirt" ||
+      shape === "tight" ||
+      shape === "flare" ||
+      shape === "a_line" ||
+      shape === "pleated"
+    ) {
       return "skirt";
     }
   }

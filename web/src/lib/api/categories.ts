@@ -41,12 +41,20 @@ const ITEM_CATEGORY_ID_BY_SHAPE: Record<string, Record<string, string>> = {
     pants: "pants_pants",
     denim: "pants_denim",
     slacks: "pants_slacks",
-    "short-pants": "pants_short",
+    "short-pants": "pants_pants",
     other: "pants_other",
+    straight: "pants_pants",
+    tapered: "pants_pants",
+    wide: "pants_pants",
+    culottes: "pants_pants",
   },
   skirts: {
     skirt: "skirts_skirt",
     other: "skirts_other",
+    tight: "skirts_skirt",
+    flare: "skirts_skirt",
+    a_line: "skirts_skirt",
+    pleated: "skirts_skirt",
   },
   bottoms: {
     tapered: "pants_pants",
@@ -208,6 +216,62 @@ export function resolveCurrentItemCategoryValue(
   }
 
   return category;
+}
+
+export function resolveCurrentItemShapeValue(
+  category?: string | null,
+  shape?: string | null,
+) {
+  if (!shape) {
+    return null;
+  }
+
+  const currentCategory = resolveCurrentItemCategoryValue(category, shape);
+
+  if (category === "bottoms") {
+    return (
+      {
+        tapered: "tapered",
+        wide: "wide",
+        straight: "straight",
+        "mini-skirt": "skirt",
+        "tight-skirt": "tight",
+        "a-line-skirt": "a_line",
+        "flare-skirt": "flare",
+      }[shape] ?? shape
+    );
+  }
+
+  if (currentCategory === "pants") {
+    return (
+      {
+        pants: "pants",
+        denim: "pants",
+        slacks: "pants",
+        "short-pants": "pants",
+        other: "pants",
+        tapered: "tapered",
+        wide: "wide",
+        straight: "straight",
+        culottes: "culottes",
+      }[shape] ?? shape
+    );
+  }
+
+  if (currentCategory === "skirts") {
+    return (
+      {
+        skirt: "skirt",
+        other: "skirt",
+        tight: "tight",
+        flare: "flare",
+        a_line: "a_line",
+        pleated: "pleated",
+      }[shape] ?? shape
+    );
+  }
+
+  return shape;
 }
 
 export async function fetchCategoryGroups(): Promise<CategoryGroupRecord[]> {

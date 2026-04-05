@@ -212,7 +212,7 @@ export function buildOutfitOnepieceAllinoneLowerBodyPreviewSource(
     lengthType:
       representativeOnepieceAllinone.item.shape === "allinone"
         ? "full"
-        : "midi",
+        : "cropped",
     coverageType,
     legwearMainColor: representativeLegwear
       ? findMainColorHex(representativeLegwear.item.colors)
