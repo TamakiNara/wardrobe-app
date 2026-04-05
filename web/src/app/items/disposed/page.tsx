@@ -6,6 +6,10 @@ import { resolveCurrentItemCategoryValue } from "@/lib/api/categories";
 import { DEFAULT_SKIN_TONE_PRESET } from "@/lib/master-data/skin-tone-presets";
 import { ITEM_CARE_STATUS_LABELS } from "@/lib/items/metadata";
 import {
+  findItemSubcategoryLabel,
+  resolveCurrentItemSubcategoryValue,
+} from "@/lib/master-data/item-subcategories";
+import {
   findItemCategoryLabel,
   findItemShapeLabel,
 } from "@/lib/master-data/item-shapes";
@@ -169,11 +173,30 @@ export default async function DisposedItemsPage({
                 const currentCategory =
                   resolveCurrentItemCategoryValue(item.category, item.shape) ??
                   item.category;
+                const currentSubcategory =
+                  resolveCurrentItemSubcategoryValue(
+                    currentCategory,
+                    item.shape,
+                    item.subcategory,
+                  ) ?? null;
                 const categoryLabel = findItemCategoryLabel(currentCategory);
+                const subcategoryLabel = findItemSubcategoryLabel(
+                  currentCategory,
+                  currentSubcategory,
+                );
                 const shapeLabel = findItemShapeLabel(
                   item.category,
                   item.shape,
                 );
+                const classificationLabels = [
+                  categoryLabel,
+                  subcategoryLabel,
+                  shapeLabel,
+                ]
+                  .filter((label): label is string => Boolean(label))
+                  .filter(
+                    (label, index, labels) => labels.indexOf(label) === index,
+                  );
                 const detailQuery = new URLSearchParams({
                   return_to: returnTo,
                   return_label: returnLabel,
@@ -213,7 +236,7 @@ export default async function DisposedItemsPage({
                           </div>
 
                           <p className="mt-2 text-sm text-gray-600">
-                            {categoryLabel} / {shapeLabel}
+                            {classificationLabels.join(" / ")}
                           </p>
 
                           <div className="mt-4 flex flex-wrap gap-2">

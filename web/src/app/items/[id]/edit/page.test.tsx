@@ -210,6 +210,7 @@ describe("EditItemPage", () => {
             },
             is_rain_ok: true,
             category: "tops",
+            subcategory: "tshirt_cutsew",
             shape: "tshirt",
             colors: [],
             seasons: [],
@@ -290,8 +291,9 @@ describe("EditItemPage", () => {
     expect(optionLabels).toEqual([
       "選択してください",
       "トップス",
-      "ボトムス",
-      "ワンピース / オールインワン",
+      "パンツ",
+      "ワンピース・ドレス",
+      "オールインワン",
       "ルームウェア・インナー",
       "レッグウェア",
     ]);
@@ -314,7 +316,11 @@ describe("EditItemPage", () => {
     expect(container.textContent).toContain("ケア状態");
     expect(container.textContent).toContain("メインカラー");
     expect(container.textContent).toContain("ブランド候補にも追加する");
-    expect(container.textContent?.match(/必須/g)?.length).toBe(3);
+    expect(container.textContent?.match(/必須/g)?.length).toBe(4);
+    expect(
+      (container.querySelector("#subcategory") as HTMLSelectElement | null)
+        ?.value,
+    ).toBe("tshirt_cutsew");
     expect(
       (container.querySelector("#brand-name") as HTMLInputElement | null)
         ?.value,

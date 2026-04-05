@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use App\Support\ItemLegwearSpecValidator;
 use App\Support\ItemMaterialSupport;
 use App\Support\ItemMaterialValidator;
+use App\Support\ItemSubcategorySupport;
 use Illuminate\Foundation\Http\FormRequest;
 
 abstract class ItemUpsertRequest extends FormRequest
@@ -59,6 +60,7 @@ abstract class ItemUpsertRequest extends FormRequest
             'size_details.custom_fields.*.sort_order' => ['required', 'integer', 'min:1'],
             'is_rain_ok' => ['nullable', 'boolean'],
             'category' => ['required', 'string', 'max:100'],
+            'subcategory' => ['nullable', 'string', 'max:100'],
             'shape' => ['required', 'string', 'max:100'],
             'colors' => ['required', 'array', 'min:1'],
             'colors.*.role' => ['required', 'string', 'in:main,sub'],
@@ -131,5 +133,6 @@ abstract class ItemUpsertRequest extends FormRequest
 
         ItemLegwearSpecValidator::validate($validated);
         ItemMaterialValidator::validate($validated);
+        ItemSubcategorySupport::validate($validated);
     }
 }

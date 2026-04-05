@@ -158,12 +158,23 @@ export function findItemShapeLabel(
   const normalizedLabel = shapes?.find(
     (item) => item.value === normalizedShape,
   )?.label;
+  const currentShapes = ITEM_SHAPES[category as ItemCategory];
+  const legacyLabel = currentShapes?.find(
+    (item) => item.value === shape,
+  )?.label;
+
+  if (
+    legacyLabel &&
+    (normalizedCategory !== category || normalizedShape !== shape)
+  ) {
+    return legacyLabel;
+  }
+
   if (normalizedLabel) {
     return normalizedLabel;
   }
 
-  const currentShapes = ITEM_SHAPES[category as ItemCategory];
-  return currentShapes?.find((item) => item.value === shape)?.label ?? shape;
+  return legacyLabel ?? shape;
 }
 
 export function resolveCurrentItemCategoryValue(

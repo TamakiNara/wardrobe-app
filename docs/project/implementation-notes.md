@@ -327,11 +327,11 @@ thumbnail の現状確認用パターン一覧を見返すときは `docs/specs/
 - `shape / spec` はカテゴリ再編の受け皿として使う前提だが、現時点でかなり具体化されているのは `tops` と `spec.bottoms.length_type`、`spec.legwear.coverage_type` までであり、`pants` / `skirts` / `outerwear` / `onepiece_dress` / `allinone` / `bags` / `kimono` は「壊れない最小限の shape / spec」まで追随済み、全面再設計は後続に残す
 - 現時点の整理では、`category` は用途・売り場・一覧探索の単位、`subcategory` は種類名として定着した下位分類、`shape` は同じ `category` / `subcategory` 内での見た目・構造・型の差、`spec` は丈・覆い方・機能・補助属性を持つ責務とする
 - categories 設定で扱う中分類 ID は、当面 `subcategory` に相当するものとして読み、`shape` / `spec` は ON / OFF 対象へ広げない
-- `subcategory` を item モデルへ正式導入する場合は、独立カラムとして持つ前提を第一候補にする。値は `tops_hoodie` のような fully-qualified 値ではなく `hoodie` のような単体値とし、意味は `category` と組み合わせて読む
+- `subcategory` は item モデルの独立カラムとして段階導入済みとし、値は `tops_hoodie` のような中分類 ID そのものではなく `hoodie` のような単体値で持ち、意味は `category` と組み合わせて読む
 - settings 側の中分類 ID とは、`pants_denim` ⇔ `category = pants` かつ `subcategory = denim` のように対応づける前提を優先する
-- `subcategory` は全カテゴリで一律必須にはせず、まず `tops`、`pants`、`outerwear`、`onepiece_dress`、`allinone` を中心に導入し、`skirts`、`bags`、`shoes`、`kimono` は代表カテゴリまたは `null` 許容で始める
+- `subcategory` は全カテゴリで一律必須にはせず、まず `tops`、`pants`、`outerwear`、`onepiece_dress`、`allinone` を中心に UI へ導入し、`skirts`、`bags`、`shoes`、`kimono` は代表カテゴリまたは `null` 許容で始める
 - create / edit は原則 `カテゴリ / 種類 / 形 / 詳細` の並びへ寄せ、`shape` 候補は `category` だけでなく `subcategory` に応じても出し分ける前提を優先する
-- 旧データは一括で完全移行する前提にはせず、安全に補完できるものだけ backfill し、補完できないものは `subcategory = null` を許容して UI 側 fallback で吸収する
+- 旧データは一括で完全移行する前提にはせず、安全に補完できるものだけデータ補完し、補完できないものは `subcategory = null` を許容して UI 側 fallback で吸収する。現在の item 詳細 / 一覧 / disposed 一覧では `subcategory` を優先表示し、未設定時は bridge で補助する
 - lower-body 系は、`pants` / `skirts` とも丈を原則 `spec` に寄せ、テーパード / フレアのような型差は `shape` に寄せる
 - `pants` は `pants_pants`、`pants_denim`、`pants_slacks`、`pants_cargo`、`pants_chino`、`pants_sweat_jersey`、`pants_other` を中分類の第一候補とし、短さは `spec.length_type` で扱う
 - `pants` の `spec.length_type` は、まず `mini / short / half / cropped / full` を候補とし、`mini` と `short` は分ける

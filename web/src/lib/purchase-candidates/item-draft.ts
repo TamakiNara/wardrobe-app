@@ -11,6 +11,7 @@ export type PurchaseCandidateItemDraft = {
   name: string;
   sourceCategoryId: string;
   category: string;
+  subcategory: string | null;
   shape: string;
   brandName: string | null;
   price: number | null;
@@ -66,6 +67,7 @@ export function mapPurchaseCandidateItemDraft(
     name: payload.item_draft.name ?? "",
     sourceCategoryId: payload.item_draft.source_category_id,
     category: payload.item_draft.category,
+    subcategory: payload.item_draft.subcategory ?? null,
     shape: payload.item_draft.shape,
     brandName: payload.item_draft.brand_name,
     price: payload.item_draft.price,

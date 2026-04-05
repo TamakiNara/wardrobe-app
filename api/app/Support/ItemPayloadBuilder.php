@@ -35,6 +35,7 @@ class ItemPayloadBuilder
             'size_details' => $item->size_details,
             'is_rain_ok' => $item->is_rain_ok,
             'category' => $item->category,
+            'subcategory' => $item->subcategory,
             'shape' => $item->shape,
             'colors' => $item->colors ?? [],
             'seasons' => $item->seasons ?? [],

@@ -5,6 +5,10 @@ import {
   findLegwearCoverageLabel,
 } from "@/lib/master-data/item-skin-exposure";
 import {
+  findItemSubcategoryLabel,
+  resolveCurrentItemSubcategoryValue,
+} from "@/lib/master-data/item-subcategories";
+import {
   findItemCategoryLabel,
   findItemShapeLabel,
 } from "@/lib/master-data/item-shapes";
@@ -16,6 +20,7 @@ import type { SkinTonePreset } from "@/types/settings";
 type ItemPreviewCardProps = {
   name: string;
   category: string;
+  subcategory?: string | null;
   shape: string;
   mainColorHex?: string;
   mainColorLabel?: string;
@@ -75,6 +80,7 @@ function ColorDot({
 export default function ItemPreviewCard({
   name,
   category,
+  subcategory,
   shape,
   mainColorHex,
   mainColorLabel,
@@ -94,7 +100,17 @@ export default function ItemPreviewCard({
     resolveCurrentItemCategoryValue(category, shape) ?? category;
   const categoryLabel =
     findItemCategoryLabel(currentCategory) || "カテゴリ未選択";
+  const currentSubcategory =
+    resolveCurrentItemSubcategoryValue(currentCategory, shape, subcategory) ??
+    null;
+  const subcategoryLabel = findItemSubcategoryLabel(
+    currentCategory,
+    currentSubcategory,
+  );
   const shapeLabel = findItemShapeLabel(category, shape);
+  const classificationLabels = [categoryLabel, subcategoryLabel, shapeLabel]
+    .filter((label): label is string => Boolean(label))
+    .filter((label, index, labels) => labels.indexOf(label) === index);
   const bottomsLengthLabel = findBottomsLengthLabel(spec?.bottoms?.length_type);
   const legwearCoverageLabel = findLegwearCoverageLabel(
     spec?.legwear?.coverage_type,
@@ -133,8 +149,7 @@ export default function ItemPreviewCard({
             {name || "名称未設定"}
           </h2>
           <p className="mt-1 text-sm text-gray-600">
-            {categoryLabel}
-            {shapeLabel ? ` / ${shapeLabel}` : ""}
+            {classificationLabels.join(" / ")}
           </p>
         </div>
       </div>

@@ -16,6 +16,10 @@ import { buildClosetViewGroups } from "@/lib/items/closet-view";
 import { fetchCategoryVisibilitySettings } from "@/lib/api/settings";
 import { ITEM_CARE_STATUS_LABELS } from "@/lib/items/metadata";
 import {
+  findItemSubcategoryLabel,
+  resolveCurrentItemSubcategoryValue,
+} from "@/lib/master-data/item-subcategories";
+import {
   ITEM_CATEGORIES as ITEM_CATEGORY_OPTIONS,
   findItemCategoryLabel,
   findItemShapeLabel,
@@ -698,8 +702,27 @@ export default function ItemsList({
             const currentCategory =
               resolveCurrentItemCategoryValue(item.category, item.shape) ??
               item.category;
+            const currentSubcategory =
+              resolveCurrentItemSubcategoryValue(
+                currentCategory,
+                item.shape,
+                item.subcategory,
+              ) ?? null;
             const categoryLabel = findItemCategoryLabel(currentCategory);
+            const subcategoryLabel = findItemSubcategoryLabel(
+              currentCategory,
+              currentSubcategory,
+            );
             const shapeLabel = findItemShapeLabel(item.category, item.shape);
+            const classificationLabels = [
+              categoryLabel,
+              subcategoryLabel,
+              shapeLabel,
+            ]
+              .filter((label): label is string => Boolean(label))
+              .filter(
+                (label, index, labels) => labels.indexOf(label) === index,
+              );
 
             return (
               <Link href={`/items/${item.id}`} key={item.id}>
@@ -724,7 +747,7 @@ export default function ItemsList({
                       ) : null}
 
                       <p className="mt-2 text-sm text-gray-600">
-                        {categoryLabel} / {shapeLabel}
+                        {classificationLabels.join(" / ")}
                       </p>
 
                       <div className="mt-4 flex flex-wrap gap-2">

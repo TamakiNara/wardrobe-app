@@ -269,6 +269,7 @@ describe("NewItemPage", () => {
           name: "レインコート候補",
           source_category_id: "tops_tshirt_cutsew",
           category: "tops",
+          subcategory: "tshirt_cutsew",
           shape: "tshirt",
           brand_name: "Sample Brand",
           price: 9800,
@@ -354,6 +355,8 @@ describe("NewItemPage", () => {
       ?.querySelector<HTMLInputElement>('input[type="checkbox"]');
     const categorySelect =
       container.querySelector<HTMLSelectElement>("#category");
+    const subcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
     const careStatusSelect =
       container.querySelector<HTMLSelectElement>("#care-status");
     expect(nameInput?.value).toBe("レインコート候補");
@@ -369,6 +372,7 @@ describe("NewItemPage", () => {
     expect(customValueInput?.value).toBe("78");
     expect(rainCheckbox?.checked).toBe(true);
     expect(categorySelect?.value).toBe("tops");
+    expect(subcategorySelect?.value).toBe("tshirt_cutsew");
     expect(careStatusSelect?.value).toBe("");
     const materialPartInputs = Array.from(
       container.querySelectorAll('input[list="item-material-part-options"]'),

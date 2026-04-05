@@ -146,6 +146,7 @@ export type PurchaseCandidateItemDraftPayload = {
   name: string;
   source_category_id: string;
   category: string;
+  subcategory?: string | null;
   shape: string;
   brand_name: string | null;
   price: number | null;

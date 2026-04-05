@@ -125,6 +125,7 @@ class PurchaseCandidatePayloadBuilder
             'name' => $candidate->name,
             'source_category_id' => $candidate->category_id,
             'category' => $resolvedCategory['category'],
+            'subcategory' => $resolvedCategory['subcategory'] ?? null,
             'shape' => $resolvedCategory['shape'],
             'brand_name' => $candidate->brand_name,
             'price' => $candidate->price,

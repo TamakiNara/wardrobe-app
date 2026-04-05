@@ -184,6 +184,7 @@ describe("ItemPage", () => {
             size_details: null,
             is_rain_ok: false,
             category: "outer",
+            subcategory: "coat",
             shape: "trench",
             colors: [],
             seasons: [],
@@ -218,6 +219,6 @@ describe("ItemPage", () => {
     expect(markup).toContain("着用履歴フォームへ戻る");
     expect(markup).toContain('href="/items/1/edit"');
     expect(markup).toContain("編集");
-    expect(markup).toContain("ジャケット・アウター / コート");
+    expect(markup).toContain("ジャケット・アウター / コート / トレンチコート");
   });
 });

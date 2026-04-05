@@ -355,8 +355,8 @@ DBテーブル構成の詳細は `docs/data/database.md` を参照する。
 
 ### item モデルでの保持方針
 
-- item には将来的に `subcategory` を独立カラムとして追加する前提を第一候補にする
-- `subcategory` は fully-qualified な中分類 ID ではなく、`denim`、`slacks`、`hoodie` のような単体値で持つ
+- item には `subcategory` を独立カラムとして段階導入する前提を第一候補にする
+- `subcategory` は中分類 ID をそのまま持つのではなく、`denim`、`slacks`、`hoodie` のような単体値で持つ
 - `subcategory` の意味は常に `category` と組み合わせて読む
 - settings 側の中分類 ID とは、たとえば `pants_denim` ⇔ `category = pants` かつ `subcategory = denim` のように対応づけて扱う
 - これにより、settings の中分類 ID は ON / OFF 対象、item の `subcategory` は実データの種類名、という責務差を保ったまま同じ概念を扱える
@@ -368,7 +368,7 @@ DBテーブル構成の詳細は `docs/data/database.md` を参照する。
 - `subcategory` が定義されているカテゴリでは、`shape` より先に `種類` を選ぶ
 - `shape` 候補は `category` に加えて `subcategory` に応じて出し分ける前提を優先する
 - `subcategory` をまだ厳密に持たないカテゴリでは、`種類` 欄は代表カテゴリの固定値または未選択可で扱う
-- 主表示は `subcategory` 優先とし、未移行データや `subcategory = null` の場合は current の bridge から補助ラベルを出す
+- 主表示は `subcategory` 優先とし、未移行データや `subcategory = null` の場合は現行の bridge から補助ラベルを出す
 
 ## 2-4. lower-body 系の優先方針
 

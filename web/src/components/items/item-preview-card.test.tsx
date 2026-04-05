@@ -34,6 +34,7 @@ describe("ItemPreviewCard", () => {
         <ItemPreviewCard
           name="クロップドスカート"
           category="bottoms"
+          subcategory="skirt"
           shape="flare-skirt"
           mainColorHex="#CBB79D"
           mainColorLabel="ベージュ"
@@ -91,6 +92,7 @@ describe("ItemPreviewCard", () => {
         <ItemPreviewCard
           name="クロップドスカート"
           category="bottoms"
+          subcategory="skirt"
           shape="flare-skirt"
           mainColorHex="#CBB79D"
           mainColorLabel="ベージュ"
@@ -107,5 +109,26 @@ describe("ItemPreviewCard", () => {
     expect(container.textContent).not.toContain("メインカラー");
     expect(container.textContent).not.toContain("skinTonePreset");
     expect(container.textContent).not.toContain("ボトムス仕様");
+  });
+
+  it("subcategory があるときは種類名を優先して表示できる", async () => {
+    vi.stubEnv("NEXT_PUBLIC_ENABLE_ITEM_PREVIEW_DEBUG", "false");
+
+    await act(async () => {
+      root.render(
+        <ItemPreviewCard
+          name="ネイビーコート"
+          category="outer"
+          subcategory="coat"
+          shape="trench"
+          mainColorHex="#1F3A5F"
+          mainColorLabel="ネイビー"
+        />,
+      );
+    });
+
+    expect(container.textContent).toContain(
+      "ジャケット・アウター / コート / トレンチコート",
+    );
   });
 });

@@ -11,6 +11,12 @@ import {
   type ItemCategory,
 } from "@/lib/master-data/item-shapes";
 import {
+  getItemSubcategoryOptions,
+  isItemSubcategoryRequired,
+  normalizeItemSubcategory,
+  resolveCurrentItemSubcategoryValue,
+} from "@/lib/master-data/item-subcategories";
+import {
   buildSupportedCategoryOptions,
   fetchCategoryGroups,
 } from "@/lib/api/categories";
@@ -134,6 +140,7 @@ export default function NewItemPage() {
   const [categoryOptions, setCategoryOptions] = useState<CategoryOption[]>([
     ...ITEM_CATEGORIES,
   ]);
+  const [subcategory, setSubcategory] = useState("");
   const [shape, setShape] = useState("");
 
   const [mainColor, setMainColor] = useState<ItemColorValue | "">("");
@@ -197,6 +204,11 @@ export default function NewItemPage() {
     if (!category) return [];
     return ITEM_SHAPES[category];
   }, [category]);
+  const subcategoryOptions = useMemo(
+    () => getItemSubcategoryOptions(category),
+    [category],
+  );
+  const isSubcategoryRequired = isItemSubcategoryRequired(category);
 
   const selectedMainColor = useMemo(() => {
     if (useCustomMainColor) {
@@ -320,7 +332,7 @@ export default function NewItemPage() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [router]);
 
   useEffect(() => {
     if (searchParams.get("source") !== "purchase-candidate") {
@@ -367,6 +379,13 @@ export default function NewItemPage() {
     );
     setIsRainOk(draft.isRainOk);
     setCategory(draft.category as ItemCategory);
+    setSubcategory(
+      resolveCurrentItemSubcategoryValue(
+        draft.category,
+        draft.shape,
+        draft.subcategory,
+      ) ?? "",
+    );
     setShape(draft.shape);
     setSelectedSeasons(draft.seasons);
     setDraftTpoNames(draft.tpos);
@@ -424,8 +443,10 @@ export default function NewItemPage() {
 
   function handleCategoryChange(nextCategory: string) {
     setCategory(nextCategory as ItemCategory | "");
+    setSubcategory("");
     setShape("");
     clearErrorsFor([
+      "subcategory",
       "shape",
       "spec.bottoms.length_type",
       "spec.legwear.coverage_type",
@@ -440,6 +461,11 @@ export default function NewItemPage() {
     if (!isLegwearSpecCategory(nextCategory)) {
       resetLegwearSpecState();
     }
+  }
+
+  function handleSubcategoryChange(nextSubcategory: string) {
+    setSubcategory(nextSubcategory);
+    clearErrorsFor(["subcategory"]);
   }
 
   function handleTopsShapeChange(nextShape: string) {
@@ -587,6 +613,7 @@ export default function NewItemPage() {
       ),
       is_rain_ok: isRainOk,
       category,
+      subcategory: normalizeItemSubcategory(category, subcategory),
       shape,
       colors,
       seasons: selectedSeasons,
@@ -679,6 +706,12 @@ export default function NewItemPage() {
     );
 
     if (!category) nextErrors.category = "カテゴリを選択してください。";
+    if (
+      isSubcategoryRequired &&
+      !normalizeItemSubcategory(category, subcategory)
+    ) {
+      nextErrors.subcategory = "種類を選択してください。";
+    }
     if (!shape) nextErrors.shape = "形を選択してください。";
     if (!selectedMainColor)
       nextErrors.mainColor = "メインカラーを選択してください。";
@@ -936,6 +969,7 @@ export default function NewItemPage() {
                 <ItemPreviewCard
                   name={name}
                   category={category}
+                  subcategory={subcategory}
                   shape={shape}
                   mainColorHex={selectedMainColor?.hex}
                   mainColorLabel={selectedMainColor?.label}
@@ -995,6 +1029,35 @@ export default function NewItemPage() {
                   <p className="mt-2 text-sm text-red-600">{errors.category}</p>
                 )}
               </div>
+
+              {subcategoryOptions.length > 0 ? (
+                <div data-error-key="subcategory">
+                  <FieldLabel
+                    htmlFor="subcategory"
+                    label="種類"
+                    required={isSubcategoryRequired}
+                  />
+                  <select
+                    id="subcategory"
+                    value={subcategory}
+                    onChange={(e) => handleSubcategoryChange(e.target.value)}
+                    disabled={!category}
+                    className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors.subcategory ? "border-red-400" : "border-gray-300"}`}
+                  >
+                    <option value="">選択してください</option>
+                    {subcategoryOptions.map((item) => (
+                      <option key={item.value} value={item.value}>
+                        {item.label}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.subcategory && (
+                    <p className="mt-2 text-sm text-red-600">
+                      {errors.subcategory}
+                    </p>
+                  )}
+                </div>
+              ) : null}
 
               <div data-error-key="shape">
                 <FieldLabel htmlFor="shape" label="形" required />
@@ -1398,6 +1461,7 @@ export default function NewItemPage() {
                     <ItemPreviewCard
                       name={name}
                       category={category}
+                      subcategory={subcategory}
                       shape={shape}
                       mainColorHex={selectedMainColor?.hex}
                       mainColorLabel={selectedMainColor?.label}

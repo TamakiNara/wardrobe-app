@@ -97,6 +97,7 @@ export type CreateItemPayload = {
   size_details: ItemSizeDetails | null;
   is_rain_ok: boolean;
   category: string;
+  subcategory?: string | null;
   shape: string;
   colors: ItemFormColor[];
   seasons: string[];
@@ -125,6 +126,7 @@ export type ItemRecord = {
   size_details?: ItemSizeDetails | null;
   is_rain_ok?: boolean;
   category: string;
+  subcategory?: string | null;
   shape: string;
   colors: ItemFormColor[];
   seasons: string[];

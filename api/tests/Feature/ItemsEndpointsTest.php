@@ -110,6 +110,7 @@ class ItemsEndpointsTest extends TestCase
             'size_details' => null,
             'is_rain_ok' => false,
             'category' => 'tops',
+            'subcategory' => null,
             'shape' => 'tshirt',
             'colors' => [[
                 'role' => 'main',
@@ -459,8 +460,9 @@ class ItemsEndpointsTest extends TestCase
                 ],
             ],
             'is_rain_ok' => true,
-            'category' => 'outer',
-            'shape' => 'trench',
+            'category' => 'outerwear',
+            'subcategory' => 'coat',
+            'shape' => 'coat',
             'colors' => [[
                 'role' => 'main',
                 'mode' => 'preset',
@@ -490,6 +492,9 @@ class ItemsEndpointsTest extends TestCase
             ->assertJsonPath('item.price', 14800)
             ->assertJsonPath('item.purchase_url', 'https://example.test/products/coat')
             ->assertJsonPath('item.memo', '購入検討メモ')
+            ->assertJsonPath('item.category', 'outerwear')
+            ->assertJsonPath('item.subcategory', 'coat')
+            ->assertJsonPath('item.shape', 'coat')
             ->assertJsonPath('item.size_gender', 'women')
             ->assertJsonPath('item.size_label', 'M')
             ->assertJsonPath('item.size_note', '厚手ニット込み')
@@ -514,6 +519,7 @@ class ItemsEndpointsTest extends TestCase
             'brand_name' => 'Sample Brand',
             'price' => 14800,
             'memo' => '購入検討メモ',
+            'subcategory' => 'coat',
             'size_gender' => 'women',
             'is_rain_ok' => 1,
         ]);
@@ -1341,8 +1347,9 @@ class ItemsEndpointsTest extends TestCase
                 ],
             ],
             'is_rain_ok' => true,
-            'category' => 'outer',
-            'shape' => 'trench',
+            'category' => 'outerwear',
+            'subcategory' => 'coat',
+            'shape' => 'coat',
         ]);
         $item->images()->create([
             'disk' => 'public',
@@ -1381,8 +1388,9 @@ class ItemsEndpointsTest extends TestCase
 
         $user = User::factory()->create();
         $item = $this->createItem($user, [
-            'category' => 'outer',
-            'shape' => 'trench',
+            'category' => 'outerwear',
+            'subcategory' => 'coat',
+            'shape' => 'coat',
         ]);
         Storage::disk('public')->put(sprintf('items/%d/original.png', $item->id), 'original-image');
         Storage::disk('public')->put('purchase-candidates/1/updated.png', 'candidate-image');
@@ -1422,8 +1430,9 @@ class ItemsEndpointsTest extends TestCase
                 ],
             ],
             'is_rain_ok' => true,
-            'category' => 'outer',
-            'shape' => 'trench',
+            'category' => 'outerwear',
+            'subcategory' => 'coat',
+            'shape' => 'coat',
             'colors' => [[
                 'role' => 'main',
                 'mode' => 'preset',
@@ -1460,8 +1469,9 @@ class ItemsEndpointsTest extends TestCase
 
         $response->assertOk()
             ->assertJsonPath('item.name', '更新後アイテム')
-            ->assertJsonPath('item.category', 'outer')
-            ->assertJsonPath('item.shape', 'trench')
+            ->assertJsonPath('item.category', 'outerwear')
+            ->assertJsonPath('item.subcategory', 'coat')
+            ->assertJsonPath('item.shape', 'coat')
             ->assertJsonPath('item.brand_name', 'Updated Brand')
             ->assertJsonPath('item.care_status', 'in_cleaning')
             ->assertJsonPath('item.memo', '更新メモ')
@@ -1486,8 +1496,9 @@ class ItemsEndpointsTest extends TestCase
             'brand_name' => 'Updated Brand',
             'price' => 19800,
             'memo' => '更新メモ',
+            'subcategory' => 'coat',
             'care_status' => 'in_cleaning',
-            'shape' => 'trench',
+            'shape' => 'coat',
         ]);
         $this->assertDatabaseHas('item_images', [
             'item_id' => $item->id,

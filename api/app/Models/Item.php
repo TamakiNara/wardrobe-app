@@ -27,6 +27,7 @@ class Item extends Model
         'size_details',
         'is_rain_ok',
         'category',
+        'subcategory',
         'shape',
         'colors',
         'seasons',

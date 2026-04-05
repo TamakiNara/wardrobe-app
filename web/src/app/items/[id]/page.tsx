@@ -26,6 +26,10 @@ import {
 } from "@/lib/master-data/item-tops";
 import { resolveCurrentItemCategoryValue } from "@/lib/api/categories";
 import {
+  findItemSubcategoryLabel,
+  resolveCurrentItemSubcategoryValue,
+} from "@/lib/master-data/item-subcategories";
+import {
   findItemCategoryLabel,
   findItemShapeLabel,
   resolveCurrentItemShapeValue,
@@ -90,10 +94,23 @@ export default async function ItemPage({
   );
   const currentCategory =
     resolveCurrentItemCategoryValue(item.category, item.shape) ?? item.category;
+  const currentSubcategory =
+    resolveCurrentItemSubcategoryValue(
+      currentCategory,
+      item.shape,
+      item.subcategory,
+    ) ?? null;
   const currentShape =
     resolveCurrentItemShapeValue(item.category, item.shape) ?? item.shape;
   const categoryLabel = findItemCategoryLabel(currentCategory);
+  const subcategoryLabel = findItemSubcategoryLabel(
+    currentCategory,
+    currentSubcategory,
+  );
   const shapeLabel = findItemShapeLabel(item.category, item.shape);
+  const classificationLabels = [categoryLabel, subcategoryLabel, shapeLabel]
+    .filter((label): label is string => Boolean(label))
+    .filter((label, index, labels) => labels.indexOf(label) === index);
   const itemImages = item.images ?? [];
   const normalizedSizeDetails = normalizeItemSizeDetails(item.size_details);
   const structuredSizeFieldDefinitions = getStructuredSizeFieldDefinitions(
@@ -203,6 +220,7 @@ export default async function ItemPage({
         <ItemPreviewCard
           name={item.name ?? ""}
           category={item.category}
+          subcategory={item.subcategory}
           shape={item.shape}
           mainColorHex={mainColor?.hex}
           mainColorLabel={mainColor?.label}
@@ -216,9 +234,7 @@ export default async function ItemPage({
         />
 
         <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-          <p className="text-gray-600">
-            {categoryLabel} / {shapeLabel}
-          </p>
+          <p className="text-gray-600">{classificationLabels.join(" / ")}</p>
 
           <div className="mt-4 flex flex-wrap gap-2">
             {mainColor && (

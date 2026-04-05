@@ -45,6 +45,7 @@ describe("DisposedItemsPage", () => {
               status: "disposed",
               care_status: null,
               category: "outer",
+              subcategory: "jacket",
               shape: "tailored",
               colors: [
                 {
@@ -93,7 +94,9 @@ describe("DisposedItemsPage", () => {
     expect(markup).toContain("表示件数: 1 / 1");
     expect(markup).toContain("黒ジャケット");
     expect(markup).toContain("手放し済み");
-    expect(markup).toContain("ジャケット・アウター / テーラードジャケット");
+    expect(markup).toContain(
+      "ジャケット・アウター / ジャケット / テーラードジャケット",
+    );
     expect(markup).toContain(
       'href="/items/10?return_to=%2Fitems%2Fdisposed&amp;return_label=%E6%89%8B%E6%94%BE%E3%81%97%E3%81%9F%E3%82%A2%E3%82%A4%E3%83%86%E3%83%A0%E4%B8%80%E8%A6%A7"',
     );

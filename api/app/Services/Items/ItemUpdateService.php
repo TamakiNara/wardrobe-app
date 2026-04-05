@@ -9,6 +9,7 @@ use App\Services\Settings\UserTpoService;
 use App\Support\ItemImageSync;
 use App\Support\ItemMaterialSync;
 use App\Support\ItemSpecNormalizer;
+use App\Support\ItemSubcategorySupport;
 use App\Support\TpoSelectionResolver;
 use Illuminate\Support\Facades\DB;
 use Throwable;
@@ -40,6 +41,10 @@ class ItemUpdateService
                     'size_details' => $validated['size_details'] ?? null,
                     'is_rain_ok' => (bool) ($validated['is_rain_ok'] ?? false),
                     'category' => $validated['category'],
+                    'subcategory' => ItemSubcategorySupport::normalize(
+                        $validated['category'] ?? null,
+                        $validated['subcategory'] ?? null,
+                    ),
                     'shape' => $validated['shape'],
                     'colors' => $validated['colors'],
                     'seasons' => $validated['seasons'] ?? [],

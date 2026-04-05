@@ -51,6 +51,7 @@ describe("PurchaseCandidateItemDraftAction", () => {
               name: "コート候補",
               source_category_id: "outerwear_coat",
               category: "outerwear",
+              subcategory: "coat",
               shape: "coat",
               size_note: "厚手ニット込み",
               size_details: {
@@ -114,6 +115,7 @@ describe("PurchaseCandidateItemDraftAction", () => {
     );
 
     expect(rawDraft).toContain("outerwear_coat");
+    expect(rawDraft).toContain('"subcategory":"coat"');
     expect(rawDraft).toContain("厚手ニット込み");
     expect(rawDraft).toContain("shoulder_width");
     expect(pushMock).toHaveBeenCalledWith(
