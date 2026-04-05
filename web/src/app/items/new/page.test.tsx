@@ -4,6 +4,7 @@ import React from "react";
 import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { ApiClientError } from "@/lib/api/client";
 import type { CategoryGroupRecord } from "@/types/categories";
 
 const pushMock = vi.fn();
@@ -227,8 +228,9 @@ describe("NewItemPage", () => {
     expect(optionLabels).toEqual([
       "選択してください",
       "トップス",
-      "ボトムス",
-      "ワンピース / オールインワン",
+      "パンツ",
+      "ワンピース・ドレス",
+      "オールインワン",
       "ルームウェア・インナー",
       "レッグウェア",
     ]);
@@ -405,7 +407,7 @@ describe("NewItemPage", () => {
     expect(categorySelect).not.toBeNull();
 
     await act(async () => {
-      categorySelect!.value = "bottoms";
+      categorySelect!.value = "pants";
       categorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
       await waitForEffects();
     });
@@ -452,6 +454,22 @@ describe("NewItemPage", () => {
     expect(container.textContent).not.toContain("レッグウェア仕様");
   });
 
+  it("認証切れで TPO 取得が失敗した場合はログインへ戻す", async () => {
+    fetchUserTposMock.mockRejectedValue(new ApiClientError(401, null));
+
+    const { default: NewItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(NewItemPage));
+      await waitForEffects();
+    });
+
+    expect(pushMock).toHaveBeenCalledWith("/login");
+    expect(container.textContent).not.toContain(
+      "TPO の取得に失敗しました。再読み込みしても改善しない場合は設定を確認してください。",
+    );
+  });
+
   it("ボトムス丈とソックスの未選択時に分かりやすいエラーを表示する", async () => {
     const { default: NewItemPage } = await import("./page");
 
@@ -467,7 +485,7 @@ describe("NewItemPage", () => {
     expect(shapeSelect).not.toBeNull();
 
     await act(async () => {
-      categorySelect!.value = "bottoms";
+      categorySelect!.value = "pants";
       categorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
       await waitForEffects();
     });

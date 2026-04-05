@@ -44,104 +44,108 @@ export default function ItemMaterialFields({
       </datalist>
 
       <div className="space-y-3">
-        {rows.map((row, index) => (
-          <div
-            key={row.id}
-            className="rounded-xl border border-gray-200 bg-gray-50 p-4"
-          >
-            <div className="grid gap-3 md:grid-cols-[minmax(0,10rem)_minmax(0,1fr)_8rem_auto] md:items-end">
-              <div>
-                <FieldLabel
-                  htmlFor={`${row.id}-part`}
-                  label="区分"
-                  className="mb-1"
-                />
-                <input
-                  id={`${row.id}-part`}
-                  list="item-material-part-options"
-                  value={row.part_label}
-                  disabled={disabled}
-                  onChange={(event) =>
-                    onChange(row.id, "part_label", event.target.value)
-                  }
-                  className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                />
-                {errors[`materials.${index}.part_label`] && (
-                  <p className="mt-1 text-sm text-red-600">
-                    {errors[`materials.${index}.part_label`]}
-                  </p>
-                )}
-              </div>
+        {rows.map((row, index) => {
+          const fieldIdPrefix = `material-row-${index + 1}`;
 
-              <div>
-                <FieldLabel
-                  htmlFor={`${row.id}-material`}
-                  label="素材名"
-                  className="mb-1"
-                />
-                <input
-                  id={`${row.id}-material`}
-                  list="item-material-name-options"
-                  value={row.material_name}
-                  disabled={disabled}
-                  onChange={(event) =>
-                    onChange(row.id, "material_name", event.target.value)
-                  }
-                  className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                />
-                {errors[`materials.${index}.material_name`] && (
-                  <p className="mt-1 text-sm text-red-600">
-                    {errors[`materials.${index}.material_name`]}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <FieldLabel
-                  htmlFor={`${row.id}-ratio`}
-                  label="混率"
-                  className="mb-1"
-                />
-                <div className="flex items-center gap-2">
+          return (
+            <div
+              key={row.id}
+              className="rounded-xl border border-gray-200 bg-gray-50 p-4"
+            >
+              <div className="grid gap-3 md:grid-cols-[minmax(0,10rem)_minmax(0,1fr)_8rem_auto] md:items-end">
+                <div>
+                  <FieldLabel
+                    htmlFor={`${fieldIdPrefix}-part`}
+                    label="区分"
+                    className="mb-1"
+                  />
                   <input
-                    id={`${row.id}-ratio`}
-                    type="number"
-                    min="1"
-                    max="100"
-                    step="1"
-                    value={row.ratio}
+                    id={`${fieldIdPrefix}-part`}
+                    list="item-material-part-options"
+                    value={row.part_label}
                     disabled={disabled}
                     onChange={(event) =>
-                      onChange(row.id, "ratio", event.target.value)
+                      onChange(row.id, "part_label", event.target.value)
                     }
                     className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                   />
-                  <span className="text-sm text-gray-500">%</span>
+                  {errors[`materials.${index}.part_label`] && (
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors[`materials.${index}.part_label`]}
+                    </p>
+                  )}
                 </div>
-                {errors[`materials.${index}.ratio`] && (
-                  <p className="mt-1 text-sm text-red-600">
-                    {errors[`materials.${index}.ratio`]}
-                  </p>
-                )}
+
+                <div>
+                  <FieldLabel
+                    htmlFor={`${fieldIdPrefix}-material`}
+                    label="素材名"
+                    className="mb-1"
+                  />
+                  <input
+                    id={`${fieldIdPrefix}-material`}
+                    list="item-material-name-options"
+                    value={row.material_name}
+                    disabled={disabled}
+                    onChange={(event) =>
+                      onChange(row.id, "material_name", event.target.value)
+                    }
+                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  />
+                  {errors[`materials.${index}.material_name`] && (
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors[`materials.${index}.material_name`]}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <FieldLabel
+                    htmlFor={`${fieldIdPrefix}-ratio`}
+                    label="混率"
+                    className="mb-1"
+                  />
+                  <div className="flex items-center gap-2">
+                    <input
+                      id={`${fieldIdPrefix}-ratio`}
+                      type="number"
+                      min="1"
+                      max="100"
+                      step="1"
+                      value={row.ratio}
+                      disabled={disabled}
+                      onChange={(event) =>
+                        onChange(row.id, "ratio", event.target.value)
+                      }
+                      className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                    />
+                    <span className="text-sm text-gray-500">%</span>
+                  </div>
+                  {errors[`materials.${index}.ratio`] && (
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors[`materials.${index}.ratio`]}
+                    </p>
+                  )}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => onRemoveRow(row.id)}
+                  disabled={disabled}
+                  className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
+                >
+                  削除
+                </button>
               </div>
 
-              <button
-                type="button"
-                onClick={() => onRemoveRow(row.id)}
-                disabled={disabled}
-                className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
-              >
-                削除
-              </button>
+              {errors[`materials.${index}`] && (
+                <p className="mt-2 text-sm text-red-600">
+                  {errors[`materials.${index}`]}
+                </p>
+              )}
             </div>
-
-            {errors[`materials.${index}`] && (
-              <p className="mt-2 text-sm text-red-600">
-                {errors[`materials.${index}`]}
-              </p>
-            )}
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {totals.length > 0 && (

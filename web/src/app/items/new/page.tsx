@@ -14,6 +14,7 @@ import {
   buildSupportedCategoryOptions,
   fetchCategoryGroups,
 } from "@/lib/api/categories";
+import { ApiClientError } from "@/lib/api/client";
 import {
   fetchCategoryVisibilitySettings,
   fetchUserPreferences,
@@ -268,6 +269,9 @@ export default function NewItemPage() {
   useEffect(() => {
     let active = true;
 
+    const isUnauthorized = (error: unknown): boolean =>
+      error instanceof ApiClientError && error.status === 401;
+
     Promise.allSettled([
       fetchCategoryGroups(),
       fetchCategoryVisibilitySettings(),
@@ -275,6 +279,17 @@ export default function NewItemPage() {
       fetchUserPreferences(),
     ]).then(([groupsResult, settingsResult, tpoResult, preferencesResult]) => {
       if (!active) return;
+
+      if (
+        (settingsResult.status === "rejected" &&
+          isUnauthorized(settingsResult.reason)) ||
+        (tpoResult.status === "rejected" && isUnauthorized(tpoResult.reason)) ||
+        (preferencesResult.status === "rejected" &&
+          isUnauthorized(preferencesResult.reason))
+      ) {
+        router.push("/login");
+        return;
+      }
 
       if (
         groupsResult.status === "fulfilled" &&
