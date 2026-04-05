@@ -9,6 +9,17 @@
     { value: "tanktop", label: "タンクトップ" },
     { value: "jacket", label: "ジャケット" },
   ],
+  pants: [
+    { value: "pants", label: "パンツ" },
+    { value: "denim", label: "ジーンズ・デニムパンツ" },
+    { value: "slacks", label: "スラックス・ドレスパンツ" },
+    { value: "short-pants", label: "ショートパンツ" },
+    { value: "other", label: "その他パンツ" },
+  ],
+  skirts: [
+    { value: "skirt", label: "スカート" },
+    { value: "other", label: "その他スカート" },
+  ],
   bottoms: [
     { value: "tapered", label: "テーパード" },
     { value: "wide", label: "ワイドパンツ" },
@@ -18,12 +29,30 @@
     { value: "a-line-skirt", label: "Aラインスカート" },
     { value: "flare-skirt", label: "フレアスカート" },
   ],
+  outerwear: [
+    { value: "jacket", label: "ジャケット" },
+    { value: "blouson", label: "ブルゾン" },
+    { value: "down-padded", label: "ダウンジャケット・中綿ジャケット" },
+    { value: "coat", label: "コート" },
+    { value: "mountain-parka", label: "マウンテンパーカー" },
+    { value: "other", label: "その他アウター" },
+  ],
   outer: [
     { value: "tailored", label: "テーラードジャケット" },
     { value: "outer-cardigan", label: "カーディガン（羽織）" },
     { value: "trench", label: "トレンチコート" },
     { value: "chester", label: "チェスターコート" },
     { value: "down", label: "ダウン" },
+  ],
+  onepiece_dress: [
+    { value: "onepiece", label: "ワンピース" },
+    { value: "dress", label: "ドレス" },
+    { value: "other", label: "その他ワンピース・ドレス" },
+  ],
+  allinone: [
+    { value: "allinone", label: "オールインワン" },
+    { value: "salopette", label: "サロペット" },
+    { value: "other", label: "その他オールインワン" },
   ],
   onepiece_allinone: [
     { value: "onepiece", label: "ワンピース" },
@@ -85,9 +114,11 @@
 
 export const ITEM_CATEGORIES = [
   { value: "tops", label: "トップス" },
-  { value: "bottoms", label: "ボトムス" },
-  { value: "outer", label: "アウター" },
-  { value: "onepiece_allinone", label: "ワンピース / オールインワン" },
+  { value: "outerwear", label: "ジャケット・アウター" },
+  { value: "pants", label: "パンツ" },
+  { value: "skirts", label: "スカート" },
+  { value: "onepiece_dress", label: "ワンピース・ドレス" },
+  { value: "allinone", label: "オールインワン" },
   { value: "inner", label: "ルームウェア・インナー" },
   { value: "legwear", label: "レッグウェア" },
   { value: "shoes", label: "シューズ" },
@@ -102,6 +133,9 @@ export type ItemCategory = keyof typeof ITEM_SHAPES;
 export function findItemCategoryLabel(category?: string | null) {
   if (!category) return "";
   if (category === "accessories") return "小物";
+  if (category === "bottoms") return "ボトムス";
+  if (category === "outer") return "アウター";
+  if (category === "onepiece_allinone") return "ワンピース / オールインワン";
   return (
     ITEM_CATEGORIES.find((item) => item.value === category)?.label ?? category
   );

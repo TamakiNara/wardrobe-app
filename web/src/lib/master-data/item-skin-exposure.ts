@@ -37,7 +37,9 @@ const BOTTOMS_LENGTH_TYPES = BOTTOMS_LENGTH_OPTIONS.map(
 ) as readonly BottomsLengthType[];
 
 export function isBottomsSpecCategory(category?: string | null) {
-  return category === "bottoms";
+  return (
+    category === "bottoms" || category === "pants" || category === "skirts"
+  );
 }
 
 export function isLegwearSpecCategory(category?: string | null) {

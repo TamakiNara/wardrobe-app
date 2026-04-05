@@ -3,6 +3,7 @@ import {
   findItemShapeLabel,
   ITEM_SHAPES,
 } from "@/lib/master-data/item-shapes";
+import { resolveCurrentItemCategoryValue } from "@/lib/api/categories";
 import { compareByMainColorSort } from "@/lib/colors/main-color-order";
 import type { CategoryOption } from "@/types/categories";
 import type { ItemRecord } from "@/types/items";
@@ -25,13 +26,16 @@ export function buildClosetViewGroups(
   const grouped = new Map<string, Map<string, ItemRecord[]>>();
 
   activeItems.forEach((item) => {
+    const currentCategory =
+      resolveCurrentItemCategoryValue(item.category, item.shape) ??
+      item.category;
     const categoryMap =
-      grouped.get(item.category) ?? new Map<string, ItemRecord[]>();
+      grouped.get(currentCategory) ?? new Map<string, ItemRecord[]>();
     const shapeKey = item.shape || "";
     const current = categoryMap.get(shapeKey) ?? [];
     current.push(item);
     categoryMap.set(shapeKey, current);
-    grouped.set(item.category, categoryMap);
+    grouped.set(currentCategory, categoryMap);
   });
 
   const seenCategories = new Set<string>();
@@ -65,9 +69,10 @@ export function buildClosetViewGroups(
         return;
       }
 
+      const fallbackItem = shapeItems[0];
       shapeGroups.push({
         shape,
-        label: findItemShapeLabel(category, shape),
+        label: findItemShapeLabel(fallbackItem?.category ?? category, shape),
         items: [...shapeItems].sort(compareByMainColorSort),
       });
     });

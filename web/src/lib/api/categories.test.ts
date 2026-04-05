@@ -3,6 +3,7 @@ import {
   buildSupportedCategoryOptions,
   findVisibleCategoryIdForItem,
   isItemVisibleByCategorySettings,
+  resolveCurrentItemCategoryValue,
 } from "@/lib/api/categories";
 import type { CategoryGroupRecord } from "@/types/categories";
 
@@ -117,8 +118,9 @@ describe("buildSupportedCategoryOptions", () => {
   it("visibleCategoryIds が未指定のときは対応大分類を返す", () => {
     expect(buildSupportedCategoryOptions(groups)).toEqual([
       { value: "tops", label: "トップス" },
-      { value: "outer", label: "アウター" },
-      { value: "onepiece_allinone", label: "ワンピース / オールインワン" },
+      { value: "outerwear", label: "ジャケット・アウター" },
+      { value: "onepiece_dress", label: "ワンピース・ドレス" },
+      { value: "allinone", label: "オールインワン" },
       { value: "inner", label: "ルームウェア・インナー" },
       { value: "legwear", label: "レッグウェア" },
       { value: "bags", label: "バッグ" },
@@ -165,8 +167,23 @@ describe("findVisibleCategoryIdForItem", () => {
     expect(findVisibleCategoryIdForItem("tops", "blouse")).toBe(
       "tops_shirt_blouse",
     );
+    expect(findVisibleCategoryIdForItem("pants", "slacks")).toBe(
+      "pants_slacks",
+    );
+    expect(findVisibleCategoryIdForItem("skirts", "skirt")).toBe(
+      "skirts_skirt",
+    );
+    expect(findVisibleCategoryIdForItem("outerwear", "coat")).toBe(
+      "outerwear_coat",
+    );
     expect(findVisibleCategoryIdForItem("outer", "trench")).toBe(
       "outerwear_coat",
+    );
+    expect(findVisibleCategoryIdForItem("onepiece_dress", "onepiece")).toBe(
+      "onepiece_dress_onepiece",
+    );
+    expect(findVisibleCategoryIdForItem("allinone", "salopette")).toBe(
+      "allinone_salopette",
     );
     expect(findVisibleCategoryIdForItem("onepiece_allinone", "onepiece")).toBe(
       "onepiece_dress_onepiece",
@@ -198,6 +215,28 @@ describe("findVisibleCategoryIdForItem", () => {
   });
 });
 
+describe("resolveCurrentItemCategoryValue", () => {
+  it("旧カテゴリを current カテゴリ値へ寄せる", () => {
+    expect(resolveCurrentItemCategoryValue("bottoms", "wide")).toBe("pants");
+    expect(resolveCurrentItemCategoryValue("bottoms", "flare-skirt")).toBe(
+      "skirts",
+    );
+    expect(resolveCurrentItemCategoryValue("outer", "trench")).toBe(
+      "outerwear",
+    );
+    expect(
+      resolveCurrentItemCategoryValue("onepiece_allinone", "onepiece"),
+    ).toBe("onepiece_dress");
+    expect(
+      resolveCurrentItemCategoryValue("onepiece_allinone", "allinone"),
+    ).toBe("allinone");
+    expect(resolveCurrentItemCategoryValue("accessories", "tote")).toBe("bags");
+    expect(resolveCurrentItemCategoryValue("accessories", "hat")).toBe(
+      "fashion_accessories",
+    );
+  });
+});
+
 describe("isItemVisibleByCategorySettings", () => {
   it("visibleCategoryIds が未指定なら表示可能とみなす", () => {
     expect(
@@ -221,8 +260,15 @@ describe("isItemVisibleByCategorySettings", () => {
 
     expect(
       isItemVisibleByCategorySettings(
-        { category: "onepiece_allinone", shape: "onepiece" },
+        { category: "onepiece_dress", shape: "onepiece" },
         ["onepiece_dress_onepiece"],
+      ),
+    ).toBe(true);
+
+    expect(
+      isItemVisibleByCategorySettings(
+        { category: "allinone", shape: "salopette" },
+        ["allinone_salopette"],
       ),
     ).toBe(true);
 

@@ -60,7 +60,12 @@ class ItemsIndexQuery
                 'page' => $shouldReturnAll ? 1 : $items->currentPage(),
                 'lastPage' => $shouldReturnAll ? 1 : $items->lastPage(),
                 'availableCategories' => $visibleItems
-                    ->pluck('category')
+                    ->map(
+                        fn (Item $item) => ListQuerySupport::resolveCurrentItemCategoryValue(
+                            is_string($item->category) ? $item->category : null,
+                            is_string($item->shape) ? $item->shape : null,
+                        )
+                    )
                     ->filter(fn (mixed $value) => is_string($value) && $value !== '')
                     ->unique()
                     ->values()
@@ -120,7 +125,19 @@ class ItemsIndexQuery
         }
 
         if ($category !== '') {
-            $query->where('category', $category);
+            $categoryFilters = ListQuerySupport::itemCategoryFilterMap($category);
+
+            $query->where(function (Builder $builder) use ($categoryFilters) {
+                foreach ($categoryFilters as $categoryFilter) {
+                    $builder->orWhere(function (Builder $nested) use ($categoryFilter) {
+                        $nested->where('category', $categoryFilter['category']);
+
+                        if (isset($categoryFilter['shapes'])) {
+                            $nested->whereIn('shape', $categoryFilter['shapes']);
+                        }
+                    });
+                }
+            });
         }
 
         if ($season !== '') {

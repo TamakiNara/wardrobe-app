@@ -13,7 +13,7 @@ class ItemLegwearSpecValidator
         $bottomsLengthType = data_get($validated, 'spec.bottoms.length_type');
         $coverageType = data_get($validated, 'spec.legwear.coverage_type');
 
-        if ($category === 'bottoms' && ($bottomsLengthType === null || $bottomsLengthType === '')) {
+        if (in_array($category, ['bottoms', 'pants', 'skirts'], true) && ($bottomsLengthType === null || $bottomsLengthType === '')) {
             self::throwBottomsLengthTypeRequiredError();
         }
 

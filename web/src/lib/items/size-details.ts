@@ -76,7 +76,39 @@ function resolveStructuredSizeFieldGroup(
     }
   }
 
-  if (category === "onepiece_allinone" && shape === "onepiece") {
+  if (category === "pants") {
+    if (
+      shape === "pants" ||
+      shape === "denim" ||
+      shape === "slacks" ||
+      shape === "short-pants" ||
+      shape === "other"
+    ) {
+      return "pants";
+    }
+  }
+
+  if (category === "skirts") {
+    if (shape === "skirt" || shape === "other") {
+      return "skirt";
+    }
+  }
+
+  if (category === "outerwear") {
+    if (
+      shape === "jacket" ||
+      shape === "blouson" ||
+      shape === "down-padded" ||
+      shape === "mountain-parka"
+    ) {
+      return "jacket";
+    }
+  }
+
+  if (
+    (category === "onepiece_allinone" || category === "onepiece_dress") &&
+    shape === "onepiece"
+  ) {
     return "onepiece";
   }
 

@@ -158,7 +158,7 @@ const defaultListProps = {
   totalAllCount: sampleItems.length,
   currentPage: 1,
   lastPage: 1,
-  availableCategoryValues: ["tops", "bottoms", "outer"],
+  availableCategoryValues: ["tops", "pants", "outerwear"],
   availableBrands: ["GU", "UNIQLO"],
   availableSeasons: ["春", "夏"],
   availableTpos: ["仕事", "休日"],
@@ -234,7 +234,7 @@ describe("ItemsList", () => {
           ...defaultListProps,
           initialCategoryOptions: [
             { value: "tops", label: "トップス" },
-            { value: "bottoms", label: "ボトムス" },
+            { value: "pants", label: "パンツ" },
           ],
         }),
       );
@@ -538,7 +538,7 @@ describe("ItemsList", () => {
         id: 5,
         name: "ネイビーパンツ",
         status: "active",
-        category: "bottoms",
+        category: "pants",
         shape: "pants",
         colors: [
           {
@@ -557,8 +557,8 @@ describe("ItemsList", () => {
         id: 6,
         name: "ベージュミニスカート",
         status: "active",
-        category: "bottoms",
-        shape: "mini-skirt",
+        category: "skirts",
+        shape: "skirt",
         colors: [
           {
             role: "main",
@@ -576,8 +576,8 @@ describe("ItemsList", () => {
         id: 7,
         name: "ブラウンフレアスカート",
         status: "active",
-        category: "bottoms",
-        shape: "flare-skirt",
+        category: "skirts",
+        shape: "other",
         colors: [
           {
             role: "main",
@@ -592,10 +592,29 @@ describe("ItemsList", () => {
         images: [],
       },
       {
+        id: 8,
+        name: "グレーテーパードパンツ",
+        status: "active",
+        category: "bottoms",
+        shape: "tapered",
+        colors: [
+          {
+            role: "main",
+            mode: "preset",
+            value: "gray",
+            hex: "#7A7A7A",
+            label: "グレー",
+          },
+        ],
+        seasons: ["春"],
+        tpos: ["仕事"],
+        images: [],
+      },
+      {
         id: 4,
         name: "処分済みコート",
         status: "disposed",
-        category: "outer",
+        category: "outerwear",
         shape: "coat",
         colors: [
           {
@@ -643,13 +662,15 @@ describe("ItemsList", () => {
     expect(listButton?.className).not.toContain("bg-blue-600");
     expect(closetButton?.className).toContain("bg-blue-600");
     expect(container.textContent).toContain("トップス");
-    expect(container.textContent).toContain("ボトムス");
-    expect(container.textContent).not.toContain("アウター");
+    expect(container.textContent).toContain("パンツ");
+    expect(container.textContent).toContain("スカート");
+    expect(container.textContent).not.toContain("ボトムス");
+    expect(container.textContent).not.toContain("ジャケット・アウター");
     expect(container.textContent).toContain("Tシャツ/カットソー");
     expect(container.textContent).toContain("シャツ");
     expect(container.textContent).toContain("カーディガン");
-    expect(container.textContent).toContain("ミニスカート");
-    expect(container.textContent).toContain("フレアスカート");
+    expect(container.textContent).toContain("スカート");
+    expect(container.textContent).toContain("その他スカート");
 
     const categoryHeading = Array.from(container.querySelectorAll("h2")).find(
       (heading) => heading.textContent === "トップス",
@@ -684,12 +705,17 @@ describe("ItemsList", () => {
     expect(cardiganLink?.getAttribute("href")).toBe("/items/3");
     expect(
       container.querySelector(
-        'a[aria-label="ベージュミニスカート / ミニスカート / ベージュ"]',
+        'a[aria-label="グレーテーパードパンツ / テーパード / グレー"]',
       ),
     ).not.toBeNull();
     expect(
       container.querySelector(
-        'a[aria-label="ブラウンフレアスカート / フレアスカート / ブラウン"]',
+        'a[aria-label="ベージュミニスカート / スカート / ベージュ"]',
+      ),
+    ).not.toBeNull();
+    expect(
+      container.querySelector(
+        'a[aria-label="ブラウンフレアスカート / その他スカート / ブラウン"]',
       ),
     ).not.toBeNull();
     expect(topsLink?.className).toContain("focus-visible:ring-2");
@@ -717,7 +743,7 @@ describe("ItemsList", () => {
         id: 10,
         name: "処分済みコート",
         status: "disposed",
-        category: "outer",
+        category: "outerwear",
         shape: "coat",
         colors: [],
         seasons: ["冬"],
@@ -796,7 +822,7 @@ describe("ItemsList", () => {
         totalAll: 3,
         page: 1,
         lastPage: 1,
-        availableCategories: ["tops", "bottoms"],
+        availableCategories: ["tops", "pants"],
         availableSeasons: ["春", "夏", "冬"],
         availableTpos: ["仕事", "休日"],
       },

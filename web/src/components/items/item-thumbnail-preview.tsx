@@ -109,6 +109,8 @@ export default function ItemThumbnailPreview({
   size = "large",
   skinTonePreset,
 }: ItemThumbnailPreviewProps) {
+  const isBottomsLikeCategory =
+    category === "bottoms" || category === "pants" || category === "skirts";
   const primaryImage = images?.find((image) => image.is_primary) ?? images?.[0];
   const sizeClass =
     size === "small"
@@ -120,13 +122,12 @@ export default function ItemThumbnailPreview({
     shape,
     spec?.legwear?.coverage_type,
   );
-  const bottomsLengthType =
-    category === "bottoms"
-      ? resolveBottomsLengthTypeForPreview(spec?.bottoms?.length_type)
-      : null;
+  const bottomsLengthType = isBottomsLikeCategory
+    ? resolveBottomsLengthTypeForPreview(spec?.bottoms?.length_type)
+    : null;
   const skinToneColor = resolveSkinToneColor(skinTonePreset);
   const shouldRenderLowerBody =
-    category === "bottoms" ||
+    isBottomsLikeCategory ||
     (category === "legwear" && Boolean(legwearPreviewCoverageType));
   const shouldRenderNonLowerBodyPreview =
     Boolean(category) && !shouldRenderLowerBody;
@@ -166,12 +167,12 @@ export default function ItemThumbnailPreview({
         className={`flex items-center justify-center border border-dashed border-gray-300 bg-white ${sizeClass} ${contentPaddingClass}`}
       >
         <LowerBodyPreviewSvg
-          lengthType={category === "bottoms" ? bottomsLengthType : null}
+          lengthType={isBottomsLikeCategory ? bottomsLengthType : null}
           coverageType={
             category === "legwear" ? legwearPreviewCoverageType : null
           }
-          bottomsMainColor={category === "bottoms" ? mainColorHex : null}
-          bottomsSubColor={category === "bottoms" ? subColorHex : null}
+          bottomsMainColor={isBottomsLikeCategory ? mainColorHex : null}
+          bottomsSubColor={isBottomsLikeCategory ? subColorHex : null}
           legwearMainColor={category === "legwear" ? mainColorHex : null}
           legwearSubColor={category === "legwear" ? subColorHex : null}
           skinToneColor={skinToneColor}

@@ -9,6 +9,7 @@ import { fetchItemsIndex } from "@/lib/api/items";
 import {
   buildSupportedCategoryOptions,
   fetchCategoryGroups,
+  resolveCurrentItemCategoryValue,
 } from "@/lib/api/categories";
 import { COLOR_THUMBNAIL_FALLBACK_COLOR } from "@/lib/color-thumbnails/shared";
 import { buildClosetViewGroups } from "@/lib/items/closet-view";
@@ -694,7 +695,10 @@ export default function ItemsList({
           {items.map((item) => {
             const mainColor = item.colors.find((c) => c.role === "main");
             const subColor = item.colors.find((c) => c.role === "sub");
-            const categoryLabel = findItemCategoryLabel(item.category);
+            const currentCategory =
+              resolveCurrentItemCategoryValue(item.category, item.shape) ??
+              item.category;
+            const categoryLabel = findItemCategoryLabel(currentCategory);
             const shapeLabel = findItemShapeLabel(item.category, item.shape);
 
             return (

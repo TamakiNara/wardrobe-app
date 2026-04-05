@@ -50,8 +50,8 @@ describe("PurchaseCandidateItemDraftAction", () => {
             item_draft: {
               name: "コート候補",
               source_category_id: "outerwear_coat",
-              category: "outer",
-              shape: "trench",
+              category: "outerwear",
+              shape: "coat",
               size_note: "厚手ニット込み",
               size_details: {
                 structured: {

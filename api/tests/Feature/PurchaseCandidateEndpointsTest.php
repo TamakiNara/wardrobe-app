@@ -642,8 +642,8 @@ class PurchaseCandidateEndpointsTest extends TestCase
         $response->assertOk()
             ->assertJsonPath('message', 'item_draft_ready')
             ->assertJsonPath('item_draft.source_category_id', 'outerwear_coat')
-            ->assertJsonPath('item_draft.category', 'outer')
-            ->assertJsonPath('item_draft.shape', 'trench')
+            ->assertJsonPath('item_draft.category', 'outerwear')
+            ->assertJsonPath('item_draft.shape', 'coat')
             ->assertJsonPath('item_draft.memo', 'メモ')
             ->assertJsonPath('item_draft.size_details.structured.shoulder_width', 42)
             ->assertJsonPath('item_draft.size_details.custom_fields.0.label', '裄丈')
@@ -1128,8 +1128,8 @@ class PurchaseCandidateEndpointsTest extends TestCase
         ]);
 
         $draftResponse->assertOk()
-            ->assertJsonPath('item_draft.category', 'outer')
-            ->assertJsonPath('item_draft.shape', 'trench');
+            ->assertJsonPath('item_draft.category', 'outerwear')
+            ->assertJsonPath('item_draft.shape', 'coat');
 
         $payload = $draftResponse->json('item_draft');
         $payload['purchase_candidate_id'] = $candidate->id;
@@ -1141,16 +1141,16 @@ class PurchaseCandidateEndpointsTest extends TestCase
         ]);
 
         $createResponse->assertCreated()
-            ->assertJsonPath('item.category', 'outer')
-            ->assertJsonPath('item.shape', 'trench')
+            ->assertJsonPath('item.category', 'outerwear')
+            ->assertJsonPath('item.shape', 'coat')
             ->assertJsonPath('item.brand_name', $candidate->brand_name)
             ->assertJsonPath('item.memo', $candidate->memo);
 
         $this->assertDatabaseHas('items', [
             'user_id' => $user->id,
             'name' => 'トレンチ候補',
-            'category' => 'outer',
-            'shape' => 'trench',
+            'category' => 'outerwear',
+            'shape' => 'coat',
             'memo' => 'メモ',
         ]);
         $this->assertDatabaseHas('purchase_candidates', [

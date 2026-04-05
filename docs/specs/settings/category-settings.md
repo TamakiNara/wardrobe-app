@@ -130,7 +130,7 @@ DBテーブル構成の詳細は `docs/data/database.md` を参照する。
 | 水着 | `swimwear` | 新設候補 |
 | 着物 | `kimono` | 新設候補 |
 
-実装第1弾では、`swimwear` と `kimono` を含む大分類までを対象にし、`users.visible_category_ids`・settings・onboarding・purchase candidate の `category_id` を新しい中分類 ID へ寄せる。item 側では `bottoms` / `outer` / `onepiece_allinone` などは現行値を維持する一方、`bags`・`fashion_accessories`・`swimwear`・`kimono` は current item category にも切り出し、橋渡しは必要な箇所だけに限定する。
+実装第1弾と第2弾では、`swimwear` と `kimono` を含む大分類までを対象にし、`users.visible_category_ids`・settings・onboarding・purchase candidate の `category_id` を新しい中分類 ID へ寄せる。item 側も `bags`・`fashion_accessories`・`swimwear`・`kimono` に加えて、`pants`・`skirts`・`outerwear`・`onepiece_dress`・`allinone` を現在の item カテゴリに取り込む。橋渡しは旧 `bottoms` / `outer` / `onepiece_allinone` を既存データ互換として残す箇所に限定する。
 
 ### 中分類の最終候補
 
@@ -282,15 +282,17 @@ DBテーブル構成の詳細は `docs/data/database.md` を参照する。
 
 - `pants`
   - `パンツ > パンツ` を代表カテゴリにしたうえで、シルエット差は `shape` 側へ寄せる
-  - まずは `straight / tapered / wide` 程度の差を維持できればよい
+  - 現時点では current item shape として `pants / denim / slacks / short-pants / other` を持つ
 - `skirts`
   - `スカート > スカート` を代表カテゴリにし、`タイト / フレア / プリーツ` のような型差は `shape` または `spec` 側で吸収する
-  - 初回再編では中分類よりも `shape` 側の受け皿整備を優先する
+  - 現時点では current item shape として `skirt / other` を持つ
 - `outerwear`
-  - `ジャケット・アウター` は同名中分類を置かず、`jacket / blouson / coat / mountain_parka / down_padded` のような最小 shape へ寄せる前提で整理する
-  - ただし、初回は `jacket / blouson / coat / mountain_parka / down_padded` 程度の最小 shape でもよい
+  - `ジャケット・アウター` は同名中分類を置かず、`jacket / blouson / coat / mountain-parka / down-padded / other` の最小 shape で扱う
 - `onepiece_dress`
   - `シャツワンピース` や `ニットワンピース` を中分類に持たない代わりに、必要なら素材差や袖丈差を `spec` 側で扱える余地を残す
+  - 現時点では current item shape として `onepiece / dress / other` を持つ
+- `allinone`
+  - 現時点では current item shape として `allinone / salopette / other` を持つ
 - `bags`
   - 初回は `バッグ > バッグ` を代表カテゴリにし、中分類は増やしすぎない
   - 一方で current item shape としては `bag / tote / shoulder / backpack / clutch` 程度を持ち、用途差は shape で吸収する
@@ -301,7 +303,7 @@ DBテーブル構成の詳細は `docs/data/database.md` を参照する。
 
 - `shape` / `spec` は **方向性としては使えるが、再編全体をそのまま受け止められるほど全面的には詰まっていない**
 - かなり具体化されているのは `tops` と `bottoms.length_type`、`legwear.coverage_type` まで
-- そのため、次に実装へ進むときは category master 追加だけでなく、少なくとも `pants` と `skirts` の `shape` の持ち方を同時に決める前提で進める
+- `pants` / `skirts` / `outerwear` / `onepiece_dress` / `allinone` は current item category と最小 shape までは導入したが、spec の責務分解はまだ最小限に留めている
 
 ---
 

@@ -45,7 +45,10 @@ export function selectOutfitThumbnailRepresentatives(
   sortedOutfitItems: OutfitColorThumbnailItem[],
 ): OutfitThumbnailRepresentatives {
   const onepieceAllinoneItems = sortedOutfitItems.filter(
-    (outfitItem) => outfitItem.item.category === "onepiece_allinone",
+    (outfitItem) =>
+      outfitItem.item.category === "onepiece_allinone" ||
+      outfitItem.item.category === "onepiece_dress" ||
+      outfitItem.item.category === "allinone",
   );
   const representativeOnepieceAllinone =
     onepieceAllinoneItems.length > 0
@@ -63,7 +66,10 @@ export function resolveOutfitThumbnailMode(params: {
 }): OutfitThumbnailModeResolution {
   const { sortedOutfitItems, representatives } = params;
   const hasBottoms = sortedOutfitItems.some(
-    (outfitItem) => outfitItem.item.category === "bottoms",
+    (outfitItem) =>
+      outfitItem.item.category === "bottoms" ||
+      outfitItem.item.category === "pants" ||
+      outfitItem.item.category === "skirts",
   );
   const { representativeOnepieceAllinone } = representatives;
   const shouldRenderOnepieceWithBottomsLayer =

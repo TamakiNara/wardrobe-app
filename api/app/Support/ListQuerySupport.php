@@ -85,6 +85,17 @@ class ListQuerySupport
                 'tanktop' => 'tops_tanktop',
                 'jacket' => 'tops_other',
             ],
+            'pants' => [
+                'pants' => 'pants_pants',
+                'denim' => 'pants_denim',
+                'slacks' => 'pants_slacks',
+                'short-pants' => 'pants_short',
+                'other' => 'pants_other',
+            ],
+            'skirts' => [
+                'skirt' => 'skirts_skirt',
+                'other' => 'skirts_other',
+            ],
             'bottoms' => [
                 'tapered' => 'pants_pants',
                 'wide' => 'pants_pants',
@@ -94,12 +105,30 @@ class ListQuerySupport
                 'a-line-skirt' => 'skirts_skirt',
                 'flare-skirt' => 'skirts_skirt',
             ],
+            'outerwear' => [
+                'jacket' => 'outerwear_jacket',
+                'blouson' => 'outerwear_blouson',
+                'down-padded' => 'outerwear_down_padded',
+                'coat' => 'outerwear_coat',
+                'mountain-parka' => 'outerwear_mountain_parka',
+                'other' => 'outerwear_other',
+            ],
             'outer' => [
                 'tailored' => 'outerwear_jacket',
                 'trench' => 'outerwear_coat',
                 'chester' => 'outerwear_coat',
                 'down' => 'outerwear_down_padded',
                 'outer-cardigan' => 'outerwear_blouson',
+            ],
+            'onepiece_dress' => [
+                'onepiece' => 'onepiece_dress_onepiece',
+                'dress' => 'onepiece_dress_dress',
+                'other' => 'onepiece_dress_other',
+            ],
+            'allinone' => [
+                'allinone' => 'allinone_allinone',
+                'salopette' => 'allinone_salopette',
+                'other' => 'allinone_other',
             ],
             'onepiece_allinone' => [
                 'onepiece' => 'onepiece_dress_onepiece',
@@ -210,6 +239,77 @@ class ListQuerySupport
                 });
             }
         });
+    }
+
+    public static function resolveCurrentItemCategoryValue(?string $category, ?string $shape): ?string
+    {
+        $map = self::itemVisibleCategoryMap();
+
+        if (! $category) {
+            return null;
+        }
+
+        return match ($category) {
+            'outer', 'outerwear' => 'outerwear',
+            'onepiece_dress' => 'onepiece_dress',
+            'allinone' => 'allinone',
+            'onepiece_allinone' => match ($shape) {
+                'onepiece' => 'onepiece_dress',
+                'allinone' => 'allinone',
+                default => 'onepiece_dress',
+            },
+            'pants', 'skirts' => $category,
+            'bottoms' => match ($shape) {
+                'tapered', 'wide', 'straight' => 'pants',
+                'mini-skirt', 'tight-skirt', 'a-line-skirt', 'flare-skirt' => 'skirts',
+                default => 'pants',
+            },
+            'accessories' => match ($shape) {
+                'tote', 'shoulder', 'backpack' => 'bags',
+                default => 'fashion_accessories',
+            },
+            default => array_key_exists($category, $map) ? $category : null,
+        };
+    }
+
+    /**
+     * @return array<int, array{category: string, shapes?: array<int, string>}>
+     */
+    public static function itemCategoryFilterMap(string $category): array
+    {
+        return match ($category) {
+            'outerwear' => [
+                ['category' => 'outerwear'],
+                ['category' => 'outer'],
+            ],
+            'pants' => [
+                ['category' => 'pants'],
+                ['category' => 'bottoms', 'shapes' => ['tapered', 'wide', 'straight']],
+            ],
+            'skirts' => [
+                ['category' => 'skirts'],
+                ['category' => 'bottoms', 'shapes' => ['mini-skirt', 'tight-skirt', 'a-line-skirt', 'flare-skirt']],
+            ],
+            'onepiece_dress' => [
+                ['category' => 'onepiece_dress'],
+                ['category' => 'onepiece_allinone', 'shapes' => ['onepiece']],
+            ],
+            'allinone' => [
+                ['category' => 'allinone'],
+                ['category' => 'onepiece_allinone', 'shapes' => ['allinone']],
+            ],
+            'bags' => [
+                ['category' => 'bags'],
+                ['category' => 'accessories', 'shapes' => ['tote', 'shoulder', 'backpack']],
+            ],
+            'fashion_accessories' => [
+                ['category' => 'fashion_accessories'],
+                ['category' => 'accessories', 'shapes' => ['hat', 'accessory']],
+            ],
+            default => [
+                ['category' => $category],
+            ],
+        };
     }
 
     private static function resolveVisibleCategoryIdForItem(Item $item): ?string

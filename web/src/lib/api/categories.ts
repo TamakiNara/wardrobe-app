@@ -12,11 +12,11 @@ const SUPPORTED_CATEGORY_VALUES = new Set<string>(
 
 const MASTER_GROUP_TO_ITEM_CATEGORY: Record<string, string> = {
   tops: "tops",
-  outerwear: "outer",
-  pants: "bottoms",
-  skirts: "bottoms",
-  onepiece_dress: "onepiece_allinone",
-  allinone: "onepiece_allinone",
+  outerwear: "outerwear",
+  pants: "pants",
+  skirts: "skirts",
+  onepiece_dress: "onepiece_dress",
+  allinone: "allinone",
   roomwear_inner: "inner",
   legwear: "legwear",
   shoes: "shoes",
@@ -37,6 +37,17 @@ const ITEM_CATEGORY_ID_BY_SHAPE: Record<string, Record<string, string>> = {
     tanktop: "tops_tanktop",
     jacket: "tops_other",
   },
+  pants: {
+    pants: "pants_pants",
+    denim: "pants_denim",
+    slacks: "pants_slacks",
+    "short-pants": "pants_short",
+    other: "pants_other",
+  },
+  skirts: {
+    skirt: "skirts_skirt",
+    other: "skirts_other",
+  },
   bottoms: {
     tapered: "pants_pants",
     wide: "pants_pants",
@@ -46,12 +57,30 @@ const ITEM_CATEGORY_ID_BY_SHAPE: Record<string, Record<string, string>> = {
     "a-line-skirt": "skirts_skirt",
     "flare-skirt": "skirts_skirt",
   },
+  outerwear: {
+    jacket: "outerwear_jacket",
+    blouson: "outerwear_blouson",
+    "down-padded": "outerwear_down_padded",
+    coat: "outerwear_coat",
+    "mountain-parka": "outerwear_mountain_parka",
+    other: "outerwear_other",
+  },
   outer: {
     tailored: "outerwear_jacket",
     trench: "outerwear_coat",
     chester: "outerwear_coat",
     down: "outerwear_down_padded",
     "outer-cardigan": "outerwear_blouson",
+  },
+  onepiece_dress: {
+    onepiece: "onepiece_dress_onepiece",
+    dress: "onepiece_dress_dress",
+    other: "onepiece_dress_other",
+  },
+  allinone: {
+    allinone: "allinone_allinone",
+    salopette: "allinone_salopette",
+    other: "allinone_other",
   },
   onepiece_allinone: {
     onepiece: "onepiece_dress_onepiece",
@@ -110,6 +139,76 @@ const ITEM_CATEGORY_ID_BY_SHAPE: Record<string, Record<string, string>> = {
     accessory: "fashion_accessories_other",
   },
 };
+
+const PANTS_LIKE_SHAPES = new Set(["tapered", "wide", "straight"]);
+const SKIRT_LIKE_SHAPES = new Set([
+  "mini-skirt",
+  "tight-skirt",
+  "a-line-skirt",
+  "flare-skirt",
+]);
+
+export function resolveCurrentItemCategoryValue(
+  category?: string | null,
+  shape?: string | null,
+): string | null {
+  if (!category) {
+    return null;
+  }
+
+  if (category === "outer" || category === "outerwear") {
+    return "outerwear";
+  }
+
+  if (category === "onepiece_allinone") {
+    if (shape === "onepiece") {
+      return "onepiece_dress";
+    }
+
+    if (shape === "allinone") {
+      return "allinone";
+    }
+  }
+
+  if (category === "bottoms") {
+    if (shape && PANTS_LIKE_SHAPES.has(shape)) {
+      return "pants";
+    }
+
+    if (shape && SKIRT_LIKE_SHAPES.has(shape)) {
+      return "skirts";
+    }
+  }
+
+  if (category === "accessories") {
+    if (shape === "tote" || shape === "shoulder" || shape === "backpack") {
+      return "bags";
+    }
+
+    return "fashion_accessories";
+  }
+
+  if (category === "pants" || category === "skirts") {
+    return category;
+  }
+
+  if (
+    category === "onepiece_dress" ||
+    category === "allinone" ||
+    category === "tops" ||
+    category === "inner" ||
+    category === "legwear" ||
+    category === "shoes" ||
+    category === "bags" ||
+    category === "fashion_accessories" ||
+    category === "swimwear" ||
+    category === "kimono"
+  ) {
+    return category;
+  }
+
+  return category;
+}
 
 export async function fetchCategoryGroups(): Promise<CategoryGroupRecord[]> {
   const data = await apiFetch<CategoriesResponse>("/api/categories");

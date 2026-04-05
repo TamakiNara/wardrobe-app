@@ -33,8 +33,8 @@ describe("POST /api/purchase-candidates/[id]/item-draft", () => {
             message: "item_draft_ready",
             item_draft: {
               source_category_id: "outerwear_coat",
-              category: "outer",
-              shape: "trench",
+              category: "outerwear",
+              shape: "coat",
             },
             candidate_summary: { id: 1, name: "候補" },
             images: [],
@@ -68,6 +68,6 @@ describe("POST /api/purchase-candidates/[id]/item-draft", () => {
       "http://localhost:8000/api/purchase-candidates/1/item-draft",
       expect.objectContaining({ method: "POST" }),
     );
-    expect(json.item_draft.category).toBe("outer");
+    expect(json.item_draft.category).toBe("outerwear");
   });
 });

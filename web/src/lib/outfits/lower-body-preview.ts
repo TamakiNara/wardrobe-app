@@ -57,7 +57,12 @@ function sortBySortOrder(items: OutfitLowerBodyPreviewItem[]) {
 
 function filterBottoms(items: OutfitLowerBodyPreviewItem[]) {
   return sortBySortOrder(
-    items.filter((outfitItem) => outfitItem.item.category === "bottoms"),
+    items.filter(
+      (outfitItem) =>
+        outfitItem.item.category === "bottoms" ||
+        outfitItem.item.category === "pants" ||
+        outfitItem.item.category === "skirts",
+    ),
   );
 }
 
@@ -70,7 +75,10 @@ function filterLegwear(items: OutfitLowerBodyPreviewItem[]) {
 function filterOnepieceAllinone(items: OutfitLowerBodyPreviewItem[]) {
   return sortBySortOrder(
     items.filter(
-      (outfitItem) => outfitItem.item.category === "onepiece_allinone",
+      (outfitItem) =>
+        outfitItem.item.category === "onepiece_allinone" ||
+        outfitItem.item.category === "onepiece_dress" ||
+        outfitItem.item.category === "allinone",
     ),
   );
 }

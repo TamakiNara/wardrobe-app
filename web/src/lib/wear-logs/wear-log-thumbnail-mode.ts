@@ -75,7 +75,10 @@ export function selectWearLogThumbnailRepresentatives(
   sortedWearLogItems: WearLogThumbnailItem[],
 ): WearLogThumbnailRepresentatives {
   const onepieceAllinoneItems = sortedWearLogItems.filter(
-    (item) => item.category === "onepiece_allinone",
+    (item) =>
+      item.category === "onepiece_allinone" ||
+      item.category === "onepiece_dress" ||
+      item.category === "allinone",
   );
 
   return {

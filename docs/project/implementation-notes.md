@@ -315,15 +315,16 @@ thumbnail の現状確認用パターン一覧を見返すときは `docs/specs/
 - カテゴリ体系見直しメモ:
 - 現行の `category_groups` / `category_master` は初期実装としては成立しているが、実運用を考えると `ボトムス`、`ワンピース・オールインワン`、`小物` の粒度が粗い
 - 次回再編の第一候補は、大分類を `tops`、`outerwear`、`pants`、`skirts`、`onepiece_dress`、`allinone`、`roomwear_inner`、`legwear`、`shoes`、`bags`、`fashion_accessories`、`swimwear`、`kimono` に寄せる案とする
-- 実装第1弾では `swimwear` と `kimono` を含む大分類までを対象にし、settings / onboarding / purchase candidate の `category_id` と visible 判定まで一貫して追随する
+- 実装第1弾では `swimwear` と `kimono` を含む大分類までを対象にし、settings / onboarding / purchase candidate の `category_id` と表示対象判定まで一貫して追随する
 - 中分類は「大分類で責務を分け、中分類では一般的な登録名を持ち、詳細シルエット差は item 側 `shape` や spec へ寄せる」方針を優先する
 - 影響が大きいのは seed だけではなく、`settings/categories`、onboarding プリセット、item / outfit / purchase candidate の create-edit 候補、一覧絞り込み候補、`category_id -> category / shape` 変換、クローゼットビューのカテゴリ / shape 表示である
-- `バッグ` と `ファッション小物` は、第1弾で item 側 current category も分ける。`bags` はバッグ本体、`fashion_accessories` は帽子・ベルト・マフラー・ストール・手袋・アクセサリー・財布・カードケース・ヘアアクセサリー・眼鏡・サングラス・腕時計・その他を持つ前提にする
+- `バッグ` と `ファッション小物` は、第1弾で item 側の現在カテゴリも分ける。`bags` はバッグ本体、`fashion_accessories` は帽子・ベルト・マフラー・ストール・手袋・アクセサリー・財布・カードケース・ヘアアクセサリー・眼鏡・サングラス・腕時計・その他を持つ前提にする
 - purchase candidate の `category_id` は Laravel 側で item の `category` / `shape` へ変換しているため、中分類追加だけでなく大分類再編でも `PurchaseCandidateCategoryMap` と frontend 側 category map の同時更新が必要になる
 - 実装第1弾では category master の中分類 ID は新案へ寄せつつ、item の `category` / `shape` も `bags`・`fashion_accessories`・`swimwear`・`kimono` は新案側へ進め、`bottoms` / `outer` / `onepiece_allinone` などは必要な箇所だけ対応表で橋渡しする
+- 実装第2弾では item の現在カテゴリも `pants`・`skirts`・`outerwear`・`onepiece_dress`・`allinone` を正本寄りに扱い始め、一覧候補・表示対象判定・purchase candidate の item-draft 生成は新しい category 値を優先する
 - `パーカー・スウェット`、`キャミソール・タンクトップ`、`ワンピース・ドレス`、`バッグ・小物` は現行の命名や責務が曖昧で、一覧比較や settings 表示でも後から説明しづらくなるため、分類再編時に優先して解消する
 - `水着` と `着物` は通常衣類に混ぜるより独立大分類へ置く方が settings と onboarding で扱いやすい
-- `shape / spec` はカテゴリ再編の受け皿として使う前提だが、現時点でかなり具体化されているのは `tops` と `spec.bottoms.length_type`、`spec.legwear.coverage_type` までであり、`pants` / `skirts` / `outerwear` / `onepiece_dress` / `bags` / `kimono` は後続で最小 shape / spec 設計を詰める必要がある
+- `shape / spec` はカテゴリ再編の受け皿として使う前提だが、現時点でかなり具体化されているのは `tops` と `spec.bottoms.length_type`、`spec.legwear.coverage_type` までであり、`pants` / `skirts` / `outerwear` / `onepiece_dress` / `allinone` / `bags` / `kimono` は「壊れない最小限の shape / spec」まで追随済み、全面再設計は後続に残す
 - 今回は全面実装には入らないが、次に category master を追加・再編するときは、seed、settings、onboarding、candidate 変換、item `category / shape` のどこまで同時に直すかを一括で決めてから着手する
 - item 一覧 / outfits 一覧では、URL に季節条件がない場合のみ `currentSeason` を初期値として適用する
 - `currentSeason` の保存値は英語 enum だが、一覧 UI / URL の季節 filter 値は既存どおり日本語を維持し、初期適用時だけ変換する

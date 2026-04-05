@@ -453,7 +453,7 @@ export default function EditItemPage({
           );
         }
 
-        if (item.category === "bottoms") {
+        if (isBottomsSpecCategory(item.category)) {
           setBottomsLengthType(
             (bottoms?.length_type as BottomsLengthType | null | undefined) ??
               "",

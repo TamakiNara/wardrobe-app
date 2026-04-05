@@ -36,7 +36,7 @@ export function resolveColorThumbnailGroup(
     return "tops";
   }
 
-  if (category === "bottoms") {
+  if (category === "bottoms" || category === "pants" || category === "skirts") {
     return "bottoms";
   }
 
