@@ -327,9 +327,12 @@ thumbnail の現状確認用パターン一覧を見返すときは `docs/specs/
 - `shape / spec` はカテゴリ再編の受け皿として使う前提だが、現時点でかなり具体化されているのは `tops` と `spec.bottoms.length_type`、`spec.legwear.coverage_type` までであり、`pants` / `skirts` / `outerwear` / `onepiece_dress` / `allinone` / `bags` / `kimono` は「壊れない最小限の shape / spec」まで追随済み、全面再設計は後続に残す
 - 現時点の整理では、`category` は用途・売り場・一覧探索の単位、`shape` は同じカテゴリ内での見た目・構造・型の差、`spec` は丈・覆い方・機能・補助属性を持つ責務とする
 - lower-body 系は、`pants` / `skirts` とも丈を原則 `spec` に寄せ、テーパード / フレアのような型差は `shape` に寄せる
-- ただし `ジーンズ・デニムパンツ` や `ショートパンツ` のように種類名として定着しているものは、中分類に残してよい
+- `pants` は `pants_pants`、`pants_denim`、`pants_slacks`、`pants_cargo`、`pants_chino`、`pants_sweat_jersey`、`pants_other` を中分類の第一候補とし、短さは `spec.length_type` で扱う
+- `pants` の `spec.length_type` は、まず `mini / short / half / cropped / full` を候補とし、`mini` と `short` は分ける
+- `キュロット` は `pants` の中分類ではなく、見た目と構造の差として `shape` に置く前提を優先する
+- `tops` では `パーカー・フーディー`、`スウェット・トレーナー`、`ポロシャツ`、`キャミソール`、`タンクトップ・ノースリーブ` のような種類名として定着しているものを中分類に残し、首元・袖・fit・丈は `shape / spec` 側で扱う
 - `デニムスカート` は初回再編では中分類に入れず、代表カテゴリ `skirts_skirt` と素材・spec 側の情報で扱う前提を優先する
-- バッグの用途差は初回再編では中分類を増やしすぎず、トート / ショルダー / リュックなどは current item の `shape` で吸収する
+- バッグの用途差は初回再編では中分類を増やしすぎず、トート / ショルダー / リュックなどは現在の item の `shape` で吸収する
 - 今回は全面実装には入らないが、次に category master を追加・再編するときは、seed、settings、onboarding、candidate 変換、item `category / shape` のどこまで同時に直すかを一括で決めてから着手する
 - item 一覧 / outfits 一覧では、URL に季節条件がない場合のみ `currentSeason` を初期値として適用する
 - `currentSeason` の保存値は英語 enum だが、一覧 UI / URL の季節 filter 値は既存どおり日本語を維持し、初期適用時だけ変換する

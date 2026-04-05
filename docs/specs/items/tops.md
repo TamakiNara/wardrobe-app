@@ -79,6 +79,7 @@ type ItemSpec = {
 
 - SVG 表示では shape を起点にベース形状を切り替えます
 - 現在は `tshirt / shirt / blouse / knit / cardigan / camisole / tanktop` の SVG プレビューに対応しています
+- 現行実装では `spec.tops.shape` に種類名を持っていますが、カテゴリ再編の方針としては、種類名として定着しているものは中分類へ寄せ、`spec` 側は首元・袖・fit・丈などの補助属性へ整理していく前提です
 
 ### sleeve
 

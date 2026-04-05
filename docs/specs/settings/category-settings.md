@@ -162,7 +162,9 @@ DBテーブル構成の詳細は `docs/data/database.md` を参照する。
 - `pants_pants` : パンツ
 - `pants_denim` : ジーンズ・デニムパンツ
 - `pants_slacks` : スラックス・ドレスパンツ
-- `pants_short` : ショートパンツ
+- `pants_cargo` : カーゴパンツ
+- `pants_chino` : チノパンツ
+- `pants_sweat_jersey` : ジャージ・スウェットパンツ
 - `pants_other` : その他パンツ
 
 #### スカート (`skirts`)
@@ -282,20 +284,20 @@ DBテーブル構成の詳細は `docs/data/database.md` を参照する。
 
 - `pants`
   - `パンツ > パンツ` を代表カテゴリにしたうえで、シルエット差は `shape` 側へ寄せる
-  - 現時点では current item shape として `pants / denim / slacks / short-pants / other` を持つ
+  - 現時点では現在の item shape として `pants / denim / slacks / cargo / chino / sweat-jersey / other` と、シルエット差としての `straight / tapered / wide / culottes` を併用している
 - `skirts`
   - `スカート > スカート` を代表カテゴリにし、`タイト / フレア / プリーツ` のような型差は `shape` または `spec` 側で吸収する
-  - 現時点では current item shape として `skirt / other` を持つ
+  - 現時点では現在の item shape として `skirt / other` を持つ
 - `outerwear`
   - `ジャケット・アウター` は同名中分類を置かず、`jacket / blouson / coat / mountain-parka / down-padded / other` の最小 shape で扱う
 - `onepiece_dress`
   - `シャツワンピース` や `ニットワンピース` を中分類に持たない代わりに、必要なら素材差や袖丈差を `spec` 側で扱える余地を残す
-  - 現時点では current item shape として `onepiece / dress / other` を持つ
+  - 現時点では現在の item shape として `onepiece / dress / other` を持つ
 - `allinone`
-  - 現時点では current item shape として `allinone / salopette / other` を持つ
+  - 現時点では現在の item shape として `allinone / salopette / other` を持つ
 - `bags`
   - 初回は `バッグ > バッグ` を代表カテゴリにし、中分類は増やしすぎない
-  - 一方で current item shape としては `bag / tote / shoulder / backpack / clutch` 程度を持ち、用途差は shape で吸収する
+  - 一方で現在の item shape としては `bag / tote / shoulder / backpack / clutch` 程度を持ち、用途差は shape で吸収する
 - `kimono`
   - 初回は `着物 > 着物` を代表カテゴリにし、`浴衣` や和装小物は広げない
 
@@ -303,7 +305,7 @@ DBテーブル構成の詳細は `docs/data/database.md` を参照する。
 
 - `shape` / `spec` は **方向性としては使えるが、再編全体をそのまま受け止められるほど全面的には詰まっていない**
 - かなり具体化されているのは `tops` と `bottoms.length_type`、`legwear.coverage_type` まで
-- `pants` / `skirts` / `outerwear` / `onepiece_dress` / `allinone` は current item category と最小 shape までは導入したが、spec の責務分解はまだ最小限に留めている
+- `pants` / `skirts` / `outerwear` / `onepiece_dress` / `allinone` は現在の item category と最小 shape までは導入したが、spec の責務分解はまだ最小限に留めている
 
 ## 2-3. `category` / `shape` / `spec` の責務整理
 
@@ -343,17 +345,39 @@ DBテーブル構成の詳細は `docs/data/database.md` を参照する。
   - `pants_pants`
   - `pants_denim`
   - `pants_slacks`
-  - `pants_short`
+  - `pants_cargo`
+  - `pants_chino`
+  - `pants_sweat_jersey`
   - `pants_other`
 - `shape` に寄せるもの
   - テーパード
   - ストレート
   - ワイド
-  - カーゴ
   - キュロット
 - `spec` に寄せるもの
-  - 丈感
+  - `length_type`
   - 裾丈の補助情報
+  - 必要に応じた補助属性
+- `length_type` の候補値
+  - `mini`
+  - `short`
+  - `half`
+  - `cropped`
+  - `full`
+- 丈の考え方
+  - `mini` はかなり短い丈感
+  - `short` は一般的なショート丈
+  - `half` はひざ付近までの丈
+  - `cropped` はくるぶしが見える短めのフルレングス寄り
+  - `full` は通常のフルレングス
+- `mini` と `short` は分ける
+  - 短さの段階差を保持したいので同一視しない
+- 方針
+  - `パンツ` は代表カテゴリ、`ジーンズ・デニムパンツ`、`スラックス・ドレスパンツ`、`カーゴパンツ`、`チノパンツ`、`ジャージ・スウェットパンツ` は種類名として定着しているので中分類に残す
+  - シルエット差は `shape` に寄せる
+  - 丈の差は原則 `spec` に寄せる
+  - `pants_short` は中分類に置かず、短さは `spec.length_type` で表す
+  - `キュロット` は見た目と構造の差として説明しやすいため、現時点では `shape` に置く
 
 ### `skirts`
 
@@ -366,13 +390,40 @@ DBテーブル構成の詳細は `docs/data/database.md` を参照する。
   - Aライン
   - プリーツ
 - `spec` に寄せるもの
-  - ミニ / ひざ丈 / ミモレ / ロングのような丈感
+  - `length_type`
+  - 丈の補助情報
 
 ### 丈の扱い
 
 - lower-body 系の丈は、原則 `spec` に寄せる
 - その理由は、丈を `category` や `shape` に混ぜると一覧探索と描画補助の責務が混ざりやすいため
-- ただし、ショートパンツのように item 名として定着しているものは、中分類側へ残してよい
+- `pants` と `skirts` の `length_type` は、まず `mini / short / half / cropped / full` を共通候補として持つ
+- short 系の見え方は中分類ではなく `length_type` で揃える
+
+### `tops`
+
+- 中分類に残すもの
+  - `tops_tshirt_cutsew`
+  - `tops_shirt_blouse`
+  - `tops_knit_sweater`
+  - `tops_cardigan`
+  - `tops_polo_shirt`
+  - `tops_sweat_trainer`
+  - `tops_hoodie`
+  - `tops_vest_gilet`
+  - `tops_camisole`
+  - `tops_tanktop`
+  - `tops_other`
+- `shape / spec` 側に寄せるもの
+  - 首元
+  - 袖
+  - fit
+  - 丈
+  - 補助デザイン
+- 方針
+  - `パーカー・フーディー`、`スウェット・トレーナー`、`ポロシャツ`、`キャミソール`、`タンクトップ・ノースリーブ` のように、種類名として定着しているものは中分類に残す
+  - 同じ種類の中の首元・袖・fit・丈の差は `shape / spec` 側で扱う
+  - `tops` では種類名を中分類に、見た目差と補助属性を `shape / spec` に寄せる判断を優先する
 
 ## 2-5. 例外ルール
 
@@ -380,6 +431,10 @@ DBテーブル構成の詳細は `docs/data/database.md` を参照する。
 
 - 素材名を含むが、実運用では種類名として定着しているため `pants` の中分類に残してよい
 - ただし、色落ち加工やワイド / ストレートなどの差分までは中分類に増やさず、必要なら `shape` 側へ寄せる
+
+### `ジャージ・スウェットパンツ`
+
+- 素材感を含むが、実運用では種類名として定着しているため `pants_sweat_jersey` を中分類に置いてよい
 
 ### `デニムスカート`
 
@@ -390,6 +445,10 @@ DBテーブル構成の詳細は `docs/data/database.md` を参照する。
 
 - 種類名として定着しているため、`tops` の中分類に残してよい
 - 一方で、ジップアップ / プルオーバーのような差は後続で `shape` か `spec` へ寄せる余地を残す
+
+### `キュロット`
+
+- パンツ内の見た目と構造の差として扱い、現時点では `shape` に置く方を優先する
 
 ### バッグの用途差
 
