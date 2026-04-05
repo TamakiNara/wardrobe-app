@@ -21,6 +21,32 @@ describe("getItemShapeOptions", () => {
     ).toEqual(["tight", "flare", "a_line", "pleated"]);
   });
 
+  it("onepiece_dress は種類に応じて shape 候補を最小限に絞り込む", () => {
+    expect(
+      getItemShapeOptions("onepiece_dress", "onepiece").map(
+        (item) => item.value,
+      ),
+    ).toEqual(["onepiece"]);
+    expect(
+      getItemShapeOptions("onepiece_dress", "dress").map((item) => item.value),
+    ).toEqual(["dress"]);
+    expect(
+      getItemShapeOptions("onepiece_dress", "other").map((item) => item.value),
+    ).toEqual(["other"]);
+  });
+
+  it("allinone は種類に応じて shape 候補を最小限に絞り込む", () => {
+    expect(
+      getItemShapeOptions("allinone", "allinone").map((item) => item.value),
+    ).toEqual(["allinone"]);
+    expect(
+      getItemShapeOptions("allinone", "salopette").map((item) => item.value),
+    ).toEqual(["salopette"]);
+    expect(
+      getItemShapeOptions("allinone", "other").map((item) => item.value),
+    ).toEqual(["other"]);
+  });
+
   it("種類未設定の旧データでは category 単位の候補へ戻す", () => {
     expect(
       getItemShapeOptions("pants", null).map((item) => item.value),

@@ -167,12 +167,12 @@ const SHAPE_VALUES_BY_SUBCATEGORY: Partial<
   onepiece_dress: {
     onepiece: ["onepiece"],
     dress: ["dress"],
-    other: ["onepiece", "dress", "other"],
+    other: ["other"],
   },
   allinone: {
     allinone: ["allinone"],
     salopette: ["salopette"],
-    other: ["allinone", "salopette", "other"],
+    other: ["other"],
   },
   bags: {
     bag: ["bag", "tote", "shoulder", "backpack", "clutch"],

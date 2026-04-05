@@ -657,6 +657,76 @@ describe("NewItemPage", () => {
     ).toEqual(["", "tight", "flare", "a_line", "pleated"]);
   });
 
+  it("onepiece_dress と allinone は種類に応じて shape 候補を絞り込む", async () => {
+    const { default: NewItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(NewItemPage));
+      await waitForEffects();
+    });
+
+    const categorySelect =
+      container.querySelector<HTMLSelectElement>("#category");
+    expect(categorySelect).not.toBeNull();
+
+    await act(async () => {
+      categorySelect!.value = "onepiece_dress";
+      categorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    let subcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
+    let shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
+    expect(subcategorySelect).not.toBeNull();
+    expect(shapeSelect).not.toBeNull();
+
+    await act(async () => {
+      subcategorySelect!.value = "onepiece";
+      subcategorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    expect(
+      Array.from(shapeSelect!.options).map((option) => option.value),
+    ).toEqual(["", "onepiece"]);
+    expect(shapeSelect!.value).toBe("onepiece");
+
+    await act(async () => {
+      subcategorySelect!.value = "dress";
+      subcategorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    expect(
+      Array.from(shapeSelect!.options).map((option) => option.value),
+    ).toEqual(["", "dress"]);
+    expect(shapeSelect!.value).toBe("dress");
+
+    await act(async () => {
+      categorySelect!.value = "allinone";
+      categorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    subcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
+    shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
+    expect(subcategorySelect).not.toBeNull();
+    expect(shapeSelect).not.toBeNull();
+
+    await act(async () => {
+      subcategorySelect!.value = "salopette";
+      subcategorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    expect(
+      Array.from(shapeSelect!.options).map((option) => option.value),
+    ).toEqual(["", "salopette"]);
+    expect(shapeSelect!.value).toBe("salopette");
+  });
+
   it("固定項目と自由項目の重複は短い警告文で表示する", async () => {
     const { default: NewItemPage } = await import("./page");
 
