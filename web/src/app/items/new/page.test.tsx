@@ -181,6 +181,31 @@ const sampleGroups: CategoryGroupRecord[] = [
       },
     ],
   },
+  {
+    id: "fashion_accessories",
+    name: "ファッション小物",
+    sortOrder: 45,
+    categories: [
+      {
+        id: "fashion_accessories_hat",
+        groupId: "fashion_accessories",
+        name: "帽子",
+        sortOrder: 10,
+      },
+      {
+        id: "fashion_accessories_belt",
+        groupId: "fashion_accessories",
+        name: "ベルト",
+        sortOrder: 20,
+      },
+      {
+        id: "fashion_accessories_other",
+        groupId: "fashion_accessories",
+        name: "その他ファッション小物",
+        sortOrder: 100,
+      },
+    ],
+  },
 ];
 
 async function waitForEffects() {
@@ -227,6 +252,7 @@ describe("NewItemPage", () => {
         "roomwear_inner_roomwear",
         "legwear_socks",
         "bags_tote",
+        "fashion_accessories_belt",
       ],
     });
     fetchUserPreferencesMock.mockResolvedValue({
@@ -279,6 +305,7 @@ describe("NewItemPage", () => {
       "ルームウェア・インナー",
       "レッグウェア",
       "バッグ",
+      "ファッション小物",
     ]);
     expect(container.textContent).toContain("カテゴリ");
     expect(container.textContent).toContain("形");
@@ -907,6 +934,97 @@ describe("NewItemPage", () => {
 
     expect(shapeLabel?.textContent).toContain("形");
     expect(shapeLabel?.textContent).not.toContain("必須");
+    expect(
+      Array.from(shapeSelect!.options).map((option) => option.value),
+    ).toEqual([""]);
+  });
+
+  it("fashion_accessories は種類 select を表示し、選択に応じて shape を自動設定できる", async () => {
+    const { default: NewItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(NewItemPage));
+      await waitForEffects();
+    });
+
+    const categorySelect =
+      container.querySelector<HTMLSelectElement>("#category");
+    expect(categorySelect).not.toBeNull();
+
+    await act(async () => {
+      categorySelect!.value = "fashion_accessories";
+      categorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    const subcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
+    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
+    expect(subcategorySelect).not.toBeNull();
+    expect(shapeSelect).not.toBeNull();
+
+    expect(
+      Array.from(subcategorySelect!.options).map((option) => option.value),
+    ).toEqual([
+      "",
+      "hat",
+      "belt",
+      "scarf_stole",
+      "gloves",
+      "jewelry",
+      "wallet_case",
+      "hair_accessory",
+      "eyewear",
+      "watch",
+      "other",
+    ]);
+    expect(
+      Array.from(shapeSelect!.options).map((option) => option.value),
+    ).toEqual([""]);
+
+    await act(async () => {
+      subcategorySelect!.value = "belt";
+      subcategorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    expect(shapeSelect!.value).toBe("belt");
+    expect(shapeSelect!.disabled).toBe(true);
+    expect(
+      Array.from(shapeSelect!.options).map((option) => option.value),
+    ).toEqual(["", "belt"]);
+  });
+
+  it("fashion_accessories の other では形を任意寄りで扱う", async () => {
+    const { default: NewItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(NewItemPage));
+      await waitForEffects();
+    });
+
+    const categorySelect =
+      container.querySelector<HTMLSelectElement>("#category");
+    expect(categorySelect).not.toBeNull();
+
+    await act(async () => {
+      categorySelect!.value = "fashion_accessories";
+      categorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    const subcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
+    expect(subcategorySelect).not.toBeNull();
+
+    await act(async () => {
+      subcategorySelect!.value = "other";
+      subcategorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
+    expect(shapeSelect).not.toBeNull();
     expect(
       Array.from(shapeSelect!.options).map((option) => option.value),
     ).toEqual([""]);

@@ -229,6 +229,9 @@ describe("findVisibleCategoryIdForItem", () => {
     expect(findVisibleCategoryIdForItem("accessories", "tote")).toBe(
       "bags_tote",
     );
+    expect(findVisibleCategoryIdForItem("accessories", "belt")).toBe(
+      "fashion_accessories_belt",
+    );
   });
 
   it("対応がないときは null を返す", () => {

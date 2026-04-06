@@ -658,7 +658,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
         $user = User::factory()->create();
 
         $cases = [
-            'fashion_accessories_wallet_case' => ['category' => 'fashion_accessories', 'shape' => 'wallet-case'],
+            'fashion_accessories_wallet_case' => ['category' => 'fashion_accessories', 'subcategory' => 'wallet_case', 'shape' => 'wallet-case'],
             'swimwear_rashguard' => ['category' => 'swimwear', 'shape' => 'rashguard'],
             'kimono_kimono' => ['category' => 'kimono', 'shape' => 'kimono'],
         ];
@@ -677,6 +677,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
             $response->assertOk()
                 ->assertJsonPath('item_draft.source_category_id', $categoryId)
                 ->assertJsonPath('item_draft.category', $expected['category'])
+                ->assertJsonPath('item_draft.subcategory', $expected['subcategory'] ?? null)
                 ->assertJsonPath('item_draft.shape', $expected['shape']);
         }
     }

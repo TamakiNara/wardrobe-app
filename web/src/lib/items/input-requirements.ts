@@ -12,6 +12,7 @@ const OPTIONAL_SHAPE_WITH_EMPTY_SUBCATEGORY = new Set([
   "allinone",
   "skirts",
   "bags",
+  "fashion_accessories",
   "shoes",
   "kimono",
 ]);
@@ -23,6 +24,7 @@ const OPTIONAL_SHAPE_WITH_OTHER_SUBCATEGORY = new Set([
   "allinone",
   "skirts",
   "bags",
+  "fashion_accessories",
   "shoes",
   "kimono",
 ]);
@@ -34,6 +36,7 @@ const FALLBACK_SHAPE_BY_CATEGORY: Record<string, string> = {
   onepiece_dress: "onepiece",
   allinone: "allinone",
   bags: "bag",
+  fashion_accessories: "other",
   shoes: "sneakers",
   kimono: "kimono",
 };

@@ -155,7 +155,16 @@ const ITEM_CATEGORY_ID_BY_SHAPE: Record<string, Record<string, string>> = {
     clutch: "bags_clutch",
     body: "bags_body",
     hat: "fashion_accessories_hat",
+    belt: "fashion_accessories_belt",
+    "scarf-stole": "fashion_accessories_scarf_stole",
+    gloves: "fashion_accessories_gloves",
+    jewelry: "fashion_accessories_jewelry",
+    "wallet-case": "fashion_accessories_wallet_case",
+    "hair-accessory": "fashion_accessories_hair",
+    eyewear: "fashion_accessories_eyewear",
+    watch: "fashion_accessories_watch",
     accessory: "fashion_accessories_other",
+    other: "fashion_accessories_other",
   },
 };
 

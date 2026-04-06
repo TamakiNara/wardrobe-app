@@ -203,7 +203,16 @@ class ListQuerySupport
                 'clutch' => 'bags_clutch',
                 'body' => 'bags_body',
                 'hat' => 'fashion_accessories_hat',
+                'belt' => 'fashion_accessories_belt',
+                'scarf-stole' => 'fashion_accessories_scarf_stole',
+                'gloves' => 'fashion_accessories_gloves',
+                'jewelry' => 'fashion_accessories_jewelry',
+                'wallet-case' => 'fashion_accessories_wallet_case',
+                'hair-accessory' => 'fashion_accessories_hair',
+                'eyewear' => 'fashion_accessories_eyewear',
+                'watch' => 'fashion_accessories_watch',
                 'accessory' => 'fashion_accessories_other',
+                'other' => 'fashion_accessories_other',
             ],
         ];
     }
@@ -323,7 +332,7 @@ class ListQuerySupport
             ],
             'fashion_accessories' => [
                 ['category' => 'fashion_accessories'],
-                ['category' => 'accessories', 'shapes' => ['hat', 'accessory']],
+                ['category' => 'accessories', 'shapes' => ['hat', 'belt', 'scarf-stole', 'gloves', 'jewelry', 'wallet-case', 'hair-accessory', 'eyewear', 'watch', 'accessory', 'other']],
             ],
             default => [
                 ['category' => $category],

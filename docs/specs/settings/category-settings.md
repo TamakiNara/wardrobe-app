@@ -365,7 +365,7 @@ DBテーブル構成の詳細は `docs/data/database.md` を参照する。
 - `subcategory` の意味は常に `category` と組み合わせて読む
 - settings 側の中分類 ID とは、たとえば `pants_denim` ⇔ `category = pants` かつ `subcategory = denim` のように対応づけて扱う
 - これにより、settings の中分類 ID は ON / OFF 対象、item の `subcategory` は実データの種類名、という責務差を保ったまま同じ概念を扱える
-- `subcategory` は全カテゴリで必須にはせず、まず `tops`、`pants`、`outerwear`、`onepiece_dress`、`allinone`、`bags` を中心に導入し、`skirts`、`shoes`、`kimono` は代表カテゴリまたは `null` 許容で始める
+- `subcategory` は全カテゴリで必須にはせず、まず `tops`、`pants`、`outerwear`、`onepiece_dress`、`allinone`、`bags`、`fashion_accessories` を中心に導入し、`skirts`、`shoes`、`kimono` は代表カテゴリまたは `null` 許容で始める
 
 ### 入力フォーム方針
 
@@ -377,6 +377,7 @@ DBテーブル構成の詳細は `docs/data/database.md` を参照する。
 - `skirts`、`shoes`、`kimono` は、通常入力ではプルダウンではなく軽い UI で `種類` を見せ、代表カテゴリを既定値にしつつ `other` へ切り替えられる前提を優先する
 - `skirts` は `subcategory = skirt`、`shoes` は `subcategory = shoes`、`kimono` は `subcategory = kimono` を通常入力の既定値とし、`other` はサブカテゴリ側の受け皿として扱う
 - `bags` は一覧・検索と category settings の粒度を揃えるため、通常入力でも `tote / shoulder / backpack / hand / clutch / body / other` の `subcategory` を主導線として扱う
+- `fashion_accessories` は種類差そのものを一覧・検索と category settings で使いたいため、`hat / belt / scarf_stole / gloves / jewelry / wallet_case / hair_accessory / eyewear / watch / other` の `subcategory` を主導線として扱う
 - `other` は staged rollout 中の旧データ互換や補助表現にも残すが、shape 側の新規入力候補には追加しない
 
 ### 現時点の入力必須条件
@@ -390,6 +391,7 @@ DBテーブル構成の詳細は `docs/data/database.md` を参照する。
 | `onepiece_dress` | 必須 | 条件付き必須 | なし | 自動選択し、必須表示は弱める | `shape` は任意寄り |
 | `allinone` | 必須 | 条件付き必須 | なし | 自動選択し、必須表示は弱める | `shape` は任意寄り |
 | `bags` | 必須 | 条件付き必須 | なし | 自動選択し、必須表示は弱める | `subcategory = other / null` は `shape` 任意寄り |
+| `fashion_accessories` | 必須 | 条件付き必須 | なし | 自動選択し、必須表示は弱める | `subcategory = other / null` は `shape` 任意寄り |
 | `shoes` | 任意 | 条件付き必須 | なし | 自動選択し、必須表示は弱める | `subcategory = shoes` 以外は `shape` 任意寄り |
 | `kimono` | 任意 | 条件付き必須 | なし | 自動選択し、必須表示は弱める | `subcategory = kimono` 以外は `shape` 任意寄り |
 
@@ -398,6 +400,8 @@ DBテーブル構成の詳細は `docs/data/database.md` を参照する。
 - `subcategory = other` と staged rollout 中の `null` は、旧データ互換を優先して `shape` 任意寄りに扱う
 - `bags` は `subcategory = tote / shoulder / backpack / hand / clutch / body` のように種類名を主導線にし、各種類に対応する `shape` 候補が1件のため自動選択で扱う
 - `bags` の `subcategory = other / null` は `shape` 任意寄りとし、旧データ互換と staged rollout を優先する
+- `fashion_accessories` も `subcategory = hat / belt / scarf_stole / gloves / jewelry / wallet_case / hair_accessory / eyewear / watch` のように種類名を主導線にし、各種類に対応する `shape` 候補が1件のため自動選択で扱う
+- `fashion_accessories` の `subcategory = other / null` は `shape` 任意寄りとし、旧データ互換と staged rollout を優先する
 - `outerwear` は `subcategory = other` を受け皿にし、shape 側の `other` は新規入力の主導線には置かない
 
 ## 2-4. lower-body 系の優先方針
@@ -534,6 +538,7 @@ DBテーブル構成の詳細は `docs/data/database.md` を参照する。
 - `roomwear_inner` は、ルームウェア / インナー / パジャマのような大きい種類差は `subcategory` に置く方が一覧・検索で扱いやすいが、キャミソールやペチコートのような細分は大分類構成の再判断と合わせて段階的に見る
 - `bags` の再整理第一候補は、`bag / other` のままより `tote / shoulder / backpack / hand / clutch / body / other` を `subcategory` に上げ、`shape` は同じバッグ種の中の構造差が必要になった時だけ持つ方である
 - `fashion_accessories` の再整理第一候補は、現在 `shape` にある値をそのまま `subcategory` として使い、初期段階では `shape` をほぼ持たない構成に寄せることである
+- current では `fashion_accessories` の item も `subcategory = hat / belt / scarf_stole / gloves / jewelry / wallet_case / hair_accessory / eyewear / watch / other` を主導線として扱い始め、`shape` は同名1件の候補を自動補完する薄い補助値として扱う
 - `shoes` の再整理第一候補は、`sneakers / pumps / boots / sandals / other` を `subcategory` に上げ、`shape` はヒール高やブーツ丈のような後続差分が必要になった時だけ追加する構成に寄せることである
 - `legwear` は `subcategory` 厚め / `shape` 薄めが自然で、独立絞り込みしたい粒度は `socks / stockings / tights / leggings / other` に寄せる方が一覧・検索に向く
 - `roomwear_inner` は、現時点では `roomwear / underwear / pajamas / other` のような大きい種類差を `subcategory` に置く方が自然で、キャミソールやペチコートのような細分は `tops` やインナー再編の後続論点として保留してよい

@@ -60,6 +60,18 @@ class ItemSubcategorySupport
             'body',
             'other',
         ],
+        'fashion_accessories' => [
+            'hat',
+            'belt',
+            'scarf_stole',
+            'gloves',
+            'jewelry',
+            'wallet_case',
+            'hair_accessory',
+            'eyewear',
+            'watch',
+            'other',
+        ],
         'shoes' => [
             'shoes',
             'other',
@@ -82,6 +94,7 @@ class ItemSubcategorySupport
         'onepiece_dress',
         'allinone',
         'bags',
+        'fashion_accessories',
     ];
 
     public static function valuesFor(?string $category): array

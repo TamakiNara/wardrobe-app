@@ -47,6 +47,18 @@ class ItemInputRequirementSupport
             'body' => ['body'],
             'other' => [],
         ],
+        'fashion_accessories' => [
+            'hat' => ['hat'],
+            'belt' => ['belt'],
+            'scarf_stole' => ['scarf-stole'],
+            'gloves' => ['gloves'],
+            'jewelry' => ['jewelry'],
+            'wallet_case' => ['wallet-case'],
+            'hair_accessory' => ['hair-accessory'],
+            'eyewear' => ['eyewear'],
+            'watch' => ['watch'],
+            'other' => [],
+        ],
         'shoes' => [
             'shoes' => ['pumps', 'sneakers', 'short-boots', 'sandals'],
             'other' => ['pumps', 'sneakers', 'short-boots', 'sandals'],
@@ -65,6 +77,7 @@ class ItemInputRequirementSupport
         'allinone',
         'skirts',
         'bags',
+        'fashion_accessories',
         'shoes',
         'kimono',
     ];
@@ -77,6 +90,7 @@ class ItemInputRequirementSupport
         'allinone',
         'skirts',
         'bags',
+        'fashion_accessories',
         'shoes',
         'kimono',
     ];
@@ -135,6 +149,18 @@ class ItemInputRequirementSupport
             'body' => 'body',
             'other' => 'bag',
         ],
+        'fashion_accessories' => [
+            'hat' => 'hat',
+            'belt' => 'belt',
+            'scarf_stole' => 'scarf-stole',
+            'gloves' => 'gloves',
+            'jewelry' => 'jewelry',
+            'wallet_case' => 'wallet-case',
+            'hair_accessory' => 'hair-accessory',
+            'eyewear' => 'eyewear',
+            'watch' => 'watch',
+            'other' => 'other',
+        ],
         'shoes' => [
             'shoes' => 'sneakers',
             'other' => 'sneakers',
@@ -153,6 +179,7 @@ class ItemInputRequirementSupport
         'onepiece_dress' => 'onepiece',
         'allinone' => 'allinone',
         'bags' => 'bag',
+        'fashion_accessories' => 'other',
         'shoes' => 'sneakers',
         'kimono' => 'kimono',
     ];

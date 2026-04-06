@@ -581,6 +581,7 @@ class ItemsEndpointsTest extends TestCase
         $response = $this->postJson('/api/items', [
             'name' => '素材未入力アイテム',
             'category' => 'tops',
+            'subcategory' => 'tshirt_cutsew',
             'shape' => 'tshirt',
             'colors' => [[
                 'role' => 'main',
@@ -608,6 +609,7 @@ class ItemsEndpointsTest extends TestCase
         $response = $this->postJson('/api/items', [
             'name' => '素材ありアイテム',
             'category' => 'tops',
+            'subcategory' => 'tshirt_cutsew',
             'shape' => 'tshirt',
             'colors' => [[
                 'role' => 'main',
@@ -764,6 +766,7 @@ class ItemsEndpointsTest extends TestCase
             'brand_name' => 'UNIQLO',
             'save_brand_as_candidate' => true,
             'category' => 'tops',
+            'subcategory' => 'tshirt_cutsew',
             'shape' => 'tshirt',
             'colors' => [[
                 'role' => 'main',
@@ -956,6 +959,60 @@ class ItemsEndpointsTest extends TestCase
             ->assertJsonPath('item.shape', 'tote');
     }
 
+    public function test_post_items_can_autofill_shape_when_fashion_accessories_subcategory_has_single_candidate(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/items', [
+            'name' => 'レザーベルト',
+            'category' => 'fashion_accessories',
+            'subcategory' => 'belt',
+            'shape' => '',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'black',
+                'hex' => '#111111',
+                'label' => 'ブラック',
+            ]],
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('item.subcategory', 'belt')
+            ->assertJsonPath('item.shape', 'belt');
+    }
+
+    public function test_post_items_can_save_fashion_accessories_other_without_explicit_shape(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/items', [
+            'name' => '分類保留小物',
+            'category' => 'fashion_accessories',
+            'subcategory' => 'other',
+            'shape' => '',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'black',
+                'hex' => '#111111',
+                'label' => 'ブラック',
+            ]],
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('item.subcategory', 'other')
+            ->assertJsonPath('item.shape', 'other');
+    }
+
     public function test_post_items_requires_subcategory_when_bag_category_is_selected(): void
     {
         $user = User::factory()->create();
@@ -965,6 +1022,32 @@ class ItemsEndpointsTest extends TestCase
         $response = $this->postJson('/api/items', [
             'name' => '種類未選択バッグ',
             'category' => 'bags',
+            'subcategory' => '',
+            'shape' => '',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'black',
+                'hex' => '#111111',
+                'label' => 'ブラック',
+            ]],
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['subcategory']);
+    }
+
+    public function test_post_items_requires_subcategory_when_fashion_accessories_category_is_selected(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/items', [
+            'name' => '種類未選択小物',
+            'category' => 'fashion_accessories',
             'subcategory' => '',
             'shape' => '',
             'colors' => [[
@@ -1336,6 +1419,7 @@ class ItemsEndpointsTest extends TestCase
         $response = $this->postJson('/api/items', [
             'name' => 'TPO テストアイテム',
             'category' => 'tops',
+            'subcategory' => 'tshirt_cutsew',
             'shape' => 'tshirt',
             'colors' => [[
                 'role' => 'main',
@@ -1369,6 +1453,7 @@ class ItemsEndpointsTest extends TestCase
             'brand_name' => ' uniqlo ',
             'save_brand_as_candidate' => true,
             'category' => 'tops',
+            'subcategory' => 'tshirt_cutsew',
             'shape' => 'tshirt',
             'colors' => [[
                 'role' => 'main',
@@ -1399,6 +1484,7 @@ class ItemsEndpointsTest extends TestCase
         $response = $this->postJson('/api/items', [
             'name' => '画像引き継ぎ確認',
             'category' => 'tops',
+            'subcategory' => 'tshirt_cutsew',
             'shape' => 'tshirt',
             'colors' => [[
                 'role' => 'main',
@@ -1443,6 +1529,7 @@ class ItemsEndpointsTest extends TestCase
             'name' => '不正な昇格',
             'purchase_candidate_id' => $candidate->id,
             'category' => 'tops',
+            'subcategory' => 'tshirt_cutsew',
             'shape' => 'tshirt',
             'colors' => [[
                 'role' => 'main',
@@ -1719,6 +1806,7 @@ class ItemsEndpointsTest extends TestCase
             'brand_name' => 'GLOBAL WORK',
             'save_brand_as_candidate' => true,
             'category' => 'tops',
+            'subcategory' => 'tshirt_cutsew',
             'shape' => 'tshirt',
             'colors' => [[
                 'role' => 'main',
@@ -1763,6 +1851,7 @@ class ItemsEndpointsTest extends TestCase
         $response = $this->putJson("/api/items/{$item->id}", [
             'name' => '更新後トップス',
             'category' => 'tops',
+            'subcategory' => 'tshirt_cutsew',
             'shape' => 'tshirt',
             'colors' => [[
                 'role' => 'main',

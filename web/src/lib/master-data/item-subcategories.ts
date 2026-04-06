@@ -54,6 +54,18 @@ export const ITEM_SUBCATEGORIES = {
     { value: "body", label: "ボディバッグ" },
     { value: "other", label: "その他バッグ" },
   ],
+  fashion_accessories: [
+    { value: "hat", label: "帽子" },
+    { value: "belt", label: "ベルト" },
+    { value: "scarf_stole", label: "マフラー・ストール" },
+    { value: "gloves", label: "手袋" },
+    { value: "jewelry", label: "アクセサリー" },
+    { value: "wallet_case", label: "財布・カードケース" },
+    { value: "hair_accessory", label: "ヘアアクセサリー" },
+    { value: "eyewear", label: "眼鏡・サングラス" },
+    { value: "watch", label: "腕時計" },
+    { value: "other", label: "その他ファッション小物" },
+  ],
   shoes: [
     { value: "shoes", label: "シューズ" },
     { value: "other", label: "その他シューズ" },
@@ -78,6 +90,7 @@ export const REQUIRED_SUBCATEGORY_CATEGORIES = new Set<string>([
   "onepiece_dress",
   "allinone",
   "bags",
+  "fashion_accessories",
 ]);
 
 const RADIO_SUBCATEGORY_UI_CATEGORIES = new Set<string>([
@@ -156,6 +169,19 @@ const LEGACY_INFERRED_SUBCATEGORY_BY_CATEGORY: Record<
     body: "body",
     other: "other",
   },
+  fashion_accessories: {
+    hat: "hat",
+    belt: "belt",
+    "scarf-stole": "scarf_stole",
+    gloves: "gloves",
+    jewelry: "jewelry",
+    "wallet-case": "wallet_case",
+    "hair-accessory": "hair_accessory",
+    eyewear: "eyewear",
+    watch: "watch",
+    other: "other",
+    accessory: "other",
+  },
   shoes: {
     sneakers: "shoes",
     pumps: "shoes",
@@ -227,6 +253,18 @@ const DEFAULT_SHAPE_BY_SUBCATEGORY: Record<string, Record<string, string>> = {
     clutch: "clutch",
     body: "body",
     other: "bag",
+  },
+  fashion_accessories: {
+    hat: "hat",
+    belt: "belt",
+    scarf_stole: "scarf-stole",
+    gloves: "gloves",
+    jewelry: "jewelry",
+    wallet_case: "wallet-case",
+    hair_accessory: "hair-accessory",
+    eyewear: "eyewear",
+    watch: "watch",
+    other: "other",
   },
   shoes: {
     shoes: "sneakers",

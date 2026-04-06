@@ -194,6 +194,18 @@ const SHAPE_VALUES_BY_SUBCATEGORY: Partial<
     body: ["body"],
     other: [],
   },
+  fashion_accessories: {
+    hat: ["hat"],
+    belt: ["belt"],
+    scarf_stole: ["scarf-stole"],
+    gloves: ["gloves"],
+    jewelry: ["jewelry"],
+    wallet_case: ["wallet-case"],
+    hair_accessory: ["hair-accessory"],
+    eyewear: ["eyewear"],
+    watch: ["watch"],
+    other: [],
+  },
   shoes: {
     shoes: ["pumps", "sneakers", "short-boots", "sandals"],
     other: ["pumps", "sneakers", "short-boots", "sandals"],
@@ -214,7 +226,10 @@ export function getItemShapeOptions(
 
   const shapes = ITEM_SHAPES[category as ItemCategory] ?? [];
 
-  if (!subcategory && category === "bags") {
+  if (
+    !subcategory &&
+    (category === "bags" || category === "fashion_accessories")
+  ) {
     return [];
   }
 

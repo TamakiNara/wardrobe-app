@@ -76,6 +76,29 @@ describe("getItemShapeOptions", () => {
     ).toEqual([]);
   });
 
+  it("fashion_accessories は種類に応じて shape 候補を最小限に絞り込む", () => {
+    expect(
+      getItemShapeOptions("fashion_accessories", "belt").map(
+        (item) => item.value,
+      ),
+    ).toEqual(["belt"]);
+    expect(
+      getItemShapeOptions("fashion_accessories", "wallet_case").map(
+        (item) => item.value,
+      ),
+    ).toEqual(["wallet-case"]);
+    expect(
+      getItemShapeOptions("fashion_accessories", "other").map(
+        (item) => item.value,
+      ),
+    ).toEqual([]);
+    expect(
+      getItemShapeOptions("fashion_accessories", null).map(
+        (item) => item.value,
+      ),
+    ).toEqual([]);
+  });
+
   it("shoes と kimono も種類に応じた候補で扱える", () => {
     expect(
       getItemShapeOptions("shoes", "shoes").map((item) => item.value),

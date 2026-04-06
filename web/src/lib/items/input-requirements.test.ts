@@ -15,6 +15,9 @@ describe("item input requirements", () => {
     expect(isItemShapeRequired("bags", "tote")).toBe(false);
     expect(isItemShapeRequired("bags", "other")).toBe(false);
     expect(isItemShapeRequired("bags", null)).toBe(false);
+    expect(isItemShapeRequired("fashion_accessories", "belt")).toBe(false);
+    expect(isItemShapeRequired("fashion_accessories", "other")).toBe(false);
+    expect(isItemShapeRequired("fashion_accessories", null)).toBe(false);
     expect(isItemShapeRequired("kimono", "other")).toBe(false);
   });
 
@@ -25,6 +28,12 @@ describe("item input requirements", () => {
     expect(resolveItemShapeForSubmit("outerwear", "other", "")).toBe("jacket");
     expect(resolveItemShapeForSubmit("bags", "tote", "")).toBe("tote");
     expect(resolveItemShapeForSubmit("bags", "other", "")).toBe("bag");
+    expect(resolveItemShapeForSubmit("fashion_accessories", "belt", "")).toBe(
+      "belt",
+    );
+    expect(resolveItemShapeForSubmit("fashion_accessories", "other", "")).toBe(
+      "other",
+    );
     expect(resolveItemShapeForSubmit("skirts", null, "")).toBe("skirt");
     expect(resolveItemShapeForSubmit("shoes", null, "")).toBe("sneakers");
     expect(resolveItemShapeForSubmit("kimono", "other", "")).toBe("kimono");

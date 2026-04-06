@@ -186,52 +186,52 @@ const PURCHASE_CANDIDATE_ITEM_CATEGORY_MAP = {
   bags_other: { category: "bags", subcategory: "other", shape: "bag" },
   fashion_accessories_hat: {
     category: "fashion_accessories",
-    subcategory: null,
+    subcategory: "hat",
     shape: "hat",
   },
   fashion_accessories_belt: {
     category: "fashion_accessories",
-    subcategory: null,
+    subcategory: "belt",
     shape: "belt",
   },
   fashion_accessories_scarf_stole: {
     category: "fashion_accessories",
-    subcategory: null,
+    subcategory: "scarf_stole",
     shape: "scarf-stole",
   },
   fashion_accessories_gloves: {
     category: "fashion_accessories",
-    subcategory: null,
+    subcategory: "gloves",
     shape: "gloves",
   },
   fashion_accessories_jewelry: {
     category: "fashion_accessories",
-    subcategory: null,
+    subcategory: "jewelry",
     shape: "jewelry",
   },
   fashion_accessories_wallet_case: {
     category: "fashion_accessories",
-    subcategory: null,
+    subcategory: "wallet_case",
     shape: "wallet-case",
   },
   fashion_accessories_hair: {
     category: "fashion_accessories",
-    subcategory: null,
+    subcategory: "hair_accessory",
     shape: "hair-accessory",
   },
   fashion_accessories_eyewear: {
     category: "fashion_accessories",
-    subcategory: null,
+    subcategory: "eyewear",
     shape: "eyewear",
   },
   fashion_accessories_watch: {
     category: "fashion_accessories",
-    subcategory: null,
+    subcategory: "watch",
     shape: "watch",
   },
   fashion_accessories_other: {
     category: "fashion_accessories",
-    subcategory: null,
+    subcategory: "other",
     shape: "other",
   },
   swimwear_swimwear: {
@@ -333,32 +333,32 @@ const PURCHASE_CANDIDATE_ITEM_CATEGORY_MAP = {
   bags_bag: { category: "bags", subcategory: "other", shape: "bag" },
   accessories_hat: {
     category: "fashion_accessories",
-    subcategory: null,
+    subcategory: "hat",
     shape: "hat",
   },
   accessories_belt: {
     category: "fashion_accessories",
-    subcategory: null,
+    subcategory: "belt",
     shape: "belt",
   },
   accessories_scarf: {
     category: "fashion_accessories",
-    subcategory: null,
+    subcategory: "scarf_stole",
     shape: "scarf-stole",
   },
   accessories_gloves: {
     category: "fashion_accessories",
-    subcategory: null,
+    subcategory: "gloves",
     shape: "gloves",
   },
   accessories_jewelry: {
     category: "fashion_accessories",
-    subcategory: null,
+    subcategory: "jewelry",
     shape: "jewelry",
   },
   accessories_other: {
     category: "fashion_accessories",
-    subcategory: null,
+    subcategory: "other",
     shape: "other",
   },
 } as const;

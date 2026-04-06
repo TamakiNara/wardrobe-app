@@ -329,7 +329,7 @@ thumbnail の現状確認用パターン一覧を見返すときは `docs/specs/
 - categories 設定で扱う中分類 ID は、当面 `subcategory` に相当するものとして読み、`shape` / `spec` は ON / OFF 対象へ広げない
 - `subcategory` は item モデルの独立カラムとして段階導入済みとし、値は `tops_hoodie` のような中分類 ID そのものではなく `hoodie` のような単体値で持ち、意味は `category` と組み合わせて読む
 - settings 側の中分類 ID とは、`pants_denim` ⇔ `category = pants` かつ `subcategory = denim` のように対応づける前提を優先する
-- `subcategory` は全カテゴリで一律必須にはせず、まず `tops`、`pants`、`outerwear`、`onepiece_dress`、`allinone` を中心に UI へ導入し、`skirts`、`bags`、`shoes`、`kimono` は代表カテゴリまたは `null` 許容で始める
+- `subcategory` は全カテゴリで一律必須にはせず、まず `tops`、`pants`、`outerwear`、`onepiece_dress`、`allinone`、`bags`、`fashion_accessories` を中心に UI へ導入し、`skirts`、`shoes`、`kimono` は代表カテゴリまたは `null` 許容で始める
 - create / edit は原則 `カテゴリ / 種類 / 形 / 詳細` の並びへ寄せ、`shape` 候補は `category` だけでなく `subcategory` に応じても出し分ける前提を優先する
 - 旧データは一括で完全移行する前提にはせず、安全に補完できるものだけデータ補完し、補完できないものは `subcategory = null` を許容して UI 側 fallback で吸収する。現在の item 詳細 / 一覧 / disposed 一覧では `subcategory` を優先表示し、未設定時は bridge で補助する
 - lower-body 系は、`pants` / `skirts` とも丈を原則 `spec` に寄せ、テーパード / フレアのような型差は `shape` に寄せる
@@ -341,10 +341,12 @@ thumbnail の現状確認用パターン一覧を見返すときは `docs/specs/
 - `tops` では `パーカー・フーディー`、`スウェット・トレーナー`、`ポロシャツ`、`キャミソール`、`タンクトップ・ノースリーブ` のような種類名として定着しているものを中分類に残し、首元・袖・fit・丈は `shape / spec` 側で扱う
 - `デニムスカート` は初回再編では中分類に入れず、代表カテゴリ `skirts_skirt` と素材・spec 側の情報で扱う前提を優先する
 - バッグの用途差は一覧・検索と category settings の粒度を優先し、current では `subcategory` を `tote / shoulder / backpack / hand / clutch / body / other` へ上げて扱う
+- `fashion_accessories` も一覧・検索と category settings の粒度を優先し、current では `subcategory` を `hat / belt / scarf_stole / gloves / jewelry / wallet_case / hair_accessory / eyewear / watch / other` へ上げて扱う
 - 現時点の `outerwear` は `subcategory` 中くらい / `shape` 中くらいの staged rollout とし、`coat` では `coat / trench / chester / stainless`、`jacket` では `jacket / tailored / no_collar` を候補に出し、`blouson` / `down_padded` / `mountain_parka` は最小候補に留める
 - `bags` は現時点で `subcategory` を `tote / shoulder / backpack / hand / clutch / body / other` で持ち、`shape` は同名1件の候補を自動補完する薄い補助値として扱う
+- `fashion_accessories` は現時点で `subcategory` を `hat / belt / scarf_stole / gloves / jewelry / wallet_case / hair_accessory / eyewear / watch / other` で持ち、`shape` は同名1件の候補を自動補完する薄い補助値として扱う
 - 一覧・検索で独立して使いたい粒度を基準に見直すと、`bags` の用途差、`fashion_accessories` の種類差、`shoes` の靴種、`legwear` の種別、`roomwear_inner` の大きい種類差は、現状の `shape` や代表カテゴリ固定より `subcategory` へ上げる余地がある。将来の filter / settings を自然につなぐには、フォーム都合だけでなく「独立して絞りたいか」を優先して `subcategory` 粒度を再判断する方針を追加で持つ。
-- 一覧・検索で使いたい粒度を優先した実装順の第一候補は、`bags` → `fashion_accessories` → `shoes` → `legwear` → `roomwear_inner` とする。前3者は現在 `shape` に置いている値を `subcategory` へ移す影響が大きい一方で、一覧・検索と category settings の説明をそろえる効果も大きい。`legwear` は `coverage_type` を `spec` に残したまま種類差だけを `subcategory` へ寄せやすく、`roomwear_inner` は大分類自体の再分割余地があるため、まずは大きい種類差だけを `subcategory` に置く段階導入がよい。実装時は category master / settings / filter / item form / item payload を同じ粒度でそろえる staged rollout を前提にする。
+- 一覧・検索で使いたい粒度を優先した実装順の第一候補は、`bags` → `fashion_accessories` → `shoes` → `legwear` → `roomwear_inner` とする。`bags` と `fashion_accessories` は current で `subcategory` 厚めへ寄せ始めており、次は `shoes` 以降を同じ説明粒度へそろえる。
 - item 入力フォームは、原則 `カテゴリ / 種類 / 形 / 詳細` の並びへ寄せ、使わない欄は非表示または未選択可で扱う前提を優先する
 - `skirts`、`shoes`、`kimono` は `subcategory` 候補が少ないため、現時点の通常入力ではプルダウンではなく軽い UI で `種類` を見せ、代表カテゴリを既定値にしつつ `other` へ切り替えられる形を優先する
 - `skirts` は `subcategory = skirt`、`shoes` は `subcategory = shoes`、`kimono` は `subcategory = kimono` を通常入力の既定値とし、`other` は staged rollout 中の旧データ互換や補助表示にも残すが、shape 側の新規入力候補には追加しない

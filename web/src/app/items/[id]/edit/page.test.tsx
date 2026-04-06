@@ -175,6 +175,31 @@ const sampleGroups: CategoryGroupRecord[] = [
       },
     ],
   },
+  {
+    id: "fashion_accessories",
+    name: "ファッション小物",
+    sortOrder: 45,
+    categories: [
+      {
+        id: "fashion_accessories_hat",
+        groupId: "fashion_accessories",
+        name: "帽子",
+        sortOrder: 10,
+      },
+      {
+        id: "fashion_accessories_belt",
+        groupId: "fashion_accessories",
+        name: "ベルト",
+        sortOrder: 20,
+      },
+      {
+        id: "fashion_accessories_other",
+        groupId: "fashion_accessories",
+        name: "その他ファッション小物",
+        sortOrder: 100,
+      },
+    ],
+  },
 ];
 
 async function waitForEffects() {
@@ -204,6 +229,7 @@ describe("EditItemPage", () => {
         "roomwear_inner_roomwear",
         "legwear_socks",
         "bags_tote",
+        "fashion_accessories_belt",
       ],
     });
     fetchUserPreferencesMock.mockResolvedValue({
@@ -342,6 +368,7 @@ describe("EditItemPage", () => {
       "ルームウェア・インナー",
       "レッグウェア",
       "バッグ",
+      "ファッション小物",
     ]);
     expect(container.textContent).toContain("カテゴリ");
     expect(container.textContent).toContain("素材・混率");
@@ -700,6 +727,71 @@ describe("EditItemPage", () => {
     expect(
       Array.from(shapeSelect!.options).map((option) => option.value),
     ).toEqual(["", "shoulder"]);
+  });
+
+  it("編集画面でも fashion_accessories は種類に応じて shape を自動設定できる", async () => {
+    const { default: EditItemPage } = await import("./page");
+
+    act(() => {
+      root.render(
+        React.createElement(EditItemPage, {
+          params: Promise.resolve({ id: "1" }),
+        }),
+      );
+    });
+
+    await act(async () => {
+      await waitForEffects();
+    });
+
+    const categorySelect =
+      container.querySelector<HTMLSelectElement>("#category");
+    let shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
+    expect(categorySelect).not.toBeNull();
+    expect(shapeSelect).not.toBeNull();
+
+    await act(async () => {
+      categorySelect!.value = "fashion_accessories";
+      categorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    const subcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
+    shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
+    expect(subcategorySelect).not.toBeNull();
+    expect(shapeSelect).not.toBeNull();
+
+    expect(
+      Array.from(subcategorySelect!.options).map((option) => option.value),
+    ).toEqual([
+      "",
+      "hat",
+      "belt",
+      "scarf_stole",
+      "gloves",
+      "jewelry",
+      "wallet_case",
+      "hair_accessory",
+      "eyewear",
+      "watch",
+      "other",
+    ]);
+    expect(
+      Array.from(shapeSelect!.options).map((option) => option.value),
+    ).toEqual([""]);
+
+    await act(async () => {
+      subcategorySelect!.value = "watch";
+      subcategorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    expect(shapeSelect!.value).toBe("watch");
+    expect(shapeSelect!.disabled).toBe(true);
+    expect(
+      Array.from(shapeSelect!.options).map((option) => option.value),
+    ).toEqual(["", "watch"]);
   });
 
   it("編集画面でも tops の形は分類セクション側で扱う", async () => {
