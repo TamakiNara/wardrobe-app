@@ -151,11 +151,27 @@ const sampleGroups: CategoryGroupRecord[] = [
     name: "バッグ",
     sortOrder: 40,
     categories: [
+      { id: "bags_tote", groupId: "bags", name: "トートバッグ", sortOrder: 10 },
       {
-        id: "bags_bag",
+        id: "bags_shoulder",
         groupId: "bags",
-        name: "バッグ",
-        sortOrder: 10,
+        name: "ショルダーバッグ",
+        sortOrder: 20,
+      },
+      { id: "bags_backpack", groupId: "bags", name: "リュック", sortOrder: 30 },
+      { id: "bags_hand", groupId: "bags", name: "ハンドバッグ", sortOrder: 40 },
+      {
+        id: "bags_clutch",
+        groupId: "bags",
+        name: "クラッチバッグ",
+        sortOrder: 50,
+      },
+      { id: "bags_body", groupId: "bags", name: "ボディバッグ", sortOrder: 60 },
+      {
+        id: "bags_other",
+        groupId: "bags",
+        name: "その他バッグ",
+        sortOrder: 70,
       },
     ],
   },
@@ -187,7 +203,7 @@ describe("EditItemPage", () => {
         "allinone_allinone",
         "roomwear_inner_roomwear",
         "legwear_socks",
-        "bags_bag",
+        "bags_tote",
       ],
     });
     fetchUserPreferencesMock.mockResolvedValue({
@@ -624,7 +640,7 @@ describe("EditItemPage", () => {
     ).toEqual(["", "jacket", "tailored", "no_collar"]);
   });
 
-  it("編集画面でも bags は軽い種類 UI と shape 候補を表示できる", async () => {
+  it("編集画面でも bags は種類 select を表示し、選択に応じて shape を自動設定できる", async () => {
     const { default: EditItemPage } = await import("./page");
 
     act(() => {
@@ -651,21 +667,39 @@ describe("EditItemPage", () => {
       await waitForEffects();
     });
 
-    const subcategoryRadios = Array.from(
-      container.querySelectorAll<HTMLInputElement>('input[name="subcategory"]'),
-    );
+    const subcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
     shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
-    expect(subcategoryRadios).toHaveLength(2);
-    expect(subcategoryRadios.map((radio) => radio.value)).toEqual([
-      "bag",
-      "other",
-    ]);
-    expect(subcategoryRadios[0]?.checked).toBe(true);
+    expect(subcategorySelect).not.toBeNull();
     expect(shapeSelect).not.toBeNull();
 
     expect(
+      Array.from(subcategorySelect!.options).map((option) => option.value),
+    ).toEqual([
+      "",
+      "tote",
+      "shoulder",
+      "backpack",
+      "hand",
+      "clutch",
+      "body",
+      "other",
+    ]);
+    expect(
       Array.from(shapeSelect!.options).map((option) => option.value),
-    ).toEqual(["", "tote", "shoulder", "backpack", "hand", "clutch", "body"]);
+    ).toEqual([""]);
+
+    await act(async () => {
+      subcategorySelect!.value = "shoulder";
+      subcategorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    expect(shapeSelect!.value).toBe("shoulder");
+    expect(shapeSelect!.disabled).toBe(true);
+    expect(
+      Array.from(shapeSelect!.options).map((option) => option.value),
+    ).toEqual(["", "shoulder"]);
   });
 
   it("編集画面でも tops の形は分類セクション側で扱う", async () => {

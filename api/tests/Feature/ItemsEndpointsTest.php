@@ -929,16 +929,43 @@ class ItemsEndpointsTest extends TestCase
             ->assertJsonPath('item.shape', 'kimono');
     }
 
-    public function test_post_items_requires_shape_when_bag_subcategory_has_multiple_candidates(): void
+    public function test_post_items_can_autofill_shape_when_bag_subcategory_has_single_candidate(): void
     {
         $user = User::factory()->create();
 
         $this->actingAs($user, 'web');
 
         $response = $this->postJson('/api/items', [
-            'name' => 'バッグ',
+            'name' => 'トートバッグ',
             'category' => 'bags',
-            'subcategory' => 'bag',
+            'subcategory' => 'tote',
+            'shape' => '',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'black',
+                'hex' => '#111111',
+                'label' => 'ブラック',
+            ]],
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('item.subcategory', 'tote')
+            ->assertJsonPath('item.shape', 'tote');
+    }
+
+    public function test_post_items_requires_subcategory_when_bag_category_is_selected(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/items', [
+            'name' => '種類未選択バッグ',
+            'category' => 'bags',
+            'subcategory' => '',
             'shape' => '',
             'colors' => [[
                 'role' => 'main',
@@ -952,7 +979,7 @@ class ItemsEndpointsTest extends TestCase
         ]);
 
         $response->assertStatus(422)
-            ->assertJsonValidationErrors(['shape']);
+            ->assertJsonValidationErrors(['subcategory']);
     }
 
     public function test_post_items_requires_shape_when_outerwear_coat_has_multiple_candidates(): void

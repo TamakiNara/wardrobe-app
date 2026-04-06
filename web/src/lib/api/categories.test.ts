@@ -77,7 +77,15 @@ const groups: CategoryGroupRecord[] = [
   {
     id: "bags",
     name: "バッグ",
-    categories: [{ id: "bags_bag", groupId: "bags", name: "バッグ" }],
+    categories: [
+      { id: "bags_tote", groupId: "bags", name: "トートバッグ" },
+      { id: "bags_shoulder", groupId: "bags", name: "ショルダーバッグ" },
+      { id: "bags_backpack", groupId: "bags", name: "リュック" },
+      { id: "bags_hand", groupId: "bags", name: "ハンドバッグ" },
+      { id: "bags_clutch", groupId: "bags", name: "クラッチバッグ" },
+      { id: "bags_body", groupId: "bags", name: "ボディバッグ" },
+      { id: "bags_other", groupId: "bags", name: "その他バッグ" },
+    ],
   },
   {
     id: "fashion_accessories",
@@ -149,7 +157,7 @@ describe("buildSupportedCategoryOptions", () => {
   it("バッグとファッション小物は item 側でも別カテゴリとして扱う", () => {
     expect(
       buildSupportedCategoryOptions(groups, [
-        "bags_bag",
+        "bags_tote",
         "fashion_accessories_hat",
       ]),
     ).toEqual([
@@ -206,9 +214,9 @@ describe("findVisibleCategoryIdForItem", () => {
     expect(findVisibleCategoryIdForItem("legwear", "tights")).toBe(
       "legwear_tights",
     );
-    expect(findVisibleCategoryIdForItem("bags", "tote")).toBe("bags_bag");
-    expect(findVisibleCategoryIdForItem("bags", "hand")).toBe("bags_bag");
-    expect(findVisibleCategoryIdForItem("bags", "body")).toBe("bags_bag");
+    expect(findVisibleCategoryIdForItem("bags", "tote")).toBe("bags_tote");
+    expect(findVisibleCategoryIdForItem("bags", "hand")).toBe("bags_hand");
+    expect(findVisibleCategoryIdForItem("bags", "body")).toBe("bags_body");
     expect(findVisibleCategoryIdForItem("fashion_accessories", "belt")).toBe(
       "fashion_accessories_belt",
     );
@@ -219,7 +227,7 @@ describe("findVisibleCategoryIdForItem", () => {
       "kimono_kimono",
     );
     expect(findVisibleCategoryIdForItem("accessories", "tote")).toBe(
-      "bags_bag",
+      "bags_tote",
     );
   });
 
@@ -302,7 +310,7 @@ describe("isItemVisibleByCategorySettings", () => {
 
     expect(
       isItemVisibleByCategorySettings({ category: "bags", shape: "tote" }, [
-        "bags_bag",
+        "bags_tote",
       ]),
     ).toBe(true);
 

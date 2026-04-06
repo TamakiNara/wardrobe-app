@@ -6,13 +6,13 @@ import {
 } from "@/lib/master-data/item-subcategories";
 
 describe("item subcategory helpers", () => {
-  it("skirts と bags では通常入力で種類を軽い UI で表示する", () => {
+  it("skirts と shoes / kimono では通常入力で種類を軽い UI で表示する", () => {
     expect(shouldShowItemSubcategoryField("skirts")).toBe(true);
     expect(shouldShowItemSubcategoryField("bags")).toBe(true);
     expect(shouldShowItemSubcategoryField("shoes")).toBe(true);
     expect(shouldShowItemSubcategoryField("kimono")).toBe(true);
     expect(shouldUseItemSubcategoryRadioField("skirts")).toBe(true);
-    expect(shouldUseItemSubcategoryRadioField("bags")).toBe(true);
+    expect(shouldUseItemSubcategoryRadioField("bags")).toBe(false);
     expect(shouldUseItemSubcategoryRadioField("shoes")).toBe(true);
     expect(shouldUseItemSubcategoryRadioField("kimono")).toBe(true);
     expect(shouldShowItemSubcategoryField("tops")).toBe(true);
@@ -21,7 +21,7 @@ describe("item subcategory helpers", () => {
 
   it("通常入力の既定値として代表サブカテゴリを補完できる", () => {
     expect(resolveItemSubcategoryForForm("skirts", null)).toBe("skirt");
-    expect(resolveItemSubcategoryForForm("bags", null)).toBe("bag");
+    expect(resolveItemSubcategoryForForm("bags", null)).toBeNull();
     expect(resolveItemSubcategoryForForm("shoes", null)).toBe("shoes");
     expect(resolveItemSubcategoryForForm("kimono", null)).toBe("kimono");
   });

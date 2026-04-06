@@ -64,13 +64,16 @@ describe("getItemShapeOptions", () => {
     ).toEqual([]);
   });
 
-  it("bags の代表カテゴリでは shape 候補を中くらいの厚さに絞り込む", () => {
+  it("bags は種類に応じて shape 候補を最小限に絞り込む", () => {
     expect(
-      getItemShapeOptions("bags", "bag").map((item) => item.value),
-    ).toEqual(["tote", "shoulder", "backpack", "hand", "clutch", "body"]);
+      getItemShapeOptions("bags", "tote").map((item) => item.value),
+    ).toEqual(["tote"]);
+    expect(
+      getItemShapeOptions("bags", "hand").map((item) => item.value),
+    ).toEqual(["hand"]);
     expect(
       getItemShapeOptions("bags", "other").map((item) => item.value),
-    ).toEqual(["tote", "shoulder", "backpack", "hand", "clutch", "body"]);
+    ).toEqual([]);
   });
 
   it("shoes と kimono も種類に応じた候補で扱える", () => {
@@ -89,6 +92,9 @@ describe("getItemShapeOptions", () => {
     expect(
       getItemShapeOptions("pants", null).map((item) => item.value),
     ).toEqual(["pants", "straight", "tapered", "wide", "culottes"]);
+    expect(getItemShapeOptions("bags", null).map((item) => item.value)).toEqual(
+      [],
+    );
   });
 });
 

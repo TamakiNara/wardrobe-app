@@ -46,7 +46,12 @@ export const ITEM_SUBCATEGORIES = {
     { value: "other", label: "その他オールインワン" },
   ],
   bags: [
-    { value: "bag", label: "バッグ" },
+    { value: "tote", label: "トートバッグ" },
+    { value: "shoulder", label: "ショルダーバッグ" },
+    { value: "backpack", label: "リュック" },
+    { value: "hand", label: "ハンドバッグ" },
+    { value: "clutch", label: "クラッチバッグ" },
+    { value: "body", label: "ボディバッグ" },
     { value: "other", label: "その他バッグ" },
   ],
   shoes: [
@@ -72,18 +77,17 @@ export const REQUIRED_SUBCATEGORY_CATEGORIES = new Set<string>([
   "outerwear",
   "onepiece_dress",
   "allinone",
+  "bags",
 ]);
 
 const RADIO_SUBCATEGORY_UI_CATEGORIES = new Set<string>([
   "skirts",
-  "bags",
   "shoes",
   "kimono",
 ]);
 
 const REPRESENTATIVE_SUBCATEGORY_BY_CATEGORY: Record<string, string> = {
   skirts: "skirt",
-  bags: "bag",
   shoes: "shoes",
   kimono: "kimono",
 };
@@ -144,13 +148,12 @@ const LEGACY_INFERRED_SUBCATEGORY_BY_CATEGORY: Record<
     other: "other",
   },
   bags: {
-    bag: "bag",
-    tote: "bag",
-    shoulder: "bag",
-    backpack: "bag",
-    hand: "bag",
-    clutch: "bag",
-    body: "bag",
+    tote: "tote",
+    shoulder: "shoulder",
+    backpack: "backpack",
+    hand: "hand",
+    clutch: "clutch",
+    body: "body",
     other: "other",
   },
   shoes: {
@@ -217,7 +220,12 @@ const DEFAULT_SHAPE_BY_SUBCATEGORY: Record<string, Record<string, string>> = {
     other: "allinone",
   },
   bags: {
-    bag: "bag",
+    tote: "tote",
+    shoulder: "shoulder",
+    backpack: "backpack",
+    hand: "hand",
+    clutch: "clutch",
+    body: "body",
     other: "bag",
   },
   shoes: {

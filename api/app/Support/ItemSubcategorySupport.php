@@ -52,7 +52,12 @@ class ItemSubcategorySupport
             'other',
         ],
         'bags' => [
-            'bag',
+            'tote',
+            'shoulder',
+            'backpack',
+            'hand',
+            'clutch',
+            'body',
             'other',
         ],
         'shoes' => [
@@ -76,6 +81,7 @@ class ItemSubcategorySupport
         'outerwear',
         'onepiece_dress',
         'allinone',
+        'bags',
     ];
 
     public static function valuesFor(?string $category): array
@@ -121,6 +127,12 @@ class ItemSubcategorySupport
         if (($validated['subcategory'] ?? null) !== null && $subcategory === null) {
             throw ValidationException::withMessages([
                 'subcategory' => 'カテゴリに対応しない種類です。',
+            ]);
+        }
+
+        if (self::isRequired($category) && $subcategory === null) {
+            throw ValidationException::withMessages([
+                'subcategory' => '種類を選択してください。',
             ]);
         }
     }

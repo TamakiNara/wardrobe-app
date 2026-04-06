@@ -50,7 +50,7 @@ class TestSeedUsersSeederTest extends TestCase
         $this->assertDatabaseCount('purchase_candidates', 10);
 
         $this->assertNotNull($standardUser->visible_category_ids);
-        $this->assertCount(58, $standardUser->visible_category_ids);
+        $this->assertCount(63, $standardUser->visible_category_ids);
         $this->assertCount(12, $standardUser->outfits);
         $this->assertCount(32, $standardUser->items);
         $standardCandidates = PurchaseCandidate::query()

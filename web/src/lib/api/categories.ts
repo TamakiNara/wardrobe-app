@@ -117,13 +117,14 @@ const ITEM_CATEGORY_ID_BY_SHAPE: Record<string, Record<string, string>> = {
     sandals: "shoes_sandals",
   },
   bags: {
-    bag: "bags_bag",
-    tote: "bags_bag",
-    shoulder: "bags_bag",
-    backpack: "bags_bag",
-    hand: "bags_bag",
-    clutch: "bags_bag",
-    body: "bags_bag",
+    bag: "bags_other",
+    tote: "bags_tote",
+    shoulder: "bags_shoulder",
+    backpack: "bags_backpack",
+    hand: "bags_hand",
+    clutch: "bags_clutch",
+    body: "bags_body",
+    other: "bags_other",
   },
   fashion_accessories: {
     hat: "fashion_accessories_hat",
@@ -147,11 +148,12 @@ const ITEM_CATEGORY_ID_BY_SHAPE: Record<string, Record<string, string>> = {
     other: "kimono_other",
   },
   accessories: {
-    tote: "bags_bag",
-    shoulder: "bags_bag",
-    backpack: "bags_bag",
-    hand: "bags_bag",
-    body: "bags_bag",
+    tote: "bags_tote",
+    shoulder: "bags_shoulder",
+    backpack: "bags_backpack",
+    hand: "bags_hand",
+    clutch: "bags_clutch",
+    body: "bags_body",
     hat: "fashion_accessories_hat",
     accessory: "fashion_accessories_other",
   },
@@ -198,7 +200,14 @@ export function resolveCurrentItemCategoryValue(
   }
 
   if (category === "accessories") {
-    if (shape === "tote" || shape === "shoulder" || shape === "backpack") {
+    if (
+      shape === "tote" ||
+      shape === "shoulder" ||
+      shape === "backpack" ||
+      shape === "hand" ||
+      shape === "clutch" ||
+      shape === "body"
+    ) {
       return "bags";
     }
 

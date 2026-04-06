@@ -39,8 +39,13 @@ class ItemInputRequirementSupport
             'other' => [],
         ],
         'bags' => [
-            'bag' => ['tote', 'shoulder', 'backpack', 'hand', 'clutch', 'body'],
-            'other' => ['tote', 'shoulder', 'backpack', 'hand', 'clutch', 'body'],
+            'tote' => ['tote'],
+            'shoulder' => ['shoulder'],
+            'backpack' => ['backpack'],
+            'hand' => ['hand'],
+            'clutch' => ['clutch'],
+            'body' => ['body'],
+            'other' => [],
         ],
         'shoes' => [
             'shoes' => ['pumps', 'sneakers', 'short-boots', 'sandals'],
@@ -122,7 +127,12 @@ class ItemInputRequirementSupport
             'other' => 'allinone',
         ],
         'bags' => [
-            'bag' => 'bag',
+            'tote' => 'tote',
+            'shoulder' => 'shoulder',
+            'backpack' => 'backpack',
+            'hand' => 'hand',
+            'clutch' => 'clutch',
+            'body' => 'body',
             'other' => 'bag',
         ],
         'shoes' => [
