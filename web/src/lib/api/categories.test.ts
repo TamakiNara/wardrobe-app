@@ -176,6 +176,18 @@ describe("findVisibleCategoryIdForItem", () => {
     expect(findVisibleCategoryIdForItem("outerwear", "coat")).toBe(
       "outerwear_coat",
     );
+    expect(findVisibleCategoryIdForItem("outerwear", "trench")).toBe(
+      "outerwear_coat",
+    );
+    expect(findVisibleCategoryIdForItem("outerwear", "stainless")).toBe(
+      "outerwear_coat",
+    );
+    expect(findVisibleCategoryIdForItem("outerwear", "tailored")).toBe(
+      "outerwear_jacket",
+    );
+    expect(findVisibleCategoryIdForItem("outerwear", "no_collar")).toBe(
+      "outerwear_jacket",
+    );
     expect(findVisibleCategoryIdForItem("outer", "trench")).toBe(
       "outerwear_coat",
     );

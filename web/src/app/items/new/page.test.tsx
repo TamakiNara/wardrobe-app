@@ -75,6 +75,19 @@ const sampleGroups: CategoryGroupRecord[] = [
     ],
   },
   {
+    id: "outerwear",
+    name: "ジャケット・アウター",
+    sortOrder: 12,
+    categories: [
+      {
+        id: "outerwear_jacket",
+        groupId: "outerwear",
+        name: "ジャケット",
+        sortOrder: 10,
+      },
+    ],
+  },
+  {
     id: "pants",
     name: "パンツ",
     sortOrder: 15,
@@ -191,6 +204,7 @@ describe("NewItemPage", () => {
     fetchCategoryVisibilitySettingsMock.mockResolvedValue({
       visibleCategoryIds: [
         "tops_tshirt_cutsew",
+        "outerwear_jacket",
         "pants_pants",
         "onepiece_dress_onepiece",
         "allinone_allinone",
@@ -242,6 +256,7 @@ describe("NewItemPage", () => {
     expect(optionLabels).toEqual([
       "選択してください",
       "トップス",
+      "ジャケット・アウター",
       "パンツ",
       "ワンピース・ドレス",
       "オールインワン",
@@ -607,6 +622,51 @@ describe("NewItemPage", () => {
     expect(
       Array.from(shapeSelect!.options).map((option) => option.value),
     ).toEqual(["", "straight", "tapered", "wide", "culottes"]);
+  });
+
+  it("outerwear の種類に応じて shape 候補を絞り込む", async () => {
+    const { default: NewItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(NewItemPage));
+      await waitForEffects();
+    });
+
+    const categorySelect =
+      container.querySelector<HTMLSelectElement>("#category");
+    expect(categorySelect).not.toBeNull();
+
+    await act(async () => {
+      categorySelect!.value = "outerwear";
+      categorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    const subcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
+    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
+    expect(subcategorySelect).not.toBeNull();
+    expect(shapeSelect).not.toBeNull();
+
+    await act(async () => {
+      subcategorySelect!.value = "coat";
+      subcategorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    expect(
+      Array.from(shapeSelect!.options).map((option) => option.value),
+    ).toEqual(["", "coat", "trench", "chester", "stainless"]);
+
+    await act(async () => {
+      subcategorySelect!.value = "jacket";
+      subcategorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    expect(
+      Array.from(shapeSelect!.options).map((option) => option.value),
+    ).toEqual(["", "jacket", "tailored", "no_collar"]);
   });
 
   it("skirts の代表カテゴリでは shape 候補を厚めに絞り込む", async () => {

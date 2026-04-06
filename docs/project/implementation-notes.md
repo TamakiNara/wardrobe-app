@@ -341,6 +341,8 @@ thumbnail の現状確認用パターン一覧を見返すときは `docs/specs/
 - `tops` では `パーカー・フーディー`、`スウェット・トレーナー`、`ポロシャツ`、`キャミソール`、`タンクトップ・ノースリーブ` のような種類名として定着しているものを中分類に残し、首元・袖・fit・丈は `shape / spec` 側で扱う
 - `デニムスカート` は初回再編では中分類に入れず、代表カテゴリ `skirts_skirt` と素材・spec 側の情報で扱う前提を優先する
 - バッグの用途差は初回再編では中分類を増やしすぎず、トート / ショルダー / リュックなどは現在の item の `shape` で吸収する
+- 現時点の `outerwear` は `subcategory` 中くらい / `shape` 中くらいの staged rollout とし、`coat` では `coat / trench / chester / stainless`、`jacket` では `jacket / tailored / no_collar` を候補に出し、`blouson` / `down_padded` / `mountain_parka` は最小候補に留める
+- `bags` は現時点で `subcategory = bag` のときだけ `shape` 候補をトート / ショルダー / リュック / ハンド / クラッチ / ボディへ絞っているが、`subcategory` 未選択でも `shape` 必須に見える違和感が残る。staged rollout 完了後に、`subcategory = bag` のときだけ `shape` 必須寄りにし、`other / null` は `shape` 任意または広め候補へ戻すかを見直す
 - item 入力フォームは、原則 `カテゴリ / 種類 / 形 / 詳細` の並びへ寄せ、使わない欄は非表示または未選択可で扱う前提を優先する
 - 今回は全面実装には入らないが、次に category master を追加・再編するときは、seed、settings、onboarding、candidate 変換、item `category / shape` のどこまで同時に直すかを一括で決めてから着手する
 - item 一覧 / outfits 一覧では、URL に季節条件がない場合のみ `currentSeason` を初期値として適用する

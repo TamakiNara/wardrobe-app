@@ -12,7 +12,10 @@ describe("getItemShapeOptions", () => {
   it("outerwear の種類に応じて候補を絞り込む", () => {
     expect(
       getItemShapeOptions("outerwear", "coat").map((item) => item.value),
-    ).toEqual(["coat"]);
+    ).toEqual(["coat", "trench", "chester", "stainless"]);
+    expect(
+      getItemShapeOptions("outerwear", "jacket").map((item) => item.value),
+    ).toEqual(["jacket", "tailored", "no_collar"]);
   });
 
   it("skirts の代表カテゴリでは shape 候補を厚めに絞り込む", () => {

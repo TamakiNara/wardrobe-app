@@ -34,9 +34,14 @@
   ],
   outerwear: [
     { value: "jacket", label: "ジャケット" },
+    { value: "tailored", label: "テーラードジャケット" },
+    { value: "no_collar", label: "ノーカラージャケット" },
     { value: "blouson", label: "ブルゾン" },
     { value: "down-padded", label: "ダウンジャケット・中綿ジャケット" },
     { value: "coat", label: "コート" },
+    { value: "trench", label: "トレンチコート" },
+    { value: "chester", label: "チェスターコート" },
+    { value: "stainless", label: "ステンカラーコート" },
     { value: "mountain-parka", label: "マウンテンパーカー" },
     { value: "other", label: "その他アウター" },
   ],
@@ -152,16 +157,21 @@ const SHAPE_VALUES_BY_SUBCATEGORY: Partial<
     other: ["skirt", "tight", "flare", "a_line", "pleated"],
   },
   outerwear: {
-    jacket: ["jacket"],
-    coat: ["coat"],
+    jacket: ["jacket", "tailored", "no_collar"],
+    coat: ["coat", "trench", "chester", "stainless"],
     blouson: ["blouson"],
     down_padded: ["down-padded"],
     mountain_parka: ["mountain-parka"],
     other: [
       "jacket",
+      "tailored",
+      "no_collar",
       "blouson",
       "down-padded",
       "coat",
+      "trench",
+      "chester",
+      "stainless",
       "mountain-parka",
       "other",
     ],
@@ -353,13 +363,17 @@ export function resolveCurrentItemShapeValue(
     );
   }
 
-  return (
-    {
-      tailored: "jacket",
-      trench: "coat",
-      chester: "coat",
-      down: "down-padded",
-      "outer-cardigan": "blouson",
-    }[shape] ?? shape
-  );
+  if (category === "outer") {
+    return (
+      {
+        tailored: "tailored",
+        trench: "trench",
+        chester: "chester",
+        down: "down-padded",
+        "outer-cardigan": "blouson",
+      }[shape] ?? shape
+    );
+  }
+
+  return shape;
 }
