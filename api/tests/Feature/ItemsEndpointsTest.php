@@ -1013,6 +1013,60 @@ class ItemsEndpointsTest extends TestCase
             ->assertJsonPath('item.shape', 'other');
     }
 
+    public function test_post_items_can_autofill_shape_when_shoe_subcategory_has_single_candidate(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/items', [
+            'name' => '白スニーカー',
+            'category' => 'shoes',
+            'subcategory' => 'sneakers',
+            'shape' => '',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'white',
+                'hex' => '#ffffff',
+                'label' => 'ホワイト',
+            ]],
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('item.subcategory', 'sneakers')
+            ->assertJsonPath('item.shape', 'sneakers');
+    }
+
+    public function test_post_items_can_save_shoe_other_without_explicit_shape(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/items', [
+            'name' => '分類保留シューズ',
+            'category' => 'shoes',
+            'subcategory' => 'other',
+            'shape' => '',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'black',
+                'hex' => '#111111',
+                'label' => 'ブラック',
+            ]],
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('item.subcategory', 'other')
+            ->assertJsonPath('item.shape', 'other');
+    }
+
     public function test_post_items_requires_subcategory_when_bag_category_is_selected(): void
     {
         $user = User::factory()->create();
@@ -1048,6 +1102,32 @@ class ItemsEndpointsTest extends TestCase
         $response = $this->postJson('/api/items', [
             'name' => '種類未選択小物',
             'category' => 'fashion_accessories',
+            'subcategory' => '',
+            'shape' => '',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'black',
+                'hex' => '#111111',
+                'label' => 'ブラック',
+            ]],
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['subcategory']);
+    }
+
+    public function test_post_items_requires_subcategory_when_shoes_category_is_selected(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/items', [
+            'name' => '種類未選択シューズ',
+            'category' => 'shoes',
             'subcategory' => '',
             'shape' => '',
             'colors' => [[

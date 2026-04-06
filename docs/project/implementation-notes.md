@@ -329,7 +329,7 @@ thumbnail の現状確認用パターン一覧を見返すときは `docs/specs/
 - categories 設定で扱う中分類 ID は、当面 `subcategory` に相当するものとして読み、`shape` / `spec` は ON / OFF 対象へ広げない
 - `subcategory` は item モデルの独立カラムとして段階導入済みとし、値は `tops_hoodie` のような中分類 ID そのものではなく `hoodie` のような単体値で持ち、意味は `category` と組み合わせて読む
 - settings 側の中分類 ID とは、`pants_denim` ⇔ `category = pants` かつ `subcategory = denim` のように対応づける前提を優先する
-- `subcategory` は全カテゴリで一律必須にはせず、まず `tops`、`pants`、`outerwear`、`onepiece_dress`、`allinone`、`bags`、`fashion_accessories` を中心に UI へ導入し、`skirts`、`shoes`、`kimono` は代表カテゴリまたは `null` 許容で始める
+- `subcategory` は全カテゴリで一律必須にはせず、まず `tops`、`pants`、`outerwear`、`onepiece_dress`、`allinone`、`bags`、`fashion_accessories`、`shoes` を中心に UI へ導入し、`skirts`、`kimono` は代表カテゴリまたは `null` 許容で始める
 - create / edit は原則 `カテゴリ / 種類 / 形 / 詳細` の並びへ寄せ、`shape` 候補は `category` だけでなく `subcategory` に応じても出し分ける前提を優先する
 - 旧データは一括で完全移行する前提にはせず、安全に補完できるものだけデータ補完し、補完できないものは `subcategory = null` を許容して UI 側 fallback で吸収する。現在の item 詳細 / 一覧 / disposed 一覧では `subcategory` を優先表示し、未設定時は bridge で補助する
 - lower-body 系は、`pants` / `skirts` とも丈を原則 `spec` に寄せ、テーパード / フレアのような型差は `shape` に寄せる
@@ -348,8 +348,8 @@ thumbnail の現状確認用パターン一覧を見返すときは `docs/specs/
 - 一覧・検索で独立して使いたい粒度を基準に見直すと、`bags` の用途差、`fashion_accessories` の種類差、`shoes` の靴種、`legwear` の種別、`roomwear_inner` の大きい種類差は、現状の `shape` や代表カテゴリ固定より `subcategory` へ上げる余地がある。将来の filter / settings を自然につなぐには、フォーム都合だけでなく「独立して絞りたいか」を優先して `subcategory` 粒度を再判断する方針を追加で持つ。
 - 一覧・検索で使いたい粒度を優先した実装順の第一候補は、`bags` → `fashion_accessories` → `shoes` → `legwear` → `roomwear_inner` とする。`bags` と `fashion_accessories` は current で `subcategory` 厚めへ寄せ始めており、次は `shoes` 以降を同じ説明粒度へそろえる。
 - item 入力フォームは、原則 `カテゴリ / 種類 / 形 / 詳細` の並びへ寄せ、使わない欄は非表示または未選択可で扱う前提を優先する
-- `skirts`、`shoes`、`kimono` は `subcategory` 候補が少ないため、現時点の通常入力ではプルダウンではなく軽い UI で `種類` を見せ、代表カテゴリを既定値にしつつ `other` へ切り替えられる形を優先する
-- `skirts` は `subcategory = skirt`、`shoes` は `subcategory = shoes`、`kimono` は `subcategory = kimono` を通常入力の既定値とし、`other` は staged rollout 中の旧データ互換や補助表示にも残すが、shape 側の新規入力候補には追加しない
+- `skirts`、`shoes`、`kimono` は `subcategory` 候補が少ないため、現時点の通常入力ではプルダウンではなく軽い UI で `種類` を見せ、代表カテゴリまたは主要候補を既定値にしつつ `other` へ切り替えられる形を優先する
+- `skirts` は `subcategory = skirt`、`shoes` は `subcategory = sneakers / pumps / boots / sandals / other`、`kimono` は `subcategory = kimono` を通常入力の主導線とし、`other` は staged rollout 中の旧データ互換や補助表示にも残すが、shape 側の新規入力候補には追加しない
 - 現時点の入力必須条件は、`subcategory` を主導線にするカテゴリでは `subcategory` を必須寄りにし、`shape` は `category + subcategory` で見た候補数が複数ある場合だけ条件付き必須にする
 - 候補が1件しかない `shape` は自動選択で済ませ、frontend の必須表示と backend validation もこの条件にそろえる
 - `subcategory = other` と staged rollout 中の `null` は旧データ互換を優先して任意寄りに扱い、`bags` は `subcategory = other / null` のときだけ `shape` 任意寄り、通常のバッグ種類では `shape` を自動補完で扱う

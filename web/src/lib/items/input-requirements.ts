@@ -37,7 +37,7 @@ const FALLBACK_SHAPE_BY_CATEGORY: Record<string, string> = {
   allinone: "allinone",
   bags: "bag",
   fashion_accessories: "other",
-  shoes: "sneakers",
+  shoes: "other",
   kimono: "kimono",
 };
 

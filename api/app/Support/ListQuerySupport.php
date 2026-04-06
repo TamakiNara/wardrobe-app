@@ -163,6 +163,7 @@ class ListQuerySupport
                 'pumps' => 'shoes_pumps',
                 'short-boots' => 'shoes_boots',
                 'sandals' => 'shoes_sandals',
+                'other' => 'shoes_other',
             ],
             'bags' => [
                 'bag' => 'bags_other',

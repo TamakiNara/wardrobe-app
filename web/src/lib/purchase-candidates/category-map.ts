@@ -145,26 +145,26 @@ const PURCHASE_CANDIDATE_ITEM_CATEGORY_MAP = {
   legwear_other: { category: "legwear", subcategory: null, shape: "socks" },
   shoes_sneakers: {
     category: "shoes",
-    subcategory: "shoes",
+    subcategory: "sneakers",
     shape: "sneakers",
   },
   shoes_loafers_leather: {
     category: "shoes",
-    subcategory: "shoes",
-    shape: "pumps",
+    subcategory: "other",
+    shape: "other",
   },
-  shoes_pumps: { category: "shoes", subcategory: "shoes", shape: "pumps" },
+  shoes_pumps: { category: "shoes", subcategory: "pumps", shape: "pumps" },
   shoes_boots: {
     category: "shoes",
-    subcategory: "shoes",
+    subcategory: "boots",
     shape: "short-boots",
   },
   shoes_sandals: {
     category: "shoes",
-    subcategory: "shoes",
+    subcategory: "sandals",
     shape: "sandals",
   },
-  shoes_other: { category: "shoes", subcategory: "other", shape: "sneakers" },
+  shoes_other: { category: "shoes", subcategory: "other", shape: "other" },
   bags_tote: { category: "bags", subcategory: "tote", shape: "tote" },
   bags_shoulder: {
     category: "bags",
@@ -329,7 +329,7 @@ const PURCHASE_CANDIDATE_ITEM_CATEGORY_MAP = {
   inner_roomwear: { category: "inner", subcategory: null, shape: "roomwear" },
   inner_underwear: { category: "inner", subcategory: null, shape: "underwear" },
   inner_pajamas: { category: "inner", subcategory: null, shape: "pajamas" },
-  shoes_loafers: { category: "shoes", subcategory: "shoes", shape: "pumps" },
+  shoes_loafers: { category: "shoes", subcategory: "other", shape: "other" },
   bags_bag: { category: "bags", subcategory: "other", shape: "bag" },
   accessories_hat: {
     category: "fashion_accessories",

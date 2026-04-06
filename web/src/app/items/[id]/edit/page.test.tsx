@@ -147,6 +147,43 @@ const sampleGroups: CategoryGroupRecord[] = [
     ],
   },
   {
+    id: "shoes",
+    name: "シューズ",
+    sortOrder: 37,
+    categories: [
+      {
+        id: "shoes_sneakers",
+        groupId: "shoes",
+        name: "スニーカー",
+        sortOrder: 10,
+      },
+      {
+        id: "shoes_pumps",
+        groupId: "shoes",
+        name: "パンプス",
+        sortOrder: 20,
+      },
+      {
+        id: "shoes_boots",
+        groupId: "shoes",
+        name: "ブーツ",
+        sortOrder: 30,
+      },
+      {
+        id: "shoes_sandals",
+        groupId: "shoes",
+        name: "サンダル",
+        sortOrder: 40,
+      },
+      {
+        id: "shoes_other",
+        groupId: "shoes",
+        name: "その他シューズ",
+        sortOrder: 50,
+      },
+    ],
+  },
+  {
     id: "bags",
     name: "バッグ",
     sortOrder: 40,
@@ -228,6 +265,7 @@ describe("EditItemPage", () => {
         "allinone_allinone",
         "roomwear_inner_roomwear",
         "legwear_socks",
+        "shoes_sneakers",
         "bags_tote",
         "fashion_accessories_belt",
       ],
@@ -367,6 +405,7 @@ describe("EditItemPage", () => {
       "オールインワン",
       "ルームウェア・インナー",
       "レッグウェア",
+      "シューズ",
       "バッグ",
       "ファッション小物",
     ]);
@@ -813,5 +852,75 @@ describe("EditItemPage", () => {
     expect(shapeSelect).not.toBeNull();
     expect(shapeSelect!.value).toBe("tshirt");
     expect(container.querySelector("#tops-shape")).toBeNull();
+  });
+
+  it("編集画面でも shoes は種類ラジオに応じて shape を自動設定できる", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          item: {
+            id: 1,
+            name: "白スニーカー",
+            status: "active",
+            care_status: null,
+            brand_name: null,
+            price: null,
+            purchase_url: null,
+            memo: null,
+            purchased_at: null,
+            size_gender: null,
+            size_label: null,
+            size_note: null,
+            size_details: null,
+            is_rain_ok: false,
+            category: "shoes",
+            subcategory: "sneakers",
+            shape: "sneakers",
+            colors: [],
+            seasons: [],
+            tpos: [],
+            tpo_ids: [],
+            spec: {},
+            images: [],
+          },
+        }),
+      }),
+    );
+
+    const { default: EditItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(
+        React.createElement(EditItemPage, {
+          params: Promise.resolve({ id: "1" }),
+        }),
+      );
+      await waitForEffects();
+    });
+
+    const subcategoryRadios = Array.from(
+      container.querySelectorAll<HTMLInputElement>('input[name="subcategory"]'),
+    );
+    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
+
+    expect(subcategoryRadios.map((radio) => radio.value)).toEqual([
+      "sneakers",
+      "pumps",
+      "boots",
+      "sandals",
+      "other",
+    ]);
+    expect(subcategoryRadios[0]?.checked).toBe(true);
+    expect(shapeSelect?.value).toBe("sneakers");
+
+    await act(async () => {
+      subcategoryRadios[2]!.click();
+      await waitForEffects();
+    });
+
+    expect(shapeSelect?.value).toBe("short-boots");
   });
 });

@@ -73,7 +73,10 @@ class ItemSubcategorySupport
             'other',
         ],
         'shoes' => [
-            'shoes',
+            'sneakers',
+            'pumps',
+            'boots',
+            'sandals',
             'other',
         ],
         'kimono' => [
@@ -95,6 +98,7 @@ class ItemSubcategorySupport
         'allinone',
         'bags',
         'fashion_accessories',
+        'shoes',
     ];
 
     public static function valuesFor(?string $category): array

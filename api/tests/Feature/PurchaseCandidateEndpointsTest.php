@@ -653,12 +653,13 @@ class PurchaseCandidateEndpointsTest extends TestCase
             ->assertJsonPath('candidate_summary.id', $candidate->id);
     }
 
-    public function test_post_purchase_candidate_item_draft_supports_fashion_accessories_swimwear_and_kimono(): void
+    public function test_post_purchase_candidate_item_draft_supports_fashion_accessories_shoes_swimwear_and_kimono(): void
     {
         $user = User::factory()->create();
 
         $cases = [
             'fashion_accessories_wallet_case' => ['category' => 'fashion_accessories', 'subcategory' => 'wallet_case', 'shape' => 'wallet-case'],
+            'shoes_pumps' => ['category' => 'shoes', 'subcategory' => 'pumps', 'shape' => 'pumps'],
             'swimwear_rashguard' => ['category' => 'swimwear', 'shape' => 'rashguard'],
             'kimono_kimono' => ['category' => 'kimono', 'shape' => 'kimono'],
         ];

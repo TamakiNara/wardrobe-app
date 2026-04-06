@@ -78,6 +78,7 @@
     { value: "leggings", label: "レギンス" },
   ],
   shoes: [
+    { value: "other", label: "その他シューズ" },
     { value: "pumps", label: "パンプス" },
     { value: "sneakers", label: "スニーカー" },
     { value: "short-boots", label: "ショートブーツ" },
@@ -207,8 +208,11 @@ const SHAPE_VALUES_BY_SUBCATEGORY: Partial<
     other: [],
   },
   shoes: {
-    shoes: ["pumps", "sneakers", "short-boots", "sandals"],
-    other: ["pumps", "sneakers", "short-boots", "sandals"],
+    sneakers: ["sneakers"],
+    pumps: ["pumps"],
+    boots: ["short-boots"],
+    sandals: ["sandals"],
+    other: [],
   },
   kimono: {
     kimono: ["kimono"],
@@ -228,7 +232,9 @@ export function getItemShapeOptions(
 
   if (
     !subcategory &&
-    (category === "bags" || category === "fashion_accessories")
+    (category === "bags" ||
+      category === "fashion_accessories" ||
+      category === "shoes")
   ) {
     return [];
   }

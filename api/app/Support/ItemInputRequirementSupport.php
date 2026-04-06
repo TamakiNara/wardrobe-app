@@ -60,8 +60,11 @@ class ItemInputRequirementSupport
             'other' => [],
         ],
         'shoes' => [
-            'shoes' => ['pumps', 'sneakers', 'short-boots', 'sandals'],
-            'other' => ['pumps', 'sneakers', 'short-boots', 'sandals'],
+            'sneakers' => ['sneakers'],
+            'pumps' => ['pumps'],
+            'boots' => ['short-boots'],
+            'sandals' => ['sandals'],
+            'other' => [],
         ],
         'kimono' => [
             'kimono' => ['kimono'],
@@ -162,8 +165,11 @@ class ItemInputRequirementSupport
             'other' => 'other',
         ],
         'shoes' => [
-            'shoes' => 'sneakers',
-            'other' => 'sneakers',
+            'sneakers' => 'sneakers',
+            'pumps' => 'pumps',
+            'boots' => 'short-boots',
+            'sandals' => 'sandals',
+            'other' => 'other',
         ],
         'kimono' => [
             'kimono' => 'kimono',
@@ -180,7 +186,7 @@ class ItemInputRequirementSupport
         'allinone' => 'allinone',
         'bags' => 'bag',
         'fashion_accessories' => 'other',
-        'shoes' => 'sneakers',
+        'shoes' => 'other',
         'kimono' => 'kimono',
     ];
 

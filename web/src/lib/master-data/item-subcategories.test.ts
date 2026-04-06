@@ -29,7 +29,7 @@ describe("item subcategory helpers", () => {
     expect(
       resolveItemSubcategoryForForm("fashion_accessories", null),
     ).toBeNull();
-    expect(resolveItemSubcategoryForForm("shoes", null)).toBe("shoes");
+    expect(resolveItemSubcategoryForForm("shoes", null)).toBe("sneakers");
     expect(resolveItemSubcategoryForForm("kimono", null)).toBe("kimono");
   });
 
@@ -38,5 +38,6 @@ describe("item subcategory helpers", () => {
     expect(resolveItemSubcategoryForForm("fashion_accessories", "other")).toBe(
       "other",
     );
+    expect(resolveItemSubcategoryForForm("shoes", "other")).toBe("other");
   });
 });

@@ -75,6 +75,17 @@ const groups: CategoryGroupRecord[] = [
     categories: [{ id: "legwear_socks", groupId: "legwear", name: "ソックス" }],
   },
   {
+    id: "shoes",
+    name: "シューズ",
+    categories: [
+      { id: "shoes_sneakers", groupId: "shoes", name: "スニーカー" },
+      { id: "shoes_pumps", groupId: "shoes", name: "パンプス" },
+      { id: "shoes_boots", groupId: "shoes", name: "ブーツ" },
+      { id: "shoes_sandals", groupId: "shoes", name: "サンダル" },
+      { id: "shoes_other", groupId: "shoes", name: "その他シューズ" },
+    ],
+  },
+  {
     id: "bags",
     name: "バッグ",
     categories: [
@@ -131,6 +142,7 @@ describe("buildSupportedCategoryOptions", () => {
       { value: "allinone", label: "オールインワン" },
       { value: "inner", label: "ルームウェア・インナー" },
       { value: "legwear", label: "レッグウェア" },
+      { value: "shoes", label: "シューズ" },
       { value: "bags", label: "バッグ" },
       { value: "fashion_accessories", label: "ファッション小物" },
       { value: "swimwear", label: "水着" },
@@ -151,6 +163,10 @@ describe("buildSupportedCategoryOptions", () => {
 
     expect(buildSupportedCategoryOptions(groups, ["legwear_socks"])).toEqual([
       { value: "legwear", label: "レッグウェア" },
+    ]);
+
+    expect(buildSupportedCategoryOptions(groups, ["shoes_sneakers"])).toEqual([
+      { value: "shoes", label: "シューズ" },
     ]);
   });
 
@@ -214,6 +230,10 @@ describe("findVisibleCategoryIdForItem", () => {
     expect(findVisibleCategoryIdForItem("legwear", "tights")).toBe(
       "legwear_tights",
     );
+    expect(findVisibleCategoryIdForItem("shoes", "sneakers")).toBe(
+      "shoes_sneakers",
+    );
+    expect(findVisibleCategoryIdForItem("shoes", "other")).toBe("shoes_other");
     expect(findVisibleCategoryIdForItem("bags", "tote")).toBe("bags_tote");
     expect(findVisibleCategoryIdForItem("bags", "hand")).toBe("bags_hand");
     expect(findVisibleCategoryIdForItem("bags", "body")).toBe("bags_body");

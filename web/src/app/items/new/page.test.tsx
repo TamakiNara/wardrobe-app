@@ -153,6 +153,43 @@ const sampleGroups: CategoryGroupRecord[] = [
     ],
   },
   {
+    id: "shoes",
+    name: "シューズ",
+    sortOrder: 37,
+    categories: [
+      {
+        id: "shoes_sneakers",
+        groupId: "shoes",
+        name: "スニーカー",
+        sortOrder: 10,
+      },
+      {
+        id: "shoes_pumps",
+        groupId: "shoes",
+        name: "パンプス",
+        sortOrder: 20,
+      },
+      {
+        id: "shoes_boots",
+        groupId: "shoes",
+        name: "ブーツ",
+        sortOrder: 30,
+      },
+      {
+        id: "shoes_sandals",
+        groupId: "shoes",
+        name: "サンダル",
+        sortOrder: 40,
+      },
+      {
+        id: "shoes_other",
+        groupId: "shoes",
+        name: "その他シューズ",
+        sortOrder: 50,
+      },
+    ],
+  },
+  {
     id: "bags",
     name: "バッグ",
     sortOrder: 40,
@@ -251,6 +288,7 @@ describe("NewItemPage", () => {
         "allinone_allinone",
         "roomwear_inner_roomwear",
         "legwear_socks",
+        "shoes_sneakers",
         "bags_tote",
         "fashion_accessories_belt",
       ],
@@ -304,6 +342,7 @@ describe("NewItemPage", () => {
       "オールインワン",
       "ルームウェア・インナー",
       "レッグウェア",
+      "シューズ",
       "バッグ",
       "ファッション小物",
     ]);
@@ -993,6 +1032,61 @@ describe("NewItemPage", () => {
     expect(
       Array.from(shapeSelect!.options).map((option) => option.value),
     ).toEqual(["", "belt"]);
+  });
+
+  it("shoes は種類ラジオを表示し、選択に応じて shape を自動設定できる", async () => {
+    const { default: NewItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(NewItemPage));
+      await waitForEffects();
+    });
+
+    const categorySelect =
+      container.querySelector<HTMLSelectElement>("#category");
+    expect(categorySelect).not.toBeNull();
+
+    await act(async () => {
+      categorySelect!.value = "shoes";
+      categorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    const subcategoryRadios = Array.from(
+      container.querySelectorAll<HTMLInputElement>('input[name="subcategory"]'),
+    );
+    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
+
+    expect(subcategoryRadios.map((radio) => radio.value)).toEqual([
+      "sneakers",
+      "pumps",
+      "boots",
+      "sandals",
+      "other",
+    ]);
+    expect(subcategoryRadios[0]?.checked).toBe(true);
+    expect(shapeSelect).not.toBeNull();
+    expect(shapeSelect!.value).toBe("sneakers");
+    expect(shapeSelect!.disabled).toBe(true);
+
+    await act(async () => {
+      subcategoryRadios[2]!.click();
+      await waitForEffects();
+    });
+
+    expect(shapeSelect!.value).toBe("short-boots");
+
+    await act(async () => {
+      subcategoryRadios[4]!.click();
+      await waitForEffects();
+    });
+
+    const shapeLabel =
+      container.querySelector<HTMLLabelElement>('label[for="shape"]');
+    expect(shapeLabel?.textContent).not.toContain("必須");
+    expect(
+      Array.from(shapeSelect!.options).map((option) => option.value),
+    ).toEqual([""]);
   });
 
   it("fashion_accessories の other では形を任意寄りで扱う", async () => {

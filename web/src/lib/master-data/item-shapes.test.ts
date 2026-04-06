@@ -101,8 +101,14 @@ describe("getItemShapeOptions", () => {
 
   it("shoes と kimono も種類に応じた候補で扱える", () => {
     expect(
-      getItemShapeOptions("shoes", "shoes").map((item) => item.value),
-    ).toEqual(["pumps", "sneakers", "short-boots", "sandals"]);
+      getItemShapeOptions("shoes", "sneakers").map((item) => item.value),
+    ).toEqual(["sneakers"]);
+    expect(
+      getItemShapeOptions("shoes", "boots").map((item) => item.value),
+    ).toEqual(["short-boots"]);
+    expect(
+      getItemShapeOptions("shoes", "other").map((item) => item.value),
+    ).toEqual([]);
     expect(
       getItemShapeOptions("kimono", "kimono").map((item) => item.value),
     ).toEqual(["kimono"]);
@@ -118,6 +124,9 @@ describe("getItemShapeOptions", () => {
     expect(getItemShapeOptions("bags", null).map((item) => item.value)).toEqual(
       [],
     );
+    expect(
+      getItemShapeOptions("shoes", null).map((item) => item.value),
+    ).toEqual([]);
   });
 });
 
