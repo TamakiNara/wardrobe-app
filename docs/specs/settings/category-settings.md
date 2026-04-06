@@ -535,6 +535,23 @@ DBテーブル構成の詳細は `docs/data/database.md` を参照する。
 - category settings は引き続き「表示対象の種類 ID」を ON / OFF する前提なので、一覧・検索で独立して使いたい粒度を `subcategory` に上げる場合は、settings 側の中分類 ID も同じ粒度へ寄せる方が自然である
 - settings だけ現状粒度のまま、一覧・検索だけ別軸で細かくすると、`visible_category_ids` と item の `subcategory` の対応説明が難しくなるため、将来拡張するなら原則として同じ粒度へそろえる第一候補を維持する
 
+### 2-7. 対象カテゴリごとの再整理案と優先度
+
+| category | 現時点の整理 | 一覧・検索を優先した第一候補 | `shape` の役割 | 優先度 |
+| --- | --- | --- | --- | --- |
+| `bags` | `subcategory` 薄め、用途差は `shape` | `tote / shoulder / backpack / hand / clutch / body / other` を `subcategory` へ上げる | 同じバッグ種の中の構造差が必要になった時だけ持つ | 高 |
+| `fashion_accessories` | 実質的に種類差を持っている | 帽子、ベルト、マフラー・ストール、手袋、アクセサリー、財布・カードケース、ヘアアクセサリー、眼鏡・サングラス、腕時計、その他を `subcategory` に寄せる | 初期段階では薄くしてよい | 高 |
+| `shoes` | `subcategory` 薄め、靴種は `shape` | `sneakers / pumps / boots / sandals / other` を `subcategory` へ上げる | ヒール高、ブーツ丈など後続差分に限定する | 高 |
+| `legwear` | `shape` に相当する候補がほぼ種類差 | `socks / stockings / tights / leggings / other` を `subcategory` へ寄せる | 基本は持たず、必要な時だけ追加する | 中 |
+| `roomwear_inner` | 大分類の中がまだ粗い | `roomwear / underwear / pajamas / other` を `subcategory` に置く | 初期段階では持たないか、ごく薄くする | 中 |
+
+- `bags` はフォーム都合では `shape` に置きやすいが、一覧・検索や category settings まで一貫して説明するには `subcategory` へ上げる優先度が高い
+- `fashion_accessories` は、現時点でも種類差そのものを扱っているため、`shape` で持つより `subcategory` に寄せる方が説明しやすい
+- `shoes` も一覧・検索では靴種を独立して使いたくなりやすく、`subcategory` を薄いまま保つ利点が小さい
+- `legwear` は `coverage_type` を `spec` に残しつつ、種別だけ `subcategory` に寄せると責務が分かりやすい
+- `roomwear_inner` は大分類自体の再分割余地が残るため、まずは大きい種類差だけ `subcategory` に上げ、細分は後続に回す方が安全である
+
+
 
 ---
 
