@@ -641,11 +641,8 @@ describe("EditItemPage", () => {
 
     const categorySelect =
       container.querySelector<HTMLSelectElement>("#category");
-    const subcategorySelect =
-      container.querySelector<HTMLSelectElement>("#subcategory");
-    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
+    let shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
     expect(categorySelect).not.toBeNull();
-    expect(subcategorySelect).not.toBeNull();
     expect(shapeSelect).not.toBeNull();
 
     await act(async () => {
@@ -654,11 +651,9 @@ describe("EditItemPage", () => {
       await waitForEffects();
     });
 
-    await act(async () => {
-      subcategorySelect!.value = "bag";
-      subcategorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
-      await waitForEffects();
-    });
+    shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
+    expect(container.querySelector("#subcategory")).toBeNull();
+    expect(shapeSelect).not.toBeNull();
 
     expect(
       Array.from(shapeSelect!.options).map((option) => option.value),

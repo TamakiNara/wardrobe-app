@@ -715,17 +715,9 @@ describe("NewItemPage", () => {
       await waitForEffects();
     });
 
-    const subcategorySelect =
-      container.querySelector<HTMLSelectElement>("#subcategory");
     const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
-    expect(subcategorySelect).not.toBeNull();
+    expect(container.querySelector("#subcategory")).toBeNull();
     expect(shapeSelect).not.toBeNull();
-
-    await act(async () => {
-      subcategorySelect!.value = "skirt";
-      subcategorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
-      await waitForEffects();
-    });
 
     expect(
       Array.from(shapeSelect!.options).map((option) => option.value),
@@ -820,24 +812,16 @@ describe("NewItemPage", () => {
       await waitForEffects();
     });
 
-    const subcategorySelect =
-      container.querySelector<HTMLSelectElement>("#subcategory");
     const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
-    expect(subcategorySelect).not.toBeNull();
+    expect(container.querySelector("#subcategory")).toBeNull();
     expect(shapeSelect).not.toBeNull();
-
-    await act(async () => {
-      subcategorySelect!.value = "bag";
-      subcategorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
-      await waitForEffects();
-    });
 
     expect(
       Array.from(shapeSelect!.options).map((option) => option.value),
     ).toEqual(["", "tote", "shoulder", "backpack", "hand", "clutch", "body"]);
   });
 
-  it("bags の other は形を任意寄りで扱う", async () => {
+  it("bags は通常入力で種類を表示しない", async () => {
     const { default: NewItemPage } = await import("./page");
 
     await act(async () => {
@@ -855,21 +839,18 @@ describe("NewItemPage", () => {
       await waitForEffects();
     });
 
-    const subcategorySelect =
-      container.querySelector<HTMLSelectElement>("#subcategory");
+    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
     const shapeLabel =
       container.querySelector<HTMLLabelElement>('label[for="shape"]');
-    expect(subcategorySelect).not.toBeNull();
+    expect(container.querySelector("#subcategory")).toBeNull();
+    expect(shapeSelect).not.toBeNull();
     expect(shapeLabel).not.toBeNull();
 
-    await act(async () => {
-      subcategorySelect!.value = "other";
-      subcategorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
-      await waitForEffects();
-    });
-
     expect(shapeLabel?.textContent).toContain("形");
-    expect(shapeLabel?.textContent).not.toContain("必須");
+    expect(shapeLabel?.textContent).toContain("必須");
+    expect(
+      Array.from(shapeSelect!.options).map((option) => option.value),
+    ).toEqual(["", "tote", "shoulder", "backpack", "hand", "clutch", "body"]);
   });
 
   it("tops は形を分類セクションで扱い、1候補時は自動設定する", async () => {

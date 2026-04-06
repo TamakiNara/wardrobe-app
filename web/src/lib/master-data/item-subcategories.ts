@@ -74,6 +74,13 @@ export const REQUIRED_SUBCATEGORY_CATEGORIES = new Set<string>([
   "allinone",
 ]);
 
+const HIDDEN_SUBCATEGORY_UI_CATEGORIES = new Set<string>(["skirts", "bags"]);
+
+const REPRESENTATIVE_SUBCATEGORY_BY_CATEGORY: Record<string, string> = {
+  skirts: "skirt",
+  bags: "bag",
+};
+
 const LEGACY_INFERRED_SUBCATEGORY_BY_CATEGORY: Record<
   string,
   Record<string, string>
@@ -220,6 +227,10 @@ export function isItemSubcategoryRequired(category?: string | null) {
   return Boolean(category && REQUIRED_SUBCATEGORY_CATEGORIES.has(category));
 }
 
+export function shouldShowItemSubcategoryField(category?: string | null) {
+  return Boolean(category && !HIDDEN_SUBCATEGORY_UI_CATEGORIES.has(category));
+}
+
 export function normalizeItemSubcategory(
   category?: string | null,
   subcategory?: string | null,
@@ -273,6 +284,23 @@ export function resolveCurrentItemSubcategoryValue(
     normalizeItemSubcategory(currentCategory, subcategory) ??
     inferLegacyItemSubcategory(category, shape)
   );
+}
+
+export function resolveItemSubcategoryForForm(
+  category?: string | null,
+  subcategory?: string | null,
+) {
+  const normalized = normalizeItemSubcategory(category, subcategory);
+
+  if (normalized) {
+    return normalized;
+  }
+
+  if (!category) {
+    return null;
+  }
+
+  return REPRESENTATIVE_SUBCATEGORY_BY_CATEGORY[category] ?? null;
 }
 
 export function findItemSubcategoryLabel(

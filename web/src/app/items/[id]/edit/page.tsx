@@ -17,8 +17,9 @@ import {
 import {
   getItemSubcategoryOptions,
   isItemSubcategoryRequired,
-  normalizeItemSubcategory,
+  resolveItemSubcategoryForForm,
   resolveCurrentItemSubcategoryValue,
+  shouldShowItemSubcategoryField,
 } from "@/lib/master-data/item-subcategories";
 import {
   buildSupportedCategoryOptions,
@@ -203,10 +204,14 @@ export default function EditItemPage({
     shape,
   );
 
+  const effectiveSubcategory = useMemo(
+    () => resolveItemSubcategoryForForm(category, subcategory),
+    [category, subcategory],
+  );
   const baseShapeOptions = useMemo(() => {
     if (!category) return [];
-    return getItemShapeOptions(category, subcategory);
-  }, [category, subcategory]);
+    return getItemShapeOptions(category, effectiveSubcategory);
+  }, [category, effectiveSubcategory]);
   const shapeOptions = useMemo(() => {
     if (!shape || baseShapeOptions.some((item) => item.value === shape)) {
       return baseShapeOptions;
@@ -220,18 +225,21 @@ export default function EditItemPage({
       },
     ];
   }, [baseShapeOptions, category, shape]);
-  const subcategoryOptions = useMemo(
-    () => getItemSubcategoryOptions(category),
+  const shouldShowSubcategoryField = useMemo(
+    () => shouldShowItemSubcategoryField(category),
     [category],
   );
-  const isSubcategoryRequired = isItemSubcategoryRequired(category);
-  const normalizedSubcategory = useMemo(
-    () => normalizeItemSubcategory(category, subcategory),
-    [category, subcategory],
+  const subcategoryOptions = useMemo(
+    () =>
+      shouldShowSubcategoryField ? getItemSubcategoryOptions(category) : [],
+    [category, shouldShowSubcategoryField],
   );
+  const isSubcategoryRequired =
+    shouldShowSubcategoryField && isItemSubcategoryRequired(category);
+  const normalizedSubcategory = effectiveSubcategory;
   const topsShapeOptions = useMemo(
-    () => getTopsShapeOptions(subcategory),
-    [subcategory],
+    () => getTopsShapeOptions(effectiveSubcategory),
+    [effectiveSubcategory],
   );
   const currentShapeOptions = isTopsCategory ? topsShapeOptions : shapeOptions;
   const currentShapeValue = isTopsCategory ? topsShape : shape;
@@ -1302,7 +1310,7 @@ export default function EditItemPage({
                 )}
               </div>
 
-              {subcategoryOptions.length > 0 ? (
+              {shouldShowSubcategoryField && subcategoryOptions.length > 0 ? (
                 <div data-error-key="subcategory">
                   <FieldLabel
                     htmlFor="subcategory"

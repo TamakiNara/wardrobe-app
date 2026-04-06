@@ -344,6 +344,8 @@ thumbnail の現状確認用パターン一覧を見返すときは `docs/specs/
 - 現時点の `outerwear` は `subcategory` 中くらい / `shape` 中くらいの staged rollout とし、`coat` では `coat / trench / chester / stainless`、`jacket` では `jacket / tailored / no_collar` を候補に出し、`blouson` / `down_padded` / `mountain_parka` は最小候補に留める
 - `bags` は現時点で `subcategory = bag` のときだけ `shape` 候補をトート / ショルダー / リュック / ハンド / クラッチ / ボディへ絞り、`other / null` は `shape` 任意寄りとして扱う。staged rollout 完了後に、`other` の候補を広めに戻すかは再検討する
 - item 入力フォームは、原則 `カテゴリ / 種類 / 形 / 詳細` の並びへ寄せ、使わない欄は非表示または未選択可で扱う前提を優先する
+- `skirts` と `bags` は `subcategory` が実質的な2択に近いため、現時点の通常入力では `種類` UI を出さず、代表カテゴリの `subcategory` を内部で自動設定する
+- `skirts` は `subcategory = skirt`、`bags` は `subcategory = bag` を通常入力の既定値とし、`other` は staged rollout 中の旧データ互換や補助表示に限って残す
 - 現時点の入力必須条件は、`subcategory` を主導線にするカテゴリでは `subcategory` を必須寄りにし、`shape` は `category + subcategory` で見た候補数が複数ある場合だけ条件付き必須にする
 - 候補が1件しかない `shape` は自動選択で済ませ、frontend の必須表示と backend validation もこの条件にそろえる
 - staged rollout 中の `other / null` は旧データ互換を優先して任意寄りに扱い、`bags` は `subcategory = bag` のときだけ `shape` 必須寄り、`other / null` は任意寄りとする

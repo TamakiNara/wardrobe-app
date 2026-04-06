@@ -369,6 +369,9 @@ DBテーブル構成の詳細は `docs/data/database.md` を参照する。
 - `shape` 候補は `category` に加えて `subcategory` に応じて出し分ける前提を優先する
 - `subcategory` をまだ厳密に持たないカテゴリでは、`種類` 欄は代表カテゴリの固定値または未選択可で扱う
 - 主表示は `subcategory` 優先とし、未移行データや `subcategory = null` の場合は現行の bridge から補助ラベルを出す
+- `skirts` と `bags` は、通常入力では `種類` を出さず、代表カテゴリの `subcategory` を内部で自動設定する前提を優先する
+- `skirts` は `subcategory = skirt`、`bags` は `subcategory = bag` を通常入力の既定値とし、`other` は内部表現として残す
+- `other` は staged rollout 中の旧データ互換や補助表現には残すが、通常入力の主導線には出さない
 
 ### 現時点の入力必須条件
 
