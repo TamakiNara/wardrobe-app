@@ -393,6 +393,16 @@ wear logs も本資料の対象とし、その保存方針を定義します。
 - `subcategory` を正式導入する場合も、categories 設定の ON / OFF 対象は `category` 直下の種類 ID までに留め、`shape` / `spec` は設定対象に広げない前提を優先する
 - 一覧・検索で独立して使いたい粒度は、原則として `shape` より `subcategory` へ上げる候補として扱う。current では `bags`、`fashion_accessories`、`shoes` を `subcategory` 厚めへ寄せ始めており、`legwear`、`roomwear_inner` は将来の filter 粒度と categories 設定の説明をそろえるための次候補とする
 - item 側では `roomwear_inner` も現在のカテゴリ `inner` として `subcategory = roomwear / underwear / pajamas / other` を主導線にし、`shape` は同名1件の候補を自動補完する薄い補助値として扱う
+- `roomwear_inner` 系の対応は、現時点では settings / master と item データで次のように読む
+
+| 層 | 値 | 役割 |
+| --- | --- | --- |
+| settings / master | `roomwear_inner_roomwear` など | `visible_category_ids` に保存する表示対象の種類 ID |
+| item | `category = inner` | item モデル上の current category |
+| item | `subcategory = roomwear / underwear / pajamas / other` | item で主導線として扱う種類名 |
+| legacy bridge | `inner_roomwear` など | 旧 map・旧データ互換のために読む値 |
+
+- つまり `roomwear_inner_*` は表示設定用 ID、`inner + subcategory` は item 側の正本概念、`inner_*` は legacy bridge として役割を分けて読む
 - migration 時の旧データ互換では、安全に補完できるものだけデータ補完し、補完できないものは `subcategory = null` を許容する
 - `items.shape` は引き続き nullable にしない前提を維持しつつ、現時点の staged rollout では `shape` が任意寄りのカテゴリで backend が代表 shape を補完して保存する
 - `subcategory = other` は subcategory 側の受け皿として扱い、shape 側の `other` は新規入力の主導線には追加しない

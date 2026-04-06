@@ -351,6 +351,36 @@ thumbnail の現状確認用パターン一覧を見返すときは `docs/specs/
 - 一覧・検索で使いたい粒度を優先した実装順の第一候補は、`bags` → `fashion_accessories` → `shoes` → `legwear` → `roomwear_inner` とする。`bags` と `fashion_accessories` は current で `subcategory` 厚めへ寄せ始めており、次は `shoes` 以降を同じ説明粒度へそろえる。
 - TODO: category / subcategory / shape の変換規則は `ListQuerySupport`、`ItemSubcategorySupport`、`ItemInputRequirementSupport`、`PurchaseCandidateCategoryMap`、`web/src/lib/api/categories.ts`、`web/src/lib/master-data/item-subcategories.ts`、`web/src/lib/master-data/item-shapes.ts` など複数箇所に分散しており、後続では正本化または責務整理を検討する
 - TODO: item 新規登録画面はカテゴリによって詳細属性カードが分類カードからやや浮いて見えるため、将来の UI 再整理でカード構成を全体として見直したい。あわせて `legwear`、特にソックスの `coverage_type` 候補が十分かは後続で再検討する
+### 命名対応表（current の読み方）
+
+特に `roomwear_inner` 系は、settings / master、item データ、legacy bridge で文字面が分かれて見えるため、現時点では次のように読む。
+
+| 役割 | 現在の値 | 説明 |
+| --- | --- | --- |
+| settings / master の大分類 ID | `roomwear_inner` | 表示設定と category master で使う大分類 ID |
+| settings / master の中分類 ID | `roomwear_inner_roomwear` / `roomwear_inner_underwear` / `roomwear_inner_pajamas` / `roomwear_inner_other` | `visible_category_ids` に入る表示対象の種類 ID |
+| item データの `category` | `inner` | item モデル上の current category |
+| item データの `subcategory` | `roomwear` / `underwear` / `pajamas` / `other` | item で主導線として使う種類名 |
+| legacy bridge の旧値 | `inner_roomwear` / `inner_underwear` / `inner_pajamas` | 旧 map や旧データ互換のために読む値 |
+| item データの `shape` | `roomwear` / `underwear` / `pajamas` | current では同名1件の候補を自動補完する薄い補助値 |
+
+補足:
+
+- 正本概念として優先するのは、item 側では `category = inner` と `subcategory = roomwear / underwear / pajamas / other` の組み合わせである
+- `roomwear_inner_*` は表示設定と category master で使う ID であり、item の保存値そのものではない
+- `inner_*` は legacy bridge として読み、後方互換の責務に限定する
+### 設計負債 TODO の整理
+
+| 優先度 | 論点 | current の分散先 / 症状 | 後続で目指したい方向 |
+| --- | --- | --- | --- |
+| 高 | category / subcategory / shape の変換規則分散 | backend では `ListQuerySupport`、`ItemSubcategorySupport`、`ItemInputRequirementSupport`、`PurchaseCandidateCategoryMap`、frontend では `web/src/lib/api/categories.ts`、`web/src/lib/master-data/item-subcategories.ts`、`web/src/lib/master-data/item-shapes.ts` などに分散 | category・subcategory・shape の対応表を正本化し、settings / item / candidate 変換が同じ規則を見る形へ寄せる |
+| 中 | item 新規登録画面のカード構成 | カテゴリによって詳細属性カードが分類カードから浮いて見え、分類導線と詳細導線のまとまりが弱く見える | `カテゴリ / 種類 / 形 / 詳細` の流れに沿ってカード構成を見直し、分類カードとの連続性を高める |
+| 中 | `legwear` の `coverage_type` 候補 | 特にソックスで、現在の候補が十分か再判断の余地がある | `subcategory` 主導の current 設計を維持したまま、ソックス長さなどの候補粒度を後続で見直す |
+
+補足:
+
+- 今回は current 実装を優先し、変換規則分散は設計負債として TODO 化に留める
+- UI 再整理は `legwear` 固有ではなく、item 新規登録画面全体の見え方課題として読む
 - item 入力フォームは、原則 `カテゴリ / 種類 / 形 / 詳細` の並びへ寄せ、使わない欄は非表示または未選択可で扱う前提を優先する
 - `skirts`、`shoes`、`kimono` は `subcategory` 候補が少ないため、現時点の通常入力ではプルダウンではなく軽い UI で `種類` を見せ、代表カテゴリまたは主要候補を既定値にしつつ `other` へ切り替えられる形を優先する
 - `skirts` は `subcategory = skirt`、`shoes` は `subcategory = sneakers / pumps / boots / sandals / other`、`kimono` は `subcategory = kimono` を通常入力の主導線とし、`other` は staged rollout 中の旧データ互換や補助表示にも残すが、shape 側の新規入力候補には追加しない
