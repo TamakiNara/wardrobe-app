@@ -343,6 +343,7 @@ thumbnail の現状確認用パターン一覧を見返すときは `docs/specs/
 - バッグの用途差は初回再編では中分類を増やしすぎず、トート / ショルダー / リュックなどは現在の item の `shape` で吸収する
 - 現時点の `outerwear` は `subcategory` 中くらい / `shape` 中くらいの staged rollout とし、`coat` では `coat / trench / chester / stainless`、`jacket` では `jacket / tailored / no_collar` を候補に出し、`blouson` / `down_padded` / `mountain_parka` は最小候補に留める
 - `bags` は現時点で `subcategory = bag` のときだけ `shape` 候補をトート / ショルダー / リュック / ハンド / クラッチ / ボディへ絞り、`other / null` は `shape` 任意寄りとして扱う
+- 一覧・検索で独立して使いたい粒度を基準に見直すと、`bags` の用途差、`fashion_accessories` の種類差、`shoes` の靴種、`legwear` の種別、`roomwear_inner` の大きい種類差は、現状の `shape` や代表カテゴリ固定より `subcategory` へ上げる余地がある。将来の filter / settings を自然につなぐには、フォーム都合だけでなく「独立して絞りたいか」を優先して `subcategory` 粒度を再判断する方針を追加で持つ。
 - item 入力フォームは、原則 `カテゴリ / 種類 / 形 / 詳細` の並びへ寄せ、使わない欄は非表示または未選択可で扱う前提を優先する
 - `skirts`、`bags`、`shoes`、`kimono` は `subcategory` 候補が少ないため、現時点の通常入力ではプルダウンではなく軽い UI で `種類` を見せ、代表カテゴリを既定値にしつつ `other` へ切り替えられる形を優先する
 - `skirts` は `subcategory = skirt`、`bags` は `subcategory = bag`、`shoes` は `subcategory = shoes`、`kimono` は `subcategory = kimono` を通常入力の既定値とし、`other` は staged rollout 中の旧データ互換や補助表示にも残すが、shape 側の新規入力候補には追加しない

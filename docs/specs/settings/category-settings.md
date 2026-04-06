@@ -515,6 +515,27 @@ DBテーブル構成の詳細は `docs/data/database.md` を参照する。
 - トート / ショルダー / リュック / クラッチのような差は、current item では `shape` 側で吸収する
 - 将来、一覧探索や登録実態から「用途差を中分類に上げる価値」が明確になった時だけ中分類追加を再判断する
 
+### 2-6. 一覧・検索で使いたい粒度を基準にした再整理メモ
+
+- `subcategory` に上げる第一条件は、「一覧・検索で独立して絞りたくなるか」と「ユーザーが別物として認識しやすいか」を両方満たすこととする
+- `shape` は、同じ `subcategory` の中で見た目や構造の差を補助的に表すものに寄せる
+- `spec` は、丈・覆い方・素材・機能・補助属性の保存領域として扱い、一覧・検索の主導線には広げすぎない
+- `bags` は、トート / ショルダー / リュック / ハンド / クラッチ / ボディを独立して探したくなる可能性が高く、将来の一覧・検索を優先するなら `shape` から `subcategory` へ上げる候補が強い
+- `fashion_accessories` は、帽子 / ベルト / マフラー・ストール / 手袋 / アクセサリー / 財布・カードケース / ヘアアクセサリー / 眼鏡・サングラス / 腕時計のように、種類名として独立認識されやすいため `subcategory` 厚めを第一候補とする
+- `shoes` は、スニーカー / パンプス / ブーツ / サンダルのように一覧・検索で独立して使いたくなる粒度が強く、`shoes / other` のままより `subcategory` 厚めへ寄せる方が自然である
+- `legwear` は、ソックス / ストッキング / タイツ / レギンスを `subcategory` に置き、`coverage_type` は引き続き `spec` に寄せる方が責務を分けやすい
+- `roomwear_inner` は、ルームウェア / インナー / パジャマのような大きい種類差は `subcategory` に置く方が一覧・検索で扱いやすいが、キャミソールやペチコートのような細分は大分類構成の再判断と合わせて段階的に見る
+- `bags` の再整理第一候補は、`bag / other` のままより `tote / shoulder / backpack / hand / clutch / body / other` を `subcategory` に上げ、`shape` は同じバッグ種の中の構造差が必要になった時だけ持つ方である
+- `fashion_accessories` の再整理第一候補は、現在 `shape` にある値をそのまま `subcategory` として使い、初期段階では `shape` をほぼ持たない構成に寄せることである
+- `shoes` の再整理第一候補は、`sneakers / pumps / boots / sandals / other` を `subcategory` に上げ、`shape` はヒール高やブーツ丈のような後続差分が必要になった時だけ追加する構成に寄せることである
+- `legwear` は `subcategory` 厚め / `shape` 薄めが自然で、独立絞り込みしたい粒度は `socks / stockings / tights / leggings / other` に寄せる方が一覧・検索に向く
+- `roomwear_inner` は、現時点では `roomwear / underwear / pajamas / other` のような大きい種類差を `subcategory` に置く方が自然で、キャミソールやペチコートのような細分は `tops` やインナー再編の後続論点として保留してよい
+- `bags`、`shoes`、`legwear`、`roomwear_inner` は、入力フォームの分かりやすさだけでなく一覧・検索で独立して使いたい粒度を優先すると、現状より `subcategory` を厚くする再整理余地がある
+- 一方で、`skirts` のように代表カテゴリ 1 つの中で shape 差を比較したいものは、`subcategory` を薄く保ったまま `shape` 厚めでよい
+- category settings は引き続き「表示対象の種類 ID」を ON / OFF する前提なので、一覧・検索で独立して使いたい粒度を `subcategory` に上げる場合は、settings 側の中分類 ID も同じ粒度へ寄せる方が自然である
+- settings だけ現状粒度のまま、一覧・検索だけ別軸で細かくすると、`visible_category_ids` と item の `subcategory` の対応説明が難しくなるため、将来拡張するなら原則として同じ粒度へそろえる第一候補を維持する
+
+
 ---
 
 # 3. 分類プリセット
