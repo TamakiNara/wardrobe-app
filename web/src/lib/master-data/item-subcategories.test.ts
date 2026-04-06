@@ -12,6 +12,7 @@ describe("item subcategory helpers", () => {
     expect(shouldShowItemSubcategoryField("fashion_accessories")).toBe(true);
     expect(shouldShowItemSubcategoryField("shoes")).toBe(true);
     expect(shouldShowItemSubcategoryField("legwear")).toBe(true);
+    expect(shouldShowItemSubcategoryField("inner")).toBe(true);
     expect(shouldShowItemSubcategoryField("kimono")).toBe(true);
     expect(shouldUseItemSubcategoryRadioField("skirts")).toBe(true);
     expect(shouldUseItemSubcategoryRadioField("bags")).toBe(false);
@@ -20,6 +21,7 @@ describe("item subcategory helpers", () => {
     );
     expect(shouldUseItemSubcategoryRadioField("shoes")).toBe(true);
     expect(shouldUseItemSubcategoryRadioField("legwear")).toBe(false);
+    expect(shouldUseItemSubcategoryRadioField("inner")).toBe(false);
     expect(shouldUseItemSubcategoryRadioField("kimono")).toBe(true);
     expect(shouldShowItemSubcategoryField("tops")).toBe(true);
     expect(shouldUseItemSubcategoryRadioField("tops")).toBe(false);
@@ -33,6 +35,7 @@ describe("item subcategory helpers", () => {
     ).toBeNull();
     expect(resolveItemSubcategoryForForm("shoes", null)).toBe("sneakers");
     expect(resolveItemSubcategoryForForm("legwear", null)).toBeNull();
+    expect(resolveItemSubcategoryForForm("inner", null)).toBeNull();
     expect(resolveItemSubcategoryForForm("kimono", null)).toBe("kimono");
   });
 
@@ -43,5 +46,6 @@ describe("item subcategory helpers", () => {
     );
     expect(resolveItemSubcategoryForForm("shoes", "other")).toBe("other");
     expect(resolveItemSubcategoryForForm("legwear", "other")).toBe("other");
+    expect(resolveItemSubcategoryForForm("inner", "other")).toBe("other");
   });
 });

@@ -67,6 +67,11 @@ const groups: CategoryGroupRecord[] = [
         groupId: "roomwear_inner",
         name: "インナー",
       },
+      {
+        id: "roomwear_inner_other",
+        groupId: "roomwear_inner",
+        name: "その他ルームウェア・インナー",
+      },
     ],
   },
   {
@@ -227,6 +232,12 @@ describe("findVisibleCategoryIdForItem", () => {
     expect(findVisibleCategoryIdForItem("inner", "roomwear")).toBe(
       "roomwear_inner_roomwear",
     );
+    expect(findVisibleCategoryIdForItem("inner", "roomwear", "underwear")).toBe(
+      "roomwear_inner_underwear",
+    );
+    expect(findVisibleCategoryIdForItem("inner", "roomwear", "other")).toBe(
+      "roomwear_inner_other",
+    );
     expect(findVisibleCategoryIdForItem("legwear", "tights")).toBe(
       "legwear_tights",
     );
@@ -324,6 +335,12 @@ describe("isItemVisibleByCategorySettings", () => {
       isItemVisibleByCategorySettings(
         { category: "inner", shape: "roomwear" },
         ["roomwear_inner_roomwear"],
+      ),
+    ).toBe(true);
+    expect(
+      isItemVisibleByCategorySettings(
+        { category: "inner", shape: "roomwear", subcategory: "other" },
+        ["roomwear_inner_other"],
       ),
     ).toBe(true);
 

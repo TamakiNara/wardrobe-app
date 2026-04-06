@@ -543,6 +543,7 @@ DBテーブル構成の詳細は `docs/data/database.md` を参照する。
 - `shoes` の再整理第一候補は、`sneakers / pumps / boots / sandals / other` を `subcategory` に上げ、`shape` はヒール高やブーツ丈のような後続差分が必要になった時だけ追加する構成に寄せることである
 - current では `legwear` の item も `subcategory = socks / stockings / tights / leggings / other` を主導線として扱い、`coverage_type` は `spec.legwear.coverage_type` に維持し、`shape` は同名1件の候補を自動補完する薄い補助値として扱う
 - `legwear` は `subcategory` 厚め / `shape` 薄めが自然で、独立絞り込みしたい粒度は `socks / stockings / tights / leggings / other` に寄せる方が一覧・検索に向く
+- current では `inner` の item も `subcategory = roomwear / underwear / pajamas / other` を主導線として扱い、`shape` は同名1件の候補を自動補完する薄い補助値として扱う
 - `roomwear_inner` は、現時点では `roomwear / underwear / pajamas / other` のような大きい種類差を `subcategory` に置く方が自然で、キャミソールやペチコートのような細分は `tops` やインナー再編の後続論点として保留してよい
 - `bags`、`shoes`、`legwear`、`roomwear_inner` は、入力フォームの分かりやすさだけでなく一覧・検索で独立して使いたい粒度を優先すると、現状より `subcategory` を厚くする再整理余地がある
 - 一方で、`skirts` のように代表カテゴリ 1 つの中で shape 差を比較したいものは、`subcategory` を薄く保ったまま `shape` 厚めでよい

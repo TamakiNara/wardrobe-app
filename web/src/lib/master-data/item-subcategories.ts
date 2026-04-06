@@ -45,6 +45,12 @@ export const ITEM_SUBCATEGORIES = {
     { value: "salopette", label: "サロペット" },
     { value: "other", label: "その他オールインワン" },
   ],
+  inner: [
+    { value: "roomwear", label: "ルームウェア" },
+    { value: "underwear", label: "インナー" },
+    { value: "pajamas", label: "パジャマ" },
+    { value: "other", label: "その他ルームウェア・インナー" },
+  ],
   bags: [
     { value: "tote", label: "トートバッグ" },
     { value: "shoulder", label: "ショルダーバッグ" },
@@ -99,6 +105,7 @@ export const REQUIRED_SUBCATEGORY_CATEGORIES = new Set<string>([
   "outerwear",
   "onepiece_dress",
   "allinone",
+  "inner",
   "bags",
   "fashion_accessories",
   "shoes",
@@ -170,6 +177,12 @@ const LEGACY_INFERRED_SUBCATEGORY_BY_CATEGORY: Record<
   allinone: {
     allinone: "allinone",
     salopette: "salopette",
+    other: "other",
+  },
+  inner: {
+    roomwear: "roomwear",
+    underwear: "underwear",
+    pajamas: "pajamas",
     other: "other",
   },
   bags: {
@@ -263,6 +276,12 @@ const DEFAULT_SHAPE_BY_SUBCATEGORY: Record<string, Record<string, string>> = {
     allinone: "allinone",
     salopette: "salopette",
     other: "allinone",
+  },
+  inner: {
+    roomwear: "roomwear",
+    underwear: "underwear",
+    pajamas: "pajamas",
+    other: "roomwear",
   },
   bags: {
     tote: "tote",

@@ -131,6 +131,12 @@ const sampleGroups: CategoryGroupRecord[] = [
         name: "ルームウェア",
         sortOrder: 10,
       },
+      {
+        id: "roomwear_inner_other",
+        groupId: "roomwear_inner",
+        name: "その他ルームウェア・インナー",
+        sortOrder: 40,
+      },
     ],
   },
   {
@@ -620,6 +626,71 @@ describe("EditItemPage", () => {
     expect(container.textContent).not.toContain(
       "有効な TPO はまだありません。",
     );
+  });
+
+  it("編集画面でも roomwear_inner は種類に応じて shape を自動設定できる", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          item: {
+            id: 4,
+            name: "インナー",
+            status: "active",
+            care_status: null,
+            brand_name: null,
+            price: null,
+            purchase_url: null,
+            memo: null,
+            purchased_at: null,
+            size_gender: null,
+            size_label: null,
+            size_note: null,
+            size_details: null,
+            is_rain_ok: false,
+            category: "inner",
+            subcategory: "underwear",
+            shape: "underwear",
+            colors: [],
+            seasons: [],
+            tpos: [],
+            tpo_ids: [],
+            spec: {},
+            images: [],
+          },
+        }),
+      }),
+    );
+
+    const { default: EditItemPage } = await import("./page");
+
+    act(() => {
+      root.render(
+        React.createElement(EditItemPage, {
+          params: Promise.resolve({ id: "4" }),
+        }),
+      );
+    });
+
+    await act(async () => {
+      await waitForEffects();
+    });
+
+    const subcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
+    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
+    expect(subcategorySelect?.value).toBe("underwear");
+    expect(shapeSelect?.value).toBe("underwear");
+
+    await act(async () => {
+      subcategorySelect!.value = "other";
+      subcategorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    expect(shapeSelect?.value).toBe("roomwear");
   });
 
   it("編集画面でも pants の種類に応じて shape 候補を絞り込める", async () => {

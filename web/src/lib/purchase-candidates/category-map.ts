@@ -129,18 +129,23 @@ const PURCHASE_CANDIDATE_ITEM_CATEGORY_MAP = {
   },
   roomwear_inner_roomwear: {
     category: "inner",
-    subcategory: null,
+    subcategory: "roomwear",
     shape: "roomwear",
   },
   roomwear_inner_underwear: {
     category: "inner",
-    subcategory: null,
+    subcategory: "underwear",
     shape: "underwear",
   },
   roomwear_inner_pajamas: {
     category: "inner",
-    subcategory: null,
+    subcategory: "pajamas",
     shape: "pajamas",
+  },
+  roomwear_inner_other: {
+    category: "inner",
+    subcategory: "other",
+    shape: "roomwear",
   },
   legwear_socks: {
     category: "legwear",
@@ -346,9 +351,21 @@ const PURCHASE_CANDIDATE_ITEM_CATEGORY_MAP = {
     subcategory: "allinone",
     shape: "allinone",
   },
-  inner_roomwear: { category: "inner", subcategory: null, shape: "roomwear" },
-  inner_underwear: { category: "inner", subcategory: null, shape: "underwear" },
-  inner_pajamas: { category: "inner", subcategory: null, shape: "pajamas" },
+  inner_roomwear: {
+    category: "inner",
+    subcategory: "roomwear",
+    shape: "roomwear",
+  },
+  inner_underwear: {
+    category: "inner",
+    subcategory: "underwear",
+    shape: "underwear",
+  },
+  inner_pajamas: {
+    category: "inner",
+    subcategory: "pajamas",
+    shape: "pajamas",
+  },
   shoes_loafers: { category: "shoes", subcategory: "other", shape: "other" },
   bags_bag: { category: "bags", subcategory: "other", shape: "bag" },
   accessories_hat: {

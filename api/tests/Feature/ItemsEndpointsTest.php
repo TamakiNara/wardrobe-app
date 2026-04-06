@@ -1067,6 +1067,60 @@ class ItemsEndpointsTest extends TestCase
             ->assertJsonPath('item.shape', 'other');
     }
 
+    public function test_post_items_can_autofill_shape_when_roomwear_inner_subcategory_has_single_candidate(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/items', [
+            'name' => 'パジャマ',
+            'category' => 'inner',
+            'subcategory' => 'pajamas',
+            'shape' => '',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'blue',
+                'hex' => '#3366aa',
+                'label' => 'ブルー',
+            ]],
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('item.subcategory', 'pajamas')
+            ->assertJsonPath('item.shape', 'pajamas');
+    }
+
+    public function test_post_items_can_save_roomwear_inner_other_without_explicit_shape(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/items', [
+            'name' => '分類保留インナー',
+            'category' => 'inner',
+            'subcategory' => 'other',
+            'shape' => '',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'black',
+                'hex' => '#111111',
+                'label' => 'ブラック',
+            ]],
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('item.subcategory', 'other')
+            ->assertJsonPath('item.shape', 'roomwear');
+    }
+
     public function test_post_items_requires_subcategory_when_bag_category_is_selected(): void
     {
         $user = User::factory()->create();
@@ -1128,6 +1182,32 @@ class ItemsEndpointsTest extends TestCase
         $response = $this->postJson('/api/items', [
             'name' => '種類未選択シューズ',
             'category' => 'shoes',
+            'subcategory' => '',
+            'shape' => '',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'black',
+                'hex' => '#111111',
+                'label' => 'ブラック',
+            ]],
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['subcategory']);
+    }
+
+    public function test_post_items_requires_subcategory_when_roomwear_inner_category_is_selected(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/items', [
+            'name' => '種類未選択インナー',
+            'category' => 'inner',
             'subcategory' => '',
             'shape' => '',
             'colors' => [[
@@ -1431,6 +1511,7 @@ class ItemsEndpointsTest extends TestCase
         $response = $this->postJson('/api/items', [
             'name' => '不正レッグウェア',
             'category' => 'inner',
+            'subcategory' => 'underwear',
             'shape' => 'underwear',
             'colors' => [[
                 'role' => 'main',

@@ -137,6 +137,12 @@ const sampleGroups: CategoryGroupRecord[] = [
         name: "ルームウェア",
         sortOrder: 10,
       },
+      {
+        id: "roomwear_inner_other",
+        groupId: "roomwear_inner",
+        name: "その他ルームウェア・インナー",
+        sortOrder: 40,
+      },
     ],
   },
   {
@@ -608,6 +614,50 @@ describe("NewItemPage", () => {
     expect(container.textContent).not.toContain(
       "TPO の取得に失敗しました。再読み込みしても改善しない場合は設定を確認してください。",
     );
+  });
+
+  it("roomwear_inner は種類に応じて shape を自動設定できる", async () => {
+    const { default: NewItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(NewItemPage));
+      await waitForEffects();
+    });
+
+    const categorySelect =
+      container.querySelector<HTMLSelectElement>("#category");
+    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
+    expect(categorySelect).not.toBeNull();
+    expect(shapeSelect).not.toBeNull();
+
+    await act(async () => {
+      categorySelect!.value = "inner";
+      categorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    const subcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
+    expect(subcategorySelect).not.toBeNull();
+    expect(
+      Array.from(shapeSelect!.options).map((option) => option.value),
+    ).toEqual([""]);
+
+    await act(async () => {
+      subcategorySelect!.value = "underwear";
+      subcategorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    expect(shapeSelect!.value).toBe("underwear");
+
+    await act(async () => {
+      subcategorySelect!.value = "other";
+      subcategorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    expect(shapeSelect!.value).toBe("roomwear");
   });
 
   it("ボトムス丈とソックスの未選択時に分かりやすいエラーを表示する", async () => {

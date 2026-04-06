@@ -228,6 +228,12 @@ class ListQuerySupport
                 'leggings' => 'legwear_leggings',
                 'other' => 'legwear_other',
             ],
+            'inner' => [
+                'roomwear' => 'roomwear_inner_roomwear',
+                'underwear' => 'roomwear_inner_underwear',
+                'pajamas' => 'roomwear_inner_pajamas',
+                'other' => 'roomwear_inner_other',
+            ],
         ];
     }
 
@@ -266,6 +272,21 @@ class ListQuerySupport
         ];
         $queryMap['legwear_other'] = [
             ['category' => 'legwear', 'subcategory' => 'other'],
+        ];
+        $queryMap['roomwear_inner_roomwear'] = [
+            ['category' => 'inner', 'subcategory' => 'roomwear'],
+            ['category' => 'inner', 'shape' => 'roomwear', 'subcategory_null' => true],
+        ];
+        $queryMap['roomwear_inner_underwear'] = [
+            ['category' => 'inner', 'subcategory' => 'underwear'],
+            ['category' => 'inner', 'shape' => 'underwear', 'subcategory_null' => true],
+        ];
+        $queryMap['roomwear_inner_pajamas'] = [
+            ['category' => 'inner', 'subcategory' => 'pajamas'],
+            ['category' => 'inner', 'shape' => 'pajamas', 'subcategory_null' => true],
+        ];
+        $queryMap['roomwear_inner_other'] = [
+            ['category' => 'inner', 'subcategory' => 'other'],
         ];
 
         return $queryMap;

@@ -43,6 +43,7 @@ class CategoryMasterSeeder extends Seeder
             ['id' => 'roomwear_inner_roomwear', 'group_id' => 'roomwear_inner', 'name' => 'ルームウェア', 'sort_order' => 1],
             ['id' => 'roomwear_inner_underwear', 'group_id' => 'roomwear_inner', 'name' => 'インナー', 'sort_order' => 2],
             ['id' => 'roomwear_inner_pajamas', 'group_id' => 'roomwear_inner', 'name' => 'パジャマ', 'sort_order' => 3],
+            ['id' => 'roomwear_inner_other', 'group_id' => 'roomwear_inner', 'name' => 'その他ルームウェア・インナー', 'sort_order' => 4],
             ['id' => 'legwear_socks', 'group_id' => 'legwear', 'name' => 'ソックス', 'sort_order' => 1],
             ['id' => 'legwear_stockings', 'group_id' => 'legwear', 'name' => 'ストッキング', 'sort_order' => 2],
             ['id' => 'legwear_tights', 'group_id' => 'legwear', 'name' => 'タイツ', 'sort_order' => 3],

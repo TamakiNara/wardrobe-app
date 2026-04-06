@@ -99,7 +99,7 @@ describe("getItemShapeOptions", () => {
     ).toEqual([]);
   });
 
-  it("shoes / legwear / kimono も種類に応じた候補で扱える", () => {
+  it("shoes / legwear / roomwear_inner / kimono も種類に応じた候補で扱える", () => {
     expect(
       getItemShapeOptions("shoes", "sneakers").map((item) => item.value),
     ).toEqual(["sneakers"]);
@@ -117,6 +117,18 @@ describe("getItemShapeOptions", () => {
     ).toEqual(["leggings"]);
     expect(
       getItemShapeOptions("legwear", "other").map((item) => item.value),
+    ).toEqual([]);
+    expect(
+      getItemShapeOptions("inner", "roomwear").map((item) => item.value),
+    ).toEqual(["roomwear"]);
+    expect(
+      getItemShapeOptions("inner", "underwear").map((item) => item.value),
+    ).toEqual(["underwear"]);
+    expect(
+      getItemShapeOptions("inner", "pajamas").map((item) => item.value),
+    ).toEqual(["pajamas"]);
+    expect(
+      getItemShapeOptions("inner", "other").map((item) => item.value),
     ).toEqual([]);
     expect(
       getItemShapeOptions("kimono", "kimono").map((item) => item.value),
@@ -138,6 +150,9 @@ describe("getItemShapeOptions", () => {
     ).toEqual([]);
     expect(
       getItemShapeOptions("legwear", null).map((item) => item.value),
+    ).toEqual([]);
+    expect(
+      getItemShapeOptions("inner", null).map((item) => item.value),
     ).toEqual([]);
   });
 });

@@ -392,6 +392,7 @@ wear logs も本資料の対象とし、その保存方針を定義します。
 - settings 側の中分類 ID とは、`pants_denim` ⇔ `category = pants` かつ `subcategory = denim` のように対応づけて扱う
 - `subcategory` を正式導入する場合も、categories 設定の ON / OFF 対象は `category` 直下の種類 ID までに留め、`shape` / `spec` は設定対象に広げない前提を優先する
 - 一覧・検索で独立して使いたい粒度は、原則として `shape` より `subcategory` へ上げる候補として扱う。current では `bags`、`fashion_accessories`、`shoes` を `subcategory` 厚めへ寄せ始めており、`legwear`、`roomwear_inner` は将来の filter 粒度と categories 設定の説明をそろえるための次候補とする
+- item 側では `roomwear_inner` も現在のカテゴリ `inner` として `subcategory = roomwear / underwear / pajamas / other` を主導線にし、`shape` は同名1件の候補を自動補完する薄い補助値として扱う
 - migration 時の旧データ互換では、安全に補完できるものだけデータ補完し、補完できないものは `subcategory = null` を許容する
 - `items.shape` は引き続き nullable にしない前提を維持しつつ、現時点の staged rollout では `shape` が任意寄りのカテゴリで backend が代表 shape を補完して保存する
 - `subcategory = other` は subcategory 側の受け皿として扱い、shape 側の `other` は新規入力の主導線には追加しない

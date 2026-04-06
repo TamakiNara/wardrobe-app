@@ -173,6 +173,12 @@ const ITEM_CATEGORY_ID_BY_SUBCATEGORY: Record<
   string,
   Record<string, string>
 > = {
+  inner: {
+    roomwear: "roomwear_inner_roomwear",
+    underwear: "roomwear_inner_underwear",
+    pajamas: "roomwear_inner_pajamas",
+    other: "roomwear_inner_other",
+  },
   legwear: {
     socks: "legwear_socks",
     stockings: "legwear_stockings",

@@ -186,6 +186,12 @@ const SHAPE_VALUES_BY_SUBCATEGORY: Partial<
     salopette: ["salopette"],
     other: [],
   },
+  inner: {
+    roomwear: ["roomwear"],
+    underwear: ["underwear"],
+    pajamas: ["pajamas"],
+    other: [],
+  },
   bags: {
     tote: ["tote"],
     shoulder: ["shoulder"],
@@ -242,7 +248,8 @@ export function getItemShapeOptions(
     (category === "bags" ||
       category === "fashion_accessories" ||
       category === "shoes" ||
-      category === "legwear")
+      category === "legwear" ||
+      category === "inner")
   ) {
     return [];
   }

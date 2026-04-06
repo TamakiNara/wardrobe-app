@@ -24,6 +24,9 @@ describe("item input requirements", () => {
     expect(isItemShapeRequired("legwear", "socks")).toBe(false);
     expect(isItemShapeRequired("legwear", "other")).toBe(false);
     expect(isItemShapeRequired("legwear", null)).toBe(false);
+    expect(isItemShapeRequired("inner", "roomwear")).toBe(false);
+    expect(isItemShapeRequired("inner", "other")).toBe(false);
+    expect(isItemShapeRequired("inner", null)).toBe(false);
     expect(isItemShapeRequired("kimono", "other")).toBe(false);
   });
 
@@ -47,6 +50,9 @@ describe("item input requirements", () => {
     expect(resolveItemShapeForSubmit("legwear", "tights", "")).toBe("tights");
     expect(resolveItemShapeForSubmit("legwear", "other", "")).toBe("socks");
     expect(resolveItemShapeForSubmit("legwear", null, "")).toBe("socks");
+    expect(resolveItemShapeForSubmit("inner", "roomwear", "")).toBe("roomwear");
+    expect(resolveItemShapeForSubmit("inner", "other", "")).toBe("roomwear");
+    expect(resolveItemShapeForSubmit("inner", null, "")).toBe("roomwear");
     expect(resolveItemShapeForSubmit("kimono", "other", "")).toBe("kimono");
   });
 });

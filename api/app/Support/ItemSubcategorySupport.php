@@ -51,6 +51,12 @@ class ItemSubcategorySupport
             'salopette',
             'other',
         ],
+        'inner' => [
+            'roomwear',
+            'underwear',
+            'pajamas',
+            'other',
+        ],
         'bags' => [
             'tote',
             'shoulder',
@@ -103,6 +109,7 @@ class ItemSubcategorySupport
         'outerwear',
         'onepiece_dress',
         'allinone',
+        'inner',
         'bags',
         'fashion_accessories',
         'shoes',
