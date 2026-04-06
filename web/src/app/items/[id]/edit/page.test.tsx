@@ -133,6 +133,19 @@ const sampleGroups: CategoryGroupRecord[] = [
       },
     ],
   },
+  {
+    id: "bags",
+    name: "バッグ",
+    sortOrder: 40,
+    categories: [
+      {
+        id: "bags_bag",
+        groupId: "bags",
+        name: "バッグ",
+        sortOrder: 10,
+      },
+    ],
+  },
 ];
 
 async function waitForEffects() {
@@ -160,6 +173,7 @@ describe("EditItemPage", () => {
         "allinone_allinone",
         "roomwear_inner_roomwear",
         "legwear_socks",
+        "bags_bag",
       ],
     });
     fetchUserPreferencesMock.mockResolvedValue({
@@ -296,6 +310,7 @@ describe("EditItemPage", () => {
       "オールインワン",
       "ルームウェア・インナー",
       "レッグウェア",
+      "バッグ",
     ]);
     expect(container.textContent).toContain("カテゴリ");
     expect(container.textContent).toContain("素材・混率");
@@ -541,6 +556,47 @@ describe("EditItemPage", () => {
     expect(
       Array.from(shapeSelect!.options).map((option) => option.value),
     ).toEqual(["", "straight", "tapered", "wide", "culottes"]);
+  });
+
+  it("編集画面でも bags の代表カテゴリで shape 候補を絞り込める", async () => {
+    const { default: EditItemPage } = await import("./page");
+
+    act(() => {
+      root.render(
+        React.createElement(EditItemPage, {
+          params: Promise.resolve({ id: "1" }),
+        }),
+      );
+    });
+
+    await act(async () => {
+      await waitForEffects();
+    });
+
+    const categorySelect =
+      container.querySelector<HTMLSelectElement>("#category");
+    const subcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
+    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
+    expect(categorySelect).not.toBeNull();
+    expect(subcategorySelect).not.toBeNull();
+    expect(shapeSelect).not.toBeNull();
+
+    await act(async () => {
+      categorySelect!.value = "bags";
+      categorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    await act(async () => {
+      subcategorySelect!.value = "bag";
+      subcategorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    expect(
+      Array.from(shapeSelect!.options).map((option) => option.value),
+    ).toEqual(["", "tote", "shoulder", "backpack", "hand", "clutch", "body"]);
   });
 
   it("編集画面でも tops の形は分類セクション側で扱う", async () => {

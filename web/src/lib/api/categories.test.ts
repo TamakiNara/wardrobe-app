@@ -195,6 +195,8 @@ describe("findVisibleCategoryIdForItem", () => {
       "legwear_tights",
     );
     expect(findVisibleCategoryIdForItem("bags", "tote")).toBe("bags_bag");
+    expect(findVisibleCategoryIdForItem("bags", "hand")).toBe("bags_bag");
+    expect(findVisibleCategoryIdForItem("bags", "body")).toBe("bags_bag");
     expect(findVisibleCategoryIdForItem("fashion_accessories", "belt")).toBe(
       "fashion_accessories_belt",
     );

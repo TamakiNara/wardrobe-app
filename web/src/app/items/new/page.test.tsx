@@ -139,6 +139,19 @@ const sampleGroups: CategoryGroupRecord[] = [
       },
     ],
   },
+  {
+    id: "bags",
+    name: "バッグ",
+    sortOrder: 40,
+    categories: [
+      {
+        id: "bags_bag",
+        groupId: "bags",
+        name: "バッグ",
+        sortOrder: 10,
+      },
+    ],
+  },
 ];
 
 async function waitForEffects() {
@@ -183,6 +196,7 @@ describe("NewItemPage", () => {
         "allinone_allinone",
         "roomwear_inner_roomwear",
         "legwear_socks",
+        "bags_bag",
       ],
     });
     fetchUserPreferencesMock.mockResolvedValue({
@@ -233,6 +247,7 @@ describe("NewItemPage", () => {
       "オールインワン",
       "ルームウェア・インナー",
       "レッグウェア",
+      "バッグ",
     ]);
     expect(container.textContent).toContain("カテゴリ");
     expect(container.textContent).toContain("形");
@@ -725,6 +740,41 @@ describe("NewItemPage", () => {
       Array.from(shapeSelect!.options).map((option) => option.value),
     ).toEqual(["", "salopette"]);
     expect(shapeSelect!.value).toBe("salopette");
+  });
+
+  it("bags の代表カテゴリでは shape 候補を中くらいの厚さに絞り込む", async () => {
+    const { default: NewItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(NewItemPage));
+      await waitForEffects();
+    });
+
+    const categorySelect =
+      container.querySelector<HTMLSelectElement>("#category");
+    expect(categorySelect).not.toBeNull();
+
+    await act(async () => {
+      categorySelect!.value = "bags";
+      categorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    const subcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
+    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
+    expect(subcategorySelect).not.toBeNull();
+    expect(shapeSelect).not.toBeNull();
+
+    await act(async () => {
+      subcategorySelect!.value = "bag";
+      subcategorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    expect(
+      Array.from(shapeSelect!.options).map((option) => option.value),
+    ).toEqual(["", "tote", "shoulder", "backpack", "hand", "clutch", "body"]);
   });
 
   it("tops は形を分類セクションで扱い、1候補時は自動設定する", async () => {

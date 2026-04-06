@@ -116,7 +116,9 @@ const ITEM_CATEGORY_ID_BY_SHAPE: Record<string, Record<string, string>> = {
     tote: "bags_bag",
     shoulder: "bags_bag",
     backpack: "bags_bag",
+    hand: "bags_bag",
     clutch: "bags_bag",
+    body: "bags_bag",
   },
   fashion_accessories: {
     hat: "fashion_accessories_hat",
@@ -143,6 +145,8 @@ const ITEM_CATEGORY_ID_BY_SHAPE: Record<string, Record<string, string>> = {
     tote: "bags_bag",
     shoulder: "bags_bag",
     backpack: "bags_bag",
+    hand: "bags_bag",
+    body: "bags_bag",
     hat: "fashion_accessories_hat",
     accessory: "fashion_accessories_other",
   },

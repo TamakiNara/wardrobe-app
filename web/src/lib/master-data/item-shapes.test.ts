@@ -47,6 +47,23 @@ describe("getItemShapeOptions", () => {
     ).toEqual(["other"]);
   });
 
+  it("bags の代表カテゴリでは shape 候補を中くらいの厚さに絞り込む", () => {
+    expect(
+      getItemShapeOptions("bags", "bag").map((item) => item.value),
+    ).toEqual(["tote", "shoulder", "backpack", "hand", "clutch", "body"]);
+    expect(
+      getItemShapeOptions("bags", "other").map((item) => item.value),
+    ).toEqual([
+      "bag",
+      "tote",
+      "shoulder",
+      "backpack",
+      "hand",
+      "clutch",
+      "body",
+    ]);
+  });
+
   it("種類未設定の旧データでは category 単位の候補へ戻す", () => {
     expect(
       getItemShapeOptions("pants", null).map((item) => item.value),

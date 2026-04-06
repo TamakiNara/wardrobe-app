@@ -83,7 +83,9 @@
     { value: "tote", label: "トートバッグ" },
     { value: "shoulder", label: "ショルダーバッグ" },
     { value: "backpack", label: "リュック" },
+    { value: "hand", label: "ハンドバッグ" },
     { value: "clutch", label: "クラッチバッグ" },
+    { value: "body", label: "ボディバッグ" },
   ],
   fashion_accessories: [
     { value: "hat", label: "帽子" },
@@ -175,8 +177,8 @@ const SHAPE_VALUES_BY_SUBCATEGORY: Partial<
     other: ["other"],
   },
   bags: {
-    bag: ["bag", "tote", "shoulder", "backpack", "clutch"],
-    other: ["bag", "tote", "shoulder", "backpack", "clutch"],
+    bag: ["tote", "shoulder", "backpack", "hand", "clutch", "body"],
+    other: ["bag", "tote", "shoulder", "backpack", "hand", "clutch", "body"],
   },
 };
 

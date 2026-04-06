@@ -134,7 +134,9 @@ const LEGACY_INFERRED_SUBCATEGORY_BY_CATEGORY: Record<
     tote: "bag",
     shoulder: "bag",
     backpack: "bag",
+    hand: "bag",
     clutch: "bag",
+    body: "bag",
     other: "other",
   },
   shoes: {
