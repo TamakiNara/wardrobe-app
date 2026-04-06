@@ -11,6 +11,7 @@ describe("item subcategory helpers", () => {
     expect(shouldShowItemSubcategoryField("bags")).toBe(true);
     expect(shouldShowItemSubcategoryField("fashion_accessories")).toBe(true);
     expect(shouldShowItemSubcategoryField("shoes")).toBe(true);
+    expect(shouldShowItemSubcategoryField("legwear")).toBe(true);
     expect(shouldShowItemSubcategoryField("kimono")).toBe(true);
     expect(shouldUseItemSubcategoryRadioField("skirts")).toBe(true);
     expect(shouldUseItemSubcategoryRadioField("bags")).toBe(false);
@@ -18,6 +19,7 @@ describe("item subcategory helpers", () => {
       false,
     );
     expect(shouldUseItemSubcategoryRadioField("shoes")).toBe(true);
+    expect(shouldUseItemSubcategoryRadioField("legwear")).toBe(false);
     expect(shouldUseItemSubcategoryRadioField("kimono")).toBe(true);
     expect(shouldShowItemSubcategoryField("tops")).toBe(true);
     expect(shouldUseItemSubcategoryRadioField("tops")).toBe(false);
@@ -30,6 +32,7 @@ describe("item subcategory helpers", () => {
       resolveItemSubcategoryForForm("fashion_accessories", null),
     ).toBeNull();
     expect(resolveItemSubcategoryForForm("shoes", null)).toBe("sneakers");
+    expect(resolveItemSubcategoryForForm("legwear", null)).toBeNull();
     expect(resolveItemSubcategoryForForm("kimono", null)).toBe("kimono");
   });
 
@@ -39,5 +42,6 @@ describe("item subcategory helpers", () => {
       "other",
     );
     expect(resolveItemSubcategoryForForm("shoes", "other")).toBe("other");
+    expect(resolveItemSubcategoryForForm("legwear", "other")).toBe("other");
   });
 });

@@ -65,6 +65,7 @@ class ItemStoreService
                         $validated['category'] ?? null,
                         $resolvedShape,
                         $validated['spec'] ?? null,
+                        $normalizedSubcategory,
                     ),
                 ]);
 

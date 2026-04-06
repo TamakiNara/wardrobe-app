@@ -637,10 +637,12 @@ outfit と item の関連テーブルです。
 - `users.visible_category_ids` は中分類 ID を直接保持するため、中分類 ID の改名や統合は settings 保存値と onboarding プリセットの再投入方針を同時に決める必要がある
 - purchase candidate は `category_id` を正本として持ち、Laravel 側で item の `category` / `shape` へ変換しているため、category master 再編時は `PurchaseCandidateCategoryMap` と frontend 側 category map の更新が必須になる
 - item 側では `bags`・`fashion_accessories`・`swimwear`・`kimono` を現在のカテゴリとして扱い始め、category master の責務差をそのまま item 側の現在カテゴリにも反映する
+- item 側では `legwear` も現在のカテゴリとして `subcategory = socks / stockings / tights / leggings / other` を主導線にし、`spec.legwear.coverage_type` を補助情報として維持する
 - 次回の大分類再編では、`outer` → `outerwear`、`bottoms` → `pants` / `skirts`、`onepiece_allinone` → `onepiece_dress` / `allinone`、`accessories` → `bags` / `fashion_accessories` を第一候補とする
 - 実装第1弾では `swimwear` と `kimono` も含めて `visible_category_ids` と category master の新しい中分類 ID を導入し、item の `category` / `shape` は `bags`・`fashion_accessories`・`swimwear`・`kimono` を新案側へ進めつつ、それ以外は必要な箇所だけ対応表で橋渡しする
 - 実装第2弾では item の現在カテゴリも `pants`・`skirts`・`outerwear`・`onepiece_dress`・`allinone` を正本寄りに扱い始め、一覧のカテゴリ候補・表示対象判定・purchase candidate の item-draft 生成で新しい category 値を優先する
 - `swimwear` と `kimono` は独立大分類として settings と onboarding で ON / OFF を持てる前提にする
+- TODO: category / subcategory / shape の変換規則は backend / frontend の複数 helper に分散しているため、将来の category 再編や filter 拡張に備えて正本化または責務整理を後続で検討する
 
 
 ### Example Records

@@ -189,25 +189,27 @@ export default function EditItemPage({
   const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
 
   const isTopsCategory = category === "tops";
+  const effectiveSubcategory = useMemo(
+    () => resolveItemSubcategoryForForm(category, subcategory),
+    [category, subcategory],
+  );
+  const normalizedSubcategory = effectiveSubcategory;
   const isBottomsSpecVisible = isBottomsSpecCategory(category);
   const isLegwearSpecVisible =
     isLegwearSpecCategory(category) && Boolean(shape);
   const isLegwearCoverageSelectVisible = shouldShowLegwearCoverageSelect(
     category,
     shape,
+    normalizedSubcategory,
   );
   const legwearCoverageOptions = useMemo(
-    () => getLegwearCoverageOptions(shape),
-    [shape],
+    () => getLegwearCoverageOptions(shape, normalizedSubcategory),
+    [normalizedSubcategory, shape],
   );
   const isLegwearCoverageRequired = isLegwearCoverageTypeRequired(
     category,
     shape,
-  );
-
-  const effectiveSubcategory = useMemo(
-    () => resolveItemSubcategoryForForm(category, subcategory),
-    [category, subcategory],
+    normalizedSubcategory,
   );
   const baseShapeOptions = useMemo(() => {
     if (!category) return [];
@@ -241,7 +243,6 @@ export default function EditItemPage({
   );
   const isSubcategoryRequired =
     shouldShowSubcategoryField && isItemSubcategoryRequired(category);
-  const normalizedSubcategory = effectiveSubcategory;
   const topsShapeOptions = useMemo(
     () => getTopsShapeOptions(effectiveSubcategory),
     [effectiveSubcategory],
@@ -626,6 +627,7 @@ export default function EditItemPage({
             category,
             nextShape,
             legwearCoverageType,
+            normalizedSubcategory,
           ) as LegwearCoverageType | null) ?? "",
         );
       } else {
@@ -643,6 +645,7 @@ export default function EditItemPage({
             category,
             nextShape,
             legwearCoverageType,
+            normalizedSubcategory,
           ) as LegwearCoverageType | null) ?? "",
         );
       } else {
@@ -653,6 +656,7 @@ export default function EditItemPage({
     category,
     isTopsCategory,
     legwearCoverageType,
+    normalizedSubcategory,
     shape,
     baseShapeOptions,
     subcategory,
@@ -736,6 +740,7 @@ export default function EditItemPage({
         category,
         nextShape,
         legwearCoverageType,
+        normalizedSubcategory,
       ) as LegwearCoverageType | null) ?? "",
     );
   }
@@ -819,6 +824,7 @@ export default function EditItemPage({
       category,
       shape,
       legwearCoverageType,
+      normalizedSubcategory,
     );
     const materials = validateItemMaterials(materialRows).payload;
 
@@ -1003,6 +1009,7 @@ export default function EditItemPage({
       category,
       shape,
       legwearCoverageType,
+      normalizedSubcategory,
     );
 
     if (!category) nextErrors.category = "カテゴリを選択してください。";
@@ -1018,7 +1025,7 @@ export default function EditItemPage({
       nextErrors["spec.bottoms.length_type"] = "ボトムス丈を選択してください。";
     }
     if (
-      isLegwearCoverageTypeRequired(category, shape) &&
+      isLegwearCoverageTypeRequired(category, shape, normalizedSubcategory) &&
       !resolvedLegwearCoverageType
     ) {
       nextErrors["spec.legwear.coverage_type"] =
@@ -1117,8 +1124,12 @@ export default function EditItemPage({
     legwear: isLegwearSpecCategory(category)
       ? {
           coverage_type:
-            resolveLegwearCoverageType(category, shape, legwearCoverageType) ??
-            undefined,
+            resolveLegwearCoverageType(
+              category,
+              shape,
+              legwearCoverageType,
+              normalizedSubcategory,
+            ) ?? undefined,
         }
       : undefined,
   };

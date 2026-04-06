@@ -66,6 +66,7 @@ class ItemUpdateService
                         $validated['category'] ?? null,
                         $resolvedShape,
                         $validated['spec'] ?? null,
+                        $normalizedSubcategory,
                     ),
                 ]);
 

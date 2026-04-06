@@ -557,14 +557,23 @@ describe("NewItemPage", () => {
       await waitForEffects();
     });
 
+    const legwearSubcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
+    expect(legwearSubcategorySelect).not.toBeNull();
+    expect(
+      Array.from(shapeSelect!.options).map((option) => option.value),
+    ).toEqual([""]);
     expect(container.querySelector("#legwear-coverage-type")).toBeNull();
 
     await act(async () => {
-      shapeSelect!.value = "socks";
-      shapeSelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      legwearSubcategorySelect!.value = "socks";
+      legwearSubcategorySelect!.dispatchEvent(
+        new Event("change", { bubbles: true }),
+      );
       await waitForEffects();
     });
 
+    expect(shapeSelect!.value).toBe("socks");
     expect(container.textContent).toContain("レッグウェア仕様");
     expect(container.textContent).toContain("レッグウェア");
     expect(container.textContent).toContain(
@@ -573,11 +582,14 @@ describe("NewItemPage", () => {
     expect(container.querySelector("#legwear-coverage-type")).not.toBeNull();
 
     await act(async () => {
-      shapeSelect!.value = "tights";
-      shapeSelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      legwearSubcategorySelect!.value = "tights";
+      legwearSubcategorySelect!.dispatchEvent(
+        new Event("change", { bubbles: true }),
+      );
       await waitForEffects();
     });
 
+    expect(shapeSelect!.value).toBe("tights");
     expect(container.querySelector("#legwear-coverage-type")).toBeNull();
     expect(container.textContent).not.toContain("レッグウェア仕様");
   });
@@ -654,8 +666,23 @@ describe("NewItemPage", () => {
     });
 
     await act(async () => {
-      shapeSelect!.value = "socks";
-      shapeSelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      form!.dispatchEvent(
+        new Event("submit", { bubbles: true, cancelable: true }),
+      );
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain("種類を選択してください。");
+
+    const legwearSubcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
+    expect(legwearSubcategorySelect).not.toBeNull();
+
+    await act(async () => {
+      legwearSubcategorySelect!.value = "socks";
+      legwearSubcategorySelect!.dispatchEvent(
+        new Event("change", { bubbles: true }),
+      );
       await waitForEffects();
     });
 

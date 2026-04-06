@@ -73,6 +73,13 @@ export const ITEM_SUBCATEGORIES = {
     { value: "sandals", label: "サンダル" },
     { value: "other", label: "その他シューズ" },
   ],
+  legwear: [
+    { value: "socks", label: "ソックス" },
+    { value: "stockings", label: "ストッキング" },
+    { value: "tights", label: "タイツ" },
+    { value: "leggings", label: "レギンス" },
+    { value: "other", label: "その他レッグウェア" },
+  ],
   swimwear: [
     { value: "swimwear", label: "水着" },
     { value: "rashguard", label: "ラッシュガード" },
@@ -95,6 +102,7 @@ export const REQUIRED_SUBCATEGORY_CATEGORIES = new Set<string>([
   "bags",
   "fashion_accessories",
   "shoes",
+  "legwear",
 ]);
 
 const RADIO_SUBCATEGORY_UI_CATEGORIES = new Set<string>([
@@ -193,6 +201,13 @@ const LEGACY_INFERRED_SUBCATEGORY_BY_CATEGORY: Record<
     other: "other",
     sandals: "sandals",
   },
+  legwear: {
+    socks: "socks",
+    stockings: "stockings",
+    tights: "tights",
+    leggings: "leggings",
+    other: "other",
+  },
   swimwear: {
     swimwear: "swimwear",
     rashguard: "rashguard",
@@ -276,6 +291,13 @@ const DEFAULT_SHAPE_BY_SUBCATEGORY: Record<string, Record<string, string>> = {
     boots: "short-boots",
     sandals: "sandals",
     other: "other",
+  },
+  legwear: {
+    socks: "socks",
+    stockings: "stockings",
+    tights: "tights",
+    leggings: "leggings",
+    other: "socks",
   },
   kimono: {
     kimono: "kimono",

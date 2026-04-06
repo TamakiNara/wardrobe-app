@@ -214,6 +214,13 @@ const SHAPE_VALUES_BY_SUBCATEGORY: Partial<
     sandals: ["sandals"],
     other: [],
   },
+  legwear: {
+    socks: ["socks"],
+    stockings: ["stockings"],
+    tights: ["tights"],
+    leggings: ["leggings"],
+    other: [],
+  },
   kimono: {
     kimono: ["kimono"],
     other: [],
@@ -234,7 +241,8 @@ export function getItemShapeOptions(
     !subcategory &&
     (category === "bags" ||
       category === "fashion_accessories" ||
-      category === "shoes")
+      category === "shoes" ||
+      category === "legwear")
   ) {
     return [];
   }

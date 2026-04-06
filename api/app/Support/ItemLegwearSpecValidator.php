@@ -10,8 +10,19 @@ class ItemLegwearSpecValidator
     {
         $category = $validated['category'] ?? null;
         $shape = $validated['shape'] ?? null;
+        $subcategory = ItemSubcategorySupport::normalize(
+            is_string($category) ? $category : null,
+            $validated['subcategory'] ?? null,
+        );
         $bottomsLengthType = data_get($validated, 'spec.bottoms.length_type');
         $coverageType = data_get($validated, 'spec.legwear.coverage_type');
+        $resolvedLegwearType = match ($subcategory) {
+            'socks', 'stockings', 'tights', 'leggings', 'other' => $subcategory,
+            default => match ($shape) {
+                'socks', 'stockings', 'tights', 'leggings' => $shape,
+                default => null,
+            },
+        };
 
         if (in_array($category, ['bottoms', 'pants', 'skirts'], true) && ($bottomsLengthType === null || $bottomsLengthType === '')) {
             self::throwBottomsLengthTypeRequiredError();
@@ -19,7 +30,7 @@ class ItemLegwearSpecValidator
 
         if (
             $category === 'legwear'
-            && in_array($shape, ['socks', 'leggings'], true)
+            && in_array($resolvedLegwearType, ['socks', 'leggings'], true)
             && ($coverageType === null || $coverageType === '')
         ) {
             self::throwCoverageTypeRequiredError();
@@ -33,7 +44,7 @@ class ItemLegwearSpecValidator
             self::throwCoverageTypeError();
         }
 
-        $allowedCoverageTypes = match ($shape) {
+        $allowedCoverageTypes = match ($resolvedLegwearType) {
             'socks' => ['ankle_socks', 'crew_socks', 'knee_socks', 'over_knee'],
             'leggings' => ['leggings_cropped', 'leggings_full'],
             'stockings' => ['stockings'],

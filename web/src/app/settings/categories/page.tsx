@@ -46,7 +46,11 @@ function buildRegisteredItemCountByCategoryId(items: ItemRecord[]) {
   const counts: Record<string, number> = {};
 
   for (const item of items) {
-    const categoryId = findVisibleCategoryIdForItem(item.category, item.shape);
+    const categoryId = findVisibleCategoryIdForItem(
+      item.category,
+      item.shape,
+      item.subcategory,
+    );
     if (!categoryId) continue;
     counts[categoryId] = (counts[categoryId] ?? 0) + 1;
   }

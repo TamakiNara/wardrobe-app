@@ -1273,7 +1273,7 @@ class ItemsEndpointsTest extends TestCase
         $response = $this->postJson('/api/items', [
             'name' => 'ソックス',
             'category' => 'legwear',
-            'shape' => 'socks',
+            'subcategory' => 'socks',
             'colors' => [[
                 'role' => 'main',
                 'mode' => 'preset',
@@ -1291,6 +1291,8 @@ class ItemsEndpointsTest extends TestCase
         ]);
 
         $response->assertCreated()
+            ->assertJsonPath('item.subcategory', 'socks')
+            ->assertJsonPath('item.shape', 'socks')
             ->assertJsonPath('item.spec.legwear.coverage_type', 'crew_socks');
 
         $item = Item::query()->findOrFail($response->json('item.id'));
@@ -1306,7 +1308,7 @@ class ItemsEndpointsTest extends TestCase
         $response = $this->postJson('/api/items', [
             'name' => '詳細未設定ソックス',
             'category' => 'legwear',
-            'shape' => 'socks',
+            'subcategory' => 'socks',
             'colors' => [[
                 'role' => 'main',
                 'mode' => 'preset',
@@ -1333,7 +1335,7 @@ class ItemsEndpointsTest extends TestCase
         $response = $this->postJson('/api/items', [
             'name' => 'タイツ',
             'category' => 'legwear',
-            'shape' => 'tights',
+            'subcategory' => 'tights',
             'colors' => [[
                 'role' => 'main',
                 'mode' => 'preset',
@@ -1346,6 +1348,8 @@ class ItemsEndpointsTest extends TestCase
         ]);
 
         $response->assertCreated()
+            ->assertJsonPath('item.subcategory', 'tights')
+            ->assertJsonPath('item.shape', 'tights')
             ->assertJsonPath('item.spec.legwear.coverage_type', 'tights');
 
         $item = Item::query()->findOrFail($response->json('item.id'));
@@ -1361,7 +1365,7 @@ class ItemsEndpointsTest extends TestCase
         $response = $this->postJson('/api/items', [
             'name' => 'ストッキング',
             'category' => 'legwear',
-            'shape' => 'stockings',
+            'subcategory' => 'stockings',
             'colors' => [[
                 'role' => 'main',
                 'mode' => 'preset',
@@ -1374,6 +1378,8 @@ class ItemsEndpointsTest extends TestCase
         ]);
 
         $response->assertCreated()
+            ->assertJsonPath('item.subcategory', 'stockings')
+            ->assertJsonPath('item.shape', 'stockings')
             ->assertJsonPath('item.spec.legwear.coverage_type', 'stockings');
 
         $item = Item::query()->findOrFail($response->json('item.id'));
@@ -1457,7 +1463,7 @@ class ItemsEndpointsTest extends TestCase
         $response = $this->postJson('/api/items', [
             'name' => '不正ソックス',
             'category' => 'legwear',
-            'shape' => 'socks',
+            'subcategory' => 'socks',
             'colors' => [[
                 'role' => 'main',
                 'mode' => 'preset',
@@ -1478,6 +1484,33 @@ class ItemsEndpointsTest extends TestCase
             ->assertJsonValidationErrors([
                 'spec.legwear.coverage_type',
             ]);
+    }
+
+    public function test_post_items_can_save_legwear_other_without_coverage_type(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/items', [
+            'name' => 'その他レッグウェア',
+            'category' => 'legwear',
+            'subcategory' => 'other',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'black',
+                'hex' => '#111111',
+                'label' => 'ブラック',
+            ]],
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('item.subcategory', 'other')
+            ->assertJsonPath('item.shape', 'socks')
+            ->assertJsonMissingPath('item.spec.legwear.coverage_type');
     }
 
     public function test_post_items_can_save_tpo_ids_and_return_resolved_tpos(): void

@@ -218,32 +218,67 @@ class ListQuerySupport
         ];
     }
 
+    public static function itemVisibleCategoryIdBySubcategoryMap(): array
+    {
+        return [
+            'legwear' => [
+                'socks' => 'legwear_socks',
+                'stockings' => 'legwear_stockings',
+                'tights' => 'legwear_tights',
+                'leggings' => 'legwear_leggings',
+                'other' => 'legwear_other',
+            ],
+        ];
+    }
+
     /**
-     * @return array<int, array{category: string, shape: string}>
+     * @return array<string, array<int, array{category: string, shape?: string, subcategory?: string, subcategory_null?: bool}>>
+     */
+    public static function itemVisibleCategoryQueryMap(): array
+    {
+        $queryMap = [];
+
+        foreach (self::itemVisibleCategoryMap() as $category => $shapeMap) {
+            foreach ($shapeMap as $shape => $visibleCategoryId) {
+                $queryMap[$visibleCategoryId] ??= [];
+                $queryMap[$visibleCategoryId][] = [
+                    'category' => $category,
+                    'shape' => $shape,
+                ];
+            }
+        }
+
+        $queryMap['legwear_socks'] = [
+            ['category' => 'legwear', 'subcategory' => 'socks'],
+            ['category' => 'legwear', 'shape' => 'socks', 'subcategory_null' => true],
+        ];
+        $queryMap['legwear_stockings'] = [
+            ['category' => 'legwear', 'subcategory' => 'stockings'],
+            ['category' => 'legwear', 'shape' => 'stockings', 'subcategory_null' => true],
+        ];
+        $queryMap['legwear_tights'] = [
+            ['category' => 'legwear', 'subcategory' => 'tights'],
+            ['category' => 'legwear', 'shape' => 'tights', 'subcategory_null' => true],
+        ];
+        $queryMap['legwear_leggings'] = [
+            ['category' => 'legwear', 'subcategory' => 'leggings'],
+            ['category' => 'legwear', 'shape' => 'leggings', 'subcategory_null' => true],
+        ];
+        $queryMap['legwear_other'] = [
+            ['category' => 'legwear', 'subcategory' => 'other'],
+        ];
+
+        return $queryMap;
+    }
+
+    /**
+     * @return array<int, array{category: string, shape?: string, subcategory?: string, subcategory_null?: bool}>
      */
     public static function resolveHiddenItemCategoryShapePairs(Collection $visibleCategoryIds): array
     {
-        $map = self::itemVisibleCategoryMap();
-
-        return collect($map)
-            ->flatMap(
-                fn (array $shapeMap, string $category) => collect($shapeMap)->map(
-                    fn (string $visibleCategoryId, string $shape) => [
-                        'category' => $category,
-                        'shape' => $shape,
-                        'visibleCategoryId' => $visibleCategoryId,
-                    ]
-                )
-            )
-            ->reject(
-                fn (array $pair) => $visibleCategoryIds->contains($pair['visibleCategoryId'])
-            )
-            ->map(
-                fn (array $pair) => [
-                    'category' => $pair['category'],
-                    'shape' => $pair['shape'],
-                ]
-            )
+        return collect(self::itemVisibleCategoryQueryMap())
+            ->reject(fn (array $_constraints, string $visibleCategoryId) => $visibleCategoryIds->contains($visibleCategoryId))
+            ->flatMap(fn (array $constraints) => $constraints)
             ->values()
             ->all();
     }
@@ -262,9 +297,19 @@ class ListQuerySupport
         return $query->whereNot(function (Builder $builder) use ($hiddenPairs) {
             foreach ($hiddenPairs as $pair) {
                 $builder->orWhere(function (Builder $nested) use ($pair) {
-                    $nested
-                        ->where('category', $pair['category'])
-                        ->where('shape', $pair['shape']);
+                    $nested->where('category', $pair['category']);
+
+                    if (array_key_exists('subcategory', $pair)) {
+                        $nested->where('subcategory', $pair['subcategory']);
+                    }
+
+                    if (($pair['subcategory_null'] ?? false) === true) {
+                        $nested->whereNull('subcategory');
+                    }
+
+                    if (array_key_exists('shape', $pair)) {
+                        $nested->where('shape', $pair['shape']);
+                    }
                 });
             }
         });
@@ -343,15 +388,25 @@ class ListQuerySupport
 
     private static function resolveVisibleCategoryIdForItem(Item $item): ?string
     {
-        $map = self::itemVisibleCategoryMap();
-
         $category = is_string($item->category) ? $item->category : null;
+        $subcategory = is_string($item->subcategory) ? $item->subcategory : null;
         $shape = is_string($item->shape) ? $item->shape : null;
 
-        if (! $category || ! $shape) {
+        if (! $category) {
             return null;
         }
 
-        return $map[$category][$shape] ?? null;
+        $subcategoryMap = self::itemVisibleCategoryIdBySubcategoryMap();
+        if ($subcategory && isset($subcategoryMap[$category][$subcategory])) {
+            return $subcategoryMap[$category][$subcategory];
+        }
+
+        if (! $shape) {
+            return null;
+        }
+
+        $shapeMap = self::itemVisibleCategoryMap();
+
+        return $shapeMap[$category][$shape] ?? null;
     }
 }

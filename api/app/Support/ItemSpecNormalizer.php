@@ -4,13 +4,13 @@ namespace App\Support;
 
 class ItemSpecNormalizer
 {
-    public static function normalize(?string $category, ?string $shape, mixed $spec): ?array
+    public static function normalize(?string $category, ?string $shape, mixed $spec, ?string $subcategory = null): ?array
     {
         $normalized = is_array($spec) ? $spec : [];
         $lengthType = data_get($normalized, 'bottoms.length_type');
         $resolvedLengthType = self::resolveBottomsLengthType($category, $shape, $lengthType);
         $coverageType = data_get($normalized, 'legwear.coverage_type');
-        $resolvedCoverageType = self::resolveLegwearCoverageType($category, $shape, $coverageType);
+        $resolvedCoverageType = self::resolveLegwearCoverageType($category, $shape, $coverageType, $subcategory);
 
         if ($resolvedLengthType !== null) {
             data_set($normalized, 'bottoms.length_type', $resolvedLengthType);
@@ -27,27 +27,35 @@ class ItemSpecNormalizer
         return $normalized === [] ? null : $normalized;
     }
 
-    private static function resolveLegwearCoverageType(?string $category, ?string $shape, mixed $coverageType): ?string
+    private static function resolveLegwearCoverageType(?string $category, ?string $shape, mixed $coverageType, ?string $subcategory = null): ?string
     {
         if ($category !== 'legwear') {
             return null;
         }
 
-        if ($shape === 'stockings') {
+        $resolvedSubcategory = match ($subcategory) {
+            'socks', 'stockings', 'tights', 'leggings', 'other' => $subcategory,
+            default => match ($shape) {
+                'socks', 'stockings', 'tights', 'leggings' => $shape,
+                default => null,
+            },
+        };
+
+        if ($resolvedSubcategory === 'stockings') {
             return 'stockings';
         }
 
-        if ($shape === 'tights') {
+        if ($resolvedSubcategory === 'tights') {
             return 'tights';
         }
 
-        if ($shape === 'socks') {
+        if ($resolvedSubcategory === 'socks') {
             return in_array($coverageType, ['ankle_socks', 'crew_socks', 'knee_socks', 'over_knee'], true)
                 ? $coverageType
                 : null;
         }
 
-        if ($shape === 'leggings') {
+        if ($resolvedSubcategory === 'leggings') {
             return in_array($coverageType, ['leggings_cropped', 'leggings_full'], true)
                 ? $coverageType
                 : null;

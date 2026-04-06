@@ -169,6 +169,19 @@ const ITEM_CATEGORY_ID_BY_SHAPE: Record<string, Record<string, string>> = {
   },
 };
 
+const ITEM_CATEGORY_ID_BY_SUBCATEGORY: Record<
+  string,
+  Record<string, string>
+> = {
+  legwear: {
+    socks: "legwear_socks",
+    stockings: "legwear_stockings",
+    tights: "legwear_tights",
+    leggings: "legwear_leggings",
+    other: "legwear_other",
+  },
+};
+
 const PANTS_LIKE_SHAPES = new Set(["tapered", "wide", "straight"]);
 const SKIRT_LIKE_SHAPES = new Set([
   "mini-skirt",
@@ -349,14 +362,29 @@ export function buildSupportedCategoryOptions(
 export function findVisibleCategoryIdForItem(
   category?: string | null,
   shape?: string | null,
+  subcategory?: string | null,
 ): string | null {
-  if (!category || !shape) return null;
+  if (!category) return null;
+
+  if (subcategory) {
+    const resolvedFromSubcategory =
+      ITEM_CATEGORY_ID_BY_SUBCATEGORY[category]?.[subcategory] ?? null;
+    if (resolvedFromSubcategory) {
+      return resolvedFromSubcategory;
+    }
+  }
+
+  if (!shape) return null;
 
   return ITEM_CATEGORY_ID_BY_SHAPE[category]?.[shape] ?? null;
 }
 
 export function isItemVisibleByCategorySettings(
-  item: { category?: string | null; shape?: string | null },
+  item: {
+    category?: string | null;
+    shape?: string | null;
+    subcategory?: string | null;
+  },
   visibleCategoryIds?: string[],
 ): boolean {
   if (!visibleCategoryIds) {
@@ -366,6 +394,7 @@ export function isItemVisibleByCategorySettings(
   const resolvedCategoryId = findVisibleCategoryIdForItem(
     item.category,
     item.shape,
+    item.subcategory,
   );
   if (!resolvedCategoryId) {
     return true;

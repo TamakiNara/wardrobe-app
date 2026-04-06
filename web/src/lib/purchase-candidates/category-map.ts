@@ -142,7 +142,27 @@ const PURCHASE_CANDIDATE_ITEM_CATEGORY_MAP = {
     subcategory: null,
     shape: "pajamas",
   },
-  legwear_other: { category: "legwear", subcategory: null, shape: "socks" },
+  legwear_socks: {
+    category: "legwear",
+    subcategory: "socks",
+    shape: "socks",
+  },
+  legwear_stockings: {
+    category: "legwear",
+    subcategory: "stockings",
+    shape: "stockings",
+  },
+  legwear_tights: {
+    category: "legwear",
+    subcategory: "tights",
+    shape: "tights",
+  },
+  legwear_leggings: {
+    category: "legwear",
+    subcategory: "leggings",
+    shape: "leggings",
+  },
+  legwear_other: { category: "legwear", subcategory: "other", shape: "socks" },
   shoes_sneakers: {
     category: "shoes",
     subcategory: "sneakers",

@@ -53,21 +53,30 @@ export function isBottomsLengthTypeRequired(category?: string | null) {
 export function isLegwearCoverageTypeRequired(
   category?: string | null,
   shape?: string | null,
+  subcategory?: string | null,
 ) {
   if (!isLegwearSpecCategory(category)) return false;
-  return shape === "socks" || shape === "leggings";
+  const resolvedShape = resolveLegwearShapeKind(shape, subcategory);
+  return resolvedShape === "socks" || resolvedShape === "leggings";
 }
 
 export function shouldShowLegwearCoverageSelect(
   category?: string | null,
   shape?: string | null,
+  subcategory?: string | null,
 ) {
   if (!isLegwearSpecCategory(category)) return false;
-  return shape === "socks" || shape === "leggings";
+  const resolvedShape = resolveLegwearShapeKind(shape, subcategory);
+  return resolvedShape === "socks" || resolvedShape === "leggings";
 }
 
-export function getLegwearCoverageOptions(shape?: string | null) {
-  if (shape === "socks") {
+export function getLegwearCoverageOptions(
+  shape?: string | null,
+  subcategory?: string | null,
+) {
+  const resolvedShape = resolveLegwearShapeKind(shape, subcategory);
+
+  if (resolvedShape === "socks") {
     return LEGWEAR_COVERAGE_OPTIONS.filter((item) =>
       SOCKS_COVERAGE_TYPES.includes(
         item.value as (typeof SOCKS_COVERAGE_TYPES)[number],
@@ -75,7 +84,7 @@ export function getLegwearCoverageOptions(shape?: string | null) {
     );
   }
 
-  if (shape === "leggings") {
+  if (resolvedShape === "leggings") {
     return LEGWEAR_COVERAGE_OPTIONS.filter((item) =>
       LEGGINGS_COVERAGE_TYPES.includes(
         item.value as (typeof LEGGINGS_COVERAGE_TYPES)[number],
@@ -90,13 +99,16 @@ export function resolveLegwearCoverageType(
   category?: string | null,
   shape?: string | null,
   value?: string | null,
+  subcategory?: string | null,
 ) {
   if (!isLegwearSpecCategory(category)) return null;
 
-  if (shape === "stockings") return "stockings";
-  if (shape === "tights") return "tights";
+  const resolvedShape = resolveLegwearShapeKind(shape, subcategory);
 
-  if (shape === "socks") {
+  if (resolvedShape === "stockings") return "stockings";
+  if (resolvedShape === "tights") return "tights";
+
+  if (resolvedShape === "socks") {
     return SOCKS_COVERAGE_TYPES.includes(
       value as (typeof SOCKS_COVERAGE_TYPES)[number],
     )
@@ -104,7 +116,7 @@ export function resolveLegwearCoverageType(
       : null;
   }
 
-  if (shape === "leggings") {
+  if (resolvedShape === "leggings") {
     return LEGGINGS_COVERAGE_TYPES.includes(
       value as (typeof LEGGINGS_COVERAGE_TYPES)[number],
     )
@@ -119,13 +131,39 @@ export function resolveLegwearCoverageTypeForPreview(
   category?: string | null,
   shape?: string | null,
   value?: string | null,
+  subcategory?: string | null,
 ): LegwearPreviewCoverageType | null {
   if (!isLegwearSpecCategory(category)) return null;
 
-  const resolved = resolveLegwearCoverageType(category, shape, value);
+  const resolved = resolveLegwearCoverageType(
+    category,
+    shape,
+    value,
+    subcategory,
+  );
   return resolved
     ? (resolved as LegwearPreviewCoverageType)
     : "full_length_fallback";
+}
+
+function resolveLegwearShapeKind(
+  shape?: string | null,
+  subcategory?: string | null,
+) {
+  if (
+    subcategory === "socks" ||
+    subcategory === "stockings" ||
+    subcategory === "tights" ||
+    subcategory === "leggings"
+  ) {
+    return subcategory;
+  }
+
+  if (subcategory === "other") {
+    return "other";
+  }
+
+  return shape;
 }
 
 export function resolveBottomsLengthType(value?: string | null) {

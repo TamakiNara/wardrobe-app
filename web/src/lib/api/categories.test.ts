@@ -230,6 +230,9 @@ describe("findVisibleCategoryIdForItem", () => {
     expect(findVisibleCategoryIdForItem("legwear", "tights")).toBe(
       "legwear_tights",
     );
+    expect(findVisibleCategoryIdForItem("legwear", "socks", "other")).toBe(
+      "legwear_other",
+    );
     expect(findVisibleCategoryIdForItem("shoes", "sneakers")).toBe(
       "shoes_sneakers",
     );
@@ -326,8 +329,15 @@ describe("isItemVisibleByCategorySettings", () => {
 
     expect(
       isItemVisibleByCategorySettings(
-        { category: "legwear", shape: "tights" },
+        { category: "legwear", shape: "tights", subcategory: "tights" },
         ["legwear_tights"],
+      ),
+    ).toBe(true);
+
+    expect(
+      isItemVisibleByCategorySettings(
+        { category: "legwear", shape: "socks", subcategory: "other" },
+        ["legwear_other"],
       ),
     ).toBe(true);
 

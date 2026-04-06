@@ -491,6 +491,7 @@ describe("EditItemPage", () => {
             size_details: null,
             is_rain_ok: false,
             category: "legwear",
+            subcategory: "socks",
             shape: "socks",
             colors: [],
             seasons: [],
@@ -528,6 +529,9 @@ describe("EditItemPage", () => {
         ) as HTMLSelectElement | null
       )?.value,
     ).toBe("crew_socks");
+    const legwearSubcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
+    expect(legwearSubcategorySelect?.value).toBe("socks");
     expect(container.textContent).toContain("レッグウェア仕様");
     expect(container.textContent).toContain(
       "ソックスの長さを選択してください。",
@@ -557,6 +561,7 @@ describe("EditItemPage", () => {
             size_details: null,
             is_rain_ok: false,
             category: "legwear",
+            subcategory: "tights",
             shape: "tights",
             colors: [],
             seasons: [],
@@ -587,6 +592,9 @@ describe("EditItemPage", () => {
       await waitForEffects();
     });
 
+    const tightsSubcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
+    expect(tightsSubcategorySelect?.value).toBe("tights");
     expect(container.querySelector("#legwear-coverage-type")).toBeNull();
     expect(container.textContent).not.toContain("レッグウェア仕様");
   });

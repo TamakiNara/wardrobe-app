@@ -345,8 +345,10 @@ thumbnail の現状確認用パターン一覧を見返すときは `docs/specs/
 - 現時点の `outerwear` は `subcategory` 中くらい / `shape` 中くらいの staged rollout とし、`coat` では `coat / trench / chester / stainless`、`jacket` では `jacket / tailored / no_collar` を候補に出し、`blouson` / `down_padded` / `mountain_parka` は最小候補に留める
 - `bags` は現時点で `subcategory` を `tote / shoulder / backpack / hand / clutch / body / other` で持ち、`shape` は同名1件の候補を自動補完する薄い補助値として扱う
 - `fashion_accessories` は現時点で `subcategory` を `hat / belt / scarf_stole / gloves / jewelry / wallet_case / hair_accessory / eyewear / watch / other` で持ち、`shape` は同名1件の候補を自動補完する薄い補助値として扱う
+- `legwear` は現時点で `subcategory` を `socks / stockings / tights / leggings / other` で持ち、`coverage_type` は `spec.legwear.coverage_type` に維持し、`shape` は同名1件の候補を自動補完する薄い補助値として扱う
 - 一覧・検索で独立して使いたい粒度を基準に見直すと、`bags` の用途差、`fashion_accessories` の種類差、`shoes` の靴種、`legwear` の種別、`roomwear_inner` の大きい種類差は、現状の `shape` や代表カテゴリ固定より `subcategory` へ上げる余地がある。将来の filter / settings を自然につなぐには、フォーム都合だけでなく「独立して絞りたいか」を優先して `subcategory` 粒度を再判断する方針を追加で持つ。
 - 一覧・検索で使いたい粒度を優先した実装順の第一候補は、`bags` → `fashion_accessories` → `shoes` → `legwear` → `roomwear_inner` とする。`bags` と `fashion_accessories` は current で `subcategory` 厚めへ寄せ始めており、次は `shoes` 以降を同じ説明粒度へそろえる。
+- TODO: category / subcategory / shape の変換規則は `ListQuerySupport`、`ItemSubcategorySupport`、`ItemInputRequirementSupport`、`PurchaseCandidateCategoryMap`、`web/src/lib/api/categories.ts`、`web/src/lib/master-data/item-subcategories.ts`、`web/src/lib/master-data/item-shapes.ts` など複数箇所に分散しており、後続では正本化または責務整理を検討する
 - item 入力フォームは、原則 `カテゴリ / 種類 / 形 / 詳細` の並びへ寄せ、使わない欄は非表示または未選択可で扱う前提を優先する
 - `skirts`、`shoes`、`kimono` は `subcategory` 候補が少ないため、現時点の通常入力ではプルダウンではなく軽い UI で `種類` を見せ、代表カテゴリまたは主要候補を既定値にしつつ `other` へ切り替えられる形を優先する
 - `skirts` は `subcategory = skirt`、`shoes` は `subcategory = sneakers / pumps / boots / sandals / other`、`kimono` は `subcategory = kimono` を通常入力の主導線とし、`other` は staged rollout 中の旧データ互換や補助表示にも残すが、shape 側の新規入力候補には追加しない
