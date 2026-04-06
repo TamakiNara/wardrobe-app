@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Support\ItemInputRequirementSupport;
 use App\Support\ItemLegwearSpecValidator;
 use App\Support\ItemMaterialSupport;
 use App\Support\ItemMaterialValidator;
@@ -61,7 +62,7 @@ abstract class ItemUpsertRequest extends FormRequest
             'is_rain_ok' => ['nullable', 'boolean'],
             'category' => ['required', 'string', 'max:100'],
             'subcategory' => ['nullable', 'string', 'max:100'],
-            'shape' => ['required', 'string', 'max:100'],
+            'shape' => ['nullable', 'string', 'max:100'],
             'colors' => ['required', 'array', 'min:1'],
             'colors.*.role' => ['required', 'string', 'in:main,sub'],
             'colors.*.mode' => ['required', 'string', 'in:preset,custom'],
@@ -131,6 +132,7 @@ abstract class ItemUpsertRequest extends FormRequest
     {
         $validated = $this->validated();
 
+        ItemInputRequirementSupport::validate($validated);
         ItemLegwearSpecValidator::validate($validated);
         ItemMaterialValidator::validate($validated);
         ItemSubcategorySupport::validate($validated);

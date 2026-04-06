@@ -837,6 +837,41 @@ describe("NewItemPage", () => {
     ).toEqual(["", "tote", "shoulder", "backpack", "hand", "clutch", "body"]);
   });
 
+  it("bags の other は形を任意寄りで扱う", async () => {
+    const { default: NewItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(NewItemPage));
+      await waitForEffects();
+    });
+
+    const categorySelect =
+      container.querySelector<HTMLSelectElement>("#category");
+    expect(categorySelect).not.toBeNull();
+
+    await act(async () => {
+      categorySelect!.value = "bags";
+      categorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    const subcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
+    const shapeLabel =
+      container.querySelector<HTMLLabelElement>('label[for="shape"]');
+    expect(subcategorySelect).not.toBeNull();
+    expect(shapeLabel).not.toBeNull();
+
+    await act(async () => {
+      subcategorySelect!.value = "other";
+      subcategorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    expect(shapeLabel?.textContent).toContain("形");
+    expect(shapeLabel?.textContent).not.toContain("必須");
+  });
+
   it("tops は形を分類セクションで扱い、1候補時は自動設定する", async () => {
     const { default: NewItemPage } = await import("./page");
 
@@ -874,6 +909,44 @@ describe("NewItemPage", () => {
     expect(shapeSelect!.disabled).toBe(true);
     expect(container.textContent).toContain("種類に応じて自動で設定されます。");
     expect(container.querySelector("#tops-shape")).toBeNull();
+  });
+
+  it("outerwear の1候補形は自動設定して過剰な選択を求めない", async () => {
+    const { default: NewItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(NewItemPage));
+      await waitForEffects();
+    });
+
+    const categorySelect =
+      container.querySelector<HTMLSelectElement>("#category");
+    expect(categorySelect).not.toBeNull();
+
+    await act(async () => {
+      categorySelect!.value = "outerwear";
+      categorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    const subcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
+    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
+    const shapeLabel =
+      container.querySelector<HTMLLabelElement>('label[for="shape"]');
+    expect(subcategorySelect).not.toBeNull();
+    expect(shapeSelect).not.toBeNull();
+    expect(shapeLabel).not.toBeNull();
+
+    await act(async () => {
+      subcategorySelect!.value = "blouson";
+      subcategorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    expect(shapeSelect!.value).toBe("blouson");
+    expect(shapeSelect!.disabled).toBe(true);
+    expect(shapeLabel?.textContent).not.toContain("必須");
   });
 
   it("固定項目と自由項目の重複は短い警告文で表示する", async () => {

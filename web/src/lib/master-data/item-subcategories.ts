@@ -180,6 +180,10 @@ const DEFAULT_SHAPE_BY_SUBCATEGORY: Record<string, Record<string, string>> = {
     sweat_jersey: "pants",
     other: "pants",
   },
+  skirts: {
+    skirt: "skirt",
+    other: "skirt",
+  },
   outerwear: {
     jacket: "jacket",
     coat: "coat",
@@ -197,6 +201,10 @@ const DEFAULT_SHAPE_BY_SUBCATEGORY: Record<string, Record<string, string>> = {
     allinone: "allinone",
     salopette: "salopette",
     other: "other",
+  },
+  bags: {
+    bag: "bag",
+    other: "bag",
   },
 };
 

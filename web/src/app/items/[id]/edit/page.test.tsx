@@ -346,7 +346,7 @@ describe("EditItemPage", () => {
     expect(container.textContent).toContain("ケア状態");
     expect(container.textContent).toContain("メインカラー");
     expect(container.textContent).toContain("ブランド候補にも追加する");
-    expect(container.textContent?.match(/必須/g)?.length).toBe(4);
+    expect(container.textContent?.match(/必須/g)?.length).toBe(3);
     expect(
       (container.querySelector("#subcategory") as HTMLSelectElement | null)
         ?.value,

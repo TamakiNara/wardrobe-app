@@ -104,6 +104,10 @@ import {
   validateItemMaterials,
   type EditableItemMaterial,
 } from "@/lib/items/materials";
+import {
+  isItemShapeRequired,
+  resolveItemShapeForSubmit,
+} from "@/lib/items/input-requirements";
 import type { SkinTonePreset, UserTpoRecord } from "@/types/settings";
 import type { StructuredSizeFieldName } from "@/types/items";
 
@@ -221,12 +225,20 @@ export default function EditItemPage({
     [category],
   );
   const isSubcategoryRequired = isItemSubcategoryRequired(category);
+  const normalizedSubcategory = useMemo(
+    () => normalizeItemSubcategory(category, subcategory),
+    [category, subcategory],
+  );
   const topsShapeOptions = useMemo(
     () => getTopsShapeOptions(subcategory),
     [subcategory],
   );
   const currentShapeOptions = isTopsCategory ? topsShapeOptions : shapeOptions;
   const currentShapeValue = isTopsCategory ? topsShape : shape;
+  const isShapeRequired = useMemo(
+    () => isItemShapeRequired(category, normalizedSubcategory),
+    [category, normalizedSubcategory],
+  );
   const isShapeAutoSelected =
     currentShapeOptions.length === 1 &&
     currentShapeOptions[0]?.value === currentShapeValue;
@@ -669,7 +681,7 @@ export default function EditItemPage({
 
   function handleSubcategoryChange(nextSubcategory: string) {
     setSubcategory(nextSubcategory);
-    clearErrorsFor(["subcategory"]);
+    clearErrorsFor(["subcategory", "shape"]);
   }
 
   function handleTopsShapeChange(nextShape: string) {
@@ -816,8 +828,12 @@ export default function EditItemPage({
       ),
       is_rain_ok: isRainOk,
       category,
-      subcategory: normalizeItemSubcategory(category, subcategory),
-      shape,
+      subcategory: normalizedSubcategory,
+      shape: resolveItemShapeForSubmit(
+        category,
+        normalizedSubcategory,
+        currentShapeValue,
+      ),
       colors,
       seasons: selectedSeasons,
       tpo_ids: selectedTpoIds,
@@ -977,13 +993,12 @@ export default function EditItemPage({
     );
 
     if (!category) nextErrors.category = "カテゴリを選択してください。";
-    if (
-      isSubcategoryRequired &&
-      !normalizeItemSubcategory(category, subcategory)
-    ) {
+    if (isSubcategoryRequired && !normalizedSubcategory) {
       nextErrors.subcategory = "種類を選択してください。";
     }
-    if (!shape) nextErrors.shape = "形を選択してください。";
+    if (isShapeRequired && !currentShapeValue) {
+      nextErrors.shape = "形を選択してください。";
+    }
     if (!selectedMainColor)
       nextErrors.mainColor = "メインカラーを選択してください。";
     if (isBottomsLengthTypeRequired(category) && !bottomsLengthType) {
@@ -1317,7 +1332,11 @@ export default function EditItemPage({
               ) : null}
 
               <div data-error-key="shape">
-                <FieldLabel htmlFor="shape" label="形" required />
+                <FieldLabel
+                  htmlFor="shape"
+                  label="形"
+                  required={isShapeRequired && !isShapeAutoSelected}
+                />
                 <select
                   id="shape"
                   value={currentShapeValue}

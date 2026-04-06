@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Services\Brands\UserBrandService;
 use App\Services\Settings\UserTpoService;
 use App\Support\ItemImageSync;
+use App\Support\ItemInputRequirementSupport;
 use App\Support\ItemMaterialSync;
 use App\Support\ItemSpecNormalizer;
 use App\Support\ItemSubcategorySupport;
@@ -30,6 +31,16 @@ class ItemStoreService
 
         try {
             $item = DB::transaction(function () use ($user, $validated, $candidate, &$copiedFiles) {
+                $normalizedSubcategory = ItemSubcategorySupport::normalize(
+                    $validated['category'] ?? null,
+                    $validated['subcategory'] ?? null,
+                );
+                $resolvedShape = ItemInputRequirementSupport::resolveForSave(
+                    $validated['category'] ?? null,
+                    $normalizedSubcategory,
+                    $validated['shape'] ?? null,
+                );
+
                 $item = Item::create([
                     'user_id' => $user->id,
                     'care_status' => $validated['care_status'] ?? null,
@@ -45,17 +56,14 @@ class ItemStoreService
                     'size_details' => $validated['size_details'] ?? null,
                     'is_rain_ok' => (bool) ($validated['is_rain_ok'] ?? false),
                     'category' => $validated['category'],
-                    'subcategory' => ItemSubcategorySupport::normalize(
-                        $validated['category'] ?? null,
-                        $validated['subcategory'] ?? null,
-                    ),
-                    'shape' => $validated['shape'],
+                    'subcategory' => $normalizedSubcategory,
+                    'shape' => $resolvedShape,
                     'colors' => $validated['colors'],
                     'seasons' => $validated['seasons'] ?? [],
                     'tpo_ids' => TpoSelectionResolver::resolve($this->userTpoService, $user, $validated),
                     'spec' => ItemSpecNormalizer::normalize(
                         $validated['category'] ?? null,
-                        $validated['shape'] ?? null,
+                        $resolvedShape,
                         $validated['spec'] ?? null,
                     ),
                 ]);

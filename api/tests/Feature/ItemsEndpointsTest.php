@@ -821,6 +821,112 @@ class ItemsEndpointsTest extends TestCase
         ]);
     }
 
+    public function test_post_items_can_autofill_shape_when_outerwear_subcategory_has_single_candidate(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/items', [
+            'name' => 'ブルゾン',
+            'category' => 'outerwear',
+            'subcategory' => 'blouson',
+            'shape' => '',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'black',
+                'hex' => '#111111',
+                'label' => 'ブラック',
+            ]],
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('item.subcategory', 'blouson')
+            ->assertJsonPath('item.shape', 'blouson');
+    }
+
+    public function test_post_items_can_save_bag_other_without_explicit_shape(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/items', [
+            'name' => '分類保留バッグ',
+            'category' => 'bags',
+            'subcategory' => 'other',
+            'shape' => '',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'black',
+                'hex' => '#111111',
+                'label' => 'ブラック',
+            ]],
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('item.subcategory', 'other')
+            ->assertJsonPath('item.shape', 'bag');
+    }
+
+    public function test_post_items_requires_shape_when_bag_subcategory_has_multiple_candidates(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/items', [
+            'name' => 'バッグ',
+            'category' => 'bags',
+            'subcategory' => 'bag',
+            'shape' => '',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'black',
+                'hex' => '#111111',
+                'label' => 'ブラック',
+            ]],
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['shape']);
+    }
+
+    public function test_post_items_requires_shape_when_outerwear_coat_has_multiple_candidates(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/items', [
+            'name' => 'コート',
+            'category' => 'outerwear',
+            'subcategory' => 'coat',
+            'shape' => '',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'black',
+                'hex' => '#111111',
+                'label' => 'ブラック',
+            ]],
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['shape']);
+    }
+
     public function test_post_items_can_save_bottoms_length_type_spec(): void
     {
         $user = User::factory()->create();

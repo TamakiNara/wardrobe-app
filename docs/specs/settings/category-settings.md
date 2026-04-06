@@ -370,6 +370,23 @@ DBテーブル構成の詳細は `docs/data/database.md` を参照する。
 - `subcategory` をまだ厳密に持たないカテゴリでは、`種類` 欄は代表カテゴリの固定値または未選択可で扱う
 - 主表示は `subcategory` 優先とし、未移行データや `subcategory = null` の場合は現行の bridge から補助ラベルを出す
 
+### 現時点の入力必須条件
+
+| category | `subcategory` | `shape` | 必須の spec | 候補1件時 | `other / null` |
+| --- | --- | --- | --- | --- | --- |
+| `tops` | 必須 | 条件付き必須 | tops 系の詳細は任意 | 自動選択し、必須表示は弱める | `shape` は任意寄り |
+| `pants` | 必須 | 条件付き必須 | `spec.bottoms.length_type` | 自動選択し、必須表示は弱める | `shape` は任意寄り |
+| `skirts` | 任意 | 条件付き必須 | `spec.bottoms.length_type` | 自動選択し、必須表示は弱める | `shape` は任意寄り |
+| `outerwear` | 必須 | 条件付き必須 | なし | 自動選択し、必須表示は弱める | `shape` は任意寄り |
+| `onepiece_dress` | 必須 | 条件付き必須 | なし | 自動選択し、必須表示は弱める | `shape` は任意寄り |
+| `allinone` | 必須 | 条件付き必須 | なし | 自動選択し、必須表示は弱める | `shape` は任意寄り |
+| `bags` | 任意 | 条件付き必須 | なし | 自動選択し、必須表示は弱める | `subcategory = bag` 以外は `shape` 任意寄り |
+
+- `shape` の条件付き必須は、`category + subcategory` で見た候補数を基準にする
+- 候補が複数ある場合のみ手動選択を求め、候補が1件なら自動選択で済ませる
+- staged rollout 中の `other / null` は、旧データ互換を優先して任意寄りに扱う
+- `bags` は `subcategory = bag` のときだけ `shape` 必須寄りとし、`other / null` は任意寄りを現時点の第一候補とする
+
 ## 2-4. lower-body 系の優先方針
 
 ### `pants`
