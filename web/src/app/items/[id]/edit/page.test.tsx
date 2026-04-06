@@ -624,7 +624,7 @@ describe("EditItemPage", () => {
     ).toEqual(["", "jacket", "tailored", "no_collar"]);
   });
 
-  it("編集画面でも bags の代表カテゴリで shape 候補を絞り込める", async () => {
+  it("編集画面でも bags は軽い種類 UI と shape 候補を表示できる", async () => {
     const { default: EditItemPage } = await import("./page");
 
     act(() => {
@@ -651,8 +651,16 @@ describe("EditItemPage", () => {
       await waitForEffects();
     });
 
+    const subcategoryRadios = Array.from(
+      container.querySelectorAll<HTMLInputElement>('input[name="subcategory"]'),
+    );
     shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
-    expect(container.querySelector("#subcategory")).toBeNull();
+    expect(subcategoryRadios).toHaveLength(2);
+    expect(subcategoryRadios.map((radio) => radio.value)).toEqual([
+      "bag",
+      "other",
+    ]);
+    expect(subcategoryRadios[0]?.checked).toBe(true);
     expect(shapeSelect).not.toBeNull();
 
     expect(

@@ -173,22 +173,21 @@ const SHAPE_VALUES_BY_SUBCATEGORY: Partial<
       "chester",
       "stainless",
       "mountain-parka",
-      "other",
     ],
   },
   onepiece_dress: {
     onepiece: ["onepiece"],
     dress: ["dress"],
-    other: ["other"],
+    other: [],
   },
   allinone: {
     allinone: ["allinone"],
     salopette: ["salopette"],
-    other: ["other"],
+    other: [],
   },
   bags: {
     bag: ["tote", "shoulder", "backpack", "hand", "clutch", "body"],
-    other: ["bag", "tote", "shoulder", "backpack", "hand", "clutch", "body"],
+    other: ["tote", "shoulder", "backpack", "hand", "clutch", "body"],
   },
 };
 
@@ -209,8 +208,12 @@ export function getItemShapeOptions(
   const allowedValues =
     SHAPE_VALUES_BY_SUBCATEGORY[category as ItemCategory]?.[subcategory];
 
-  if (!allowedValues?.length) {
+  if (allowedValues === undefined) {
     return shapes;
+  }
+
+  if (allowedValues.length === 0) {
+    return [];
   }
 
   return shapes.filter((item) => allowedValues.includes(item.value));

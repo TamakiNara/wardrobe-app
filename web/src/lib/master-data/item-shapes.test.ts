@@ -16,6 +16,20 @@ describe("getItemShapeOptions", () => {
     expect(
       getItemShapeOptions("outerwear", "jacket").map((item) => item.value),
     ).toEqual(["jacket", "tailored", "no_collar"]);
+    expect(
+      getItemShapeOptions("outerwear", "other").map((item) => item.value),
+    ).toEqual([
+      "jacket",
+      "tailored",
+      "no_collar",
+      "blouson",
+      "down-padded",
+      "coat",
+      "trench",
+      "chester",
+      "stainless",
+      "mountain-parka",
+    ]);
   });
 
   it("skirts の代表カテゴリでは shape 候補を厚めに絞り込む", () => {
@@ -35,7 +49,7 @@ describe("getItemShapeOptions", () => {
     ).toEqual(["dress"]);
     expect(
       getItemShapeOptions("onepiece_dress", "other").map((item) => item.value),
-    ).toEqual(["other"]);
+    ).toEqual([]);
   });
 
   it("allinone は種類に応じて shape 候補を最小限に絞り込む", () => {
@@ -47,7 +61,7 @@ describe("getItemShapeOptions", () => {
     ).toEqual(["salopette"]);
     expect(
       getItemShapeOptions("allinone", "other").map((item) => item.value),
-    ).toEqual(["other"]);
+    ).toEqual([]);
   });
 
   it("bags の代表カテゴリでは shape 候補を中くらいの厚さに絞り込む", () => {
@@ -56,15 +70,7 @@ describe("getItemShapeOptions", () => {
     ).toEqual(["tote", "shoulder", "backpack", "hand", "clutch", "body"]);
     expect(
       getItemShapeOptions("bags", "other").map((item) => item.value),
-    ).toEqual([
-      "bag",
-      "tote",
-      "shoulder",
-      "backpack",
-      "hand",
-      "clutch",
-      "body",
-    ]);
+    ).toEqual(["tote", "shoulder", "backpack", "hand", "clutch", "body"]);
   });
 
   it("種類未設定の旧データでは category 単位の候補へ戻す", () => {

@@ -369,9 +369,9 @@ DBテーブル構成の詳細は `docs/data/database.md` を参照する。
 - `shape` 候補は `category` に加えて `subcategory` に応じて出し分ける前提を優先する
 - `subcategory` をまだ厳密に持たないカテゴリでは、`種類` 欄は代表カテゴリの固定値または未選択可で扱う
 - 主表示は `subcategory` 優先とし、未移行データや `subcategory = null` の場合は現行の bridge から補助ラベルを出す
-- `skirts` と `bags` は、通常入力では `種類` を出さず、代表カテゴリの `subcategory` を内部で自動設定する前提を優先する
-- `skirts` は `subcategory = skirt`、`bags` は `subcategory = bag` を通常入力の既定値とし、`other` は内部表現として残す
-- `other` は staged rollout 中の旧データ互換や補助表現には残すが、通常入力の主導線には出さない
+- `skirts` と `bags` は、通常入力ではプルダウンではなく軽い UI で `種類` を見せ、代表カテゴリを既定値にしつつ `other` へ切り替えられる前提を優先する
+- `skirts` は `subcategory = skirt`、`bags` は `subcategory = bag` を通常入力の既定値とし、`other` はサブカテゴリ側の受け皿として扱う
+- `other` は staged rollout 中の旧データ互換や補助表現にも残すが、shape 側の新規入力候補には追加しない
 
 ### 現時点の入力必須条件
 
@@ -387,8 +387,9 @@ DBテーブル構成の詳細は `docs/data/database.md` を参照する。
 
 - `shape` の条件付き必須は、`category + subcategory` で見た候補数を基準にする
 - 候補が複数ある場合のみ手動選択を求め、候補が1件なら自動選択で済ませる
-- staged rollout 中の `other / null` は、旧データ互換を優先して任意寄りに扱う
+- `subcategory = other` と staged rollout 中の `null` は、旧データ互換を優先して `shape` 任意寄りに扱う
 - `bags` は `subcategory = bag` のときだけ `shape` 必須寄りとし、`other / null` は任意寄りを現時点の第一候補とする
+- `outerwear` は `subcategory = other` を受け皿にし、shape 側の `other` は新規入力の主導線には置かない
 
 ## 2-4. lower-body 系の優先方針
 

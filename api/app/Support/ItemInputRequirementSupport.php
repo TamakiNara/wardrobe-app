@@ -26,21 +26,21 @@ class ItemInputRequirementSupport
             'blouson' => ['blouson'],
             'down_padded' => ['down-padded'],
             'mountain_parka' => ['mountain-parka'],
-            'other' => ['jacket', 'tailored', 'no_collar', 'blouson', 'down-padded', 'coat', 'trench', 'chester', 'stainless', 'mountain-parka', 'other'],
+            'other' => ['jacket', 'tailored', 'no_collar', 'blouson', 'down-padded', 'coat', 'trench', 'chester', 'stainless', 'mountain-parka'],
         ],
         'onepiece_dress' => [
             'onepiece' => ['onepiece'],
             'dress' => ['dress'],
-            'other' => ['other'],
+            'other' => [],
         ],
         'allinone' => [
             'allinone' => ['allinone'],
             'salopette' => ['salopette'],
-            'other' => ['other'],
+            'other' => [],
         ],
         'bags' => [
             'bag' => ['tote', 'shoulder', 'backpack', 'hand', 'clutch', 'body'],
-            'other' => ['bag', 'tote', 'shoulder', 'backpack', 'hand', 'clutch', 'body'],
+            'other' => ['tote', 'shoulder', 'backpack', 'hand', 'clutch', 'body'],
         ],
     ];
 
@@ -97,17 +97,17 @@ class ItemInputRequirementSupport
             'blouson' => 'blouson',
             'down_padded' => 'down-padded',
             'mountain_parka' => 'mountain-parka',
-            'other' => 'other',
+            'other' => 'jacket',
         ],
         'onepiece_dress' => [
             'onepiece' => 'onepiece',
             'dress' => 'dress',
-            'other' => 'other',
+            'other' => 'onepiece',
         ],
         'allinone' => [
             'allinone' => 'allinone',
             'salopette' => 'salopette',
-            'other' => 'other',
+            'other' => 'allinone',
         ],
         'bags' => [
             'bag' => 'bag',
@@ -116,7 +116,12 @@ class ItemInputRequirementSupport
     ];
 
     private const FALLBACK_SHAPE_BY_CATEGORY = [
+        'tops' => 'tshirt',
+        'pants' => 'pants',
         'skirts' => 'skirt',
+        'outerwear' => 'jacket',
+        'onepiece_dress' => 'onepiece',
+        'allinone' => 'allinone',
         'bags' => 'bag',
     ];
 

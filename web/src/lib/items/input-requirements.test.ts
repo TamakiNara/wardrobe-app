@@ -21,6 +21,7 @@ describe("item input requirements", () => {
     expect(resolveItemShapeForSubmit("outerwear", "blouson", "")).toBe(
       "blouson",
     );
+    expect(resolveItemShapeForSubmit("outerwear", "other", "")).toBe("jacket");
     expect(resolveItemShapeForSubmit("bags", "other", "")).toBe("bag");
     expect(resolveItemShapeForSubmit("skirts", null, "")).toBe("skirt");
   });

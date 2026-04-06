@@ -393,6 +393,7 @@ wear logs も本資料の対象とし、その保存方針を定義します。
 - `subcategory` を正式導入する場合も、categories 設定の ON / OFF 対象は `category` 直下の種類 ID までに留め、`shape` / `spec` は設定対象に広げない前提を優先する
 - migration 時の旧データ互換では、安全に補完できるものだけデータ補完し、補完できないものは `subcategory = null` を許容する
 - `items.shape` は引き続き nullable にしない前提を維持しつつ、現時点の staged rollout では `shape` が任意寄りのカテゴリで backend が代表 shape を補完して保存する
+- `subcategory = other` は subcategory 側の受け皿として扱い、shape 側の `other` は新規入力の主導線には追加しない
 - UI の主表示は `subcategory` 優先とし、`null` や未移行データでは現行の bridge で補助ラベルを出す
 - lower-body 系では、丈は原則 `spec` に寄せ、テーパード / フレアのような型差は `shape` に寄せる前提を優先する
 - `pants` の `spec.bottoms.length_type` は、まず `mini / short / half / cropped / full` を候補とし、短さの違いは category ではなく spec で持つ前提を優先する

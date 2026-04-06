@@ -17,6 +17,7 @@ import {
   resolveItemSubcategoryForForm,
   resolveCurrentItemSubcategoryValue,
   shouldShowItemSubcategoryField,
+  shouldUseItemSubcategoryRadioField,
 } from "@/lib/master-data/item-subcategories";
 import {
   buildSupportedCategoryOptions,
@@ -229,6 +230,10 @@ export default function NewItemPage() {
   }, [baseShapeOptions, category, shape]);
   const shouldShowSubcategoryField = useMemo(
     () => shouldShowItemSubcategoryField(category),
+    [category],
+  );
+  const shouldUseRadioSubcategoryField = useMemo(
+    () => shouldUseItemSubcategoryRadioField(category),
     [category],
   );
   const subcategoryOptions = useMemo(
@@ -574,7 +579,7 @@ export default function NewItemPage() {
 
   function handleCategoryChange(nextCategory: string) {
     setCategory(nextCategory as ItemCategory | "");
-    setSubcategory("");
+    setSubcategory(resolveItemSubcategoryForForm(nextCategory, null) ?? "");
     setShape("");
     clearErrorsFor([
       "subcategory",
@@ -1167,24 +1172,60 @@ export default function NewItemPage() {
               {shouldShowSubcategoryField && subcategoryOptions.length > 0 ? (
                 <div data-error-key="subcategory">
                   <FieldLabel
-                    htmlFor="subcategory"
+                    as={shouldUseRadioSubcategoryField ? "div" : "label"}
+                    htmlFor={
+                      shouldUseRadioSubcategoryField ? undefined : "subcategory"
+                    }
                     label="種類"
                     required={isSubcategoryRequired}
                   />
-                  <select
-                    id="subcategory"
-                    value={subcategory}
-                    onChange={(e) => handleSubcategoryChange(e.target.value)}
-                    disabled={!category}
-                    className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors.subcategory ? "border-red-400" : "border-gray-300"}`}
-                  >
-                    <option value="">選択してください</option>
-                    {subcategoryOptions.map((item) => (
-                      <option key={item.value} value={item.value}>
-                        {item.label}
-                      </option>
-                    ))}
-                  </select>
+                  {shouldUseRadioSubcategoryField ? (
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      {subcategoryOptions.map((item) => {
+                        const inputId = `subcategory-${item.value}`;
+                        return (
+                          <label
+                            key={item.value}
+                            htmlFor={inputId}
+                            className={`flex items-center gap-3 rounded-lg border px-4 py-3 text-sm transition ${
+                              subcategory === item.value
+                                ? "border-blue-500 bg-blue-50 text-blue-700"
+                                : "border-gray-300 bg-white text-gray-700"
+                            }`}
+                          >
+                            <input
+                              id={inputId}
+                              type="radio"
+                              name="subcategory"
+                              value={item.value}
+                              checked={subcategory === item.value}
+                              onChange={(e) =>
+                                handleSubcategoryChange(e.target.value)
+                              }
+                              disabled={!category}
+                              className="h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-500"
+                            />
+                            <span>{item.label}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <select
+                      id="subcategory"
+                      value={subcategory}
+                      onChange={(e) => handleSubcategoryChange(e.target.value)}
+                      disabled={!category}
+                      className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors.subcategory ? "border-red-400" : "border-gray-300"}`}
+                    >
+                      <option value="">選択してください</option>
+                      {subcategoryOptions.map((item) => (
+                        <option key={item.value} value={item.value}>
+                          {item.label}
+                        </option>
+                      ))}
+                    </select>
+                  )}
                   {errors.subcategory && (
                     <p className="mt-2 text-sm text-red-600">
                       {errors.subcategory}

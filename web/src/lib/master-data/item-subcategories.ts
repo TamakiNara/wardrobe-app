@@ -74,7 +74,7 @@ export const REQUIRED_SUBCATEGORY_CATEGORIES = new Set<string>([
   "allinone",
 ]);
 
-const HIDDEN_SUBCATEGORY_UI_CATEGORIES = new Set<string>(["skirts", "bags"]);
+const RADIO_SUBCATEGORY_UI_CATEGORIES = new Set<string>(["skirts", "bags"]);
 
 const REPRESENTATIVE_SUBCATEGORY_BY_CATEGORY: Record<string, string> = {
   skirts: "skirt",
@@ -197,17 +197,17 @@ const DEFAULT_SHAPE_BY_SUBCATEGORY: Record<string, Record<string, string>> = {
     blouson: "blouson",
     down_padded: "down-padded",
     mountain_parka: "mountain-parka",
-    other: "other",
+    other: "jacket",
   },
   onepiece_dress: {
     onepiece: "onepiece",
     dress: "dress",
-    other: "other",
+    other: "onepiece",
   },
   allinone: {
     allinone: "allinone",
     salopette: "salopette",
-    other: "other",
+    other: "allinone",
   },
   bags: {
     bag: "bag",
@@ -228,7 +228,11 @@ export function isItemSubcategoryRequired(category?: string | null) {
 }
 
 export function shouldShowItemSubcategoryField(category?: string | null) {
-  return Boolean(category && !HIDDEN_SUBCATEGORY_UI_CATEGORIES.has(category));
+  return Boolean(category && getItemSubcategoryOptions(category).length > 0);
+}
+
+export function shouldUseItemSubcategoryRadioField(category?: string | null) {
+  return Boolean(category && RADIO_SUBCATEGORY_UI_CATEGORIES.has(category));
 }
 
 export function normalizeItemSubcategory(

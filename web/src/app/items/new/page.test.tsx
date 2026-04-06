@@ -669,7 +669,7 @@ describe("NewItemPage", () => {
     ).toEqual(["", "jacket", "tailored", "no_collar"]);
   });
 
-  it("skirts の代表カテゴリでは shape 候補を厚めに絞り込む", async () => {
+  it("skirts は軽い種類 UI と shape 候補を表示できる", async () => {
     fetchCategoryGroupsMock.mockResolvedValueOnce([
       ...sampleGroups,
       {
@@ -715,8 +715,16 @@ describe("NewItemPage", () => {
       await waitForEffects();
     });
 
+    const subcategoryRadios = Array.from(
+      container.querySelectorAll<HTMLInputElement>('input[name="subcategory"]'),
+    );
     const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
-    expect(container.querySelector("#subcategory")).toBeNull();
+    expect(subcategoryRadios).toHaveLength(2);
+    expect(subcategoryRadios.map((radio) => radio.value)).toEqual([
+      "skirt",
+      "other",
+    ]);
+    expect(subcategoryRadios[0]?.checked).toBe(true);
     expect(shapeSelect).not.toBeNull();
 
     expect(
@@ -794,7 +802,7 @@ describe("NewItemPage", () => {
     expect(shapeSelect!.value).toBe("salopette");
   });
 
-  it("bags の代表カテゴリでは shape 候補を中くらいの厚さに絞り込む", async () => {
+  it("bags は軽い種類 UI と shape 候補を表示できる", async () => {
     const { default: NewItemPage } = await import("./page");
 
     await act(async () => {
@@ -812,8 +820,16 @@ describe("NewItemPage", () => {
       await waitForEffects();
     });
 
+    const subcategoryRadios = Array.from(
+      container.querySelectorAll<HTMLInputElement>('input[name="subcategory"]'),
+    );
     const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
-    expect(container.querySelector("#subcategory")).toBeNull();
+    expect(subcategoryRadios).toHaveLength(2);
+    expect(subcategoryRadios.map((radio) => radio.value)).toEqual([
+      "bag",
+      "other",
+    ]);
+    expect(subcategoryRadios[0]?.checked).toBe(true);
     expect(shapeSelect).not.toBeNull();
 
     expect(
@@ -821,7 +837,7 @@ describe("NewItemPage", () => {
     ).toEqual(["", "tote", "shoulder", "backpack", "hand", "clutch", "body"]);
   });
 
-  it("bags は通常入力で種類を表示しない", async () => {
+  it("bags の other では形を任意寄りで扱う", async () => {
     const { default: NewItemPage } = await import("./page");
 
     await act(async () => {
@@ -839,15 +855,23 @@ describe("NewItemPage", () => {
       await waitForEffects();
     });
 
+    const subcategoryOtherRadio =
+      container.querySelector<HTMLInputElement>("#subcategory-other");
+    expect(subcategoryOtherRadio).not.toBeNull();
+
+    await act(async () => {
+      subcategoryOtherRadio!.click();
+      await waitForEffects();
+    });
+
     const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
     const shapeLabel =
       container.querySelector<HTMLLabelElement>('label[for="shape"]');
-    expect(container.querySelector("#subcategory")).toBeNull();
     expect(shapeSelect).not.toBeNull();
     expect(shapeLabel).not.toBeNull();
 
     expect(shapeLabel?.textContent).toContain("形");
-    expect(shapeLabel?.textContent).toContain("必須");
+    expect(shapeLabel?.textContent).not.toContain("必須");
     expect(
       Array.from(shapeSelect!.options).map((option) => option.value),
     ).toEqual(["", "tote", "shoulder", "backpack", "hand", "clutch", "body"]);

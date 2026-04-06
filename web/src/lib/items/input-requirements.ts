@@ -23,7 +23,12 @@ const OPTIONAL_SHAPE_WITH_OTHER_SUBCATEGORY = new Set([
   "bags",
 ]);
 const FALLBACK_SHAPE_BY_CATEGORY: Record<string, string> = {
+  tops: "tshirt",
+  pants: "pants",
   skirts: "skirt",
+  outerwear: "jacket",
+  onepiece_dress: "onepiece",
+  allinone: "allinone",
   bags: "bag",
 };
 
