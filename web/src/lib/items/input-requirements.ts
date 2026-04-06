@@ -12,6 +12,8 @@ const OPTIONAL_SHAPE_WITH_EMPTY_SUBCATEGORY = new Set([
   "allinone",
   "skirts",
   "bags",
+  "shoes",
+  "kimono",
 ]);
 const OPTIONAL_SHAPE_WITH_OTHER_SUBCATEGORY = new Set([
   "tops",
@@ -21,6 +23,8 @@ const OPTIONAL_SHAPE_WITH_OTHER_SUBCATEGORY = new Set([
   "allinone",
   "skirts",
   "bags",
+  "shoes",
+  "kimono",
 ]);
 const FALLBACK_SHAPE_BY_CATEGORY: Record<string, string> = {
   tops: "tshirt",
@@ -30,6 +34,8 @@ const FALLBACK_SHAPE_BY_CATEGORY: Record<string, string> = {
   onepiece_dress: "onepiece",
   allinone: "allinone",
   bags: "bag",
+  shoes: "sneakers",
+  kimono: "kimono",
 };
 
 export function isItemShapeRequired(

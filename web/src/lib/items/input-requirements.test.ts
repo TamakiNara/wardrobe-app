@@ -15,6 +15,7 @@ describe("item input requirements", () => {
     expect(isItemShapeRequired("onepiece_dress", "dress")).toBe(false);
     expect(isItemShapeRequired("bags", "other")).toBe(false);
     expect(isItemShapeRequired("bags", null)).toBe(false);
+    expect(isItemShapeRequired("kimono", "other")).toBe(false);
   });
 
   it("任意寄りのときは送信用の形を自動補完する", () => {
@@ -24,5 +25,7 @@ describe("item input requirements", () => {
     expect(resolveItemShapeForSubmit("outerwear", "other", "")).toBe("jacket");
     expect(resolveItemShapeForSubmit("bags", "other", "")).toBe("bag");
     expect(resolveItemShapeForSubmit("skirts", null, "")).toBe("skirt");
+    expect(resolveItemShapeForSubmit("shoes", null, "")).toBe("sneakers");
+    expect(resolveItemShapeForSubmit("kimono", "other", "")).toBe("kimono");
   });
 });

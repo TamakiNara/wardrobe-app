@@ -189,6 +189,14 @@ const SHAPE_VALUES_BY_SUBCATEGORY: Partial<
     bag: ["tote", "shoulder", "backpack", "hand", "clutch", "body"],
     other: ["tote", "shoulder", "backpack", "hand", "clutch", "body"],
   },
+  shoes: {
+    shoes: ["pumps", "sneakers", "short-boots", "sandals"],
+    other: ["pumps", "sneakers", "short-boots", "sandals"],
+  },
+  kimono: {
+    kimono: ["kimono"],
+    other: [],
+  },
 };
 
 export function getItemShapeOptions(

@@ -902,6 +902,33 @@ class ItemsEndpointsTest extends TestCase
             ->assertJsonPath('item.shape', 'jacket');
     }
 
+    public function test_post_items_can_save_kimono_other_without_explicit_shape(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/items', [
+            'name' => '分類保留着物',
+            'category' => 'kimono',
+            'subcategory' => 'other',
+            'shape' => '',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'black',
+                'hex' => '#111111',
+                'label' => 'ブラック',
+            ]],
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('item.subcategory', 'other')
+            ->assertJsonPath('item.shape', 'kimono');
+    }
+
     public function test_post_items_requires_shape_when_bag_subcategory_has_multiple_candidates(): void
     {
         $user = User::factory()->create();

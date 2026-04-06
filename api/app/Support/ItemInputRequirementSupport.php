@@ -42,6 +42,14 @@ class ItemInputRequirementSupport
             'bag' => ['tote', 'shoulder', 'backpack', 'hand', 'clutch', 'body'],
             'other' => ['tote', 'shoulder', 'backpack', 'hand', 'clutch', 'body'],
         ],
+        'shoes' => [
+            'shoes' => ['pumps', 'sneakers', 'short-boots', 'sandals'],
+            'other' => ['pumps', 'sneakers', 'short-boots', 'sandals'],
+        ],
+        'kimono' => [
+            'kimono' => ['kimono'],
+            'other' => [],
+        ],
     ];
 
     private const OPTIONAL_SHAPE_WITH_EMPTY_SUBCATEGORY = [
@@ -52,6 +60,8 @@ class ItemInputRequirementSupport
         'allinone',
         'skirts',
         'bags',
+        'shoes',
+        'kimono',
     ];
 
     private const OPTIONAL_SHAPE_WITH_OTHER_SUBCATEGORY = [
@@ -62,6 +72,8 @@ class ItemInputRequirementSupport
         'allinone',
         'skirts',
         'bags',
+        'shoes',
+        'kimono',
     ];
 
     private const DEFAULT_SHAPE_BY_SUBCATEGORY = [
@@ -113,6 +125,14 @@ class ItemInputRequirementSupport
             'bag' => 'bag',
             'other' => 'bag',
         ],
+        'shoes' => [
+            'shoes' => 'sneakers',
+            'other' => 'sneakers',
+        ],
+        'kimono' => [
+            'kimono' => 'kimono',
+            'other' => 'kimono',
+        ],
     ];
 
     private const FALLBACK_SHAPE_BY_CATEGORY = [
@@ -123,6 +143,8 @@ class ItemInputRequirementSupport
         'onepiece_dress' => 'onepiece',
         'allinone' => 'allinone',
         'bags' => 'bag',
+        'shoes' => 'sneakers',
+        'kimono' => 'kimono',
     ];
 
     public static function normalizeShape(mixed $shape): ?string

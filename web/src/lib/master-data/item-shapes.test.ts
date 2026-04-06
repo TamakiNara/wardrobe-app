@@ -73,6 +73,18 @@ describe("getItemShapeOptions", () => {
     ).toEqual(["tote", "shoulder", "backpack", "hand", "clutch", "body"]);
   });
 
+  it("shoes と kimono も種類に応じた候補で扱える", () => {
+    expect(
+      getItemShapeOptions("shoes", "shoes").map((item) => item.value),
+    ).toEqual(["pumps", "sneakers", "short-boots", "sandals"]);
+    expect(
+      getItemShapeOptions("kimono", "kimono").map((item) => item.value),
+    ).toEqual(["kimono"]);
+    expect(
+      getItemShapeOptions("kimono", "other").map((item) => item.value),
+    ).toEqual([]);
+  });
+
   it("種類未設定の旧データでは category 単位の候補へ戻す", () => {
     expect(
       getItemShapeOptions("pants", null).map((item) => item.value),

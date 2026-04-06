@@ -369,8 +369,8 @@ DBテーブル構成の詳細は `docs/data/database.md` を参照する。
 - `shape` 候補は `category` に加えて `subcategory` に応じて出し分ける前提を優先する
 - `subcategory` をまだ厳密に持たないカテゴリでは、`種類` 欄は代表カテゴリの固定値または未選択可で扱う
 - 主表示は `subcategory` 優先とし、未移行データや `subcategory = null` の場合は現行の bridge から補助ラベルを出す
-- `skirts` と `bags` は、通常入力ではプルダウンではなく軽い UI で `種類` を見せ、代表カテゴリを既定値にしつつ `other` へ切り替えられる前提を優先する
-- `skirts` は `subcategory = skirt`、`bags` は `subcategory = bag` を通常入力の既定値とし、`other` はサブカテゴリ側の受け皿として扱う
+- `skirts`、`bags`、`shoes`、`kimono` は、通常入力ではプルダウンではなく軽い UI で `種類` を見せ、代表カテゴリを既定値にしつつ `other` へ切り替えられる前提を優先する
+- `skirts` は `subcategory = skirt`、`bags` は `subcategory = bag`、`shoes` は `subcategory = shoes`、`kimono` は `subcategory = kimono` を通常入力の既定値とし、`other` はサブカテゴリ側の受け皿として扱う
 - `other` は staged rollout 中の旧データ互換や補助表現にも残すが、shape 側の新規入力候補には追加しない
 
 ### 現時点の入力必須条件
@@ -384,6 +384,8 @@ DBテーブル構成の詳細は `docs/data/database.md` を参照する。
 | `onepiece_dress` | 必須 | 条件付き必須 | なし | 自動選択し、必須表示は弱める | `shape` は任意寄り |
 | `allinone` | 必須 | 条件付き必須 | なし | 自動選択し、必須表示は弱める | `shape` は任意寄り |
 | `bags` | 任意 | 条件付き必須 | なし | 自動選択し、必須表示は弱める | `subcategory = bag` 以外は `shape` 任意寄り |
+| `shoes` | 任意 | 条件付き必須 | なし | 自動選択し、必須表示は弱める | `subcategory = shoes` 以外は `shape` 任意寄り |
+| `kimono` | 任意 | 条件付き必須 | なし | 自動選択し、必須表示は弱める | `subcategory = kimono` 以外は `shape` 任意寄り |
 
 - `shape` の条件付き必須は、`category + subcategory` で見た候補数を基準にする
 - 候補が複数ある場合のみ手動選択を求め、候補が1件なら自動選択で済ませる

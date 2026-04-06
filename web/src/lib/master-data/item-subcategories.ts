@@ -74,11 +74,18 @@ export const REQUIRED_SUBCATEGORY_CATEGORIES = new Set<string>([
   "allinone",
 ]);
 
-const RADIO_SUBCATEGORY_UI_CATEGORIES = new Set<string>(["skirts", "bags"]);
+const RADIO_SUBCATEGORY_UI_CATEGORIES = new Set<string>([
+  "skirts",
+  "bags",
+  "shoes",
+  "kimono",
+]);
 
 const REPRESENTATIVE_SUBCATEGORY_BY_CATEGORY: Record<string, string> = {
   skirts: "skirt",
   bags: "bag",
+  shoes: "shoes",
+  kimono: "kimono",
 };
 
 const LEGACY_INFERRED_SUBCATEGORY_BY_CATEGORY: Record<
@@ -212,6 +219,14 @@ const DEFAULT_SHAPE_BY_SUBCATEGORY: Record<string, Record<string, string>> = {
   bags: {
     bag: "bag",
     other: "bag",
+  },
+  shoes: {
+    shoes: "sneakers",
+    other: "sneakers",
+  },
+  kimono: {
+    kimono: "kimono",
+    other: "kimono",
   },
 };
 
