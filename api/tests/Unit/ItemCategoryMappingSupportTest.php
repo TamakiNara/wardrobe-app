@@ -24,6 +24,16 @@ class ItemCategoryMappingSupportTest extends TestCase
             ItemSubcategorySupport::visibleCategoryIdMap(),
             ListQuerySupport::itemVisibleCategoryIdBySubcategoryMap()
         );
+
+        $this->assertContains(
+            ['category' => 'inner', 'subcategory' => 'roomwear'],
+            ListQuerySupport::itemVisibleCategoryQueryMap()['roomwear_inner_roomwear']
+        );
+
+        $this->assertContains(
+            ['category' => 'inner', 'shape' => 'roomwear', 'subcategory_null' => true],
+            ListQuerySupport::itemVisibleCategoryQueryMap()['roomwear_inner_roomwear']
+        );
     }
 
     public function test_item_input_requirement_support_exposes_shape_options_and_defaults(): void

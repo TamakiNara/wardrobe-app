@@ -425,7 +425,13 @@ current で同じ意味の規則が重複している主な箇所は次のとお
 
 - current の小さな実装として、`ItemSubcategorySupport` に `subcategory -> visible_category_id` の公開面を置き、`ListQuerySupport` は visible ID 解決でそれを参照する前提を固定した
 - `ItemInputRequirementSupport` は `shape` 候補・default shape・fallback shape の公開面を持つ正本寄り helper として読み、`PurchaseCandidateCategoryMap` は shape を省略できる行を減らして、その公開面により多く依存する形へ寄せた
-- 一方で、`ListQuerySupport` の query map、current category bridge、legacy shape bridge は staged rollout 互換のため今回は維持し、`PurchaseCandidateCategoryMap` の境界変換表そのものも残している
+- `ListQuerySupport` の query map では、current の `category + subcategory` 条件を `ItemSubcategorySupport` から組み立てる形へ寄せ、shape ベースの固定表は staged rollout 互換用の bridge として残す整理にした
+- 一方で、`ListQuerySupport` の current category bridge、legacy shape bridge は staged rollout 互換のため今回は維持し、`PurchaseCandidateCategoryMap` の境界変換表そのものも残している
+
+- TODO（高）: `ListQuerySupport` の query map は、current の `category + subcategory` ルートと legacy / shape bridge をさらに分離し、bridge だけを段階的に減らせる形へ寄せる
+- TODO（高）: current category bridge（`outer` / `bottoms` / `accessories` / `onepiece_allinone` 由来の吸収）は、一覧・検索と item 保存の staged rollout が十分に揃った段階で削減候補として見直す
+- TODO（高）: legacy shape bridge は visible 判定と filter の互換用に維持しているが、旧データ比率や移行完了条件を確認したうえで backend 側から段階的に減らす
+- TODO（中）: frontend の `web/src/lib/api/categories.ts`、`item-subcategories.ts`、`item-shapes.ts` に残る bridge / 派生保持は、backend 正本 helper の read model として読める形へさらに薄くする
 
 後続で category / subcategory を増やした時に理想とする状態は、少なくとも「item 実データの意味づけは backend の正本 helper を見れば分かる」「frontend はその正本を UI 用に並べ替えているだけ」と説明できる構造である。
 - item 入力フォームは、原則 `カテゴリ / 種類 / 形 / 詳細` の並びへ寄せ、使わない欄は非表示または未選択可で扱う前提を優先する

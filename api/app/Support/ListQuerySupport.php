@@ -72,7 +72,14 @@ class ListQuerySupport
         return $visibleCategoryIds->contains($resolvedCategoryId);
     }
 
-    public static function itemVisibleCategoryMap(): array
+    /**
+     * visible_category_id に対して legacy / current bridge の shape 条件を返す。
+     * current の category + subcategory そのものは ItemSubcategorySupport を正本として扱い、
+     * ここでは staged rollout 互換のために必要な shape bridge だけを維持する。
+     *
+     * @return array<string, array<string, string>>
+     */
+    private static function itemVisibleCategoryShapeBridgeMap(): array
     {
         return [
             'tops' => [
@@ -230,7 +237,17 @@ class ListQuerySupport
     {
         $queryMap = [];
 
-        foreach (self::itemVisibleCategoryMap() as $category => $shapeMap) {
+        foreach (ItemSubcategorySupport::visibleCategoryIdMap() as $category => $subcategoryMap) {
+            foreach ($subcategoryMap as $subcategory => $visibleCategoryId) {
+                $queryMap[$visibleCategoryId] ??= [];
+                $queryMap[$visibleCategoryId][] = [
+                    'category' => $category,
+                    'subcategory' => $subcategory,
+                ];
+            }
+        }
+
+        foreach (self::itemVisibleCategoryShapeBridgeMap() as $category => $shapeMap) {
             foreach ($shapeMap as $shape => $visibleCategoryId) {
                 $queryMap[$visibleCategoryId] ??= [];
                 $queryMap[$visibleCategoryId][] = [
@@ -307,6 +324,7 @@ class ListQuerySupport
                     $nested->where('category', $pair['category']);
 
                     if (array_key_exists('subcategory', $pair)) {
+                        $nested->whereNotNull('subcategory');
                         $nested->where('subcategory', $pair['subcategory']);
                     }
 
@@ -324,8 +342,6 @@ class ListQuerySupport
 
     public static function resolveCurrentItemCategoryValue(?string $category, ?string $shape): ?string
     {
-        $map = self::itemVisibleCategoryMap();
-
         if (! $category) {
             return null;
         }
@@ -349,7 +365,7 @@ class ListQuerySupport
                 'tote', 'shoulder', 'backpack', 'hand', 'clutch', 'body' => 'bags',
                 default => 'fashion_accessories',
             },
-            default => array_key_exists($category, $map) ? $category : null,
+            default => ItemSubcategorySupport::valuesFor($category) !== [] ? $category : null,
         };
     }
 
@@ -412,7 +428,7 @@ class ListQuerySupport
             return null;
         }
 
-        $shapeMap = self::itemVisibleCategoryMap();
+        $shapeMap = self::itemVisibleCategoryShapeBridgeMap();
 
         return $shapeMap[$category][$shape] ?? null;
     }

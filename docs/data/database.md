@@ -424,7 +424,10 @@ wear logs も本資料の対象とし、その保存方針を定義します。
 - staged rollout 互換のため、legacy bridge と purchase candidate 境界変換は当面残してよいが、将来の追加時に『まず backend の正本 helper を直す』導線を崩さないことを優先する
 
 - current の backend 実装では、`subcategory -> visible_category_id` は `ItemSubcategorySupport` の公開面を正本寄りに読み、`PurchaseCandidateCategoryMap` は shape が backend default と一致する行から順に省略して `ItemInputRequirementSupport` の解釈へ寄せ始めている
-- まだ `ListQuerySupport` の query map と legacy bridge、`PurchaseCandidateCategoryMap` の境界変換表自体は残っているため、今回は『橋渡し重複を減らす第一段』として扱う
+- `ListQuerySupport` の query map も、current の `category + subcategory` 条件は `ItemSubcategorySupport` を正本寄りに読んで組み立て、shape ベースの固定表は staged rollout 互換用 bridge として切り分け始めている
+- まだ `ListQuerySupport` の current category bridge・legacy shape bridge、`PurchaseCandidateCategoryMap` の境界変換表自体は残っているため、今回は『橋渡し重複を減らす第二段』として扱う
+
+- 次に減らす対象の優先順位は、1. `ListQuerySupport` の query map に残る bridge 条件、2. current category bridge、3. legacy shape bridge、4. frontend 側の bridge / read model 重複、の順を第一候補とする
 
 - つまり、将来の追加や再編では「backend の正本 helper を先に直し、frontend は表示と UI 制御の追随をする」という順で読むのが第一候補である
 - migration 時の旧データ互換では、安全に補完できるものだけデータ補完し、補完できないものは `subcategory = null` を許容する
