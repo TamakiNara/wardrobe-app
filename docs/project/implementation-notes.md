@@ -381,6 +381,28 @@ thumbnail の現状確認用パターン一覧を見返すときは `docs/specs/
 
 - 今回は current 実装を優先し、変換規則分散は設計負債として TODO 化に留める
 - UI 再整理は `legwear` 固有ではなく、item 新規登録画面全体の見え方課題として読む
+### 変換規則の正本化方針
+
+current では `category / subcategory / shape` の変換規則が backend / frontend の複数 helper に分散しているが、後続では次の責務で読む方針を第一候補とする。
+
+| 層 | 主なファイル | 持つべき責務 | 正本 / 派生 |
+| --- | --- | --- | --- |
+| backend の正本寄り層 | `ItemSubcategorySupport` | item が取りうる `subcategory` 値、必須条件、正規化 | 正本 |
+| backend の正本寄り層 | `ItemInputRequirementSupport` | `category + subcategory` に対する `shape` 候補、必須条件、自動補完 | 正本 |
+| backend の正本寄り層 | `ListQuerySupport` | settings 用 ID と item 実データの橋渡し、visible 判定 | 正本寄りだが、上記 2 つから導出できる形へ寄せたい |
+| backend の境界層 | `PurchaseCandidateCategoryMap` | category master ID から item draft への変換 | 境界専用の派生 |
+| frontend の表示層 | `web/src/lib/master-data/item-subcategories.ts` | 表示順、ラベル、UI 種別、legacy 値の補助解釈 | 派生 |
+| frontend の表示層 | `web/src/lib/master-data/item-shapes.ts` | 形の表示順、ラベル、UI 上の候補絞り込み | 派生 |
+| frontend の表示層 | `web/src/lib/api/categories.ts` | settings / item 一覧で使う中分類 ID 解決、表示対象判定 | backend 正本の読み替え |
+
+整理の第一候補:
+
+1. item 実データの意味づけは backend 側を正本に寄せる
+2. frontend は表示順・ラベル・UI 制御を主責務に寄せる
+3. `PurchaseCandidateCategoryMap` は purchase candidate 境界専用の派生として残す
+4. `ListQuerySupport` と `web/src/lib/api/categories.ts` の settings ID 解決規則は、将来は同じ対応表から導出できる形を目指す
+
+後続で category / subcategory を増やした時に理想とする状態は、少なくとも「item 実データの意味づけは backend の正本 helper を見れば分かる」「frontend はその正本を UI 用に並べ替えているだけ」と説明できる構造である。
 - item 入力フォームは、原則 `カテゴリ / 種類 / 形 / 詳細` の並びへ寄せ、使わない欄は非表示または未選択可で扱う前提を優先する
 - `skirts`、`shoes`、`kimono` は `subcategory` 候補が少ないため、現時点の通常入力ではプルダウンではなく軽い UI で `種類` を見せ、代表カテゴリまたは主要候補を既定値にしつつ `other` へ切り替えられる形を優先する
 - `skirts` は `subcategory = skirt`、`shoes` は `subcategory = sneakers / pumps / boots / sandals / other`、`kimono` は `subcategory = kimono` を通常入力の主導線とし、`other` は staged rollout 中の旧データ互換や補助表示にも残すが、shape 側の新規入力候補には追加しない

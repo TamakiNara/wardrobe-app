@@ -403,6 +403,19 @@ wear logs も本資料の対象とし、その保存方針を定義します。
 | legacy bridge | `inner_roomwear` など | 旧 map・旧データ互換のために読む値 |
 
 - つまり `roomwear_inner_*` は表示設定用 ID、`inner + subcategory` は item 側の正本概念、`inner_*` は legacy bridge として役割を分けて読む
+- 変換規則の正本化方針としては、item 実データの意味づけは backend 側に寄せ、frontend 側は表示用の派生として読む第一候補を維持する
+- 第一候補の責務分担は次のとおり
+
+| 区分 | 主な正本 / 派生先 | 読み方 |
+| --- | --- | --- |
+| item `subcategory` の値一覧と正規化 | `ItemSubcategorySupport` | backend の正本 |
+| item `shape` の候補、必須条件、自動補完 | `ItemInputRequirementSupport` | backend の正本 |
+| settings 用 ID と item 実データの橋渡し | `ListQuerySupport` | backend の正本寄り。将来は上記正本から導出できる形へ寄せる |
+| purchase candidate → item 変換 | `PurchaseCandidateCategoryMap` | 境界専用の派生 |
+| frontend のラベル、並び、UI 制御 | `item-subcategories.ts` / `item-shapes.ts` | backend 正本の派生 |
+| frontend の settings / visible helper | `web/src/lib/api/categories.ts` | backend 正本の読み替え |
+
+- つまり、将来の追加や再編では「backend の正本 helper を先に直し、frontend は表示と UI 制御の追随をする」という順で読むのが第一候補である
 - migration 時の旧データ互換では、安全に補完できるものだけデータ補完し、補完できないものは `subcategory = null` を許容する
 - `items.shape` は引き続き nullable にしない前提を維持しつつ、現時点の staged rollout では `shape` が任意寄りのカテゴリで backend が代表 shape を補完して保存する
 - `subcategory = other` は subcategory 側の受け皿として扱い、shape 側の `other` は新規入力の主導線には追加しない
