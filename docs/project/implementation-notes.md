@@ -406,6 +406,23 @@ current では `category / subcategory / shape` の変換規則が backend / fro
 - あわせて `ItemInputRequirementSupport` は `shape` 候補・既定 shape・カテゴリ fallback shape の公開メソッドを持ち、`PurchaseCandidateCategoryMap` は item draft 解決時にそれらの正本寄り helper を通す形へ一部寄せた
 - まだ `ListQuerySupport` 内の legacy bridge や `PurchaseCandidateCategoryMap` の境界専用対応表までは残っているため、完全統合ではなく『backend の正本寄り helper を先に見る』読み方を明示する段階とする
 
+### 変換規則の重複棚卸し
+
+current で同じ意味の規則が重複している主な箇所は次のとおり。
+
+| 優先度 | 論点 | 重複している主なファイル | 判断 |
+| --- | --- | --- | --- |
+| 高 | `subcategory` 値一覧・必須カテゴリ | backend の `ItemSubcategorySupport`、frontend の `item-subcategories.ts` | 意味づけは backend を正本、frontend は表示専用に寄せたい |
+| 高 | `category + subcategory -> shape` 候補、default / fallback shape | backend の `ItemInputRequirementSupport`、frontend の `item-shapes.ts` / `item-subcategories.ts` | backend を正本、frontend は表示用候補と自動選択 UI に限定したい |
+| 高 | settings 用 ID と item 実データの橋渡し | backend の `ItemSubcategorySupport` / `ListQuerySupport`、frontend の `web/src/lib/api/categories.ts` | backend 側で意味づけを決め、frontend は read model に薄くしたい |
+| 中 | legacy 値からの bridge | backend の `ListQuerySupport`、frontend の `web/src/lib/api/categories.ts` / `item-subcategories.ts` / `item-shapes.ts` | staged rollout 互換のため当面残すが、最終的には backend 側へ寄せたい |
+| 中 | purchase candidate → item draft 変換 | `PurchaseCandidateCategoryMap` と backend 正本 helper | 境界ロジックとして独立維持しつつ、戻り値解釈は backend 正本を通す方針でよい |
+| 低 | ラベル、並び順、UI 種別 | frontend の `item-subcategories.ts` / `item-shapes.ts` | これは表示責務として frontend に残してよい |
+
+一本化対象の第一候補は、1. backend の `subcategory` 値一覧と必須カテゴリ、2. backend の `shape` 候補 / default / fallback、3. settings 用 ID と item 実データの橋渡し、の順とする。
+
+一方で、legacy bridge と purchase candidate 境界変換は staged rollout 互換のため今すぐ全面統合せず、backend 正本と矛盾しない形へ薄く寄せ続ける読み方を維持する。
+
 後続で category / subcategory を増やした時に理想とする状態は、少なくとも「item 実データの意味づけは backend の正本 helper を見れば分かる」「frontend はその正本を UI 用に並べ替えているだけ」と説明できる構造である。
 - item 入力フォームは、原則 `カテゴリ / 種類 / 形 / 詳細` の並びへ寄せ、使わない欄は非表示または未選択可で扱う前提を優先する
 - `skirts`、`shoes`、`kimono` は `subcategory` 候補が少ないため、現時点の通常入力ではプルダウンではなく軽い UI で `種類` を見せ、代表カテゴリまたは主要候補を既定値にしつつ `other` へ切り替えられる形を優先する

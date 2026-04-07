@@ -419,6 +419,10 @@ wear logs も本資料の対象とし、その保存方針を定義します。
 - `ListQuerySupport` は visible 判定用の query map や current category bridge をまだ持つが、`subcategory` 側の visible ID は `ItemSubcategorySupport` を参照する読み方へ寄せ始めている
 - `PurchaseCandidateCategoryMap` は category master ID から item draft への境界変換表を維持しつつ、戻り値の `subcategory` 正規化と `shape` 解決は backend の正本寄り helper に通す第一段へ寄せている
 
+- 実コード上の重複棚卸しとしては、`subcategory` 値一覧、`subcategory` 必須カテゴリ、`category + subcategory -> shape` 候補、default / fallback shape、settings 用 ID と item 実データの橋渡しが backend / frontend の複数箇所に残っている
+- 次に一本化を優先する対象は、backend の `ItemSubcategorySupport` と `ItemInputRequirementSupport` を正本として読む領域であり、frontend 側はラベル・並び・UI 制御へ責務をさらに寄せる第一候補を維持する
+- staged rollout 互換のため、legacy bridge と purchase candidate 境界変換は当面残してよいが、将来の追加時に『まず backend の正本 helper を直す』導線を崩さないことを優先する
+
 - つまり、将来の追加や再編では「backend の正本 helper を先に直し、frontend は表示と UI 制御の追随をする」という順で読むのが第一候補である
 - migration 時の旧データ互換では、安全に補完できるものだけデータ補完し、補完できないものは `subcategory = null` を許容する
 - `items.shape` は引き続き nullable にしない前提を維持しつつ、現時点の staged rollout では `shape` が任意寄りのカテゴリで backend が代表 shape を補完して保存する
