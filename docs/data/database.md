@@ -426,6 +426,8 @@ wear logs も本資料の対象とし、その保存方針を定義します。
 - current の backend 実装では、`subcategory -> visible_category_id` は `ItemSubcategorySupport` の公開面を正本寄りに読み、`PurchaseCandidateCategoryMap` は shape が backend default と一致する行から順に省略して `ItemInputRequirementSupport` の解釈へ寄せ始めている
 - `ListQuerySupport` の query map も、current の `category + subcategory` 条件は `ItemSubcategorySupport` を正本寄りに読んで組み立て、shape ベースの固定表は staged rollout 互換用 bridge として切り分け始めている
 - まだ `ListQuerySupport` の current category bridge・legacy shape bridge、`PurchaseCandidateCategoryMap` の境界変換表自体は残っているため、今回は『橋渡し重複を減らす第二段』として扱う
+- current category を持つ旧 item の shape bridge は `subcategory_null = true` 付きの互換条件として扱い、`accessories` や `bottoms` のような旧 category bridge とは別ブロックで読む形へ寄せている
+- その結果、`ListQuerySupport` では current の `category + subcategory` 条件生成と legacy / bridge 条件を最低限読み分けられるようになり、削減対象も current category bridge / legacy shape bridge / frontend read model の順で追いやすくなった
 
 - 次に減らす対象の優先順位は、1. `ListQuerySupport` の query map に残る bridge 条件、2. current category bridge、3. legacy shape bridge、4. frontend 側の bridge / read model 重複、の順を第一候補とする
 

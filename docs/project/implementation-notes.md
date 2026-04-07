@@ -427,6 +427,8 @@ current で同じ意味の規則が重複している主な箇所は次のとお
 - `ItemInputRequirementSupport` は `shape` 候補・default shape・fallback shape の公開面を持つ正本寄り helper として読み、`PurchaseCandidateCategoryMap` は shape を省略できる行を減らして、その公開面により多く依存する形へ寄せた
 - `ListQuerySupport` の query map では、current の `category + subcategory` 条件を `ItemSubcategorySupport` から組み立てる形へ寄せ、shape ベースの固定表は staged rollout 互換用の bridge として残す整理にした
 - 一方で、`ListQuerySupport` の current category bridge、legacy shape bridge は staged rollout 互換のため今回は維持し、`PurchaseCandidateCategoryMap` の境界変換表そのものも残している
+- current の `ListQuerySupport` では、query map の current ルートを `ItemSubcategorySupport` から組み立て、current category を持つ旧 item の shape bridge は `subcategory_null = true` を付けた互換条件として分離した
+- これにより、current の `category + subcategory` 条件と legacy / current bridge の shape 条件が同じ配列に混ざる度合いを減らし、`bags` や `inner` のようなカテゴリでも『current route と互換 route の両方を持つ』ことが読み取りやすくなった
 
 - TODO（高）: `ListQuerySupport` の query map は、current の `category + subcategory` ルートと legacy / shape bridge をさらに分離し、bridge だけを段階的に減らせる形へ寄せる
 - TODO（高）: current category bridge（`outer` / `bottoms` / `accessories` / `onepiece_allinone` 由来の吸収）は、一覧・検索と item 保存の staged rollout が十分に揃った段階で削減候補として見直す

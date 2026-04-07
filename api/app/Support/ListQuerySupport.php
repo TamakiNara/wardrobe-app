@@ -73,13 +73,12 @@ class ListQuerySupport
     }
 
     /**
-     * visible_category_id に対して legacy / current bridge の shape 条件を返す。
-     * current の category + subcategory そのものは ItemSubcategorySupport を正本として扱い、
-     * ここでは staged rollout 互換のために必要な shape bridge だけを維持する。
+     * current category を持つ旧 item のうち、subcategory 未設定データを
+     * visible_category_id に橋渡しするための代表 shape 対応表。
      *
      * @return array<string, array<string, string>>
      */
-    private static function itemVisibleCategoryShapeBridgeMap(): array
+    private static function currentItemVisibleCategoryShapeBridgeMap(): array
     {
         return [
             'tops' => [
@@ -111,15 +110,6 @@ class ListQuerySupport
                 'a_line' => 'skirts_skirt',
                 'pleated' => 'skirts_skirt',
             ],
-            'bottoms' => [
-                'tapered' => 'pants_pants',
-                'wide' => 'pants_pants',
-                'straight' => 'pants_pants',
-                'mini-skirt' => 'skirts_skirt',
-                'tight-skirt' => 'skirts_skirt',
-                'a-line-skirt' => 'skirts_skirt',
-                'flare-skirt' => 'skirts_skirt',
-            ],
             'outerwear' => [
                 'jacket' => 'outerwear_jacket',
                 'tailored' => 'outerwear_jacket',
@@ -133,13 +123,6 @@ class ListQuerySupport
                 'mountain-parka' => 'outerwear_mountain_parka',
                 'other' => 'outerwear_other',
             ],
-            'outer' => [
-                'tailored' => 'outerwear_jacket',
-                'trench' => 'outerwear_coat',
-                'chester' => 'outerwear_coat',
-                'down' => 'outerwear_down_padded',
-                'outer-cardigan' => 'outerwear_blouson',
-            ],
             'onepiece_dress' => [
                 'onepiece' => 'onepiece_dress_onepiece',
                 'dress' => 'onepiece_dress_dress',
@@ -149,10 +132,6 @@ class ListQuerySupport
                 'allinone' => 'allinone_allinone',
                 'salopette' => 'allinone_salopette',
                 'other' => 'allinone_other',
-            ],
-            'onepiece_allinone' => [
-                'onepiece' => 'onepiece_dress_onepiece',
-                'allinone' => 'allinone_allinone',
             ],
             'inner' => [
                 'roomwear' => 'roomwear_inner_roomwear',
@@ -203,6 +182,38 @@ class ListQuerySupport
                 'kimono' => 'kimono_kimono',
                 'other' => 'kimono_other',
             ],
+        ];
+    }
+
+    /**
+     * current category へ統合済みの旧 category / shape を
+     * visible_category_id に橋渡しする staged rollout 用の互換対応表。
+     *
+     * @return array<string, array<string, string>>
+     */
+    private static function legacyItemVisibleCategoryShapeBridgeMap(): array
+    {
+        return [
+            'bottoms' => [
+                'tapered' => 'pants_pants',
+                'wide' => 'pants_pants',
+                'straight' => 'pants_pants',
+                'mini-skirt' => 'skirts_skirt',
+                'tight-skirt' => 'skirts_skirt',
+                'a-line-skirt' => 'skirts_skirt',
+                'flare-skirt' => 'skirts_skirt',
+            ],
+            'outer' => [
+                'tailored' => 'outerwear_jacket',
+                'trench' => 'outerwear_coat',
+                'chester' => 'outerwear_coat',
+                'down' => 'outerwear_down_padded',
+                'outer-cardigan' => 'outerwear_blouson',
+            ],
+            'onepiece_allinone' => [
+                'onepiece' => 'onepiece_dress_onepiece',
+                'allinone' => 'allinone_allinone',
+            ],
             'accessories' => [
                 'tote' => 'bags_tote',
                 'shoulder' => 'bags_shoulder',
@@ -247,7 +258,18 @@ class ListQuerySupport
             }
         }
 
-        foreach (self::itemVisibleCategoryShapeBridgeMap() as $category => $shapeMap) {
+        foreach (self::currentItemVisibleCategoryShapeBridgeMap() as $category => $shapeMap) {
+            foreach ($shapeMap as $shape => $visibleCategoryId) {
+                $queryMap[$visibleCategoryId] ??= [];
+                $queryMap[$visibleCategoryId][] = [
+                    'category' => $category,
+                    'shape' => $shape,
+                    'subcategory_null' => true,
+                ];
+            }
+        }
+
+        foreach (self::legacyItemVisibleCategoryShapeBridgeMap() as $category => $shapeMap) {
             foreach ($shapeMap as $shape => $visibleCategoryId) {
                 $queryMap[$visibleCategoryId] ??= [];
                 $queryMap[$visibleCategoryId][] = [
@@ -256,41 +278,6 @@ class ListQuerySupport
                 ];
             }
         }
-
-        $queryMap['legwear_socks'] = [
-            ['category' => 'legwear', 'subcategory' => 'socks'],
-            ['category' => 'legwear', 'shape' => 'socks', 'subcategory_null' => true],
-        ];
-        $queryMap['legwear_stockings'] = [
-            ['category' => 'legwear', 'subcategory' => 'stockings'],
-            ['category' => 'legwear', 'shape' => 'stockings', 'subcategory_null' => true],
-        ];
-        $queryMap['legwear_tights'] = [
-            ['category' => 'legwear', 'subcategory' => 'tights'],
-            ['category' => 'legwear', 'shape' => 'tights', 'subcategory_null' => true],
-        ];
-        $queryMap['legwear_leggings'] = [
-            ['category' => 'legwear', 'subcategory' => 'leggings'],
-            ['category' => 'legwear', 'shape' => 'leggings', 'subcategory_null' => true],
-        ];
-        $queryMap['legwear_other'] = [
-            ['category' => 'legwear', 'subcategory' => 'other'],
-        ];
-        $queryMap['roomwear_inner_roomwear'] = [
-            ['category' => 'inner', 'subcategory' => 'roomwear'],
-            ['category' => 'inner', 'shape' => 'roomwear', 'subcategory_null' => true],
-        ];
-        $queryMap['roomwear_inner_underwear'] = [
-            ['category' => 'inner', 'subcategory' => 'underwear'],
-            ['category' => 'inner', 'shape' => 'underwear', 'subcategory_null' => true],
-        ];
-        $queryMap['roomwear_inner_pajamas'] = [
-            ['category' => 'inner', 'subcategory' => 'pajamas'],
-            ['category' => 'inner', 'shape' => 'pajamas', 'subcategory_null' => true],
-        ];
-        $queryMap['roomwear_inner_other'] = [
-            ['category' => 'inner', 'subcategory' => 'other'],
-        ];
 
         return $queryMap;
     }
@@ -428,8 +415,17 @@ class ListQuerySupport
             return null;
         }
 
-        $shapeMap = self::itemVisibleCategoryShapeBridgeMap();
+        if ($subcategory === null) {
+            $currentShapeMap = self::currentItemVisibleCategoryShapeBridgeMap();
+            $resolvedCurrentBridge = $currentShapeMap[$category][$shape] ?? null;
 
-        return $shapeMap[$category][$shape] ?? null;
+            if ($resolvedCurrentBridge !== null) {
+                return $resolvedCurrentBridge;
+            }
+        }
+
+        $legacyShapeMap = self::legacyItemVisibleCategoryShapeBridgeMap();
+
+        return $legacyShapeMap[$category][$shape] ?? null;
     }
 }
