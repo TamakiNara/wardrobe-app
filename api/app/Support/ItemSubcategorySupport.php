@@ -116,6 +116,103 @@ class ItemSubcategorySupport
         'legwear',
     ];
 
+    private const VISIBLE_CATEGORY_ID_BY_SUBCATEGORY = [
+        'tops' => [
+            'tshirt_cutsew' => 'tops_tshirt_cutsew',
+            'shirt_blouse' => 'tops_shirt_blouse',
+            'knit_sweater' => 'tops_knit_sweater',
+            'cardigan' => 'tops_cardigan',
+            'polo_shirt' => 'tops_polo_shirt',
+            'sweat_trainer' => 'tops_sweat_trainer',
+            'hoodie' => 'tops_hoodie',
+            'vest_gilet' => 'tops_vest_gilet',
+            'camisole' => 'tops_camisole',
+            'tanktop' => 'tops_tanktop',
+            'other' => 'tops_other',
+        ],
+        'pants' => [
+            'pants' => 'pants_pants',
+            'denim' => 'pants_denim',
+            'slacks' => 'pants_slacks',
+            'cargo' => 'pants_cargo',
+            'chino' => 'pants_chino',
+            'sweat_jersey' => 'pants_sweat_jersey',
+            'other' => 'pants_other',
+        ],
+        'skirts' => [
+            'skirt' => 'skirts_skirt',
+            'other' => 'skirts_other',
+        ],
+        'outerwear' => [
+            'jacket' => 'outerwear_jacket',
+            'coat' => 'outerwear_coat',
+            'blouson' => 'outerwear_blouson',
+            'down_padded' => 'outerwear_down_padded',
+            'mountain_parka' => 'outerwear_mountain_parka',
+            'other' => 'outerwear_other',
+        ],
+        'onepiece_dress' => [
+            'onepiece' => 'onepiece_dress_onepiece',
+            'dress' => 'onepiece_dress_dress',
+            'other' => 'onepiece_dress_other',
+        ],
+        'allinone' => [
+            'allinone' => 'allinone_allinone',
+            'salopette' => 'allinone_salopette',
+            'other' => 'allinone_other',
+        ],
+        'inner' => [
+            'roomwear' => 'roomwear_inner_roomwear',
+            'underwear' => 'roomwear_inner_underwear',
+            'pajamas' => 'roomwear_inner_pajamas',
+            'other' => 'roomwear_inner_other',
+        ],
+        'bags' => [
+            'tote' => 'bags_tote',
+            'shoulder' => 'bags_shoulder',
+            'backpack' => 'bags_backpack',
+            'hand' => 'bags_hand',
+            'clutch' => 'bags_clutch',
+            'body' => 'bags_body',
+            'other' => 'bags_other',
+        ],
+        'fashion_accessories' => [
+            'hat' => 'fashion_accessories_hat',
+            'belt' => 'fashion_accessories_belt',
+            'scarf_stole' => 'fashion_accessories_scarf_stole',
+            'gloves' => 'fashion_accessories_gloves',
+            'jewelry' => 'fashion_accessories_jewelry',
+            'wallet_case' => 'fashion_accessories_wallet_case',
+            'hair_accessory' => 'fashion_accessories_hair',
+            'eyewear' => 'fashion_accessories_eyewear',
+            'watch' => 'fashion_accessories_watch',
+            'other' => 'fashion_accessories_other',
+        ],
+        'shoes' => [
+            'sneakers' => 'shoes_sneakers',
+            'pumps' => 'shoes_pumps',
+            'boots' => 'shoes_boots',
+            'sandals' => 'shoes_sandals',
+            'other' => 'shoes_other',
+        ],
+        'legwear' => [
+            'socks' => 'legwear_socks',
+            'stockings' => 'legwear_stockings',
+            'tights' => 'legwear_tights',
+            'leggings' => 'legwear_leggings',
+            'other' => 'legwear_other',
+        ],
+        'kimono' => [
+            'kimono' => 'kimono_kimono',
+            'other' => 'kimono_other',
+        ],
+        'swimwear' => [
+            'swimwear' => 'swimwear_swimwear',
+            'rashguard' => 'swimwear_rashguard',
+            'other' => 'swimwear_other',
+        ],
+    ];
+
     public static function valuesFor(?string $category): array
     {
         if (! is_string($category)) {
@@ -128,6 +225,20 @@ class ItemSubcategorySupport
     public static function isRequired(?string $category): bool
     {
         return is_string($category) && in_array($category, self::REQUIRED_CATEGORIES, true);
+    }
+
+    public static function visibleCategoryIdMap(): array
+    {
+        return self::VISIBLE_CATEGORY_ID_BY_SUBCATEGORY;
+    }
+
+    public static function visibleCategoryIdFor(?string $category, ?string $subcategory): ?string
+    {
+        if (! is_string($category) || ! is_string($subcategory) || $subcategory === '') {
+            return null;
+        }
+
+        return self::VISIBLE_CATEGORY_ID_BY_SUBCATEGORY[$category][$subcategory] ?? null;
     }
 
     public static function normalize(?string $category, mixed $subcategory): ?string

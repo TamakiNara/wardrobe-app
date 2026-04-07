@@ -220,21 +220,7 @@ class ListQuerySupport
 
     public static function itemVisibleCategoryIdBySubcategoryMap(): array
     {
-        return [
-            'legwear' => [
-                'socks' => 'legwear_socks',
-                'stockings' => 'legwear_stockings',
-                'tights' => 'legwear_tights',
-                'leggings' => 'legwear_leggings',
-                'other' => 'legwear_other',
-            ],
-            'inner' => [
-                'roomwear' => 'roomwear_inner_roomwear',
-                'underwear' => 'roomwear_inner_underwear',
-                'pajamas' => 'roomwear_inner_pajamas',
-                'other' => 'roomwear_inner_other',
-            ],
-        ];
+        return ItemSubcategorySupport::visibleCategoryIdMap();
     }
 
     /**
@@ -417,9 +403,9 @@ class ListQuerySupport
             return null;
         }
 
-        $subcategoryMap = self::itemVisibleCategoryIdBySubcategoryMap();
-        if ($subcategory && isset($subcategoryMap[$category][$subcategory])) {
-            return $subcategoryMap[$category][$subcategory];
+        $visibleCategoryId = ItemSubcategorySupport::visibleCategoryIdFor($category, $subcategory);
+        if ($visibleCategoryId !== null) {
+            return $visibleCategoryId;
         }
 
         if (! $shape) {

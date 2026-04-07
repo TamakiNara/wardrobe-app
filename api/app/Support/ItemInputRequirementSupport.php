@@ -233,6 +233,41 @@ class ItemInputRequirementSupport
         return $normalized === '' ? null : $normalized;
     }
 
+    public static function shapeOptionsFor(?string $category, ?string $subcategory): array
+    {
+        if (! is_string($category) || $category === '') {
+            return [];
+        }
+
+        if (! is_string($subcategory) || $subcategory === '') {
+            return [];
+        }
+
+        return self::SHAPE_OPTIONS_BY_SUBCATEGORY[$category][$subcategory] ?? [];
+    }
+
+    public static function defaultShapeFor(?string $category, ?string $subcategory): ?string
+    {
+        if (! is_string($category) || $category === '') {
+            return null;
+        }
+
+        if (! is_string($subcategory) || $subcategory === '') {
+            return null;
+        }
+
+        return self::DEFAULT_SHAPE_BY_SUBCATEGORY[$category][$subcategory] ?? null;
+    }
+
+    public static function fallbackShapeFor(?string $category): ?string
+    {
+        if (! is_string($category) || $category === '') {
+            return null;
+        }
+
+        return self::FALLBACK_SHAPE_BY_CATEGORY[$category] ?? null;
+    }
+
     public static function isRequired(?string $category, ?string $subcategory): bool
     {
         if (! is_string($category) || $category === '') {
@@ -250,7 +285,7 @@ class ItemInputRequirementSupport
             return false;
         }
 
-        return count(self::SHAPE_OPTIONS_BY_SUBCATEGORY[$category][$subcategory] ?? []) > 1;
+        return count(self::shapeOptionsFor($category, $subcategory)) > 1;
     }
 
     public static function resolveForSave(?string $category, ?string $subcategory, mixed $shape): ?string
@@ -265,7 +300,7 @@ class ItemInputRequirementSupport
             return null;
         }
 
-        return self::DEFAULT_SHAPE_BY_SUBCATEGORY[$category][$subcategory] ?? self::FALLBACK_SHAPE_BY_CATEGORY[$category] ?? null;
+        return self::defaultShapeFor($category, $subcategory) ?? self::fallbackShapeFor($category);
     }
 
     public static function validate(array $validated): void

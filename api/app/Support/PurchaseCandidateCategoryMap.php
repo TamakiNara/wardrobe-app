@@ -105,6 +105,29 @@ class PurchaseCandidateCategoryMap
 
     public static function resolveItemDraftCategory(string $categoryId): ?array
     {
-        return self::MAP[$categoryId] ?? null;
+        $resolved = self::MAP[$categoryId] ?? null;
+
+        if (! is_array($resolved)) {
+            return null;
+        }
+
+        $category = is_string($resolved['category'] ?? null) ? $resolved['category'] : null;
+        $subcategory = ItemSubcategorySupport::normalize($category, $resolved['subcategory'] ?? null);
+        $shape = ItemInputRequirementSupport::resolveForSave(
+            $category,
+            $subcategory,
+            $resolved['shape'] ?? null,
+        );
+
+        $normalized = [
+            'category' => $category,
+            'shape' => $shape,
+        ];
+
+        if ($subcategory !== null) {
+            $normalized['subcategory'] = $subcategory;
+        }
+
+        return $normalized['category'] === null ? null : $normalized;
     }
 }

@@ -415,6 +415,10 @@ wear logs も本資料の対象とし、その保存方針を定義します。
 | frontend のラベル、並び、UI 制御 | `item-subcategories.ts` / `item-shapes.ts` | backend 正本の派生 |
 | frontend の settings / visible helper | `web/src/lib/api/categories.ts` | backend 正本の読み替え |
 
+- current の backend 実装では、`subcategory -> visible_category_id` は `ItemSubcategorySupport` を優先し、`shape` 候補・既定 shape・fallback shape は `ItemInputRequirementSupport` を優先して読む第一段まで寄せている
+- `ListQuerySupport` は visible 判定用の query map や current category bridge をまだ持つが、`subcategory` 側の visible ID は `ItemSubcategorySupport` を参照する読み方へ寄せ始めている
+- `PurchaseCandidateCategoryMap` は category master ID から item draft への境界変換表を維持しつつ、戻り値の `subcategory` 正規化と `shape` 解決は backend の正本寄り helper に通す第一段へ寄せている
+
 - つまり、将来の追加や再編では「backend の正本 helper を先に直し、frontend は表示と UI 制御の追随をする」という順で読むのが第一候補である
 - migration 時の旧データ互換では、安全に補完できるものだけデータ補完し、補完できないものは `subcategory = null` を許容する
 - `items.shape` は引き続き nullable にしない前提を維持しつつ、現時点の staged rollout では `shape` が任意寄りのカテゴリで backend が代表 shape を補完して保存する

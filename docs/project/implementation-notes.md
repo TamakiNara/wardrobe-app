@@ -402,6 +402,10 @@ current では `category / subcategory / shape` の変換規則が backend / fro
 3. `PurchaseCandidateCategoryMap` は purchase candidate 境界専用の派生として残す
 4. `ListQuerySupport` と `web/src/lib/api/categories.ts` の settings ID 解決規則は、将来は同じ対応表から導出できる形を目指す
 
+- current では backend 側の第一段として、`ItemSubcategorySupport` が `subcategory -> visible_category_id` の対応表も公開し、`ListQuerySupport` はその表を参照する形へ一部寄せた
+- あわせて `ItemInputRequirementSupport` は `shape` 候補・既定 shape・カテゴリ fallback shape の公開メソッドを持ち、`PurchaseCandidateCategoryMap` は item draft 解決時にそれらの正本寄り helper を通す形へ一部寄せた
+- まだ `ListQuerySupport` 内の legacy bridge や `PurchaseCandidateCategoryMap` の境界専用対応表までは残っているため、完全統合ではなく『backend の正本寄り helper を先に見る』読み方を明示する段階とする
+
 後続で category / subcategory を増やした時に理想とする状態は、少なくとも「item 実データの意味づけは backend の正本 helper を見れば分かる」「frontend はその正本を UI 用に並べ替えているだけ」と説明できる構造である。
 - item 入力フォームは、原則 `カテゴリ / 種類 / 形 / 詳細` の並びへ寄せ、使わない欄は非表示または未選択可で扱う前提を優先する
 - `skirts`、`shoes`、`kimono` は `subcategory` 候補が少ないため、現時点の通常入力ではプルダウンではなく軽い UI で `種類` を見せ、代表カテゴリまたは主要候補を既定値にしつつ `other` へ切り替えられる形を優先する
