@@ -116,6 +116,12 @@ class ItemSubcategorySupport
         'legwear',
     ];
 
+    /**
+     * settings / visible 判定で使う表示対象 ID の対応表。
+     * item 実データの category + subcategory を、master / settings 側の ID に橋渡しする。
+     *
+     * @var array<string, array<string, string>>
+     */
     private const VISIBLE_CATEGORY_ID_BY_SUBCATEGORY = [
         'tops' => [
             'tshirt_cutsew' => 'tops_tshirt_cutsew',
@@ -227,6 +233,9 @@ class ItemSubcategorySupport
         return is_string($category) && in_array($category, self::REQUIRED_CATEGORIES, true);
     }
 
+    /**
+     * @return array<string, array<string, string>>
+     */
     public static function visibleCategoryIdMap(): array
     {
         return self::VISIBLE_CATEGORY_ID_BY_SUBCATEGORY;

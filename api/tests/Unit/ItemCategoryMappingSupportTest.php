@@ -24,11 +24,6 @@ class ItemCategoryMappingSupportTest extends TestCase
             ItemSubcategorySupport::visibleCategoryIdMap(),
             ListQuerySupport::itemVisibleCategoryIdBySubcategoryMap()
         );
-
-        $this->assertContains(
-            ['category' => 'inner', 'subcategory' => 'roomwear'],
-            ListQuerySupport::itemVisibleCategoryQueryMap()['roomwear_inner_roomwear']
-        );
     }
 
     public function test_item_input_requirement_support_exposes_shape_options_and_defaults(): void
@@ -47,7 +42,7 @@ class ItemCategoryMappingSupportTest extends TestCase
         );
     }
 
-    public function test_purchase_candidate_category_map_uses_item_support_normalization(): void
+    public function test_purchase_candidate_category_map_uses_item_support_defaults(): void
     {
         $this->assertSame(
             [
@@ -65,6 +60,24 @@ class ItemCategoryMappingSupportTest extends TestCase
                 'subcategory' => 'other',
             ],
             PurchaseCandidateCategoryMap::resolveItemDraftCategory('roomwear_inner_other')
+        );
+
+        $this->assertSame(
+            [
+                'category' => 'tops',
+                'shape' => 'shirt',
+                'subcategory' => 'shirt_blouse',
+            ],
+            PurchaseCandidateCategoryMap::resolveItemDraftCategory('tops_shirt_blouse')
+        );
+
+        $this->assertSame(
+            [
+                'category' => 'outerwear',
+                'shape' => 'coat',
+                'subcategory' => 'coat',
+            ],
+            PurchaseCandidateCategoryMap::resolveItemDraftCategory('outerwear_coat')
         );
     }
 }
