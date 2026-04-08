@@ -1,4 +1,4 @@
-import { resolveCurrentItemCategoryValue } from "@/lib/api/categories";
+import { resolveCurrentItemCategoryValue } from "@/lib/items/current-item-read-model";
 
 export const ITEM_SUBCATEGORIES = {
   tops: [

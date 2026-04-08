@@ -601,7 +601,7 @@ describe("NewItemPage", () => {
   });
 
   it("認証切れで TPO 取得が失敗した場合はログインへ戻す", async () => {
-    fetchUserTposMock.mockRejectedValue(new ApiClientError(401, null));
+    fetchUserTposMock.mockRejectedValueOnce(new ApiClientError(401, null));
 
     const { default: NewItemPage } = await import("./page");
 

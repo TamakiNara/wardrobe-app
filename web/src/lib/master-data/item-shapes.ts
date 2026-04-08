@@ -1,4 +1,9 @@
-﻿export const ITEM_SHAPES = {
+﻿import {
+  resolveCurrentItemCategoryValue,
+  resolveCurrentItemShapeValue,
+} from "@/lib/items/current-item-read-model";
+
+export const ITEM_SHAPES = {
   tops: [
     { value: "tshirt", label: "Tシャツ/カットソー" },
     { value: "shirt", label: "シャツ" },
@@ -316,122 +321,7 @@ export function findItemShapeLabel(
   return legacyLabel ?? shape;
 }
 
-export function resolveCurrentItemCategoryValue(
-  category?: string | null,
-  shape?: string | null,
-) {
-  if (!category) {
-    return null;
-  }
-
-  if (category === "outer" || category === "outerwear") {
-    return "outerwear";
-  }
-
-  if (category === "onepiece_allinone") {
-    if (shape === "onepiece") {
-      return "onepiece_dress";
-    }
-
-    if (shape === "allinone") {
-      return "allinone";
-    }
-  }
-
-  if (category === "bottoms") {
-    if (shape === "mini-skirt" || shape === "tight-skirt") {
-      return "skirts";
-    }
-
-    if (shape === "a-line-skirt" || shape === "flare-skirt") {
-      return "skirts";
-    }
-
-    return "pants";
-  }
-
-  if (category === "accessories") {
-    if (
-      shape === "tote" ||
-      shape === "shoulder" ||
-      shape === "backpack" ||
-      shape === "hand" ||
-      shape === "clutch" ||
-      shape === "body"
-    ) {
-      return "bags";
-    }
-
-    return "fashion_accessories";
-  }
-
-  return category;
-}
-
-export function resolveCurrentItemShapeValue(
-  category?: string | null,
-  shape?: string | null,
-) {
-  if (!shape) {
-    return null;
-  }
-
-  const currentCategory = resolveCurrentItemCategoryValue(category, shape);
-
-  if (category === "bottoms") {
-    return (
-      {
-        tapered: "tapered",
-        wide: "wide",
-        straight: "straight",
-        "mini-skirt": "skirt",
-        "tight-skirt": "tight",
-        "a-line-skirt": "a_line",
-        "flare-skirt": "flare",
-      }[shape] ?? shape
-    );
-  }
-
-  if (currentCategory === "pants") {
-    return (
-      {
-        pants: "pants",
-        denim: "pants",
-        slacks: "pants",
-        "short-pants": "pants",
-        other: "pants",
-        tapered: "tapered",
-        wide: "wide",
-        straight: "straight",
-        culottes: "culottes",
-      }[shape] ?? shape
-    );
-  }
-
-  if (currentCategory === "skirts") {
-    return (
-      {
-        skirt: "skirt",
-        other: "skirt",
-        tight: "tight",
-        flare: "flare",
-        a_line: "a_line",
-        pleated: "pleated",
-      }[shape] ?? shape
-    );
-  }
-
-  if (category === "outer") {
-    return (
-      {
-        tailored: "tailored",
-        trench: "trench",
-        chester: "chester",
-        down: "down-padded",
-        "outer-cardigan": "blouson",
-      }[shape] ?? shape
-    );
-  }
-
-  return shape;
-}
+export {
+  resolveCurrentItemCategoryValue,
+  resolveCurrentItemShapeValue,
+} from "@/lib/items/current-item-read-model";

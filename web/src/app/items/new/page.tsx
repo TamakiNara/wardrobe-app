@@ -507,6 +507,28 @@ export default function NewItemPage() {
 
     const allowedValues = baseShapeOptions.map((item) => item.value);
     const nextShape = allowedValues[0] ?? "";
+    const emptyOptionFallbackShape =
+      category === "inner" && normalizedSubcategory === "other"
+        ? "roomwear"
+        : "";
+
+    if (allowedValues.length === 0) {
+      if (emptyOptionFallbackShape) {
+        if (shape !== emptyOptionFallbackShape) {
+          setShape(emptyOptionFallbackShape);
+          clearErrorsFor(["shape", "spec.legwear.coverage_type"]);
+          resetLegwearSpecState();
+        }
+        return;
+      }
+
+      if (shape) {
+        setShape("");
+        clearErrorsFor(["shape", "spec.legwear.coverage_type"]);
+        resetLegwearSpecState();
+      }
+      return;
+    }
 
     if (allowedValues.length === 1 && shape !== nextShape) {
       setShape(nextShape);
