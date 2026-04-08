@@ -428,8 +428,8 @@ wear logs も本資料の対象とし、その保存方針を定義します。
 - まだ `ListQuerySupport` の現行 category 橋渡し・旧 shape 橋渡し、`PurchaseCandidateCategoryMap` の境界変換表自体は残っているため、今回は『橋渡し重複を減らす第二段』として扱う
 - 現行 category を持つ旧 item の shape 橋渡しは `subcategory_null = true` 付きの互換条件として扱い、`accessories` や `bottoms` のような旧 category 橋渡しとは別ブロックで読む形へ寄せている
 - その結果、`ListQuerySupport` では現行の `category + subcategory` 条件生成と旧仕様 / 橋渡し条件を最低限読み分けられるようになり、削減対象も現行 category 橋渡し / 旧 shape 橋渡し / frontend 側の参照用ヘルパーの順で追いやすくなった
-- 現在の frontend 実装でも、現行 / 旧仕様の category・shape 正規化は `web/src/lib/items/current-item-read-model.ts` の共通参照用ヘルパーに寄せ、`web/src/lib/api/categories.ts`、`item-subcategories.ts`、`item-shapes.ts` はそれを参照する派生ヘルパーとして読む第一段へ進めている
-- ただし visible ID 解決や UI 表示用の subcategory / shape 対応表は段階導入互換のためまだ frontend に残しており、次に減らす対象は `web/src/lib/api/categories.ts` の橋渡し / visible 用ヘルパーと `item-subcategories.ts` / `item-shapes.ts` の意味づけ寄り対応表である
+- 現在の frontend 実装では、現行 / 旧仕様の category・shape 正規化に加え、subcategory 補完、default shape、visible ID 解決も `web/src/lib/items/current-item-read-model.ts` の共通参照用ヘルパーへ寄せ、`web/src/lib/api/categories.ts` は一覧・設定表示向けの派生ヘルパーとして読む形へさらに薄くしている
+- ただし UI 表示用の subcategory / shape 対応表と候補制御は段階導入互換のためまだ frontend に残しており、次に減らす対象は `item-subcategories.ts` / `item-shapes.ts` に残る意味づけ寄りの派生保持である
 
 - 次に減らす対象の優先順位は、1. `ListQuerySupport` の query map に残る橋渡し条件、2. 現行 category 橋渡し、3. 旧 shape 橋渡し、4. frontend 側の橋渡し / 参照用ヘルパー重複、の順を第一候補とする
 

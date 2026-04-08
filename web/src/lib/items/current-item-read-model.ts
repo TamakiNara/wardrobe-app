@@ -6,6 +6,378 @@ const SKIRT_LIKE_SHAPES = new Set([
   "flare-skirt",
 ]);
 
+const LEGACY_INFERRED_SUBCATEGORY_BY_CATEGORY: Record<
+  string,
+  Record<string, string>
+> = {
+  tops: {
+    tshirt: "tshirt_cutsew",
+    shirt: "shirt_blouse",
+    blouse: "shirt_blouse",
+    knit: "knit_sweater",
+    cardigan: "cardigan",
+    camisole: "camisole",
+    tanktop: "tanktop",
+  },
+  pants: {
+    pants: "pants",
+    denim: "denim",
+    slacks: "slacks",
+    "short-pants": "pants",
+    straight: "pants",
+    tapered: "pants",
+    wide: "pants",
+    culottes: "pants",
+    other: "other",
+  },
+  skirts: {
+    skirt: "skirt",
+    tight: "skirt",
+    flare: "skirt",
+    a_line: "skirt",
+    pleated: "skirt",
+    other: "other",
+  },
+  outerwear: {
+    jacket: "jacket",
+    tailored: "jacket",
+    coat: "coat",
+    trench: "coat",
+    chester: "coat",
+    blouson: "blouson",
+    "outer-cardigan": "blouson",
+    "down-padded": "down_padded",
+    down: "down_padded",
+    "mountain-parka": "mountain_parka",
+    other: "other",
+  },
+  onepiece_dress: {
+    onepiece: "onepiece",
+    dress: "dress",
+    other: "other",
+  },
+  allinone: {
+    allinone: "allinone",
+    salopette: "salopette",
+    other: "other",
+  },
+  inner: {
+    roomwear: "roomwear",
+    underwear: "underwear",
+    pajamas: "pajamas",
+    other: "other",
+  },
+  bags: {
+    tote: "tote",
+    shoulder: "shoulder",
+    backpack: "backpack",
+    hand: "hand",
+    clutch: "clutch",
+    body: "body",
+    other: "other",
+  },
+  fashion_accessories: {
+    hat: "hat",
+    belt: "belt",
+    "scarf-stole": "scarf_stole",
+    gloves: "gloves",
+    jewelry: "jewelry",
+    "wallet-case": "wallet_case",
+    "hair-accessory": "hair_accessory",
+    eyewear: "eyewear",
+    watch: "watch",
+    other: "other",
+    accessory: "other",
+  },
+  shoes: {
+    sneakers: "sneakers",
+    pumps: "pumps",
+    "short-boots": "boots",
+    other: "other",
+    sandals: "sandals",
+  },
+  legwear: {
+    socks: "socks",
+    stockings: "stockings",
+    tights: "tights",
+    leggings: "leggings",
+    other: "other",
+  },
+  swimwear: {
+    swimwear: "swimwear",
+    rashguard: "rashguard",
+    other: "other",
+  },
+  kimono: {
+    kimono: "kimono",
+    other: "other",
+  },
+};
+
+const DEFAULT_SHAPE_BY_SUBCATEGORY: Record<string, Record<string, string>> = {
+  tops: {
+    tshirt_cutsew: "tshirt",
+    shirt_blouse: "shirt",
+    knit_sweater: "knit",
+    cardigan: "cardigan",
+    polo_shirt: "shirt",
+    sweat_trainer: "tshirt",
+    hoodie: "tshirt",
+    vest_gilet: "camisole",
+    camisole: "camisole",
+    tanktop: "tanktop",
+    other: "tshirt",
+  },
+  pants: {
+    pants: "pants",
+    denim: "pants",
+    slacks: "pants",
+    cargo: "pants",
+    chino: "pants",
+    sweat_jersey: "pants",
+    other: "pants",
+  },
+  skirts: {
+    skirt: "skirt",
+    other: "skirt",
+  },
+  outerwear: {
+    jacket: "jacket",
+    coat: "coat",
+    blouson: "blouson",
+    down_padded: "down-padded",
+    mountain_parka: "mountain-parka",
+    other: "jacket",
+  },
+  onepiece_dress: {
+    onepiece: "onepiece",
+    dress: "dress",
+    other: "onepiece",
+  },
+  allinone: {
+    allinone: "allinone",
+    salopette: "salopette",
+    other: "allinone",
+  },
+  inner: {
+    roomwear: "roomwear",
+    underwear: "underwear",
+    pajamas: "pajamas",
+    other: "roomwear",
+  },
+  bags: {
+    tote: "tote",
+    shoulder: "shoulder",
+    backpack: "backpack",
+    hand: "hand",
+    clutch: "clutch",
+    body: "body",
+    other: "bag",
+  },
+  fashion_accessories: {
+    hat: "hat",
+    belt: "belt",
+    scarf_stole: "scarf-stole",
+    gloves: "gloves",
+    jewelry: "jewelry",
+    wallet_case: "wallet-case",
+    hair_accessory: "hair-accessory",
+    eyewear: "eyewear",
+    watch: "watch",
+    other: "other",
+  },
+  shoes: {
+    sneakers: "sneakers",
+    pumps: "pumps",
+    boots: "short-boots",
+    sandals: "sandals",
+    other: "other",
+  },
+  legwear: {
+    socks: "socks",
+    stockings: "stockings",
+    tights: "tights",
+    leggings: "leggings",
+    other: "socks",
+  },
+  kimono: {
+    kimono: "kimono",
+    other: "kimono",
+  },
+};
+
+const VISIBLE_CATEGORY_ID_BY_SUBCATEGORY: Record<
+  string,
+  Record<string, string>
+> = {
+  inner: {
+    roomwear: "roomwear_inner_roomwear",
+    underwear: "roomwear_inner_underwear",
+    pajamas: "roomwear_inner_pajamas",
+    other: "roomwear_inner_other",
+  },
+  legwear: {
+    socks: "legwear_socks",
+    stockings: "legwear_stockings",
+    tights: "legwear_tights",
+    leggings: "legwear_leggings",
+    other: "legwear_other",
+  },
+};
+
+const VISIBLE_CATEGORY_ID_BY_SHAPE: Record<string, Record<string, string>> = {
+  tops: {
+    tshirt: "tops_tshirt_cutsew",
+    shirt: "tops_shirt_blouse",
+    blouse: "tops_shirt_blouse",
+    knit: "tops_knit_sweater",
+    cardigan: "tops_cardigan",
+    camisole: "tops_camisole",
+    tanktop: "tops_tanktop",
+    jacket: "tops_other",
+  },
+  pants: {
+    pants: "pants_pants",
+    denim: "pants_denim",
+    slacks: "pants_slacks",
+    "short-pants": "pants_pants",
+    other: "pants_other",
+    straight: "pants_pants",
+    tapered: "pants_pants",
+    wide: "pants_pants",
+    culottes: "pants_pants",
+  },
+  skirts: {
+    skirt: "skirts_skirt",
+    other: "skirts_other",
+    tight: "skirts_skirt",
+    flare: "skirts_skirt",
+    a_line: "skirts_skirt",
+    pleated: "skirts_skirt",
+  },
+  bottoms: {
+    tapered: "pants_pants",
+    wide: "pants_pants",
+    straight: "pants_pants",
+    "mini-skirt": "skirts_skirt",
+    "tight-skirt": "skirts_skirt",
+    "a-line-skirt": "skirts_skirt",
+    "flare-skirt": "skirts_skirt",
+  },
+  outerwear: {
+    jacket: "outerwear_jacket",
+    tailored: "outerwear_jacket",
+    no_collar: "outerwear_jacket",
+    blouson: "outerwear_blouson",
+    "down-padded": "outerwear_down_padded",
+    coat: "outerwear_coat",
+    trench: "outerwear_coat",
+    chester: "outerwear_coat",
+    stainless: "outerwear_coat",
+    "mountain-parka": "outerwear_mountain_parka",
+    other: "outerwear_other",
+  },
+  outer: {
+    tailored: "outerwear_jacket",
+    trench: "outerwear_coat",
+    chester: "outerwear_coat",
+    down: "outerwear_down_padded",
+    "outer-cardigan": "outerwear_blouson",
+  },
+  onepiece_dress: {
+    onepiece: "onepiece_dress_onepiece",
+    dress: "onepiece_dress_dress",
+    other: "onepiece_dress_other",
+  },
+  allinone: {
+    allinone: "allinone_allinone",
+    salopette: "allinone_salopette",
+    other: "allinone_other",
+  },
+  onepiece_allinone: {
+    onepiece: "onepiece_dress_onepiece",
+    allinone: "allinone_allinone",
+  },
+  inner: {
+    roomwear: "roomwear_inner_roomwear",
+    underwear: "roomwear_inner_underwear",
+    pajamas: "roomwear_inner_pajamas",
+  },
+  legwear: {
+    socks: "legwear_socks",
+    stockings: "legwear_stockings",
+    tights: "legwear_tights",
+    leggings: "legwear_leggings",
+  },
+  shoes: {
+    sneakers: "shoes_sneakers",
+    pumps: "shoes_pumps",
+    "short-boots": "shoes_boots",
+    sandals: "shoes_sandals",
+    other: "shoes_other",
+  },
+  bags: {
+    bag: "bags_other",
+    tote: "bags_tote",
+    shoulder: "bags_shoulder",
+    backpack: "bags_backpack",
+    hand: "bags_hand",
+    clutch: "bags_clutch",
+    body: "bags_body",
+    other: "bags_other",
+  },
+  fashion_accessories: {
+    hat: "fashion_accessories_hat",
+    belt: "fashion_accessories_belt",
+    "scarf-stole": "fashion_accessories_scarf_stole",
+    gloves: "fashion_accessories_gloves",
+    jewelry: "fashion_accessories_jewelry",
+    "wallet-case": "fashion_accessories_wallet_case",
+    "hair-accessory": "fashion_accessories_hair",
+    eyewear: "fashion_accessories_eyewear",
+    watch: "fashion_accessories_watch",
+    other: "fashion_accessories_other",
+  },
+  swimwear: {
+    swimwear: "swimwear_swimwear",
+    rashguard: "swimwear_rashguard",
+    other: "swimwear_other",
+  },
+  kimono: {
+    kimono: "kimono_kimono",
+    other: "kimono_other",
+  },
+  accessories: {
+    tote: "bags_tote",
+    shoulder: "bags_shoulder",
+    backpack: "bags_backpack",
+    hand: "bags_hand",
+    clutch: "bags_clutch",
+    body: "bags_body",
+    hat: "fashion_accessories_hat",
+    belt: "fashion_accessories_belt",
+    "scarf-stole": "fashion_accessories_scarf_stole",
+    gloves: "fashion_accessories_gloves",
+    jewelry: "fashion_accessories_jewelry",
+    "wallet-case": "fashion_accessories_wallet_case",
+    "hair-accessory": "fashion_accessories_hair",
+    eyewear: "fashion_accessories_eyewear",
+    watch: "fashion_accessories_watch",
+    accessory: "fashion_accessories_other",
+    other: "fashion_accessories_other",
+  },
+};
+
+const KNOWN_SUBCATEGORY_VALUES_BY_CATEGORY: Record<string, Set<string>> = {
+  ...Object.fromEntries(
+    Object.entries(DEFAULT_SHAPE_BY_SUBCATEGORY).map(([category, values]) => [
+      category,
+      new Set(Object.keys(values)),
+    ]),
+  ),
+  swimwear: new Set(["swimwear", "rashguard", "other"]),
+};
+
 // frontend では backend 正本の読み替えとして current / legacy の吸収だけを共有する
 export function resolveCurrentItemCategoryValue(
   category?: string | null,
@@ -142,4 +514,84 @@ export function resolveCurrentItemShapeValue(
   }
 
   return shape;
+}
+
+export function resolveCurrentItemSubcategoryValue(
+  category?: string | null,
+  shape?: string | null,
+  subcategory?: string | null,
+) {
+  const currentCategory = resolveCurrentItemCategoryValue(category, shape);
+
+  if (!currentCategory) {
+    return null;
+  }
+
+  const normalizedSubcategory =
+    typeof subcategory === "string" ? subcategory.trim() : "";
+
+  if (normalizedSubcategory) {
+    const knownSubcategories =
+      KNOWN_SUBCATEGORY_VALUES_BY_CATEGORY[currentCategory];
+    if (knownSubcategories?.has(normalizedSubcategory)) {
+      return normalizedSubcategory;
+    }
+  }
+
+  if (!shape) {
+    return null;
+  }
+
+  return (
+    LEGACY_INFERRED_SUBCATEGORY_BY_CATEGORY[currentCategory]?.[shape] ?? null
+  );
+}
+
+export function resolveDefaultShapeForSubcategory(
+  category?: string | null,
+  subcategory?: string | null,
+) {
+  if (!category || !subcategory) {
+    return null;
+  }
+
+  return DEFAULT_SHAPE_BY_SUBCATEGORY[category]?.[subcategory] ?? null;
+}
+
+export function resolveVisibleCategoryIdForItem(
+  category?: string | null,
+  shape?: string | null,
+  subcategory?: string | null,
+) {
+  const currentSubcategory = resolveCurrentItemSubcategoryValue(
+    category,
+    shape,
+    subcategory,
+  );
+  const currentCategory = resolveCurrentItemCategoryValue(category, shape);
+  const currentShape = resolveCurrentItemShapeValue(category, shape);
+
+  if (currentCategory && currentSubcategory) {
+    const visibleIdFromSubcategory =
+      VISIBLE_CATEGORY_ID_BY_SUBCATEGORY[currentCategory]?.[currentSubcategory];
+    if (visibleIdFromSubcategory) {
+      return visibleIdFromSubcategory;
+    }
+  }
+
+  if (!shape) {
+    return null;
+  }
+
+  const visibleIdFromRawShape =
+    VISIBLE_CATEGORY_ID_BY_SHAPE[category]?.[shape] ?? null;
+  if (visibleIdFromRawShape) {
+    return visibleIdFromRawShape;
+  }
+
+  return (
+    VISIBLE_CATEGORY_ID_BY_SHAPE[currentCategory ?? category]?.[
+      currentShape ?? shape
+    ] ?? null
+  );
 }

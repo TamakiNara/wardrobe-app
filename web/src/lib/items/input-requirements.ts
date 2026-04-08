@@ -1,8 +1,6 @@
 import { getItemShapeOptions } from "@/lib/master-data/item-shapes";
-import {
-  normalizeItemSubcategory,
-  resolveDefaultShapeForSubcategory,
-} from "@/lib/master-data/item-subcategories";
+import { normalizeItemSubcategory } from "@/lib/master-data/item-subcategories";
+import { resolveDefaultShapeForSubcategory } from "@/lib/items/current-item-read-model";
 
 const OPTIONAL_SHAPE_WITH_EMPTY_SUBCATEGORY = new Set([
   "tops",

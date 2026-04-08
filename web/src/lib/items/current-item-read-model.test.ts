@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
   resolveCurrentItemCategoryValue,
+  resolveCurrentItemSubcategoryValue,
   resolveCurrentItemShapeValue,
+  resolveDefaultShapeForSubcategory,
+  resolveVisibleCategoryIdForItem,
 } from "@/lib/items/current-item-read-model";
 
 describe("current item read model", () => {
@@ -27,6 +30,37 @@ describe("current item read model", () => {
     expect(resolveCurrentItemShapeValue("outer", "down")).toBe("down-padded");
     expect(resolveCurrentItemShapeValue("shoes", "short-boots")).toBe(
       "short-boots",
+    );
+  });
+
+  it("current / legacy 値から現在の subcategory を読める", () => {
+    expect(
+      resolveCurrentItemSubcategoryValue("inner", "roomwear", "underwear"),
+    ).toBe("underwear");
+    expect(resolveCurrentItemSubcategoryValue("bags", "tote", null)).toBe(
+      "tote",
+    );
+    expect(
+      resolveCurrentItemSubcategoryValue("fashion_accessories", "belt", null),
+    ).toBe("belt");
+  });
+
+  it("subcategory から default shape を読める", () => {
+    expect(resolveDefaultShapeForSubcategory("inner", "other")).toBe(
+      "roomwear",
+    );
+    expect(resolveDefaultShapeForSubcategory("shoes", "boots")).toBe(
+      "short-boots",
+    );
+  });
+
+  it("current / legacy item から visible category id を読める", () => {
+    expect(
+      resolveVisibleCategoryIdForItem("inner", "roomwear", "underwear"),
+    ).toBe("roomwear_inner_underwear");
+    expect(resolveVisibleCategoryIdForItem("bags", "tote")).toBe("bags_tote");
+    expect(resolveVisibleCategoryIdForItem("accessories", "hat")).toBe(
+      "fashion_accessories_hat",
     );
   });
 });
