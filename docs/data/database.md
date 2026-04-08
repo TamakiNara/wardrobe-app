@@ -404,6 +404,7 @@ wear logs も本資料の対象とし、その保存方針を定義します。
 
 - つまり `roomwear_inner_*` は表示設定用 ID、`inner + subcategory` は item 側の正本概念、`inner_*` は legacy bridge として役割を分けて読む
 - 変換規則の正本化方針としては、item 実データの意味づけは backend 側に寄せ、frontend 側は表示用の派生として読む第一候補を維持する
+- `legacy〜` 命名は移行互換用 / 後方互換用であり、恒久的に残す正本概念ではない。staged rollout と旧データ互換のため当面は維持するが、旧 category / shape / subcategory の移行完了、一覧 / filter / 表示 / item draft での legacy bridge 不要化、frontend / backend の派生ヘルパーからの legacy 依存解消を満たした段階で削除対象として扱う。新規実装では `legacy〜` 命名のコードを増やさない方針を維持する。
 - 第一候補の責務分担は次のとおり
 
 | 区分 | 主な正本 / 派生先 | 読み方 |

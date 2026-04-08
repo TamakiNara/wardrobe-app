@@ -369,6 +369,12 @@ thumbnail の現状確認用パターン一覧を見返すときは `docs/specs/
 - 正本概念として優先するのは、item 側では `category = inner` と `subcategory = roomwear / underwear / pajamas / other` の組み合わせである
 - `roomwear_inner_*` は表示設定と category master で使う ID であり、item の保存値そのものではない
 - `inner_*` は legacy bridge として読み、後方互換の責務に限定する
+
+- `legacy〜` 命名のコードは、段階移行と後方互換のために当面維持している互換コードであり、恒久的な正本として増やし続ける前提ではない
+- 削除条件の第一候補は、旧 category / shape / subcategory の移行が完了し、一覧 / filter / 表示 / item draft で legacy bridge を通さなくても current の解釈だけで成立する状態である
+- backend / frontend の派生ヘルパーが legacy 解釈に依存しなくなった段階で、`legacy〜` 命名のコードは段階的な削除対象として扱う
+- そのため、新規実装では `legacy〜` 命名のコードを増やすのではなく、既存の互換コードを減らす方向を優先する
+
 ### 設計負債 TODO の整理
 
 | 優先度 | 論点 | current の分散先 / 症状 | 後続で目指したい方向 |
