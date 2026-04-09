@@ -362,7 +362,9 @@ describe("NewItemPage", () => {
     );
     expect(container.innerHTML).toContain('href="/items"');
     expect(container.textContent).toContain("一覧に戻る");
-    expect(container.textContent).not.toContain("詳細属性");
+    expect(container.textContent).toContain(
+      "カテゴリ・種類・形を決めると、現在の分類条件に応じた属性が続けて表示されます。",
+    );
     expect(container.textContent).toContain("色とプレビュー");
     expect(container.textContent).toContain("利用条件・状態");
     expect(container.textContent).toContain("サイズ");
@@ -522,7 +524,9 @@ describe("NewItemPage", () => {
       await waitForEffects();
     });
 
-    expect(container.textContent).not.toContain("詳細属性");
+    expect(container.textContent).toContain(
+      "カテゴリ・種類・形を決めると、現在の分類条件に応じた属性が続けて表示されます。",
+    );
 
     const categorySelect =
       container.querySelector<HTMLSelectElement>("#category");
@@ -546,11 +550,7 @@ describe("NewItemPage", () => {
       await waitForEffects();
     });
 
-    expect(container.textContent).toContain("ボトムス仕様");
     expect(container.textContent).toContain("ボトムス丈");
-    expect(container.textContent).toContain(
-      "ボトムスを選んだ場合は、丈を選択してください。",
-    );
     expect(container.querySelector("#bottoms-length-type")).not.toBeNull();
     expect(container.querySelector("#legwear-coverage-type")).toBeNull();
     expect(
@@ -580,7 +580,6 @@ describe("NewItemPage", () => {
     });
 
     expect(shapeSelect!.value).toBe("socks");
-    expect(container.textContent).toContain("レッグウェア仕様");
     expect(container.textContent).toContain("レッグウェア");
     expect(container.textContent).toContain(
       "ソックスの長さを選択してください。",
@@ -597,7 +596,9 @@ describe("NewItemPage", () => {
 
     expect(shapeSelect!.value).toBe("tights");
     expect(container.querySelector("#legwear-coverage-type")).toBeNull();
-    expect(container.textContent).not.toContain("レッグウェア仕様");
+    expect(container.textContent).not.toContain(
+      "ソックスの長さを選択してください。",
+    );
   });
 
   it("認証切れで TPO 取得が失敗した場合はログインへ戻す", async () => {

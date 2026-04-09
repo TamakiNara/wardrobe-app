@@ -426,7 +426,9 @@ describe("EditItemPage", () => {
     expect(materialInput?.value).toBe("綿");
     expect(container.textContent).toContain("形");
     expect(container.textContent).toContain("分類");
-    expect(container.textContent).toContain("詳細属性");
+    expect(container.textContent).toContain(
+      "カテゴリ・種類・形を決めると、現在の分類条件に応じた属性が続けて表示されます。",
+    );
     expect(container.textContent).toContain("色とプレビュー");
     expect(container.textContent).toContain("利用条件・状態");
     expect(container.textContent).toContain("サイズ");
@@ -538,7 +540,6 @@ describe("EditItemPage", () => {
     const legwearSubcategorySelect =
       container.querySelector<HTMLSelectElement>("#subcategory");
     expect(legwearSubcategorySelect?.value).toBe("socks");
-    expect(container.textContent).toContain("レッグウェア仕様");
     expect(container.textContent).toContain(
       "ソックスの長さを選択してください。",
     );

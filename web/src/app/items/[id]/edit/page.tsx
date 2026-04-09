@@ -41,6 +41,7 @@ import BrandNameField from "@/components/items/brand-name-field";
 import ColorChip from "@/components/items/color-chip";
 import ColorSelect from "@/components/items/color-select";
 import ItemImageUploader from "@/components/items/item-image-uploader";
+import ItemClassificationGroup from "@/components/items/item-classification-group";
 import ItemFormPreviewPanel from "@/components/items/item-form-preview-panel";
 import ItemFormSection from "@/components/items/item-form-section";
 import ItemMaterialFields from "@/components/items/item-material-fields";
@@ -1327,7 +1328,251 @@ export default function EditItemPage({
               />
             </ItemFormSection>
 
-            <ItemFormSection title="分類">
+            <ItemClassificationGroup
+              attributeSection={
+                shouldShowDetailsSection ? (
+                  <div className="space-y-4">
+                    {isTopsCategory && (
+                      <div className="space-y-4 rounded-xl border border-gray-200/80 bg-gray-50/70 p-4">
+                        <div className="grid gap-4 md:grid-cols-2">
+                          <div>
+                            <label
+                              htmlFor="tops-sleeve"
+                              className="mb-1 block text-sm font-medium text-gray-700"
+                            >
+                              袖
+                            </label>
+                            <select
+                              id="tops-sleeve"
+                              value={topsSleeve}
+                              onChange={(e) =>
+                                setTopsSleeve(
+                                  e.target.value as TopsSleeveValue | "",
+                                )
+                              }
+                              disabled={!topsShape}
+                              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                            >
+                              <option value="">選択してください</option>
+                              {availableTopsSleeves.map((item) => (
+                                <option key={item.value} value={item.value}>
+                                  {item.label}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+
+                          <div>
+                            <label
+                              htmlFor="tops-length"
+                              className="mb-1 block text-sm font-medium text-gray-700"
+                            >
+                              丈
+                            </label>
+                            <select
+                              id="tops-length"
+                              value={topsLength}
+                              onChange={(e) =>
+                                setTopsLength(
+                                  e.target.value as TopsLengthValue | "",
+                                )
+                              }
+                              disabled={!topsShape}
+                              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                            >
+                              <option value="">選択してください</option>
+                              {availableTopsLengths.map((item) => (
+                                <option key={item.value} value={item.value}>
+                                  {item.label}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+
+                          <div>
+                            <label
+                              htmlFor="tops-neck"
+                              className="mb-1 block text-sm font-medium text-gray-700"
+                            >
+                              首元
+                            </label>
+                            <select
+                              id="tops-neck"
+                              value={topsNeck}
+                              onChange={(e) =>
+                                setTopsNeck(
+                                  e.target.value as TopsNeckValue | "",
+                                )
+                              }
+                              disabled={!topsShape}
+                              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                            >
+                              <option value="">選択してください</option>
+                              {availableTopsNecks.map((item) => (
+                                <option key={item.value} value={item.value}>
+                                  {item.label}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+
+                          <div>
+                            <label
+                              htmlFor="tops-design"
+                              className="mb-1 block text-sm font-medium text-gray-700"
+                            >
+                              デザイン
+                            </label>
+                            <select
+                              id="tops-design"
+                              value={topsDesign}
+                              onChange={(e) =>
+                                setTopsDesign(
+                                  e.target.value as TopsDesignValue | "",
+                                )
+                              }
+                              disabled={
+                                !topsShape || availableTopsDesigns.length === 0
+                              }
+                              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                            >
+                              <option value="">
+                                {availableTopsDesigns.length
+                                  ? "選択してください"
+                                  : "選択肢がありません"}
+                              </option>
+                              {availableTopsDesigns.map((item) => (
+                                <option key={item.value} value={item.value}>
+                                  {item.label}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+
+                          <div>
+                            <label
+                              htmlFor="tops-fit"
+                              className="mb-1 block text-sm font-medium text-gray-700"
+                            >
+                              シルエット
+                            </label>
+                            <select
+                              id="tops-fit"
+                              value={topsFit}
+                              onChange={(e) =>
+                                setTopsFit(e.target.value as TopsFitValue)
+                              }
+                              disabled={!topsShape}
+                              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                            >
+                              {availableTopsFits.map((item) => (
+                                <option key={item.value} value={item.value}>
+                                  {item.label}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {isBottomsSpecVisible ? (
+                      <div className="space-y-4 rounded-xl border border-gray-200/80 bg-gray-50/70 p-4">
+                        <div>
+                          <FieldLabel
+                            htmlFor="bottoms-length-type"
+                            label="ボトムス丈"
+                            required={isBottomsLengthTypeRequired(category)}
+                          />
+                          <select
+                            id="bottoms-length-type"
+                            value={bottomsLengthType}
+                            onChange={(e) =>
+                              setBottomsLengthType(
+                                e.target.value as BottomsLengthType | "",
+                              )
+                            }
+                            onBlur={() =>
+                              clearErrorsFor(["spec.bottoms.length_type"])
+                            }
+                            onChangeCapture={() =>
+                              clearErrorsFor(["spec.bottoms.length_type"])
+                            }
+                            className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors["spec.bottoms.length_type"] ? "border-red-400" : "border-gray-300"}`}
+                          >
+                            <option value="">丈を選択してください</option>
+                            {BOTTOMS_LENGTH_OPTIONS.map((item) => (
+                              <option key={item.value} value={item.value}>
+                                {item.label}
+                              </option>
+                            ))}
+                          </select>
+                          {errors["spec.bottoms.length_type"] && (
+                            <p className="mt-2 text-sm text-red-600">
+                              {errors["spec.bottoms.length_type"]}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    ) : null}
+
+                    {isLegwearSpecVisible ? (
+                      <div className="space-y-4 rounded-xl border border-gray-200/80 bg-gray-50/70 p-4">
+                        {isLegwearCoverageSelectVisible ? (
+                          <div data-error-key="spec.legwear.coverage_type">
+                            <FieldLabel
+                              htmlFor="legwear-coverage-type"
+                              label="レッグウェア"
+                              required={isLegwearCoverageRequired}
+                            />
+                            <p className="mb-2 text-xs text-gray-500">
+                              {shape === "leggings"
+                                ? "レギンスの長さを選択してください。"
+                                : "ソックスの長さを選択してください。"}
+                            </p>
+                            <select
+                              id="legwear-coverage-type"
+                              value={legwearCoverageType}
+                              onChange={(e) =>
+                                setLegwearCoverageType(
+                                  e.target.value as LegwearCoverageType | "",
+                                )
+                              }
+                              onBlur={() =>
+                                clearErrorsFor(["spec.legwear.coverage_type"])
+                              }
+                              onChangeCapture={() =>
+                                clearErrorsFor(["spec.legwear.coverage_type"])
+                              }
+                              className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors["spec.legwear.coverage_type"] ? "border-red-400" : "border-gray-300"}`}
+                            >
+                              <option value="">種類を選択してください</option>
+                              {legwearCoverageOptions.map((item) => (
+                                <option key={item.value} value={item.value}>
+                                  {item.label}
+                                </option>
+                              ))}
+                            </select>
+                            {errors["spec.legwear.coverage_type"] && (
+                              <p className="mt-2 text-sm text-red-600">
+                                {errors["spec.legwear.coverage_type"]}
+                              </p>
+                            )}
+                          </div>
+                        ) : null}
+                      </div>
+                    ) : null}
+                  </div>
+                ) : undefined
+              }
+              attributePlaceholder={
+                <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50/70 px-4 py-3 text-sm text-gray-500">
+                  {category
+                    ? "現在の分類では、追加で選ぶ属性はありません。"
+                    : "カテゴリ・種類・形を選ぶと、必要な属性がここに表示されます。"}
+                </div>
+              }
+            >
               <div data-error-key="category">
                 <FieldLabel htmlFor="category" label="カテゴリ" required />
                 <select
@@ -1450,259 +1695,7 @@ export default function EditItemPage({
                   <p className="mt-2 text-sm text-red-600">{errors.shape}</p>
                 )}
               </div>
-            </ItemFormSection>
-
-            {shouldShowDetailsSection ? (
-              <ItemFormSection title="詳細属性">
-                {isTopsCategory && (
-                  <div className="space-y-4 rounded-xl border border-gray-200 bg-gray-50 p-4">
-                    <div data-error-key="spec.bottoms.length_type">
-                      <p className="text-sm font-medium text-gray-700">
-                        トップス仕様
-                      </p>
-                      <p className="mt-1 text-xs text-gray-500">
-                        保存済みのトップス仕様を編集しながら、袖・丈・首回り・デザイン・シルエットを
-                        preview に反映します。
-                      </p>
-                    </div>
-
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <div>
-                        <label
-                          htmlFor="tops-sleeve"
-                          className="mb-1 block text-sm font-medium text-gray-700"
-                        >
-                          袖
-                        </label>
-                        <select
-                          id="tops-sleeve"
-                          value={topsSleeve}
-                          onChange={(e) =>
-                            setTopsSleeve(
-                              e.target.value as TopsSleeveValue | "",
-                            )
-                          }
-                          disabled={!topsShape}
-                          className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                        >
-                          <option value="">選択してください</option>
-                          {availableTopsSleeves.map((item) => (
-                            <option key={item.value} value={item.value}>
-                              {item.label}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
-                      <div>
-                        <label
-                          htmlFor="tops-length"
-                          className="mb-1 block text-sm font-medium text-gray-700"
-                        >
-                          丈
-                        </label>
-                        <select
-                          id="tops-length"
-                          value={topsLength}
-                          onChange={(e) =>
-                            setTopsLength(
-                              e.target.value as TopsLengthValue | "",
-                            )
-                          }
-                          disabled={!topsShape}
-                          className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                        >
-                          <option value="">選択してください</option>
-                          {availableTopsLengths.map((item) => (
-                            <option key={item.value} value={item.value}>
-                              {item.label}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
-                      <div>
-                        <label
-                          htmlFor="tops-neck"
-                          className="mb-1 block text-sm font-medium text-gray-700"
-                        >
-                          首元
-                        </label>
-                        <select
-                          id="tops-neck"
-                          value={topsNeck}
-                          onChange={(e) =>
-                            setTopsNeck(e.target.value as TopsNeckValue | "")
-                          }
-                          disabled={!topsShape}
-                          className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                        >
-                          <option value="">選択してください</option>
-                          {availableTopsNecks.map((item) => (
-                            <option key={item.value} value={item.value}>
-                              {item.label}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
-                      <div>
-                        <label
-                          htmlFor="tops-design"
-                          className="mb-1 block text-sm font-medium text-gray-700"
-                        >
-                          デザイン
-                        </label>
-                        <select
-                          id="tops-design"
-                          value={topsDesign}
-                          onChange={(e) =>
-                            setTopsDesign(
-                              e.target.value as TopsDesignValue | "",
-                            )
-                          }
-                          disabled={
-                            !topsShape || availableTopsDesigns.length === 0
-                          }
-                          className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                        >
-                          <option value="">
-                            {availableTopsDesigns.length
-                              ? "選択してください"
-                              : "選択肢がありません"}
-                          </option>
-                          {availableTopsDesigns.map((item) => (
-                            <option key={item.value} value={item.value}>
-                              {item.label}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
-                      <div>
-                        <label
-                          htmlFor="tops-fit"
-                          className="mb-1 block text-sm font-medium text-gray-700"
-                        >
-                          シルエット
-                        </label>
-                        <select
-                          id="tops-fit"
-                          value={topsFit}
-                          onChange={(e) =>
-                            setTopsFit(e.target.value as TopsFitValue)
-                          }
-                          disabled={!topsShape}
-                          className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                        >
-                          {availableTopsFits.map((item) => (
-                            <option key={item.value} value={item.value}>
-                              {item.label}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {isBottomsSpecVisible ? (
-                  <div className="space-y-4 rounded-xl border border-gray-200 bg-gray-50 p-4">
-                    <p className="text-sm font-medium text-gray-700">
-                      ボトムス仕様
-                    </p>
-                    <div>
-                      <FieldLabel
-                        htmlFor="bottoms-length-type"
-                        label="ボトムス丈"
-                        required={isBottomsLengthTypeRequired(category)}
-                      />
-                      <p className="mb-2 text-xs text-gray-500">
-                        ボトムスを選んだ場合は、丈を選択してください。
-                      </p>
-                      <select
-                        id="bottoms-length-type"
-                        value={bottomsLengthType}
-                        onChange={(e) =>
-                          setBottomsLengthType(
-                            e.target.value as BottomsLengthType | "",
-                          )
-                        }
-                        onBlur={() =>
-                          clearErrorsFor(["spec.bottoms.length_type"])
-                        }
-                        onChangeCapture={() =>
-                          clearErrorsFor(["spec.bottoms.length_type"])
-                        }
-                        className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors["spec.bottoms.length_type"] ? "border-red-400" : "border-gray-300"}`}
-                      >
-                        <option value="">丈を選択してください</option>
-                        {BOTTOMS_LENGTH_OPTIONS.map((item) => (
-                          <option key={item.value} value={item.value}>
-                            {item.label}
-                          </option>
-                        ))}
-                      </select>
-                      {errors["spec.bottoms.length_type"] && (
-                        <p className="mt-2 text-sm text-red-600">
-                          {errors["spec.bottoms.length_type"]}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                ) : null}
-
-                {isLegwearSpecVisible ? (
-                  <div className="space-y-4 rounded-xl border border-gray-200 bg-gray-50 p-4">
-                    <p className="text-sm font-medium text-gray-700">
-                      レッグウェア仕様
-                    </p>
-                    {isLegwearCoverageSelectVisible ? (
-                      <div data-error-key="spec.legwear.coverage_type">
-                        <FieldLabel
-                          htmlFor="legwear-coverage-type"
-                          label="レッグウェア"
-                          required={isLegwearCoverageRequired}
-                        />
-                        <p className="mb-2 text-xs text-gray-500">
-                          {shape === "leggings"
-                            ? "レギンスの長さを選択してください。"
-                            : "ソックスの長さを選択してください。"}
-                        </p>
-                        <select
-                          id="legwear-coverage-type"
-                          value={legwearCoverageType}
-                          onChange={(e) =>
-                            setLegwearCoverageType(
-                              e.target.value as LegwearCoverageType | "",
-                            )
-                          }
-                          onBlur={() =>
-                            clearErrorsFor(["spec.legwear.coverage_type"])
-                          }
-                          onChangeCapture={() =>
-                            clearErrorsFor(["spec.legwear.coverage_type"])
-                          }
-                          className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors["spec.legwear.coverage_type"] ? "border-red-400" : "border-gray-300"}`}
-                        >
-                          <option value="">種類を選択してください</option>
-                          {legwearCoverageOptions.map((item) => (
-                            <option key={item.value} value={item.value}>
-                              {item.label}
-                            </option>
-                          ))}
-                        </select>
-                        {errors["spec.legwear.coverage_type"] && (
-                          <p className="mt-2 text-sm text-red-600">
-                            {errors["spec.legwear.coverage_type"]}
-                          </p>
-                        )}
-                      </div>
-                    ) : null}
-                  </div>
-                ) : null}
-              </ItemFormSection>
-            ) : null}
+            </ItemClassificationGroup>
 
             <ItemFormSection title="色とプレビュー">
               <div className="grid gap-6 md:grid-cols-2">
