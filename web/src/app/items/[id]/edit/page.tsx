@@ -513,7 +513,10 @@ export default function EditItemPage({
         }
 
         if (currentCategory === "tops") {
-          const resolvedShape = (tops?.shape ?? currentShape) as TopsShapeValue;
+          const resolvedShape =
+            currentSubcategory === "other"
+              ? ""
+              : ((tops?.shape ?? currentShape) as TopsShapeValue);
           setTopsShape(resolvedShape);
 
           const rule = TOPS_RULES[resolvedShape];

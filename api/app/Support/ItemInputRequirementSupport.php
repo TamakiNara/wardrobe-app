@@ -127,7 +127,6 @@ class ItemInputRequirementSupport
             'vest_gilet' => 'camisole',
             'camisole' => 'camisole',
             'tanktop' => 'tanktop',
-            'other' => 'tshirt',
         ],
         'pants' => [
             'pants' => 'pants',
@@ -298,6 +297,11 @@ class ItemInputRequirementSupport
 
         if (self::isRequired($category, $subcategory)) {
             return null;
+        }
+
+        // 一時対応: tops + other の未指定 shape は、null 許容化まで空文字で保存する。
+        if ($category === 'tops' && $subcategory === 'other') {
+            return '';
         }
 
         return self::defaultShapeFor($category, $subcategory) ?? self::fallbackShapeFor($category);

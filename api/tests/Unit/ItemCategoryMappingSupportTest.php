@@ -61,9 +61,16 @@ class ItemCategoryMappingSupportTest extends TestCase
             'roomwear',
             ItemInputRequirementSupport::defaultShapeFor('inner', 'roomwear')
         );
+        $this->assertNull(
+            ItemInputRequirementSupport::defaultShapeFor('tops', 'other')
+        );
         $this->assertSame(
             'bag',
             ItemInputRequirementSupport::fallbackShapeFor('bags')
+        );
+        $this->assertSame(
+            '',
+            ItemInputRequirementSupport::resolveForSave('tops', 'other', '')
         );
     }
 
@@ -85,6 +92,15 @@ class ItemCategoryMappingSupportTest extends TestCase
                 'subcategory' => 'other',
             ],
             PurchaseCandidateCategoryMap::resolveItemDraftCategory('roomwear_inner_other')
+        );
+
+        $this->assertSame(
+            [
+                'category' => 'tops',
+                'shape' => '',
+                'subcategory' => 'other',
+            ],
+            PurchaseCandidateCategoryMap::resolveItemDraftCategory('tops_other')
         );
 
         $this->assertSame(

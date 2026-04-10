@@ -46,6 +46,9 @@ describe("current item read model", () => {
     expect(resolveCurrentItemSubcategoryValue("tops", "polo", null)).toBe(
       "polo_shirt",
     );
+    expect(resolveCurrentItemSubcategoryValue("tops", "", "other")).toBe(
+      "other",
+    );
   });
 
   it("subcategory から default shape を読める", () => {
@@ -56,6 +59,7 @@ describe("current item read model", () => {
       "short-boots",
     );
     expect(resolveDefaultShapeForSubcategory("tops", "hoodie")).toBe("hoodie");
+    expect(resolveDefaultShapeForSubcategory("tops", "other")).toBeNull();
   });
 
   it("current / legacy item から visible category id を読める", () => {
@@ -68,6 +72,9 @@ describe("current item read model", () => {
     );
     expect(resolveVisibleCategoryIdForItem("tops", "vest")).toBe(
       "tops_vest_gilet",
+    );
+    expect(resolveVisibleCategoryIdForItem("tops", "", "other")).toBe(
+      "tops_other",
     );
   });
 });

@@ -905,6 +905,33 @@ class ItemsEndpointsTest extends TestCase
             ->assertJsonPath('item.shape', 'jacket');
     }
 
+    public function test_post_items_can_save_tops_other_with_unspecified_shape(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/items', [
+            'name' => '分類保留トップス',
+            'category' => 'tops',
+            'subcategory' => 'other',
+            'shape' => '',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'black',
+                'hex' => '#111111',
+                'label' => 'ブラック',
+            ]],
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('item.subcategory', 'other')
+            ->assertJsonPath('item.shape', '');
+    }
+
     public function test_post_items_can_save_kimono_other_without_explicit_shape(): void
     {
         $user = User::factory()->create();

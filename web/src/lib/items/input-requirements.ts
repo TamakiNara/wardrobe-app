@@ -82,6 +82,10 @@ export function resolveItemShapeForSubmit(
 
   const normalizedSubcategory = normalizeItemSubcategory(category, subcategory);
 
+  if (category === "tops" && normalizedSubcategory === "other") {
+    return "";
+  }
+
   if (isItemShapeRequired(category, normalizedSubcategory)) {
     return "";
   }

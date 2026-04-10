@@ -54,7 +54,7 @@ describe("item input requirements", () => {
     expect(resolveItemShapeForSubmit("inner", "roomwear", "")).toBe("roomwear");
     expect(resolveItemShapeForSubmit("inner", "other", "")).toBe("roomwear");
     expect(resolveItemShapeForSubmit("inner", null, "")).toBe("roomwear");
-    expect(resolveItemShapeForSubmit("tops", "other", "")).toBe("tshirt");
+    expect(resolveItemShapeForSubmit("tops", "other", "")).toBe("");
     expect(resolveItemShapeForSubmit("kimono", "other", "")).toBe("kimono");
   });
 });

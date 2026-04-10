@@ -1,3 +1,8 @@
+import {
+  isBlankItemShape,
+  normalizeItemShapeValue,
+} from "@/lib/items/item-shape";
+
 const PANTS_LIKE_SHAPES = new Set(["tapered", "wide", "straight"]);
 const SKIRT_LIKE_SHAPES = new Set([
   "mini-skirt",
@@ -130,7 +135,6 @@ const DEFAULT_SHAPE_BY_SUBCATEGORY: Record<string, Record<string, string>> = {
     vest_gilet: "vest",
     camisole: "camisole",
     tanktop: "tanktop",
-    other: "tshirt",
   },
   pants: {
     pants: "pants",
@@ -214,6 +218,9 @@ const VISIBLE_CATEGORY_ID_BY_SUBCATEGORY: Record<
   string,
   Record<string, string>
 > = {
+  tops: {
+    other: "tops_other",
+  },
   inner: {
     roomwear: "roomwear_inner_roomwear",
     underwear: "roomwear_inner_underwear",
@@ -383,10 +390,14 @@ const KNOWN_SUBCATEGORY_VALUES_BY_CATEGORY: Record<string, Set<string>> = {
       new Set(Object.keys(values)),
     ]),
   ),
+  tops: new Set([
+    ...Object.keys(DEFAULT_SHAPE_BY_SUBCATEGORY.tops ?? {}),
+    "other",
+  ]),
   swimwear: new Set(["swimwear", "rashguard", "other"]),
 };
 
-// frontend では backend 正本の読み替えとして current / legacy の吸収だけを共有する
+// フロントエンドではバックエンド正本の読み替えとして、現行値 / 旧値の吸収だけを共有する
 export function resolveCurrentItemCategoryValue(
   category?: string | null,
   shape?: string | null,
@@ -460,11 +471,16 @@ export function resolveCurrentItemShapeValue(
   category?: string | null,
   shape?: string | null,
 ) {
-  if (!shape) {
+  const normalizedShape = normalizeItemShapeValue(shape);
+
+  if (isBlankItemShape(normalizedShape)) {
     return null;
   }
 
-  const currentCategory = resolveCurrentItemCategoryValue(category, shape);
+  const currentCategory = resolveCurrentItemCategoryValue(
+    category,
+    normalizedShape,
+  );
 
   if (category === "bottoms") {
     return (
@@ -476,7 +492,7 @@ export function resolveCurrentItemShapeValue(
         "tight-skirt": "tight",
         "a-line-skirt": "a_line",
         "flare-skirt": "flare",
-      }[shape] ?? shape
+      }[normalizedShape] ?? normalizedShape
     );
   }
 
@@ -492,7 +508,7 @@ export function resolveCurrentItemShapeValue(
         wide: "wide",
         straight: "straight",
         culottes: "culottes",
-      }[shape] ?? shape
+      }[normalizedShape] ?? normalizedShape
     );
   }
 
@@ -505,7 +521,7 @@ export function resolveCurrentItemShapeValue(
         flare: "flare",
         a_line: "a_line",
         pleated: "pleated",
-      }[shape] ?? shape
+      }[normalizedShape] ?? normalizedShape
     );
   }
 
@@ -517,11 +533,11 @@ export function resolveCurrentItemShapeValue(
         chester: "chester",
         down: "down-padded",
         "outer-cardigan": "blouson",
-      }[shape] ?? shape
+      }[normalizedShape] ?? normalizedShape
     );
   }
 
-  return shape;
+  return normalizedShape;
 }
 
 export function resolveCurrentItemSubcategoryValue(
@@ -546,12 +562,16 @@ export function resolveCurrentItemSubcategoryValue(
     }
   }
 
-  if (!shape) {
+  const normalizedShape = normalizeItemShapeValue(shape);
+
+  if (isBlankItemShape(normalizedShape)) {
     return null;
   }
 
   return (
-    LEGACY_INFERRED_SUBCATEGORY_BY_CATEGORY[currentCategory]?.[shape] ?? null
+    LEGACY_INFERRED_SUBCATEGORY_BY_CATEGORY[currentCategory]?.[
+      normalizedShape
+    ] ?? null
   );
 }
 

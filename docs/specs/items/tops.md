@@ -84,6 +84,9 @@ type ItemSpec = {
 - SVG 表示では shape を起点にベース形状を切り替えます
 - 現在は `tshirt / shirt / blouse / polo / sweatshirt / hoodie / knit / cardigan / vest / camisole / tanktop` の SVG プレビューと shape 連動に対応しています
 - 現行実装では `spec.tops.shape` に種類名を持っていますが、カテゴリ再編の方針としては、種類名として定着しているものは中分類へ寄せ、`spec` 側は首元・袖・fit・丈などの補助属性へ整理していく前提です
+- `tops + other` の shape はドメイン上は「未指定」として扱います
+- 現在は DB の `items.shape` が non-nullable のため、保存時は `""` を使っています
+- `""` は正規の shape 値ではなく、未指定を表す暂定的な保存表現です
 
 ### sleeve
 
@@ -258,6 +261,18 @@ UI ではこのルールに従って選択肢を絞り込みます。
 
 ---
 
+### 未指定 shape の扱い
+
+- frontend では `web/src/lib/items/item-shape.ts` の `isBlankItemShape()` / `normalizeItemShapeValue()` で空文字を未指定として扱います
+- backend では `api/app/Support/ItemInputRequirementSupport.php` の `normalizeShape()` が空文字を `null` に正規化し、`tops + other` の保存時だけ暂定表現として `""` を返します
+- 一覧系では `api/app/Support/ListQuerySupport.php` が falsy な shape を未指定として扱います
+- read model では `web/src/lib/items/current-item-read-model.ts` が blank shape を未指定として扱い、`tops + other` は subcategory から復元します
+
+### 将来の検討事項
+
+- `items.shape` カラムの nullable 化
+- 未指定の表現を `null` または未送信に統一するかの再検討
+- backend / read model / validation を含めた未指定の正式扱いの整理
 ## 現状の実装メモ
 
 - 保存先は `items.spec` JSON

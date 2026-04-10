@@ -114,9 +114,11 @@ class PurchaseCandidateCategoryMap
         $category = is_string($resolved['category'] ?? null) ? $resolved['category'] : null;
         $subcategory = ItemSubcategorySupport::normalize($category, $resolved['subcategory'] ?? null);
         $explicitShape = ItemInputRequirementSupport::normalizeShape($resolved['shape'] ?? null);
-        $shape = $explicitShape
-            ?? ItemInputRequirementSupport::defaultShapeFor($category, $subcategory)
-            ?? ItemInputRequirementSupport::fallbackShapeFor($category);
+        $shape = $category === 'tops' && $subcategory === 'other' && $explicitShape === null
+            ? ''
+            : ($explicitShape
+                ?? ItemInputRequirementSupport::defaultShapeFor($category, $subcategory)
+                ?? ItemInputRequirementSupport::fallbackShapeFor($category));
 
         $normalized = [
             'category' => $category,
