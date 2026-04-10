@@ -945,9 +945,7 @@ describe("編集画面", () => {
 
     const subcategorySelect =
       container.querySelector<HTMLSelectElement>("#subcategory");
-    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
     expect(subcategorySelect).not.toBeNull();
-    expect(shapeSelect).not.toBeNull();
 
     await act(async () => {
       subcategorySelect!.value = "polo_shirt";
@@ -955,12 +953,35 @@ describe("編集画面", () => {
       await waitForEffects();
     });
 
-    const topsNeckSelect =
-      container.querySelector<HTMLSelectElement>("#tops-neck");
+    let shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
+    expect(shapeSelect).not.toBeNull();
     expect(shapeSelect!.value).toBe("polo");
-    expect(topsNeckSelect).not.toBeNull();
-    expect(topsNeckSelect!.value).toBe("collar");
+    expect(container.querySelector("#tops-neck")).toBeNull();
     expect(container.querySelector("#tops-design")).toBeNull();
+
+    await act(async () => {
+      subcategorySelect!.value = "tanktop";
+      subcategorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    const tanktopNeckSelect =
+      container.querySelector<HTMLSelectElement>("#tops-neck");
+    expect(tanktopNeckSelect).not.toBeNull();
+    expect(
+      Array.from(tanktopNeckSelect!.options).map((option) => option.value),
+    ).toEqual([
+      "",
+      "crew",
+      "v",
+      "u",
+      "square",
+      "boat",
+      "highneck",
+      "halter",
+      "mock",
+    ]);
+    expect(container.querySelector("#tops-fit")).toBeNull();
 
     await act(async () => {
       subcategorySelect!.value = "other";
@@ -968,7 +989,8 @@ describe("編集画面", () => {
       await waitForEffects();
     });
 
-    expect(shapeSelect!.value).toBe("");
+    expect(container.querySelector("#shape")).toBeNull();
+    expect(container.querySelector("#tops-neck")).toBeNull();
   });
 
   it("編集画面でも shoes は種類ラジオに応じて shape を自動設定できる", async () => {

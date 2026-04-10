@@ -257,6 +257,8 @@ export default function EditItemPage({
   const isShapeAutoSelected =
     currentShapeOptions.length === 1 &&
     currentShapeOptions[0]?.value === currentShapeValue;
+  const shouldShowShapeField =
+    !isTopsCategory || effectiveSubcategory !== "other";
 
   const selectedMainColor = useMemo(() => {
     if (useCustomMainColor) {
@@ -307,7 +309,8 @@ export default function EditItemPage({
   const shouldShowTopsLengthField = availableTopsLengths.length > 1;
   const shouldShowTopsNeckField = availableTopsNecks.length > 1;
   const shouldShowTopsDesignField = availableTopsDesigns.length > 1;
-  const shouldShowTopsFitField = availableTopsFits.length > 1;
+  const shouldShowTopsFitField =
+    availableTopsFits.length > 1 && topsShape !== "tanktop";
   const isTopsDetailsVisible =
     shouldShowTopsSleeveField ||
     shouldShowTopsLengthField ||
@@ -1677,43 +1680,45 @@ export default function EditItemPage({
                 </div>
               ) : null}
 
-              <div data-error-key="shape">
-                <FieldLabel
-                  htmlFor="shape"
-                  label="形"
-                  required={isShapeRequired && !isShapeAutoSelected}
-                />
-                <select
-                  id="shape"
-                  value={currentShapeValue}
-                  onChange={(e) =>
-                    isTopsCategory
-                      ? handleTopsShapeChange(e.target.value)
-                      : handleShapeChange(e.target.value)
-                  }
-                  disabled={
-                    !category ||
-                    currentShapeOptions.length === 0 ||
-                    isShapeAutoSelected
-                  }
-                  className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors.shape ? "border-red-400" : "border-gray-300"}`}
-                >
-                  <option value="">選択してください</option>
-                  {currentShapeOptions.map((item) => (
-                    <option key={item.value} value={item.value}>
-                      {item.label}
-                    </option>
-                  ))}
-                </select>
-                {isShapeAutoSelected && (
-                  <p className="mt-2 text-xs text-gray-500">
-                    種類に応じて自動で設定されます。
-                  </p>
-                )}
-                {errors.shape && (
-                  <p className="mt-2 text-sm text-red-600">{errors.shape}</p>
-                )}
-              </div>
+              {shouldShowShapeField ? (
+                <div data-error-key="shape">
+                  <FieldLabel
+                    htmlFor="shape"
+                    label="形"
+                    required={isShapeRequired && !isShapeAutoSelected}
+                  />
+                  <select
+                    id="shape"
+                    value={currentShapeValue}
+                    onChange={(e) =>
+                      isTopsCategory
+                        ? handleTopsShapeChange(e.target.value)
+                        : handleShapeChange(e.target.value)
+                    }
+                    disabled={
+                      !category ||
+                      currentShapeOptions.length === 0 ||
+                      isShapeAutoSelected
+                    }
+                    className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors.shape ? "border-red-400" : "border-gray-300"}`}
+                  >
+                    <option value="">選択してください</option>
+                    {currentShapeOptions.map((item) => (
+                      <option key={item.value} value={item.value}>
+                        {item.label}
+                      </option>
+                    ))}
+                  </select>
+                  {isShapeAutoSelected && (
+                    <p className="mt-2 text-xs text-gray-500">
+                      種類に応じて自動で設定されます。
+                    </p>
+                  )}
+                  {errors.shape && (
+                    <p className="mt-2 text-sm text-red-600">{errors.shape}</p>
+                  )}
+                </div>
+              ) : null}
             </ItemClassificationGroup>
 
             <ItemFormSection title="色とプレビュー">

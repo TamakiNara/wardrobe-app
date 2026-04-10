@@ -24,7 +24,7 @@ export const TOPS_RULES: Record<TopsShapeValue, TopsRule> = {
   tshirt: {
     sleeves: ["short", "five", "seven", "long", "sleeveless", "french"],
     lengths: ["short", "normal", "long"],
-    necks: ["crew", "v", "mock", "square"],
+    necks: ["crew", "v", "u", "square", "boat", "henley", "turtle", "mock"],
     designs: [],
     fits: ["normal", "oversized"],
     defaults: {
@@ -38,7 +38,7 @@ export const TOPS_RULES: Record<TopsShapeValue, TopsRule> = {
 
   shirt: {
     sleeves: ["short", "five", "seven", "long"],
-    lengths: ["normal", "long"],
+    lengths: ["short", "normal", "long"],
     necks: ["collar", "crew", "v"],
     designs: [],
     fits: ["normal", "oversized"],
@@ -67,9 +67,9 @@ export const TOPS_RULES: Record<TopsShapeValue, TopsRule> = {
   },
 
   polo: {
-    sleeves: ["short", "five", "long"],
-    lengths: ["normal", "long"],
-    necks: ["collar", "crew"],
+    sleeves: ["short", "five", "seven", "long"],
+    lengths: ["short", "normal", "long"],
+    necks: ["collar"],
     designs: [],
     fits: ["normal"],
     defaults: {
@@ -82,9 +82,9 @@ export const TOPS_RULES: Record<TopsShapeValue, TopsRule> = {
   },
 
   sweatshirt: {
-    sleeves: ["five", "seven", "long"],
-    lengths: ["normal", "long"],
-    necks: ["crew", "mock"],
+    sleeves: ["short", "five", "seven", "long"],
+    lengths: ["short", "normal", "long"],
+    necks: ["crew"],
     designs: [],
     fits: ["normal", "oversized"],
     defaults: {
@@ -97,8 +97,8 @@ export const TOPS_RULES: Record<TopsShapeValue, TopsRule> = {
   },
 
   hoodie: {
-    sleeves: ["five", "seven", "long"],
-    lengths: ["normal", "long"],
+    sleeves: ["short", "five", "seven", "long", "sleeveless"],
+    lengths: ["short", "normal", "long"],
     necks: [],
     designs: [],
     fits: ["normal", "oversized"],
@@ -127,7 +127,7 @@ export const TOPS_RULES: Record<TopsShapeValue, TopsRule> = {
   },
 
   cardigan: {
-    sleeves: ["seven", "long"],
+    sleeves: ["short", "seven", "long"],
     lengths: ["short", "normal", "long"],
     necks: ["v", "crew"],
     designs: [],
@@ -144,13 +144,13 @@ export const TOPS_RULES: Record<TopsShapeValue, TopsRule> = {
   vest: {
     sleeves: [],
     lengths: ["short", "normal", "long"],
-    necks: ["v", "crew", "collar"],
+    necks: ["crew", "v", "boat", "turtle"],
     designs: [],
     fits: ["normal", "oversized"],
     defaults: {
       sleeve: null,
       length: "normal",
-      neck: "v",
+      neck: "crew",
       design: null,
       fit: "normal",
     },
@@ -158,14 +158,14 @@ export const TOPS_RULES: Record<TopsShapeValue, TopsRule> = {
 
   camisole: {
     sleeves: [],
-    lengths: ["short", "normal"],
-    necks: ["crew", "square", "v"],
+    lengths: ["short", "normal", "long"],
+    necks: ["camisole_neck", "square", "v", "halter"],
     designs: [],
     fits: ["normal"],
     defaults: {
       sleeve: null,
       length: "normal",
-      neck: null,
+      neck: "camisole_neck",
       design: null,
       fit: "normal",
     },
@@ -174,7 +174,7 @@ export const TOPS_RULES: Record<TopsShapeValue, TopsRule> = {
   tanktop: {
     sleeves: [],
     lengths: ["short", "normal", "long"],
-    necks: ["crew", "square"],
+    necks: ["crew", "square", "highneck", "mock", "boat", "u", "v", "halter"],
     designs: [],
     fits: ["normal", "oversized"],
     defaults: {

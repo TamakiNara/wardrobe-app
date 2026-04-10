@@ -2,18 +2,58 @@ import { describe, expect, it } from "vitest";
 import { TOPS_RULES } from "./rules";
 
 describe("TOPS_RULES", () => {
-  it("tops subcategory specific rules stay natural", () => {
+  it("tops の種類ごとに首回り・袖・丈の候補を自然に絞り込む", () => {
+    expect(TOPS_RULES.tshirt.necks).toEqual([
+      "crew",
+      "v",
+      "u",
+      "square",
+      "boat",
+      "henley",
+      "turtle",
+      "mock",
+    ]);
     expect(TOPS_RULES.tshirt.necks).not.toContain("collar");
-    expect(TOPS_RULES.tshirt.designs).toEqual([]);
 
-    expect(TOPS_RULES.shirt.necks[0]).toBe("collar");
-    expect(TOPS_RULES.blouse.necks[0]).toBe("collar");
-    expect(TOPS_RULES.polo.necks[0]).toBe("collar");
-    expect(TOPS_RULES.polo.defaults?.neck).toBe("collar");
+    expect(TOPS_RULES.shirt.lengths).toContain("short");
+    expect(TOPS_RULES.cardigan.sleeves).toContain("short");
+
+    expect(TOPS_RULES.polo.sleeves).toContain("seven");
+    expect(TOPS_RULES.polo.lengths).toContain("short");
+    expect(TOPS_RULES.polo.necks).toEqual(["collar"]);
+
+    expect(TOPS_RULES.sweatshirt.sleeves).toContain("short");
+    expect(TOPS_RULES.sweatshirt.lengths).toContain("short");
+    expect(TOPS_RULES.sweatshirt.necks).toEqual(["crew"]);
+
+    expect(TOPS_RULES.hoodie.sleeves).toContain("short");
+    expect(TOPS_RULES.hoodie.sleeves).toContain("sleeveless");
+    expect(TOPS_RULES.hoodie.lengths).toContain("short");
 
     expect(TOPS_RULES.vest.sleeves).toEqual([]);
-    expect(TOPS_RULES.camisole.defaults?.neck).toBeNull();
-    expect(TOPS_RULES.tanktop.necks).toContain("square");
-    expect(TOPS_RULES.tanktop.necks).not.toContain("v");
+    expect(TOPS_RULES.vest.necks).toEqual(["crew", "v", "boat", "turtle"]);
+    expect(TOPS_RULES.vest.defaults?.neck).toBe("crew");
+
+    expect(TOPS_RULES.camisole.necks).toEqual([
+      "camisole_neck",
+      "square",
+      "v",
+      "halter",
+    ]);
+    expect(TOPS_RULES.camisole.lengths).toContain("long");
+    expect(TOPS_RULES.camisole.defaults?.neck).toBe("camisole_neck");
+
+    expect(TOPS_RULES.tanktop.necks).toEqual([
+      "crew",
+      "square",
+      "highneck",
+      "mock",
+      "boat",
+      "u",
+      "v",
+      "halter",
+    ]);
+    expect(TOPS_RULES.tanktop.fits).toEqual(["normal", "oversized"]);
+    expect(TOPS_RULES.tshirt.designs).toEqual([]);
   });
 });

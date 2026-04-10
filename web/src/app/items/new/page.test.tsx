@@ -1254,9 +1254,7 @@ describe("新規登録画面", () => {
 
     const subcategorySelect =
       container.querySelector<HTMLSelectElement>("#subcategory");
-    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
     expect(subcategorySelect).not.toBeNull();
-    expect(shapeSelect).not.toBeNull();
 
     await act(async () => {
       subcategorySelect!.value = "polo_shirt";
@@ -1264,14 +1262,10 @@ describe("新規登録画面", () => {
       await waitForEffects();
     });
 
-    const topsNeckSelect =
-      container.querySelector<HTMLSelectElement>("#tops-neck");
+    let shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
+    expect(shapeSelect).not.toBeNull();
     expect(shapeSelect!.value).toBe("polo");
-    expect(topsNeckSelect).not.toBeNull();
-    expect(topsNeckSelect!.value).toBe("collar");
-    expect(
-      Array.from(topsNeckSelect!.options).map((option) => option.value),
-    ).toContain("collar");
+    expect(container.querySelector("#tops-neck")).toBeNull();
     expect(container.querySelector("#tops-design")).toBeNull();
 
     await act(async () => {
@@ -1280,8 +1274,17 @@ describe("新規登録画面", () => {
       await waitForEffects();
     });
 
+    shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
+    const vestNeckSelect =
+      container.querySelector<HTMLSelectElement>("#tops-neck");
+    expect(shapeSelect).not.toBeNull();
     expect(shapeSelect!.value).toBe("vest");
     expect(container.querySelector("#tops-sleeve")).toBeNull();
+    expect(vestNeckSelect).not.toBeNull();
+    expect(vestNeckSelect!.value).toBe("crew");
+    expect(
+      Array.from(vestNeckSelect!.options).map((option) => option.value),
+    ).toEqual(["", "crew", "v", "boat", "turtle"]);
 
     await act(async () => {
       subcategorySelect!.value = "tanktop";
@@ -1294,7 +1297,18 @@ describe("新規登録画面", () => {
     expect(tanktopNeckSelect).not.toBeNull();
     expect(
       Array.from(tanktopNeckSelect!.options).map((option) => option.value),
-    ).toEqual(["", "crew", "square"]);
+    ).toEqual([
+      "",
+      "crew",
+      "v",
+      "u",
+      "square",
+      "boat",
+      "highneck",
+      "halter",
+      "mock",
+    ]);
+    expect(container.querySelector("#tops-fit")).toBeNull();
 
     await act(async () => {
       subcategorySelect!.value = "other";
@@ -1302,7 +1316,8 @@ describe("新規登録画面", () => {
       await waitForEffects();
     });
 
-    expect(shapeSelect!.value).toBe("");
+    expect(container.querySelector("#shape")).toBeNull();
+    expect(container.querySelector("#tops-neck")).toBeNull();
   });
 
   it("outerwear の1候補形は自動設定して過剰な選択を求めない", async () => {

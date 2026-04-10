@@ -25,7 +25,7 @@ const TOPS_SHAPE_VALUES_BY_SUBCATEGORY: Record<string, TopsShapeValue[]> = {
   vest_gilet: ["vest"],
   camisole: ["camisole"],
   tanktop: ["tanktop"],
-  other: [...TOPS_SHAPES.map((item) => item.value)],
+  other: [],
 };
 
 export function getTopsShapeOptions(subcategory?: string | null) {
@@ -35,7 +35,7 @@ export function getTopsShapeOptions(subcategory?: string | null) {
 
   const allowedValues = TOPS_SHAPE_VALUES_BY_SUBCATEGORY[subcategory];
 
-  if (!allowedValues?.length) {
+  if (!allowedValues) {
     return TOPS_SHAPES;
   }
 
