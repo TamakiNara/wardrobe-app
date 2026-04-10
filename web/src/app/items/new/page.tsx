@@ -311,6 +311,17 @@ export default function NewItemPage() {
     if (!topsRule) return [];
     return TOPS_FITS.filter((item) => topsRule.fits.includes(item.value));
   }, [topsRule]);
+  const shouldShowTopsSleeveField = availableTopsSleeves.length > 1;
+  const shouldShowTopsLengthField = availableTopsLengths.length > 1;
+  const shouldShowTopsNeckField = availableTopsNecks.length > 1;
+  const shouldShowTopsDesignField = availableTopsDesigns.length > 1;
+  const shouldShowTopsFitField = availableTopsFits.length > 1;
+  const isTopsDetailsVisible =
+    shouldShowTopsSleeveField ||
+    shouldShowTopsLengthField ||
+    shouldShowTopsNeckField ||
+    shouldShowTopsDesignField ||
+    shouldShowTopsFitField;
   const structuredSizeFieldDefinitions = useMemo(
     () => getStructuredSizeFieldDefinitions(category, shape),
     [category, shape],
@@ -627,6 +638,11 @@ export default function NewItemPage() {
   }
 
   function handleSubcategoryChange(nextSubcategory: string) {
+    if (category === "tops" && nextSubcategory === "other") {
+      resetTopsState();
+      setShape("");
+    }
+
     setSubcategory(nextSubcategory);
     clearErrorsFor(["subcategory", "shape"]);
   }
@@ -1186,150 +1202,153 @@ export default function NewItemPage() {
               attributeSection={
                 shouldShowDetailsSection ? (
                   <div className="space-y-4">
-                    {isTopsCategory && (
+                    {isTopsCategory && isTopsDetailsVisible && (
                       <div className="space-y-4 rounded-xl border border-gray-200/80 bg-gray-50/70 p-4">
                         <div className="grid gap-4 md:grid-cols-2">
-                          <div>
-                            <label
-                              htmlFor="tops-sleeve"
-                              className="mb-1 block text-sm font-medium text-gray-700"
-                            >
-                              袖
-                            </label>
-                            <select
-                              id="tops-sleeve"
-                              value={topsSleeve}
-                              onChange={(e) =>
-                                setTopsSleeve(
-                                  e.target.value as TopsSleeveValue | "",
-                                )
-                              }
-                              disabled={!topsShape}
-                              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                            >
-                              <option value="">選択してください</option>
-                              {availableTopsSleeves.map((item) => (
-                                <option key={item.value} value={item.value}>
-                                  {item.label}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
+                          {shouldShowTopsSleeveField ? (
+                            <div>
+                              <label
+                                htmlFor="tops-sleeve"
+                                className="mb-1 block text-sm font-medium text-gray-700"
+                              >
+                                袖
+                              </label>
+                              <select
+                                id="tops-sleeve"
+                                value={topsSleeve}
+                                onChange={(e) =>
+                                  setTopsSleeve(
+                                    e.target.value as TopsSleeveValue | "",
+                                  )
+                                }
+                                disabled={!topsShape}
+                                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                              >
+                                <option value="">選択してください</option>
+                                {availableTopsSleeves.map((item) => (
+                                  <option key={item.value} value={item.value}>
+                                    {item.label}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          ) : null}
 
-                          <div>
-                            <label
-                              htmlFor="tops-length"
-                              className="mb-1 block text-sm font-medium text-gray-700"
-                            >
-                              丈
-                            </label>
-                            <select
-                              id="tops-length"
-                              value={topsLength}
-                              onChange={(e) =>
-                                setTopsLength(
-                                  e.target.value as TopsLengthValue | "",
-                                )
-                              }
-                              disabled={!topsShape}
-                              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                            >
-                              <option value="">選択してください</option>
-                              {availableTopsLengths.map((item) => (
-                                <option key={item.value} value={item.value}>
-                                  {item.label}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
+                          {shouldShowTopsLengthField ? (
+                            <div>
+                              <label
+                                htmlFor="tops-length"
+                                className="mb-1 block text-sm font-medium text-gray-700"
+                              >
+                                丈
+                              </label>
+                              <select
+                                id="tops-length"
+                                value={topsLength}
+                                onChange={(e) =>
+                                  setTopsLength(
+                                    e.target.value as TopsLengthValue | "",
+                                  )
+                                }
+                                disabled={!topsShape}
+                                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                              >
+                                <option value="">選択してください</option>
+                                {availableTopsLengths.map((item) => (
+                                  <option key={item.value} value={item.value}>
+                                    {item.label}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          ) : null}
 
-                          <div>
-                            <label
-                              htmlFor="tops-neck"
-                              className="mb-1 block text-sm font-medium text-gray-700"
-                            >
-                              首回り
-                            </label>
-                            <select
-                              id="tops-neck"
-                              value={topsNeck}
-                              onChange={(e) =>
-                                setTopsNeck(
-                                  e.target.value as TopsNeckValue | "",
-                                )
-                              }
-                              disabled={!topsShape}
-                              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                            >
-                              <option value="">選択してください</option>
-                              {availableTopsNecks.map((item) => (
-                                <option key={item.value} value={item.value}>
-                                  {item.label}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
+                          {shouldShowTopsNeckField ? (
+                            <div>
+                              <label
+                                htmlFor="tops-neck"
+                                className="mb-1 block text-sm font-medium text-gray-700"
+                              >
+                                首回り
+                              </label>
+                              <select
+                                id="tops-neck"
+                                value={topsNeck}
+                                onChange={(e) =>
+                                  setTopsNeck(
+                                    e.target.value as TopsNeckValue | "",
+                                  )
+                                }
+                                disabled={!topsShape}
+                                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                              >
+                                <option value="">選択してください</option>
+                                {availableTopsNecks.map((item) => (
+                                  <option key={item.value} value={item.value}>
+                                    {item.label}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          ) : null}
 
-                          <div>
-                            <label
-                              htmlFor="tops-design"
-                              className="mb-1 block text-sm font-medium text-gray-700"
-                            >
-                              デザイン
-                            </label>
-                            <select
-                              id="tops-design"
-                              value={topsDesign}
-                              onChange={(e) =>
-                                setTopsDesign(
-                                  e.target.value as TopsDesignValue | "",
-                                )
-                              }
-                              disabled={
-                                !topsShape || availableTopsDesigns.length === 0
-                              }
-                              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                            >
-                              <option value="">
-                                {availableTopsDesigns.length
-                                  ? "未選択"
-                                  : "選択肢がありません"}
-                              </option>
-                              {availableTopsDesigns.map((item) => (
-                                <option key={item.value} value={item.value}>
-                                  {item.label}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
+                          {shouldShowTopsDesignField ? (
+                            <div>
+                              <label
+                                htmlFor="tops-design"
+                                className="mb-1 block text-sm font-medium text-gray-700"
+                              >
+                                デザイン
+                              </label>
+                              <select
+                                id="tops-design"
+                                value={topsDesign}
+                                onChange={(e) =>
+                                  setTopsDesign(
+                                    e.target.value as TopsDesignValue | "",
+                                  )
+                                }
+                                disabled={!topsShape}
+                                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                              >
+                                <option value="">選択してください</option>
+                                {availableTopsDesigns.map((item) => (
+                                  <option key={item.value} value={item.value}>
+                                    {item.label}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          ) : null}
 
-                          <div>
-                            <label
-                              htmlFor="tops-fit"
-                              className="mb-1 block text-sm font-medium text-gray-700"
-                            >
-                              シルエット
-                            </label>
-                            <select
-                              id="tops-fit"
-                              value={topsFit}
-                              onChange={(e) =>
-                                setTopsFit(e.target.value as TopsFitValue)
-                              }
-                              disabled={!topsShape}
-                              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                            >
-                              {availableTopsFits.map((item) => (
-                                <option key={item.value} value={item.value}>
-                                  {item.label}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
+                          {shouldShowTopsFitField ? (
+                            <div>
+                              <label
+                                htmlFor="tops-fit"
+                                className="mb-1 block text-sm font-medium text-gray-700"
+                              >
+                                シルエット
+                              </label>
+                              <select
+                                id="tops-fit"
+                                value={topsFit}
+                                onChange={(e) =>
+                                  setTopsFit(e.target.value as TopsFitValue)
+                                }
+                                disabled={!topsShape}
+                                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                              >
+                                {availableTopsFits.map((item) => (
+                                  <option key={item.value} value={item.value}>
+                                    {item.label}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          ) : null}
                         </div>
                       </div>
                     )}
-
                     {isBottomsSpecVisible ? (
                       <div className="space-y-4 rounded-xl border border-gray-200/80 bg-gray-50/70 p-4">
                         <div>

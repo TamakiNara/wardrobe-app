@@ -129,6 +129,7 @@ type ItemSpec = {
 
 - `crew`
 - `v`
+- `square`
 - `turtle`
 - `mock`
 - `collar`
@@ -137,6 +138,7 @@ type ItemSpec = {
 
 - `crew`: クルーネック
 - `v`: V ネック
+- `square`: スクエアネック
 - `turtle`: タートルネック
 - `mock`: モックネック
 - `collar`: 襟
@@ -145,14 +147,12 @@ type ItemSpec = {
 
 追加デザインです。
 
+現状の item 入力 UI では、候補が 1 つのみのため `design` は表示していません。
+データ構造としては `raglan` を保持できます。
+
 許可値:
 
 - `raglan`
-
-意味:
-
-- `raglan`: ラグランスリーブ
-
 ### fit
 
 シルエットです。
@@ -184,30 +184,28 @@ UI ではこのルールに従って選択肢を絞り込みます。
 
 - sleeve: `short` `five` `seven` `long` `sleeveless` `french`
 - length: `short` `normal` `long`
-- neck: `crew` `v` `mock`
+- neck: `crew` `v` `mock` `square`
 - fit: `normal` `oversized`
-- design: `raglan`
+- design: UI では非表示
 
-### shirt
+### shirt / blouse / polo
 
-- sleeve: `short` `five` `seven` `long`
-- length: `normal` `long`
-- neck: `crew` `v` `collar`
-- fit: `normal` `oversized`
-- design: なし
+- shirt neck: `collar` `crew` `v`
+- blouse neck: `collar` `crew` `v` `mock` `square`
+- polo neck: `collar` `crew`
+- shirt / blouse / polo は `collar` を既定値として扱う
 
-### blouse
+### sweatshirt / hoodie / vest
 
-- sleeve: `short` `five` `seven` `long` `sleeveless` `french`
-- length: `short` `normal` `long`
-- neck: `crew` `v` `mock` `collar`
-- fit: `normal` `oversized`
-- design: なし
+- sweatshirt shape は `sweatshirt` を使う
+- hoodie shape は `hoodie` を使い、neck は選択しない
+- vest shape は `vest` を使い、sleeve は選択しない
 
 ### camisole / tanktop
 
-- sleeve は肩紐系のみ、または sleeve 選択肢が強く制限される
-- neck / design は shape に応じて制約される
+- camisole は neck を未選択から選べる
+- tanktop neck は `crew` `square` を使い、`v` は含めない
+- camisole / tanktop とも sleeve は選択しない
 
 ---
 

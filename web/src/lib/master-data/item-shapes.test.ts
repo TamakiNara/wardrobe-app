@@ -160,10 +160,19 @@ describe("getItemShapeOptions", () => {
 describe("getTopsShapeOptions", () => {
   it("tops の種類に応じて候補を絞り込む", () => {
     expect(getTopsShapeOptions("hoodie").map((item) => item.value)).toEqual([
-      "tshirt",
+      "hoodie",
     ]);
     expect(
       getTopsShapeOptions("shirt_blouse").map((item) => item.value),
     ).toEqual(["shirt", "blouse"]);
+    expect(getTopsShapeOptions("polo_shirt").map((item) => item.value)).toEqual(
+      ["polo"],
+    );
+    expect(
+      getTopsShapeOptions("sweat_trainer").map((item) => item.value),
+    ).toEqual(["sweatshirt"]);
+    expect(getTopsShapeOptions("vest_gilet").map((item) => item.value)).toEqual(
+      ["vest"],
+    );
   });
 });

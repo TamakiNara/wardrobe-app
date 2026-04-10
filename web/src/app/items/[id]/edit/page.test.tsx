@@ -251,7 +251,7 @@ async function waitForEffects() {
   await new Promise((resolve) => setTimeout(resolve, 0));
 }
 
-describe("EditItemPage", () => {
+describe("編集画面", () => {
   let container: HTMLDivElement;
   let root: ReturnType<typeof createRoot>;
 
@@ -426,9 +426,6 @@ describe("EditItemPage", () => {
     expect(materialInput?.value).toBe("綿");
     expect(container.textContent).toContain("形");
     expect(container.textContent).toContain("分類");
-    expect(container.textContent).toContain(
-      "カテゴリ・種類・形を決めると、現在の分類条件に応じた属性が続けて表示されます。",
-    );
     expect(container.textContent).toContain("色とプレビュー");
     expect(container.textContent).toContain("利用条件・状態");
     expect(container.textContent).toContain("サイズ");
@@ -932,6 +929,46 @@ describe("EditItemPage", () => {
     expect(shapeSelect).not.toBeNull();
     expect(shapeSelect!.value).toBe("tshirt");
     expect(container.querySelector("#tops-shape")).toBeNull();
+  });
+
+  it("編集画面でも tops の種類変更に応じて形と候補を連動する", async () => {
+    const { default: EditItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(
+        React.createElement(EditItemPage, {
+          params: Promise.resolve({ id: "1" }),
+        }),
+      );
+      await waitForEffects();
+    });
+
+    const subcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
+    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
+    expect(subcategorySelect).not.toBeNull();
+    expect(shapeSelect).not.toBeNull();
+
+    await act(async () => {
+      subcategorySelect!.value = "polo_shirt";
+      subcategorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    const topsNeckSelect =
+      container.querySelector<HTMLSelectElement>("#tops-neck");
+    expect(shapeSelect!.value).toBe("polo");
+    expect(topsNeckSelect).not.toBeNull();
+    expect(topsNeckSelect!.value).toBe("collar");
+    expect(container.querySelector("#tops-design")).toBeNull();
+
+    await act(async () => {
+      subcategorySelect!.value = "other";
+      subcategorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    expect(shapeSelect!.value).toBe("");
   });
 
   it("編集画面でも shoes は種類ラジオに応じて shape を自動設定できる", async () => {

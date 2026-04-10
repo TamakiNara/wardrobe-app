@@ -271,7 +271,7 @@ function setNativeInputValue(
   descriptor?.set?.call(element, value);
 }
 
-describe("NewItemPage", () => {
+describe("新規登録画面", () => {
   let container: HTMLDivElement;
   let root: ReturnType<typeof createRoot>;
 
@@ -362,9 +362,6 @@ describe("NewItemPage", () => {
     );
     expect(container.innerHTML).toContain('href="/items"');
     expect(container.textContent).toContain("一覧に戻る");
-    expect(container.textContent).toContain(
-      "カテゴリ・種類・形を決めると、現在の分類条件に応じた属性が続けて表示されます。",
-    );
     expect(container.textContent).toContain("色とプレビュー");
     expect(container.textContent).toContain("利用条件・状態");
     expect(container.textContent).toContain("サイズ");
@@ -523,10 +520,6 @@ describe("NewItemPage", () => {
       root.render(React.createElement(NewItemPage));
       await waitForEffects();
     });
-
-    expect(container.textContent).toContain(
-      "カテゴリ・種類・形を決めると、現在の分類条件に応じた属性が続けて表示されます。",
-    );
 
     const categorySelect =
       container.querySelector<HTMLSelectElement>("#category");
@@ -1202,7 +1195,7 @@ describe("NewItemPage", () => {
     ).toEqual([""]);
   });
 
-  it("tops は形を分類セクションで扱い、1候補時は自動設定する", async () => {
+  it("tops で候補が1つの形を自動選択する", async () => {
     const { default: NewItemPage } = await import("./page");
 
     await act(async () => {
@@ -1234,11 +1227,82 @@ describe("NewItemPage", () => {
 
     expect(
       Array.from(shapeSelect!.options).map((option) => option.value),
-    ).toEqual(["", "tshirt"]);
-    expect(shapeSelect!.value).toBe("tshirt");
+    ).toEqual(["", "hoodie"]);
+    expect(shapeSelect!.value).toBe("hoodie");
     expect(shapeSelect!.disabled).toBe(true);
-    expect(container.textContent).toContain("種類に応じて自動で設定されます。");
+    expect(container.querySelector("#tops-neck")).toBeNull();
     expect(container.querySelector("#tops-shape")).toBeNull();
+  });
+
+  it("tops で種類変更時に形と候補が連動する", async () => {
+    const { default: NewItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(NewItemPage));
+      await waitForEffects();
+    });
+
+    const categorySelect =
+      container.querySelector<HTMLSelectElement>("#category");
+    expect(categorySelect).not.toBeNull();
+
+    await act(async () => {
+      categorySelect!.value = "tops";
+      categorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    const subcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
+    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
+    expect(subcategorySelect).not.toBeNull();
+    expect(shapeSelect).not.toBeNull();
+
+    await act(async () => {
+      subcategorySelect!.value = "polo_shirt";
+      subcategorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    const topsNeckSelect =
+      container.querySelector<HTMLSelectElement>("#tops-neck");
+    expect(shapeSelect!.value).toBe("polo");
+    expect(topsNeckSelect).not.toBeNull();
+    expect(topsNeckSelect!.value).toBe("collar");
+    expect(
+      Array.from(topsNeckSelect!.options).map((option) => option.value),
+    ).toContain("collar");
+    expect(container.querySelector("#tops-design")).toBeNull();
+
+    await act(async () => {
+      subcategorySelect!.value = "vest_gilet";
+      subcategorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    expect(shapeSelect!.value).toBe("vest");
+    expect(container.querySelector("#tops-sleeve")).toBeNull();
+
+    await act(async () => {
+      subcategorySelect!.value = "tanktop";
+      subcategorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    const tanktopNeckSelect =
+      container.querySelector<HTMLSelectElement>("#tops-neck");
+    expect(tanktopNeckSelect).not.toBeNull();
+    expect(
+      Array.from(tanktopNeckSelect!.options).map((option) => option.value),
+    ).toEqual(["", "crew", "square"]);
+
+    await act(async () => {
+      subcategorySelect!.value = "other";
+      subcategorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    expect(shapeSelect!.value).toBe("");
   });
 
   it("outerwear の1候補形は自動設定して過剰な選択を求めない", async () => {
