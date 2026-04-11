@@ -79,10 +79,19 @@ const LEGACY_INFERRED_SUBCATEGORY_BY_CATEGORY: Record<
   bags: {
     tote: "tote",
     shoulder: "shoulder",
-    backpack: "backpack",
+    boston: "boston",
+    rucksack: "rucksack",
     hand: "hand",
-    clutch: "clutch",
     body: "body",
+    "waist-pouch": "waist_pouch",
+    messenger: "messenger",
+    clutch: "clutch",
+    sacoche: "sacoche",
+    pochette: "pochette",
+    drawstring: "drawstring",
+    "basket-bag": "basket_bag",
+    briefcase: "briefcase",
+    "marche-bag": "marche_bag",
     other: "other",
   },
   fashion_accessories: {
@@ -102,14 +111,17 @@ const LEGACY_INFERRED_SUBCATEGORY_BY_CATEGORY: Record<
     sneakers: "sneakers",
     pumps: "pumps",
     "short-boots": "boots",
-    other: "other",
     sandals: "sandals",
+    "leather-shoes": "leather_shoes",
+    "rain-shoes-boots": "rain_shoes_boots",
+    other: "other",
   },
   legwear: {
     socks: "socks",
     stockings: "stockings",
     tights: "tights",
     leggings: "leggings",
+    "leg-warmer": "leg_warmer",
     other: "other",
   },
   swimwear: {
@@ -119,6 +131,8 @@ const LEGACY_INFERRED_SUBCATEGORY_BY_CATEGORY: Record<
   },
   kimono: {
     kimono: "kimono",
+    yukata: "yukata",
+    "japanese-accessory": "japanese_accessory",
     other: "other",
   },
 };
@@ -176,10 +190,19 @@ const DEFAULT_SHAPE_BY_SUBCATEGORY: Record<string, Record<string, string>> = {
   bags: {
     tote: "tote",
     shoulder: "shoulder",
-    backpack: "backpack",
+    boston: "boston",
+    rucksack: "rucksack",
     hand: "hand",
-    clutch: "clutch",
     body: "body",
+    waist_pouch: "waist-pouch",
+    messenger: "messenger",
+    clutch: "clutch",
+    sacoche: "sacoche",
+    pochette: "pochette",
+    drawstring: "drawstring",
+    basket_bag: "basket-bag",
+    briefcase: "briefcase",
+    marche_bag: "marche-bag",
     other: "bag",
   },
   fashion_accessories: {
@@ -199,6 +222,8 @@ const DEFAULT_SHAPE_BY_SUBCATEGORY: Record<string, Record<string, string>> = {
     pumps: "pumps",
     boots: "short-boots",
     sandals: "sandals",
+    leather_shoes: "leather-shoes",
+    rain_shoes_boots: "rain-shoes-boots",
     other: "other",
   },
   legwear: {
@@ -206,10 +231,18 @@ const DEFAULT_SHAPE_BY_SUBCATEGORY: Record<string, Record<string, string>> = {
     stockings: "stockings",
     tights: "tights",
     leggings: "leggings",
+    leg_warmer: "leg-warmer",
     other: "socks",
+  },
+  swimwear: {
+    swimwear: "swimwear",
+    rashguard: "rashguard",
+    other: "other",
   },
   kimono: {
     kimono: "kimono",
+    yukata: "yukata",
+    japanese_accessory: "japanese-accessory",
     other: "kimono",
   },
 };
@@ -236,12 +269,63 @@ const VISIBLE_CATEGORY_ID_BY_SUBCATEGORY: Record<
     pajamas: "roomwear_inner_pajamas",
     other: "roomwear_inner_other",
   },
+  bags: {
+    tote: "bags_tote",
+    shoulder: "bags_shoulder",
+    boston: "bags_boston",
+    rucksack: "bags_rucksack",
+    hand: "bags_hand",
+    body: "bags_body",
+    waist_pouch: "bags_waist_pouch",
+    messenger: "bags_messenger",
+    clutch: "bags_clutch",
+    sacoche: "bags_sacoche",
+    pochette: "bags_pochette",
+    drawstring: "bags_drawstring",
+    basket_bag: "bags_basket_bag",
+    briefcase: "bags_briefcase",
+    marche_bag: "bags_marche_bag",
+    other: "bags_other",
+  },
+  fashion_accessories: {
+    hat: "fashion_accessories_hat",
+    belt: "fashion_accessories_belt",
+    scarf_stole: "fashion_accessories_scarf_stole",
+    gloves: "fashion_accessories_gloves",
+    jewelry: "fashion_accessories_jewelry",
+    wallet_case: "fashion_accessories_wallet_case",
+    hair_accessory: "fashion_accessories_hair",
+    eyewear: "fashion_accessories_eyewear",
+    watch: "fashion_accessories_watch",
+    other: "fashion_accessories_other",
+  },
+  shoes: {
+    sneakers: "shoes_sneakers",
+    pumps: "shoes_pumps",
+    boots: "shoes_boots",
+    sandals: "shoes_sandals",
+    leather_shoes: "shoes_leather_shoes",
+    rain_shoes_boots: "shoes_rain_shoes_boots",
+    other: "shoes_other",
+  },
   legwear: {
     socks: "legwear_socks",
     stockings: "legwear_stockings",
     tights: "legwear_tights",
     leggings: "legwear_leggings",
+    leg_warmer: "legwear_leg_warmer",
     other: "legwear_other",
+  },
+  swimwear: {
+    swimwear: "swimwear_swimwear",
+    rashguard: "swimwear_rashguard",
+    other: "swimwear_other",
+  },
+  kimono: {
+    kimono: "kimono_kimono",
+    yukata: "kimono_yukata",
+    japanese_accessory: "kimono_japanese_accessory",
+    other: "kimono_other",
   },
 };
 
@@ -332,22 +416,34 @@ const VISIBLE_CATEGORY_ID_BY_SHAPE: Record<string, Record<string, string>> = {
     stockings: "legwear_stockings",
     tights: "legwear_tights",
     leggings: "legwear_leggings",
+    "leg-warmer": "legwear_leg_warmer",
   },
   shoes: {
     sneakers: "shoes_sneakers",
     pumps: "shoes_pumps",
     "short-boots": "shoes_boots",
     sandals: "shoes_sandals",
+    "leather-shoes": "shoes_leather_shoes",
+    "rain-shoes-boots": "shoes_rain_shoes_boots",
     other: "shoes_other",
   },
   bags: {
     bag: "bags_other",
     tote: "bags_tote",
     shoulder: "bags_shoulder",
-    backpack: "bags_backpack",
+    boston: "bags_boston",
+    rucksack: "bags_rucksack",
     hand: "bags_hand",
-    clutch: "bags_clutch",
     body: "bags_body",
+    "waist-pouch": "bags_waist_pouch",
+    messenger: "bags_messenger",
+    clutch: "bags_clutch",
+    sacoche: "bags_sacoche",
+    pochette: "bags_pochette",
+    drawstring: "bags_drawstring",
+    "basket-bag": "bags_basket_bag",
+    briefcase: "bags_briefcase",
+    "marche-bag": "bags_marche_bag",
     other: "bags_other",
   },
   fashion_accessories: {
@@ -374,7 +470,7 @@ const VISIBLE_CATEGORY_ID_BY_SHAPE: Record<string, Record<string, string>> = {
   accessories: {
     tote: "bags_tote",
     shoulder: "bags_shoulder",
-    backpack: "bags_backpack",
+    rucksack: "bags_rucksack",
     hand: "bags_hand",
     clutch: "bags_clutch",
     body: "bags_body",
@@ -404,6 +500,7 @@ const KNOWN_SUBCATEGORY_VALUES_BY_CATEGORY: Record<string, Set<string>> = {
     "other",
   ]),
   swimwear: new Set(["swimwear", "rashguard", "other"]),
+  kimono: new Set(["kimono", "yukata", "japanese_accessory", "other"]),
 };
 
 // フロントエンドではバックエンド正本の読み替えとして、現行値 / 旧値の吸収だけを共有する
@@ -443,7 +540,7 @@ export function resolveCurrentItemCategoryValue(
     if (
       shape === "tote" ||
       shape === "shoulder" ||
-      shape === "backpack" ||
+      shape === "rucksack" ||
       shape === "hand" ||
       shape === "clutch" ||
       shape === "body"

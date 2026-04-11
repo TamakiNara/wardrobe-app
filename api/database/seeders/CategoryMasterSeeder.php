@@ -56,7 +56,7 @@ class CategoryMasterSeeder extends Seeder
             ['id' => 'shoes_other', 'group_id' => 'shoes', 'name' => 'その他シューズ', 'sort_order' => 5],
             ['id' => 'bags_tote', 'group_id' => 'bags', 'name' => 'トートバッグ', 'sort_order' => 1],
             ['id' => 'bags_shoulder', 'group_id' => 'bags', 'name' => 'ショルダーバッグ', 'sort_order' => 2],
-            ['id' => 'bags_backpack', 'group_id' => 'bags', 'name' => 'リュック', 'sort_order' => 3],
+            ['id' => 'bags_rucksack', 'group_id' => 'bags', 'name' => 'リュックサック・バックパック', 'sort_order' => 3],
             ['id' => 'bags_hand', 'group_id' => 'bags', 'name' => 'ハンドバッグ', 'sort_order' => 4],
             ['id' => 'bags_clutch', 'group_id' => 'bags', 'name' => 'クラッチバッグ', 'sort_order' => 5],
             ['id' => 'bags_body', 'group_id' => 'bags', 'name' => 'ボディバッグ', 'sort_order' => 6],

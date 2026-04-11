@@ -60,10 +60,19 @@ class ItemSubcategorySupport
         'bags' => [
             'tote',
             'shoulder',
-            'backpack',
+            'boston',
+            'rucksack',
             'hand',
-            'clutch',
             'body',
+            'waist_pouch',
+            'messenger',
+            'clutch',
+            'sacoche',
+            'pochette',
+            'drawstring',
+            'basket_bag',
+            'briefcase',
+            'marche_bag',
             'other',
         ],
         'fashion_accessories' => [
@@ -83,6 +92,8 @@ class ItemSubcategorySupport
             'pumps',
             'boots',
             'sandals',
+            'leather_shoes',
+            'rain_shoes_boots',
             'other',
         ],
         'legwear' => [
@@ -90,10 +101,13 @@ class ItemSubcategorySupport
             'stockings',
             'tights',
             'leggings',
+            'leg_warmer',
             'other',
         ],
         'kimono' => [
             'kimono',
+            'yukata',
+            'japanese_accessory',
             'other',
         ],
         'swimwear' => [
@@ -114,6 +128,8 @@ class ItemSubcategorySupport
         'fashion_accessories',
         'shoes',
         'legwear',
+        'swimwear',
+        'kimono',
     ];
 
     /**
@@ -176,10 +192,19 @@ class ItemSubcategorySupport
         'bags' => [
             'tote' => 'bags_tote',
             'shoulder' => 'bags_shoulder',
-            'backpack' => 'bags_backpack',
+            'boston' => 'bags_boston',
+            'rucksack' => 'bags_rucksack',
             'hand' => 'bags_hand',
-            'clutch' => 'bags_clutch',
             'body' => 'bags_body',
+            'waist_pouch' => 'bags_waist_pouch',
+            'messenger' => 'bags_messenger',
+            'clutch' => 'bags_clutch',
+            'sacoche' => 'bags_sacoche',
+            'pochette' => 'bags_pochette',
+            'drawstring' => 'bags_drawstring',
+            'basket_bag' => 'bags_basket_bag',
+            'briefcase' => 'bags_briefcase',
+            'marche_bag' => 'bags_marche_bag',
             'other' => 'bags_other',
         ],
         'fashion_accessories' => [
@@ -199,6 +224,8 @@ class ItemSubcategorySupport
             'pumps' => 'shoes_pumps',
             'boots' => 'shoes_boots',
             'sandals' => 'shoes_sandals',
+            'leather_shoes' => 'shoes_leather_shoes',
+            'rain_shoes_boots' => 'shoes_rain_shoes_boots',
             'other' => 'shoes_other',
         ],
         'legwear' => [
@@ -206,10 +233,13 @@ class ItemSubcategorySupport
             'stockings' => 'legwear_stockings',
             'tights' => 'legwear_tights',
             'leggings' => 'legwear_leggings',
+            'leg_warmer' => 'legwear_leg_warmer',
             'other' => 'legwear_other',
         ],
         'kimono' => [
             'kimono' => 'kimono_kimono',
+            'yukata' => 'kimono_yukata',
+            'japanese_accessory' => 'kimono_japanese_accessory',
             'other' => 'kimono_other',
         ],
         'swimwear' => [

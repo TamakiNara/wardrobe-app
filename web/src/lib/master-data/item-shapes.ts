@@ -87,7 +87,8 @@ export const ITEM_SHAPES = {
     { value: "socks", label: "ソックス" },
     { value: "stockings", label: "ストッキング" },
     { value: "tights", label: "タイツ" },
-    { value: "leggings", label: "レギンス" },
+    { value: "leggings", label: "レギンス・スパッツ" },
+    { value: "leg-warmer", label: "レッグウォーマー" },
   ],
   shoes: [
     { value: "other", label: "その他シューズ" },
@@ -95,15 +96,26 @@ export const ITEM_SHAPES = {
     { value: "sneakers", label: "スニーカー" },
     { value: "short-boots", label: "ショートブーツ" },
     { value: "sandals", label: "サンダル" },
+    { value: "leather-shoes", label: "革靴" },
+    { value: "rain-shoes-boots", label: "レインシューズ・レインブーツ" },
   ],
   bags: [
     { value: "bag", label: "バッグ" },
     { value: "tote", label: "トートバッグ" },
     { value: "shoulder", label: "ショルダーバッグ" },
-    { value: "backpack", label: "リュック" },
+    { value: "boston", label: "ボストンバッグ" },
+    { value: "rucksack", label: "リュックサック・バックパック" },
     { value: "hand", label: "ハンドバッグ" },
+    { value: "body", label: "ボディバッグ・クロスボディバッグ" },
+    { value: "waist-pouch", label: "ウエストポーチ" },
+    { value: "messenger", label: "メッセンジャーバッグ" },
     { value: "clutch", label: "クラッチバッグ" },
-    { value: "body", label: "ボディバッグ" },
+    { value: "sacoche", label: "サコッシュ" },
+    { value: "pochette", label: "ポシェット" },
+    { value: "drawstring", label: "ドローストリングバッグ" },
+    { value: "basket-bag", label: "かごバッグ" },
+    { value: "briefcase", label: "ブリーフケース" },
+    { value: "marche-bag", label: "マルシェバッグ" },
   ],
   fashion_accessories: [
     { value: "hat", label: "帽子" },
@@ -124,12 +136,14 @@ export const ITEM_SHAPES = {
   ],
   kimono: [
     { value: "kimono", label: "着物" },
+    { value: "yukata", label: "浴衣" },
+    { value: "japanese-accessory", label: "和装小物" },
     { value: "other", label: "その他着物" },
   ],
   accessories: [
     { value: "tote", label: "トートバッグ" },
     { value: "shoulder", label: "ショルダーバッグ" },
-    { value: "backpack", label: "リュック" },
+    { value: "rucksack", label: "リュックサック・バックパック" },
     { value: "hat", label: "帽子" },
     { value: "accessory", label: "アクセサリー" },
   ],
@@ -244,10 +258,19 @@ const SHAPE_VALUES_BY_SUBCATEGORY: Partial<
   bags: {
     tote: ["tote"],
     shoulder: ["shoulder"],
-    backpack: ["backpack"],
+    boston: ["boston"],
+    rucksack: ["rucksack"],
     hand: ["hand"],
-    clutch: ["clutch"],
     body: ["body"],
+    waist_pouch: ["waist-pouch"],
+    messenger: ["messenger"],
+    clutch: ["clutch"],
+    sacoche: ["sacoche"],
+    pochette: ["pochette"],
+    drawstring: ["drawstring"],
+    basket_bag: ["basket-bag"],
+    briefcase: ["briefcase"],
+    marche_bag: ["marche-bag"],
     other: [],
   },
   fashion_accessories: {
@@ -267,6 +290,8 @@ const SHAPE_VALUES_BY_SUBCATEGORY: Partial<
     pumps: ["pumps"],
     boots: ["short-boots"],
     sandals: ["sandals"],
+    leather_shoes: ["leather-shoes"],
+    rain_shoes_boots: ["rain-shoes-boots"],
     other: [],
   },
   legwear: {
@@ -274,10 +299,13 @@ const SHAPE_VALUES_BY_SUBCATEGORY: Partial<
     stockings: ["stockings"],
     tights: ["tights"],
     leggings: ["leggings"],
+    leg_warmer: ["leg-warmer"],
     other: [],
   },
   kimono: {
     kimono: ["kimono"],
+    yukata: ["yukata"],
+    japanese_accessory: ["japanese-accessory"],
     other: [],
   },
 };
@@ -298,6 +326,8 @@ export function getItemShapeOptions(
       category === "fashion_accessories" ||
       category === "shoes" ||
       category === "legwear" ||
+      category === "swimwear" ||
+      category === "kimono" ||
       category === "inner")
   ) {
     return [];

@@ -96,7 +96,11 @@ const groups: CategoryGroupRecord[] = [
     categories: [
       { id: "bags_tote", groupId: "bags", name: "トートバッグ" },
       { id: "bags_shoulder", groupId: "bags", name: "ショルダーバッグ" },
-      { id: "bags_backpack", groupId: "bags", name: "リュック" },
+      {
+        id: "bags_rucksack",
+        groupId: "bags",
+        name: "リュックサック・バックパック",
+      },
       { id: "bags_hand", groupId: "bags", name: "ハンドバッグ" },
       { id: "bags_clutch", groupId: "bags", name: "クラッチバッグ" },
       { id: "bags_body", groupId: "bags", name: "ボディバッグ" },

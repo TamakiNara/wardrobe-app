@@ -8,7 +8,7 @@ return new class extends Migration
     private array $specificBagCategoryIds = [
         'bags_tote',
         'bags_shoulder',
-        'bags_backpack',
+        'bags_rucksack',
         'bags_hand',
         'bags_clutch',
         'bags_body',
@@ -27,7 +27,7 @@ return new class extends Migration
         return [
             ['id' => 'bags_tote', 'group_id' => 'bags', 'name' => 'トートバッグ', 'sort_order' => 1, 'is_active' => true, 'created_at' => $timestamp, 'updated_at' => $timestamp],
             ['id' => 'bags_shoulder', 'group_id' => 'bags', 'name' => 'ショルダーバッグ', 'sort_order' => 2, 'is_active' => true, 'created_at' => $timestamp, 'updated_at' => $timestamp],
-            ['id' => 'bags_backpack', 'group_id' => 'bags', 'name' => 'リュック', 'sort_order' => 3, 'is_active' => true, 'created_at' => $timestamp, 'updated_at' => $timestamp],
+            ['id' => 'bags_rucksack', 'group_id' => 'bags', 'name' => 'リュックサック・バックパック', 'sort_order' => 3, 'is_active' => true, 'created_at' => $timestamp, 'updated_at' => $timestamp],
             ['id' => 'bags_hand', 'group_id' => 'bags', 'name' => 'ハンドバッグ', 'sort_order' => 4, 'is_active' => true, 'created_at' => $timestamp, 'updated_at' => $timestamp],
             ['id' => 'bags_clutch', 'group_id' => 'bags', 'name' => 'クラッチバッグ', 'sort_order' => 5, 'is_active' => true, 'created_at' => $timestamp, 'updated_at' => $timestamp],
             ['id' => 'bags_body', 'group_id' => 'bags', 'name' => 'ボディバッグ', 'sort_order' => 6, 'is_active' => true, 'created_at' => $timestamp, 'updated_at' => $timestamp],
@@ -223,6 +223,6 @@ return new class extends Migration
 
     private function specificBagCategoryIdsToShapes(): array
     {
-        return ['tote', 'shoulder', 'backpack', 'hand', 'clutch', 'body'];
+        return ['tote', 'shoulder', 'rucksack', 'hand', 'clutch', 'body'];
     }
 };

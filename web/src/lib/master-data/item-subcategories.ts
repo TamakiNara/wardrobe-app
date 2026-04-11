@@ -52,21 +52,30 @@ export const ITEM_SUBCATEGORIES = {
   bags: [
     { value: "tote", label: "トートバッグ" },
     { value: "shoulder", label: "ショルダーバッグ" },
-    { value: "backpack", label: "リュック" },
+    { value: "boston", label: "ボストンバッグ" },
     { value: "hand", label: "ハンドバッグ" },
+    { value: "rucksack", label: "リュックサック・バックパック" },
+    { value: "body", label: "ボディバッグ・クロスボディバッグ" },
+    { value: "waist_pouch", label: "ウエストポーチ" },
+    { value: "messenger", label: "メッセンジャーバッグ" },
     { value: "clutch", label: "クラッチバッグ" },
-    { value: "body", label: "ボディバッグ" },
+    { value: "sacoche", label: "サコッシュ" },
+    { value: "pochette", label: "ポシェット" },
+    { value: "drawstring", label: "ドローストリングバッグ" },
+    { value: "basket_bag", label: "かごバッグ" },
+    { value: "briefcase", label: "ブリーフケース" },
+    { value: "marche_bag", label: "マルシェバッグ" },
     { value: "other", label: "その他バッグ" },
   ],
   fashion_accessories: [
     { value: "hat", label: "帽子" },
     { value: "belt", label: "ベルト" },
-    { value: "scarf_stole", label: "マフラー・ストール" },
+    { value: "scarf_stole", label: "マフラー・ストール・スカーフ" },
     { value: "gloves", label: "手袋" },
     { value: "jewelry", label: "アクセサリー" },
     { value: "wallet_case", label: "財布・カードケース" },
     { value: "hair_accessory", label: "ヘアアクセサリー" },
-    { value: "eyewear", label: "眼鏡・サングラス" },
+    { value: "eyewear", label: "メガネ・サングラス" },
     { value: "watch", label: "腕時計" },
     { value: "other", label: "その他ファッション小物" },
   ],
@@ -75,13 +84,16 @@ export const ITEM_SUBCATEGORIES = {
     { value: "pumps", label: "パンプス" },
     { value: "boots", label: "ブーツ" },
     { value: "sandals", label: "サンダル" },
+    { value: "leather_shoes", label: "革靴" },
+    { value: "rain_shoes_boots", label: "レインシューズ・レインブーツ" },
     { value: "other", label: "その他シューズ" },
   ],
   legwear: [
     { value: "socks", label: "ソックス" },
     { value: "stockings", label: "ストッキング" },
     { value: "tights", label: "タイツ" },
-    { value: "leggings", label: "レギンス" },
+    { value: "leggings", label: "レギンス・スパッツ" },
+    { value: "leg_warmer", label: "レッグウォーマー" },
     { value: "other", label: "その他レッグウェア" },
   ],
   swimwear: [
@@ -91,6 +103,8 @@ export const ITEM_SUBCATEGORIES = {
   ],
   kimono: [
     { value: "kimono", label: "着物" },
+    { value: "yukata", label: "浴衣" },
+    { value: "japanese_accessory", label: "和装小物" },
     { value: "other", label: "その他着物" },
   ],
 } as const;
@@ -108,6 +122,8 @@ export const REQUIRED_SUBCATEGORY_CATEGORIES = new Set<string>([
   "fashion_accessories",
   "shoes",
   "legwear",
+  "swimwear",
+  "kimono",
 ]);
 
 const RADIO_SUBCATEGORY_UI_CATEGORIES = new Set<string>([
@@ -119,7 +135,6 @@ const RADIO_SUBCATEGORY_UI_CATEGORIES = new Set<string>([
 const REPRESENTATIVE_SUBCATEGORY_BY_CATEGORY: Record<string, string> = {
   skirts: "skirt",
   shoes: "sneakers",
-  kimono: "kimono",
 };
 
 export function getItemSubcategoryOptions(category?: string | null) {

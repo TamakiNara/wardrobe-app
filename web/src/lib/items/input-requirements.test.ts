@@ -36,7 +36,7 @@ describe("item input requirements", () => {
     expect(shouldShowItemShapeField("pants", "other")).toBe(false);
     expect(shouldShowItemShapeField("skirts", "other")).toBe(false);
     expect(shouldShowItemShapeField("outerwear", "other")).toBe(false);
-    expect(shouldShowItemShapeField("bags", "other")).toBe(true);
+    expect(shouldShowItemShapeField("bags", "other")).toBe(false);
   });
 
   it("任意寄りのときは送信用の形を自動補完する", () => {

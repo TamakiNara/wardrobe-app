@@ -13,14 +13,20 @@ export const BOTTOMS_RISE_OPTIONS = [
 ] as const;
 
 export const LEGWEAR_COVERAGE_OPTIONS = [
-  { value: "ankle_socks", label: "アンクルソックス" },
-  { value: "crew_socks", label: "クルーソックス" },
-  { value: "knee_socks", label: "ひざ下ソックス" },
-  { value: "over_knee", label: "オーバーニー" },
+  { value: "foot_cover", label: "フットカバー" },
+  { value: "ankle_sneaker", label: "アンクル・スニーカーソックス" },
+  { value: "crew", label: "クルーソックス" },
+  { value: "three_quarter", label: "スリークォーターソックス" },
+  { value: "high_socks", label: "ハイソックス" },
   { value: "stockings", label: "ストッキング" },
   { value: "tights", label: "タイツ" },
-  { value: "leggings_cropped", label: "レギンス（クロップド）" },
-  { value: "leggings_full", label: "レギンス（フル）" },
+  { value: "one_tenth", label: "1分丈" },
+  { value: "three_tenths", label: "3分丈" },
+  { value: "five_tenths", label: "5分丈" },
+  { value: "seven_tenths", label: "7分丈（カプリ丈）" },
+  { value: "seven_eighths", label: "7/8丈（エイス丈）" },
+  { value: "ten_tenths", label: "10分丈（アンクル丈）" },
+  { value: "twelve_tenths", label: "12分丈" },
 ] as const;
 
 export type BottomsLengthType =
@@ -33,12 +39,21 @@ export type LegwearPreviewCoverageType =
   | "full_length_fallback";
 
 const SOCKS_COVERAGE_TYPES = [
-  "ankle_socks",
-  "crew_socks",
-  "knee_socks",
-  "over_knee",
+  "foot_cover",
+  "ankle_sneaker",
+  "crew",
+  "three_quarter",
+  "high_socks",
 ] as const;
-const LEGGINGS_COVERAGE_TYPES = ["leggings_cropped", "leggings_full"] as const;
+const LEGGINGS_COVERAGE_TYPES = [
+  "one_tenth",
+  "three_tenths",
+  "five_tenths",
+  "seven_tenths",
+  "seven_eighths",
+  "ten_tenths",
+  "twelve_tenths",
+] as const;
 const BOTTOMS_LENGTH_TYPES = BOTTOMS_LENGTH_OPTIONS.map(
   (item) => item.value,
 ) as readonly BottomsLengthType[];
@@ -123,19 +138,39 @@ export function resolveLegwearCoverageType(
   if (resolvedShape === "tights") return "tights";
 
   if (resolvedShape === "socks") {
-    return SOCKS_COVERAGE_TYPES.includes(
-      value as (typeof SOCKS_COVERAGE_TYPES)[number],
-    )
-      ? value
-      : null;
+    if (
+      SOCKS_COVERAGE_TYPES.includes(
+        value as (typeof SOCKS_COVERAGE_TYPES)[number],
+      )
+    ) {
+      return value;
+    }
+
+    return (
+      {
+        ankle_socks: "ankle_sneaker",
+        crew_socks: "crew",
+        knee_socks: "high_socks",
+        over_knee: "high_socks",
+      }[value ?? ""] ?? null
+    );
   }
 
   if (resolvedShape === "leggings") {
-    return LEGGINGS_COVERAGE_TYPES.includes(
-      value as (typeof LEGGINGS_COVERAGE_TYPES)[number],
-    )
-      ? value
-      : null;
+    if (
+      LEGGINGS_COVERAGE_TYPES.includes(
+        value as (typeof LEGGINGS_COVERAGE_TYPES)[number],
+      )
+    ) {
+      return value;
+    }
+
+    return (
+      {
+        leggings_cropped: "seven_tenths",
+        leggings_full: "ten_tenths",
+      }[value ?? ""] ?? null
+    );
   }
 
   return null;
@@ -160,6 +195,31 @@ export function resolveLegwearCoverageTypeForPreview(
     : "full_length_fallback";
 }
 
+export function getLegwearCoverageFieldLabel(
+  shape?: string | null,
+  subcategory?: string | null,
+) {
+  const resolvedShape = resolveLegwearShapeKind(shape, subcategory);
+
+  if (resolvedShape === "leggings") {
+    return "レギンス・スパッツの長さ";
+  }
+
+  if (resolvedShape === "socks") {
+    return "ソックスの長さ";
+  }
+
+  return "長さ";
+}
+
+export function getLegwearCoveragePlaceholder(
+  shape?: string | null,
+  subcategory?: string | null,
+) {
+  const label = getLegwearCoverageFieldLabel(shape, subcategory);
+  return `${label}を選択してください`;
+}
+
 function resolveLegwearShapeKind(
   shape?: string | null,
   subcategory?: string | null,
@@ -168,9 +228,10 @@ function resolveLegwearShapeKind(
     subcategory === "socks" ||
     subcategory === "stockings" ||
     subcategory === "tights" ||
-    subcategory === "leggings"
+    subcategory === "leggings" ||
+    subcategory === "leg_warmer"
   ) {
-    return subcategory;
+    return subcategory === "leg_warmer" ? "leg-warmer" : subcategory;
   }
 
   if (subcategory === "other") {

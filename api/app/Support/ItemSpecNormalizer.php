@@ -46,9 +46,10 @@ class ItemSpecNormalizer
         }
 
         $resolvedSubcategory = match ($subcategory) {
-            'socks', 'stockings', 'tights', 'leggings', 'other' => $subcategory,
+            'socks', 'stockings', 'tights', 'leggings', 'leg_warmer', 'other' => $subcategory,
             default => match ($shape) {
                 'socks', 'stockings', 'tights', 'leggings' => $shape,
+                'leg-warmer' => 'leg_warmer',
                 default => null,
             },
         };
@@ -62,15 +63,28 @@ class ItemSpecNormalizer
         }
 
         if ($resolvedSubcategory === 'socks') {
-            return in_array($coverageType, ['ankle_socks', 'crew_socks', 'knee_socks', 'over_knee'], true)
-                ? $coverageType
-                : null;
+            if (in_array($coverageType, ['foot_cover', 'ankle_sneaker', 'crew', 'three_quarter', 'high_socks'], true)) {
+                return $coverageType;
+            }
+
+            return match ($coverageType) {
+                'ankle_socks' => 'ankle_sneaker',
+                'crew_socks' => 'crew',
+                'knee_socks', 'over_knee' => 'high_socks',
+                default => null,
+            };
         }
 
         if ($resolvedSubcategory === 'leggings') {
-            return in_array($coverageType, ['leggings_cropped', 'leggings_full'], true)
-                ? $coverageType
-                : null;
+            if (in_array($coverageType, ['one_tenth', 'three_tenths', 'five_tenths', 'seven_tenths', 'seven_eighths', 'ten_tenths', 'twelve_tenths'], true)) {
+                return $coverageType;
+            }
+
+            return match ($coverageType) {
+                'leggings_cropped' => 'seven_tenths',
+                'leggings_full' => 'ten_tenths',
+                default => null,
+            };
         }
 
         return null;

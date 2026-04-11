@@ -201,7 +201,12 @@ const sampleGroups: CategoryGroupRecord[] = [
         name: "ショルダーバッグ",
         sortOrder: 20,
       },
-      { id: "bags_backpack", groupId: "bags", name: "リュック", sortOrder: 30 },
+      {
+        id: "bags_rucksack",
+        groupId: "bags",
+        name: "リュックサック・バックパック",
+        sortOrder: 30,
+      },
       { id: "bags_hand", groupId: "bags", name: "ハンドバッグ", sortOrder: 40 },
       {
         id: "bags_clutch",
@@ -504,7 +509,7 @@ describe("編集画面", () => {
             tpo_ids: [],
             spec: {
               legwear: {
-                coverage_type: "crew_socks",
+                coverage_type: "crew",
               },
             },
             images: [],
@@ -533,13 +538,11 @@ describe("編集画面", () => {
           "#legwear-coverage-type",
         ) as HTMLSelectElement | null
       )?.value,
-    ).toBe("crew_socks");
+    ).toBe("crew");
     const legwearSubcategorySelect =
       container.querySelector<HTMLSelectElement>("#subcategory");
     expect(legwearSubcategorySelect?.value).toBe("socks");
-    expect(container.textContent).toContain(
-      "ソックスの長さを選択してください。",
-    );
+    expect(container.textContent).toContain("ソックスの長さ");
   });
 
   it("編集画面でタイツは追加選択なしで扱える", async () => {
@@ -860,9 +863,8 @@ describe("編集画面", () => {
 
     const subcategorySelect =
       container.querySelector<HTMLSelectElement>("#subcategory");
-    shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
     expect(subcategorySelect).not.toBeNull();
-    expect(shapeSelect).not.toBeNull();
+    expect(container.querySelector("#shape")).toBeNull();
 
     expect(
       Array.from(subcategorySelect!.options).map((option) => option.value),
@@ -870,15 +872,22 @@ describe("編集画面", () => {
       "",
       "tote",
       "shoulder",
-      "backpack",
+      "boston",
       "hand",
-      "clutch",
+      "rucksack",
       "body",
+      "waist_pouch",
+      "messenger",
+      "clutch",
+      "sacoche",
+      "pochette",
+      "drawstring",
+      "basket_bag",
+      "briefcase",
+      "marche_bag",
       "other",
     ]);
-    expect(
-      Array.from(shapeSelect!.options).map((option) => option.value),
-    ).toEqual([""]);
+    expect(container.querySelector("#shape")).toBeNull();
 
     await act(async () => {
       subcategorySelect!.value = "shoulder";
@@ -886,11 +895,7 @@ describe("編集画面", () => {
       await waitForEffects();
     });
 
-    expect(shapeSelect!.value).toBe("shoulder");
-    expect(shapeSelect!.disabled).toBe(true);
-    expect(
-      Array.from(shapeSelect!.options).map((option) => option.value),
-    ).toEqual(["", "shoulder"]);
+    expect(container.querySelector("#shape")).toBeNull();
   });
 
   it("編集画面でも fashion_accessories は種類に応じて shape を自動設定できる", async () => {
@@ -922,9 +927,8 @@ describe("編集画面", () => {
 
     const subcategorySelect =
       container.querySelector<HTMLSelectElement>("#subcategory");
-    shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
     expect(subcategorySelect).not.toBeNull();
-    expect(shapeSelect).not.toBeNull();
+    expect(container.querySelector("#shape")).toBeNull();
 
     expect(
       Array.from(subcategorySelect!.options).map((option) => option.value),
@@ -941,9 +945,7 @@ describe("編集画面", () => {
       "watch",
       "other",
     ]);
-    expect(
-      Array.from(shapeSelect!.options).map((option) => option.value),
-    ).toEqual([""]);
+    expect(container.querySelector("#shape")).toBeNull();
 
     await act(async () => {
       subcategorySelect!.value = "watch";
@@ -951,11 +953,7 @@ describe("編集画面", () => {
       await waitForEffects();
     });
 
-    expect(shapeSelect!.value).toBe("watch");
-    expect(shapeSelect!.disabled).toBe(true);
-    expect(
-      Array.from(shapeSelect!.options).map((option) => option.value),
-    ).toEqual(["", "watch"]);
+    expect(container.querySelector("#shape")).toBeNull();
   });
 
   it("編集画面でも tops の形は分類セクション側で扱う", async () => {
@@ -1154,16 +1152,18 @@ describe("編集画面", () => {
       "pumps",
       "boots",
       "sandals",
+      "leather_shoes",
+      "rain_shoes_boots",
       "other",
     ]);
     expect(subcategoryRadios[0]?.checked).toBe(true);
-    expect(shapeSelect?.value).toBe("sneakers");
+    expect(container.querySelector("#shape")).toBeNull();
 
     await act(async () => {
       subcategoryRadios[2]!.click();
       await waitForEffects();
     });
 
-    expect(shapeSelect?.value).toBe("short-boots");
+    expect(container.querySelector("#shape")).toBeNull();
   });
 });

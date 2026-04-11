@@ -74,7 +74,9 @@ import {
 import {
   BOTTOMS_LENGTH_OPTIONS,
   BOTTOMS_RISE_OPTIONS,
+  getLegwearCoverageFieldLabel,
   getLegwearCoverageOptions,
+  getLegwearCoveragePlaceholder,
   isBottomsSpecCategory,
   isBottomsLengthTypeRequired,
   isBottomsRiseTypeSupported,
@@ -214,6 +216,14 @@ export default function NewItemPage() {
   );
   const legwearCoverageOptions = useMemo(
     () => getLegwearCoverageOptions(shape, normalizedSubcategory),
+    [normalizedSubcategory, shape],
+  );
+  const legwearCoverageFieldLabel = useMemo(
+    () => getLegwearCoverageFieldLabel(shape, normalizedSubcategory),
+    [normalizedSubcategory, shape],
+  );
+  const legwearCoveragePlaceholder = useMemo(
+    () => getLegwearCoveragePlaceholder(shape, normalizedSubcategory),
     [normalizedSubcategory, shape],
   );
   const isLegwearCoverageRequired = isLegwearCoverageTypeRequired(
@@ -1458,14 +1468,9 @@ export default function NewItemPage() {
                           <div data-error-key="spec.legwear.coverage_type">
                             <FieldLabel
                               htmlFor="legwear-coverage-type"
-                              label="レッグウェア"
+                              label={legwearCoverageFieldLabel}
                               required={isLegwearCoverageRequired}
                             />
-                            <p className="mb-2 text-xs text-gray-500">
-                              {shape === "leggings"
-                                ? "レギンスの長さを選択してください。"
-                                : "ソックスの長さを選択してください。"}
-                            </p>
                             <select
                               id="legwear-coverage-type"
                               value={legwearCoverageType}
@@ -1482,7 +1487,9 @@ export default function NewItemPage() {
                               }
                               className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors["spec.legwear.coverage_type"] ? "border-red-400" : "border-gray-300"}`}
                             >
-                              <option value="">種類を選択してください</option>
+                              <option value="">
+                                {legwearCoveragePlaceholder}
+                              </option>
                               {legwearCoverageOptions.map((item) => (
                                 <option key={item.value} value={item.value}>
                                   {item.label}

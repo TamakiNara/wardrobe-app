@@ -207,7 +207,12 @@ const sampleGroups: CategoryGroupRecord[] = [
         name: "ショルダーバッグ",
         sortOrder: 20,
       },
-      { id: "bags_backpack", groupId: "bags", name: "リュック", sortOrder: 30 },
+      {
+        id: "bags_rucksack",
+        groupId: "bags",
+        name: "リュックサック・バックパック",
+        sortOrder: 30,
+      },
       { id: "bags_hand", groupId: "bags", name: "ハンドバッグ", sortOrder: 40 },
       {
         id: "bags_clutch",
@@ -575,9 +580,7 @@ describe("新規登録画面", () => {
     const legwearSubcategorySelect =
       container.querySelector<HTMLSelectElement>("#subcategory");
     expect(legwearSubcategorySelect).not.toBeNull();
-    expect(
-      Array.from(shapeSelect!.options).map((option) => option.value),
-    ).toEqual([""]);
+    expect(container.querySelector("#shape")).toBeNull();
     expect(container.querySelector("#legwear-coverage-type")).toBeNull();
 
     await act(async () => {
@@ -588,11 +591,9 @@ describe("新規登録画面", () => {
       await waitForEffects();
     });
 
-    expect(shapeSelect!.value).toBe("socks");
+    expect(container.querySelector("#shape")).toBeNull();
     expect(container.textContent).toContain("レッグウェア");
-    expect(container.textContent).toContain(
-      "ソックスの長さを選択してください。",
-    );
+    expect(container.textContent).toContain("ソックスの長さ");
     expect(container.querySelector("#legwear-coverage-type")).not.toBeNull();
 
     await act(async () => {
@@ -603,11 +604,9 @@ describe("新規登録画面", () => {
       await waitForEffects();
     });
 
-    expect(shapeSelect!.value).toBe("tights");
+    expect(container.querySelector("#shape")).toBeNull();
     expect(container.querySelector("#legwear-coverage-type")).toBeNull();
-    expect(container.textContent).not.toContain(
-      "ソックスの長さを選択してください。",
-    );
+    expect(container.textContent).not.toContain("ソックスの長さ");
   });
 
   it("認証切れで TPO 取得が失敗した場合はログインへ戻す", async () => {
@@ -649,9 +648,6 @@ describe("新規登録画面", () => {
     const subcategorySelect =
       container.querySelector<HTMLSelectElement>("#subcategory");
     expect(subcategorySelect).not.toBeNull();
-    expect(
-      Array.from(shapeSelect!.options).map((option) => option.value),
-    ).toEqual([""]);
 
     await act(async () => {
       subcategorySelect!.value = "underwear";
@@ -1049,9 +1045,8 @@ describe("新規登録画面", () => {
 
     const subcategorySelect =
       container.querySelector<HTMLSelectElement>("#subcategory");
-    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
     expect(subcategorySelect).not.toBeNull();
-    expect(shapeSelect).not.toBeNull();
+    expect(container.querySelector("#shape")).toBeNull();
 
     expect(
       Array.from(subcategorySelect!.options).map((option) => option.value),
@@ -1059,15 +1054,21 @@ describe("新規登録画面", () => {
       "",
       "tote",
       "shoulder",
-      "backpack",
+      "boston",
       "hand",
-      "clutch",
+      "rucksack",
       "body",
+      "waist_pouch",
+      "messenger",
+      "clutch",
+      "sacoche",
+      "pochette",
+      "drawstring",
+      "basket_bag",
+      "briefcase",
+      "marche_bag",
       "other",
     ]);
-    expect(
-      Array.from(shapeSelect!.options).map((option) => option.value),
-    ).toEqual([""]);
 
     await act(async () => {
       subcategorySelect!.value = "tote";
@@ -1075,11 +1076,7 @@ describe("新規登録画面", () => {
       await waitForEffects();
     });
 
-    expect(shapeSelect!.value).toBe("tote");
-    expect(shapeSelect!.disabled).toBe(true);
-    expect(
-      Array.from(shapeSelect!.options).map((option) => option.value),
-    ).toEqual(["", "tote"]);
+    expect(container.querySelector("#shape")).toBeNull();
   });
 
   it("bags の other では形を任意寄りで扱う", async () => {
@@ -1110,17 +1107,7 @@ describe("新規登録画面", () => {
       await waitForEffects();
     });
 
-    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
-    const shapeLabel =
-      container.querySelector<HTMLLabelElement>('label[for="shape"]');
-    expect(shapeSelect).not.toBeNull();
-    expect(shapeLabel).not.toBeNull();
-
-    expect(shapeLabel?.textContent).toContain("形");
-    expect(shapeLabel?.textContent).not.toContain("必須");
-    expect(
-      Array.from(shapeSelect!.options).map((option) => option.value),
-    ).toEqual([""]);
+    expect(container.querySelector("#shape")).toBeNull();
   });
 
   it("fashion_accessories は種類 select を表示し、選択に応じて shape を自動設定できる", async () => {
@@ -1143,9 +1130,8 @@ describe("新規登録画面", () => {
 
     const subcategorySelect =
       container.querySelector<HTMLSelectElement>("#subcategory");
-    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
     expect(subcategorySelect).not.toBeNull();
-    expect(shapeSelect).not.toBeNull();
+    expect(container.querySelector("#shape")).toBeNull();
 
     expect(
       Array.from(subcategorySelect!.options).map((option) => option.value),
@@ -1162,9 +1148,6 @@ describe("新規登録画面", () => {
       "watch",
       "other",
     ]);
-    expect(
-      Array.from(shapeSelect!.options).map((option) => option.value),
-    ).toEqual([""]);
 
     await act(async () => {
       subcategorySelect!.value = "belt";
@@ -1172,11 +1155,7 @@ describe("新規登録画面", () => {
       await waitForEffects();
     });
 
-    expect(shapeSelect!.value).toBe("belt");
-    expect(shapeSelect!.disabled).toBe(true);
-    expect(
-      Array.from(shapeSelect!.options).map((option) => option.value),
-    ).toEqual(["", "belt"]);
+    expect(container.querySelector("#shape")).toBeNull();
   });
 
   it("shoes は種類ラジオを表示し、選択に応じて shape を自動設定できる", async () => {
@@ -1207,31 +1186,24 @@ describe("新規登録画面", () => {
       "pumps",
       "boots",
       "sandals",
+      "leather_shoes",
+      "rain_shoes_boots",
       "other",
     ]);
     expect(subcategoryRadios[0]?.checked).toBe(true);
-    expect(shapeSelect).not.toBeNull();
-    expect(shapeSelect!.value).toBe("sneakers");
-    expect(shapeSelect!.disabled).toBe(true);
+    expect(shapeSelect).toBeNull();
 
     await act(async () => {
       subcategoryRadios[2]!.click();
       await waitForEffects();
     });
 
-    expect(shapeSelect!.value).toBe("short-boots");
+    expect(container.querySelector("#shape")).toBeNull();
 
     await act(async () => {
       subcategoryRadios[4]!.click();
       await waitForEffects();
     });
-
-    const shapeLabel =
-      container.querySelector<HTMLLabelElement>('label[for="shape"]');
-    expect(shapeLabel?.textContent).not.toContain("必須");
-    expect(
-      Array.from(shapeSelect!.options).map((option) => option.value),
-    ).toEqual([""]);
   });
 
   it("fashion_accessories の other では形を任意寄りで扱う", async () => {
@@ -1262,11 +1234,7 @@ describe("新規登録画面", () => {
       await waitForEffects();
     });
 
-    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
-    expect(shapeSelect).not.toBeNull();
-    expect(
-      Array.from(shapeSelect!.options).map((option) => option.value),
-    ).toEqual([""]);
+    expect(container.querySelector("#shape")).toBeNull();
   });
 
   it("tops で候補が1つの形を自動選択する", async () => {

@@ -54,7 +54,7 @@ class PurchaseCandidateCategoryMap
         'legwear_other' => ['category' => 'legwear', 'subcategory' => 'other'],
         'bags_tote' => ['category' => 'bags', 'subcategory' => 'tote'],
         'bags_shoulder' => ['category' => 'bags', 'subcategory' => 'shoulder'],
-        'bags_backpack' => ['category' => 'bags', 'subcategory' => 'backpack'],
+        'bags_rucksack' => ['category' => 'bags', 'subcategory' => 'rucksack'],
         'bags_hand' => ['category' => 'bags', 'subcategory' => 'hand'],
         'bags_clutch' => ['category' => 'bags', 'subcategory' => 'clutch'],
         'bags_body' => ['category' => 'bags', 'subcategory' => 'body'],

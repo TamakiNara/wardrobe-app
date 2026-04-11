@@ -14,6 +14,7 @@ const OPTIONAL_SHAPE_WITH_EMPTY_SUBCATEGORY = new Set([
   "fashion_accessories",
   "shoes",
   "legwear",
+  "swimwear",
   "kimono",
 ]);
 const OPTIONAL_SHAPE_WITH_OTHER_SUBCATEGORY = new Set([
@@ -28,8 +29,18 @@ const OPTIONAL_SHAPE_WITH_OTHER_SUBCATEGORY = new Set([
   "fashion_accessories",
   "shoes",
   "legwear",
+  "swimwear",
   "kimono",
 ]);
+const HIDDEN_SHAPE_FIELD_CATEGORIES = new Set([
+  "bags",
+  "fashion_accessories",
+  "shoes",
+  "legwear",
+  "swimwear",
+  "kimono",
+]);
+
 const HIDDEN_SHAPE_FIELD_WITH_OTHER_SUBCATEGORY = new Set([
   "tops",
   "pants",
@@ -48,6 +59,7 @@ const FALLBACK_SHAPE_BY_CATEGORY: Record<string, string> = {
   fashion_accessories: "other",
   shoes: "other",
   legwear: "socks",
+  swimwear: "swimwear",
   kimono: "kimono",
 };
 
@@ -56,6 +68,10 @@ export function isItemShapeRequired(
   subcategory?: string | null,
 ) {
   if (!category) {
+    return false;
+  }
+
+  if (HIDDEN_SHAPE_FIELD_CATEGORIES.has(category)) {
     return false;
   }
 
@@ -81,6 +97,10 @@ export function shouldShowItemShapeField(
 ) {
   if (!category) {
     return true;
+  }
+
+  if (HIDDEN_SHAPE_FIELD_CATEGORIES.has(category)) {
+    return false;
   }
 
   const normalizedSubcategory = normalizeItemSubcategory(category, subcategory);

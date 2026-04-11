@@ -196,10 +196,10 @@ const PURCHASE_CANDIDATE_ITEM_CATEGORY_MAP = {
     subcategory: "shoulder",
     shape: "shoulder",
   },
-  bags_backpack: {
+  bags_rucksack: {
     category: "bags",
-    subcategory: "backpack",
-    shape: "backpack",
+    subcategory: "rucksack",
+    shape: "rucksack",
   },
   bags_hand: { category: "bags", subcategory: "hand", shape: "hand" },
   bags_clutch: {

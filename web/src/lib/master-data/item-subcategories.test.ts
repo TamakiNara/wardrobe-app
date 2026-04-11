@@ -36,7 +36,7 @@ describe("item subcategory helpers", () => {
     expect(resolveItemSubcategoryForForm("shoes", null)).toBe("sneakers");
     expect(resolveItemSubcategoryForForm("legwear", null)).toBeNull();
     expect(resolveItemSubcategoryForForm("inner", null)).toBeNull();
-    expect(resolveItemSubcategoryForForm("kimono", null)).toBe("kimono");
+    expect(resolveItemSubcategoryForForm("kimono", null)).toBeNull();
   });
 
   it("既存データの other は UI 表示時も内部値として保持する", () => {

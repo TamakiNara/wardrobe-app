@@ -47,10 +47,19 @@ class ItemInputRequirementSupport
         'bags' => [
             'tote' => ['tote'],
             'shoulder' => ['shoulder'],
-            'backpack' => ['backpack'],
+            'boston' => ['boston'],
+            'rucksack' => ['rucksack'],
             'hand' => ['hand'],
-            'clutch' => ['clutch'],
             'body' => ['body'],
+            'waist_pouch' => ['waist-pouch'],
+            'messenger' => ['messenger'],
+            'clutch' => ['clutch'],
+            'sacoche' => ['sacoche'],
+            'pochette' => ['pochette'],
+            'drawstring' => ['drawstring'],
+            'basket_bag' => ['basket-bag'],
+            'briefcase' => ['briefcase'],
+            'marche_bag' => ['marche-bag'],
             'other' => [],
         ],
         'fashion_accessories' => [
@@ -70,6 +79,8 @@ class ItemInputRequirementSupport
             'pumps' => ['pumps'],
             'boots' => ['short-boots'],
             'sandals' => ['sandals'],
+            'leather_shoes' => ['leather-shoes'],
+            'rain_shoes_boots' => ['rain-shoes-boots'],
             'other' => [],
         ],
         'legwear' => [
@@ -77,10 +88,18 @@ class ItemInputRequirementSupport
             'stockings' => ['stockings'],
             'tights' => ['tights'],
             'leggings' => ['leggings'],
+            'leg_warmer' => ['leg-warmer'],
+            'other' => [],
+        ],
+        'swimwear' => [
+            'swimwear' => ['swimwear'],
+            'rashguard' => ['rashguard'],
             'other' => [],
         ],
         'kimono' => [
             'kimono' => ['kimono'],
+            'yukata' => ['yukata'],
+            'japanese_accessory' => ['japanese-accessory'],
             'other' => [],
         ],
     ];
@@ -97,6 +116,7 @@ class ItemInputRequirementSupport
         'fashion_accessories',
         'shoes',
         'legwear',
+        'swimwear',
         'kimono',
     ];
 
@@ -112,6 +132,7 @@ class ItemInputRequirementSupport
         'fashion_accessories',
         'shoes',
         'legwear',
+        'swimwear',
         'kimono',
     ];
 
@@ -168,10 +189,19 @@ class ItemInputRequirementSupport
         'bags' => [
             'tote' => 'tote',
             'shoulder' => 'shoulder',
-            'backpack' => 'backpack',
+            'boston' => 'boston',
+            'rucksack' => 'rucksack',
             'hand' => 'hand',
-            'clutch' => 'clutch',
             'body' => 'body',
+            'waist_pouch' => 'waist-pouch',
+            'messenger' => 'messenger',
+            'clutch' => 'clutch',
+            'sacoche' => 'sacoche',
+            'pochette' => 'pochette',
+            'drawstring' => 'drawstring',
+            'basket_bag' => 'basket-bag',
+            'briefcase' => 'briefcase',
+            'marche_bag' => 'marche-bag',
             'other' => 'bag',
         ],
         'fashion_accessories' => [
@@ -191,6 +221,8 @@ class ItemInputRequirementSupport
             'pumps' => 'pumps',
             'boots' => 'short-boots',
             'sandals' => 'sandals',
+            'leather_shoes' => 'leather-shoes',
+            'rain_shoes_boots' => 'rain-shoes-boots',
             'other' => 'other',
         ],
         'legwear' => [
@@ -198,10 +230,18 @@ class ItemInputRequirementSupport
             'stockings' => 'stockings',
             'tights' => 'tights',
             'leggings' => 'leggings',
+            'leg_warmer' => 'leg-warmer',
             'other' => 'socks',
+        ],
+        'swimwear' => [
+            'swimwear' => 'swimwear',
+            'rashguard' => 'rashguard',
+            'other' => 'other',
         ],
         'kimono' => [
             'kimono' => 'kimono',
+            'yukata' => 'yukata',
+            'japanese_accessory' => 'japanese-accessory',
             'other' => 'kimono',
         ],
     ];
@@ -218,6 +258,7 @@ class ItemInputRequirementSupport
         'fashion_accessories' => 'other',
         'shoes' => 'other',
         'legwear' => 'socks',
+        'swimwear' => 'swimwear',
         'kimono' => 'kimono',
     ];
 

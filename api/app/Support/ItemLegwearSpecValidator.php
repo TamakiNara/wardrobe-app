@@ -18,9 +18,10 @@ class ItemLegwearSpecValidator
         $bottomsRiseType = data_get($validated, 'spec.bottoms.rise_type');
         $coverageType = data_get($validated, 'spec.legwear.coverage_type');
         $resolvedLegwearType = match ($subcategory) {
-            'socks', 'stockings', 'tights', 'leggings', 'other' => $subcategory,
+            'socks', 'stockings', 'tights', 'leggings', 'leg_warmer', 'other' => $subcategory,
             default => match ($shape) {
                 'socks', 'stockings', 'tights', 'leggings' => $shape,
+                'leg-warmer' => 'leg_warmer',
                 default => null,
             },
         };
@@ -54,8 +55,8 @@ class ItemLegwearSpecValidator
         }
 
         $allowedCoverageTypes = match ($resolvedLegwearType) {
-            'socks' => ['ankle_socks', 'crew_socks', 'knee_socks', 'over_knee'],
-            'leggings' => ['leggings_cropped', 'leggings_full'],
+            'socks' => ['foot_cover', 'ankle_sneaker', 'crew', 'three_quarter', 'high_socks'],
+            'leggings' => ['one_tenth', 'three_tenths', 'five_tenths', 'seven_tenths', 'seven_eighths', 'ten_tenths', 'twelve_tenths'],
             'stockings' => ['stockings'],
             'tights' => ['tights'],
             default => null,

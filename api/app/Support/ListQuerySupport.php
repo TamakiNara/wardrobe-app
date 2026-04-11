@@ -155,7 +155,7 @@ class ListQuerySupport
                 'bag' => 'bags_other',
                 'tote' => 'bags_tote',
                 'shoulder' => 'bags_shoulder',
-                'backpack' => 'bags_backpack',
+                'rucksack' => 'bags_rucksack',
                 'hand' => 'bags_hand',
                 'clutch' => 'bags_clutch',
                 'body' => 'bags_body',
@@ -217,7 +217,7 @@ class ListQuerySupport
             'accessories' => [
                 'tote' => 'bags_tote',
                 'shoulder' => 'bags_shoulder',
-                'backpack' => 'bags_backpack',
+                'rucksack' => 'bags_rucksack',
                 'hand' => 'bags_hand',
                 'clutch' => 'bags_clutch',
                 'body' => 'bags_body',
@@ -349,7 +349,7 @@ class ListQuerySupport
                 default => 'pants',
             },
             'accessories' => match ($shape) {
-                'tote', 'shoulder', 'backpack', 'hand', 'clutch', 'body' => 'bags',
+                'tote', 'shoulder', 'rucksack', 'hand', 'clutch', 'body' => 'bags',
                 default => 'fashion_accessories',
             },
             default => ItemSubcategorySupport::valuesFor($category) !== [] ? $category : null,
@@ -384,7 +384,7 @@ class ListQuerySupport
             ],
             'bags' => [
                 ['category' => 'bags'],
-                ['category' => 'accessories', 'shapes' => ['tote', 'shoulder', 'backpack', 'hand', 'clutch', 'body']],
+                ['category' => 'accessories', 'shapes' => ['tote', 'shoulder', 'rucksack', 'hand', 'clutch', 'body']],
             ],
             'fashion_accessories' => [
                 ['category' => 'fashion_accessories'],
