@@ -196,18 +196,55 @@ const PURCHASE_CANDIDATE_ITEM_CATEGORY_MAP = {
     subcategory: "shoulder",
     shape: "shoulder",
   },
+  bags_boston: { category: "bags", subcategory: "boston", shape: "boston" },
   bags_rucksack: {
     category: "bags",
     subcategory: "rucksack",
     shape: "rucksack",
   },
   bags_hand: { category: "bags", subcategory: "hand", shape: "hand" },
+  bags_body: { category: "bags", subcategory: "body", shape: "body" },
+  bags_waist_pouch: {
+    category: "bags",
+    subcategory: "waist_pouch",
+    shape: "waist-pouch",
+  },
+  bags_messenger: {
+    category: "bags",
+    subcategory: "messenger",
+    shape: "messenger",
+  },
   bags_clutch: {
     category: "bags",
     subcategory: "clutch",
     shape: "clutch",
   },
-  bags_body: { category: "bags", subcategory: "body", shape: "body" },
+  bags_sacoche: { category: "bags", subcategory: "sacoche", shape: "sacoche" },
+  bags_pochette: {
+    category: "bags",
+    subcategory: "pochette",
+    shape: "pochette",
+  },
+  bags_drawstring: {
+    category: "bags",
+    subcategory: "drawstring",
+    shape: "drawstring",
+  },
+  bags_basket_bag: {
+    category: "bags",
+    subcategory: "basket_bag",
+    shape: "basket-bag",
+  },
+  bags_briefcase: {
+    category: "bags",
+    subcategory: "briefcase",
+    shape: "briefcase",
+  },
+  bags_marche_bag: {
+    category: "bags",
+    subcategory: "marche_bag",
+    shape: "marche-bag",
+  },
   bags_other: { category: "bags", subcategory: "other", shape: "bag" },
   fashion_accessories_hat: {
     category: "fashion_accessories",

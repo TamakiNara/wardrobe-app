@@ -49,6 +49,16 @@ class ItemCategoryMappingSupportTest extends TestCase
             ['category' => 'accessories', 'shape' => 'tote'],
             ListQuerySupport::itemVisibleCategoryQueryMap()['bags_tote']
         );
+
+        $this->assertSame(
+            'bags_messenger',
+            ItemSubcategorySupport::visibleCategoryIdFor('bags', 'messenger')
+        );
+
+        $this->assertContains(
+            ['category' => 'bags', 'subcategory' => 'messenger'],
+            ListQuerySupport::itemVisibleCategoryQueryMap()['bags_messenger']
+        );
     }
 
     public function test_item_input_requirement_support_exposes_shape_options_and_defaults(): void
@@ -99,6 +109,15 @@ class ItemCategoryMappingSupportTest extends TestCase
                 'subcategory' => 'other',
             ],
             PurchaseCandidateCategoryMap::resolveItemDraftCategory('bags_other')
+        );
+
+        $this->assertSame(
+            [
+                'category' => 'bags',
+                'shape' => 'waist-pouch',
+                'subcategory' => 'waist_pouch',
+            ],
+            PurchaseCandidateCategoryMap::resolveItemDraftCategory('bags_waist_pouch')
         );
 
         $this->assertSame(

@@ -8,10 +8,19 @@ return new class extends Migration
     private array $specificBagCategoryIds = [
         'bags_tote',
         'bags_shoulder',
+        'bags_boston',
         'bags_rucksack',
         'bags_hand',
-        'bags_clutch',
         'bags_body',
+        'bags_waist_pouch',
+        'bags_messenger',
+        'bags_clutch',
+        'bags_sacoche',
+        'bags_pochette',
+        'bags_drawstring',
+        'bags_basket_bag',
+        'bags_briefcase',
+        'bags_marche_bag',
     ];
 
     private function expandedBagCategoryIds(): array
@@ -27,11 +36,20 @@ return new class extends Migration
         return [
             ['id' => 'bags_tote', 'group_id' => 'bags', 'name' => 'トートバッグ', 'sort_order' => 1, 'is_active' => true, 'created_at' => $timestamp, 'updated_at' => $timestamp],
             ['id' => 'bags_shoulder', 'group_id' => 'bags', 'name' => 'ショルダーバッグ', 'sort_order' => 2, 'is_active' => true, 'created_at' => $timestamp, 'updated_at' => $timestamp],
-            ['id' => 'bags_rucksack', 'group_id' => 'bags', 'name' => 'リュックサック・バックパック', 'sort_order' => 3, 'is_active' => true, 'created_at' => $timestamp, 'updated_at' => $timestamp],
-            ['id' => 'bags_hand', 'group_id' => 'bags', 'name' => 'ハンドバッグ', 'sort_order' => 4, 'is_active' => true, 'created_at' => $timestamp, 'updated_at' => $timestamp],
-            ['id' => 'bags_clutch', 'group_id' => 'bags', 'name' => 'クラッチバッグ', 'sort_order' => 5, 'is_active' => true, 'created_at' => $timestamp, 'updated_at' => $timestamp],
-            ['id' => 'bags_body', 'group_id' => 'bags', 'name' => 'ボディバッグ', 'sort_order' => 6, 'is_active' => true, 'created_at' => $timestamp, 'updated_at' => $timestamp],
-            ['id' => 'bags_other', 'group_id' => 'bags', 'name' => 'その他バッグ', 'sort_order' => 7, 'is_active' => true, 'created_at' => $timestamp, 'updated_at' => $timestamp],
+            ['id' => 'bags_boston', 'group_id' => 'bags', 'name' => 'ボストンバッグ', 'sort_order' => 3, 'is_active' => true, 'created_at' => $timestamp, 'updated_at' => $timestamp],
+            ['id' => 'bags_rucksack', 'group_id' => 'bags', 'name' => 'リュックサック・バックパック', 'sort_order' => 4, 'is_active' => true, 'created_at' => $timestamp, 'updated_at' => $timestamp],
+            ['id' => 'bags_hand', 'group_id' => 'bags', 'name' => 'ハンドバッグ', 'sort_order' => 5, 'is_active' => true, 'created_at' => $timestamp, 'updated_at' => $timestamp],
+            ['id' => 'bags_body', 'group_id' => 'bags', 'name' => 'ボディバッグ・クロスボディバッグ', 'sort_order' => 6, 'is_active' => true, 'created_at' => $timestamp, 'updated_at' => $timestamp],
+            ['id' => 'bags_waist_pouch', 'group_id' => 'bags', 'name' => 'ウエストポーチ', 'sort_order' => 7, 'is_active' => true, 'created_at' => $timestamp, 'updated_at' => $timestamp],
+            ['id' => 'bags_messenger', 'group_id' => 'bags', 'name' => 'メッセンジャーバッグ', 'sort_order' => 8, 'is_active' => true, 'created_at' => $timestamp, 'updated_at' => $timestamp],
+            ['id' => 'bags_clutch', 'group_id' => 'bags', 'name' => 'クラッチバッグ', 'sort_order' => 9, 'is_active' => true, 'created_at' => $timestamp, 'updated_at' => $timestamp],
+            ['id' => 'bags_sacoche', 'group_id' => 'bags', 'name' => 'サコッシュ', 'sort_order' => 10, 'is_active' => true, 'created_at' => $timestamp, 'updated_at' => $timestamp],
+            ['id' => 'bags_pochette', 'group_id' => 'bags', 'name' => 'ポシェット', 'sort_order' => 11, 'is_active' => true, 'created_at' => $timestamp, 'updated_at' => $timestamp],
+            ['id' => 'bags_drawstring', 'group_id' => 'bags', 'name' => 'ドローストリングバッグ', 'sort_order' => 12, 'is_active' => true, 'created_at' => $timestamp, 'updated_at' => $timestamp],
+            ['id' => 'bags_basket_bag', 'group_id' => 'bags', 'name' => 'かごバッグ', 'sort_order' => 13, 'is_active' => true, 'created_at' => $timestamp, 'updated_at' => $timestamp],
+            ['id' => 'bags_briefcase', 'group_id' => 'bags', 'name' => 'ブリーフケース', 'sort_order' => 14, 'is_active' => true, 'created_at' => $timestamp, 'updated_at' => $timestamp],
+            ['id' => 'bags_marche_bag', 'group_id' => 'bags', 'name' => 'マルシェバッグ', 'sort_order' => 15, 'is_active' => true, 'created_at' => $timestamp, 'updated_at' => $timestamp],
+            ['id' => 'bags_other', 'group_id' => 'bags', 'name' => 'その他バッグ', 'sort_order' => 16, 'is_active' => true, 'created_at' => $timestamp, 'updated_at' => $timestamp],
         ];
     }
 
@@ -223,6 +241,6 @@ return new class extends Migration
 
     private function specificBagCategoryIdsToShapes(): array
     {
-        return ['tote', 'shoulder', 'rucksack', 'hand', 'clutch', 'body'];
+        return ['tote', 'shoulder', 'boston', 'rucksack', 'hand', 'body', 'waist-pouch', 'messenger', 'clutch', 'sacoche', 'pochette', 'drawstring', 'basket-bag', 'briefcase', 'marche-bag'];
     }
 };

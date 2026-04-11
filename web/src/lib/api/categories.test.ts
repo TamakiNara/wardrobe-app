@@ -96,13 +96,34 @@ const groups: CategoryGroupRecord[] = [
     categories: [
       { id: "bags_tote", groupId: "bags", name: "トートバッグ" },
       { id: "bags_shoulder", groupId: "bags", name: "ショルダーバッグ" },
+      { id: "bags_boston", groupId: "bags", name: "ボストンバッグ" },
       {
         id: "bags_rucksack",
         groupId: "bags",
         name: "リュックサック・バックパック",
       },
       { id: "bags_hand", groupId: "bags", name: "ハンドバッグ" },
+      {
+        id: "bags_waist_pouch",
+        groupId: "bags",
+        name: "ウエストポーチ",
+      },
+      {
+        id: "bags_messenger",
+        groupId: "bags",
+        name: "メッセンジャーバッグ",
+      },
       { id: "bags_clutch", groupId: "bags", name: "クラッチバッグ" },
+      { id: "bags_sacoche", groupId: "bags", name: "サコッシュ" },
+      { id: "bags_pochette", groupId: "bags", name: "ポシェット" },
+      {
+        id: "bags_drawstring",
+        groupId: "bags",
+        name: "ドローストリングバッグ",
+      },
+      { id: "bags_basket_bag", groupId: "bags", name: "かごバッグ" },
+      { id: "bags_briefcase", groupId: "bags", name: "ブリーフケース" },
+      { id: "bags_marche_bag", groupId: "bags", name: "マルシェバッグ" },
       { id: "bags_body", groupId: "bags", name: "ボディバッグ" },
       { id: "bags_other", groupId: "bags", name: "その他バッグ" },
     ],
@@ -253,7 +274,11 @@ describe("findVisibleCategoryIdForItem", () => {
     );
     expect(findVisibleCategoryIdForItem("shoes", "other")).toBe("shoes_other");
     expect(findVisibleCategoryIdForItem("bags", "tote")).toBe("bags_tote");
+    expect(findVisibleCategoryIdForItem("bags", "boston")).toBe("bags_boston");
     expect(findVisibleCategoryIdForItem("bags", "hand")).toBe("bags_hand");
+    expect(findVisibleCategoryIdForItem("bags", "messenger")).toBe(
+      "bags_messenger",
+    );
     expect(findVisibleCategoryIdForItem("bags", "body")).toBe("bags_body");
     expect(findVisibleCategoryIdForItem("fashion_accessories", "belt")).toBe(
       "fashion_accessories_belt",

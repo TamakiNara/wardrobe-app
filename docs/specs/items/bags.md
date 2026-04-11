@@ -16,6 +16,7 @@
 
 - item 側の正規値は `rucksack` を使う
 - `bags_rucksack` は settings 側の ID 名としてだけ残し、item の語彙は `rucksack` に統一する
+- settings / visible category でも `boston / waist_pouch / messenger / sacoche / pochette / drawstring / basket_bag / briefcase / marche_bag` を扱う
 
 ## 要再判断
 
