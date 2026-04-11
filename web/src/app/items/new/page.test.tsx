@@ -254,6 +254,31 @@ const sampleGroups: CategoryGroupRecord[] = [
       },
     ],
   },
+  {
+    id: "swimwear",
+    name: "水着",
+    sortOrder: 50,
+    categories: [
+      {
+        id: "swimwear_swimwear",
+        groupId: "swimwear",
+        name: "水着",
+        sortOrder: 10,
+      },
+      {
+        id: "swimwear_rashguard",
+        groupId: "swimwear",
+        name: "ラッシュガード",
+        sortOrder: 20,
+      },
+      {
+        id: "swimwear_other",
+        groupId: "swimwear",
+        name: "その他水着",
+        sortOrder: 30,
+      },
+    ],
+  },
 ];
 
 async function waitForEffects() {
@@ -302,6 +327,7 @@ describe("新規登録画面", () => {
         "shoes_sneakers",
         "bags_tote",
         "fashion_accessories_belt",
+        "swimwear_swimwear",
       ],
     });
     fetchUserPreferencesMock.mockResolvedValue({
@@ -356,6 +382,7 @@ describe("新規登録画面", () => {
       "シューズ",
       "バッグ",
       "ファッション小物",
+      "水着",
     ]);
     expect(container.textContent).toContain("カテゴリ");
     expect(container.textContent).toContain("形");
@@ -1156,6 +1183,44 @@ describe("新規登録画面", () => {
     await act(async () => {
       subcategorySelect!.value = "belt";
       subcategorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    expect(container.querySelector("#shape")).toBeNull();
+  });
+
+  it("swimwear は種類ラジオを表示し、shape を表示しない", async () => {
+    const { default: NewItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(NewItemPage));
+      await waitForEffects();
+    });
+
+    const categorySelect =
+      container.querySelector<HTMLSelectElement>("#category");
+    expect(categorySelect).not.toBeNull();
+
+    await act(async () => {
+      categorySelect!.value = "swimwear";
+      categorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    const subcategoryRadios = Array.from(
+      container.querySelectorAll<HTMLInputElement>('input[name="subcategory"]'),
+    );
+
+    expect(subcategoryRadios.map((radio) => radio.value)).toEqual([
+      "swimwear",
+      "rashguard",
+      "other",
+    ]);
+    expect(subcategoryRadios[0]?.checked).toBe(true);
+    expect(container.querySelector("#shape")).toBeNull();
+
+    await act(async () => {
+      subcategoryRadios[1]!.click();
       await waitForEffects();
     });
 

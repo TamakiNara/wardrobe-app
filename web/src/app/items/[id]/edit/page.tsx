@@ -619,6 +619,24 @@ export default function EditItemPage({
   }
 
   useEffect(() => {
+    if (category !== "swimwear" || subcategory) {
+      return;
+    }
+
+    const defaultSubcategory = resolveItemSubcategoryForForm(
+      category,
+      subcategory,
+    );
+
+    if (!defaultSubcategory) {
+      return;
+    }
+
+    setSubcategory(defaultSubcategory);
+    clearErrorsFor(["subcategory"]);
+  }, [category, subcategory]);
+
+  useEffect(() => {
     if (!category || !subcategory) {
       return;
     }

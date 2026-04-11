@@ -129,12 +129,14 @@ export const REQUIRED_SUBCATEGORY_CATEGORIES = new Set<string>([
 const RADIO_SUBCATEGORY_UI_CATEGORIES = new Set<string>([
   "skirts",
   "shoes",
+  "swimwear",
   "kimono",
 ]);
 
 const REPRESENTATIVE_SUBCATEGORY_BY_CATEGORY: Record<string, string> = {
   skirts: "skirt",
   shoes: "sneakers",
+  swimwear: "swimwear",
 };
 
 export function getItemSubcategoryOptions(category?: string | null) {
