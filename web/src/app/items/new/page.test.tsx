@@ -594,6 +594,13 @@ describe("新規登録画面", () => {
     expect(container.querySelector("#shape")).toBeNull();
     expect(container.textContent).toContain("レッグウェア");
     expect(container.textContent).toContain("ソックスの長さ");
+    expect(
+      (
+        container.querySelector(
+          "#legwear-coverage-type",
+        ) as HTMLSelectElement | null
+      )?.options[0]?.textContent,
+    ).toBe("選択してください");
     expect(container.querySelector("#legwear-coverage-type")).not.toBeNull();
 
     await act(async () => {
@@ -1011,7 +1018,7 @@ describe("新規登録画面", () => {
       container.querySelector<HTMLSelectElement>("#subcategory");
     shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
     expect(subcategorySelect).not.toBeNull();
-    expect(shapeSelect).not.toBeNull();
+    expect(shapeSelect).toBeNull();
 
     await act(async () => {
       subcategorySelect!.value = "salopette";
@@ -1019,10 +1026,7 @@ describe("新規登録画面", () => {
       await waitForEffects();
     });
 
-    expect(
-      Array.from(shapeSelect!.options).map((option) => option.value),
-    ).toEqual(["", "salopette"]);
-    expect(shapeSelect!.value).toBe("salopette");
+    expect(shapeSelect).toBeNull();
   });
 
   it("bags は種類 select を表示し、選択に応じて shape を自動設定できる", async () => {

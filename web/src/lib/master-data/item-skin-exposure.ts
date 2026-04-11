@@ -213,11 +213,12 @@ export function getLegwearCoverageFieldLabel(
 }
 
 export function getLegwearCoveragePlaceholder(
-  shape?: string | null,
-  subcategory?: string | null,
+  _shape?: string | null,
+  _subcategory?: string | null,
 ) {
-  const label = getLegwearCoverageFieldLabel(shape, subcategory);
-  return `${label}を選択してください`;
+  void _shape;
+  void _subcategory;
+  return "選択してください";
 }
 
 function resolveLegwearShapeKind(

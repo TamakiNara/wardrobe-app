@@ -105,6 +105,10 @@ export function shouldShowItemShapeField(
 
   const normalizedSubcategory = normalizeItemSubcategory(category, subcategory);
 
+  if (category === "allinone" && !normalizedSubcategory) {
+    return false;
+  }
+
   return !(
     normalizedSubcategory === "other" &&
     HIDDEN_SHAPE_FIELD_WITH_OTHER_SUBCATEGORY.has(category)

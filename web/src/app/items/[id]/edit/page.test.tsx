@@ -543,6 +543,13 @@ describe("編集画面", () => {
       container.querySelector<HTMLSelectElement>("#subcategory");
     expect(legwearSubcategorySelect?.value).toBe("socks");
     expect(container.textContent).toContain("ソックスの長さ");
+    expect(
+      (
+        container.querySelector(
+          "#legwear-coverage-type",
+        ) as HTMLSelectElement | null
+      )?.options[0]?.textContent,
+    ).toBe("選択してください");
   });
 
   it("編集画面でタイツは追加選択なしで扱える", async () => {
