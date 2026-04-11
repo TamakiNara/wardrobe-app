@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   isItemShapeRequired,
   resolveItemShapeForSubmit,
+  shouldShowItemShapeField,
 } from "@/lib/items/input-requirements";
 
 describe("item input requirements", () => {
@@ -29,6 +30,13 @@ describe("item input requirements", () => {
     expect(isItemShapeRequired("inner", null)).toBe(false);
     expect(isItemShapeRequired("tops", "other")).toBe(false);
     expect(isItemShapeRequired("kimono", "other")).toBe(false);
+  });
+  it("other 系の一部カテゴリでは shape UI を出さない", () => {
+    expect(shouldShowItemShapeField("tops", "other")).toBe(false);
+    expect(shouldShowItemShapeField("pants", "other")).toBe(false);
+    expect(shouldShowItemShapeField("skirts", "other")).toBe(false);
+    expect(shouldShowItemShapeField("outerwear", "other")).toBe(false);
+    expect(shouldShowItemShapeField("bags", "other")).toBe(true);
   });
 
   it("任意寄りのときは送信用の形を自動補完する", () => {

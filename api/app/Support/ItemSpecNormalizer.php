@@ -8,12 +8,24 @@ class ItemSpecNormalizer
     {
         $normalized = is_array($spec) ? $spec : [];
         $lengthType = data_get($normalized, 'bottoms.length_type');
+        $riseType = data_get($normalized, 'bottoms.rise_type');
         $resolvedLengthType = self::resolveBottomsLengthType($category, $shape, $lengthType);
+        $resolvedRiseType = self::resolveBottomsRiseType($category, $riseType);
         $coverageType = data_get($normalized, 'legwear.coverage_type');
         $resolvedCoverageType = self::resolveLegwearCoverageType($category, $shape, $coverageType, $subcategory);
 
-        if ($resolvedLengthType !== null) {
-            data_set($normalized, 'bottoms.length_type', $resolvedLengthType);
+        if ($resolvedLengthType !== null || $resolvedRiseType !== null) {
+            $bottomsSpec = [];
+
+            if ($resolvedLengthType !== null) {
+                $bottomsSpec['length_type'] = $resolvedLengthType;
+            }
+
+            if ($resolvedRiseType !== null) {
+                $bottomsSpec['rise_type'] = $resolvedRiseType;
+            }
+
+            $normalized['bottoms'] = $bottomsSpec;
         } else {
             unset($normalized['bottoms']);
         }
@@ -70,14 +82,13 @@ class ItemSpecNormalizer
             return null;
         }
 
-        if (in_array($lengthType, ['mini', 'short', 'half', 'cropped', 'full'], true)) {
+        if (in_array($lengthType, ['mini', 'short', 'half', 'cropped', 'ankle', 'full'], true)) {
             return $lengthType;
         }
 
         $legacyMapped = match ($lengthType) {
             'knee' => 'half',
             'midi' => 'cropped',
-            'ankle' => 'full',
             default => null,
         };
 
@@ -94,5 +105,16 @@ class ItemSpecNormalizer
         }
 
         return null;
+    }
+
+    private static function resolveBottomsRiseType(?string $category, mixed $riseType): ?string
+    {
+        if ($category !== 'pants') {
+            return null;
+        }
+
+        return in_array($riseType, ['high_waist', 'low_rise'], true)
+            ? $riseType
+            : null;
     }
 }

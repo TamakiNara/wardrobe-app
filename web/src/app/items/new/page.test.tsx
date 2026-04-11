@@ -544,12 +544,28 @@ describe("新規登録画面", () => {
     });
 
     expect(container.textContent).toContain("ボトムス丈");
+    expect(container.textContent).toContain("股上");
     expect(container.querySelector("#bottoms-length-type")).not.toBeNull();
+    expect(container.querySelector("#bottoms-rise-type")).not.toBeNull();
     expect(container.querySelector("#legwear-coverage-type")).toBeNull();
     expect(
       Array.from(shapeSelect!.options).map((option) => option.value),
-    ).toEqual(["", "straight", "tapered", "wide", "culottes"]);
-
+    ).toEqual([
+      "",
+      "straight",
+      "tapered",
+      "wide",
+      "culottes",
+      "jogger",
+      "skinny",
+      "gaucho",
+    ]);
+    expect(
+      Array.from(
+        (container.querySelector("#bottoms-length-type") as HTMLSelectElement)
+          .options,
+      ).map((option) => option.value),
+    ).toEqual(["", "mini", "short", "half", "cropped", "ankle", "full"]);
     await act(async () => {
       categorySelect!.value = "legwear";
       categorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
@@ -774,7 +790,16 @@ describe("新規登録画面", () => {
 
     expect(
       Array.from(shapeSelect!.options).map((option) => option.value),
-    ).toEqual(["", "straight", "tapered", "wide", "culottes"]);
+    ).toEqual([
+      "",
+      "straight",
+      "tapered",
+      "wide",
+      "culottes",
+      "jogger",
+      "skinny",
+      "gaucho",
+    ]);
   });
 
   it("outerwear の種類に応じて shape 候補を絞り込む", async () => {
@@ -882,7 +907,56 @@ describe("新規登録画面", () => {
 
     expect(
       Array.from(shapeSelect!.options).map((option) => option.value),
-    ).toEqual(["", "tight", "flare", "a_line", "pleated"]);
+    ).toEqual(["", "tight", "flare", "a_line", "mermaid"]);
+  });
+
+  it("other 系の一部カテゴリでは shape を表示しない", async () => {
+    const { default: NewItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(NewItemPage));
+      await waitForEffects();
+    });
+
+    const categorySelect =
+      container.querySelector<HTMLSelectElement>("#category");
+    expect(categorySelect).not.toBeNull();
+
+    await act(async () => {
+      categorySelect!.value = "pants";
+      categorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    let subcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
+    expect(subcategorySelect).not.toBeNull();
+
+    await act(async () => {
+      subcategorySelect!.value = "other";
+      subcategorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    expect(container.querySelector("#shape")).toBeNull();
+
+    await act(async () => {
+      categorySelect!.value = "outerwear";
+      categorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    subcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
+    expect(subcategorySelect).not.toBeNull();
+
+    await act(async () => {
+      subcategorySelect!.value = "other";
+      subcategorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    expect(container.querySelector("#shape")).toBeNull();
   });
 
   it("onepiece_dress と allinone は種類に応じて shape 候補を絞り込む", async () => {

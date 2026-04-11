@@ -1311,6 +1311,43 @@ class ItemsEndpointsTest extends TestCase
         $this->assertSame('cropped', data_get($item->spec, 'bottoms.length_type'));
     }
 
+    public function test_post_items_can_save_pants_length_and_rise_spec(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/items', [
+            'name' => 'アンクル丈パンツ',
+            'category' => 'pants',
+            'subcategory' => 'denim',
+            'shape' => 'skinny',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'navy',
+                'hex' => '#123456',
+                'label' => 'ネイビー',
+            ]],
+            'spec' => [
+                'bottoms' => [
+                    'length_type' => 'ankle',
+                    'rise_type' => 'high_waist',
+                ],
+            ],
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('item.spec.bottoms.length_type', 'ankle')
+            ->assertJsonPath('item.spec.bottoms.rise_type', 'high_waist');
+
+        $item = Item::query()->findOrFail($response->json('item.id'));
+        $this->assertSame('ankle', data_get($item->spec, 'bottoms.length_type'));
+        $this->assertSame('high_waist', data_get($item->spec, 'bottoms.rise_type'));
+    }
+
     public function test_post_items_normalizes_legacy_bottoms_length_type_spec(): void
     {
         $user = User::factory()->create();
@@ -1526,6 +1563,39 @@ class ItemsEndpointsTest extends TestCase
             ->assertJsonValidationErrors([
                 'spec.bottoms.length_type',
                 'spec.legwear.coverage_type',
+            ]);
+    }
+
+    public function test_post_items_rejects_bottoms_rise_type_for_non_pants_category(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/items', [
+            'name' => '不正な股上スカート',
+            'category' => 'skirts',
+            'shape' => 'a_line',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'navy',
+                'hex' => '#123456',
+                'label' => 'ネイビー',
+            ]],
+            'spec' => [
+                'bottoms' => [
+                    'length_type' => 'cropped',
+                    'rise_type' => 'high_waist',
+                ],
+            ],
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors([
+                'spec.bottoms.rise_type',
             ]);
     }
 

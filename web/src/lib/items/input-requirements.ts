@@ -30,6 +30,12 @@ const OPTIONAL_SHAPE_WITH_OTHER_SUBCATEGORY = new Set([
   "legwear",
   "kimono",
 ]);
+const HIDDEN_SHAPE_FIELD_WITH_OTHER_SUBCATEGORY = new Set([
+  "tops",
+  "pants",
+  "outerwear",
+  "skirts",
+]);
 const FALLBACK_SHAPE_BY_CATEGORY: Record<string, string> = {
   tops: "tshirt",
   pants: "pants",
@@ -67,6 +73,22 @@ export function isItemShapeRequired(
   }
 
   return getItemShapeOptions(category, normalizedSubcategory).length > 1;
+}
+
+export function shouldShowItemShapeField(
+  category?: string | null,
+  subcategory?: string | null,
+) {
+  if (!category) {
+    return true;
+  }
+
+  const normalizedSubcategory = normalizeItemSubcategory(category, subcategory);
+
+  return !(
+    normalizedSubcategory === "other" &&
+    HIDDEN_SHAPE_FIELD_WITH_OTHER_SUBCATEGORY.has(category)
+  );
 }
 
 export function resolveItemShapeForSubmit(

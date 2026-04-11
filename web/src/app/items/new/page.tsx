@@ -73,14 +73,17 @@ import {
 } from "@/lib/master-data/item-tops";
 import {
   BOTTOMS_LENGTH_OPTIONS,
+  BOTTOMS_RISE_OPTIONS,
   getLegwearCoverageOptions,
   isBottomsSpecCategory,
   isBottomsLengthTypeRequired,
+  isBottomsRiseTypeSupported,
   isLegwearCoverageTypeRequired,
   isLegwearSpecCategory,
   resolveLegwearCoverageType,
   shouldShowLegwearCoverageSelect,
   type BottomsLengthType,
+  type BottomsRiseType,
   type LegwearCoverageType,
 } from "@/lib/master-data/item-skin-exposure";
 import {
@@ -112,6 +115,7 @@ import {
 import {
   isItemShapeRequired,
   resolveItemShapeForSubmit,
+  shouldShowItemShapeField,
 } from "@/lib/items/input-requirements";
 import type { UserTpoRecord } from "@/types/settings";
 import type { SkinTonePreset } from "@/types/settings";
@@ -176,6 +180,9 @@ export default function NewItemPage() {
   const [bottomsLengthType, setBottomsLengthType] = useState<
     BottomsLengthType | ""
   >("");
+  const [bottomsRiseType, setBottomsRiseType] = useState<BottomsRiseType | "">(
+    "",
+  );
   const [legwearCoverageType, setLegwearCoverageType] = useState<
     LegwearCoverageType | ""
   >("");
@@ -259,8 +266,10 @@ export default function NewItemPage() {
   const isShapeAutoSelected =
     currentShapeOptions.length === 1 &&
     currentShapeOptions[0]?.value === currentShapeValue;
-  const shouldShowShapeField =
-    !isTopsCategory || effectiveSubcategory !== "other";
+  const shouldShowShapeField = shouldShowItemShapeField(
+    category,
+    effectiveSubcategory,
+  );
 
   const selectedMainColor = useMemo(() => {
     if (useCustomMainColor) {
@@ -602,6 +611,7 @@ export default function NewItemPage() {
 
   function resetBottomsSpecState() {
     setBottomsLengthType("");
+    setBottomsRiseType("");
   }
 
   function resetLegwearSpecState() {
@@ -626,6 +636,7 @@ export default function NewItemPage() {
       "subcategory",
       "shape",
       "spec.bottoms.length_type",
+      "spec.bottoms.rise_type",
       "spec.legwear.coverage_type",
     ]);
 
@@ -818,10 +829,14 @@ export default function NewItemPage() {
                 design: topsDesign || null,
                 fit: topsFit || null,
               },
-              ...(isBottomsSpecVisible && bottomsLengthType
+              ...(isBottomsSpecVisible && (bottomsLengthType || bottomsRiseType)
                 ? {
                     bottoms: {
-                      length_type: bottomsLengthType,
+                      length_type: bottomsLengthType || undefined,
+                      rise_type:
+                        category === "pants"
+                          ? bottomsRiseType || undefined
+                          : undefined,
                     },
                   }
                 : {}),
@@ -833,10 +848,14 @@ export default function NewItemPage() {
                   }
                 : {}),
             }
-          : isBottomsSpecVisible && bottomsLengthType
+          : isBottomsSpecVisible && (bottomsLengthType || bottomsRiseType)
             ? {
                 bottoms: {
-                  length_type: bottomsLengthType,
+                  length_type: bottomsLengthType || undefined,
+                  rise_type:
+                    category === "pants"
+                      ? bottomsRiseType || undefined
+                      : undefined,
                 },
                 ...(resolvedLegwearCoverageType
                   ? {
@@ -1013,7 +1032,11 @@ export default function NewItemPage() {
   const previewSpec = {
     tops: previewTopsSpecRaw,
     bottoms: isBottomsSpecCategory(category)
-      ? { length_type: bottomsLengthType || undefined }
+      ? {
+          length_type: bottomsLengthType || undefined,
+          rise_type:
+            category === "pants" ? bottomsRiseType || undefined : undefined,
+        }
       : undefined,
     legwear: isLegwearSpecCategory(category)
       ? {
@@ -1389,6 +1412,43 @@ export default function NewItemPage() {
                             </p>
                           )}
                         </div>
+
+                        {isBottomsRiseTypeSupported(category) ? (
+                          <div>
+                            <FieldLabel
+                              htmlFor="bottoms-rise-type"
+                              label="股上"
+                            />
+                            <select
+                              id="bottoms-rise-type"
+                              value={bottomsRiseType}
+                              onChange={(e) =>
+                                setBottomsRiseType(
+                                  e.target.value as BottomsRiseType | "",
+                                )
+                              }
+                              onBlur={() =>
+                                clearErrorsFor(["spec.bottoms.rise_type"])
+                              }
+                              onChangeCapture={() =>
+                                clearErrorsFor(["spec.bottoms.rise_type"])
+                              }
+                              className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors["spec.bottoms.rise_type"] ? "border-red-400" : "border-gray-300"}`}
+                            >
+                              <option value="">位置を選択してください</option>
+                              {BOTTOMS_RISE_OPTIONS.map((item) => (
+                                <option key={item.value} value={item.value}>
+                                  {item.label}
+                                </option>
+                              ))}
+                            </select>
+                            {errors["spec.bottoms.rise_type"] && (
+                              <p className="mt-2 text-sm text-red-600">
+                                {errors["spec.bottoms.rise_type"]}
+                              </p>
+                            )}
+                          </div>
+                        ) : null}
                       </div>
                     ) : null}
 
@@ -1440,13 +1500,6 @@ export default function NewItemPage() {
                     ) : null}
                   </div>
                 ) : undefined
-              }
-              attributePlaceholder={
-                <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50/70 px-4 py-3 text-sm text-gray-500">
-                  {category
-                    ? "現在の分類では、追加で選ぶ属性はありません。"
-                    : "カテゴリ・種類・形を選ぶと、必要な属性がここに表示されます。"}
-                </div>
               }
             >
               <div data-error-key="category">

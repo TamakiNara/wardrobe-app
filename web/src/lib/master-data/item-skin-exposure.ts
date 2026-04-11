@@ -3,7 +3,13 @@ export const BOTTOMS_LENGTH_OPTIONS = [
   { value: "short", label: "ショート丈" },
   { value: "half", label: "ハーフ丈" },
   { value: "cropped", label: "クロップド丈" },
+  { value: "ankle", label: "アンクル丈" },
   { value: "full", label: "フルレングス" },
+] as const;
+
+export const BOTTOMS_RISE_OPTIONS = [
+  { value: "high_waist", label: "ハイウエスト" },
+  { value: "low_rise", label: "ローライズ" },
 ] as const;
 
 export const LEGWEAR_COVERAGE_OPTIONS = [
@@ -19,6 +25,7 @@ export const LEGWEAR_COVERAGE_OPTIONS = [
 
 export type BottomsLengthType =
   (typeof BOTTOMS_LENGTH_OPTIONS)[number]["value"];
+export type BottomsRiseType = (typeof BOTTOMS_RISE_OPTIONS)[number]["value"];
 export type LegwearCoverageType =
   (typeof LEGWEAR_COVERAGE_OPTIONS)[number]["value"];
 export type LegwearPreviewCoverageType =
@@ -35,6 +42,9 @@ const LEGGINGS_COVERAGE_TYPES = ["leggings_cropped", "leggings_full"] as const;
 const BOTTOMS_LENGTH_TYPES = BOTTOMS_LENGTH_OPTIONS.map(
   (item) => item.value,
 ) as readonly BottomsLengthType[];
+const BOTTOMS_RISE_TYPES = BOTTOMS_RISE_OPTIONS.map(
+  (item) => item.value,
+) as readonly BottomsRiseType[];
 
 export function isBottomsSpecCategory(category?: string | null) {
   return (
@@ -48,6 +58,10 @@ export function isLegwearSpecCategory(category?: string | null) {
 
 export function isBottomsLengthTypeRequired(category?: string | null) {
   return isBottomsSpecCategory(category);
+}
+
+export function isBottomsRiseTypeSupported(category?: string | null) {
+  return category === "pants";
 }
 
 export function isLegwearCoverageTypeRequired(
@@ -175,9 +189,19 @@ export function resolveBottomsLengthType(value?: string | null) {
     {
       knee: "half",
       midi: "cropped",
-      ankle: "full",
     }[value ?? ""] ?? null
   );
+}
+
+export function resolveBottomsRiseType(
+  category?: string | null,
+  value?: string | null,
+) {
+  if (!isBottomsRiseTypeSupported(category)) {
+    return null;
+  }
+
+  return BOTTOMS_RISE_TYPES.includes(value as BottomsRiseType) ? value : null;
 }
 
 export function resolveBottomsLengthTypeForItem(

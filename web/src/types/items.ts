@@ -19,6 +19,7 @@ export type TopsSpec = {
 
 export type BottomsSpec = {
   length_type?: string | null;
+  rise_type?: string | null;
 };
 
 export type LegwearSpec = {

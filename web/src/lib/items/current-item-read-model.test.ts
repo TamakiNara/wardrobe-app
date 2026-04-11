@@ -76,5 +76,14 @@ describe("current item read model", () => {
     expect(resolveVisibleCategoryIdForItem("tops", "", "other")).toBe(
       "tops_other",
     );
+    expect(resolveVisibleCategoryIdForItem("pants", "", "other")).toBe(
+      "pants_other",
+    );
+    expect(resolveVisibleCategoryIdForItem("skirts", "", "other")).toBe(
+      "skirts_other",
+    );
+    expect(resolveVisibleCategoryIdForItem("outerwear", "", "other")).toBe(
+      "outerwear_other",
+    );
   });
 });

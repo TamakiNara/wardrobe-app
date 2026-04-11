@@ -58,6 +58,22 @@ class ItemCategoryMappingSupportTest extends TestCase
             ItemInputRequirementSupport::shapeOptionsFor('outerwear', 'jacket')
         );
         $this->assertSame(
+            ['straight', 'tapered', 'wide', 'culottes', 'jogger', 'skinny', 'gaucho'],
+            ItemInputRequirementSupport::shapeOptionsFor('pants', 'denim')
+        );
+        $this->assertSame(
+            [],
+            ItemInputRequirementSupport::shapeOptionsFor('pants', 'other')
+        );
+        $this->assertSame(
+            [],
+            ItemInputRequirementSupport::shapeOptionsFor('skirts', 'other')
+        );
+        $this->assertSame(
+            [],
+            ItemInputRequirementSupport::shapeOptionsFor('outerwear', 'other')
+        );
+        $this->assertSame(
             'roomwear',
             ItemInputRequirementSupport::defaultShapeFor('inner', 'roomwear')
         );

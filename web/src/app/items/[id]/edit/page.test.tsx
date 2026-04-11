@@ -729,7 +729,55 @@ describe("編集画面", () => {
 
     expect(
       Array.from(shapeSelect!.options).map((option) => option.value),
-    ).toEqual(["", "straight", "tapered", "wide", "culottes"]);
+    ).toEqual([
+      "",
+      "straight",
+      "tapered",
+      "wide",
+      "culottes",
+      "jogger",
+      "skinny",
+      "gaucho",
+    ]);
+    expect(container.querySelector("#bottoms-rise-type")).not.toBeNull();
+  });
+
+  it("編集画面でも other 系の一部カテゴリでは shape を表示しない", async () => {
+    const { default: EditItemPage } = await import("./page");
+
+    act(() => {
+      root.render(
+        React.createElement(EditItemPage, {
+          params: Promise.resolve({ id: "1" }),
+        }),
+      );
+    });
+
+    await act(async () => {
+      await waitForEffects();
+    });
+
+    const categorySelect =
+      container.querySelector<HTMLSelectElement>("#category");
+    expect(categorySelect).not.toBeNull();
+
+    await act(async () => {
+      categorySelect!.value = "outerwear";
+      categorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    const subcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
+    expect(subcategorySelect).not.toBeNull();
+
+    await act(async () => {
+      subcategorySelect!.value = "other";
+      subcategorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    expect(container.querySelector("#shape")).toBeNull();
   });
 
   it("編集画面でも outerwear の種類に応じて shape 候補を絞り込める", async () => {

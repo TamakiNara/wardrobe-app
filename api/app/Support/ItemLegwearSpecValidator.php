@@ -15,6 +15,7 @@ class ItemLegwearSpecValidator
             $validated['subcategory'] ?? null,
         );
         $bottomsLengthType = data_get($validated, 'spec.bottoms.length_type');
+        $bottomsRiseType = data_get($validated, 'spec.bottoms.rise_type');
         $coverageType = data_get($validated, 'spec.legwear.coverage_type');
         $resolvedLegwearType = match ($subcategory) {
             'socks', 'stockings', 'tights', 'leggings', 'other' => $subcategory,
@@ -26,6 +27,14 @@ class ItemLegwearSpecValidator
 
         if (in_array($category, ['bottoms', 'pants', 'skirts'], true) && ($bottomsLengthType === null || $bottomsLengthType === '')) {
             self::throwBottomsLengthTypeRequiredError();
+        }
+
+        if (
+            $bottomsRiseType !== null
+            && $bottomsRiseType !== ''
+            && ($category !== 'pants' || ! in_array($bottomsRiseType, ['high_waist', 'low_rise'], true))
+        ) {
+            self::throwBottomsRiseTypeError();
         }
 
         if (
@@ -75,6 +84,13 @@ class ItemLegwearSpecValidator
     {
         throw ValidationException::withMessages([
             'spec.legwear.coverage_type' => 'レッグウェアを選択してください。',
+        ]);
+    }
+
+    private static function throwBottomsRiseTypeError(): never
+    {
+        throw ValidationException::withMessages([
+            'spec.bottoms.rise_type' => '選択した種類では、この股上は指定できません。',
         ]);
     }
 }

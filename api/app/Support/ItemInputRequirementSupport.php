@@ -8,17 +8,17 @@ class ItemInputRequirementSupport
 {
     private const SHAPE_OPTIONS_BY_SUBCATEGORY = [
         'pants' => [
-            'pants' => ['straight', 'tapered', 'wide', 'culottes'],
-            'denim' => ['straight', 'tapered', 'wide', 'culottes'],
-            'slacks' => ['straight', 'tapered', 'wide', 'culottes'],
-            'cargo' => ['straight', 'tapered', 'wide', 'culottes'],
-            'chino' => ['straight', 'tapered', 'wide', 'culottes'],
-            'sweat_jersey' => ['straight', 'tapered', 'wide', 'culottes'],
-            'other' => ['pants', 'straight', 'tapered', 'wide', 'culottes'],
+            'pants' => ['straight', 'tapered', 'wide', 'culottes', 'jogger', 'skinny', 'gaucho'],
+            'denim' => ['straight', 'tapered', 'wide', 'culottes', 'jogger', 'skinny', 'gaucho'],
+            'slacks' => ['straight', 'tapered', 'wide', 'culottes', 'jogger', 'skinny', 'gaucho'],
+            'cargo' => ['straight', 'tapered', 'wide', 'culottes', 'jogger', 'skinny', 'gaucho'],
+            'chino' => ['straight', 'tapered', 'wide', 'culottes', 'jogger', 'skinny', 'gaucho'],
+            'sweat_jersey' => ['straight', 'tapered', 'wide', 'culottes', 'jogger', 'skinny', 'gaucho'],
+            'other' => [],
         ],
         'skirts' => [
-            'skirt' => ['tight', 'flare', 'a_line', 'pleated'],
-            'other' => ['skirt', 'tight', 'flare', 'a_line', 'pleated'],
+            'skirt' => ['tight', 'flare', 'a_line', 'mermaid'],
+            'other' => [],
         ],
         'outerwear' => [
             'jacket' => ['jacket', 'tailored', 'no_collar'],
@@ -26,7 +26,7 @@ class ItemInputRequirementSupport
             'blouson' => ['blouson'],
             'down_padded' => ['down-padded'],
             'mountain_parka' => ['mountain-parka'],
-            'other' => ['jacket', 'tailored', 'no_collar', 'blouson', 'down-padded', 'coat', 'trench', 'chester', 'stainless', 'mountain-parka'],
+            'other' => [],
         ],
         'onepiece_dress' => [
             'onepiece' => ['onepiece'],

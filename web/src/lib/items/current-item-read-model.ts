@@ -221,6 +221,15 @@ const VISIBLE_CATEGORY_ID_BY_SUBCATEGORY: Record<
   tops: {
     other: "tops_other",
   },
+  pants: {
+    other: "pants_other",
+  },
+  skirts: {
+    other: "skirts_other",
+  },
+  outerwear: {
+    other: "outerwear_other",
+  },
   inner: {
     roomwear: "roomwear_inner_roomwear",
     underwear: "roomwear_inner_underwear",

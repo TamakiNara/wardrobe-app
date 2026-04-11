@@ -6,7 +6,18 @@ describe("getItemShapeOptions", () => {
   it("pants の種類に応じて候補を絞り込む", () => {
     expect(
       getItemShapeOptions("pants", "denim").map((item) => item.value),
-    ).toEqual(["straight", "tapered", "wide", "culottes"]);
+    ).toEqual([
+      "straight",
+      "tapered",
+      "wide",
+      "culottes",
+      "jogger",
+      "skinny",
+      "gaucho",
+    ]);
+    expect(
+      getItemShapeOptions("pants", "other").map((item) => item.value),
+    ).toEqual([]);
   });
 
   it("outerwear の種類に応じて候補を絞り込む", () => {
@@ -18,24 +29,16 @@ describe("getItemShapeOptions", () => {
     ).toEqual(["jacket", "tailored", "no_collar"]);
     expect(
       getItemShapeOptions("outerwear", "other").map((item) => item.value),
-    ).toEqual([
-      "jacket",
-      "tailored",
-      "no_collar",
-      "blouson",
-      "down-padded",
-      "coat",
-      "trench",
-      "chester",
-      "stainless",
-      "mountain-parka",
-    ]);
+    ).toEqual([]);
   });
 
   it("skirts の代表カテゴリでは shape 候補を厚めに絞り込む", () => {
     expect(
       getItemShapeOptions("skirts", "skirt").map((item) => item.value),
-    ).toEqual(["tight", "flare", "a_line", "pleated"]);
+    ).toEqual(["tight", "flare", "a_line", "mermaid"]);
+    expect(
+      getItemShapeOptions("skirts", "other").map((item) => item.value),
+    ).toEqual([]);
   });
 
   it("onepiece_dress は種類に応じて shape 候補を最小限に絞り込む", () => {
@@ -141,7 +144,16 @@ describe("getItemShapeOptions", () => {
   it("種類未設定の旧データでは category 単位の候補へ戻す", () => {
     expect(
       getItemShapeOptions("pants", null).map((item) => item.value),
-    ).toEqual(["pants", "straight", "tapered", "wide", "culottes"]);
+    ).toEqual([
+      "pants",
+      "straight",
+      "tapered",
+      "wide",
+      "culottes",
+      "jogger",
+      "skinny",
+      "gaucho",
+    ]);
     expect(getItemShapeOptions("bags", null).map((item) => item.value)).toEqual(
       [],
     );
