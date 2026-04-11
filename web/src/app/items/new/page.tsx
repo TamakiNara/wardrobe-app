@@ -1435,7 +1435,7 @@ export default function NewItemPage() {
                               }
                               className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors["spec.bottoms.rise_type"] ? "border-red-400" : "border-gray-300"}`}
                             >
-                              <option value="">位置を選択してください</option>
+                              <option value="">股上を選択してください</option>
                               {BOTTOMS_RISE_OPTIONS.map((item) => (
                                 <option key={item.value} value={item.value}>
                                   {item.label}
