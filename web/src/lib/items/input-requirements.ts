@@ -33,6 +33,7 @@ const OPTIONAL_SHAPE_WITH_OTHER_SUBCATEGORY = new Set([
   "kimono",
 ]);
 const HIDDEN_SHAPE_FIELD_CATEGORIES = new Set([
+  "allinone",
   "bags",
   "fashion_accessories",
   "shoes",
@@ -104,10 +105,6 @@ export function shouldShowItemShapeField(
   }
 
   const normalizedSubcategory = normalizeItemSubcategory(category, subcategory);
-
-  if (category === "allinone" && !normalizedSubcategory) {
-    return false;
-  }
 
   return !(
     normalizedSubcategory === "other" &&

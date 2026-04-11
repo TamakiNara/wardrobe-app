@@ -841,6 +841,45 @@ describe("編集画面", () => {
     ).toEqual(["", "jacket", "tailored", "no_collar"]);
   });
 
+  it("編集画面でも allinone の shape を常に表示しない", async () => {
+    const { default: EditItemPage } = await import("./page");
+
+    act(() => {
+      root.render(
+        React.createElement(EditItemPage, {
+          params: Promise.resolve({ id: "1" }),
+        }),
+      );
+    });
+
+    await act(async () => {
+      await waitForEffects();
+    });
+
+    const categorySelect =
+      container.querySelector<HTMLSelectElement>("#category");
+    expect(categorySelect).not.toBeNull();
+
+    await act(async () => {
+      categorySelect!.value = "allinone";
+      categorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    const subcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
+    expect(subcategorySelect).not.toBeNull();
+    expect(container.querySelector("#shape")).toBeNull();
+
+    await act(async () => {
+      subcategorySelect!.value = "salopette";
+      subcategorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    expect(container.querySelector("#shape")).toBeNull();
+  });
+
   it("編集画面でも bags は種類 select を表示し、選択に応じて shape を自動設定できる", async () => {
     const { default: EditItemPage } = await import("./page");
 
