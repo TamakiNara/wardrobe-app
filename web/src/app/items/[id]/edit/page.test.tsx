@@ -1397,6 +1397,63 @@ describe("編集画面", () => {
     expect(container.querySelector("#shape")).toBeNull();
   });
 
+  it("編集画面でも rashguard を自然に復元できる", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          item: {
+            id: 14,
+            name: "ラッシュガードサンプル",
+            status: "active",
+            care_status: null,
+            brand_name: null,
+            price: null,
+            purchase_url: null,
+            memo: null,
+            purchased_at: null,
+            size_gender: null,
+            size_label: null,
+            size_note: null,
+            size_details: null,
+            is_rain_ok: false,
+            category: "swimwear",
+            subcategory: "rashguard",
+            shape: "rashguard",
+            colors: [],
+            seasons: [],
+            tpos: [],
+            tpo_ids: [],
+            spec: {},
+            images: [],
+          },
+        }),
+      }),
+    );
+
+    const { default: EditItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(
+        React.createElement(EditItemPage, {
+          params: Promise.resolve({ id: "14" }),
+        }),
+      );
+      await waitForEffects();
+    });
+
+    const subcategoryRadios = Array.from(
+      container.querySelectorAll<HTMLInputElement>('input[name="subcategory"]'),
+    );
+
+    expect(
+      subcategoryRadios.find((radio) => radio.value === "rashguard")?.checked,
+    ).toBe(true);
+    expect(container.querySelector("#shape")).toBeNull();
+  });
+
   it("編集画面でも leather_shoes を自然に復元できる", async () => {
     vi.stubGlobal(
       "fetch",

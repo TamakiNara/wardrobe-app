@@ -77,6 +77,15 @@ describe("current item read model", () => {
     ).toBeNull();
   });
 
+  it("swimwear の current 値を自然に解釈できる", () => {
+    expect(
+      resolveCurrentItemSubcategoryValue("swimwear", "rashguard", null),
+    ).toBe("rashguard");
+    expect(resolveVisibleCategoryIdForItem("swimwear", "rashguard", null)).toBe(
+      "swimwear_rashguard",
+    );
+  });
+
   it("subcategory から default shape を読める", () => {
     expect(resolveDefaultShapeForSubcategory("inner", "other")).toBe(
       "roomwear",
