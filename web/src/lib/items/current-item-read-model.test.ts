@@ -86,6 +86,21 @@ describe("current item read model", () => {
     );
   });
 
+  it("bags の current 値を自然に解釈できる", () => {
+    expect(resolveCurrentItemSubcategoryValue("bags", "rucksack", null)).toBe(
+      "rucksack",
+    );
+    expect(resolveVisibleCategoryIdForItem("bags", "rucksack")).toBe(
+      "bags_rucksack",
+    );
+    expect(resolveCurrentItemSubcategoryValue("bags", "boston", null)).toBe(
+      "boston",
+    );
+    expect(resolveVisibleCategoryIdForItem("bags", "boston")).toBe(
+      "bags_boston",
+    );
+  });
+
   it("subcategory から default shape を読める", () => {
     expect(resolveDefaultShapeForSubcategory("inner", "other")).toBe(
       "roomwear",
