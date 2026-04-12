@@ -241,6 +241,12 @@ const sampleGroups: CategoryGroupRecord[] = [
         sortOrder: 20,
       },
       {
+        id: "fashion_accessories_eyewear",
+        groupId: "fashion_accessories",
+        name: "メガネ・サングラス",
+        sortOrder: 80,
+      },
+      {
         id: "fashion_accessories_other",
         groupId: "fashion_accessories",
         name: "その他ファッション小物",
@@ -335,6 +341,7 @@ describe("編集画面", () => {
         "shoes_sneakers",
         "bags_tote",
         "fashion_accessories_belt",
+        "fashion_accessories_eyewear",
         "swimwear_swimwear",
         "kimono_kimono",
       ],
@@ -1213,6 +1220,61 @@ describe("編集画面", () => {
       await waitForEffects();
     });
 
+    expect(container.querySelector("#shape")).toBeNull();
+  });
+
+  it("編集画面でも eyewear を自然に復元できる", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          item: {
+            id: 16,
+            name: "メガネサンプル",
+            status: "active",
+            care_status: null,
+            brand_name: null,
+            price: null,
+            purchase_url: null,
+            memo: null,
+            purchased_at: null,
+            size_gender: null,
+            size_label: null,
+            size_note: null,
+            size_details: null,
+            is_rain_ok: false,
+            category: "fashion_accessories",
+            subcategory: "eyewear",
+            shape: "eyewear",
+            colors: [],
+            seasons: [],
+            tpos: [],
+            tpo_ids: [],
+            spec: {},
+            images: [],
+          },
+        }),
+      }),
+    );
+
+    const { default: EditItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(
+        React.createElement(EditItemPage, {
+          params: Promise.resolve({ id: "16" }),
+        }),
+      );
+      await waitForEffects();
+    });
+
+    const subcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
+
+    expect(subcategorySelect?.value).toBe("eyewear");
+    expect(container.textContent).toContain("メガネ・サングラス");
     expect(container.querySelector("#shape")).toBeNull();
   });
 

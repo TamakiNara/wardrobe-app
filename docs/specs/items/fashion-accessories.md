@@ -5,6 +5,7 @@
 ### 種類
 
 - `hat` / `belt` / `scarf_stole` / `gloves` / `jewelry` / `wallet_case` / `hair_accessory` / `eyewear` / `watch` / `other` を扱う
+- `eyewear` の表示名は「メガネ・サングラス」とする
 
 ### 画面表示
 
