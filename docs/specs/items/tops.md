@@ -153,7 +153,7 @@ type ItemSpec = {
 - `boat`: ボートネック
 - `henley`: ヘンリーネック
 - `highneck`: ハイネック
-- `camisole_neck`: キャミネック
+- `camisole_neck`: キャミソールネック
 - `halter`: ホルターネック
 - `turtle`: タートルネック
 - `mock`: モックネック
