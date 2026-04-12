@@ -651,6 +651,26 @@ describe("新規登録画面", () => {
     expect(container.querySelector("#legwear-coverage-type")).not.toBeNull();
 
     await act(async () => {
+      legwearSubcategorySelect!.value = "leggings";
+      legwearSubcategorySelect!.dispatchEvent(
+        new Event("change", { bubbles: true }),
+      );
+      await waitForEffects();
+    });
+
+    expect(container.querySelector("#shape")).toBeNull();
+    expect(container.textContent).toContain("レギンス・スパッツの長さ");
+    expect(
+      Array.from(
+        (
+          container.querySelector(
+            "#legwear-coverage-type",
+          ) as HTMLSelectElement | null
+        )?.options ?? [],
+      ).map((option) => option.value),
+    ).toContain("seven_tenths");
+
+    await act(async () => {
       legwearSubcategorySelect!.value = "tights";
       legwearSubcategorySelect!.dispatchEvent(
         new Event("change", { bubbles: true }),
@@ -661,6 +681,7 @@ describe("新規登録画面", () => {
     expect(container.querySelector("#shape")).toBeNull();
     expect(container.querySelector("#legwear-coverage-type")).toBeNull();
     expect(container.textContent).not.toContain("ソックスの長さ");
+    expect(container.textContent).not.toContain("レギンス・スパッツの長さ");
   });
 
   it("認証切れで TPO 取得が失敗した場合はログインへ戻す", async () => {

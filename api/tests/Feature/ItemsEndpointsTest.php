@@ -1427,7 +1427,7 @@ class ItemsEndpointsTest extends TestCase
             ]],
             'spec' => [
                 'legwear' => [
-                    'coverage_type' => 'crew_socks',
+                    'coverage_type' => 'crew',
                 ],
             ],
         ], [
@@ -1437,10 +1437,10 @@ class ItemsEndpointsTest extends TestCase
         $response->assertCreated()
             ->assertJsonPath('item.subcategory', 'socks')
             ->assertJsonPath('item.shape', 'socks')
-            ->assertJsonPath('item.spec.legwear.coverage_type', 'crew_socks');
+            ->assertJsonPath('item.spec.legwear.coverage_type', 'crew');
 
         $item = Item::query()->findOrFail($response->json('item.id'));
-        $this->assertSame('crew_socks', data_get($item->spec, 'legwear.coverage_type'));
+        $this->assertSame('crew', data_get($item->spec, 'legwear.coverage_type'));
     }
 
     public function test_post_items_requires_legwear_coverage_type_for_socks(): void

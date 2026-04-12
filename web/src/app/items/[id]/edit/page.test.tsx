@@ -579,6 +579,79 @@ describe("編集画面", () => {
     ).toBe("選択してください");
   });
 
+  it("編集画面でレギンスの current coverage_type を自然に復元できる", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          item: {
+            id: 4,
+            name: "ブラックレギンス",
+            status: "active",
+            care_status: null,
+            brand_name: null,
+            price: null,
+            purchase_url: null,
+            memo: null,
+            purchased_at: null,
+            size_gender: null,
+            size_label: null,
+            size_note: null,
+            size_details: null,
+            is_rain_ok: false,
+            category: "legwear",
+            subcategory: "leggings",
+            shape: "leggings",
+            colors: [],
+            seasons: [],
+            tpos: [],
+            tpo_ids: [],
+            spec: {
+              legwear: {
+                coverage_type: "seven_tenths",
+              },
+            },
+            images: [],
+          },
+        }),
+      }),
+    );
+
+    const { default: EditItemPage } = await import("./page");
+
+    act(() => {
+      root.render(
+        React.createElement(EditItemPage, {
+          params: Promise.resolve({ id: "4" }),
+        }),
+      );
+    });
+
+    await act(async () => {
+      await waitForEffects();
+    });
+
+    expect(
+      (
+        container.querySelector(
+          "#legwear-coverage-type",
+        ) as HTMLSelectElement | null
+      )?.value,
+    ).toBe("seven_tenths");
+    const legwearSubcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
+    expect(legwearSubcategorySelect?.value).toBe("leggings");
+    expect(container.textContent).toContain("レギンス・スパッツの長さ");
+    expect(
+      (
+        container.querySelector(
+          "#legwear-coverage-type",
+        ) as HTMLSelectElement | null
+      )?.options[0]?.textContent,
+    ).toBe("選択してください");
+  });
   it("編集画面でタイツは追加選択なしで扱える", async () => {
     vi.stubGlobal(
       "fetch",

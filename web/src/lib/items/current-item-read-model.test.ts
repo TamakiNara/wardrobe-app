@@ -51,6 +51,12 @@ describe("current item read model", () => {
     expect(resolveCurrentItemSubcategoryValue("tops", "", "other")).toBe(
       "other",
     );
+    expect(resolveCurrentItemSubcategoryValue("legwear", "socks", null)).toBe(
+      "socks",
+    );
+    expect(
+      resolveCurrentItemSubcategoryValue("legwear", "leggings", null),
+    ).toBe("leggings");
     expect(resolveCurrentItemSubcategoryValue("skirts", "mermaid", null)).toBe(
       "skirt",
     );
@@ -83,6 +89,12 @@ describe("current item read model", () => {
     );
     expect(resolveVisibleCategoryIdForItem("tops", "", "other")).toBe(
       "tops_other",
+    );
+    expect(resolveVisibleCategoryIdForItem("legwear", "socks")).toBe(
+      "legwear_socks",
+    );
+    expect(resolveVisibleCategoryIdForItem("legwear", "leggings")).toBe(
+      "legwear_leggings",
     );
     expect(resolveVisibleCategoryIdForItem("pants", "", "other")).toBe(
       "pants_other",
