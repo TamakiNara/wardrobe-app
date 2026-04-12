@@ -870,11 +870,11 @@ describe("新規登録画面", () => {
       await waitForEffects();
     });
 
+    expect(container.querySelector("#shape")).toBeNull();
+
     const subcategorySelect =
       container.querySelector<HTMLSelectElement>("#subcategory");
-    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
     expect(subcategorySelect).not.toBeNull();
-    expect(shapeSelect).not.toBeNull();
 
     await act(async () => {
       subcategorySelect!.value = "coat";
@@ -882,6 +882,8 @@ describe("新規登録画面", () => {
       await waitForEffects();
     });
 
+    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
+    expect(shapeSelect).not.toBeNull();
     expect(
       Array.from(shapeSelect!.options).map((option) => option.value),
     ).toEqual(["", "coat", "trench", "chester", "stainless"]);
@@ -1471,12 +1473,11 @@ describe("新規登録画面", () => {
 
     const subcategorySelect =
       container.querySelector<HTMLSelectElement>("#subcategory");
-    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
-    const shapeLabel =
-      container.querySelector<HTMLLabelElement>('label[for="shape"]');
     expect(subcategorySelect).not.toBeNull();
-    expect(shapeSelect).not.toBeNull();
-    expect(shapeLabel).not.toBeNull();
+    expect(container.querySelector("#shape")).toBeNull();
+    expect(
+      container.querySelector<HTMLLabelElement>('label[for="shape"]'),
+    ).toBeNull();
 
     await act(async () => {
       subcategorySelect!.value = "blouson";
@@ -1484,6 +1485,11 @@ describe("新規登録画面", () => {
       await waitForEffects();
     });
 
+    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
+    const shapeLabel =
+      container.querySelector<HTMLLabelElement>('label[for="shape"]');
+    expect(shapeSelect).not.toBeNull();
+    expect(shapeLabel).not.toBeNull();
     expect(shapeSelect!.value).toBe("blouson");
     expect(shapeSelect!.disabled).toBe(true);
     expect(shapeLabel?.textContent).not.toContain("必須");

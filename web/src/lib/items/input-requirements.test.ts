@@ -32,6 +32,7 @@ describe("item input requirements", () => {
     expect(isItemShapeRequired("kimono", "other")).toBe(false);
   });
   it("other 系の一部カテゴリでは shape UI を出さない", () => {
+    expect(shouldShowItemShapeField("outerwear", null)).toBe(false);
     expect(shouldShowItemShapeField("tops", "other")).toBe(false);
     expect(shouldShowItemShapeField("pants", "other")).toBe(false);
     expect(shouldShowItemShapeField("skirts", "other")).toBe(false);

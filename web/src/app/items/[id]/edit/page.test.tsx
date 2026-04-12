@@ -747,9 +747,9 @@ describe("編集画面", () => {
       container.querySelector<HTMLSelectElement>("#category");
     const subcategorySelect =
       container.querySelector<HTMLSelectElement>("#subcategory");
-    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
     expect(categorySelect).not.toBeNull();
     expect(subcategorySelect).not.toBeNull();
+    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
     expect(shapeSelect).not.toBeNull();
 
     await act(async () => {
@@ -912,10 +912,11 @@ describe("編集画面", () => {
       container.querySelector<HTMLSelectElement>("#category");
     const subcategorySelect =
       container.querySelector<HTMLSelectElement>("#subcategory");
-    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
+    const initialShapeSelect =
+      container.querySelector<HTMLSelectElement>("#shape");
     expect(categorySelect).not.toBeNull();
     expect(subcategorySelect).not.toBeNull();
-    expect(shapeSelect).not.toBeNull();
+    expect(initialShapeSelect).not.toBeNull();
 
     await act(async () => {
       categorySelect!.value = "outerwear";
@@ -923,12 +924,16 @@ describe("編集画面", () => {
       await waitForEffects();
     });
 
+    expect(container.querySelector("#shape")).toBeNull();
+
     await act(async () => {
       subcategorySelect!.value = "coat";
       subcategorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
       await waitForEffects();
     });
 
+    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
+    expect(shapeSelect).not.toBeNull();
     expect(
       Array.from(shapeSelect!.options).map((option) => option.value),
     ).toEqual(["", "coat", "trench", "chester", "stainless"]);

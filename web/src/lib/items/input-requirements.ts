@@ -42,6 +42,8 @@ const HIDDEN_SHAPE_FIELD_CATEGORIES = new Set([
   "kimono",
 ]);
 
+const HIDDEN_SHAPE_FIELD_WITH_EMPTY_SUBCATEGORY = new Set(["outerwear"]);
+
 const HIDDEN_SHAPE_FIELD_WITH_OTHER_SUBCATEGORY = new Set([
   "tops",
   "pants",
@@ -105,6 +107,13 @@ export function shouldShowItemShapeField(
   }
 
   const normalizedSubcategory = normalizeItemSubcategory(category, subcategory);
+
+  if (
+    !normalizedSubcategory &&
+    HIDDEN_SHAPE_FIELD_WITH_EMPTY_SUBCATEGORY.has(category)
+  ) {
+    return false;
+  }
 
   return !(
     normalizedSubcategory === "other" &&
