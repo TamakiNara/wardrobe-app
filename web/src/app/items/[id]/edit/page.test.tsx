@@ -1364,6 +1364,119 @@ describe("編集画面", () => {
     expect(container.querySelector("#shape")).toBeNull();
   });
 
+  it("編集画面でも leather_shoes を自然に復元できる", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          item: {
+            id: 11,
+            name: "黒の革靴",
+            status: "active",
+            care_status: null,
+            brand_name: null,
+            price: null,
+            purchase_url: null,
+            memo: null,
+            purchased_at: null,
+            size_gender: null,
+            size_label: null,
+            size_note: null,
+            size_details: null,
+            is_rain_ok: false,
+            category: "shoes",
+            subcategory: "leather_shoes",
+            shape: "leather-shoes",
+            colors: [],
+            seasons: [],
+            tpos: [],
+            tpo_ids: [],
+            spec: {},
+            images: [],
+          },
+        }),
+      }),
+    );
+
+    const { default: EditItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(
+        React.createElement(EditItemPage, {
+          params: Promise.resolve({ id: "11" }),
+        }),
+      );
+      await waitForEffects();
+    });
+
+    const subcategoryRadios = Array.from(
+      container.querySelectorAll<HTMLInputElement>('input[name="subcategory"]'),
+    );
+    expect(
+      subcategoryRadios.find((radio) => radio.value === "leather_shoes")
+        ?.checked,
+    ).toBe(true);
+    expect(container.querySelector("#shape")).toBeNull();
+  });
+
+  it("編集画面でも rain_shoes_boots を自然に復元できる", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          item: {
+            id: 12,
+            name: "レインブーツ",
+            status: "active",
+            care_status: null,
+            brand_name: null,
+            price: null,
+            purchase_url: null,
+            memo: null,
+            purchased_at: null,
+            size_gender: null,
+            size_label: null,
+            size_note: null,
+            size_details: null,
+            is_rain_ok: false,
+            category: "shoes",
+            subcategory: "rain_shoes_boots",
+            shape: "rain-shoes-boots",
+            colors: [],
+            seasons: [],
+            tpos: [],
+            tpo_ids: [],
+            spec: {},
+            images: [],
+          },
+        }),
+      }),
+    );
+
+    const { default: EditItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(
+        React.createElement(EditItemPage, {
+          params: Promise.resolve({ id: "12" }),
+        }),
+      );
+      await waitForEffects();
+    });
+
+    const subcategoryRadios = Array.from(
+      container.querySelectorAll<HTMLInputElement>('input[name="subcategory"]'),
+    );
+    expect(
+      subcategoryRadios.find((radio) => radio.value === "rain_shoes_boots")
+        ?.checked,
+    ).toBe(true);
+    expect(container.querySelector("#shape")).toBeNull();
+  });
   it("編集画面でも shoes は種類ラジオに応じて shape を自動設定できる", async () => {
     vi.stubGlobal(
       "fetch",

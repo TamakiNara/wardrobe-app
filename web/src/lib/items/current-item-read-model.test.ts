@@ -33,6 +33,12 @@ describe("current item read model", () => {
     expect(resolveCurrentItemShapeValue("shoes", "short-boots")).toBe(
       "short-boots",
     );
+    expect(resolveCurrentItemShapeValue("shoes", "leather-shoes")).toBe(
+      "leather-shoes",
+    );
+    expect(resolveCurrentItemShapeValue("shoes", "rain-shoes-boots")).toBe(
+      "rain-shoes-boots",
+    );
   });
 
   it("current / legacy 値から現在の subcategory を読める", () => {
@@ -42,6 +48,12 @@ describe("current item read model", () => {
     expect(resolveCurrentItemSubcategoryValue("bags", "tote", null)).toBe(
       "tote",
     );
+    expect(
+      resolveCurrentItemSubcategoryValue("shoes", "leather-shoes", null),
+    ).toBe("leather_shoes");
+    expect(
+      resolveCurrentItemSubcategoryValue("shoes", "rain-shoes-boots", null),
+    ).toBe("rain_shoes_boots");
     expect(
       resolveCurrentItemSubcategoryValue("fashion_accessories", "belt", null),
     ).toBe("belt");
@@ -81,6 +93,12 @@ describe("current item read model", () => {
       resolveVisibleCategoryIdForItem("inner", "roomwear", "underwear"),
     ).toBe("roomwear_inner_underwear");
     expect(resolveVisibleCategoryIdForItem("bags", "tote")).toBe("bags_tote");
+    expect(resolveVisibleCategoryIdForItem("shoes", "leather-shoes")).toBe(
+      "shoes_leather_shoes",
+    );
+    expect(resolveVisibleCategoryIdForItem("shoes", "rain-shoes-boots")).toBe(
+      "shoes_rain_shoes_boots",
+    );
     expect(resolveVisibleCategoryIdForItem("accessories", "hat")).toBe(
       "fashion_accessories_hat",
     );

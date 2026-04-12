@@ -46,6 +46,8 @@ class PurchaseCandidateCategoryMap
         'shoes_pumps' => ['category' => 'shoes', 'subcategory' => 'pumps'],
         'shoes_boots' => ['category' => 'shoes', 'subcategory' => 'boots'],
         'shoes_sandals' => ['category' => 'shoes', 'subcategory' => 'sandals'],
+        'shoes_leather_shoes' => ['category' => 'shoes', 'subcategory' => 'leather_shoes'],
+        'shoes_rain_shoes_boots' => ['category' => 'shoes', 'subcategory' => 'rain_shoes_boots'],
         'shoes_other' => ['category' => 'shoes', 'subcategory' => 'other'],
         'legwear_socks' => ['category' => 'legwear', 'subcategory' => 'socks'],
         'legwear_stockings' => ['category' => 'legwear', 'subcategory' => 'stockings'],

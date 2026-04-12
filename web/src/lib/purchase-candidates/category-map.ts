@@ -189,6 +189,16 @@ const PURCHASE_CANDIDATE_ITEM_CATEGORY_MAP = {
     subcategory: "sandals",
     shape: "sandals",
   },
+  shoes_leather_shoes: {
+    category: "shoes",
+    subcategory: "leather_shoes",
+    shape: "leather-shoes",
+  },
+  shoes_rain_shoes_boots: {
+    category: "shoes",
+    subcategory: "rain_shoes_boots",
+    shape: "rain-shoes-boots",
+  },
   shoes_other: { category: "shoes", subcategory: "other", shape: "other" },
   bags_tote: { category: "bags", subcategory: "tote", shape: "tote" },
   bags_shoulder: {

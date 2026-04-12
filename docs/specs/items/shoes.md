@@ -9,7 +9,8 @@
 ### 画面表示
 
 - シューズは `subcategory` 主導で扱い、shape は画面上で表示しない
-- UI で選ばせない shape を内部で別値に確定しない方針を維持する
+- UI では shape を表示しないが、内部では mapping / save / fallback のために shape 値を保持する
+- したがって shoes は「UI では shape を使わない」が、「内部でも shape を完全に持たない」わけではない
 
 ## 要再判断
 
