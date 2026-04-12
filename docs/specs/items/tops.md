@@ -159,10 +159,6 @@ type ItemSpec = {
 - `mock`: モックネック
 - `collar`: 襟
 
-補足:
-
-- `turtleneck` / `mockneck` は旧値として存在する可能性があります
-- 現行の `TOPS_RULES` と UI 候補では `turtle` / `mock` を使います
 
 ### design
 

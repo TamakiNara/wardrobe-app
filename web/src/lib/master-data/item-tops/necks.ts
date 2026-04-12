@@ -6,8 +6,6 @@ export const TOPS_NECKS = [
   { value: "boat", label: "ボートネック" },
   { value: "henley", label: "ヘンリーネック" },
   { value: "highneck", label: "ハイネック" },
-  { value: "turtleneck", label: "タートルネック" },
-  { value: "mockneck", label: "モックネック" },
   { value: "camisole_neck", label: "キャミネック" },
   { value: "halter", label: "ホルターネック" },
   { value: "turtle", label: "タートルネック" },

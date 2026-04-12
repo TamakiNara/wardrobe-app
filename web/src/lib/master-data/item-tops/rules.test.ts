@@ -1,7 +1,15 @@
 import { describe, expect, it } from "vitest";
+import { TOPS_NECKS } from "./necks";
 import { TOPS_RULES } from "./rules";
 
 describe("TOPS_RULES", () => {
+  it("tops neck の正式値に legacy 値を含めない", () => {
+    expect(TOPS_NECKS.map((item) => item.value)).not.toContain("turtleneck");
+    expect(TOPS_NECKS.map((item) => item.value)).not.toContain("mockneck");
+    expect(TOPS_NECKS.map((item) => item.value)).toContain("turtle");
+    expect(TOPS_NECKS.map((item) => item.value)).toContain("mock");
+  });
+
   it("tops の種類ごとに首回り・袖・丈の候補を自然に絞り込む", () => {
     expect(TOPS_RULES.tshirt.necks).toEqual([
       "crew",
