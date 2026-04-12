@@ -498,7 +498,7 @@ export default function NewItemPage() {
   }, [draftTpoNames, selectedTpoIds.length, tpoOptions]);
 
   useEffect(() => {
-    if (category !== "swimwear" || subcategory) {
+    if ((category !== "swimwear" && category !== "kimono") || subcategory) {
       return;
     }
 

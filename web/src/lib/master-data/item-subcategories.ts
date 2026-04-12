@@ -137,6 +137,7 @@ const REPRESENTATIVE_SUBCATEGORY_BY_CATEGORY: Record<string, string> = {
   skirts: "skirt",
   shoes: "sneakers",
   swimwear: "swimwear",
+  kimono: "kimono",
 };
 
 export function getItemSubcategoryOptions(category?: string | null) {

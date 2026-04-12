@@ -619,7 +619,7 @@ export default function EditItemPage({
   }
 
   useEffect(() => {
-    if (category !== "swimwear" || subcategory) {
+    if ((category !== "swimwear" && category !== "kimono") || subcategory) {
       return;
     }
 

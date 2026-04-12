@@ -9,6 +9,7 @@
 ### 画面表示
 
 - 着物は `subcategory` 主導で扱い、shape は画面上で表示しない
+- `subcategory` 未指定時は代表値 `kimono` を初期選択する
 - `japanese_accessory` は和装小物として扱う
 
 ## 要再判断

@@ -279,6 +279,37 @@ const sampleGroups: CategoryGroupRecord[] = [
       },
     ],
   },
+  {
+    id: "kimono",
+    name: "着物",
+    sortOrder: 55,
+    categories: [
+      {
+        id: "kimono_kimono",
+        groupId: "kimono",
+        name: "着物",
+        sortOrder: 10,
+      },
+      {
+        id: "kimono_yukata",
+        groupId: "kimono",
+        name: "浴衣",
+        sortOrder: 20,
+      },
+      {
+        id: "kimono_japanese_accessory",
+        groupId: "kimono",
+        name: "和装小物",
+        sortOrder: 30,
+      },
+      {
+        id: "kimono_other",
+        groupId: "kimono",
+        name: "その他着物",
+        sortOrder: 40,
+      },
+    ],
+  },
 ];
 
 async function waitForEffects() {
@@ -328,6 +359,7 @@ describe("新規登録画面", () => {
         "bags_tote",
         "fashion_accessories_belt",
         "swimwear_swimwear",
+        "kimono_kimono",
       ],
     });
     fetchUserPreferencesMock.mockResolvedValue({
@@ -383,6 +415,7 @@ describe("新規登録画面", () => {
       "バッグ",
       "ファッション小物",
       "水着",
+      "着物",
     ]);
     expect(container.textContent).toContain("カテゴリ");
     expect(container.textContent).toContain("形");
