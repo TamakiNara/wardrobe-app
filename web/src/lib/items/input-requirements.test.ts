@@ -40,6 +40,7 @@ describe("item input requirements", () => {
   });
 
   it("任意寄りのときは送信用の形を自動補完する", () => {
+    expect(resolveItemShapeForSubmit("pants", "other", "")).toBe("pants");
     expect(resolveItemShapeForSubmit("outerwear", "blouson", "")).toBe(
       "blouson",
     );

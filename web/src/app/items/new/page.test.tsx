@@ -604,7 +604,27 @@ describe("新規登録画面", () => {
       await waitForEffects();
     });
 
-    const legwearSubcategorySelect =
+    let legwearSubcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
+    expect(legwearSubcategorySelect).not.toBeNull();
+    expect(container.querySelector("#shape")).toBeNull();
+    expect(container.querySelector("#legwear-coverage-type")).toBeNull();
+
+    await act(async () => {
+      categorySelect!.value = "tops";
+      categorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    expect(container.querySelector("#bottoms-rise-type")).toBeNull();
+
+    await act(async () => {
+      categorySelect!.value = "legwear";
+      categorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    legwearSubcategorySelect =
       container.querySelector<HTMLSelectElement>("#subcategory");
     expect(legwearSubcategorySelect).not.toBeNull();
     expect(container.querySelector("#shape")).toBeNull();

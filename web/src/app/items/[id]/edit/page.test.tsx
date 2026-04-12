@@ -777,6 +777,82 @@ describe("編集画面", () => {
       "gaucho",
     ]);
     expect(container.querySelector("#bottoms-rise-type")).not.toBeNull();
+
+    await act(async () => {
+      categorySelect!.value = "tops";
+      categorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    expect(container.querySelector("#bottoms-rise-type")).toBeNull();
+  });
+
+  it("編集画面では pants の股上を初期値として復元する", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          item: {
+            id: 2,
+            name: "パンツサンプル",
+            status: "active",
+            care_status: null,
+            brand_name: null,
+            price: null,
+            purchase_url: null,
+            memo: null,
+            purchased_at: null,
+            size_gender: null,
+            size_label: null,
+            size_note: null,
+            size_details: null,
+            is_rain_ok: false,
+            category: "pants",
+            subcategory: "denim",
+            shape: "skinny",
+            colors: [],
+            seasons: [],
+            tpos: [],
+            tpo_ids: [],
+            spec: {
+              bottoms: {
+                length_type: "ankle",
+                rise_type: "high_waist",
+              },
+            },
+            materials: [],
+            images: [],
+          },
+        }),
+      }),
+    );
+
+    const { default: EditItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(
+        React.createElement(EditItemPage, {
+          params: Promise.resolve({ id: "2" }),
+        }),
+      );
+      await waitForEffects();
+    });
+
+    const categorySelect =
+      container.querySelector<HTMLSelectElement>("#category");
+    const subcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
+    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
+    const riseTypeSelect =
+      container.querySelector<HTMLSelectElement>("#bottoms-rise-type");
+
+    expect(categorySelect?.value).toBe("pants");
+    expect(subcategorySelect?.value).toBe("denim");
+    expect(shapeSelect?.value).toBe("skinny");
+    expect(riseTypeSelect).not.toBeNull();
+    expect(riseTypeSelect?.value).toBe("high_waist");
   });
 
   it("編集画面でも other 系の一部カテゴリでは shape を表示しない", async () => {
