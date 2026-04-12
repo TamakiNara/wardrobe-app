@@ -83,10 +83,9 @@ type ItemSpec = {
 
 - SVG 表示では shape を起点にベース形状を切り替えます
 - 現在は `tshirt / shirt / blouse / polo / sweatshirt / hoodie / knit / cardigan / vest / camisole / tanktop` の SVG プレビューと shape 連動に対応しています
-- 現行実装では `spec.tops.shape` に種類名を持っていますが、カテゴリ再編の方針としては、種類名として定着しているものは中分類へ寄せ、`spec` 側は首元・袖・fit・丈などの補助属性へ整理していく前提です
 - `tops + other` の shape はドメイン上は「未指定」として扱います
 - 現在は DB の `items.shape` が non-nullable のため、保存時は `""` を使っています
-- `""` は正規の shape 値ではなく、未指定を表す暂定的な保存表現です
+- `""` は正規の shape 値ではなく、未指定を表す暫定的な保存表現です
 
 ### sleeve
 
@@ -100,7 +99,6 @@ type ItemSpec = {
 - `long`
 - `sleeveless`
 - `french`
-- `camisole`
 
 意味:
 
@@ -110,7 +108,6 @@ type ItemSpec = {
 - `long`: 長袖
 - `sleeveless`: ノースリーブ
 - `french`: フレンチスリーブ
-- `camisole`: キャミソール肩紐
 
 ### length
 
@@ -143,8 +140,6 @@ type ItemSpec = {
 - `highneck`
 - `camisole_neck`
 - `halter`
-- `turtleneck`
-- `mockneck`
 - `turtle`
 - `mock`
 - `collar`
@@ -160,22 +155,22 @@ type ItemSpec = {
 - `highneck`: ハイネック
 - `camisole_neck`: キャミネック
 - `halter`: ホルターネック
-- `turtleneck`: タートルネック
-- `mockneck`: モックネック
-- `turtle`: タートルネック (旧値)
-- `mock`: モックネック (旧値)
-- `collar`: 襟
-- `square`: スクエアネック
 - `turtle`: タートルネック
 - `mock`: モックネック
 - `collar`: 襟
+
+補足:
+
+- `turtleneck` / `mockneck` は旧値として存在する可能性があります
+- 現行の `TOPS_RULES` と UI 候補では `turtle` / `mock` を使います
 
 ### design
 
 追加デザインです。
 
-現状の item 入力 UI では、候補が 1 つのみのため `design` は表示していません。
-データ構造としては `raglan` を保持できます。
+- データ構造としては `raglan` を保持できます
+- 現状の item 入力 UI では、候補が 1 つのみのため `design` は表示していません
+
 ### fit
 
 シルエットです。
@@ -198,10 +193,8 @@ type ItemSpec = {
 
 ## shape ごとの許可組み合わせ
 
-実装上は `TOPS_RULES` で shape ごとの許可値を定義しています。
-UI ではこのルールに従って選択肢を絞り込みます。
-
-代表例:
+実装上は `TOPS_RULES` を正本とします。
+UI ではこのルールに従って選択肢を絞り込み、候補が 1 件以下の項目は表示しません。
 
 ### tshirt
 
@@ -209,55 +202,99 @@ UI ではこのルールに従って選択肢を絞り込みます。
 - length: `short` `normal` `long`
 - neck: `crew` `v` `u` `square` `boat` `henley` `turtle` `mock`
 - fit: `normal` `oversized`
+- defaults: sleeve=`short` length=`normal` neck=`crew` fit=`normal`
 - design: UI では非表示
 
-### shirt / blouse / polo
+### shirt
 
-- shirt length: `short` `normal` `long`
-- shirt neck: `collar` `crew` `v`
-- blouse neck: `collar` `crew` `v` `mock` `square`
-- polo sleeve: `short` `five` `seven` `long`
-- polo length: `short` `normal` `long`
-- polo neck: `collar`
-- shirt / blouse / polo は `collar` を既定値として扱う
-
-### sweatshirt / hoodie / vest
-
-- sweatshirt shape は `sweatshirt` を使い、sleeve / length は `short` を含む
-- hoodie shape は `hoodie` を使い、sleeve / length は `short` を含む / `sleeveless` も選べるが neck は選択しない
-- vest shape は `vest` を使い、sleeve は選択しない / neck は `crew` `v` `boat` `turtle`
-
-### camisole / tanktop
-
-- camisole neck: `camisole_neck` `square` `v` `halter`
-- camisole の既定 neck は `camisole_neck`
-- tanktop neck: `crew` `square` `highneck` `mock` `boat` `u` `v` `halter`
-- camisole / tanktop とも sleeve は選択しない
-- tanktop fit はデータ保持のまま UI では非表示
-- camisole の既定 neck は `camisole_neck`
-- tanktop neck: `crew` `square` `highneck` `mock` `boat` `u` `v` `halter`
-- camisole / tanktop とも sleeve は選択しない
-- tanktop fit はデータ保持のまま UI では非表示
+- sleeve: `short` `five` `seven` `long`
+- length: `short` `normal` `long`
+- neck: `collar` `crew` `v`
+- fit: `normal` `oversized`
+- defaults: sleeve=`long` length=`normal` neck=`collar` fit=`normal`
 - design: UI では非表示
 
-### shirt / blouse / polo
+### blouse
 
-- shirt neck: `collar` `crew` `v`
-- blouse neck: `collar` `crew` `v` `mock` `square`
-- polo neck: `collar` `crew`
-- shirt / blouse / polo は `collar` を既定値として扱う
+- sleeve: `short` `five` `seven` `long` `sleeveless` `french`
+- length: `short` `normal` `long`
+- neck: `collar` `crew` `v` `mock` `square`
+- fit: `normal` `oversized`
+- defaults: sleeve=`short` length=`normal` neck=`collar` fit=`normal`
+- design: UI では非表示
 
-### sweatshirt / hoodie / vest
+### polo
 
-- sweatshirt shape は `sweatshirt` を使う
-- hoodie shape は `hoodie` を使い、neck は選択しない
-- vest shape は `vest` を使い、sleeve は選択しない
+- sleeve: `short` `five` `seven` `long`
+- length: `short` `normal` `long`
+- neck: `collar`
+- fit: `normal`
+- defaults: sleeve=`short` length=`normal` neck=`collar` fit=`normal`
+- design: UI では非表示
 
-### camisole / tanktop
+### sweatshirt
 
-- camisole は neck を未選択から選べる
-- tanktop neck は `crew` `square` を使い、`v` は含めない
-- camisole / tanktop とも sleeve は選択しない
+- sleeve: `short` `five` `seven` `long`
+- length: `short` `normal` `long`
+- neck: `crew`
+- fit: `normal` `oversized`
+- defaults: sleeve=`long` length=`normal` neck=`crew` fit=`normal`
+- design: UI では非表示
+
+### hoodie
+
+- sleeve: `short` `five` `seven` `long` `sleeveless`
+- length: `short` `normal` `long`
+- neck: なし
+- fit: `normal` `oversized`
+- defaults: sleeve=`long` length=`normal` fit=`normal`
+- design: UI では非表示
+
+### knit
+
+- sleeve: `short` `five` `seven` `long` `sleeveless`
+- length: `short` `normal` `long`
+- neck: `crew` `v` `square` `turtle` `mock`
+- fit: `normal` `oversized`
+- defaults: sleeve=`long` length=`normal` neck=`crew` fit=`normal`
+- design: UI では非表示
+
+### cardigan
+
+- sleeve: `short` `seven` `long`
+- length: `short` `normal` `long`
+- neck: `v` `crew`
+- fit: `normal` `oversized`
+- defaults: sleeve=`long` length=`normal` neck=`v` fit=`normal`
+- design: UI では非表示
+
+### vest
+
+- sleeve: なし
+- length: `short` `normal` `long`
+- neck: `crew` `v` `boat` `turtle`
+- fit: `normal` `oversized`
+- defaults: length=`normal` neck=`crew` fit=`normal`
+- design: UI では非表示
+
+### camisole
+
+- sleeve: なし
+- length: `short` `normal` `long`
+- neck: `camisole_neck` `square` `v` `halter`
+- fit: `normal`
+- defaults: length=`normal` neck=`camisole_neck` fit=`normal`
+- design: UI では非表示
+
+### tanktop
+
+- sleeve: なし
+- length: `short` `normal` `long`
+- neck: `crew` `square` `highneck` `mock` `boat` `u` `v` `halter`
+- fit: `normal` `oversized`
+- defaults: length=`normal` neck=`crew` fit=`normal`
+- fit はデータ保持のまま UI では非表示
+- design: UI では非表示
 
 ---
 
