@@ -26,6 +26,8 @@ describe("current item read model", () => {
     expect(resolveCurrentItemShapeValue("bottoms", "flare-skirt")).toBe(
       "flare",
     );
+    expect(resolveCurrentItemShapeValue("skirts", "mermaid")).toBe("mermaid");
+    expect(resolveCurrentItemShapeValue("skirts", "pleated")).toBe("pleated");
     expect(resolveCurrentItemShapeValue("pants", "slacks")).toBe("pants");
     expect(resolveCurrentItemShapeValue("outer", "down")).toBe("down-padded");
     expect(resolveCurrentItemShapeValue("shoes", "short-boots")).toBe(
@@ -49,6 +51,12 @@ describe("current item read model", () => {
     expect(resolveCurrentItemSubcategoryValue("tops", "", "other")).toBe(
       "other",
     );
+    expect(resolveCurrentItemSubcategoryValue("skirts", "mermaid", null)).toBe(
+      "skirt",
+    );
+    expect(
+      resolveCurrentItemSubcategoryValue("skirts", "pleated", null),
+    ).toBeNull();
   });
 
   it("subcategory から default shape を読める", () => {
@@ -82,6 +90,10 @@ describe("current item read model", () => {
     expect(resolveVisibleCategoryIdForItem("skirts", "", "other")).toBe(
       "skirts_other",
     );
+    expect(resolveVisibleCategoryIdForItem("skirts", "mermaid")).toBe(
+      "skirts_skirt",
+    );
+    expect(resolveVisibleCategoryIdForItem("skirts", "pleated")).toBeNull();
     expect(resolveVisibleCategoryIdForItem("outerwear", "", "other")).toBe(
       "outerwear_other",
     );
