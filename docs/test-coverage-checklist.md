@@ -405,30 +405,22 @@
 
 ### OK
 
+- tops: 現行正式値ベースで docs / UI / rules / edit 復元テストまで揃っている
 - pants: 現行仕様ベースで docs / mapping / UI / テストが揃っている
 - skirts: docs / UI / read model の shape 方針を揃えた状態まで確認済み
 - outerwear: 種類未選択時は shape を出さない UI 方針まで揃っている
 - legwear: current coverage_type 語彙に docs / validator / UI / テストを揃えている
 - shoes: current subcategory と docs / purchase candidate mapping / 復元テストが揃っている
+- bags: current 語彙の read model 解釈と edit 復元がテストで押さえられている
+- fashion_accessories: current 値の edit 復元と表示名波及確認までテストで押さえている
+- swimwear: subcategory 主導・shape 非表示・初期値方針を docs とテストで確認済み
 - kimono: subcategory 主導・shape 非表示・代表値初期選択の方針が new / edit / docs で揃っている
 
 ### 保留あり
 
-- tops: `tops + other` の `shape=""` は暫定保存表現。
-  current 値前提では成立しているが、read model / test の厚みが一段薄い。
-  個別 TODO は `tops.md` に整理済み。
-- allinone: UI では shape 非表示。
-  ただし内部では shape を保持している暫定設計。
-  個別 TODO は `allinone.md` に整理済み。
-- bags: current 語彙・settings・map は揃っている。
-  current bags の追加語彙に対する edit / read model テストがやや薄い。
-  `accessories -> bags` bridge は現時点では不要寄り。
-- fashion_accessories: shape 非使用カテゴリとして基本線は揃っている。
-  `eyewear = メガネ・サングラス` の表示名波及確認が薄い。
-  edit 復元テストがやや薄い。
-- swimwear: UI はかなり整理済み。
-  docs の初期値説明と read model / edit 復元テストが薄い。
-  backend / purchase candidate はまだ完全な subcategory-first ではない。
+- allinone: UI では shape 非表示のカテゴリとして成立している。
+  ただし内部では mapping / read model / backend fallback の都合で shape 値を保持している。
+  truly shape-less にするかは将来の設計判断とする。
 
 ### 要修正
 
@@ -436,8 +428,5 @@
 
 ### 次に触る優先候補
 
-1. tops
-2. swimwear
-3. fashion_accessories
-4. bags
-5. allinone
+1. allinone の設計方針（shape を持たないカテゴリにするか）の検討
+2. カテゴリ整理以外の次フェーズ（一覧・検索・導線など）へ進む
