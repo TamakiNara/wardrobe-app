@@ -21,9 +21,24 @@
 
 ### shape から外す一覧
 
-- 素材寄り: `tulle` チュール `Tulle` / `lace` レース `Lace` / `denim` デニム `Denim` / `leather` レザー `Leather` / `satin` サテン `Satin`
-- デザイン寄り: `pleats` プリーツ `Pleats` / `gather` ギャザー `Gather` / `tuck` タック `Tuck` / `tiered` ティアード `Tiered` / `wrap` ラップ `Wrap` / `balloon` バルーン `Balloon` / `trench` トレンチ `Trench-inspired`
-- これらはシルエットではなく、将来は別軸の spec に分離する前提で整理する
+- 素材系の候補は `material_type`
+- デザイン系の候補は `design_type`
+- 候補語彙の正本は下の補助 spec を参照し、shape に混ぜない
+
+## 補助 spec
+
+### `material_type`
+
+- `spec.skirt.material_type` は素材系の補助 spec として扱う
+- 現時点では単一選択とし、複数要素を持つスカートでも最も特徴的な 1 つを選ぶ
+- 候補語彙: `tulle` チュール `Tulle` / `lace` レース `Lace` / `denim` デニム `Denim` / `leather` レザー `Leather` / `satin` サテン `Satin`
+
+### `design_type`
+
+- `spec.skirt.design_type` はデザイン系の補助 spec として扱う
+- 現時点では単一選択とし、複数要素を持つスカートでも最も特徴的な 1 つを選ぶ
+- 候補語彙: `tuck` タック `Tuck` / `gather` ギャザー `Gather` / `pleats` プリーツ `Pleats` / `tiered` ティアード `Tiered` / `wrap` ラップ `Wrap` / `balloon` バルーン `Balloon` / `trench` トレンチ `Trench-inspired`
+- `design_type` は将来的に複数選択化の余地があるが、今回は採用しない
 
 ## 丈 spec
 
@@ -36,10 +51,10 @@
 - UI 上のラベルは、現時点でも「丈」を使う
 - edit / detail / preview では `spec.skirt.length_type` を優先し、値がなければ既存 `spec.bottoms.length_type` を read fallback として読む
 
-### 将来の分離先
-- 素材系は将来 `material` 軸へ
-- デザイン系は将来 `design` 軸へ
-- 今回はまだこれらを master data や UI に追加しない
+### 実装状況
+- `material_type` / `design_type` はdocs 上で正本化するが、今回はまだ master data や UI に追加しない
+- 検索 / フィルタ / validator / normalizer への反映も将来対応とする
+- 将来的には複数選択化の余地も残すが、今回は採用しない
 
 ### 現状実装との関係
 - 新規保存では `spec.skirt.length_type` を正本にする
