@@ -968,6 +968,210 @@ describe("編集画面", () => {
     expect(riseTypeSelect?.value).toBe("high_waist");
   });
 
+  it("編集画面では skirts の新しい丈 spec を初期値として復元する", async () => {
+    fetchCategoryGroupsMock.mockResolvedValueOnce([
+      ...sampleGroups,
+      {
+        id: "skirts",
+        name: "スカート",
+        sortOrder: 16,
+        categories: [
+          {
+            id: "skirts_skirt",
+            groupId: "skirts",
+            name: "スカート",
+            sortOrder: 10,
+          },
+        ],
+      },
+    ]);
+    fetchCategoryVisibilitySettingsMock.mockResolvedValueOnce({
+      visibleCategoryIds: [
+        "tops_tshirt_cutsew",
+        "outerwear_jacket",
+        "pants_pants",
+        "skirts_skirt",
+        "onepiece_dress_onepiece",
+        "allinone_allinone",
+        "roomwear_inner_roomwear",
+        "legwear_socks",
+        "shoes_sneakers",
+        "bags_tote",
+        "fashion_accessories_belt",
+        "fashion_accessories_eyewear",
+        "swimwear_swimwear",
+        "kimono_kimono",
+      ],
+    });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          item: {
+            id: 6,
+            name: "ミモレスカート",
+            status: "active",
+            care_status: null,
+            brand_name: null,
+            price: null,
+            purchase_url: null,
+            memo: null,
+            purchased_at: null,
+            size_gender: null,
+            size_label: null,
+            size_note: null,
+            size_details: null,
+            is_rain_ok: false,
+            category: "skirts",
+            subcategory: "skirt",
+            shape: "a_line",
+            colors: [],
+            seasons: [],
+            tpos: [],
+            tpo_ids: [],
+            spec: {
+              skirt: {
+                length_type: "mid_calf",
+              },
+            },
+            materials: [],
+            images: [],
+          },
+        }),
+      }),
+    );
+
+    const { default: EditItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(
+        React.createElement(EditItemPage, {
+          params: Promise.resolve({ id: "6" }),
+        }),
+      );
+      await waitForEffects();
+    });
+
+    const categorySelect =
+      container.querySelector<HTMLSelectElement>("#category");
+    const skirtRadio =
+      container.querySelector<HTMLInputElement>("#subcategory-skirt");
+    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
+    const lengthTypeSelect = container.querySelector<HTMLSelectElement>(
+      "#bottoms-length-type",
+    );
+
+    expect(categorySelect?.value).toBe("skirts");
+    expect(skirtRadio?.checked).toBe(true);
+    expect(shapeSelect?.value).toBe("a_line");
+    expect(lengthTypeSelect?.value).toBe("mid_calf");
+    expect(container.querySelector("#bottoms-rise-type")).toBeNull();
+  });
+
+  it("編集画面では skirts の旧丈 spec を fallback で復元する", async () => {
+    fetchCategoryGroupsMock.mockResolvedValueOnce([
+      ...sampleGroups,
+      {
+        id: "skirts",
+        name: "スカート",
+        sortOrder: 16,
+        categories: [
+          {
+            id: "skirts_skirt",
+            groupId: "skirts",
+            name: "スカート",
+            sortOrder: 10,
+          },
+        ],
+      },
+    ]);
+    fetchCategoryVisibilitySettingsMock.mockResolvedValueOnce({
+      visibleCategoryIds: [
+        "tops_tshirt_cutsew",
+        "outerwear_jacket",
+        "pants_pants",
+        "skirts_skirt",
+        "onepiece_dress_onepiece",
+        "allinone_allinone",
+        "roomwear_inner_roomwear",
+        "legwear_socks",
+        "shoes_sneakers",
+        "bags_tote",
+        "fashion_accessories_belt",
+        "fashion_accessories_eyewear",
+        "swimwear_swimwear",
+        "kimono_kimono",
+      ],
+    });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          item: {
+            id: 7,
+            name: "旧丈スカート",
+            status: "active",
+            care_status: null,
+            brand_name: null,
+            price: null,
+            purchase_url: null,
+            memo: null,
+            purchased_at: null,
+            size_gender: null,
+            size_label: null,
+            size_note: null,
+            size_details: null,
+            is_rain_ok: false,
+            category: "skirts",
+            subcategory: "skirt",
+            shape: "flare",
+            colors: [],
+            seasons: [],
+            tpos: [],
+            tpo_ids: [],
+            spec: {
+              bottoms: {
+                length_type: "cropped",
+              },
+            },
+            materials: [],
+            images: [],
+          },
+        }),
+      }),
+    );
+
+    const { default: EditItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(
+        React.createElement(EditItemPage, {
+          params: Promise.resolve({ id: "7" }),
+        }),
+      );
+      await waitForEffects();
+    });
+
+    const categorySelect =
+      container.querySelector<HTMLSelectElement>("#category");
+    const skirtRadio =
+      container.querySelector<HTMLInputElement>("#subcategory-skirt");
+    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
+    const lengthTypeSelect = container.querySelector<HTMLSelectElement>(
+      "#bottoms-length-type",
+    );
+
+    expect(categorySelect?.value).toBe("skirts");
+    expect(skirtRadio?.checked).toBe(true);
+    expect(shapeSelect?.value).toBe("flare");
+    expect(lengthTypeSelect?.value).toBe("midi");
+    expect(container.querySelector("#bottoms-rise-type")).toBeNull();
+  });
+
   it("編集画面でも other 系の一部カテゴリでは shape を表示しない", async () => {
     const { default: EditItemPage } = await import("./page");
 

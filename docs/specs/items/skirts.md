@@ -25,26 +25,25 @@
 - デザイン寄り: `pleats` プリーツ `Pleats` / `gather` ギャザー `Gather` / `tuck` タック `Tuck` / `tiered` ティアード `Tiered` / `wrap` ラップ `Wrap` / `balloon` バルーン `Balloon` / `trench` トレンチ `Trench-inspired`
 - これらはシルエットではなく、将来は別軸の spec に分離する前提で整理する
 
-## 将来の spec 軸（未実装）
+## 丈 spec
 
 ### `skirt_length`
 
-- スカート専用の丈軸として `skirt_length` を設ける想定
-- `pants` の `length`とは別軸として扱う
+- `skirts` は `spec.skirt.length_type` を正本として使う
+- `pants` の `spec.bottoms.length_type` とは別軸として扱う
 - 候補語彙: `mini` / `knee` / `midi` / `mid_calf` / `long` / `maxi`
 - 表示名の想定: ミニ丈 `Mini` / ひざ丈 `Knee length` / ミディ丈 `Midi` / ミモレ丈 `Mid-calf / Midi-long` / ロング丈 `Long` / マキシ丈 `Maxi`
-- UI 上のラベルは、将来的にも「丈」を想定する (label: `Length`)
-- 今回は docs のみで整理し、実装は行わない
+- UI 上のラベルは、現時点でも「丈」を使う
+- edit / detail / preview では `spec.skirt.length_type` を優先し、値がなければ既存 `spec.bottoms.length_type` を read fallback として読む
 
 ### 将来の分離先
 - 素材系は将来 `material` 軸へ
 - デザイン系は将来 `design` 軸へ
-- 今回はまだ将来先を master data や UI に追加しない
+- 今回はまだこれらを master data や UI に追加しない
 
 ### 現状実装との関係
-
-- 現状は `pants` の丈を流用した暫定状態
-- 将来的には `skirt_length` に置き換える予定
+- 新規保存では `spec.skirt.length_type` を正本にする
+- 既存 skirts データの `spec.bottoms.length_type` は migration せず、read fallback で吸収する
 - shape も段階的に整理していく前提で进める
 
 ## 要再判断

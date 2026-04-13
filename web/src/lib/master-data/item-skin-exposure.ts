@@ -12,6 +12,15 @@ export const BOTTOMS_RISE_OPTIONS = [
   { value: "low_rise", label: "ローライズ" },
 ] as const;
 
+export const SKIRT_LENGTH_OPTIONS = [
+  { value: "mini", label: "ミニ丈" },
+  { value: "knee", label: "ひざ丈" },
+  { value: "midi", label: "ミディ丈" },
+  { value: "mid_calf", label: "ミモレ丈" },
+  { value: "long", label: "ロング丈" },
+  { value: "maxi", label: "マキシ丈" },
+] as const;
+
 export const LEGWEAR_COVERAGE_OPTIONS = [
   { value: "foot_cover", label: "フットカバー" },
   { value: "ankle_sneaker", label: "アンクル・スニーカーソックス" },
@@ -32,6 +41,7 @@ export const LEGWEAR_COVERAGE_OPTIONS = [
 export type BottomsLengthType =
   (typeof BOTTOMS_LENGTH_OPTIONS)[number]["value"];
 export type BottomsRiseType = (typeof BOTTOMS_RISE_OPTIONS)[number]["value"];
+export type SkirtLengthType = (typeof SKIRT_LENGTH_OPTIONS)[number]["value"];
 export type LegwearCoverageType =
   (typeof LEGWEAR_COVERAGE_OPTIONS)[number]["value"];
 export type LegwearPreviewCoverageType =
@@ -60,6 +70,9 @@ const BOTTOMS_LENGTH_TYPES = BOTTOMS_LENGTH_OPTIONS.map(
 const BOTTOMS_RISE_TYPES = BOTTOMS_RISE_OPTIONS.map(
   (item) => item.value,
 ) as readonly BottomsRiseType[];
+const SKIRT_LENGTH_TYPES = SKIRT_LENGTH_OPTIONS.map(
+  (item) => item.value,
+) as readonly SkirtLengthType[];
 
 export function isBottomsSpecCategory(category?: string | null) {
   return (
@@ -72,7 +85,11 @@ export function isLegwearSpecCategory(category?: string | null) {
 }
 
 export function isBottomsLengthTypeRequired(category?: string | null) {
-  return isBottomsSpecCategory(category);
+  return category === "bottoms" || category === "pants";
+}
+
+export function isSkirtLengthTypeRequired(category?: string | null) {
+  return category === "skirts";
 }
 
 export function isBottomsRiseTypeSupported(category?: string | null) {
@@ -255,6 +272,22 @@ export function resolveBottomsLengthType(value?: string | null) {
   );
 }
 
+export function resolveSkirtLengthType(value?: string | null) {
+  if (SKIRT_LENGTH_TYPES.includes(value as SkirtLengthType)) {
+    return value;
+  }
+
+  return (
+    {
+      short: "mini",
+      half: "knee",
+      cropped: "midi",
+      ankle: "long",
+      full: "maxi",
+    }[value ?? ""] ?? null
+  );
+}
+
 export function resolveBottomsRiseType(
   category?: string | null,
   value?: string | null,
@@ -291,6 +324,22 @@ export function resolveBottomsLengthTypeForItem(
   return null;
 }
 
+export function resolveSkirtLengthTypeForItem(
+  value?: string | null,
+  legacyBottomsValue?: string | null,
+) {
+  return (
+    resolveSkirtLengthType(value) ?? resolveSkirtLengthType(legacyBottomsValue)
+  );
+}
+
+export function resolveSkirtLengthTypeForPreview(
+  value?: string | null,
+  legacyBottomsValue?: string | null,
+) {
+  return resolveSkirtLengthTypeForItem(value, legacyBottomsValue) ?? "maxi";
+}
+
 export function resolveBottomsLengthTypeForPreview(value?: string | null) {
   return resolveBottomsLengthType(value) ?? "full";
 }
@@ -301,6 +350,19 @@ export function findBottomsLengthLabel(value?: string | null) {
   return (
     BOTTOMS_LENGTH_OPTIONS.find((item) => item.value === resolved)?.label ??
     value
+  );
+}
+
+export function findSkirtLengthLabel(
+  value?: string | null,
+  legacyBottomsValue?: string | null,
+) {
+  const resolved = resolveSkirtLengthTypeForItem(value, legacyBottomsValue);
+  return (
+    SKIRT_LENGTH_OPTIONS.find((item) => item.value === resolved)?.label ??
+    value ??
+    legacyBottomsValue ??
+    ""
   );
 }
 

@@ -58,7 +58,7 @@ describe("ItemPreviewCard", () => {
     );
     expect(container.textContent).toContain("ボトムス仕様");
     expect(container.textContent).toContain("ボトムス丈");
-    expect(container.textContent).toContain("クロップド丈");
+    expect(container.textContent).toContain("ミディ丈");
   });
 
   it("レッグウェア仕様も同じ重さで表示できる", async () => {
@@ -82,6 +82,29 @@ describe("ItemPreviewCard", () => {
     expect(container.textContent).toContain("レッグウェア");
     expect(container.textContent).toContain("タイツ");
     expect(container.textContent).toContain("イエロー系・標準 (yellow_medium)");
+  });
+
+  it("skirts の新しい丈 spec も開発用詳細に表示できる", async () => {
+    vi.stubEnv("NEXT_PUBLIC_ENABLE_ITEM_PREVIEW_DEBUG", "true");
+
+    await act(async () => {
+      root.render(
+        <ItemPreviewCard
+          name="ミモレ丈スカート"
+          category="skirts"
+          subcategory="skirt"
+          shape="a_line"
+          mainColorHex="#CBB79D"
+          mainColorLabel="ベージュ"
+          spec={{ skirt: { length_type: "mid_calf" } }}
+          skinTonePreset="neutral_medium"
+        />,
+      );
+    });
+
+    expect(container.textContent).toContain("ミモレ丈スカート");
+    expect(container.textContent).toContain("丈");
+    expect(container.textContent).toContain("ベージュ");
   });
 
   it("feature flag が無効なときは開発用詳細を表示しない", async () => {

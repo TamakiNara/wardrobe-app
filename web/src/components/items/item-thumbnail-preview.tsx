@@ -10,6 +10,7 @@ import { COLOR_THUMBNAIL_FALLBACK_COLOR } from "@/lib/color-thumbnails/shared";
 import {
   resolveBottomsLengthTypeForPreview,
   resolveLegwearCoverageTypeForPreview,
+  resolveSkirtLengthTypeForPreview,
 } from "@/lib/master-data/item-skin-exposure";
 import { resolveSkinToneColor } from "@/lib/master-data/skin-tone-presets";
 import type { ItemImageRecord, ItemSpec } from "@/types/items";
@@ -123,7 +124,12 @@ export default function ItemThumbnailPreview({
     spec?.legwear?.coverage_type,
   );
   const bottomsLengthType = isBottomsLikeCategory
-    ? resolveBottomsLengthTypeForPreview(spec?.bottoms?.length_type)
+    ? category === "skirts"
+      ? resolveSkirtLengthTypeForPreview(
+          spec?.skirt?.length_type,
+          spec?.bottoms?.length_type,
+        )
+      : resolveBottomsLengthTypeForPreview(spec?.bottoms?.length_type)
     : null;
   const skinToneColor = resolveSkinToneColor(skinTonePreset);
   const shouldRenderLowerBody =

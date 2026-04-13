@@ -8,13 +8,23 @@ class ItemSpecNormalizer
     {
         $normalized = is_array($spec) ? $spec : [];
         $lengthType = data_get($normalized, 'bottoms.length_type');
+        $skirtLengthType = data_get($normalized, 'skirt.length_type');
         $riseType = data_get($normalized, 'bottoms.rise_type');
         $resolvedLengthType = self::resolveBottomsLengthType($category, $shape, $lengthType);
+        $resolvedSkirtLengthType = self::resolveSkirtLengthType($category, $skirtLengthType, $lengthType);
         $resolvedRiseType = self::resolveBottomsRiseType($category, $riseType);
         $coverageType = data_get($normalized, 'legwear.coverage_type');
         $resolvedCoverageType = self::resolveLegwearCoverageType($category, $shape, $coverageType, $subcategory);
 
-        if ($resolvedLengthType !== null || $resolvedRiseType !== null) {
+        if ($category === 'skirts') {
+            if ($resolvedSkirtLengthType !== null) {
+                $normalized['skirt'] = ['length_type' => $resolvedSkirtLengthType];
+            } else {
+                unset($normalized['skirt']);
+            }
+
+            unset($normalized['bottoms']);
+        } elseif ($resolvedLengthType !== null || $resolvedRiseType !== null) {
             $bottomsSpec = [];
 
             if ($resolvedLengthType !== null) {
@@ -26,8 +36,10 @@ class ItemSpecNormalizer
             }
 
             $normalized['bottoms'] = $bottomsSpec;
+            unset($normalized['skirt']);
         } else {
             unset($normalized['bottoms']);
+            unset($normalized['skirt']);
         }
 
         if ($resolvedCoverageType !== null) {
@@ -119,6 +131,27 @@ class ItemSpecNormalizer
         }
 
         return null;
+    }
+
+    private static function resolveSkirtLengthType(?string $category, mixed $skirtLengthType, mixed $legacyBottomsLengthType): ?string
+    {
+        if ($category !== 'skirts') {
+            return null;
+        }
+
+        if (in_array($skirtLengthType, ['mini', 'knee', 'midi', 'mid_calf', 'long', 'maxi'], true)) {
+            return $skirtLengthType;
+        }
+
+        return match ($legacyBottomsLengthType) {
+            'mini', 'short' => 'mini',
+            'half', 'knee' => 'knee',
+            'cropped', 'midi' => 'midi',
+            'ankle' => 'long',
+            'full' => 'maxi',
+            'mid_calf', 'long', 'maxi' => $legacyBottomsLengthType,
+            default => null,
+        };
     }
 
     private static function resolveBottomsRiseType(?string $category, mixed $riseType): ?string

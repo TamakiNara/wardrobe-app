@@ -1278,16 +1278,50 @@ class ItemsEndpointsTest extends TestCase
             ->assertJsonValidationErrors(['shape']);
     }
 
-    public function test_post_items_can_save_bottoms_length_type_spec(): void
+    public function test_post_items_can_save_skirt_length_type_spec(): void
     {
         $user = User::factory()->create();
 
         $this->actingAs($user, 'web');
 
         $response = $this->postJson('/api/items', [
-            'name' => 'クロップド丈スカート',
+            'name' => 'ミモレ丈スカート',
             'category' => 'skirts',
             'shape' => 'a_line',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'navy',
+                'hex' => '#123456',
+                'label' => 'ネイビー',
+            ]],
+            'spec' => [
+                'skirt' => [
+                    'length_type' => 'mid_calf',
+                ],
+            ],
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('item.spec.skirt.length_type', 'mid_calf');
+
+        $item = Item::query()->findOrFail($response->json('item.id'));
+        $this->assertSame('mid_calf', data_get($item->spec, 'skirt.length_type'));
+        $this->assertNull(data_get($item->spec, 'bottoms.length_type'));
+    }
+
+    public function test_post_items_normalizes_legacy_bottoms_length_type_spec_for_skirts(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/items', [
+            'name' => '旧丈スカート',
+            'category' => 'skirts',
+            'shape' => 'flare',
             'colors' => [[
                 'role' => 'main',
                 'mode' => 'preset',
@@ -1305,10 +1339,11 @@ class ItemsEndpointsTest extends TestCase
         ]);
 
         $response->assertCreated()
-            ->assertJsonPath('item.spec.bottoms.length_type', 'cropped');
+            ->assertJsonPath('item.spec.skirt.length_type', 'midi');
 
         $item = Item::query()->findOrFail($response->json('item.id'));
-        $this->assertSame('cropped', data_get($item->spec, 'bottoms.length_type'));
+        $this->assertSame('midi', data_get($item->spec, 'skirt.length_type'));
+        $this->assertNull(data_get($item->spec, 'bottoms.length_type'));
     }
 
     public function test_post_items_can_save_pants_length_and_rise_spec(): void
@@ -1566,6 +1601,33 @@ class ItemsEndpointsTest extends TestCase
             ]);
     }
 
+    public function test_post_items_requires_skirt_length_type_spec(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/items', [
+            'name' => '丈未設定スカート',
+            'category' => 'skirts',
+            'shape' => 'a_line',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'navy',
+                'hex' => '#123456',
+                'label' => 'ネイビー',
+            ]],
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors([
+                'spec.skirt.length_type',
+            ]);
+    }
+
     public function test_post_items_rejects_bottoms_rise_type_for_non_pants_category(): void
     {
         $user = User::factory()->create();
@@ -1573,7 +1635,7 @@ class ItemsEndpointsTest extends TestCase
         $this->actingAs($user, 'web');
 
         $response = $this->postJson('/api/items', [
-            'name' => '不正な股上スカート',
+            'name' => '股上を誤指定したスカート',
             'category' => 'skirts',
             'shape' => 'a_line',
             'colors' => [[
@@ -1584,8 +1646,10 @@ class ItemsEndpointsTest extends TestCase
                 'label' => 'ネイビー',
             ]],
             'spec' => [
+                'skirt' => [
+                    'length_type' => 'midi',
+                ],
                 'bottoms' => [
-                    'length_type' => 'cropped',
                     'rise_type' => 'high_waist',
                 ],
             ],

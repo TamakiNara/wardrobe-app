@@ -19,6 +19,7 @@ import { groupItemMaterialsForDisplay } from "@/lib/items/materials";
 import {
   findBottomsLengthLabel,
   findLegwearCoverageLabel,
+  findSkirtLengthLabel,
 } from "@/lib/master-data/item-skin-exposure";
 import {
   buildTopsSpecLabels,
@@ -86,14 +87,18 @@ export default async function ItemPage({
   const subColor = item.colors.find((c) => c.role === "sub");
   const topsSpec = buildTopsSpecLabels(item.spec?.tops);
   const topsSpecRaw = buildTopsSpecRaw(item.spec?.tops);
-  const bottomsLengthLabel = findBottomsLengthLabel(
-    item.spec?.bottoms?.length_type,
-  );
+  const currentCategory =
+    resolveCurrentItemCategoryValue(item.category, item.shape) ?? item.category;
+  const bottomsLengthLabel =
+    currentCategory === "skirts"
+      ? findSkirtLengthLabel(
+          item.spec?.skirt?.length_type,
+          item.spec?.bottoms?.length_type,
+        )
+      : findBottomsLengthLabel(item.spec?.bottoms?.length_type);
   const legwearCoverageLabel = findLegwearCoverageLabel(
     item.spec?.legwear?.coverage_type,
   );
-  const currentCategory =
-    resolveCurrentItemCategoryValue(item.category, item.shape) ?? item.category;
   const currentSubcategory =
     resolveCurrentItemSubcategoryValue(
       currentCategory,

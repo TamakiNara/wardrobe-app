@@ -193,7 +193,7 @@ describe("buildOutfitLowerBodyPreviewSource current source build", () => {
     expect(source?.representativeBottomsItemId).toBe(11);
     expect(source?.representativeLegwearItemId).toBe(21);
     expect(source?.lengthType).toBe("full");
-    expect(source?.coverageType).toBe("leggings_full");
+    expect(source?.coverageType).toBe("ten_tenths");
   });
 
   it("bottoms があり legwear がなければ bottoms のみで描画する source を返す", () => {
@@ -204,6 +204,36 @@ describe("buildOutfitLowerBodyPreviewSource current source build", () => {
     expect(source?.representativeBottomsItemId).toBe(10);
     expect(source?.representativeLegwearItemId).toBeNull();
     expect(source?.coverageType).toBeNull();
+  });
+
+  it("skirts の新しい丈 spec を preview source に反映する", () => {
+    const source = buildOutfitLowerBodyPreviewSource([
+      createOutfitItem(
+        10,
+        1,
+        "skirts",
+        { skirt: { length_type: "mid_calf" } },
+        "a_line",
+      ),
+    ]);
+
+    expect(source?.representativeBottomsItemId).toBe(10);
+    expect(source?.lengthType).toBe("mid_calf");
+  });
+
+  it("skirts は bottoms の旧丈 spec を fallback で preview source に反映する", () => {
+    const source = buildOutfitLowerBodyPreviewSource([
+      createOutfitItem(
+        10,
+        1,
+        "skirts",
+        { bottoms: { length_type: "cropped" } },
+        "flare",
+      ),
+    ]);
+
+    expect(source?.representativeBottomsItemId).toBe(10);
+    expect(source?.lengthType).toBe("midi");
   });
 });
 

@@ -36,11 +36,21 @@ const BOTTOMS_HEM_Y: Record<string, number> = {
   mini: 48,
   short: 56,
   half: 64,
+  knee: 64,
   cropped: 78,
+  midi: 78,
+  mid_calf: 90,
+  long: 96,
   full: 102,
+  maxi: 102,
 };
 
 const SOCKS_START_Y: Record<string, number> = {
+  foot_cover: 94,
+  ankle_sneaker: 86,
+  crew: 76,
+  three_quarter: 58,
+  high_socks: 40,
   ankle_socks: 86,
   crew_socks: 76,
   knee_socks: 58,
@@ -48,6 +58,13 @@ const SOCKS_START_Y: Record<string, number> = {
 };
 
 const LEGGINGS_END_Y: Record<string, number> = {
+  one_tenth: 42,
+  three_tenths: 54,
+  five_tenths: 66,
+  seven_tenths: 74,
+  seven_eighths: 88,
+  ten_tenths: 102,
+  twelve_tenths: 110,
   leggings_cropped: 74,
   leggings_full: 102,
 };

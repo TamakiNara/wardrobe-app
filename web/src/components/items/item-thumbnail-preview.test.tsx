@@ -56,6 +56,25 @@ describe("ItemThumbnailPreview", () => {
     expect(markers[1]?.getAttribute("y1")).toBe("92");
   });
 
+  it("skirts の新しい丈 spec もサムネイルに反映できる", async () => {
+    await act(async () => {
+      root.render(
+        <ItemThumbnailPreview
+          category="skirts"
+          shape="a_line"
+          mainColorHex="#1F2937"
+          spec={{ skirt: { length_type: "mid_calf" } }}
+          size="small"
+        />,
+      );
+    });
+
+    const marker = container.querySelector(
+      '[data-testid="bottoms-hem-marker"]',
+    );
+    expect(marker?.getAttribute("y1")).toBe("82");
+  });
+
   it("トップス item SVG は shape 差分ではなく共通の角丸四角ベースで描く", async () => {
     await act(async () => {
       root.render(
@@ -221,14 +240,14 @@ describe("ItemThumbnailPreview", () => {
             category="legwear"
             shape="socks"
             mainColorHex="#334155"
-            spec={{ legwear: { coverage_type: "ankle_socks" } }}
+            spec={{ legwear: { coverage_type: "ankle_sneaker" } }}
             size="small"
           />
           <ItemThumbnailPreview
             category="legwear"
             shape="socks"
             mainColorHex="#334155"
-            spec={{ legwear: { coverage_type: "over_knee" } }}
+            spec={{ legwear: { coverage_type: "high_socks" } }}
             size="small"
           />
         </div>,

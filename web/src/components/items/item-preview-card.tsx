@@ -3,6 +3,7 @@ import { resolveCurrentItemCategoryValue } from "@/lib/api/categories";
 import {
   findBottomsLengthLabel,
   findLegwearCoverageLabel,
+  findSkirtLengthLabel,
 } from "@/lib/master-data/item-skin-exposure";
 import {
   findItemSubcategoryLabel,
@@ -111,7 +112,13 @@ export default function ItemPreviewCard({
   const classificationLabels = [categoryLabel, subcategoryLabel, shapeLabel]
     .filter((label): label is string => Boolean(label))
     .filter((label, index, labels) => labels.indexOf(label) === index);
-  const bottomsLengthLabel = findBottomsLengthLabel(spec?.bottoms?.length_type);
+  const bottomsLengthLabel =
+    currentCategory === "skirts"
+      ? findSkirtLengthLabel(
+          spec?.skirt?.length_type,
+          spec?.bottoms?.length_type,
+        )
+      : findBottomsLengthLabel(spec?.bottoms?.length_type);
   const legwearCoverageLabel = findLegwearCoverageLabel(
     spec?.legwear?.coverage_type,
   );

@@ -86,6 +86,8 @@ abstract class ItemUpsertRequest extends FormRequest
             'spec.bottoms' => ['nullable', 'array'],
             'spec.bottoms.length_type' => ['nullable', 'in:mini,short,half,cropped,ankle,full,knee,midi'],
             'spec.bottoms.rise_type' => ['nullable', 'in:high_waist,low_rise'],
+            'spec.skirt' => ['nullable', 'array'],
+            'spec.skirt.length_type' => ['nullable', 'in:mini,knee,midi,mid_calf,long,maxi'],
             'spec.legwear' => ['nullable', 'array'],
             'spec.legwear.coverage_type' => ['nullable', 'in:foot_cover,ankle_sneaker,crew,three_quarter,high_socks,stockings,tights,one_tenth,three_tenths,five_tenths,seven_tenths,seven_eighths,ten_tenths,twelve_tenths'],
             'materials' => ['nullable', 'array'],

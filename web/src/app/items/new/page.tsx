@@ -74,6 +74,7 @@ import {
 import {
   BOTTOMS_LENGTH_OPTIONS,
   BOTTOMS_RISE_OPTIONS,
+  SKIRT_LENGTH_OPTIONS,
   getLegwearCoverageFieldLabel,
   getLegwearCoverageOptions,
   getLegwearCoveragePlaceholder,
@@ -82,11 +83,13 @@ import {
   isBottomsRiseTypeSupported,
   isLegwearCoverageTypeRequired,
   isLegwearSpecCategory,
+  isSkirtLengthTypeRequired,
   resolveLegwearCoverageType,
   shouldShowLegwearCoverageSelect,
   type BottomsLengthType,
   type BottomsRiseType,
   type LegwearCoverageType,
+  type SkirtLengthType,
 } from "@/lib/master-data/item-skin-exposure";
 import {
   clearPurchaseCandidateItemDraft,
@@ -182,6 +185,9 @@ export default function NewItemPage() {
   const [bottomsLengthType, setBottomsLengthType] = useState<
     BottomsLengthType | ""
   >("");
+  const [skirtLengthType, setSkirtLengthType] = useState<SkirtLengthType | "">(
+    "",
+  );
   const [bottomsRiseType, setBottomsRiseType] = useState<BottomsRiseType | "">(
     "",
   );
@@ -207,6 +213,20 @@ export default function NewItemPage() {
   );
   const normalizedSubcategory = effectiveSubcategory;
   const isBottomsSpecVisible = isBottomsSpecCategory(category);
+  const isSkirtCategory = category === "skirts";
+  const lengthTypeFieldLabel = "丈";
+  const lengthTypeErrorKey = isSkirtCategory
+    ? "spec.skirt.length_type"
+    : "spec.bottoms.length_type";
+  const currentLengthOptions = isSkirtCategory
+    ? SKIRT_LENGTH_OPTIONS
+    : BOTTOMS_LENGTH_OPTIONS;
+  const currentLengthValue = isSkirtCategory
+    ? skirtLengthType
+    : bottomsLengthType;
+  const isLengthTypeRequired = isSkirtCategory
+    ? isSkirtLengthTypeRequired(category)
+    : isBottomsLengthTypeRequired(category);
   const isLegwearSpecVisible =
     isLegwearSpecCategory(category) && Boolean(shape);
   const isLegwearCoverageSelectVisible = shouldShowLegwearCoverageSelect(
@@ -639,6 +659,7 @@ export default function NewItemPage() {
 
   function resetBottomsSpecState() {
     setBottomsLengthType("");
+    setSkirtLengthType("");
     setBottomsRiseType("");
   }
 
@@ -664,6 +685,7 @@ export default function NewItemPage() {
       "subcategory",
       "shape",
       "spec.bottoms.length_type",
+      "spec.skirt.length_type",
       "spec.bottoms.rise_type",
       "spec.legwear.coverage_type",
     ]);
@@ -857,17 +879,23 @@ export default function NewItemPage() {
                 design: topsDesign || null,
                 fit: topsFit || null,
               },
-              ...(isBottomsSpecVisible && (bottomsLengthType || bottomsRiseType)
+              ...(category === "skirts" && skirtLengthType
                 ? {
-                    bottoms: {
-                      length_type: bottomsLengthType || undefined,
-                      rise_type:
-                        category === "pants"
-                          ? bottomsRiseType || undefined
-                          : undefined,
+                    skirt: {
+                      length_type: skirtLengthType || undefined,
                     },
                   }
-                : {}),
+                : isBottomsSpecVisible && (bottomsLengthType || bottomsRiseType)
+                  ? {
+                      bottoms: {
+                        length_type: bottomsLengthType || undefined,
+                        rise_type:
+                          category === "pants"
+                            ? bottomsRiseType || undefined
+                            : undefined,
+                      },
+                    }
+                  : {}),
               ...(resolvedLegwearCoverageType
                 ? {
                     legwear: {
@@ -876,14 +904,10 @@ export default function NewItemPage() {
                   }
                 : {}),
             }
-          : isBottomsSpecVisible && (bottomsLengthType || bottomsRiseType)
+          : category === "skirts" && skirtLengthType
             ? {
-                bottoms: {
-                  length_type: bottomsLengthType || undefined,
-                  rise_type:
-                    category === "pants"
-                      ? bottomsRiseType || undefined
-                      : undefined,
+                skirt: {
+                  length_type: skirtLengthType || undefined,
                 },
                 ...(resolvedLegwearCoverageType
                   ? {
@@ -893,13 +917,30 @@ export default function NewItemPage() {
                     }
                   : {}),
               }
-            : resolvedLegwearCoverageType
+            : isBottomsSpecVisible && (bottomsLengthType || bottomsRiseType)
               ? {
-                  legwear: {
-                    coverage_type: resolvedLegwearCoverageType,
+                  bottoms: {
+                    length_type: bottomsLengthType || undefined,
+                    rise_type:
+                      category === "pants"
+                        ? bottomsRiseType || undefined
+                        : undefined,
                   },
+                  ...(resolvedLegwearCoverageType
+                    ? {
+                        legwear: {
+                          coverage_type: resolvedLegwearCoverageType,
+                        },
+                      }
+                    : {}),
                 }
-              : null,
+              : resolvedLegwearCoverageType
+                ? {
+                    legwear: {
+                      coverage_type: resolvedLegwearCoverageType,
+                    },
+                  }
+                : null,
       images: itemImages,
     };
   }
@@ -951,7 +992,10 @@ export default function NewItemPage() {
     if (!selectedMainColor)
       nextErrors.mainColor = "メインカラーを選択してください。";
     if (isBottomsLengthTypeRequired(category) && !bottomsLengthType) {
-      nextErrors["spec.bottoms.length_type"] = "ボトムス丈を選択してください。";
+      nextErrors["spec.bottoms.length_type"] = "丈を選択してください。";
+    }
+    if (isSkirtLengthTypeRequired(category) && !skirtLengthType) {
+      nextErrors["spec.skirt.length_type"] = "丈を選択してください。";
     }
     if (
       isLegwearCoverageTypeRequired(category, shape, normalizedSubcategory) &&
@@ -1059,13 +1103,20 @@ export default function NewItemPage() {
     : null;
   const previewSpec = {
     tops: previewTopsSpecRaw,
-    bottoms: isBottomsSpecCategory(category)
-      ? {
-          length_type: bottomsLengthType || undefined,
-          rise_type:
-            category === "pants" ? bottomsRiseType || undefined : undefined,
-        }
-      : undefined,
+    bottoms:
+      category === "bottoms" || category === "pants"
+        ? {
+            length_type: bottomsLengthType || undefined,
+            rise_type:
+              category === "pants" ? bottomsRiseType || undefined : undefined,
+          }
+        : undefined,
+    skirt:
+      category === "skirts"
+        ? {
+            length_type: skirtLengthType || undefined,
+          }
+        : undefined,
     legwear: isLegwearSpecCategory(category)
       ? {
           coverage_type:
@@ -1107,6 +1158,7 @@ export default function NewItemPage() {
     const errorOrder = [
       "category",
       "shape",
+      "spec.skirt.length_type",
       "spec.bottoms.length_type",
       "spec.legwear.coverage_type",
       "mainColor",
@@ -1408,35 +1460,39 @@ export default function NewItemPage() {
                         <div>
                           <FieldLabel
                             htmlFor="bottoms-length-type"
-                            label="ボトムス丈"
-                            required={isBottomsLengthTypeRequired(category)}
+                            label={lengthTypeFieldLabel}
+                            required={isLengthTypeRequired}
                           />
                           <select
                             id="bottoms-length-type"
-                            value={bottomsLengthType}
-                            onChange={(e) =>
-                              setBottomsLengthType(
-                                e.target.value as BottomsLengthType | "",
-                              )
-                            }
-                            onBlur={() =>
-                              clearErrorsFor(["spec.bottoms.length_type"])
-                            }
+                            value={currentLengthValue}
+                            onChange={(e) => {
+                              if (isSkirtCategory) {
+                                setSkirtLengthType(
+                                  e.target.value as SkirtLengthType | "",
+                                );
+                              } else {
+                                setBottomsLengthType(
+                                  e.target.value as BottomsLengthType | "",
+                                );
+                              }
+                            }}
+                            onBlur={() => clearErrorsFor([lengthTypeErrorKey])}
                             onChangeCapture={() =>
-                              clearErrorsFor(["spec.bottoms.length_type"])
+                              clearErrorsFor([lengthTypeErrorKey])
                             }
-                            className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors["spec.bottoms.length_type"] ? "border-red-400" : "border-gray-300"}`}
+                            className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors[lengthTypeErrorKey] ? "border-red-400" : "border-gray-300"}`}
                           >
-                            <option value="">丈を選択してください</option>
-                            {BOTTOMS_LENGTH_OPTIONS.map((item) => (
+                            <option value="">選択してください</option>
+                            {currentLengthOptions.map((item) => (
                               <option key={item.value} value={item.value}>
                                 {item.label}
                               </option>
                             ))}
                           </select>
-                          {errors["spec.bottoms.length_type"] && (
+                          {errors[lengthTypeErrorKey] && (
                             <p className="mt-2 text-sm text-red-600">
-                              {errors["spec.bottoms.length_type"]}
+                              {errors[lengthTypeErrorKey]}
                             </p>
                           )}
                         </div>

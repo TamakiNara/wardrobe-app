@@ -22,6 +22,10 @@ export type BottomsSpec = {
   rise_type?: string | null;
 };
 
+export type SkirtSpec = {
+  length_type?: string | null;
+};
+
 export type LegwearSpec = {
   coverage_type?: string | null;
 };
@@ -60,6 +64,7 @@ export type ItemSizeDetails = {
 export type ItemSpec = {
   tops?: TopsSpec | null;
   bottoms?: BottomsSpec | null;
+  skirt?: SkirtSpec | null;
   legwear?: LegwearSpec | null;
 };
 

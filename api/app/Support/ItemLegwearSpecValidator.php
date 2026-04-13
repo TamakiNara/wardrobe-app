@@ -15,6 +15,8 @@ class ItemLegwearSpecValidator
             $validated['subcategory'] ?? null,
         );
         $bottomsLengthType = data_get($validated, 'spec.bottoms.length_type');
+        $skirtLengthType = data_get($validated, 'spec.skirt.length_type');
+        $legacySkirtLengthType = $category === 'skirts' ? $bottomsLengthType : null;
         $bottomsRiseType = data_get($validated, 'spec.bottoms.rise_type');
         $coverageType = data_get($validated, 'spec.legwear.coverage_type');
         $resolvedLegwearType = match ($subcategory) {
@@ -26,8 +28,16 @@ class ItemLegwearSpecValidator
             },
         };
 
-        if (in_array($category, ['bottoms', 'pants', 'skirts'], true) && ($bottomsLengthType === null || $bottomsLengthType === '')) {
+        if (in_array($category, ['bottoms', 'pants'], true) && ($bottomsLengthType === null || $bottomsLengthType === '')) {
             self::throwBottomsLengthTypeRequiredError();
+        }
+
+        if (
+            $category === 'skirts'
+            && ($skirtLengthType === null || $skirtLengthType === '')
+            && ($legacySkirtLengthType === null || $legacySkirtLengthType === '')
+        ) {
+            self::throwSkirtLengthTypeRequiredError();
         }
 
         if (
@@ -78,6 +88,13 @@ class ItemLegwearSpecValidator
     {
         throw ValidationException::withMessages([
             'spec.bottoms.length_type' => 'ボトムス丈を選択してください。',
+        ]);
+    }
+
+    private static function throwSkirtLengthTypeRequiredError(): never
+    {
+        throw ValidationException::withMessages([
+            'spec.skirt.length_type' => '丈を選択してください。',
         ]);
     }
 

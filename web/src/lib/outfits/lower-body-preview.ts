@@ -3,6 +3,8 @@ import {
   resolveBottomsLengthTypeForPreview,
   resolveLegwearCoverageType,
   resolveLegwearCoverageTypeForPreview,
+  resolveSkirtLengthTypeForItem,
+  resolveSkirtLengthTypeForPreview,
 } from "@/lib/master-data/item-skin-exposure";
 import type { ItemSpec } from "@/types/items";
 
@@ -83,10 +85,30 @@ function filterOnepieceAllinone(items: OutfitLowerBodyPreviewItem[]) {
   );
 }
 
+function resolveRepresentativeBottomsLengthType(
+  item: OutfitLowerBodyPreviewItem,
+) {
+  return item.item.category === "skirts"
+    ? resolveSkirtLengthTypeForItem(
+        item.item.spec?.skirt?.length_type,
+        item.item.spec?.bottoms?.length_type,
+      )
+    : resolveBottomsLengthType(item.item.spec?.bottoms?.length_type);
+}
+
+function resolveRepresentativeBottomsLengthTypeForPreview(
+  item: OutfitLowerBodyPreviewItem,
+) {
+  return item.item.category === "skirts"
+    ? resolveSkirtLengthTypeForPreview(
+        item.item.spec?.skirt?.length_type,
+        item.item.spec?.bottoms?.length_type,
+      )
+    : resolveBottomsLengthTypeForPreview(item.item.spec?.bottoms?.length_type);
+}
+
 function hasValidBottomsLengthType(item: OutfitLowerBodyPreviewItem) {
-  return Boolean(
-    resolveBottomsLengthType(item.item.spec?.bottoms?.length_type),
-  );
+  return Boolean(resolveRepresentativeBottomsLengthType(item));
 }
 
 function hasValidLegwearCoverageType(item: OutfitLowerBodyPreviewItem) {
@@ -174,8 +196,8 @@ export function buildOutfitLowerBodyPreviewSource(
   return {
     representativeBottomsItemId: representativeBottoms.item.id,
     representativeLegwearItemId: representativeLegwear?.item.id ?? null,
-    lengthType: resolveBottomsLengthTypeForPreview(
-      representativeBottoms.item.spec?.bottoms?.length_type,
+    lengthType: resolveRepresentativeBottomsLengthTypeForPreview(
+      representativeBottoms,
     ),
     coverageType,
     bottomsMainColor: findMainColorHex(representativeBottoms.item.colors),

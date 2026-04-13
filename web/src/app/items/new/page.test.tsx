@@ -608,7 +608,7 @@ describe("新規登録画面", () => {
       await waitForEffects();
     });
 
-    expect(container.textContent).toContain("ボトムス丈");
+    expect(container.textContent).toContain("丈");
     expect(container.textContent).toContain("股上");
     expect(container.querySelector("#bottoms-length-type")).not.toBeNull();
     expect(container.querySelector("#bottoms-rise-type")).not.toBeNull();
@@ -820,7 +820,7 @@ describe("新規登録画面", () => {
       await waitForEffects();
     });
 
-    expect(container.textContent).toContain("ボトムス丈を選択してください。");
+    expect(container.textContent).toContain("丈を選択してください。");
     expect(container.textContent).toContain("入力内容を確認してください。");
 
     await act(async () => {
@@ -1003,6 +1003,9 @@ describe("新規登録画面", () => {
       container.querySelectorAll<HTMLInputElement>('input[name="subcategory"]'),
     );
     const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
+    const lengthTypeSelect = container.querySelector<HTMLSelectElement>(
+      "#bottoms-length-type",
+    );
     expect(subcategoryRadios).toHaveLength(2);
     expect(subcategoryRadios.map((radio) => radio.value)).toEqual([
       "skirt",
@@ -1010,10 +1013,14 @@ describe("新規登録画面", () => {
     ]);
     expect(subcategoryRadios[0]?.checked).toBe(true);
     expect(shapeSelect).not.toBeNull();
+    expect(lengthTypeSelect).not.toBeNull();
 
     expect(
       Array.from(shapeSelect!.options).map((option) => option.value),
     ).toEqual(["", "tight", "flare", "a_line", "mermaid"]);
+    expect(
+      Array.from(lengthTypeSelect!.options).map((option) => option.value),
+    ).toEqual(["", "mini", "knee", "midi", "mid_calf", "long", "maxi"]);
   });
 
   it("other 系の一部カテゴリでは shape を表示しない", async () => {
