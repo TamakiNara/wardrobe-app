@@ -12,30 +12,31 @@
 
 ### shape に残す一覧
 
-- `tight`
-- `flare`
-- `a_line`
-- `mermaid`
+- `tight`: タイト `Tight`
+- `flare`: フレア `Flare`
+- `a_line`: Aライン / 台形 `A-line / Trapeze`
+- `mermaid`: マーメイド `Mermaid`
+- 台形寄りの見え方は `a_line` に含めて扱う `A-line / Trapeze`
 - 上記はいずれもシルエットとして意味を持つ値候補を第一候補とする
 
 ### shape から外す一覧
 
-- 素材寄り: `tulle` / `lace` / `denim` / `leather` / `satin`
-- デザイン寄り: `pleats` / `gather` / `tuck` / `tiered` / `wrap` / `balloon` / `trench`
-- これらはシルエットではなく、将来は別轴の spec に分離する前提で整理する
+- 素材寄り: `tulle` チュール `Tulle` / `lace` レース `Lace` / `denim` デニム `Denim` / `leather` レザー `Leather` / `satin` サテン `Satin`
+- デザイン寄り: `pleats` プリーツ `Pleats` / `gather` ギャザー `Gather` / `tuck` タック `Tuck` / `tiered` ティアード `Tiered` / `wrap` ラップ `Wrap` / `balloon` バルーン `Balloon` / `trench` トレンチ `Trench-inspired`
+- これらはシルエットではなく、将来は別軸の spec に分離する前提で整理する
 
 ## 将来の spec 軸（未実装）
 
 ### `skirt_length`
 
-- スカート専用の丈軸として `skirt_length` を設ける
+- スカート専用の丈軸として `skirt_length` を設ける想定
 - `pants` の `length`とは別軸として扱う
 - 候補語彙: `mini` / `knee` / `midi` / `mid_calf` / `long` / `maxi`
-- 表示名の例: ミニ丈 / ひざ丈 / ミディ丈 / ミモレ丈 / ロング丈 / マキシ丈
+- 表示名の想定: ミニ丈 `Mini` / ひざ丈 `Knee length` / ミディ丈 `Midi` / ミモレ丈 `Mid-calf / Midi-long` / ロング丈 `Long` / マキシ丈 `Maxi`
+- UI 上のラベルは、将来的にも「丈」を想定する (label: `Length`)
 - 今回は docs のみで整理し、実装は行わない
 
 ### 将来の分離先
-
 - 素材系は将来 `material` 軸へ
 - デザイン系は将来 `design` 軸へ
 - 今回はまだ将来先を master data や UI に追加しない
