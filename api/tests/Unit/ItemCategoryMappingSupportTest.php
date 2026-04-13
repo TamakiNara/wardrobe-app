@@ -59,6 +59,16 @@ class ItemCategoryMappingSupportTest extends TestCase
             ['category' => 'bags', 'subcategory' => 'messenger'],
             ListQuerySupport::itemVisibleCategoryQueryMap()['bags_messenger']
         );
+
+        $this->assertContains(
+            ['category' => 'shoes', 'shape' => 'leather-shoes', 'subcategory_null' => true],
+            ListQuerySupport::itemVisibleCategoryQueryMap()['shoes_leather_shoes']
+        );
+
+        $this->assertContains(
+            ['category' => 'kimono', 'shape' => 'yukata', 'subcategory_null' => true],
+            ListQuerySupport::itemVisibleCategoryQueryMap()['kimono_yukata']
+        );
     }
 
     public function test_item_input_requirement_support_exposes_shape_options_and_defaults(): void

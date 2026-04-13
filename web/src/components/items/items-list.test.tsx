@@ -670,7 +670,7 @@ describe("ItemsList", () => {
     expect(container.textContent).toContain("シャツ");
     expect(container.textContent).toContain("カーディガン");
     expect(container.textContent).toContain("スカート");
-    expect(container.textContent).toContain("その他スカート");
+    expect(container.textContent).toContain("スカート");
 
     const categoryHeading = Array.from(container.querySelectorAll("h2")).find(
       (heading) => heading.textContent === "トップス",
@@ -715,7 +715,7 @@ describe("ItemsList", () => {
     ).not.toBeNull();
     expect(
       container.querySelector(
-        'a[aria-label="ブラウンフレアスカート / その他スカート / ブラウン"]',
+        'a[aria-label="ブラウンフレアスカート / スカート / ブラウン"]',
       ),
     ).not.toBeNull();
     expect(topsLink?.className).toContain("focus-visible:ring-2");
@@ -945,5 +945,59 @@ describe("ItemsList", () => {
     expect(container.textContent).toContain("トップス");
     expect(container.textContent).toContain("白T");
     expect(container.textContent).not.toContain("2 / 2ページ");
+  });
+  it("一覧で recent current 語彙の表示名を自然に出せる", async () => {
+    fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
+    fetchCategoryVisibilitySettingsMock.mockResolvedValue({
+      visibleCategoryIds: ["bags_rucksack", "swimwear_rashguard"],
+    });
+
+    const currentItems: ItemRecord[] = [
+      {
+        id: 30,
+        name: "bag-sample",
+        status: "active",
+        category: "bags",
+        subcategory: "rucksack",
+        shape: "rucksack",
+        colors: [],
+        seasons: [],
+        tpos: [],
+        images: [],
+      },
+      {
+        id: 31,
+        name: "swimwear-sample",
+        status: "active",
+        category: "swimwear",
+        subcategory: "rashguard",
+        shape: "rashguard",
+        colors: [],
+        seasons: [],
+        tpos: [],
+        images: [],
+      },
+    ];
+
+    const { default: ItemsList } = await import("./items-list");
+
+    await act(async () => {
+      root.render(
+        React.createElement(ItemsList, {
+          ...defaultListProps,
+          items: currentItems,
+          totalCount: currentItems.length,
+          totalAllCount: currentItems.length,
+          availableCategoryValues: ["bags", "swimwear"],
+          availableBrands: [],
+          availableSeasons: [],
+          availableTpos: [],
+        }),
+      );
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain("リュックサック・バックパック");
+    expect(container.textContent).toContain("ラッシュガード");
   });
 });
