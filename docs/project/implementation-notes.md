@@ -355,6 +355,25 @@ thumbnail の現状確認用パターン一覧を見返すときは `docs/specs/
 - `roomwear_inner` は現時点で item 側の current category を `inner` として扱いつつ、`subcategory` を `roomwear / underwear / pajamas / other` で持ち、`shape` は同名1件の候補を自動補完する薄い補助値として扱う
 - 一覧・検索で独立して使いたい粒度を基準に見直すと、`bags` の用途差、`fashion_accessories` の種類差、`shoes` の靴種、`legwear` の種別、`roomwear_inner` の大きい種類差は、現状の `shape` や代表カテゴリ固定より `subcategory` へ上げる余地がある。将来の filter / settings を自然につなぐには、フォーム都合だけでなく「独立して絞りたいか」を優先して `subcategory` 粒度を再判断する方針を追加で持つ。
 - 一覧・検索で使いたい粒度を優先した実装順の第一候補は、`bags` → `fashion_accessories` → `shoes` → `legwear` → `roomwear_inner` とする。`bags` と `fashion_accessories` は current で `subcategory` 厚めへ寄せ始めており、次は `shoes` 以降を同じ説明粒度へそろえる。
+## サブカテゴリ検索の初期方針
+
+### 現在の正式方針
+- サブカテゴリ検索は、まず `category` を選んだうえで `subcategory` 候補を絞り込むフィルタ型を第一候補とする
+- 検索キーは内部値を正本とし、UI 表示は表示名を正本とする
+- 旧語彙は検索 UI には出さず、必要な場合は backend / read model 側で吸収する
+- `other` は検索対象に含めるが、UI 上の候補順では最後に置く
+- current 語彙を正本とし、表示名が変わったカテゴリ（例: `eyewear` → メガネ・サングラス）でも内部値は安定して扱う
+
+### 初期実装の想定
+- 初期実装は単一選択の `subcategory` フィルタでよい
+- 将来的には複数選択フィルタへ拡張できる余地を残す
+- 自由語検索との統合は後続課題とし、まずは category → subcategory の順で絞り込める構成を優先する
+
+### 設計上の注意点
+- 検索 UI は current 語彙のみを出し、legacy 語彙を検索選択肢として復活させない
+- visible category / settings / 一覧フィルタで同じ内部値を参照できるよう、`subcategory` の内部値を変えずに表示名だけを切り替えられる構造を優先する
+- `other` は未分類を指す選択肢であることを前提にし、検索候補に含めつつ、個別の具体種類と混同しないよう最後に配置する
+
 - TODO: category / subcategory / shape の変換規則は `ListQuerySupport`、`ItemSubcategorySupport`、`ItemInputRequirementSupport`、`PurchaseCandidateCategoryMap`、`web/src/lib/api/categories.ts`、`web/src/lib/master-data/item-subcategories.ts`、`web/src/lib/master-data/item-shapes.ts` など複数箇所に分散しており、後続では正本化または責務整理を検討する
 - TODO: item 新規登録画面はカテゴリによって詳細属性カードが分類カードからやや浮いて見えるため、将来の UI 再整理でカード構成を全体として見直したい。あわせて `legwear`、特にソックスの `coverage_type` 候補が十分かは後続で再検討する
 
