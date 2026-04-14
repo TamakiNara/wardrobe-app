@@ -41,6 +41,11 @@ allinone は、UI 上は shape を使わない一方で、内部では shape を
 
 将来的に shape を完全に排除するかどうかは未確定です。
 
+## 補足
+
+- カテゴリ横断の shape 方針は `docs/project/implementation-notes.md` を参照する
+- allinone はその代表例の 1 つとして位置づける
+
 ## TODO（直近課題）
 
 ### 仕様検討
