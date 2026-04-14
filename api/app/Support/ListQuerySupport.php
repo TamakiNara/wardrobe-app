@@ -410,6 +410,25 @@ class ListQuerySupport
         };
     }
 
+    /**
+     * @return array<int, array{category: string, shape?: string, subcategory?: string, subcategory_null?: bool}>
+     */
+    public static function itemSubcategoryFilterMap(string $category, string $subcategory): array
+    {
+        $visibleCategoryId = ItemSubcategorySupport::visibleCategoryIdFor($category, $subcategory);
+
+        if ($visibleCategoryId === null) {
+            return [];
+        }
+
+        return self::itemVisibleCategoryQueryMap()[$visibleCategoryId] ?? [
+            [
+                'category' => $category,
+                'subcategory' => $subcategory,
+            ],
+        ];
+    }
+
     private static function resolveVisibleCategoryIdForItem(Item $item): ?string
     {
         $category = is_string($item->category) ? $item->category : null;

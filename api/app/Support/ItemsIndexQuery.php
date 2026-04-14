@@ -14,6 +14,7 @@ class ItemsIndexQuery
         $keyword = trim((string) $request->query('keyword', ''));
         $brand = trim((string) $request->query('brand', ''));
         $category = trim((string) $request->query('category', ''));
+        $subcategory = ItemSubcategorySupport::normalize($category !== '' ? $category : null, $request->query('subcategory'));
         $season = trim((string) $request->query('season', ''));
         $tpo = trim((string) $request->query('tpo', ''));
         $sort = $request->query('sort') === 'name_asc' ? 'name_asc' : 'updated_at_desc';
@@ -38,6 +39,7 @@ class ItemsIndexQuery
             $keyword,
             $brand,
             $category,
+            $subcategory,
             $season,
             $tpo,
             $sort,
@@ -108,6 +110,7 @@ class ItemsIndexQuery
         string $keyword,
         string $brand,
         string $category,
+        ?string $subcategory,
         string $season,
         string $tpo,
         string $sort,
@@ -138,6 +141,33 @@ class ItemsIndexQuery
                     });
                 }
             });
+        }
+
+        if ($category !== '' && $subcategory !== null) {
+            $subcategoryFilters = ListQuerySupport::itemSubcategoryFilterMap($category, $subcategory);
+
+            if ($subcategoryFilters !== []) {
+                $query->where(function (Builder $builder) use ($subcategoryFilters) {
+                    foreach ($subcategoryFilters as $subcategoryFilter) {
+                        $builder->orWhere(function (Builder $nested) use ($subcategoryFilter) {
+                            $nested->where('category', $subcategoryFilter['category']);
+
+                            if (array_key_exists('subcategory', $subcategoryFilter)) {
+                                $nested->whereNotNull('subcategory');
+                                $nested->where('subcategory', $subcategoryFilter['subcategory']);
+                            }
+
+                            if (($subcategoryFilter['subcategory_null'] ?? false) === true) {
+                                $nested->whereNull('subcategory');
+                            }
+
+                            if (array_key_exists('shape', $subcategoryFilter)) {
+                                $nested->where('shape', $subcategoryFilter['shape']);
+                            }
+                        });
+                    }
+                });
+            }
         }
 
         if ($season !== '') {

@@ -60,6 +60,11 @@ class ItemCategoryMappingSupportTest extends TestCase
             ListQuerySupport::itemVisibleCategoryQueryMap()['bags_messenger']
         );
 
+        $this->assertSame(
+            ListQuerySupport::itemVisibleCategoryQueryMap()['bags_rucksack'],
+            ListQuerySupport::itemSubcategoryFilterMap('bags', 'rucksack')
+        );
+
         $this->assertContains(
             ['category' => 'shoes', 'shape' => 'leather-shoes', 'subcategory_null' => true],
             ListQuerySupport::itemVisibleCategoryQueryMap()['shoes_leather_shoes']

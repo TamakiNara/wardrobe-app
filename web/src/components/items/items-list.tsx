@@ -17,6 +17,8 @@ import { fetchCategoryVisibilitySettings } from "@/lib/api/settings";
 import { ITEM_CARE_STATUS_LABELS } from "@/lib/items/metadata";
 import {
   findItemSubcategoryLabel,
+  getItemSubcategoryOptions,
+  normalizeItemSubcategory,
   resolveCurrentItemSubcategoryValue,
 } from "@/lib/master-data/item-subcategories";
 import {
@@ -79,6 +81,7 @@ function buildQueryString({
   keyword,
   brand,
   category,
+  subcategory,
   season,
   tpo,
   sort,
@@ -87,6 +90,7 @@ function buildQueryString({
   keyword: string;
   brand: string;
   category: string;
+  subcategory: string;
   season: string;
   tpo: string;
   sort: ItemSortValue;
@@ -104,6 +108,10 @@ function buildQueryString({
 
   if (category) {
     params.set("category", category);
+  }
+
+  if (category && subcategory) {
+    params.set("subcategory", subcategory);
   }
 
   if (season) {
@@ -171,6 +179,9 @@ export default function ItemsList({
   const keyword = normalizeKeyword(searchParams.get("keyword"));
   const brandFilter = normalizeKeyword(searchParams.get("brand"));
   const categoryFilter = searchParams.get("category") ?? "";
+  const subcategoryFilter =
+    normalizeItemSubcategory(categoryFilter, searchParams.get("subcategory")) ??
+    "";
   const seasonFilter = searchParams.get("season") ?? "";
   const tpoFilter = searchParams.get("tpo") ?? "";
   const sort = normalizeSort(searchParams.get("sort"));
@@ -196,6 +207,7 @@ export default function ItemsList({
         keyword: string;
         brand: string;
         category: string;
+        subcategory: string;
         season: string;
         tpo: string;
         sort: ItemSortValue;
@@ -206,6 +218,7 @@ export default function ItemsList({
         keyword: nextValues.keyword ?? keyword,
         brand: nextValues.brand ?? brandFilter,
         category: nextValues.category ?? categoryFilter,
+        subcategory: nextValues.subcategory ?? subcategoryFilter,
         season: nextValues.season ?? seasonFilter,
         tpo: nextValues.tpo ?? tpoFilter,
         sort: nextValues.sort ?? sort,
@@ -219,6 +232,7 @@ export default function ItemsList({
     [
       brandFilter,
       categoryFilter,
+      subcategoryFilter,
       keyword,
       page,
       pathname,
@@ -299,6 +313,7 @@ export default function ItemsList({
       keyword,
       brand: brandFilter,
       category: categoryFilter,
+      subcategory: subcategoryFilter,
       season: seasonFilter,
       tpo: tpoFilter,
       sort,
@@ -332,6 +347,7 @@ export default function ItemsList({
   }, [
     brandFilter,
     categoryFilter,
+    subcategoryFilter,
     items,
     keyword,
     seasonFilter,
@@ -346,6 +362,26 @@ export default function ItemsList({
       availableCategoryValues.includes(category.value),
     );
   }, [apiCategoryOptions, availableCategoryValues]);
+
+  const subcategoryOptions = useMemo(() => {
+    if (!categoryFilter) {
+      return [];
+    }
+
+    return [...getItemSubcategoryOptions(categoryFilter)].sort(
+      (left, right) => {
+        if (left.value === "other") {
+          return 1;
+        }
+
+        if (right.value === "other") {
+          return -1;
+        }
+
+        return 0;
+      },
+    );
+  }, [categoryFilter]);
 
   const brandOptions = useMemo<UserBrandRecord[]>(() => {
     return availableBrands
@@ -371,6 +407,7 @@ export default function ItemsList({
     keyword ||
     brandFilter ||
     categoryFilter ||
+    subcategoryFilter ||
     seasonFilter ||
     tpoFilter ||
     sort !== DEFAULT_SORT ||
@@ -407,13 +444,21 @@ export default function ItemsList({
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="item-list-category"
+              className="mb-1 block text-sm font-medium text-gray-700"
+            >
               カテゴリ
             </label>
             <select
+              id="item-list-category"
               value={categoryFilter}
               onChange={(e) =>
-                updateQuery({ category: e.target.value, page: 1 })
+                updateQuery({
+                  category: e.target.value,
+                  subcategory: "",
+                  page: 1,
+                })
               }
               className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             >
@@ -421,6 +466,31 @@ export default function ItemsList({
               {categoryOptions.map((category) => (
                 <option key={category.value} value={category.value}>
                   {category.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label
+              htmlFor="item-list-subcategory"
+              className="mb-1 block text-sm font-medium text-gray-700"
+            >
+              種類
+            </label>
+            <select
+              id="item-list-subcategory"
+              value={subcategoryFilter}
+              onChange={(e) =>
+                updateQuery({ subcategory: e.target.value, page: 1 })
+              }
+              disabled={!categoryFilter}
+              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400"
+            >
+              <option value="">すべて</option>
+              {subcategoryOptions.map((subcategory) => (
+                <option key={subcategory.value} value={subcategory.value}>
+                  {subcategory.label}
                 </option>
               ))}
             </select>

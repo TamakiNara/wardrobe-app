@@ -259,10 +259,10 @@ describe("ItemsList", () => {
     });
 
     const selects = Array.from(container.querySelectorAll("select"));
-    const seasonOptions = Array.from(selects[1].querySelectorAll("option")).map(
+    const seasonOptions = Array.from(selects[2].querySelectorAll("option")).map(
       (option) => option.textContent,
     );
-    const tpoOptions = Array.from(selects[2].querySelectorAll("option")).map(
+    const tpoOptions = Array.from(selects[3].querySelectorAll("option")).map(
       (option) => option.textContent,
     );
 
@@ -343,8 +343,8 @@ describe("ItemsList", () => {
 
     expect(input?.value).toBe("白");
     expect(brandInput?.value).toBe("UNIQLO");
-    expect((selects[1] as HTMLSelectElement).value).toBe("夏");
-    expect((selects[3] as HTMLSelectElement).value).toBe("name_asc");
+    expect((selects[2] as HTMLSelectElement).value).toBe("夏");
+    expect((selects[4] as HTMLSelectElement).value).toBe("name_asc");
     expect(replaceMock).not.toHaveBeenCalled();
 
     await act(async () => {
@@ -864,6 +864,7 @@ describe("ItemsList", () => {
       keyword: "",
       brand: "",
       category: "",
+      subcategory: "",
       season: "",
       tpo: "",
       sort: "updated_at_desc",
@@ -936,6 +937,7 @@ describe("ItemsList", () => {
       keyword: "白",
       brand: "UNIQLO",
       category: "tops",
+      subcategory: "",
       season: "夏",
       tpo: "休日",
       sort: "name_asc",
@@ -999,5 +1001,84 @@ describe("ItemsList", () => {
 
     expect(container.textContent).toContain("リュックサック・バックパック");
     expect(container.textContent).toContain("ラッシュガード");
+  });
+
+  it("カテゴリ選択後に current のサブカテゴリ候補だけを表示し、other を最後に置く", async () => {
+    searchParamsValue = "category=bags";
+
+    const { default: ItemsList } = await import("./items-list");
+
+    await act(async () => {
+      root.render(
+        React.createElement(ItemsList, {
+          ...defaultListProps,
+          availableCategoryValues: ["bags", "fashion_accessories"],
+          initialCategoryOptions: [
+            { value: "bags", label: "バッグ" },
+            { value: "fashion_accessories", label: "ファッション小物" },
+          ],
+        }),
+      );
+      await waitForEffects();
+    });
+
+    const subcategorySelect = container.querySelector<HTMLSelectElement>(
+      "#item-list-subcategory",
+    );
+    const optionLabels = Array.from(
+      subcategorySelect?.querySelectorAll("option") ?? [],
+    ).map((option) => option.textContent);
+
+    expect(subcategorySelect?.disabled).toBe(false);
+    expect(optionLabels).toContain("リュックサック・バックパック");
+    expect(optionLabels).toContain("ドローストリングバッグ");
+    expect(optionLabels).toContain("その他バッグ");
+    expect(optionLabels.at(-1)).toBe("その他バッグ");
+    expect(optionLabels).not.toContain("backpack");
+    expect(optionLabels).not.toContain("バッグ");
+  });
+
+  it("サブカテゴリ選択を一覧 query に反映する", async () => {
+    searchParamsValue = "category=fashion_accessories";
+
+    const { default: ItemsList } = await import("./items-list");
+
+    await act(async () => {
+      root.render(
+        React.createElement(ItemsList, {
+          ...defaultListProps,
+          availableCategoryValues: ["fashion_accessories"],
+          initialCategoryOptions: [
+            { value: "fashion_accessories", label: "ファッション小物" },
+          ],
+        }),
+      );
+      await waitForEffects();
+    });
+
+    const subcategorySelect = container.querySelector<HTMLSelectElement>(
+      "#item-list-subcategory",
+    );
+    const optionLabels = Array.from(
+      subcategorySelect?.querySelectorAll("option") ?? [],
+    ).map((option) => option.textContent);
+
+    expect(optionLabels).toContain("メガネ・サングラス");
+
+    await act(async () => {
+      if (!subcategorySelect) {
+        throw new Error("subcategory select not found");
+      }
+      subcategorySelect.value = "eyewear";
+      subcategorySelect.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    expect(replaceMock).toHaveBeenCalledWith(
+      "/items?category=fashion_accessories&subcategory=eyewear",
+      {
+        scroll: false,
+      },
+    );
   });
 });

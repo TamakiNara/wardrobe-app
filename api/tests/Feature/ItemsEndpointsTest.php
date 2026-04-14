@@ -258,6 +258,55 @@ class ItemsEndpointsTest extends TestCase
         ]);
     }
 
+    public function test_get_items_filters_by_subcategory_and_keeps_shape_bridge_fallback(): void
+    {
+        $user = User::factory()->create();
+
+        $matchedWithSubcategory = $this->createItem($user, [
+            'name' => 'リュックバッグ',
+            'category' => 'bags',
+            'subcategory' => 'rucksack',
+            'shape' => 'rucksack',
+        ]);
+
+        $matchedByShapeBridge = $this->createItem($user, [
+            'name' => '旧リュックバッグ',
+            'category' => 'bags',
+            'subcategory' => null,
+            'shape' => 'rucksack',
+        ]);
+
+        $this->createItem($user, [
+            'name' => 'ショルダーバッグ',
+            'category' => 'bags',
+            'subcategory' => 'shoulder',
+            'shape' => 'shoulder',
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->getJson('/api/items?category=bags&subcategory=rucksack', [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonCount(2, 'items')
+            ->assertJsonPath('meta.total', 2)
+            ->assertJsonPath('meta.totalAll', 3);
+
+        $response->assertJsonFragment([
+            'id' => $matchedWithSubcategory->id,
+            'name' => 'リュックバッグ',
+        ]);
+        $response->assertJsonFragment([
+            'id' => $matchedByShapeBridge->id,
+            'name' => '旧リュックバッグ',
+        ]);
+        $response->assertJsonMissing([
+            'name' => 'ショルダーバッグ',
+        ]);
+    }
+
     public function test_get_items_with_all_flag_returns_all_filtered_items_without_pagination(): void
     {
         $user = User::factory()->create();

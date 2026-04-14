@@ -24,6 +24,7 @@ type FetchItemsIndexParams = {
   keyword?: string;
   brand?: string;
   category?: string;
+  subcategory?: string;
   season?: string;
   tpo?: string;
   sort?: "updated_at_desc" | "name_asc";
@@ -44,6 +45,10 @@ export async function fetchItemsIndex(params: FetchItemsIndexParams = {}) {
 
   if (params.category) {
     searchParams.set("category", params.category);
+  }
+
+  if (params.category && params.subcategory) {
+    searchParams.set("subcategory", params.subcategory);
   }
 
   if (params.season) {
