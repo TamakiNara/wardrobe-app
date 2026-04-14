@@ -271,6 +271,30 @@ class ItemSubcategorySupport
         return self::VISIBLE_CATEGORY_ID_BY_SUBCATEGORY;
     }
 
+    /**
+     * @return string[]
+     */
+    public static function currentGroupIds(): array
+    {
+        return array_keys(self::VISIBLE_CATEGORY_ID_BY_SUBCATEGORY);
+    }
+
+    /**
+     * @return string[]
+     */
+    public static function currentVisibleCategoryIds(): array
+    {
+        $ids = [];
+
+        foreach (self::VISIBLE_CATEGORY_ID_BY_SUBCATEGORY as $categoryMap) {
+            foreach ($categoryMap as $visibleCategoryId) {
+                $ids[] = $visibleCategoryId;
+            }
+        }
+
+        return array_values(array_unique($ids));
+    }
+
     public static function visibleCategoryIdFor(?string $category, ?string $subcategory): ?string
     {
         if (! is_string($category) || ! is_string($subcategory) || $subcategory === '') {

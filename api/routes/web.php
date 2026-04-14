@@ -20,6 +20,7 @@ use App\Support\DisposedItemsIndexQuery;
 use App\Support\HomeSummaryQuery;
 use App\Support\ItemPayloadBuilder;
 use App\Support\ItemsIndexQuery;
+use App\Support\ItemSubcategorySupport;
 use App\Support\OutfitPayloadBuilder;
 use App\Support\OutfitsIndexQuery;
 use App\Support\SkinTonePresetSupport;
@@ -75,16 +76,23 @@ Route::prefix('api')->middleware(['web'])->group(function () {
     // Settings
     Route::middleware('auth:web')->get('/settings/categories', function (Request $request) {
         $user = $request->user();
+        $activeCurrentVisibleCategoryIds = CategoryMaster::query()
+            ->where('is_active', true)
+            ->whereIn('id', ItemSubcategorySupport::currentVisibleCategoryIds())
+            ->orderBy('group_id')
+            ->orderBy('sort_order')
+            ->pluck('id')
+            ->all();
 
         $visibleCategoryIds = $user->visible_category_ids;
 
-        if ($visibleCategoryIds === null) {
-            $visibleCategoryIds = CategoryMaster::query()
-                ->where('is_active', true)
-                ->orderBy('group_id')
-                ->orderBy('sort_order')
-                ->pluck('id')
-                ->all();
+        if (! is_array($visibleCategoryIds)) {
+            $visibleCategoryIds = $activeCurrentVisibleCategoryIds;
+        } else {
+            $visibleCategoryIds = array_values(array_filter(
+                $visibleCategoryIds,
+                fn ($id) => is_string($id) && in_array($id, $activeCurrentVisibleCategoryIds, true)
+            ));
         }
 
         return response()->json([
@@ -95,15 +103,20 @@ Route::prefix('api')->middleware(['web'])->group(function () {
     Route::middleware('auth:web')->put('/settings/categories', function (Request $request) {
         $validated = $request->validate([
             'visibleCategoryIds' => ['present', 'array'],
-            'visibleCategoryIds.*' => ['string', 'distinct', 'exists:category_master,id'],
+            'visibleCategoryIds.*' => ['string', 'distinct'],
         ]);
+
+        $activeCurrentVisibleCategoryIds = CategoryMaster::query()
+            ->where('is_active', true)
+            ->whereIn('id', ItemSubcategorySupport::currentVisibleCategoryIds())
+            ->pluck('id')
+            ->all();
 
         $visibleCategoryIds = collect($validated['visibleCategoryIds'])
             ->values();
 
-        $activeCount = CategoryMaster::query()
-            ->where('is_active', true)
-            ->whereIn('id', $visibleCategoryIds)
+        $activeCount = $visibleCategoryIds
+            ->filter(fn ($id) => in_array($id, $activeCurrentVisibleCategoryIds, true))
             ->count();
 
         if ($activeCount !== $visibleCategoryIds->count()) {

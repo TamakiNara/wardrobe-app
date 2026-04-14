@@ -46,6 +46,49 @@ class CategoriesEndpointTest extends TestCase
         $this->assertNotContains('tops_vest_gilet', array_column($topsGroup['categories'], 'id'));
     }
 
+    public function test_categories_endpoint_omits_legacy_active_groups_and_categories(): void
+    {
+        CategoryGroup::query()->create([
+            'id' => 'legacy_accessories',
+            'name' => 'Legacy accessories',
+            'sort_order' => 999,
+            'is_active' => true,
+        ]);
+
+        CategoryMaster::query()->create([
+            'id' => 'legacy_accessories_misc',
+            'group_id' => 'legacy_accessories',
+            'name' => 'Legacy misc',
+            'sort_order' => 1,
+            'is_active' => true,
+        ]);
+
+        CategoryMaster::query()->create([
+            'id' => 'shoes_loafers',
+            'group_id' => 'shoes',
+            'name' => 'Legacy loafers',
+            'sort_order' => 999,
+            'is_active' => true,
+        ]);
+
+        $response = $this->getJson('/api/categories', [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk();
+
+        $groups = $response->json('groups');
+
+        $this->assertNotContains('legacy_accessories', array_column($groups, 'id'));
+
+        $shoesGroup = collect($groups)->firstWhere('id', 'shoes');
+
+        $this->assertNotNull($shoesGroup);
+        $this->assertContains('shoes_leather_shoes', array_column($shoesGroup['categories'], 'id'));
+        $this->assertContains('shoes_rain_shoes_boots', array_column($shoesGroup['categories'], 'id'));
+        $this->assertNotContains('shoes_loafers', array_column($shoesGroup['categories'], 'id'));
+    }
+
     public function test_categories_endpoint_returns_group_id_as_group_id_in_json(): void
     {
         $response = $this->getJson('/api/categories', [

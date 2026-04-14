@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\CategoryMaster;
 use App\Models\User;
+use App\Support\ItemSubcategorySupport;
 use Database\Seeders\CategoryGroupSeeder;
 use Database\Seeders\CategoryMasterSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -51,6 +52,7 @@ class SettingsCategoriesEndpointsTest extends TestCase
 
         $expectedIds = CategoryMaster::query()
             ->where('is_active', true)
+            ->whereIn('id', ItemSubcategorySupport::currentVisibleCategoryIds())
             ->orderBy('group_id')
             ->orderBy('sort_order')
             ->pluck('id')
@@ -77,6 +79,24 @@ class SettingsCategoriesEndpointsTest extends TestCase
         $response->assertOk()
             ->assertJson([
                 'visibleCategoryIds' => ['tops_tshirt_cutsew', 'outerwear_jacket'],
+            ]);
+    }
+
+    public function test_get_settings_categories_filters_out_legacy_saved_visible_category_ids(): void
+    {
+        $user = User::factory()->create([
+            'visible_category_ids' => ['tops_tshirt_cutsew', 'shoes_loafers'],
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->getJson('/api/settings/categories', [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk()
+            ->assertJson([
+                'visibleCategoryIds' => ['tops_tshirt_cutsew'],
             ]);
     }
 
@@ -137,7 +157,7 @@ class SettingsCategoriesEndpointsTest extends TestCase
         $this->assertSame([], $user->fresh()->visible_category_ids);
     }
 
-    public function test_put_settings_categories_returns_422_for_invalid_category_id(): void
+    public function test_put_settings_categories_returns_422_for_legacy_or_invalid_category_id(): void
     {
         $user = User::factory()->create([
             'visible_category_ids' => null,
@@ -147,13 +167,15 @@ class SettingsCategoriesEndpointsTest extends TestCase
         $token = $this->issueCsrfToken();
 
         $response = $this->putJson('/api/settings/categories', [
-            'visibleCategoryIds' => ['tops_tshirt_cutsew', 'invalid_category_id'],
+            'visibleCategoryIds' => ['tops_tshirt_cutsew', 'shoes_loafers'],
         ], [
             'Accept' => 'application/json',
             'X-CSRF-TOKEN' => $token,
         ]);
 
         $response->assertStatus(422)
-            ->assertJsonValidationErrors(['visibleCategoryIds.1']);
+            ->assertJson([
+                'message' => '無効なカテゴリが含まれています。',
+            ]);
     }
 }
