@@ -4,8 +4,9 @@
 
 ### 種類
 
-- `hat` / `belt` / `scarf_stole` / `gloves` / `jewelry` / `wallet_case` / `hair_accessory` / `eyewear` / `watch` / `other` を扱う
-- `eyewear` の表示名は「メガネ・サングラス」とする
+- `hat` / `belt` / `scarf_stole` / `gloves` / `jewelry` / `scarf_bandana` / `hair_accessory` / `eyewear` / `watch` / `other` を扱う
+- `scarf_bandana` の表示名は「スカーフ・バンダナ」、`eyewear` の表示名は「メガネ・サングラス」とする
+- 旧 `wallet_case`（財布・カードケース）は current 候補から外し、既存データの読み取りでは `other` に寄せる
 
 ### 画面表示
 

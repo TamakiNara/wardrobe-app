@@ -241,6 +241,12 @@ const sampleGroups: CategoryGroupRecord[] = [
         sortOrder: 20,
       },
       {
+        id: "fashion_accessories_scarf_bandana",
+        groupId: "fashion_accessories",
+        name: "スカーフ・バンダナ",
+        sortOrder: 60,
+      },
+      {
         id: "fashion_accessories_eyewear",
         groupId: "fashion_accessories",
         name: "メガネ・サングラス",
@@ -1465,7 +1471,7 @@ describe("編集画面", () => {
       "scarf_stole",
       "gloves",
       "jewelry",
-      "wallet_case",
+      "scarf_bandana",
       "hair_accessory",
       "eyewear",
       "watch",
@@ -1537,6 +1543,114 @@ describe("編集画面", () => {
     expect(container.querySelector("#shape")).toBeNull();
   });
 
+  it("編集画面で scarf_bandana を自然に復元できる", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          item: {
+            id: 17,
+            name: "スカーフ・バンダナ",
+            status: "active",
+            care_status: null,
+            brand_name: null,
+            price: null,
+            purchase_url: null,
+            memo: null,
+            purchased_at: null,
+            size_gender: null,
+            size_label: null,
+            size_note: null,
+            size_details: null,
+            is_rain_ok: false,
+            category: "fashion_accessories",
+            subcategory: "scarf_bandana",
+            shape: "scarf-bandana",
+            colors: [],
+            seasons: [],
+            tpos: [],
+            tpo_ids: [],
+            spec: {},
+            images: [],
+          },
+        }),
+      }),
+    );
+
+    const { default: EditItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(
+        React.createElement(EditItemPage, {
+          params: Promise.resolve({ id: "17" }),
+        }),
+      );
+      await waitForEffects();
+    });
+
+    const subcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
+
+    expect(subcategorySelect?.value).toBe("scarf_bandana");
+    expect(container.textContent).toContain("スカーフ・バンダナ");
+    expect(container.querySelector("#shape")).toBeNull();
+  });
+
+  it("編集画面では旧 wallet_case をその他として復元する", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          item: {
+            id: 18,
+            name: "財布・カードケース",
+            status: "active",
+            care_status: null,
+            brand_name: null,
+            price: null,
+            purchase_url: null,
+            memo: null,
+            purchased_at: null,
+            size_gender: null,
+            size_label: null,
+            size_note: null,
+            size_details: null,
+            is_rain_ok: false,
+            category: "fashion_accessories",
+            subcategory: "wallet_case",
+            shape: "wallet-case",
+            colors: [],
+            seasons: [],
+            tpos: [],
+            tpo_ids: [],
+            spec: {},
+            images: [],
+          },
+        }),
+      }),
+    );
+
+    const { default: EditItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(
+        React.createElement(EditItemPage, {
+          params: Promise.resolve({ id: "18" }),
+        }),
+      );
+      await waitForEffects();
+    });
+
+    const subcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
+
+    expect(subcategorySelect?.value).toBe("other");
+    expect(container.querySelector("#shape")).toBeNull();
+  });
   it("編集画面でも tops の形は分類セクション側で扱う", async () => {
     const { default: EditItemPage } = await import("./page");
 

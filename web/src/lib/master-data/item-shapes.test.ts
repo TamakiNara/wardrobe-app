@@ -86,10 +86,10 @@ describe("getItemShapeOptions", () => {
       ),
     ).toEqual(["belt"]);
     expect(
-      getItemShapeOptions("fashion_accessories", "wallet_case").map(
+      getItemShapeOptions("fashion_accessories", "scarf_bandana").map(
         (item) => item.value,
       ),
-    ).toEqual(["wallet-case"]);
+    ).toEqual(["scarf-bandana"]);
     expect(
       getItemShapeOptions("fashion_accessories", "other").map(
         (item) => item.value,

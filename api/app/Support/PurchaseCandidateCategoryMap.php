@@ -75,7 +75,7 @@ class PurchaseCandidateCategoryMap
         'fashion_accessories_scarf_stole' => ['category' => 'fashion_accessories', 'subcategory' => 'scarf_stole'],
         'fashion_accessories_gloves' => ['category' => 'fashion_accessories', 'subcategory' => 'gloves'],
         'fashion_accessories_jewelry' => ['category' => 'fashion_accessories', 'subcategory' => 'jewelry'],
-        'fashion_accessories_wallet_case' => ['category' => 'fashion_accessories', 'subcategory' => 'wallet_case'],
+        'fashion_accessories_scarf_bandana' => ['category' => 'fashion_accessories', 'subcategory' => 'scarf_bandana'],
         'fashion_accessories_hair' => ['category' => 'fashion_accessories', 'subcategory' => 'hair_accessory'],
         'fashion_accessories_eyewear' => ['category' => 'fashion_accessories', 'subcategory' => 'eyewear'],
         'fashion_accessories_watch' => ['category' => 'fashion_accessories', 'subcategory' => 'watch'],

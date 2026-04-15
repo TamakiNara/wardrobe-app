@@ -179,7 +179,8 @@ class ListQuerySupport
                 'scarf-stole' => 'fashion_accessories_scarf_stole',
                 'gloves' => 'fashion_accessories_gloves',
                 'jewelry' => 'fashion_accessories_jewelry',
-                'wallet-case' => 'fashion_accessories_wallet_case',
+                'wallet-case' => 'fashion_accessories_other',
+                'scarf-bandana' => 'fashion_accessories_scarf_bandana',
                 'hair-accessory' => 'fashion_accessories_hair',
                 'eyewear' => 'fashion_accessories_eyewear',
                 'watch' => 'fashion_accessories_watch',
@@ -240,7 +241,8 @@ class ListQuerySupport
                 'scarf-stole' => 'fashion_accessories_scarf_stole',
                 'gloves' => 'fashion_accessories_gloves',
                 'jewelry' => 'fashion_accessories_jewelry',
-                'wallet-case' => 'fashion_accessories_wallet_case',
+                'wallet-case' => 'fashion_accessories_other',
+                'scarf-bandana' => 'fashion_accessories_scarf_bandana',
                 'hair-accessory' => 'fashion_accessories_hair',
                 'eyewear' => 'fashion_accessories_eyewear',
                 'watch' => 'fashion_accessories_watch',
@@ -402,7 +404,7 @@ class ListQuerySupport
             ],
             'fashion_accessories' => [
                 ['category' => 'fashion_accessories'],
-                ['category' => 'accessories', 'shapes' => ['hat', 'belt', 'scarf-stole', 'gloves', 'jewelry', 'wallet-case', 'hair-accessory', 'eyewear', 'watch', 'accessory', 'other']],
+                ['category' => 'accessories', 'shapes' => ['hat', 'belt', 'scarf-stole', 'gloves', 'jewelry', 'wallet-case', 'scarf-bandana', 'hair-accessory', 'eyewear', 'watch', 'accessory', 'other']],
             ],
             default => [
                 ['category' => $category],

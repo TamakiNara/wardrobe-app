@@ -281,10 +281,10 @@ const PURCHASE_CANDIDATE_ITEM_CATEGORY_MAP = {
     subcategory: "jewelry",
     shape: "jewelry",
   },
-  fashion_accessories_wallet_case: {
+  fashion_accessories_scarf_bandana: {
     category: "fashion_accessories",
-    subcategory: "wallet_case",
-    shape: "wallet-case",
+    subcategory: "scarf_bandana",
+    shape: "scarf-bandana",
   },
   fashion_accessories_hair: {
     category: "fashion_accessories",

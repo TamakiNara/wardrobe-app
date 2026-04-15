@@ -658,7 +658,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
         $user = User::factory()->create();
 
         $cases = [
-            'fashion_accessories_wallet_case' => ['category' => 'fashion_accessories', 'subcategory' => 'wallet_case', 'shape' => 'wallet-case'],
+            'fashion_accessories_scarf_bandana' => ['category' => 'fashion_accessories', 'subcategory' => 'scarf_bandana', 'shape' => 'scarf-bandana'],
             'shoes_pumps' => ['category' => 'shoes', 'subcategory' => 'pumps', 'shape' => 'pumps'],
             'swimwear_rashguard' => ['category' => 'swimwear', 'shape' => 'rashguard'],
             'kimono_kimono' => ['category' => 'kimono', 'shape' => 'kimono'],

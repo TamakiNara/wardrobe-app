@@ -81,7 +81,7 @@ class CategoryMasterSeeder extends Seeder
             ['id' => 'fashion_accessories_scarf_stole', 'group_id' => 'fashion_accessories', 'name' => 'マフラー・ストール', 'sort_order' => 3],
             ['id' => 'fashion_accessories_gloves', 'group_id' => 'fashion_accessories', 'name' => '手袋', 'sort_order' => 4],
             ['id' => 'fashion_accessories_jewelry', 'group_id' => 'fashion_accessories', 'name' => 'アクセサリー', 'sort_order' => 5],
-            ['id' => 'fashion_accessories_wallet_case', 'group_id' => 'fashion_accessories', 'name' => '財布・カードケース', 'sort_order' => 6],
+            ['id' => 'fashion_accessories_scarf_bandana', 'group_id' => 'fashion_accessories', 'name' => 'スカーフ・バンダナ', 'sort_order' => 6],
             ['id' => 'fashion_accessories_hair', 'group_id' => 'fashion_accessories', 'name' => 'ヘアアクセサリー', 'sort_order' => 7],
             ['id' => 'fashion_accessories_eyewear', 'group_id' => 'fashion_accessories', 'name' => 'メガネ・サングラス', 'sort_order' => 8],
             ['id' => 'fashion_accessories_watch', 'group_id' => 'fashion_accessories', 'name' => '腕時計', 'sort_order' => 9],

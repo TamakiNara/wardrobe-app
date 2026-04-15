@@ -232,7 +232,7 @@ DBテーブル構成の詳細は `docs/data/database.md` を参照する。
 - `fashion_accessories_scarf_stole` : マフラー・ストール
 - `fashion_accessories_gloves` : 手袋
 - `fashion_accessories_jewelry` : アクセサリー
-- `fashion_accessories_wallet_case` : 財布・カードケース
+- `fashion_accessories_scarf_bandana` : スカーフ・バンダナ
 - `fashion_accessories_hair` : ヘアアクセサリー
 - `fashion_accessories_eyewear` : 眼鏡・サングラス
 - `fashion_accessories_watch` : 腕時計
@@ -385,7 +385,7 @@ DBテーブル構成の詳細は `docs/data/database.md` を参照する。
 - `skirts`、`shoes`、`kimono` は、通常入力ではプルダウンではなく軽い UI で `種類` を見せ、代表カテゴリを既定値にしつつ `other` へ切り替えられる前提を優先する
 - `skirts` は `subcategory = skirt`、`shoes` は `subcategory = sneakers / pumps / boots / sandals / other`、`kimono` は `subcategory = kimono` を通常入力の主導線とし、`other` はサブカテゴリ側の受け皿として扱う
 - `bags` は一覧・検索と category settings の粒度を揃えるため、通常入力でも `tote / shoulder / boston / rucksack / hand / body / waist_pouch / messenger / clutch / sacoche / pochette / drawstring / basket_bag / briefcase / marche_bag / other` の `subcategory` を主導線として扱う
-- `fashion_accessories` は種類差そのものを一覧・検索と category settings で使いたいため、`hat / belt / scarf_stole / gloves / jewelry / wallet_case / hair_accessory / eyewear / watch / other` の `subcategory` を主導線として扱う
+- `fashion_accessories` は種類差そのものを一覧・検索と category settings で使いたいため、`hat / belt / scarf_stole / gloves / jewelry / scarf_bandana / hair_accessory / eyewear / watch / other` の `subcategory` を主導線として扱う
 - `other` は staged rollout 中の旧データ互換や補助表現にも残すが、shape 側の新規入力候補には追加しない
 
 ### 現時点の入力必須条件
@@ -408,7 +408,7 @@ DBテーブル構成の詳細は `docs/data/database.md` を参照する。
 - `subcategory = other` と staged rollout 中の `null` は、旧データ互換を優先して `shape` 任意寄りに扱う
 - `bags` は `subcategory = tote / shoulder / rucksack / hand / clutch / body` のように種類名を主導線にし、各種類に対応する `shape` 候補が1件のため自動選択で扱う
 - `bags` の `subcategory = other / null` は `shape` 任意寄りとし、旧データ互換と staged rollout を優先する
-- `fashion_accessories` も `subcategory = hat / belt / scarf_stole / gloves / jewelry / wallet_case / hair_accessory / eyewear / watch` のように種類名を主導線にし、各種類に対応する `shape` 候補が1件のため自動選択で扱う
+- `fashion_accessories` も `subcategory = hat / belt / scarf_stole / gloves / jewelry / scarf_bandana / hair_accessory / eyewear / watch` のように種類名を主導線にし、各種類に対応する `shape` 候補が1件のため自動選択で扱う
 - `fashion_accessories` の `subcategory = other / null` は `shape` 任意寄りとし、旧データ互換と staged rollout を優先する
 - `shoes` も `subcategory = sneakers / pumps / boots / sandals` のように靴種を主導線にし、各種類に対応する `shape` 候補が1件のため自動選択で扱う
 - `shoes` の `subcategory = other / null` は `shape` 任意寄りとし、旧データ互換と staged rollout を優先する
@@ -542,13 +542,13 @@ DBテーブル構成の詳細は `docs/data/database.md` を参照する。
 - `shape` は、同じ `subcategory` の中で見た目や構造の差を補助的に表すものに寄せる
 - `spec` は、丈・覆い方・素材・機能・補助属性の保存領域として扱い、一覧・検索の主導線には広げすぎない
 - `bags` は、トート / ショルダー / リュックサック・バックパック / ハンド / クラッチ / ボディを独立して探したくなる可能性が高く、将来の一覧・検索を優先するなら `shape` から `subcategory` へ上げる候補が強い
-- `fashion_accessories` は、帽子 / ベルト / マフラー・ストール / 手袋 / アクセサリー / 財布・カードケース / ヘアアクセサリー / 眼鏡・サングラス / 腕時計のように、種類名として独立認識されやすいため `subcategory` 厚めを第一候補とする
+- `fashion_accessories` は、帽子 / ベルト / マフラー・ストール / 手袋 / アクセサリー / スカーフ・バンダナ / ヘアアクセサリー / 眼鏡・サングラス / 腕時計のように、種類名として独立認識されやすいため `subcategory` 厚めを第一候補とする
 - `shoes` は、スニーカー / パンプス / ブーツ / サンダルのように一覧・検索で独立して使いたくなる粒度が強く、`shoes / other` のままより `subcategory` 厚めへ寄せる方が自然である
 - `legwear` は、ソックス / ストッキング / タイツ / レギンスを `subcategory` に置き、`coverage_type` は引き続き `spec` に寄せる方が責務を分けやすい
 - `roomwear_inner` は、ルームウェア / インナー / パジャマのような大きい種類差は `subcategory` に置く方が一覧・検索で扱いやすいが、キャミソールやペチコートのような細分は大分類構成の再判断と合わせて段階的に見る
 - `bags` の再整理第一候補は、`bag / other` のままより `tote / shoulder / boston / rucksack / hand / body / waist_pouch / messenger / clutch / sacoche / pochette / drawstring / basket_bag / briefcase / marche_bag / other` を `subcategory` に上げ、`shape` は同じバッグ種の中の構造差が必要になった時だけ持つ方である
 - `fashion_accessories` の再整理第一候補は、現在 `shape` にある値をそのまま `subcategory` として使い、初期段階では `shape` をほぼ持たない構成に寄せることである
-- current では `fashion_accessories` の item も `subcategory = hat / belt / scarf_stole / gloves / jewelry / wallet_case / hair_accessory / eyewear / watch / other` を主導線として扱い始め、`shape` は同名1件の候補を自動補完する薄い補助値として扱う
+- current では `fashion_accessories` の item も `subcategory = hat / belt / scarf_stole / gloves / jewelry / scarf_bandana / hair_accessory / eyewear / watch / other` を主導線として扱い始め、`shape` は同名1件の候補を自動補完する薄い補助値として扱う
 - `shoes` の再整理第一候補は、`sneakers / pumps / boots / sandals / other` を `subcategory` に上げ、`shape` はヒール高やブーツ丈のような後続差分が必要になった時だけ追加する構成に寄せることである
 - current では `legwear` の item も `subcategory = socks / stockings / tights / leggings / other` を主導線として扱い、`coverage_type` は `spec.legwear.coverage_type` に維持し、`shape` は同名1件の候補を自動補完する薄い補助値として扱う
 - `legwear` は `subcategory` 厚め / `shape` 薄めが自然で、独立絞り込みしたい粒度は `socks / stockings / tights / leggings / other` に寄せる方が一覧・検索に向く
@@ -564,7 +564,7 @@ DBテーブル構成の詳細は `docs/data/database.md` を参照する。
 | category | 現時点の整理 | 一覧・検索を優先した第一候補 | `shape` の役割 | 優先度 |
 | --- | --- | --- | --- | --- |
 | `bags` | `subcategory` 薄め、用途差は `shape` | `tote / shoulder / boston / rucksack / hand / body / waist_pouch / messenger / clutch / sacoche / pochette / drawstring / basket_bag / briefcase / marche_bag / other` を `subcategory` へ上げる | 同じバッグ種の中の構造差が必要になった時だけ持つ | 高 |
-| `fashion_accessories` | 実質的に種類差を持っている | 帽子、ベルト、マフラー・ストール、手袋、アクセサリー、財布・カードケース、ヘアアクセサリー、眼鏡・サングラス、腕時計、その他を `subcategory` に寄せる | 初期段階では薄くしてよい | 高 |
+| `fashion_accessories` | 実質的に種類差を持っている | 帽子、ベルト、マフラー・ストール、手袋、アクセサリー、スカーフ・バンダナ、ヘアアクセサリー、眼鏡・サングラス、腕時計、その他を `subcategory` に寄せる | 初期段階では薄くしてよい | 高 |
 | `shoes` | `subcategory` 薄め、靴種は `shape` | `sneakers / pumps / boots / sandals / other` を `subcategory` へ上げる | ヒール高、ブーツ丈など後続差分に限定する | 高 |
 | `legwear` | `shape` に相当する候補がほぼ種類差 | `socks / stockings / tights / leggings / other` を `subcategory` へ寄せる | 基本は持たず、必要な時だけ追加する | 中 |
 | `roomwear_inner` | 大分類の中がまだ粗い | `roomwear / underwear / pajamas / other` を `subcategory` に置く | 初期段階では持たないか、ごく薄くする | 中 |

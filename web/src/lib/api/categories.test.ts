@@ -138,6 +138,11 @@ const groups: CategoryGroupRecord[] = [
         name: "帽子",
       },
       {
+        id: "fashion_accessories_scarf_bandana",
+        groupId: "fashion_accessories",
+        name: "スカーフ・バンダナ",
+      },
+      {
         id: "fashion_accessories_eyewear",
         groupId: "fashion_accessories",
         name: "メガネ・サングラス",
@@ -291,6 +296,9 @@ describe("findVisibleCategoryIdForItem", () => {
     expect(findVisibleCategoryIdForItem("fashion_accessories", "eyewear")).toBe(
       "fashion_accessories_eyewear",
     );
+    expect(
+      findVisibleCategoryIdForItem("fashion_accessories", "scarf-bandana"),
+    ).toBe("fashion_accessories_scarf_bandana");
     expect(findVisibleCategoryIdForItem("swimwear", "swimwear")).toBe(
       "swimwear_swimwear",
     );
@@ -411,6 +419,12 @@ describe("isItemVisibleByCategorySettings", () => {
       isItemVisibleByCategorySettings(
         { category: "fashion_accessories", shape: "eyewear" },
         ["fashion_accessories_eyewear"],
+      ),
+    ).toBe(true);
+    expect(
+      isItemVisibleByCategorySettings(
+        { category: "fashion_accessories", shape: "scarf-bandana" },
+        ["fashion_accessories_scarf_bandana"],
       ),
     ).toBe(true);
 

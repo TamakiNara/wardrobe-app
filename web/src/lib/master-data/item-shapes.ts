@@ -1,4 +1,4 @@
-﻿import {
+import {
   resolveCurrentItemCategoryValue,
   resolveCurrentItemShapeValue,
 } from "@/lib/items/current-item-read-model";
@@ -123,7 +123,7 @@ export const ITEM_SHAPES = {
     { value: "scarf-stole", label: "マフラー・ストール" },
     { value: "gloves", label: "手袋" },
     { value: "jewelry", label: "アクセサリー" },
-    { value: "wallet-case", label: "財布・カードケース" },
+    { value: "scarf-bandana", label: "スカーフ・バンダナ" },
     { value: "hair-accessory", label: "ヘアアクセサリー" },
     { value: "eyewear", label: "眼鏡・サングラス" },
     { value: "watch", label: "腕時計" },
@@ -279,7 +279,7 @@ const SHAPE_VALUES_BY_SUBCATEGORY: Partial<
     scarf_stole: ["scarf-stole"],
     gloves: ["gloves"],
     jewelry: ["jewelry"],
-    wallet_case: ["wallet-case"],
+    scarf_bandana: ["scarf-bandana"],
     hair_accessory: ["hair-accessory"],
     eyewear: ["eyewear"],
     watch: ["watch"],

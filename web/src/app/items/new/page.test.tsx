@@ -247,6 +247,12 @@ const sampleGroups: CategoryGroupRecord[] = [
         sortOrder: 20,
       },
       {
+        id: "fashion_accessories_scarf_bandana",
+        groupId: "fashion_accessories",
+        name: "スカーフ・バンダナ",
+        sortOrder: 60,
+      },
+      {
         id: "fashion_accessories_other",
         groupId: "fashion_accessories",
         name: "その他ファッション小物",
@@ -1256,7 +1262,7 @@ describe("新規登録画面", () => {
       "scarf_stole",
       "gloves",
       "jewelry",
-      "wallet_case",
+      "scarf_bandana",
       "hair_accessory",
       "eyewear",
       "watch",

@@ -73,7 +73,7 @@ export const ITEM_SUBCATEGORIES = {
     { value: "scarf_stole", label: "マフラー・ストール・スカーフ" },
     { value: "gloves", label: "手袋" },
     { value: "jewelry", label: "アクセサリー" },
-    { value: "wallet_case", label: "財布・カードケース" },
+    { value: "scarf_bandana", label: "スカーフ・バンダナ" },
     { value: "hair_accessory", label: "ヘアアクセサリー" },
     { value: "eyewear", label: "メガネ・サングラス" },
     { value: "watch", label: "腕時計" },

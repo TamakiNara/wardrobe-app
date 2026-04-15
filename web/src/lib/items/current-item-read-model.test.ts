@@ -57,6 +57,20 @@ describe("current item read model", () => {
     expect(
       resolveCurrentItemSubcategoryValue("fashion_accessories", "belt", null),
     ).toBe("belt");
+    expect(
+      resolveCurrentItemSubcategoryValue(
+        "fashion_accessories",
+        "scarf-bandana",
+        null,
+      ),
+    ).toBe("scarf_bandana");
+    expect(
+      resolveCurrentItemSubcategoryValue(
+        "fashion_accessories",
+        "wallet-case",
+        null,
+      ),
+    ).toBe("other");
     expect(resolveCurrentItemSubcategoryValue("tops", "polo", null)).toBe(
       "polo_shirt",
     );
@@ -126,6 +140,12 @@ describe("current item read model", () => {
     expect(resolveVisibleCategoryIdForItem("accessories", "hat")).toBe(
       "fashion_accessories_hat",
     );
+    expect(
+      resolveVisibleCategoryIdForItem("fashion_accessories", "scarf-bandana"),
+    ).toBe("fashion_accessories_scarf_bandana");
+    expect(
+      resolveVisibleCategoryIdForItem("fashion_accessories", "wallet-case"),
+    ).toBe("fashion_accessories_other");
     expect(resolveVisibleCategoryIdForItem("tops", "vest")).toBe(
       "tops_vest_gilet",
     );
