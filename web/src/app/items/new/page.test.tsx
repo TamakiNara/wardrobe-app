@@ -1012,6 +1012,11 @@ describe("新規登録画面", () => {
     const lengthTypeSelect = container.querySelector<HTMLSelectElement>(
       "#bottoms-length-type",
     );
+    const materialTypeSelect = container.querySelector<HTMLSelectElement>(
+      "#skirt-material-type",
+    );
+    const designTypeSelect =
+      container.querySelector<HTMLSelectElement>("#skirt-design-type");
     expect(subcategoryRadios).toHaveLength(2);
     expect(subcategoryRadios.map((radio) => radio.value)).toEqual([
       "skirt",
@@ -1020,6 +1025,8 @@ describe("新規登録画面", () => {
     expect(subcategoryRadios[0]?.checked).toBe(true);
     expect(shapeSelect).not.toBeNull();
     expect(lengthTypeSelect).not.toBeNull();
+    expect(materialTypeSelect).not.toBeNull();
+    expect(designTypeSelect).not.toBeNull();
 
     expect(
       Array.from(shapeSelect!.options).map((option) => option.value),
@@ -1027,6 +1034,21 @@ describe("新規登録画面", () => {
     expect(
       Array.from(lengthTypeSelect!.options).map((option) => option.value),
     ).toEqual(["", "mini", "knee", "midi", "mid_calf", "long", "maxi"]);
+    expect(
+      Array.from(materialTypeSelect!.options).map((option) => option.value),
+    ).toEqual(["", "tulle", "lace", "denim", "leather", "satin"]);
+    expect(
+      Array.from(designTypeSelect!.options).map((option) => option.value),
+    ).toEqual([
+      "",
+      "tuck",
+      "gather",
+      "pleats",
+      "tiered",
+      "wrap",
+      "balloon",
+      "trench",
+    ]);
   });
 
   it("other 系の一部カテゴリでは shape を表示しない", async () => {

@@ -9,16 +9,34 @@ class ItemSpecNormalizer
         $normalized = is_array($spec) ? $spec : [];
         $lengthType = data_get($normalized, 'bottoms.length_type');
         $skirtLengthType = data_get($normalized, 'skirt.length_type');
+        $skirtMaterialType = data_get($normalized, 'skirt.material_type');
+        $skirtDesignType = data_get($normalized, 'skirt.design_type');
         $riseType = data_get($normalized, 'bottoms.rise_type');
         $resolvedLengthType = self::resolveBottomsLengthType($category, $shape, $lengthType);
         $resolvedSkirtLengthType = self::resolveSkirtLengthType($category, $skirtLengthType, $lengthType);
+        $resolvedSkirtMaterialType = self::resolveSkirtMaterialType($category, $skirtMaterialType);
+        $resolvedSkirtDesignType = self::resolveSkirtDesignType($category, $skirtDesignType);
         $resolvedRiseType = self::resolveBottomsRiseType($category, $riseType);
         $coverageType = data_get($normalized, 'legwear.coverage_type');
         $resolvedCoverageType = self::resolveLegwearCoverageType($category, $shape, $coverageType, $subcategory);
 
         if ($category === 'skirts') {
+            $skirtSpec = [];
+
             if ($resolvedSkirtLengthType !== null) {
-                $normalized['skirt'] = ['length_type' => $resolvedSkirtLengthType];
+                $skirtSpec['length_type'] = $resolvedSkirtLengthType;
+            }
+
+            if ($resolvedSkirtMaterialType !== null) {
+                $skirtSpec['material_type'] = $resolvedSkirtMaterialType;
+            }
+
+            if ($resolvedSkirtDesignType !== null) {
+                $skirtSpec['design_type'] = $resolvedSkirtDesignType;
+            }
+
+            if ($skirtSpec !== []) {
+                $normalized['skirt'] = $skirtSpec;
             } else {
                 unset($normalized['skirt']);
             }
@@ -152,6 +170,28 @@ class ItemSpecNormalizer
             'mid_calf', 'long', 'maxi' => $legacyBottomsLengthType,
             default => null,
         };
+    }
+
+    private static function resolveSkirtMaterialType(?string $category, mixed $materialType): ?string
+    {
+        if ($category !== 'skirts') {
+            return null;
+        }
+
+        return in_array($materialType, ['tulle', 'lace', 'denim', 'leather', 'satin'], true)
+            ? $materialType
+            : null;
+    }
+
+    private static function resolveSkirtDesignType(?string $category, mixed $designType): ?string
+    {
+        if ($category !== 'skirts') {
+            return null;
+        }
+
+        return in_array($designType, ['tuck', 'gather', 'pleats', 'tiered', 'wrap', 'balloon', 'trench'], true)
+            ? $designType
+            : null;
     }
 
     private static function resolveBottomsRiseType(?string $category, mixed $riseType): ?string

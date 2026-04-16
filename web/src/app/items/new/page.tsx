@@ -74,7 +74,9 @@ import {
 import {
   BOTTOMS_LENGTH_OPTIONS,
   BOTTOMS_RISE_OPTIONS,
+  SKIRT_DESIGN_OPTIONS,
   SKIRT_LENGTH_OPTIONS,
+  SKIRT_MATERIAL_OPTIONS,
   getLegwearCoverageFieldLabel,
   getLegwearCoverageOptions,
   getLegwearCoveragePlaceholder,
@@ -89,7 +91,9 @@ import {
   type BottomsLengthType,
   type BottomsRiseType,
   type LegwearCoverageType,
+  type SkirtDesignType,
   type SkirtLengthType,
+  type SkirtMaterialType,
 } from "@/lib/master-data/item-skin-exposure";
 import {
   clearPurchaseCandidateItemDraft,
@@ -186,6 +190,12 @@ export default function NewItemPage() {
     BottomsLengthType | ""
   >("");
   const [skirtLengthType, setSkirtLengthType] = useState<SkirtLengthType | "">(
+    "",
+  );
+  const [skirtMaterialType, setSkirtMaterialType] = useState<
+    SkirtMaterialType | ""
+  >("");
+  const [skirtDesignType, setSkirtDesignType] = useState<SkirtDesignType | "">(
     "",
   );
   const [bottomsRiseType, setBottomsRiseType] = useState<BottomsRiseType | "">(
@@ -660,6 +670,8 @@ export default function NewItemPage() {
   function resetBottomsSpecState() {
     setBottomsLengthType("");
     setSkirtLengthType("");
+    setSkirtMaterialType("");
+    setSkirtDesignType("");
     setBottomsRiseType("");
   }
 
@@ -837,6 +849,15 @@ export default function NewItemPage() {
       normalizedSubcategory,
     );
     const materials = validateItemMaterials(materialRows).payload;
+    const skirtSpecPayload =
+      category === "skirts" &&
+      (skirtLengthType || skirtMaterialType || skirtDesignType)
+        ? {
+            length_type: skirtLengthType || undefined,
+            material_type: skirtMaterialType || undefined,
+            design_type: skirtDesignType || undefined,
+          }
+        : null;
 
     return {
       name,
@@ -879,11 +900,9 @@ export default function NewItemPage() {
                 design: topsDesign || null,
                 fit: topsFit || null,
               },
-              ...(category === "skirts" && skirtLengthType
+              ...(skirtSpecPayload
                 ? {
-                    skirt: {
-                      length_type: skirtLengthType || undefined,
-                    },
+                    skirt: skirtSpecPayload,
                   }
                 : isBottomsSpecVisible && (bottomsLengthType || bottomsRiseType)
                   ? {
@@ -904,11 +923,9 @@ export default function NewItemPage() {
                   }
                 : {}),
             }
-          : category === "skirts" && skirtLengthType
+          : skirtSpecPayload
             ? {
-                skirt: {
-                  length_type: skirtLengthType || undefined,
-                },
+                skirt: skirtSpecPayload,
                 ...(resolvedLegwearCoverageType
                   ? {
                       legwear: {
@@ -1115,6 +1132,8 @@ export default function NewItemPage() {
       category === "skirts"
         ? {
             length_type: skirtLengthType || undefined,
+            material_type: skirtMaterialType || undefined,
+            design_type: skirtDesignType || undefined,
           }
         : undefined,
     legwear: isLegwearSpecCategory(category)
@@ -1496,6 +1515,58 @@ export default function NewItemPage() {
                             </p>
                           )}
                         </div>
+
+                        {isSkirtCategory ? (
+                          <>
+                            <div>
+                              <FieldLabel
+                                htmlFor="skirt-material-type"
+                                label="素材"
+                              />
+                              <select
+                                id="skirt-material-type"
+                                value={skirtMaterialType}
+                                onChange={(e) =>
+                                  setSkirtMaterialType(
+                                    e.target.value as SkirtMaterialType | "",
+                                  )
+                                }
+                                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                              >
+                                <option value="">選択してください</option>
+                                {SKIRT_MATERIAL_OPTIONS.map((item) => (
+                                  <option key={item.value} value={item.value}>
+                                    {item.label}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+
+                            <div>
+                              <FieldLabel
+                                htmlFor="skirt-design-type"
+                                label="デザイン"
+                              />
+                              <select
+                                id="skirt-design-type"
+                                value={skirtDesignType}
+                                onChange={(e) =>
+                                  setSkirtDesignType(
+                                    e.target.value as SkirtDesignType | "",
+                                  )
+                                }
+                                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                              >
+                                <option value="">選択してください</option>
+                                {SKIRT_DESIGN_OPTIONS.map((item) => (
+                                  <option key={item.value} value={item.value}>
+                                    {item.label}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          </>
+                        ) : null}
 
                         {isBottomsRiseTypeSupported(category) ? (
                           <div>

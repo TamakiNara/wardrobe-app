@@ -1040,6 +1040,8 @@ describe("編集画面", () => {
             spec: {
               skirt: {
                 length_type: "mid_calf",
+                material_type: "lace",
+                design_type: "tiered",
               },
             },
             materials: [],
@@ -1068,11 +1070,18 @@ describe("編集画面", () => {
     const lengthTypeSelect = container.querySelector<HTMLSelectElement>(
       "#bottoms-length-type",
     );
+    const materialTypeSelect = container.querySelector<HTMLSelectElement>(
+      "#skirt-material-type",
+    );
+    const designTypeSelect =
+      container.querySelector<HTMLSelectElement>("#skirt-design-type");
 
     expect(categorySelect?.value).toBe("skirts");
     expect(skirtRadio?.checked).toBe(true);
     expect(shapeSelect?.value).toBe("a_line");
     expect(lengthTypeSelect?.value).toBe("mid_calf");
+    expect(materialTypeSelect?.value).toBe("lace");
+    expect(designTypeSelect?.value).toBe("tiered");
     expect(container.querySelector("#bottoms-rise-type")).toBeNull();
   });
 

@@ -19,7 +19,9 @@ import { groupItemMaterialsForDisplay } from "@/lib/items/materials";
 import {
   findBottomsLengthLabel,
   findLegwearCoverageLabel,
+  findSkirtDesignLabel,
   findSkirtLengthLabel,
+  findSkirtMaterialLabel,
 } from "@/lib/master-data/item-skin-exposure";
 import {
   buildTopsSpecLabels,
@@ -99,6 +101,14 @@ export default async function ItemPage({
   const legwearCoverageLabel = findLegwearCoverageLabel(
     item.spec?.legwear?.coverage_type,
   );
+  const skirtMaterialLabel =
+    currentCategory === "skirts"
+      ? findSkirtMaterialLabel(item.spec?.skirt?.material_type)
+      : "";
+  const skirtDesignLabel =
+    currentCategory === "skirts"
+      ? findSkirtDesignLabel(item.spec?.skirt?.design_type)
+      : "";
   const currentSubcategory =
     resolveCurrentItemSubcategoryValue(
       currentCategory,
@@ -276,6 +286,16 @@ export default async function ItemPage({
           {legwearCoverageLabel ? (
             <p className="mt-1 text-sm text-gray-600">
               レッグウェア： {legwearCoverageLabel}
+            </p>
+          ) : null}
+          {skirtMaterialLabel ? (
+            <p className="mt-1 text-sm text-gray-600">
+              素材： {skirtMaterialLabel}
+            </p>
+          ) : null}
+          {skirtDesignLabel ? (
+            <p className="mt-1 text-sm text-gray-600">
+              デザイン： {skirtDesignLabel}
             </p>
           ) : null}
           {groupedMaterials.length > 0 ? (

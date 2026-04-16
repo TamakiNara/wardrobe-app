@@ -1347,6 +1347,8 @@ class ItemsEndpointsTest extends TestCase
             'spec' => [
                 'skirt' => [
                     'length_type' => 'mid_calf',
+                    'material_type' => 'tulle',
+                    'design_type' => 'pleats',
                 ],
             ],
         ], [
@@ -1354,10 +1356,14 @@ class ItemsEndpointsTest extends TestCase
         ]);
 
         $response->assertCreated()
-            ->assertJsonPath('item.spec.skirt.length_type', 'mid_calf');
+            ->assertJsonPath('item.spec.skirt.length_type', 'mid_calf')
+            ->assertJsonPath('item.spec.skirt.material_type', 'tulle')
+            ->assertJsonPath('item.spec.skirt.design_type', 'pleats');
 
         $item = Item::query()->findOrFail($response->json('item.id'));
         $this->assertSame('mid_calf', data_get($item->spec, 'skirt.length_type'));
+        $this->assertSame('tulle', data_get($item->spec, 'skirt.material_type'));
+        $this->assertSame('pleats', data_get($item->spec, 'skirt.design_type'));
         $this->assertNull(data_get($item->spec, 'bottoms.length_type'));
     }
 

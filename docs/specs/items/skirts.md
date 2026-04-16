@@ -52,11 +52,13 @@
 - edit / detail / preview では `spec.skirt.length_type` を優先し、値がなければ既存 `spec.bottoms.length_type` を read fallback として読む
 
 ### 実装状況
-- `material_type` / `design_type` はdocs 上で正本化するが、今回はまだ master data や UI に追加しない
+
+- `material_type` / `design_type` は master data / UI / API 保存・復元 / 詳細表示に追加済み
 - 検索 / フィルタ / validator / normalizer への反映も将来対応とする
 - 将来的には複数選択化の余地も残すが、今回は採用しない
 
 ### 現状実装との関係
+
 - 新規保存では `spec.skirt.length_type` を正本にする
 - 既存 skirts データの `spec.bottoms.length_type` は migration せず、read fallback で吸収する
 - shape も段階的に整理していく前提で进める

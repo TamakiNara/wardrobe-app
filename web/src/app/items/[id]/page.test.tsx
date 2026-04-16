@@ -221,4 +221,73 @@ describe("ItemPage", () => {
     expect(markup).toContain("編集");
     expect(markup).toContain("ジャケット・アウター / コート / トレンチコート");
   });
+
+  it("skirts の素材とデザイン spec を詳細画面で表示する", async () => {
+    fetchMock
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          item: {
+            id: 2,
+            name: "素材ありスカート",
+            status: "active",
+            care_status: null,
+            brand_name: null,
+            price: null,
+            purchase_url: null,
+            memo: null,
+            purchased_at: null,
+            size_gender: null,
+            size_label: null,
+            size_note: null,
+            size_details: null,
+            is_rain_ok: false,
+            category: "skirts",
+            subcategory: "skirt",
+            shape: "a_line",
+            colors: [
+              {
+                role: "main",
+                mode: "preset",
+                value: "navy",
+                hex: "#123456",
+                label: "ネイビー",
+              },
+            ],
+            seasons: [],
+            tpos: [],
+            spec: {
+              skirt: {
+                length_type: "mid_calf",
+                material_type: "tulle",
+                design_type: "pleats",
+              },
+            },
+            images: [],
+            materials: [],
+          },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          preferences: {
+            skinTonePreset: "neutral_medium",
+          },
+        }),
+      });
+
+    const { default: ItemPage } = await import("./page");
+    const markup = renderToStaticMarkup(
+      await ItemPage({
+        params: Promise.resolve({ id: "2" }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+
+    expect(markup).toContain("素材： チュール");
+    expect(markup).toContain("デザイン： プリーツ");
+  });
 });

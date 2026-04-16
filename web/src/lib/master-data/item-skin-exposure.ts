@@ -21,6 +21,24 @@ export const SKIRT_LENGTH_OPTIONS = [
   { value: "maxi", label: "マキシ丈" },
 ] as const;
 
+export const SKIRT_MATERIAL_OPTIONS = [
+  { value: "tulle", label: "チュール" },
+  { value: "lace", label: "レース" },
+  { value: "denim", label: "デニム" },
+  { value: "leather", label: "レザー" },
+  { value: "satin", label: "サテン" },
+] as const;
+
+export const SKIRT_DESIGN_OPTIONS = [
+  { value: "tuck", label: "タック" },
+  { value: "gather", label: "ギャザー" },
+  { value: "pleats", label: "プリーツ" },
+  { value: "tiered", label: "ティアード" },
+  { value: "wrap", label: "ラップ" },
+  { value: "balloon", label: "バルーン" },
+  { value: "trench", label: "トレンチ" },
+] as const;
+
 export const LEGWEAR_COVERAGE_OPTIONS = [
   { value: "foot_cover", label: "フットカバー" },
   { value: "ankle_sneaker", label: "アンクル・スニーカーソックス" },
@@ -42,6 +60,9 @@ export type BottomsLengthType =
   (typeof BOTTOMS_LENGTH_OPTIONS)[number]["value"];
 export type BottomsRiseType = (typeof BOTTOMS_RISE_OPTIONS)[number]["value"];
 export type SkirtLengthType = (typeof SKIRT_LENGTH_OPTIONS)[number]["value"];
+export type SkirtMaterialType =
+  (typeof SKIRT_MATERIAL_OPTIONS)[number]["value"];
+export type SkirtDesignType = (typeof SKIRT_DESIGN_OPTIONS)[number]["value"];
 export type LegwearCoverageType =
   (typeof LEGWEAR_COVERAGE_OPTIONS)[number]["value"];
 export type LegwearPreviewCoverageType =
@@ -73,6 +94,12 @@ const BOTTOMS_RISE_TYPES = BOTTOMS_RISE_OPTIONS.map(
 const SKIRT_LENGTH_TYPES = SKIRT_LENGTH_OPTIONS.map(
   (item) => item.value,
 ) as readonly SkirtLengthType[];
+const SKIRT_MATERIAL_TYPES = SKIRT_MATERIAL_OPTIONS.map(
+  (item) => item.value,
+) as readonly SkirtMaterialType[];
+const SKIRT_DESIGN_TYPES = SKIRT_DESIGN_OPTIONS.map(
+  (item) => item.value,
+) as readonly SkirtDesignType[];
 
 export function isBottomsSpecCategory(category?: string | null) {
   return (
@@ -288,6 +315,16 @@ export function resolveSkirtLengthType(value?: string | null) {
   );
 }
 
+export function resolveSkirtMaterialType(value?: string | null) {
+  return SKIRT_MATERIAL_TYPES.includes(value as SkirtMaterialType)
+    ? value
+    : null;
+}
+
+export function resolveSkirtDesignType(value?: string | null) {
+  return SKIRT_DESIGN_TYPES.includes(value as SkirtDesignType) ? value : null;
+}
+
 export function resolveBottomsRiseType(
   category?: string | null,
   value?: string | null,
@@ -362,6 +399,24 @@ export function findSkirtLengthLabel(
     SKIRT_LENGTH_OPTIONS.find((item) => item.value === resolved)?.label ??
     value ??
     legacyBottomsValue ??
+    ""
+  );
+}
+
+export function findSkirtMaterialLabel(value?: string | null) {
+  const resolved = resolveSkirtMaterialType(value);
+  return (
+    SKIRT_MATERIAL_OPTIONS.find((item) => item.value === resolved)?.label ??
+    value ??
+    ""
+  );
+}
+
+export function findSkirtDesignLabel(value?: string | null) {
+  const resolved = resolveSkirtDesignType(value);
+  return (
+    SKIRT_DESIGN_OPTIONS.find((item) => item.value === resolved)?.label ??
+    value ??
     ""
   );
 }

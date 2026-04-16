@@ -24,6 +24,8 @@ export type BottomsSpec = {
 
 export type SkirtSpec = {
   length_type?: string | null;
+  material_type?: string | null;
+  design_type?: string | null;
 };
 
 export type LegwearSpec = {
