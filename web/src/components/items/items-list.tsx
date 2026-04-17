@@ -483,8 +483,27 @@ export default function ItemsList({
                 setIsComposingKeyword(false);
                 setDraftKeyword(e.currentTarget.value);
               }}
-              placeholder="名前で検索"
+              placeholder="名前・メモで検索"
               className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            />
+          </div>
+
+          <div>
+            <FilterFieldHeader
+              htmlFor="item-list-brand"
+              label="ブランド"
+              isActive={brandFilter !== ""}
+              onClear={() => updateQuery({ brand: "" })}
+            />
+            <PurchaseCandidateBrandFilterField
+              key={`item-list-brand-filter:${brandFilter}`}
+              inputId="item-list-brand"
+              name="brand"
+              defaultValue={brandFilter}
+              brands={brandOptions}
+              onValueChange={(value) =>
+                updateQuery({ brand: value.trim(), page: 1 })
+              }
             />
           </div>
 
@@ -539,25 +558,6 @@ export default function ItemsList({
                 </option>
               ))}
             </select>
-          </div>
-
-          <div>
-            <FilterFieldHeader
-              htmlFor="item-list-brand"
-              label="ブランド"
-              isActive={brandFilter !== ""}
-              onClear={() => updateQuery({ brand: "" })}
-            />
-            <PurchaseCandidateBrandFilterField
-              key={`item-list-brand-filter:${brandFilter}`}
-              inputId="item-list-brand"
-              name="brand"
-              defaultValue={brandFilter}
-              brands={brandOptions}
-              onValueChange={(value) =>
-                updateQuery({ brand: value.trim(), page: 1 })
-              }
-            />
           </div>
 
           <div>

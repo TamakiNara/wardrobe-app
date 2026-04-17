@@ -264,57 +264,25 @@ export default function PurchaseCandidateListFilters({
               setIsComposingKeyword(false);
               setDraftKeyword(e.currentTarget.value);
             }}
-            placeholder="名前・ブランド・メモで検索"
+            placeholder="名前・メモで検索"
             className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
           />
         </div>
 
         <div>
           <FilterFieldHeader
-            htmlFor="purchase-candidate-status"
-            label="状態"
-            isActive={status !== ""}
-            onClear={() => updateQuery({ status: "" })}
+            htmlFor="purchase-candidate-brand"
+            label="ブランド"
+            isActive={brand !== "" || draftBrand !== ""}
+            onClear={() => updateQuery({ brand: "" }, { replaceDraft: true })}
           />
-          <select
-            id="purchase-candidate-status"
-            value={status}
-            onChange={(e) => updateQuery({ status: e.target.value })}
-            className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-          >
-            <option value="">すべて</option>
-            {Object.entries(PURCHASE_CANDIDATE_STATUS_LABELS).map(
-              ([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ),
-            )}
-          </select>
-        </div>
-
-        <div>
-          <FilterFieldHeader
-            htmlFor="purchase-candidate-priority"
-            label="優先度"
-            isActive={priority !== ""}
-            onClear={() => updateQuery({ priority: "" })}
+          <PurchaseCandidateBrandFilterField
+            inputId="purchase-candidate-brand"
+            name="brand"
+            defaultValue={draftBrand}
+            brands={brandOptions}
+            onValueChange={setDraftBrand}
           />
-          <select
-            id="purchase-candidate-priority"
-            value={priority}
-            onChange={(e) => updateQuery({ priority: e.target.value })}
-            className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-          >
-            <option value="">すべて</option>
-            {Object.entries(PURCHASE_CANDIDATE_PRIORITY_LABELS).map(
-              ([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ),
-            )}
-          </select>
         </div>
 
         <div>
@@ -366,18 +334,50 @@ export default function PurchaseCandidateListFilters({
 
         <div>
           <FilterFieldHeader
-            htmlFor="purchase-candidate-brand"
-            label="ブランド"
-            isActive={brand !== "" || draftBrand !== ""}
-            onClear={() => updateQuery({ brand: "" }, { replaceDraft: true })}
+            htmlFor="purchase-candidate-status"
+            label="状態"
+            isActive={status !== ""}
+            onClear={() => updateQuery({ status: "" })}
           />
-          <PurchaseCandidateBrandFilterField
-            inputId="purchase-candidate-brand"
-            name="brand"
-            defaultValue={draftBrand}
-            brands={brandOptions}
-            onValueChange={setDraftBrand}
+          <select
+            id="purchase-candidate-status"
+            value={status}
+            onChange={(e) => updateQuery({ status: e.target.value })}
+            className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+          >
+            <option value="">すべて</option>
+            {Object.entries(PURCHASE_CANDIDATE_STATUS_LABELS).map(
+              ([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ),
+            )}
+          </select>
+        </div>
+
+        <div>
+          <FilterFieldHeader
+            htmlFor="purchase-candidate-priority"
+            label="優先度"
+            isActive={priority !== ""}
+            onClear={() => updateQuery({ priority: "" })}
           />
+          <select
+            id="purchase-candidate-priority"
+            value={priority}
+            onChange={(e) => updateQuery({ priority: e.target.value })}
+            className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+          >
+            <option value="">すべて</option>
+            {Object.entries(PURCHASE_CANDIDATE_PRIORITY_LABELS).map(
+              ([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ),
+            )}
+          </select>
         </div>
 
         <div>

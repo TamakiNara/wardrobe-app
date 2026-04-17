@@ -60,7 +60,7 @@ vi.mock(
         React.createElement("span", null, "並び順"),
         React.createElement("input", {
           readOnly: true,
-          placeholder: "名前・ブランド・メモで検索",
+          placeholder: "名前・メモで検索",
           value: keyword,
         }),
         React.createElement("input", {
@@ -312,7 +312,7 @@ describe("PurchaseCandidatesPage", () => {
     expect(markup).toContain("種類");
     expect(markup).toContain("ブランド");
     expect(markup).toContain("並び順");
-    expect(markup).toContain("名前・ブランド・メモで検索");
+    expect(markup).toContain("名前・メモで検索");
     expect(markup).toContain("ブランド名で絞り込み");
     expect(markup).toContain('href="/purchase-candidates/1"');
     expect(markup).toContain(
