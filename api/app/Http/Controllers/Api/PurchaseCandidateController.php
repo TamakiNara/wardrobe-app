@@ -65,6 +65,16 @@ class PurchaseCandidateController extends Controller
         ]);
     }
 
+    public function colorVariant(Request $request, int $id): JsonResponse
+    {
+        $payload = $this->purchaseCandidateService->colorVariant($request->user(), $id);
+
+        return response()->json([
+            'message' => 'color_variant_payload_ready',
+            'purchaseCandidate' => $payload,
+        ]);
+    }
+
     public function destroy(Request $request, int $id): JsonResponse
     {
         $this->purchaseCandidateService->delete($request->user(), $id);
@@ -132,6 +142,7 @@ class PurchaseCandidateController extends Controller
             'priority' => ['nullable', 'string', 'in:high,medium,low'],
             'name' => ['required', 'string', 'max:255'],
             'category_id' => ['required', 'string', 'exists:category_master,id'],
+            'group_id' => ['nullable', 'integer', 'exists:purchase_candidate_groups,id'],
             'brand_name' => ['nullable', 'string', 'max:255'],
             'save_brand_as_candidate' => ['nullable', 'boolean'],
             'price' => ['nullable', 'integer', 'min:0'],
@@ -214,6 +225,7 @@ class PurchaseCandidateController extends Controller
             'status',
             'name',
             'category_id',
+            'group_id',
             'brand_name',
             'save_brand_as_candidate',
             'price',

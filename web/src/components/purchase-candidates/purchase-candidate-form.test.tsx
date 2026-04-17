@@ -670,6 +670,79 @@ describe("PurchaseCandidateForm", () => {
     expect(payload.duplicate_images).toEqual([{ source_image_id: 7 }]);
   });
 
+  it("色違い追加の初期値を読み込み、保存時に group_id を送る", async () => {
+    searchParamsValue = "source=color-variant";
+    window.sessionStorage.setItem(
+      "purchase-candidate-duplicate-payload",
+      JSON.stringify({
+        status: "considering",
+        priority: "high",
+        name: "春コート",
+        category_id: "outerwear_coat",
+        group_id: 5,
+        brand_name: "Sample Brand",
+        price: 14800,
+        sale_price: null,
+        sale_ends_at: null,
+        purchase_url: "https://example.test/products/1",
+        memo: "??",
+        wanted_reason: "欲しい理由",
+        size_gender: "women",
+        size_label: "M",
+        size_note: "",
+        size_details: null,
+        is_rain_ok: true,
+        colors: [
+          {
+            role: "main",
+            mode: "preset",
+            value: "navy",
+            hex: "#1F3A5F",
+            label: "春コート",
+          },
+        ],
+        seasons: [],
+        tpos: [],
+        materials: [],
+        images: [],
+      }),
+    );
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 201,
+      json: async () => ({
+        purchaseCandidate: {
+          id: 12,
+        },
+      }),
+    });
+
+    await renderForm();
+
+    expect(container.querySelector<HTMLInputElement>("#name")?.value).toBe(
+      "春コート",
+    );
+    expect(container.textContent).toContain(
+      "色違いの初期値を読み込みました。保存前に色や画像を調整してください。",
+    );
+    expect(replaceMock).toHaveBeenCalledWith("/purchase-candidates/new");
+
+    const form = container.querySelector("form") as HTMLFormElement;
+
+    await act(async () => {
+      form.dispatchEvent(
+        new Event("submit", { bubbles: true, cancelable: true }),
+      );
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [, requestInit] = fetchMock.mock.calls[0];
+    const payload = JSON.parse(requestInit.body as string);
+
+    expect(payload.group_id).toBe(5);
+    expect(payload.name).toBe("春コート");
+  });
+
   it("購入済みの購入検討では編集可能項目だけ送信する", async () => {
     fetchMock
       .mockResolvedValueOnce({

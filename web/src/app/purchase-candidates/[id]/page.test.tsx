@@ -35,6 +35,21 @@ vi.mock(
 );
 
 vi.mock(
+  "@/components/purchase-candidates/purchase-candidate-color-variant-action",
+  () => ({
+    default: ({ candidateId }: { candidateId: number }) =>
+      React.createElement(
+        "div",
+        {
+          "data-testid": "color-variant-action",
+          "data-candidate-id": candidateId,
+        },
+        "color-variant-action",
+      ),
+  }),
+);
+
+vi.mock(
   "@/components/purchase-candidates/purchase-candidate-duplicate-action",
   () => ({
     default: ({ candidateId }: { candidateId: number }) =>
@@ -168,6 +183,7 @@ describe("PurchaseCandidateDetailPage", () => {
     expect(markup).toContain("総丈");
     expect(markup).toContain("92cm");
     expect(markup).toContain("item-draft-action");
+    expect(markup).toContain("color-variant-action");
     expect(markup).toContain("duplicate-action");
     expect(markup).toContain(
       "現在の候補内容からアイテム作成画面の初期値を生成します。",
@@ -230,6 +246,7 @@ describe("PurchaseCandidateDetailPage", () => {
     );
 
     expect(markup).toContain("この購入検討はアイテム化済みの履歴です。");
+    expect(markup).toContain("color-variant-action");
     expect(markup).toContain("duplicate-action");
     expect(markup).not.toContain("item-draft-action");
     expect(markup).not.toContain("アイテム追加");

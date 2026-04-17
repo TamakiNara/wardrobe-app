@@ -6,6 +6,7 @@ use App\Models\CategoryGroup;
 use App\Models\CategoryMaster;
 use App\Models\Item;
 use App\Models\PurchaseCandidate;
+use App\Models\PurchaseCandidateGroup;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -802,6 +803,120 @@ class PurchaseCandidateEndpointsTest extends TestCase
 
         $response->assertOk()
             ->assertJsonPath('purchaseCandidate.name', '春コート（コピー）');
+    }
+
+    public function test_post_purchase_candidate_duplicate_does_not_inherit_group(): void
+    {
+        $user = User::factory()->create();
+        $group = PurchaseCandidateGroup::query()->create([
+            'user_id' => $user->id,
+        ]);
+        $candidate = $this->createCandidate($user, [
+            'group_id' => $group->id,
+            'group_order' => 1,
+        ]);
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $response = $this->postJson("/api/purchase-candidates/{$candidate->id}/duplicate", [], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertOk()
+            ->assertJsonMissingPath('purchaseCandidate.group_id');
+    }
+
+    public function test_post_purchase_candidate_color_variant_groups_ungrouped_source_and_store_uses_next_order(): void
+    {
+        $user = User::factory()->create();
+        $candidate = $this->createCandidate($user, [
+            'name' => '春コート',
+            'category_id' => 'tops_shirt_blouse',
+        ]);
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $draftResponse = $this->postJson("/api/purchase-candidates/{$candidate->id}/color-variant", [], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $draftResponse->assertOk()
+            ->assertJsonPath('message', 'color_variant_payload_ready')
+            ->assertJsonPath('purchaseCandidate.name', '春コート')
+            ->assertJsonPath('purchaseCandidate.group_id', 1);
+
+        $this->assertDatabaseHas('purchase_candidates', [
+            'id' => $candidate->id,
+            'group_id' => 1,
+            'group_order' => 1,
+        ]);
+
+        $payload = $draftResponse->json('purchaseCandidate');
+        unset($payload['images']);
+
+        $storeResponse = $this->postJson('/api/purchase-candidates', $payload, [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $storeResponse->assertCreated();
+        $newCandidateId = $storeResponse->json('purchaseCandidate.id');
+
+        $this->assertDatabaseHas('purchase_candidates', [
+            'id' => $newCandidateId,
+            'group_id' => 1,
+            'group_order' => 2,
+        ]);
+    }
+
+    public function test_post_purchase_candidate_color_variant_uses_existing_group(): void
+    {
+        $user = User::factory()->create();
+        $group = PurchaseCandidateGroup::query()->create([
+            'user_id' => $user->id,
+        ]);
+        $this->createCandidate($user, [
+            'group_id' => $group->id,
+            'group_order' => 1,
+        ]);
+        $candidate = $this->createCandidate($user, [
+            'name' => '色違い元',
+            'group_id' => $group->id,
+            'group_order' => 2,
+            'category_id' => 'tops_shirt_blouse',
+        ]);
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $draftResponse = $this->postJson("/api/purchase-candidates/{$candidate->id}/color-variant", [], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $draftResponse->assertOk()
+            ->assertJsonPath('purchaseCandidate.group_id', $group->id);
+
+        $payload = $draftResponse->json('purchaseCandidate');
+        unset($payload['images']);
+
+        $storeResponse = $this->postJson('/api/purchase-candidates', $payload, [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $storeResponse->assertCreated();
+        $newCandidateId = $storeResponse->json('purchaseCandidate.id');
+
+        $this->assertDatabaseHas('purchase_candidates', [
+            'id' => $newCandidateId,
+            'group_id' => $group->id,
+            'group_order' => 3,
+        ]);
     }
 
     public function test_post_purchase_candidate_store_copies_duplicate_source_images(): void

@@ -322,6 +322,7 @@ Route::prefix('api')->middleware(['web'])->group(function () {
         Route::put('/purchase-candidates/{id}', 'update');
         Route::delete('/purchase-candidates/{id}', 'destroy');
         Route::post('/purchase-candidates/{id}/duplicate', 'duplicate');
+        Route::post('/purchase-candidates/{id}/color-variant', 'colorVariant');
         Route::post('/purchase-candidates/{id}/images', 'uploadImage');
         Route::delete('/purchase-candidates/{id}/images/{imageId}', 'deleteImage');
         Route::post('/purchase-candidates/{id}/item-draft', 'itemDraft');

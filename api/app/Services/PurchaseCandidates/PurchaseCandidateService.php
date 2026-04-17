@@ -4,10 +4,12 @@ namespace App\Services\PurchaseCandidates;
 
 use App\Models\CategoryMaster;
 use App\Models\PurchaseCandidate;
+use App\Models\PurchaseCandidateGroup;
 use App\Models\PurchaseCandidateImage;
 use App\Models\User;
 use App\Services\Brands\UserBrandService;
 use App\Support\PurchaseCandidateCategoryMap;
+use App\Support\PurchaseCandidateGroupSupport;
 use App\Support\PurchaseCandidateMaterialSync;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -28,8 +30,12 @@ class PurchaseCandidateService
 
         try {
             return DB::transaction(function () use ($user, $validated, &$copiedFiles) {
+                $group = $this->resolveGroupForCreate($user, $validated);
+
                 $candidate = PurchaseCandidate::query()->create([
                     'user_id' => $user->id,
+                    'group_id' => $group?->id,
+                    'group_order' => $group?->nextGroupOrder(),
                     'status' => $validated['status'] ?? 'considering',
                     'priority' => $validated['priority'] ?? 'medium',
                     'name' => $validated['name'],
@@ -146,6 +152,44 @@ class PurchaseCandidateService
             $sourceCandidate,
             $this->buildDuplicateName($sourceCandidate->name),
         );
+    }
+
+    public function colorVariant(User $user, int $candidateId): array
+    {
+        return DB::transaction(function () use ($user, $candidateId) {
+            $sourceCandidate = PurchaseCandidate::query()
+                ->where('user_id', $user->id)
+                ->lockForUpdate()
+                ->with(['category', 'colors', 'seasons', 'tpos', 'images', 'materials'])
+                ->findOrFail($candidateId);
+
+            if ($sourceCandidate->group_id === null) {
+                $group = PurchaseCandidateGroup::query()->create([
+                    'user_id' => $user->id,
+                ]);
+                $sourceCandidate->forceFill([
+                    'group_id' => $group->id,
+                    'group_order' => 1,
+                ])->save();
+            } else {
+                $group = PurchaseCandidateGroup::query()
+                    ->where('user_id', $user->id)
+                    ->lockForUpdate()
+                    ->findOrFail($sourceCandidate->group_id);
+                PurchaseCandidateGroupSupport::ensureGroupBelongsToCandidateUser($group, $sourceCandidate);
+
+                if ($sourceCandidate->group_order === null) {
+                    $sourceCandidate->forceFill([
+                        'group_order' => $group->nextGroupOrder(),
+                    ])->save();
+                }
+            }
+
+            return \App\Support\PurchaseCandidatePayloadBuilder::buildColorVariantDraft(
+                $sourceCandidate->fresh()->load(['category', 'colors', 'seasons', 'tpos', 'images', 'materials']),
+                $group->id,
+            );
+        });
     }
 
     public function addImage(User $user, int $candidateId, UploadedFile $image, ?int $sortOrder = null, ?bool $isPrimary = null): PurchaseCandidateImage
@@ -292,6 +336,26 @@ class PurchaseCandidateService
                 'category_id' => 'このカテゴリはまだ購入候補に対応していません。',
             ]);
         }
+    }
+
+    private function resolveGroupForCreate(User $user, array $validated): ?PurchaseCandidateGroup
+    {
+        if (($validated['group_id'] ?? null) === null) {
+            return null;
+        }
+
+        $group = PurchaseCandidateGroup::query()
+            ->where('user_id', $user->id)
+            ->lockForUpdate()
+            ->find((int) $validated['group_id']);
+
+        if ($group === null) {
+            throw ValidationException::withMessages([
+                'group_id' => 'Selected purchase candidate group does not belong to the current user.',
+            ]);
+        }
+
+        return $group;
     }
 
     private function copyDuplicateImagesFromSources(

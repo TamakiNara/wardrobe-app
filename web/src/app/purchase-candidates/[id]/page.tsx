@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import PurchaseCandidateColorVariantAction from "@/components/purchase-candidates/purchase-candidate-color-variant-action";
 import PurchaseCandidateDuplicateAction from "@/components/purchase-candidates/purchase-candidate-duplicate-action";
 import PurchaseCandidateItemDraftAction from "@/components/purchase-candidates/purchase-candidate-item-draft-action";
 import { EntityDetailHeader } from "@/components/shared/entity-detail-header";
@@ -145,6 +146,10 @@ export default async function PurchaseCandidateDetailPage({
               >
                 編集する
               </Link>
+              <PurchaseCandidateColorVariantAction
+                candidateId={candidate.id}
+                className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:text-gray-400 disabled:no-underline"
+              />
               <PurchaseCandidateDuplicateAction
                 candidateId={candidate.id}
                 className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:text-gray-400 disabled:no-underline"

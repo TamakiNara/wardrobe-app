@@ -67,6 +67,8 @@ export type PurchaseCandidateRecord = {
   size_note: string | null;
   size_details: ItemSizeDetails | null;
   is_rain_ok: boolean;
+  group_id: number | null;
+  group_order: number | null;
   converted_item_id: number | null;
   converted_at: string | null;
   colors: PurchaseCandidateColor[];
@@ -98,6 +100,7 @@ export type PurchaseCandidateUpsertPayload = {
   priority: PurchaseCandidatePriority;
   name: string;
   category_id: string;
+  group_id?: number | null;
   brand_name: string | null;
   save_brand_as_candidate?: boolean;
   price: number | null;
@@ -138,6 +141,11 @@ export type PurchaseCandidateDuplicatePayload = Omit<
 };
 
 export type PurchaseCandidateDuplicateResponse = {
+  message: string;
+  purchaseCandidate: PurchaseCandidateDuplicatePayload;
+};
+
+export type PurchaseCandidateColorVariantResponse = {
   message: string;
   purchaseCandidate: PurchaseCandidateDuplicatePayload;
 };

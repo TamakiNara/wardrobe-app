@@ -69,6 +69,8 @@ class PurchaseCandidatePayloadBuilder
             'size_note' => $candidate->size_note,
             'size_details' => $candidate->size_details,
             'is_rain_ok' => $candidate->is_rain_ok,
+            'group_id' => $candidate->group_id,
+            'group_order' => $candidate->group_order,
             'converted_item_id' => $candidate->converted_item_id,
             'converted_at' => $candidate->converted_at?->toISOString(),
             'colors' => $candidate->colors
@@ -230,6 +232,15 @@ class PurchaseCandidatePayloadBuilder
                 ->map(fn (PurchaseCandidateImage $image) => self::buildDuplicateImage($image))
                 ->all(),
         ];
+    }
+
+    public static function buildColorVariantDraft(
+        PurchaseCandidate $candidate,
+        int $groupId,
+    ): array {
+        return array_merge(self::buildDuplicateDraft($candidate, $candidate->name ?? ''), [
+            'group_id' => $groupId,
+        ]);
     }
 
     public static function buildCandidateSummary(PurchaseCandidate $candidate): array

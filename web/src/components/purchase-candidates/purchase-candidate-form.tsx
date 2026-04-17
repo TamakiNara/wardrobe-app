@@ -165,6 +165,7 @@ export default function PurchaseCandidateForm({
   const [priority, setPriority] = useState<PurchaseCandidatePriority>("medium");
   const [name, setName] = useState("");
   const [categoryId, setCategoryId] = useState("");
+  const [groupId, setGroupId] = useState<number | null>(null);
   const [brandName, setBrandName] = useState("");
   const [saveBrandAsCandidate, setSaveBrandAsCandidate] = useState(false);
   const [price, setPrice] = useState("");
@@ -319,6 +320,7 @@ export default function PurchaseCandidateForm({
           setPriority(candidate.priority);
           setName(candidate.name);
           setCategoryId(candidate.category_id);
+          setGroupId(candidate.group_id ?? null);
           setBrandName(candidate.brand_name ?? "");
           setSaveBrandAsCandidate(false);
           setPrice(candidate.price === null ? "" : String(candidate.price));
@@ -397,7 +399,11 @@ export default function PurchaseCandidateForm({
       return;
     }
 
-    if (searchParams.get("source") !== "duplicate") {
+    const source = searchParams.get("source");
+    const isDuplicateSource = source === "duplicate";
+    const isColorVariantSource = source === "color-variant";
+
+    if (!isDuplicateSource && !isColorVariantSource) {
       return;
     }
 
@@ -429,8 +435,13 @@ export default function PurchaseCandidateForm({
 
     setStatus(payload.status);
     setPriority(payload.priority);
-    setName(ensurePurchaseCandidateDuplicateName(payload.name));
+    setName(
+      isColorVariantSource
+        ? payload.name
+        : ensurePurchaseCandidateDuplicateName(payload.name),
+    );
     setCategoryId(payload.category_id);
+    setGroupId(isColorVariantSource ? (payload.group_id ?? null) : null);
     setBrandName(payload.brand_name ?? "");
     setSaveBrandAsCandidate(false);
     setPrice(payload.price === null ? "" : String(payload.price));
@@ -489,7 +500,11 @@ export default function PurchaseCandidateForm({
     setDuplicateImages(payload.images);
     setPendingImages([]);
     setErrors({});
-    setInitializationSuccess("複製元の内容を初期値として読み込みました。");
+    setInitializationSuccess(
+      isColorVariantSource
+        ? "色違いの初期値を読み込みました。保存前に色や画像を調整してください。"
+        : "複製元の内容を初期値として読み込みました。",
+    );
   }, [loading, mode, router, searchParams]);
 
   function toggleValue(
@@ -620,6 +635,7 @@ export default function PurchaseCandidateForm({
       priority,
       name: name.trim(),
       category_id: categoryId,
+      group_id: mode === "create" ? groupId : undefined,
       brand_name: normalizeNullableString(brandName) || null,
       save_brand_as_candidate: saveBrandAsCandidate,
       price: price === "" ? null : Number(price),

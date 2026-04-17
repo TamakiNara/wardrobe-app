@@ -26,6 +26,12 @@ export function savePurchaseCandidateDuplicatePayload(
   );
 }
 
+export function savePurchaseCandidateColorVariantPayload(
+  payload: PurchaseCandidateDuplicatePayload,
+) {
+  window.sessionStorage.setItem(DUPLICATE_STORAGE_KEY, JSON.stringify(payload));
+}
+
 export function loadPurchaseCandidateDuplicatePayload(): PurchaseCandidateDuplicatePayload | null {
   const raw = window.sessionStorage.getItem(DUPLICATE_STORAGE_KEY);
 
