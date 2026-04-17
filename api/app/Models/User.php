@@ -74,6 +74,11 @@ class User extends Authenticatable
         return $this->hasMany(UserBrand::class);
     }
 
+    public function purchaseCandidateGroups(): HasMany
+    {
+        return $this->hasMany(PurchaseCandidateGroup::class);
+    }
+
     public function preference(): HasOne
     {
         return $this->hasOne(UserPreference::class);

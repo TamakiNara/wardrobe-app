@@ -86,6 +86,8 @@ thumbnail の現状確認用パターン一覧を見返すときは `docs/specs/
 - item 作成時に `purchase_candidate_id` を受け取り、Laravel 側で candidate の `purchased` 反映と `converted_item_id` / `converted_at` 更新まで処理する
 - `sale_price` / `sale_ends_at` は購入検討専用の補助情報として create / edit / list / detail まで実装済み
 - candidate 複製機能は詳細画面から使える 現時点で実装済みの機能として実装済みで、colors / seasons / tpos / images を引き継ぎ、画像は新 candidate 用保存先へ物理コピーする
+- 色違い対応の DB 基盤として `purchase_candidate_groups` と `purchase_candidates.group_id` / `group_order` を追加済み。
+  色違い追加 API、一覧の group 表示、詳細の同 group 表示は後続で扱う
 - `purchased` の購入検討は item 化済み履歴として扱い、candidate 側更新を item へ逆流させない
 - `purchased` の購入検討では `memo` / `wanted_reason` / `priority` / `sale_price` / `sale_ends_at` / `purchase_url` / 画像のみ更新可とし、item-draft 導線は表示しない
 - 比較ロジックの詳細は後続検討とする
@@ -158,7 +160,8 @@ thumbnail の現状確認用パターン一覧を見返すときは `docs/specs/
      - 色違いを別候補として一覧比較する前提を維持するか
      - 同一商品として束ねる場合のカード表示や詳細導線をどうするか
      - 価格差 / sale 情報 / status 差分を色違い単位でどう見せるか
-   - 補足: 今回は実装せず、将来のデータ増加と運用方針に合わせて再判断する
+   - 補足: DB 基盤は追加済み。
+     色違い追加導線、一覧の group 表示、詳細の同 group 表示は後続で扱う
 
 既存仕様との衝突確認メモ:
 

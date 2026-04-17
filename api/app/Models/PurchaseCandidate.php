@@ -13,6 +13,8 @@ class PurchaseCandidate extends Model
 
     protected $fillable = [
         'user_id',
+        'group_id',
+        'group_order',
         'status',
         'priority',
         'name',
@@ -35,6 +37,7 @@ class PurchaseCandidate extends Model
 
     protected $casts = [
         'price' => 'integer',
+        'group_order' => 'integer',
         'sale_price' => 'integer',
         'sale_ends_at' => 'datetime',
         'size_details' => 'array',
@@ -45,6 +48,11 @@ class PurchaseCandidate extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function group(): BelongsTo
+    {
+        return $this->belongsTo(PurchaseCandidateGroup::class, 'group_id');
     }
 
     public function category(): BelongsTo
