@@ -10,7 +10,6 @@
 ## 使い分けの基本方針
 
 - 実装の現況や次にやることを知りたいときは `project/implementation-notes.md`
-- 購入検討の後続設計メモを見たいときは `project/purchase-candidate-handover.md`
 - API の概要を見たいときは `api/api-overview.md`
 - OpenAPI の正本を見たいときは `api/openapi.yaml`
 - API docs の分類方針を見たいときは、`api/openapi.yaml` の tag を「認証系 / 設定系 / 参照マスタ / 実装単位」で追う
@@ -49,17 +48,6 @@
 補足:
 
 - 設計の正本というより、運用中の作業ログ・引き継ぎ資料
-
-### `project/purchase-candidate-handover.md`
-
-役割:
-
-- 購入検討まわりの後続設計メモを残す
-- `sale` / 複製 / `purchased` 後編集範囲など、current に混ぜたくない論点を整理する
-
-補足:
-
-- current 実装の正本ではなく、後続判断用の handover 資料
 
 ### `specs/planning/next-features.md`
 

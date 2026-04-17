@@ -19,7 +19,6 @@ OpenAPI に明示する error response の基準を短く見返すときも `doc
 購入検討の DB 保存方針と `purchase_candidate_images` / `item_images` の関係を確認するときは `docs/data/database.md` を参照します。
 主要 spec の索引から購入検討を含む資料一覧へ辿るときは `docs/specs/README.md` を参照します。
 購入検討の OpenAPI 定義は `docs/api/openapi.yaml` に反映済みで、現状の実装との差分確認はこのファイルを起点に行います。
-購入検討の後続設計メモを見返すときは `docs/project/purchase-candidate-handover.md` を参照します。
 ブランド候補の仕様正本を確認するときは `docs/specs/settings/brand-candidates.md` を参照します。
 素材・混率の仕様メモを確認するときは `docs/specs/items/material-composition.md` を参照します。
 settings / calendar / wear logs / care_status の後続設計メモを見返すときは `docs/specs/settings_calendar_wearlog_codex_plan.md` を参照します。
