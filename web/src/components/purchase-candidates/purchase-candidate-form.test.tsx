@@ -281,6 +281,43 @@ describe("PurchaseCandidateForm", () => {
     expect(payload.save_brand_as_candidate).toBe(true);
   });
 
+  it("プリセット色からカスタムカラーへ切り替えると直前の色を引き継ぐ", async () => {
+    await renderForm();
+
+    const mainColorButton = Array.from(
+      container.querySelectorAll("button"),
+    ).find((button) => button.textContent?.includes("メインカラーを選択")) as
+      | HTMLButtonElement
+      | undefined;
+    expect(mainColorButton).not.toBeUndefined();
+
+    await act(async () => {
+      mainColorButton!.click();
+    });
+
+    const redButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent?.includes("#E53935"),
+    ) as HTMLButtonElement | undefined;
+    expect(redButton).not.toBeUndefined();
+
+    await act(async () => {
+      redButton!.click();
+    });
+
+    const customMainCheckbox = container.querySelector(
+      'input[aria-label="メインカラーをカラーコードで入力"]',
+    ) as HTMLInputElement;
+
+    await act(async () => {
+      customMainCheckbox.click();
+    });
+
+    const mainColorCodeInput = container.querySelector(
+      'input[aria-label="メインカラーコード"]',
+    ) as HTMLInputElement;
+    expect(mainColorCodeInput.value).toBe("#E53935");
+  });
+
   it("カスタムカラーコードを送信 payload に含められる", async () => {
     fetchMock.mockResolvedValue({
       ok: true,

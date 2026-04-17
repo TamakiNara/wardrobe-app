@@ -23,6 +23,7 @@ import { fetchCategoryVisibilitySettings } from "@/lib/api/settings";
 import { SEASON_OPTIONS, TPO_OPTIONS } from "@/lib/master-data/item-attributes";
 import {
   ITEM_COLORS,
+  resolveCustomColorHex,
   type ItemColorValue,
 } from "@/lib/master-data/item-colors";
 import {
@@ -193,7 +194,7 @@ export default function PurchaseCandidateForm({
   const [useCustomMainColor, setUseCustomMainColor] = useState(false);
   const [useCustomSubColor, setUseCustomSubColor] = useState(false);
   const [customMainHex, setCustomMainHex] = useState("#3B82F6");
-  const [customSubHex, setCustomSubHex] = useState("#9CA3AF");
+  const [customSubHex, setCustomSubHex] = useState("#3B82F6");
   const [selectedSeasons, setSelectedSeasons] = useState<string[]>([]);
   const [selectedTpos, setSelectedTpos] = useState<string[]>([]);
 
@@ -1045,8 +1046,12 @@ export default function PurchaseCandidateForm({
                   checked={useCustomMainColor}
                   disabled={isPurchasedLocked}
                   onChange={(event) => {
-                    setUseCustomMainColor(event.target.checked);
-                    if (event.target.checked) {
+                    const checked = event.target.checked;
+                    setUseCustomMainColor(checked);
+                    if (checked) {
+                      setCustomMainHex(
+                        resolveCustomColorHex(mainColor, customMainHex),
+                      );
                       setMainColor("");
                     }
                   }}
@@ -1094,8 +1099,12 @@ export default function PurchaseCandidateForm({
                   checked={useCustomSubColor}
                   disabled={isPurchasedLocked}
                   onChange={(event) => {
-                    setUseCustomSubColor(event.target.checked);
-                    if (event.target.checked) {
+                    const checked = event.target.checked;
+                    setUseCustomSubColor(checked);
+                    if (checked) {
+                      setCustomSubHex(
+                        resolveCustomColorHex(subColor, customSubHex),
+                      );
                       setSubColor("");
                     }
                   }}

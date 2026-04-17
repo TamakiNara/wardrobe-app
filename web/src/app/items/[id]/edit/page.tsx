@@ -34,6 +34,7 @@ import {
 import type { CategoryOption } from "@/types/categories";
 import {
   ITEM_COLORS,
+  resolveCustomColorHex,
   type ItemColorValue,
 } from "@/lib/master-data/item-colors";
 import FieldLabel from "@/components/forms/field-label";
@@ -178,7 +179,7 @@ export default function EditItemPage({
   const [useCustomMainColor, setUseCustomMainColor] = useState(false);
   const [useCustomSubColor, setUseCustomSubColor] = useState(false);
   const [customMainHex, setCustomMainHex] = useState("#3B82F6");
-  const [customSubHex, setCustomSubHex] = useState("#9CA3AF");
+  const [customSubHex, setCustomSubHex] = useState("#3B82F6");
 
   const [selectedSeasons, setSelectedSeasons] = useState<string[]>([]);
   const [selectedTpoIds, setSelectedTpoIds] = useState<number[]>([]);
@@ -1977,8 +1978,14 @@ export default function EditItemPage({
                       type="checkbox"
                       checked={useCustomMainColor}
                       onChange={(e) => {
-                        setUseCustomMainColor(e.target.checked);
-                        if (e.target.checked) setMainColor("");
+                        const checked = e.target.checked;
+                        setUseCustomMainColor(checked);
+                        if (checked) {
+                          setCustomMainHex(
+                            resolveCustomColorHex(mainColor, customMainHex),
+                          );
+                          setMainColor("");
+                        }
                       }}
                       className="h-4 w-4"
                     />
@@ -2023,8 +2030,14 @@ export default function EditItemPage({
                       type="checkbox"
                       checked={useCustomSubColor}
                       onChange={(e) => {
-                        setUseCustomSubColor(e.target.checked);
-                        if (e.target.checked) setSubColor("");
+                        const checked = e.target.checked;
+                        setUseCustomSubColor(checked);
+                        if (checked) {
+                          setCustomSubHex(
+                            resolveCustomColorHex(subColor, customSubHex),
+                          );
+                          setSubColor("");
+                        }
                       }}
                       className="h-4 w-4"
                     />

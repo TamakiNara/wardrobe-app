@@ -106,3 +106,16 @@ export const ITEM_COLORS_BY_GROUP = ITEM_COLOR_GROUPS.map((group) => ({
 }));
 
 export type ItemColorValue = (typeof ITEM_COLORS)[number]["value"];
+
+export const DEFAULT_CUSTOM_COLOR_HEX = "#3B82F6";
+
+export function findItemColorHex(value: ItemColorValue | ""): string | null {
+  return ITEM_COLORS.find((color) => color.value === value)?.hex ?? null;
+}
+
+export function resolveCustomColorHex(
+  value: ItemColorValue | "",
+  fallback = DEFAULT_CUSTOM_COLOR_HEX,
+): string {
+  return findItemColorHex(value) ?? fallback;
+}
