@@ -366,4 +366,46 @@ describe("PurchaseCandidatesPage", () => {
     expect(markup).toContain("条件を変えてお試しください。");
     expect(markup).toContain('value="候補ブランド"');
   });
+
+  it("個別解除リンクは対象条件と page を落として他の条件を維持する", async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        purchaseCandidates: [],
+        availableBrands: ["在宅ブランド"],
+        meta: {
+          total: 0,
+          totalAll: 3,
+          page: 2,
+          lastPage: 2,
+        },
+      }),
+    });
+    mockCategoryGroupsResponse();
+    mockBrandOptionsResponse();
+
+    const { default: PurchaseCandidatesPage } = await import("./page");
+    const markup = renderToStaticMarkup(
+      await PurchaseCandidatesPage({
+        searchParams: Promise.resolve({
+          keyword: "在宅",
+          status: "considering",
+          priority: "high",
+          category: "outerwear_coat",
+          brand: "在宅ブランド",
+          sort: "name_asc",
+          page: "2",
+        }),
+      }),
+    );
+
+    expect(markup).toContain(
+      'href="/purchase-candidates?keyword=%E5%9C%A8%E5%AE%85&amp;status=considering&amp;priority=high&amp;category=outerwear_coat&amp;sort=name_asc"',
+    );
+    expect(markup).toContain(
+      'href="/purchase-candidates?keyword=%E5%9C%A8%E5%AE%85&amp;status=considering&amp;priority=high&amp;brand=%E5%9C%A8%E5%AE%85%E3%83%96%E3%83%A9%E3%83%B3%E3%83%89&amp;sort=name_asc"',
+    );
+    expect(markup).toContain('href="/purchase-candidates"');
+  });
 });

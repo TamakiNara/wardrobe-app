@@ -68,6 +68,71 @@ function buildPageHref(
   return query ? `/purchase-candidates?${query}` : "/purchase-candidates";
 }
 
+type PurchaseCandidateFilterKey =
+  | "keyword"
+  | "status"
+  | "priority"
+  | "category"
+  | "brand"
+  | "sort";
+
+function buildFilterHref(
+  searchParams: PurchaseCandidatesPageSearchParams,
+  updates: Partial<
+    Record<PurchaseCandidateFilterKey | "subcategory", string | undefined>
+  >,
+): string {
+  const query = buildQueryString({
+    ...searchParams,
+    ...updates,
+    message: undefined,
+    page: undefined,
+  });
+
+  return query ? `/purchase-candidates?${query}` : "/purchase-candidates";
+}
+
+function buildClearFilterHref(
+  searchParams: PurchaseCandidatesPageSearchParams,
+  key: PurchaseCandidateFilterKey,
+): string {
+  return buildFilterHref(searchParams, {
+    [key]: undefined,
+    ...(key === "category" ? { subcategory: undefined } : {}),
+  });
+}
+
+function FilterFieldHeader({
+  htmlFor,
+  label,
+  isActive,
+  clearHref,
+}: {
+  htmlFor: string;
+  label: string;
+  isActive: boolean;
+  clearHref: string;
+}) {
+  return (
+    <div className="mb-1 flex items-center justify-between gap-2">
+      <label
+        htmlFor={htmlFor}
+        className="block text-sm font-medium text-gray-700"
+      >
+        {label}
+      </label>
+      {isActive ? (
+        <Link
+          href={clearHref}
+          className="text-xs font-medium text-blue-600 hover:underline"
+        >
+          解除
+        </Link>
+      ) : null}
+    </div>
+  );
+}
+
 async function getPurchaseCandidates(
   searchParams: PurchaseCandidatesPageSearchParams,
 ): Promise<PurchaseCandidatesResponse> {
@@ -287,12 +352,15 @@ export default async function PurchaseCandidatesPage({
             <form className="space-y-4" method="get">
               <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-6">
                 <div className="xl:col-span-2">
-                  <label
+                  <FilterFieldHeader
                     htmlFor="keyword"
-                    className="mb-1 block text-sm font-medium text-gray-700"
-                  >
-                    キーワード
-                  </label>
+                    label="キーワード"
+                    isActive={keyword !== ""}
+                    clearHref={buildClearFilterHref(
+                      resolvedSearchParams,
+                      "keyword",
+                    )}
+                  />
                   <input
                     id="keyword"
                     name="keyword"
@@ -304,12 +372,15 @@ export default async function PurchaseCandidatesPage({
                 </div>
 
                 <div>
-                  <label
+                  <FilterFieldHeader
                     htmlFor="status"
-                    className="mb-1 block text-sm font-medium text-gray-700"
-                  >
-                    状態
-                  </label>
+                    label="状態"
+                    isActive={status !== ""}
+                    clearHref={buildClearFilterHref(
+                      resolvedSearchParams,
+                      "status",
+                    )}
+                  />
                   <select
                     id="status"
                     name="status"
@@ -328,12 +399,15 @@ export default async function PurchaseCandidatesPage({
                 </div>
 
                 <div>
-                  <label
+                  <FilterFieldHeader
                     htmlFor="priority"
-                    className="mb-1 block text-sm font-medium text-gray-700"
-                  >
-                    優先度
-                  </label>
+                    label="優先度"
+                    isActive={priority !== ""}
+                    clearHref={buildClearFilterHref(
+                      resolvedSearchParams,
+                      "priority",
+                    )}
+                  />
                   <select
                     id="priority"
                     name="priority"
@@ -352,12 +426,15 @@ export default async function PurchaseCandidatesPage({
                 </div>
 
                 <div>
-                  <label
+                  <FilterFieldHeader
                     htmlFor="category"
-                    className="mb-1 block text-sm font-medium text-gray-700"
-                  >
-                    カテゴリ
-                  </label>
+                    label="カテゴリ"
+                    isActive={category !== ""}
+                    clearHref={buildClearFilterHref(
+                      resolvedSearchParams,
+                      "category",
+                    )}
+                  />
                   <select
                     id="category"
                     name="category"
@@ -374,12 +451,15 @@ export default async function PurchaseCandidatesPage({
                 </div>
 
                 <div>
-                  <label
+                  <FilterFieldHeader
                     htmlFor="brand"
-                    className="mb-1 block text-sm font-medium text-gray-700"
-                  >
-                    ブランド
-                  </label>
+                    label="ブランド"
+                    isActive={brand !== ""}
+                    clearHref={buildClearFilterHref(
+                      resolvedSearchParams,
+                      "brand",
+                    )}
+                  />
                   <PurchaseCandidateBrandFilterField
                     key={`purchase-candidate-brand-filter:${brand}`}
                     inputId="brand"
@@ -390,12 +470,15 @@ export default async function PurchaseCandidatesPage({
                 </div>
 
                 <div>
-                  <label
+                  <FilterFieldHeader
                     htmlFor="sort"
-                    className="mb-1 block text-sm font-medium text-gray-700"
-                  >
-                    並び順
-                  </label>
+                    label="並び順"
+                    isActive={sort !== ""}
+                    clearHref={buildClearFilterHref(
+                      resolvedSearchParams,
+                      "sort",
+                    )}
+                  />
                   <select
                     id="sort"
                     name="sort"

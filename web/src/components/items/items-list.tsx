@@ -133,6 +133,38 @@ function buildQueryString({
   return params.toString();
 }
 
+function FilterFieldHeader({
+  htmlFor,
+  label,
+  isActive,
+  onClear,
+}: {
+  htmlFor?: string;
+  label: string;
+  isActive: boolean;
+  onClear: () => void;
+}) {
+  return (
+    <div className="mb-1 flex items-center justify-between gap-2">
+      <label
+        htmlFor={htmlFor}
+        className="block text-sm font-medium text-gray-700"
+      >
+        {label}
+      </label>
+      {isActive ? (
+        <button
+          type="button"
+          onClick={onClear}
+          className="text-xs font-medium text-blue-600 hover:underline"
+        >
+          解除
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
 function PreviewThumb({
   item,
   mainColorHex,
@@ -214,15 +246,23 @@ export default function ItemsList({
         page: number;
       }>,
     ) => {
+      const shouldResetPage = !Object.prototype.hasOwnProperty.call(
+        nextValues,
+        "page",
+      );
+      const nextCategory = nextValues.category ?? categoryFilter;
+      const nextSubcategory =
+        nextValues.subcategory ??
+        (nextCategory === categoryFilter ? subcategoryFilter : "");
       const nextQuery = buildQueryString({
         keyword: nextValues.keyword ?? keyword,
         brand: nextValues.brand ?? brandFilter,
-        category: nextValues.category ?? categoryFilter,
-        subcategory: nextValues.subcategory ?? subcategoryFilter,
+        category: nextCategory,
+        subcategory: nextCategory ? nextSubcategory : "",
         season: nextValues.season ?? seasonFilter,
         tpo: nextValues.tpo ?? tpoFilter,
         sort: nextValues.sort ?? sort,
-        page: nextValues.page ?? page,
+        page: nextValues.page ?? (shouldResetPage ? 1 : page),
       });
 
       router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, {
@@ -424,9 +464,14 @@ export default function ItemsList({
       <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-6">
           <div className="xl:col-span-2">
-            <label className="mb-1 block text-sm font-medium text-gray-700">
-              キーワード
-            </label>
+            <FilterFieldHeader
+              label="キーワード"
+              isActive={keyword !== ""}
+              onClear={() => {
+                setDraftKeyword("");
+                updateQuery({ keyword: "" });
+              }}
+            />
             <input
               type="search"
               value={draftKeyword}
@@ -444,12 +489,12 @@ export default function ItemsList({
           </div>
 
           <div>
-            <label
+            <FilterFieldHeader
               htmlFor="item-list-category"
-              className="mb-1 block text-sm font-medium text-gray-700"
-            >
-              カテゴリ
-            </label>
+              label="カテゴリ"
+              isActive={categoryFilter !== ""}
+              onClear={() => updateQuery({ category: "", subcategory: "" })}
+            />
             <select
               id="item-list-category"
               value={categoryFilter}
@@ -472,12 +517,12 @@ export default function ItemsList({
           </div>
 
           <div>
-            <label
+            <FilterFieldHeader
               htmlFor="item-list-subcategory"
-              className="mb-1 block text-sm font-medium text-gray-700"
-            >
-              種類
-            </label>
+              label="種類"
+              isActive={subcategoryFilter !== ""}
+              onClear={() => updateQuery({ subcategory: "" })}
+            />
             <select
               id="item-list-subcategory"
               value={subcategoryFilter}
@@ -497,12 +542,12 @@ export default function ItemsList({
           </div>
 
           <div>
-            <label
+            <FilterFieldHeader
               htmlFor="item-list-brand"
-              className="mb-1 block text-sm font-medium text-gray-700"
-            >
-              ブランド
-            </label>
+              label="ブランド"
+              isActive={brandFilter !== ""}
+              onClear={() => updateQuery({ brand: "" })}
+            />
             <PurchaseCandidateBrandFilterField
               key={`item-list-brand-filter:${brandFilter}`}
               inputId="item-list-brand"
@@ -516,9 +561,11 @@ export default function ItemsList({
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
-              季節
-            </label>
+            <FilterFieldHeader
+              label="季節"
+              isActive={seasonFilter !== ""}
+              onClear={() => updateQuery({ season: "" })}
+            />
             <select
               value={seasonFilter}
               onChange={(e) => updateQuery({ season: e.target.value, page: 1 })}
@@ -534,9 +581,11 @@ export default function ItemsList({
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
-              TPO
-            </label>
+            <FilterFieldHeader
+              label="TPO"
+              isActive={tpoFilter !== ""}
+              onClear={() => updateQuery({ tpo: "" })}
+            />
             <select
               value={tpoFilter}
               onChange={(e) => updateQuery({ tpo: e.target.value, page: 1 })}
@@ -552,9 +601,11 @@ export default function ItemsList({
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
-              sort
-            </label>
+            <FilterFieldHeader
+              label="sort"
+              isActive={sort !== DEFAULT_SORT}
+              onClear={() => updateQuery({ sort: DEFAULT_SORT })}
+            />
             <select
               value={sort}
               onChange={(e) =>

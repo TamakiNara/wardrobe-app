@@ -1081,4 +1081,76 @@ describe("ItemsList", () => {
       },
     );
   });
+
+  it("個別解除で対象条件と page を URL から外す", async () => {
+    searchParamsValue =
+      "keyword=%E7%99%BD&brand=UNIQLO&category=tops&subcategory=tshirt_cutsew&page=2";
+
+    const { default: ItemsList } = await import("./items-list");
+
+    await act(async () => {
+      root.render(
+        React.createElement(ItemsList, {
+          ...defaultListProps,
+          initialCategoryOptions: [{ value: "tops", label: "トップス" }],
+        }),
+      );
+      await waitForEffects();
+    });
+
+    const keywordInput = container.querySelector<HTMLInputElement>(
+      'input[type="search"]',
+    );
+    const keywordClearButton = Array.from(
+      keywordInput?.closest("div")?.querySelectorAll("button") ?? [],
+    ).find((button) => button.textContent === "解除");
+
+    await act(async () => {
+      keywordClearButton?.click();
+      await waitForEffects();
+    });
+
+    expect(replaceMock).toHaveBeenCalledWith(
+      "/items?brand=UNIQLO&category=tops&subcategory=tshirt_cutsew",
+      { scroll: false },
+    );
+  });
+
+  it("カテゴリ変更時は不整合なサブカテゴリと page をクリアする", async () => {
+    searchParamsValue = "category=bags&subcategory=rucksack&page=3";
+
+    const { default: ItemsList } = await import("./items-list");
+
+    await act(async () => {
+      root.render(
+        React.createElement(ItemsList, {
+          ...defaultListProps,
+          availableCategoryValues: ["bags", "fashion_accessories"],
+          initialCategoryOptions: [
+            { value: "bags", label: "バッグ" },
+            { value: "fashion_accessories", label: "ファッション小物" },
+          ],
+        }),
+      );
+      await waitForEffects();
+    });
+
+    const categorySelect = container.querySelector<HTMLSelectElement>(
+      "#item-list-category",
+    );
+
+    await act(async () => {
+      if (!categorySelect) {
+        throw new Error("category select not found");
+      }
+      categorySelect.value = "fashion_accessories";
+      categorySelect.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    expect(replaceMock).toHaveBeenCalledWith(
+      "/items?category=fashion_accessories",
+      { scroll: false },
+    );
+  });
 });
