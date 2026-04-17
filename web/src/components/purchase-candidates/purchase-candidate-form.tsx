@@ -165,7 +165,9 @@ export default function PurchaseCandidateForm({
   const [priority, setPriority] = useState<PurchaseCandidatePriority>("medium");
   const [name, setName] = useState("");
   const [categoryId, setCategoryId] = useState("");
-  const [groupId, setGroupId] = useState<number | null>(null);
+  const [variantSourceCandidateId, setVariantSourceCandidateId] = useState<
+    number | null
+  >(null);
   const [brandName, setBrandName] = useState("");
   const [saveBrandAsCandidate, setSaveBrandAsCandidate] = useState(false);
   const [price, setPrice] = useState("");
@@ -320,7 +322,7 @@ export default function PurchaseCandidateForm({
           setPriority(candidate.priority);
           setName(candidate.name);
           setCategoryId(candidate.category_id);
-          setGroupId(candidate.group_id ?? null);
+          setVariantSourceCandidateId(null);
           setBrandName(candidate.brand_name ?? "");
           setSaveBrandAsCandidate(false);
           setPrice(candidate.price === null ? "" : String(candidate.price));
@@ -441,7 +443,11 @@ export default function PurchaseCandidateForm({
         : ensurePurchaseCandidateDuplicateName(payload.name),
     );
     setCategoryId(payload.category_id);
-    setGroupId(isColorVariantSource ? (payload.group_id ?? null) : null);
+    setVariantSourceCandidateId(
+      isColorVariantSource
+        ? (payload.variant_source_candidate_id ?? null)
+        : null,
+    );
     setBrandName(payload.brand_name ?? "");
     setSaveBrandAsCandidate(false);
     setPrice(payload.price === null ? "" : String(payload.price));
@@ -635,7 +641,8 @@ export default function PurchaseCandidateForm({
       priority,
       name: name.trim(),
       category_id: categoryId,
-      group_id: mode === "create" ? groupId : undefined,
+      variant_source_candidate_id:
+        mode === "create" ? variantSourceCandidateId : undefined,
       brand_name: normalizeNullableString(brandName) || null,
       save_brand_as_candidate: saveBrandAsCandidate,
       price: price === "" ? null : Number(price),

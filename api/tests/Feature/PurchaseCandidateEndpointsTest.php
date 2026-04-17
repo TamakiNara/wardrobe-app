@@ -828,7 +828,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
             ->assertJsonMissingPath('purchaseCandidate.group_id');
     }
 
-    public function test_post_purchase_candidate_color_variant_groups_ungrouped_source_and_store_uses_next_order(): void
+    public function test_post_purchase_candidate_color_variant_draft_does_not_group_until_store(): void
     {
         $user = User::factory()->create();
         $candidate = $this->createCandidate($user, [
@@ -847,12 +847,14 @@ class PurchaseCandidateEndpointsTest extends TestCase
         $draftResponse->assertOk()
             ->assertJsonPath('message', 'color_variant_payload_ready')
             ->assertJsonPath('purchaseCandidate.name', '春コート')
-            ->assertJsonPath('purchaseCandidate.group_id', 1);
+            ->assertJsonPath('purchaseCandidate.variant_source_candidate_id', $candidate->id)
+            ->assertJsonMissingPath('purchaseCandidate.group_id');
 
+        $this->assertDatabaseCount('purchase_candidate_groups', 0);
         $this->assertDatabaseHas('purchase_candidates', [
             'id' => $candidate->id,
-            'group_id' => 1,
-            'group_order' => 1,
+            'group_id' => null,
+            'group_order' => null,
         ]);
 
         $payload = $draftResponse->json('purchaseCandidate');
@@ -866,9 +868,16 @@ class PurchaseCandidateEndpointsTest extends TestCase
         $storeResponse->assertCreated();
         $newCandidateId = $storeResponse->json('purchaseCandidate.id');
 
+        $groupId = PurchaseCandidate::query()->findOrFail($candidate->id)->group_id;
+
+        $this->assertDatabaseHas('purchase_candidates', [
+            'id' => $candidate->id,
+            'group_id' => $groupId,
+            'group_order' => 1,
+        ]);
         $this->assertDatabaseHas('purchase_candidates', [
             'id' => $newCandidateId,
-            'group_id' => 1,
+            'group_id' => $groupId,
             'group_order' => 2,
         ]);
     }
@@ -899,7 +908,14 @@ class PurchaseCandidateEndpointsTest extends TestCase
         ]);
 
         $draftResponse->assertOk()
-            ->assertJsonPath('purchaseCandidate.group_id', $group->id);
+            ->assertJsonPath('purchaseCandidate.variant_source_candidate_id', $candidate->id)
+            ->assertJsonMissingPath('purchaseCandidate.group_id');
+
+        $this->assertDatabaseHas('purchase_candidates', [
+            'id' => $candidate->id,
+            'group_id' => $group->id,
+            'group_order' => 2,
+        ]);
 
         $payload = $draftResponse->json('purchaseCandidate');
         unset($payload['images']);

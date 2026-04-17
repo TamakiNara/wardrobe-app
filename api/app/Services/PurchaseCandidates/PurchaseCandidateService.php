@@ -30,12 +30,12 @@ class PurchaseCandidateService
 
         try {
             return DB::transaction(function () use ($user, $validated, &$copiedFiles) {
-                $group = $this->resolveGroupForCreate($user, $validated);
+                $colorVariantGroup = $this->resolveColorVariantGroupForCreate($user, $validated);
 
                 $candidate = PurchaseCandidate::query()->create([
                     'user_id' => $user->id,
-                    'group_id' => $group?->id,
-                    'group_order' => $group?->nextGroupOrder(),
+                    'group_id' => $colorVariantGroup?->id,
+                    'group_order' => $colorVariantGroup?->nextGroupOrder(),
                     'status' => $validated['status'] ?? 'considering',
                     'priority' => $validated['priority'] ?? 'medium',
                     'name' => $validated['name'],
@@ -156,40 +156,9 @@ class PurchaseCandidateService
 
     public function colorVariant(User $user, int $candidateId): array
     {
-        return DB::transaction(function () use ($user, $candidateId) {
-            $sourceCandidate = PurchaseCandidate::query()
-                ->where('user_id', $user->id)
-                ->lockForUpdate()
-                ->with(['category', 'colors', 'seasons', 'tpos', 'images', 'materials'])
-                ->findOrFail($candidateId);
+        $sourceCandidate = $this->findOwnedCandidate($user, $candidateId);
 
-            if ($sourceCandidate->group_id === null) {
-                $group = PurchaseCandidateGroup::query()->create([
-                    'user_id' => $user->id,
-                ]);
-                $sourceCandidate->forceFill([
-                    'group_id' => $group->id,
-                    'group_order' => 1,
-                ])->save();
-            } else {
-                $group = PurchaseCandidateGroup::query()
-                    ->where('user_id', $user->id)
-                    ->lockForUpdate()
-                    ->findOrFail($sourceCandidate->group_id);
-                PurchaseCandidateGroupSupport::ensureGroupBelongsToCandidateUser($group, $sourceCandidate);
-
-                if ($sourceCandidate->group_order === null) {
-                    $sourceCandidate->forceFill([
-                        'group_order' => $group->nextGroupOrder(),
-                    ])->save();
-                }
-            }
-
-            return \App\Support\PurchaseCandidatePayloadBuilder::buildColorVariantDraft(
-                $sourceCandidate->fresh()->load(['category', 'colors', 'seasons', 'tpos', 'images', 'materials']),
-                $group->id,
-            );
-        });
+        return \App\Support\PurchaseCandidatePayloadBuilder::buildColorVariantDraft($sourceCandidate);
     }
 
     public function addImage(User $user, int $candidateId, UploadedFile $image, ?int $sortOrder = null, ?bool $isPrimary = null): PurchaseCandidateImage
@@ -338,21 +307,53 @@ class PurchaseCandidateService
         }
     }
 
-    private function resolveGroupForCreate(User $user, array $validated): ?PurchaseCandidateGroup
+    private function resolveColorVariantGroupForCreate(User $user, array $validated): ?PurchaseCandidateGroup
     {
-        if (($validated['group_id'] ?? null) === null) {
+        if (($validated['variant_source_candidate_id'] ?? null) === null) {
             return null;
+        }
+
+        $sourceCandidate = PurchaseCandidate::query()
+            ->where('user_id', $user->id)
+            ->lockForUpdate()
+            ->find((int) $validated['variant_source_candidate_id']);
+
+        if ($sourceCandidate === null) {
+            throw ValidationException::withMessages([
+                'variant_source_candidate_id' => 'Selected source candidate does not belong to the current user.',
+            ]);
+        }
+
+        if ($sourceCandidate->group_id === null) {
+            $group = PurchaseCandidateGroup::query()->create([
+                'user_id' => $user->id,
+            ]);
+
+            $sourceCandidate->forceFill([
+                'group_id' => $group->id,
+                'group_order' => 1,
+            ])->save();
+
+            return $group;
         }
 
         $group = PurchaseCandidateGroup::query()
             ->where('user_id', $user->id)
             ->lockForUpdate()
-            ->find((int) $validated['group_id']);
+            ->find($sourceCandidate->group_id);
 
         if ($group === null) {
             throw ValidationException::withMessages([
-                'group_id' => 'Selected purchase candidate group does not belong to the current user.',
+                'variant_source_candidate_id' => 'Selected source candidate group does not belong to the current user.',
             ]);
+        }
+
+        PurchaseCandidateGroupSupport::ensureGroupBelongsToCandidateUser($group, $sourceCandidate);
+
+        if ($sourceCandidate->group_order === null) {
+            $sourceCandidate->forceFill([
+                'group_order' => $group->nextGroupOrder(),
+            ])->save();
         }
 
         return $group;

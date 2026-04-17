@@ -670,7 +670,7 @@ describe("PurchaseCandidateForm", () => {
     expect(payload.duplicate_images).toEqual([{ source_image_id: 7 }]);
   });
 
-  it("色違い追加の初期値を読み込み、保存時に group_id を送る", async () => {
+  it("色違い追加の初期値を読み込み、保存時に source candidate id を送る", async () => {
     searchParamsValue = "source=color-variant";
     window.sessionStorage.setItem(
       "purchase-candidate-duplicate-payload",
@@ -679,13 +679,13 @@ describe("PurchaseCandidateForm", () => {
         priority: "high",
         name: "春コート",
         category_id: "outerwear_coat",
-        group_id: 5,
+        variant_source_candidate_id: 10,
         brand_name: "Sample Brand",
         price: 14800,
         sale_price: null,
         sale_ends_at: null,
         purchase_url: "https://example.test/products/1",
-        memo: "??",
+        memo: "メモ",
         wanted_reason: "欲しい理由",
         size_gender: "women",
         size_label: "M",
@@ -739,7 +739,7 @@ describe("PurchaseCandidateForm", () => {
     const [, requestInit] = fetchMock.mock.calls[0];
     const payload = JSON.parse(requestInit.body as string);
 
-    expect(payload.group_id).toBe(5);
+    expect(payload.variant_source_candidate_id).toBe(10);
     expect(payload.name).toBe("春コート");
   });
 

@@ -61,7 +61,7 @@ describe("PurchaseCandidateColorVariantAction", () => {
     globalThis.IS_REACT_ACT_ENVIRONMENT = false;
   });
 
-  it("色違い追加成功時は group 付き初期値 payload を保存して新規作成画面へ遷移する", async () => {
+  it("色違い追加成功時は source candidate id 付き初期値 payload を保存して新規作成画面へ遷移する", async () => {
     apiFetchMock.mockResolvedValue({
       message: "color_variant_payload_ready",
       purchaseCandidate: {
@@ -69,7 +69,7 @@ describe("PurchaseCandidateColorVariantAction", () => {
         status: "considering",
         priority: "medium",
         category_id: "outerwear_coat",
-        group_id: 5,
+        variant_source_candidate_id: 10,
         brand_name: "Sample",
         price: 14800,
         sale_price: 12800,
@@ -116,7 +116,7 @@ describe("PurchaseCandidateColorVariantAction", () => {
     expect(saveColorVariantPayloadMock).toHaveBeenCalledWith(
       expect.objectContaining({
         name: "春コート",
-        group_id: 5,
+        variant_source_candidate_id: 10,
       }),
     );
     expect(pushMock).toHaveBeenCalledWith(

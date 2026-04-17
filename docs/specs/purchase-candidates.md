@@ -214,7 +214,8 @@
 - 色違い追加は、通常複製に近い動きで作成する
 - 元 candidate の内容を初期値として、新しい candidate を作る
 - 新 candidate は元 candidate と同じ group に所属させる
-- 元 candidate がまだ group に属していない場合は、このタイミングで group を作成する
+- 色違い追加開始時の draft では元 candidate を更新せず、`variant_source_candidate_id` だけを持たせる
+- 新 candidate の保存時に group を解決し、元 candidate がまだ group に属していない場合は保存 transaction 内で group を作成する
 
 ### 初回の初期値
 
@@ -238,7 +239,7 @@
 ### 色違い追加
 
 - 元 candidate をベースに新しい purchase candidate を作る
-- ただし同じ `group_id` を持たせ、色違いグループとして一覧で束ねる
+- 保存時に元 candidate の group を解決し、同じ `group_id` を持たせて色違いグループとして一覧で束ねる
 
 ---
 

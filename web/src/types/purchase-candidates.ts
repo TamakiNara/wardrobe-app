@@ -100,7 +100,7 @@ export type PurchaseCandidateUpsertPayload = {
   priority: PurchaseCandidatePriority;
   name: string;
   category_id: string;
-  group_id?: number | null;
+  variant_source_candidate_id?: number | null;
   brand_name: string | null;
   save_brand_as_candidate?: boolean;
   price: number | null;

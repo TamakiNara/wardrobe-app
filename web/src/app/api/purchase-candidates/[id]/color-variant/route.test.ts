@@ -31,7 +31,7 @@ describe("POST /api/purchase-candidates/[id]/color-variant", () => {
         new Response(
           JSON.stringify({
             message: "color_variant_payload_ready",
-            purchaseCandidate: { name: "候補", group_id: 1 },
+            purchaseCandidate: { name: "候補", variant_source_candidate_id: 1 },
           }),
           { status: 200, headers: { "content-type": "application/json" } },
         ),
@@ -59,6 +59,6 @@ describe("POST /api/purchase-candidates/[id]/color-variant", () => {
       "http://localhost:8000/api/purchase-candidates/1/color-variant",
       expect.objectContaining({ method: "POST" }),
     );
-    expect(json.purchaseCandidate.group_id).toBe(1);
+    expect(json.purchaseCandidate.variant_source_candidate_id).toBe(1);
   });
 });

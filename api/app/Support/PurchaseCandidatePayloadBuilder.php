@@ -234,12 +234,10 @@ class PurchaseCandidatePayloadBuilder
         ];
     }
 
-    public static function buildColorVariantDraft(
-        PurchaseCandidate $candidate,
-        int $groupId,
-    ): array {
+    public static function buildColorVariantDraft(PurchaseCandidate $candidate): array
+    {
         return array_merge(self::buildDuplicateDraft($candidate, $candidate->name ?? ''), [
-            'group_id' => $groupId,
+            'variant_source_candidate_id' => $candidate->id,
         ]);
     }
 
