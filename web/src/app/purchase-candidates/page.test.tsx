@@ -27,6 +27,7 @@ vi.mock(
       status,
       priority,
       category,
+      subcategory,
       brand,
       sort,
       itemCount,
@@ -36,6 +37,7 @@ vi.mock(
       status: string;
       priority: string;
       category: string;
+      subcategory: string;
       brand: string;
       sort: string;
       itemCount: number;
@@ -53,6 +55,7 @@ vi.mock(
         React.createElement("span", null, "状態"),
         React.createElement("span", null, "優先度"),
         React.createElement("span", null, "カテゴリ"),
+        React.createElement("span", null, "種類"),
         React.createElement("span", null, "ブランド"),
         React.createElement("span", null, "並び順"),
         React.createElement("input", {
@@ -68,6 +71,7 @@ vi.mock(
         React.createElement("span", null, status),
         React.createElement("span", null, priority),
         React.createElement("span", null, category),
+        React.createElement("span", null, subcategory),
         React.createElement("span", null, sort),
       ),
   }),
@@ -115,6 +119,13 @@ describe("PurchaseCandidatesPage", () => {
             ],
           },
         ],
+      }),
+    });
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        visibleCategoryIds: ["outerwear_coat", "tops_tshirt_cutsew"],
       }),
     });
   }
@@ -298,6 +309,7 @@ describe("PurchaseCandidatesPage", () => {
     expect(markup).toContain("状態");
     expect(markup).toContain("優先度");
     expect(markup).toContain("カテゴリ");
+    expect(markup).toContain("種類");
     expect(markup).toContain("ブランド");
     expect(markup).toContain("並び順");
     expect(markup).toContain("名前・ブランド・メモで検索");
@@ -363,7 +375,8 @@ describe("PurchaseCandidatesPage", () => {
           keyword: "在宅",
           status: "considering",
           priority: "high",
-          category: "outerwear_coat",
+          category: "outerwear",
+          subcategory: "coat",
           brand: "在宅ブランド",
           sort: "name_asc",
           page: "2",
@@ -373,7 +386,7 @@ describe("PurchaseCandidatesPage", () => {
 
     expect(fetchMock).toHaveBeenCalledWith(
       expect.stringContaining(
-        "/api/purchase-candidates?keyword=%E5%9C%A8%E5%AE%85&status=considering&priority=high&category=outerwear_coat&brand=%E5%9C%A8%E5%AE%85%E3%83%96%E3%83%A9%E3%83%B3%E3%83%89&sort=name_asc&page=2",
+        "/api/purchase-candidates?keyword=%E5%9C%A8%E5%AE%85&status=considering&priority=high&category=outerwear&subcategory=coat&brand=%E5%9C%A8%E5%AE%85%E3%83%96%E3%83%A9%E3%83%B3%E3%83%89&sort=name_asc&page=2",
       ),
       expect.any(Object),
     );
@@ -381,10 +394,10 @@ describe("PurchaseCandidatesPage", () => {
     expect(markup).toContain("2 / 3ページ");
     expect(markup).toContain("（全13件）");
     expect(markup).toContain(
-      'href="/purchase-candidates?keyword=%E5%9C%A8%E5%AE%85&amp;status=considering&amp;priority=high&amp;category=outerwear_coat&amp;brand=%E5%9C%A8%E5%AE%85%E3%83%96%E3%83%A9%E3%83%B3%E3%83%89&amp;sort=name_asc"',
+      'href="/purchase-candidates?keyword=%E5%9C%A8%E5%AE%85&amp;status=considering&amp;priority=high&amp;category=outerwear&amp;subcategory=coat&amp;brand=%E5%9C%A8%E5%AE%85%E3%83%96%E3%83%A9%E3%83%B3%E3%83%89&amp;sort=name_asc"',
     );
     expect(markup).toContain(
-      'href="/purchase-candidates?keyword=%E5%9C%A8%E5%AE%85&amp;status=considering&amp;priority=high&amp;category=outerwear_coat&amp;brand=%E5%9C%A8%E5%AE%85%E3%83%96%E3%83%A9%E3%83%B3%E3%83%89&amp;sort=name_asc&amp;page=3"',
+      'href="/purchase-candidates?keyword=%E5%9C%A8%E5%AE%85&amp;status=considering&amp;priority=high&amp;category=outerwear&amp;subcategory=coat&amp;brand=%E5%9C%A8%E5%AE%85%E3%83%96%E3%83%A9%E3%83%B3%E3%83%89&amp;sort=name_asc&amp;page=3"',
     );
     expect(markup).toContain('value="在宅ブランド"');
   });
@@ -446,7 +459,8 @@ describe("PurchaseCandidatesPage", () => {
           keyword: "在宅",
           status: "considering",
           priority: "high",
-          category: "outerwear_coat",
+          category: "outerwear",
+          subcategory: "coat",
           brand: "在宅ブランド",
           sort: "name_asc",
           page: "2",
@@ -458,7 +472,8 @@ describe("PurchaseCandidatesPage", () => {
     expect(markup).toContain("在宅");
     expect(markup).toContain("considering");
     expect(markup).toContain("high");
-    expect(markup).toContain("outerwear_coat");
+    expect(markup).toContain("outerwear");
+    expect(markup).toContain("coat");
     expect(markup).toContain('value="在宅ブランド"');
     expect(markup).toContain("name_asc");
   });

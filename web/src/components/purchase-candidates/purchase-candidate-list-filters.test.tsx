@@ -25,8 +25,9 @@ const defaultProps = {
   itemCount: 2,
   totalCount: 10,
   categoryOptions: [
-    { id: "outerwear_coat", name: "コート" },
-    { id: "tops_tshirt_cutsew", name: "Tシャツ・カットソー" },
+    { value: "outerwear", label: "ジャケット・アウター" },
+    { value: "tops", label: "トップス" },
+    { value: "bags", label: "バッグ" },
   ],
   brandOptions: [
     {
@@ -175,7 +176,7 @@ describe("PurchaseCandidateListFilters", () => {
   });
 
   it("category 変更時は subcategory と page を落とす", async () => {
-    searchParamsValue = "category=outerwear_coat&subcategory=legacy&page=3";
+    searchParamsValue = "category=outerwear&subcategory=coat&page=3";
     const { default: PurchaseCandidateListFilters } =
       await import("./purchase-candidate-list-filters");
 
@@ -183,8 +184,8 @@ describe("PurchaseCandidateListFilters", () => {
       root.render(
         React.createElement(PurchaseCandidateListFilters, {
           ...defaultProps,
-          category: "outerwear_coat",
-          subcategory: "legacy",
+          category: "outerwear",
+          subcategory: "coat",
         }),
       );
       await waitForEffects();
@@ -195,13 +196,54 @@ describe("PurchaseCandidateListFilters", () => {
     );
 
     await act(async () => {
-      categorySelect!.value = "tops_tshirt_cutsew";
+      categorySelect!.value = "tops";
       categorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
       await waitForEffects();
     });
 
     expect(replaceMock).toHaveBeenCalledWith(
-      "/purchase-candidates?category=tops_tshirt_cutsew",
+      "/purchase-candidates?category=tops",
+      { scroll: false },
+    );
+  });
+
+  it("subcategory は category 選択後だけ有効になり、current 値で URL に反映する", async () => {
+    searchParamsValue = "category=bags&page=2";
+    const { default: PurchaseCandidateListFilters } =
+      await import("./purchase-candidate-list-filters");
+
+    await act(async () => {
+      root.render(
+        React.createElement(PurchaseCandidateListFilters, {
+          ...defaultProps,
+          category: "bags",
+        }),
+      );
+      await waitForEffects();
+    });
+
+    const subcategorySelect = container.querySelector<HTMLSelectElement>(
+      "#purchase-candidate-subcategory",
+    );
+
+    expect(subcategorySelect?.disabled).toBe(false);
+    expect(
+      Array.from(subcategorySelect?.options ?? []).map(
+        (option) => option.value,
+      ),
+    ).toContain("rucksack");
+    expect(
+      subcategorySelect?.options[subcategorySelect.options.length - 1]?.value,
+    ).toBe("other");
+
+    await act(async () => {
+      subcategorySelect!.value = "rucksack";
+      subcategorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    expect(replaceMock).toHaveBeenCalledWith(
+      "/purchase-candidates?category=bags&subcategory=rucksack",
       { scroll: false },
     );
   });

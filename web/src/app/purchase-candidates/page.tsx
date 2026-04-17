@@ -3,12 +3,13 @@ import { redirect } from "next/navigation";
 import { ExternalLink } from "lucide-react";
 import PurchaseCandidateListFilters from "@/components/purchase-candidates/purchase-candidate-list-filters";
 import { IndexPageHeader } from "@/components/shared/index-page-header";
+import { buildSupportedCategoryOptions } from "@/lib/api/categories";
 import {
   PURCHASE_CANDIDATE_PRIORITY_LABELS,
   PURCHASE_CANDIDATE_STATUS_LABELS,
 } from "@/lib/purchase-candidates/labels";
 import { fetchLaravelWithCookie } from "@/lib/server/laravel";
-import type { CategoriesResponse } from "@/types/categories";
+import type { CategoriesResponse, CategoryOption } from "@/types/categories";
 import type { PurchaseCandidatesResponse } from "@/types/purchase-candidates";
 import type { UserBrandRecord } from "@/types/settings";
 
@@ -17,13 +18,18 @@ type PurchaseCandidatesPageSearchParams = Record<
   string | string[] | undefined
 >;
 
+type CategoryVisibilitySettingsResponse = {
+  visibleCategoryIds?: string[];
+};
+
 function buildQueryString(
   searchParams: PurchaseCandidatesPageSearchParams,
 ): string {
   const params = new URLSearchParams();
+  const category = readSearchParam(searchParams, "category");
 
   for (const [key, value] of Object.entries(searchParams)) {
-    if (key === "message") {
+    if (key === "message" || (key === "subcategory" && !category)) {
       continue;
     }
 
@@ -108,42 +114,30 @@ async function getPurchaseCandidates(
   };
 }
 
-async function getCategoryOptions(): Promise<
-  Array<{ id: string; name: string }>
-> {
-  const response = await fetchLaravelWithCookie("/api/categories");
+async function getCategoryOptions(): Promise<CategoryOption[]> {
+  const [categoriesResponse, visibilityResponse] = await Promise.all([
+    fetchLaravelWithCookie("/api/categories"),
+    fetchLaravelWithCookie("/api/settings/categories"),
+  ]);
 
-  if (response.status === 401) {
+  if (categoriesResponse.status === 401 || visibilityResponse.status === 401) {
     redirect("/login");
   }
 
-  if (!response.ok) {
+  if (!categoriesResponse.ok) {
     return [];
   }
 
-  const data = (await response.json()) as Partial<CategoriesResponse>;
+  const categoriesData =
+    (await categoriesResponse.json()) as Partial<CategoriesResponse>;
+  const visibilityData = visibilityResponse.ok
+    ? ((await visibilityResponse.json()) as CategoryVisibilitySettingsResponse)
+    : {};
 
-  return (data.groups ?? [])
-    .flatMap((group) =>
-      (group.categories ?? []).map((category) => ({
-        id: category.id,
-        name: category.name,
-        sortOrder: category.sortOrder ?? 0,
-        groupSortOrder: group.sortOrder ?? 0,
-      })),
-    )
-    .sort((a, b) => {
-      if (a.groupSortOrder !== b.groupSortOrder) {
-        return a.groupSortOrder - b.groupSortOrder;
-      }
-
-      if (a.sortOrder !== b.sortOrder) {
-        return a.sortOrder - b.sortOrder;
-      }
-
-      return a.name.localeCompare(b.name, "ja-JP");
-    })
-    .map(({ id, name }) => ({ id, name }));
+  return buildSupportedCategoryOptions(
+    categoriesData.groups ?? [],
+    visibilityData.visibleCategoryIds,
+  );
 }
 
 async function getBrandOptions(): Promise<UserBrandRecord[]> {

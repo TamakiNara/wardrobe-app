@@ -4,9 +4,14 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import PurchaseCandidateBrandFilterField from "@/components/purchase-candidates/purchase-candidate-brand-filter-field";
 import {
+  getItemSubcategoryOptions,
+  normalizeItemSubcategory,
+} from "@/lib/master-data/item-subcategories";
+import {
   PURCHASE_CANDIDATE_PRIORITY_LABELS,
   PURCHASE_CANDIDATE_STATUS_LABELS,
 } from "@/lib/purchase-candidates/labels";
+import type { CategoryOption } from "@/types/categories";
 import type { UserBrandRecord } from "@/types/settings";
 
 type PurchaseCandidateListFiltersProps = {
@@ -19,7 +24,7 @@ type PurchaseCandidateListFiltersProps = {
   sort: string;
   itemCount: number;
   totalCount: number;
-  categoryOptions: Array<{ id: string; name: string }>;
+  categoryOptions: CategoryOption[];
   brandOptions: UserBrandRecord[];
 };
 
@@ -150,9 +155,11 @@ export default function PurchaseCandidateListFilters({
         "page",
       );
       const nextCategory = nextValues.category ?? category;
-      const nextSubcategory =
+      const rawNextSubcategory =
         nextValues.subcategory ??
         (nextCategory === category ? subcategory : "");
+      const nextSubcategory =
+        normalizeItemSubcategory(nextCategory, rawNextSubcategory) ?? "";
       const nextQuery = buildQueryString({
         keyword: nextValues.keyword ?? keyword,
         status: nextValues.status ?? status,
@@ -211,12 +218,27 @@ export default function PurchaseCandidateListFilters({
     return () => window.clearTimeout(timerId);
   }, [brand, draftBrand, draftKeyword, updateQuery]);
 
+  const currentSubcategory =
+    normalizeItemSubcategory(category, subcategory) ?? "";
+  const subcategoryOptions = category
+    ? [...getItemSubcategoryOptions(category)].sort((left, right) => {
+        if (left.value === "other") {
+          return 1;
+        }
+
+        if (right.value === "other") {
+          return -1;
+        }
+
+        return 0;
+      })
+    : [];
   const hasActiveFilters = Boolean(
     keyword ||
     status ||
     priority ||
     category ||
-    subcategory ||
+    currentSubcategory ||
     brand ||
     sort ||
     currentPage > 1,
@@ -312,8 +334,31 @@ export default function PurchaseCandidateListFilters({
           >
             <option value="">すべて</option>
             {categoryOptions.map((option) => (
-              <option key={option.id} value={option.id}>
-                {option.name}
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <FilterFieldHeader
+            htmlFor="purchase-candidate-subcategory"
+            label="種類"
+            isActive={currentSubcategory !== ""}
+            onClear={() => updateQuery({ subcategory: "" })}
+          />
+          <select
+            id="purchase-candidate-subcategory"
+            value={currentSubcategory}
+            onChange={(e) => updateQuery({ subcategory: e.target.value })}
+            disabled={!category}
+            className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400"
+          >
+            <option value="">すべて</option>
+            {subcategoryOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
               </option>
             ))}
           </select>

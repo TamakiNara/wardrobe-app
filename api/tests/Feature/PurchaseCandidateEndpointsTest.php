@@ -226,7 +226,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
 
         $this->actingAs($user, 'web');
 
-        $response = $this->getJson('/api/purchase-candidates?keyword=%E5%9C%A8%E5%AE%85&status=considering&priority=high&category=outerwear_coat&brand=%E5%9C%A8%E5%AE%85%E3%83%96%E3%83%A9%E3%83%B3%E3%83%89&sort=name_asc&page=2', [
+        $response = $this->getJson('/api/purchase-candidates?keyword=%E5%9C%A8%E5%AE%85&status=considering&priority=high&category=outerwear&subcategory=coat&brand=%E5%9C%A8%E5%AE%85%E3%83%96%E3%83%A9%E3%83%B3%E3%83%89&sort=name_asc&page=2', [
             'Accept' => 'application/json',
         ]);
 
@@ -247,6 +247,30 @@ class PurchaseCandidateEndpointsTest extends TestCase
         $response->assertJsonMissing([
             'name' => '在宅コートブランド違い',
         ]);
+    }
+
+    public function test_get_purchase_candidates_filters_by_parent_category(): void
+    {
+        $user = User::factory()->create();
+        $outerwearCandidate = $this->createCandidate($user, [
+            'name' => 'outerwear candidate',
+            'category_id' => 'outerwear_coat',
+        ]);
+        $this->createCandidate($user, [
+            'name' => 'tops candidate',
+            'category_id' => 'tops_tshirt_cutsew',
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->getJson('/api/purchase-candidates?category=outerwear', [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonCount(1, 'purchaseCandidates')
+            ->assertJsonPath('purchaseCandidates.0.id', $outerwearCandidate->id)
+            ->assertJsonPath('purchaseCandidates.0.name', 'outerwear candidate');
     }
 
     public function test_get_purchase_candidate_returns_detail(): void

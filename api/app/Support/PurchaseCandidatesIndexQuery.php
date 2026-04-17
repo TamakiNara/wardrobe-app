@@ -14,7 +14,8 @@ class PurchaseCandidatesIndexQuery
         $keyword = trim((string) $request->query('keyword', ''));
         $status = trim((string) $request->query('status', ''));
         $priority = trim((string) $request->query('priority', ''));
-        $categoryId = trim((string) $request->query('category', ''));
+        $category = trim((string) $request->query('category', ''));
+        $subcategory = trim((string) $request->query('subcategory', ''));
         $brand = trim((string) $request->query('brand', ''));
         $sort = $request->query('sort') === 'name_asc' ? 'name_asc' : 'updated_at_desc';
         $page = ListQuerySupport::normalizePage($request->query('page', 1));
@@ -35,7 +36,8 @@ class PurchaseCandidatesIndexQuery
             $keyword,
             $status,
             $priority,
-            $categoryId,
+            $category,
+            $subcategory,
             $brand,
             $sort
         );
@@ -55,6 +57,26 @@ class PurchaseCandidatesIndexQuery
         ];
     }
 
+    /**
+     * @return string[]
+     */
+    private static function resolveCategoryIdsForFilter(string $category, string $subcategory): array
+    {
+        if ($subcategory !== '') {
+            $visibleCategoryId = ItemSubcategorySupport::visibleCategoryIdFor($category, $subcategory);
+
+            return $visibleCategoryId === null ? [] : [$visibleCategoryId];
+        }
+
+        $visibleCategoryIdMap = ItemSubcategorySupport::visibleCategoryIdMap();
+
+        if (array_key_exists($category, $visibleCategoryIdMap)) {
+            return array_values($visibleCategoryIdMap[$category]);
+        }
+
+        return str_contains($category, '_') ? [$category] : [];
+    }
+
     private static function buildVisibleCandidatesQuery(User $user): Builder
     {
         return PurchaseCandidate::query()
@@ -66,7 +88,8 @@ class PurchaseCandidatesIndexQuery
         string $keyword,
         string $status,
         string $priority,
-        string $categoryId,
+        string $category,
+        string $subcategory,
         string $brand,
         string $sort
     ): Builder {
@@ -91,8 +114,14 @@ class PurchaseCandidatesIndexQuery
             $query->where('priority', $priority);
         }
 
-        if ($categoryId !== '') {
-            $query->where('category_id', $categoryId);
+        if ($category !== '') {
+            $categoryIds = self::resolveCategoryIdsForFilter($category, $subcategory);
+
+            if ($categoryIds === []) {
+                $query->whereRaw('1 = 0');
+            } else {
+                $query->whereIn('category_id', $categoryIds);
+            }
         }
 
         if ($brand !== '') {
