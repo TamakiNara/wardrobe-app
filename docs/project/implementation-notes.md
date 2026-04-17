@@ -392,8 +392,11 @@ thumbnail の現状確認用パターン一覧を見返すときは `docs/specs/
 
 ### 実装メモ
 
-- client component の item 一覧は `onChange` / debounce で URL を更新してよい。IME 入力中の keyword は確定後または debounce 後に反映する。
-- server component 中心の purchase candidate 一覧は GET form と Link で URL query を正本化し、自動更新 UI が必要になった段階で client component 化を検討する。
+- item 一覧 / purchase candidate 一覧とも、filter 入力は URL query を更新する client component を境界にする。
+- `keyword` / `brand` は debounce 後に URL へ反映する。
+- `status` / `priority` / `category` / `sort` などの select 系は、選択変更時に即時 URL へ反映する。
+- `category` 変更時は、同じ URL に残る不整合な `subcategory` を必ずクリアする。
+- 個別解除 / 全解除は、現在の URL query を更新する導線として扱う。
 
 - TODO: category / subcategory / shape の変換規則は `ListQuerySupport`、`ItemSubcategorySupport`、`ItemInputRequirementSupport`、`PurchaseCandidateCategoryMap`、`web/src/lib/api/categories.ts`、`web/src/lib/master-data/item-subcategories.ts`、`web/src/lib/master-data/item-shapes.ts` など複数箇所に分散しており、後続では正本化または責務整理を検討する
 - TODO: item 新規登録画面はカテゴリによって詳細属性カードが分類カードからやや浮いて見えるため、将来の UI 再整理でカード構成を全体として見直したい。あわせて `legwear`、特にソックスの `coverage_type` 候補が十分かは後続で再検討する

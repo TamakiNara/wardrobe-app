@@ -1,6 +1,12 @@
 "use client";
 
-import { useMemo, useRef, useState, type KeyboardEvent } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type KeyboardEvent,
+} from "react";
 import type { UserBrandRecord } from "@/types/settings";
 
 type PurchaseCandidateBrandFilterFieldProps = {
@@ -27,6 +33,10 @@ export default function PurchaseCandidateBrandFilterField({
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const blurTimeoutRef = useRef<number | null>(null);
   const normalizedValue = normalizeSearchText(value);
+
+  useEffect(() => {
+    setValue(defaultValue);
+  }, [defaultValue]);
 
   const suggestions = useMemo(() => {
     if (normalizedValue === "") {

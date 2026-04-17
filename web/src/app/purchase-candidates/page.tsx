@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ExternalLink } from "lucide-react";
-import PurchaseCandidateBrandFilterField from "@/components/purchase-candidates/purchase-candidate-brand-filter-field";
+import PurchaseCandidateListFilters from "@/components/purchase-candidates/purchase-candidate-list-filters";
 import { IndexPageHeader } from "@/components/shared/index-page-header";
 import {
   PURCHASE_CANDIDATE_PRIORITY_LABELS,
@@ -66,71 +66,6 @@ function buildPageHref(
   });
 
   return query ? `/purchase-candidates?${query}` : "/purchase-candidates";
-}
-
-type PurchaseCandidateFilterKey =
-  | "keyword"
-  | "status"
-  | "priority"
-  | "category"
-  | "brand"
-  | "sort";
-
-function buildFilterHref(
-  searchParams: PurchaseCandidatesPageSearchParams,
-  updates: Partial<
-    Record<PurchaseCandidateFilterKey | "subcategory", string | undefined>
-  >,
-): string {
-  const query = buildQueryString({
-    ...searchParams,
-    ...updates,
-    message: undefined,
-    page: undefined,
-  });
-
-  return query ? `/purchase-candidates?${query}` : "/purchase-candidates";
-}
-
-function buildClearFilterHref(
-  searchParams: PurchaseCandidatesPageSearchParams,
-  key: PurchaseCandidateFilterKey,
-): string {
-  return buildFilterHref(searchParams, {
-    [key]: undefined,
-    ...(key === "category" ? { subcategory: undefined } : {}),
-  });
-}
-
-function FilterFieldHeader({
-  htmlFor,
-  label,
-  isActive,
-  clearHref,
-}: {
-  htmlFor: string;
-  label: string;
-  isActive: boolean;
-  clearHref: string;
-}) {
-  return (
-    <div className="mb-1 flex items-center justify-between gap-2">
-      <label
-        htmlFor={htmlFor}
-        className="block text-sm font-medium text-gray-700"
-      >
-        {label}
-      </label>
-      {isActive ? (
-        <Link
-          href={clearHref}
-          className="text-xs font-medium text-blue-600 hover:underline"
-        >
-          解除
-        </Link>
-      ) : null}
-    </div>
-  );
 }
 
 async function getPurchaseCandidates(
@@ -314,9 +249,7 @@ export default async function PurchaseCandidatesPage({
   const category = readSearchParam(resolvedSearchParams, "category");
   const brand = readSearchParam(resolvedSearchParams, "brand");
   const sort = readSearchParam(resolvedSearchParams, "sort");
-  const hasActiveFilters = Boolean(
-    keyword || status || priority || category || brand || sort,
-  );
+  const subcategory = readSearchParam(resolvedSearchParams, "subcategory");
   const shouldShowFilteredEmptyState =
     data.meta.totalAll > 0 && data.purchaseCandidates.length === 0;
 
@@ -348,177 +281,19 @@ export default async function PurchaseCandidatesPage({
         )}
 
         {data.meta.totalAll > 0 && (
-          <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-            <form className="space-y-4" method="get">
-              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-6">
-                <div className="xl:col-span-2">
-                  <FilterFieldHeader
-                    htmlFor="keyword"
-                    label="キーワード"
-                    isActive={keyword !== ""}
-                    clearHref={buildClearFilterHref(
-                      resolvedSearchParams,
-                      "keyword",
-                    )}
-                  />
-                  <input
-                    id="keyword"
-                    name="keyword"
-                    type="search"
-                    defaultValue={keyword}
-                    placeholder="名前・ブランド・メモで検索"
-                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                  />
-                </div>
-
-                <div>
-                  <FilterFieldHeader
-                    htmlFor="status"
-                    label="状態"
-                    isActive={status !== ""}
-                    clearHref={buildClearFilterHref(
-                      resolvedSearchParams,
-                      "status",
-                    )}
-                  />
-                  <select
-                    id="status"
-                    name="status"
-                    defaultValue={status}
-                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                  >
-                    <option value="">すべて</option>
-                    {Object.entries(PURCHASE_CANDIDATE_STATUS_LABELS).map(
-                      ([value, label]) => (
-                        <option key={value} value={value}>
-                          {label}
-                        </option>
-                      ),
-                    )}
-                  </select>
-                </div>
-
-                <div>
-                  <FilterFieldHeader
-                    htmlFor="priority"
-                    label="優先度"
-                    isActive={priority !== ""}
-                    clearHref={buildClearFilterHref(
-                      resolvedSearchParams,
-                      "priority",
-                    )}
-                  />
-                  <select
-                    id="priority"
-                    name="priority"
-                    defaultValue={priority}
-                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                  >
-                    <option value="">すべて</option>
-                    {Object.entries(PURCHASE_CANDIDATE_PRIORITY_LABELS).map(
-                      ([value, label]) => (
-                        <option key={value} value={value}>
-                          {label}
-                        </option>
-                      ),
-                    )}
-                  </select>
-                </div>
-
-                <div>
-                  <FilterFieldHeader
-                    htmlFor="category"
-                    label="カテゴリ"
-                    isActive={category !== ""}
-                    clearHref={buildClearFilterHref(
-                      resolvedSearchParams,
-                      "category",
-                    )}
-                  />
-                  <select
-                    id="category"
-                    name="category"
-                    defaultValue={category}
-                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                  >
-                    <option value="">すべて</option>
-                    {categoryOptions.map((option) => (
-                      <option key={option.id} value={option.id}>
-                        {option.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <FilterFieldHeader
-                    htmlFor="brand"
-                    label="ブランド"
-                    isActive={brand !== ""}
-                    clearHref={buildClearFilterHref(
-                      resolvedSearchParams,
-                      "brand",
-                    )}
-                  />
-                  <PurchaseCandidateBrandFilterField
-                    key={`purchase-candidate-brand-filter:${brand}`}
-                    inputId="brand"
-                    name="brand"
-                    defaultValue={brand}
-                    brands={mergedBrandOptions}
-                  />
-                </div>
-
-                <div>
-                  <FilterFieldHeader
-                    htmlFor="sort"
-                    label="並び順"
-                    isActive={sort !== ""}
-                    clearHref={buildClearFilterHref(
-                      resolvedSearchParams,
-                      "sort",
-                    )}
-                  />
-                  <select
-                    id="sort"
-                    name="sort"
-                    defaultValue={sort}
-                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                  >
-                    <option value="">更新順</option>
-                    <option value="name_asc">名前順</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <p className="text-sm text-gray-600">
-                  表示件数: {data.purchaseCandidates.length} / {data.meta.total}
-                </p>
-
-                <div className="flex flex-wrap items-center gap-3">
-                  {hasActiveFilters ? (
-                    <Link
-                      href="/purchase-candidates"
-                      className="text-sm font-medium text-blue-600 hover:underline"
-                    >
-                      条件をクリア
-                    </Link>
-                  ) : (
-                    <span className="text-sm font-medium text-gray-400">
-                      条件をクリア
-                    </span>
-                  )}
-                  <button
-                    type="submit"
-                    className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
-                  >
-                    絞り込む
-                  </button>
-                </div>
-              </div>
-            </form>
-          </section>
+          <PurchaseCandidateListFilters
+            keyword={keyword}
+            status={status}
+            priority={priority}
+            category={category}
+            subcategory={subcategory}
+            brand={brand}
+            sort={sort}
+            itemCount={data.purchaseCandidates.length}
+            totalCount={data.meta.total}
+            categoryOptions={categoryOptions}
+            brandOptions={mergedBrandOptions}
+          />
         )}
 
         {data.meta.totalAll === 0 ? (

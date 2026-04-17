@@ -19,6 +19,60 @@ vi.mock("next/link", () => ({
     React.createElement("a", { href, ...props }, children),
 }));
 
+vi.mock(
+  "@/components/purchase-candidates/purchase-candidate-list-filters",
+  () => ({
+    default: ({
+      keyword,
+      status,
+      priority,
+      category,
+      brand,
+      sort,
+      itemCount,
+      totalCount,
+    }: {
+      keyword: string;
+      status: string;
+      priority: string;
+      category: string;
+      brand: string;
+      sort: string;
+      itemCount: number;
+      totalCount: number;
+    }) =>
+      React.createElement(
+        "section",
+        { "data-testid": "purchase-candidate-list-filters" },
+        React.createElement(
+          "p",
+          null,
+          `表示件数: ${itemCount} / ${totalCount}`,
+        ),
+        React.createElement("span", null, "キーワード"),
+        React.createElement("span", null, "状態"),
+        React.createElement("span", null, "優先度"),
+        React.createElement("span", null, "カテゴリ"),
+        React.createElement("span", null, "ブランド"),
+        React.createElement("span", null, "並び順"),
+        React.createElement("input", {
+          readOnly: true,
+          placeholder: "名前・ブランド・メモで検索",
+          value: keyword,
+        }),
+        React.createElement("input", {
+          readOnly: true,
+          placeholder: "ブランド名で絞り込み",
+          value: brand,
+        }),
+        React.createElement("span", null, status),
+        React.createElement("span", null, priority),
+        React.createElement("span", null, category),
+        React.createElement("span", null, sort),
+      ),
+  }),
+);
+
 describe("PurchaseCandidatesPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -367,7 +421,7 @@ describe("PurchaseCandidatesPage", () => {
     expect(markup).toContain('value="候補ブランド"');
   });
 
-  it("個別解除リンクは対象条件と page を落として他の条件を維持する", async () => {
+  it("一覧 filter に現在の query 値を渡せる", async () => {
     fetchMock.mockResolvedValueOnce({
       ok: true,
       status: 200,
@@ -400,12 +454,12 @@ describe("PurchaseCandidatesPage", () => {
       }),
     );
 
-    expect(markup).toContain(
-      'href="/purchase-candidates?keyword=%E5%9C%A8%E5%AE%85&amp;status=considering&amp;priority=high&amp;category=outerwear_coat&amp;sort=name_asc"',
-    );
-    expect(markup).toContain(
-      'href="/purchase-candidates?keyword=%E5%9C%A8%E5%AE%85&amp;status=considering&amp;priority=high&amp;brand=%E5%9C%A8%E5%AE%85%E3%83%96%E3%83%A9%E3%83%B3%E3%83%89&amp;sort=name_asc"',
-    );
-    expect(markup).toContain('href="/purchase-candidates"');
+    expect(markup).toContain('data-testid="purchase-candidate-list-filters"');
+    expect(markup).toContain("在宅");
+    expect(markup).toContain("considering");
+    expect(markup).toContain("high");
+    expect(markup).toContain("outerwear_coat");
+    expect(markup).toContain('value="在宅ブランド"');
+    expect(markup).toContain("name_asc");
   });
 });
