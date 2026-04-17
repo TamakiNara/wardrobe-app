@@ -87,6 +87,7 @@ thumbnail の現状確認用パターン一覧を見返すときは `docs/specs/
 - `sale_price` / `sale_ends_at` は購入検討専用の補助情報として create / edit / list / detail まで実装済み
 - candidate 複製機能は詳細画面から使える 現時点で実装済みの機能として実装済みで、colors / seasons / tpos / images を引き継ぎ、画像は新 candidate 用保存先へ物理コピーする
 - 色違い対応の DB 基盤として `purchase_candidate_groups` と `purchase_candidates.group_id` / `group_order` を追加済み。
+  `group_order` は group 内表示順の正本とし、`group_id + group_order` の重複は DB 制約で禁止する
   色違い追加 API、一覧の group 表示、詳細の同 group 表示は後続で扱う
 - `purchased` の購入検討は item 化済み履歴として扱い、candidate 側更新を item へ逆流させない
 - `purchased` の購入検討では `memo` / `wanted_reason` / `priority` / `sale_price` / `sale_ends_at` / `purchase_url` / 画像のみ更新可とし、item-draft 導線は表示しない

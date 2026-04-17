@@ -8,6 +8,7 @@ use App\Models\PurchaseCandidate;
 use App\Models\PurchaseCandidateGroup;
 use App\Models\User;
 use App\Support\PurchaseCandidateGroupSupport;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
@@ -34,6 +35,22 @@ class PurchaseCandidateGroupsTest extends TestCase
             $group->candidates()->pluck('id')->all()
         );
         $this->assertSame(4, $group->nextGroupOrder());
+    }
+
+    public function test_purchase_candidate_group_rejects_duplicate_group_order(): void
+    {
+        $user = User::factory()->create();
+        $this->createCategory();
+
+        $group = PurchaseCandidateGroup::query()->create([
+            'user_id' => $user->id,
+        ]);
+
+        $this->createCandidate($user, $group, 1, 'first');
+
+        $this->expectException(UniqueConstraintViolationException::class);
+
+        $this->createCandidate($user, $group, 1, 'duplicate');
     }
 
     public function test_purchase_candidate_group_support_rejects_other_user_group(): void

@@ -24,7 +24,7 @@ return new class extends Migration
                 ->nullOnDelete();
             $table->unsignedInteger('group_order')->nullable()->after('group_id');
 
-            $table->index(['group_id', 'group_order']);
+            $table->unique(['group_id', 'group_order']);
         });
     }
 
@@ -32,7 +32,7 @@ return new class extends Migration
     {
         Schema::table('purchase_candidates', function (Blueprint $table) {
             $table->dropForeign(['group_id']);
-            $table->dropIndex(['group_id', 'group_order']);
+            $table->dropUnique(['group_id', 'group_order']);
             $table->dropColumn(['group_id', 'group_order']);
         });
 
