@@ -114,6 +114,23 @@ function toDateTimeLocalValue(value: string | null): string {
   return localDate.toISOString().slice(0, 16);
 }
 
+export function normalizeSaleEndsAtInputValue(
+  value: string,
+  currentValue: string,
+): string {
+  const dateOnlyMatch = value.match(/^(\d{4}-\d{2}-\d{2})$/);
+  if (dateOnlyMatch) {
+    return `${dateOnlyMatch[1]}T00:00`;
+  }
+
+  const dateTimeMatch = value.match(/^(\d{4}-\d{2}-\d{2})T\d{2}:\d{2}$/);
+  if (currentValue === "" && dateTimeMatch) {
+    return `${dateTimeMatch[1]}T00:00`;
+  }
+
+  return value;
+}
+
 function extractFirstErrorMessage(data: unknown, fallback: string): string {
   if (data && typeof data === "object") {
     const message = (data as { message?: unknown }).message;
@@ -1034,7 +1051,11 @@ export default function PurchaseCandidateForm({
               id="sale_ends_at"
               type="datetime-local"
               value={saleEndsAt}
-              onChange={(event) => setSaleEndsAt(event.target.value)}
+              onChange={(event) =>
+                setSaleEndsAt(
+                  normalizeSaleEndsAtInputValue(event.target.value, saleEndsAt),
+                )
+              }
               className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             />
           </div>

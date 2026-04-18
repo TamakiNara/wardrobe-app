@@ -352,6 +352,7 @@ describe("PurchaseCandidateForm", () => {
       setNativeValue(nameInput, "レインコート候補");
       setNativeValue(categorySelect, "tops_tshirt_cutsew");
       setNativeValue(salePriceInput, "12800");
+      setNativeValue(saleEndsAtInput, "2026-03-31T00:00");
       setNativeValue(saleEndsAtInput, "2026-03-31T18:00");
       setNativeValue(sizeNoteInput, "厚手対応");
       customMainCheckbox.click();
@@ -429,6 +430,22 @@ describe("PurchaseCandidateForm", () => {
     });
     expect(payload.sale_price).toBe(12800);
     expect(payload.sale_ends_at).toBe("2026-03-31T18:00");
+  });
+
+  it("sale_ends_at の日付だけの入力は時刻を 00:00 に補正する", async () => {
+    const { normalizeSaleEndsAtInputValue } =
+      await import("./purchase-candidate-form");
+
+    expect(normalizeSaleEndsAtInputValue("2026-03-31", "")).toBe(
+      "2026-03-31T00:00",
+    );
+    expect(normalizeSaleEndsAtInputValue("2026-03-31T18:00", "")).toBe(
+      "2026-03-31T00:00",
+    );
+    expect(
+      normalizeSaleEndsAtInputValue("2026-03-31T18:00", "2026-03-31T00:00"),
+    ).toBe("2026-03-31T18:00");
+    expect(normalizeSaleEndsAtInputValue("", "2026-03-31T00:00")).toBe("");
   });
 
   it("素材・混率を送信 payload に含められる", async () => {
@@ -854,6 +871,7 @@ describe("PurchaseCandidateForm", () => {
     ).toBeNull();
     expect(salePriceInput.disabled).toBe(false);
     expect(saleEndsAtInput.disabled).toBe(false);
+    expect(saleEndsAtInput.value).toBe("2026-03-31T18:00");
     expect(purchaseUrlInput.disabled).toBe(false);
     expect(wantedReasonTextarea.disabled).toBe(false);
     expect(memoTextarea.disabled).toBe(false);
