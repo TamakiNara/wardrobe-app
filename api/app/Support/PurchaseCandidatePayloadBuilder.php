@@ -27,6 +27,8 @@ class PurchaseCandidatePayloadBuilder
             'sale_price' => $candidate->sale_price,
             'sale_ends_at' => $candidate->sale_ends_at?->toISOString(),
             'purchase_url' => $candidate->purchase_url,
+            'group_id' => $candidate->group_id,
+            'group_order' => $candidate->group_order,
             'colors' => $candidate->colors
                 ->sortBy('sort_order')
                 ->take(4)

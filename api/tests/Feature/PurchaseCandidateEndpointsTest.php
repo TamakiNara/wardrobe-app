@@ -250,6 +250,29 @@ class PurchaseCandidateEndpointsTest extends TestCase
         ]);
     }
 
+    public function test_get_purchase_candidates_includes_group_fields_for_list_items(): void
+    {
+        $user = User::factory()->create();
+        $group = PurchaseCandidateGroup::query()->create([
+            'user_id' => $user->id,
+        ]);
+        $candidate = $this->createCandidate($user, [
+            'group_id' => $group->id,
+            'group_order' => 2,
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->getJson('/api/purchase-candidates', [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('purchaseCandidates.0.id', $candidate->id)
+            ->assertJsonPath('purchaseCandidates.0.group_id', $group->id)
+            ->assertJsonPath('purchaseCandidates.0.group_order', 2);
+    }
+
     public function test_get_purchase_candidates_filters_by_parent_category(): void
     {
         $user = User::factory()->create();

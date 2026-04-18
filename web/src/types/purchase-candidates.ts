@@ -41,6 +41,8 @@ export type PurchaseCandidateListItem = {
   sale_price: number | null;
   sale_ends_at: string | null;
   purchase_url: string | null;
+  group_id: number | null;
+  group_order: number | null;
   colors: PurchaseCandidateColor[];
   converted_item_id: number | null;
   converted_at: string | null;

@@ -331,6 +331,115 @@ describe("PurchaseCandidatesPage", () => {
     expect(markup).not.toContain('href="/purchase-candidates/1/edit"');
   });
 
+  it("同じ group_id の候補を一覧上で 1 カードに束ねる", async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        purchaseCandidates: [
+          {
+            id: 2,
+            status: "considering",
+            priority: "medium",
+            name: "ブルーコート",
+            category_id: "outerwear_coat",
+            category_name: "コート",
+            brand_name: "Blue Brand",
+            price: 12000,
+            sale_price: null,
+            sale_ends_at: null,
+            purchase_url: null,
+            group_id: 10,
+            group_order: 2,
+            colors: [
+              {
+                role: "main",
+                mode: "preset",
+                value: "blue",
+                hex: "#0077D9",
+                label: "ブルー",
+              },
+            ],
+            converted_item_id: null,
+            converted_at: null,
+            primary_image: null,
+            updated_at: "2026-03-24T10:00:00+09:00",
+          },
+          {
+            id: 1,
+            status: "considering",
+            priority: "high",
+            name: "レッドコート",
+            category_id: "outerwear_coat",
+            category_name: "コート",
+            brand_name: "Red Brand",
+            price: 9800,
+            sale_price: 7800,
+            sale_ends_at: null,
+            purchase_url: null,
+            group_id: 10,
+            group_order: 1,
+            colors: [
+              {
+                role: "main",
+                mode: "preset",
+                value: "red",
+                hex: "#E53935",
+                label: "レッド",
+              },
+            ],
+            converted_item_id: null,
+            converted_at: null,
+            primary_image: null,
+            updated_at: "2026-03-24T10:00:00+09:00",
+          },
+          {
+            id: 3,
+            status: "on_hold",
+            priority: "low",
+            name: "単独候補",
+            category_id: "tops_tshirt_cutsew",
+            category_name: "Tシャツ",
+            brand_name: null,
+            price: null,
+            sale_price: null,
+            sale_ends_at: null,
+            purchase_url: null,
+            group_id: null,
+            group_order: null,
+            colors: [],
+            converted_item_id: null,
+            converted_at: null,
+            primary_image: null,
+            updated_at: "2026-03-24T10:00:00+09:00",
+          },
+        ],
+        availableBrands: [],
+        meta: {
+          total: 3,
+          totalAll: 3,
+          page: 1,
+          lastPage: 1,
+        },
+      }),
+    });
+    mockCategoryGroupsResponse();
+    mockBrandOptionsResponse();
+
+    const { default: PurchaseCandidatesPage } = await import("./page");
+    const markup = renderToStaticMarkup(
+      await PurchaseCandidatesPage({ searchParams: Promise.resolve({}) }),
+    );
+
+    expect(markup).toContain("表示件数: 2 / 3");
+    expect(markup).toContain("レッドコート");
+    expect(markup).toContain("Red Brand");
+    expect(markup).toContain("7,800");
+    expect(markup).toContain("ブルー");
+    expect(markup).toContain("単独候補");
+    expect(markup).toContain('href="/purchase-candidates/1"');
+  });
+
   it("ページング UI を表示し、クエリを維持して前後ページへ移動できる", async () => {
     fetchMock.mockResolvedValueOnce({
       ok: true,

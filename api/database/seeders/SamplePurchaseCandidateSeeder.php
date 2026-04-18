@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\PurchaseCandidate;
 use App\Models\PurchaseCandidateColor;
+use App\Models\PurchaseCandidateGroup;
 use App\Models\PurchaseCandidateSeason;
 use App\Models\PurchaseCandidateTpo;
 use App\Models\User;
@@ -23,6 +24,7 @@ class SamplePurchaseCandidateSeeder extends Seeder
         $user = User::query()->where('email', TestSeedUsers::STANDARD_EMAIL)->firstOrFail();
 
         PurchaseCandidate::query()->where('user_id', $user->id)->delete();
+        PurchaseCandidateGroup::query()->where('user_id', $user->id)->delete();
 
         $candidates = [
             [
@@ -105,6 +107,87 @@ class SamplePurchaseCandidateSeeder extends Seeder
                 ],
                 'seasons' => ['春', '秋'],
                 'tpos' => ['仕事', '休日'],
+            ],
+            [
+                'name' => '色違いスニーカー候補 ブラック',
+                'status' => 'considering',
+                'priority' => 'high',
+                'category_id' => 'shoes_sneakers',
+                'brand_name' => 'ABC-MART',
+                'price' => 9900,
+                'wanted_reason' => '色違い比較用の2件グループ',
+                'group_key' => 'sneaker-color-variants',
+                'group_order' => 1,
+                'colors' => [
+                    ['role' => 'main', 'mode' => 'preset', 'value' => 'black', 'hex' => '#262626', 'label' => 'ブラック'],
+                ],
+                'seasons' => ['オール'],
+                'tpos' => ['休日'],
+            ],
+            [
+                'name' => '色違いスニーカー候補 ホワイト',
+                'status' => 'considering',
+                'priority' => 'medium',
+                'category_id' => 'shoes_sneakers',
+                'brand_name' => 'ABC-MART',
+                'price' => 9900,
+                'wanted_reason' => '色違い比較用の2件グループ',
+                'group_key' => 'sneaker-color-variants',
+                'group_order' => 2,
+                'colors' => [
+                    ['role' => 'main', 'mode' => 'preset', 'value' => 'white', 'hex' => '#ECECEC', 'label' => 'ホワイト'],
+                ],
+                'seasons' => ['オール'],
+                'tpos' => ['休日'],
+            ],
+            [
+                'name' => '色違いバッグ候補 ブラウン',
+                'status' => 'considering',
+                'priority' => 'high',
+                'category_id' => 'bags_rucksack',
+                'brand_name' => 'Sample Bag',
+                'price' => 12800,
+                'wanted_reason' => '色違い比較用の3件グループ',
+                'group_key' => 'bag-color-variants',
+                'group_order' => 1,
+                'colors' => [
+                    ['role' => 'main', 'mode' => 'preset', 'value' => 'brown', 'hex' => '#7C6556', 'label' => 'ブラウン'],
+                ],
+                'seasons' => ['オール'],
+                'tpos' => ['休日'],
+            ],
+            [
+                'name' => '色違いバッグ候補 グレー',
+                'status' => 'on_hold',
+                'priority' => 'medium',
+                'category_id' => 'bags_rucksack',
+                'brand_name' => 'Sample Bag',
+                'price' => 12800,
+                'wanted_reason' => '色違い比較用の3件グループ',
+                'group_key' => 'bag-color-variants',
+                'group_order' => 2,
+                'colors' => [
+                    ['role' => 'main', 'mode' => 'preset', 'value' => 'gray', 'hex' => '#8A9099', 'label' => 'グレー'],
+                ],
+                'seasons' => ['オール'],
+                'tpos' => ['休日'],
+            ],
+            [
+                'name' => '色違いバッグ候補 ネイビー',
+                'status' => 'considering',
+                'priority' => 'low',
+                'category_id' => 'bags_rucksack',
+                'brand_name' => 'Sample Bag',
+                'price' => 11800,
+                'sale_price' => 9900,
+                'wanted_reason' => '色違い比較用の3件グループ',
+                'group_key' => 'bag-color-variants',
+                'group_order' => 3,
+                'colors' => [
+                    ['role' => 'main', 'mode' => 'preset', 'value' => 'navy', 'hex' => '#1F3A5F', 'label' => 'ネイビー'],
+                ],
+                'seasons' => ['オール'],
+                'tpos' => ['休日'],
             ],
             [
                 'name' => '購入素材確認_本体のみ',
@@ -219,6 +302,7 @@ class SamplePurchaseCandidateSeeder extends Seeder
         $user = User::query()->where('email', TestSeedUsers::LARGE_EMAIL)->firstOrFail();
 
         PurchaseCandidate::query()->where('user_id', $user->id)->delete();
+        PurchaseCandidateGroup::query()->where('user_id', $user->id)->delete();
 
         $candidates = [
             [
@@ -269,13 +353,25 @@ class SamplePurchaseCandidateSeeder extends Seeder
 
     private function syncCandidates(int $userId, array $definitions): void
     {
+        $groupCache = [];
+
         foreach ($definitions as $definition) {
+            $group = null;
+            $groupKey = $definition['group_key'] ?? null;
+            if (is_string($groupKey) && $groupKey !== '') {
+                $group = $groupCache[$groupKey] ??= PurchaseCandidateGroup::query()->create([
+                    'user_id' => $userId,
+                ]);
+            }
+
             $candidate = PurchaseCandidate::query()->updateOrCreate(
                 ['user_id' => $userId, 'name' => $definition['name']],
                 [
                     'status' => $definition['status'] ?? 'considering',
                     'priority' => $definition['priority'] ?? 'medium',
                     'category_id' => $definition['category_id'],
+                    'group_id' => $group?->id,
+                    'group_order' => $group === null ? null : ($definition['group_order'] ?? $group->nextGroupOrder()),
                     'brand_name' => $definition['brand_name'] ?? null,
                     'price' => $definition['price'] ?? null,
                     'wanted_reason' => $definition['wanted_reason'] ?? null,
