@@ -89,7 +89,7 @@ thumbnail の現状確認用パターン一覧を見返すときは `docs/specs/
 - 色違い対応の DB 基盤として `purchase_candidate_groups` と `purchase_candidates.group_id` / `group_order` を追加済み。
   `group_order` は group 内表示順の正本とし、`group_id + group_order` の重複は DB 制約で禁止する
   色違い追加 API / 詳細導線は実装済み。draft 開始時は元 candidate を更新せず、新 candidate 保存時に group を解決する
-- 色違いグループの一覧束ね表示は実装済み。詳細画面の同 group 候補表示は後続で扱う
+- 色違いグループの一覧束ね表示と、詳細画面上部の同 group 候補ナビは実装済み。詳細では `purchased` / `dropped` も候補として見せる
 - `purchased` の購入検討は item 化済み履歴として扱い、candidate 側更新を item へ逆流させない
 - `purchased` の購入検討では `memo` / `wanted_reason` / `priority` / `sale_price` / `sale_ends_at` / `purchase_url` / 画像のみ更新可とし、item-draft 導線は表示しない
 - 比較ロジックの詳細は後続検討とする
@@ -159,7 +159,7 @@ thumbnail の現状確認用パターン一覧を見返すときは `docs/specs/
    - 補足: チップ切り替え時は、カード内の画像 / 名前 / ブランド / 価格 / sale 情報 / status / priority / 詳細リンクを選択中 candidate に合わせて切り替える
    - 補足: 一覧カードでは、選択中 candidate の複数画像を左右矢印で切り替え、画像位置は `1/n` 表示で補足する。色違いチップで別 candidate へ切り替えた場合は、その candidate の先頭画像へ戻す
    - 後続: group / non-group を含む購入検討カード全体の再設計は別TODOとし、今回は `色違い n件` ラベル、画像直下の色チップ切替、画像切替導線までを現行到達点とする
-   - 後続: 詳細画面の同 group 候補表示、group 内 purchased の見せ方、並び替え UI は未実装
+   - 後続: group 並び替え UI と、group 内候補のより詳細な比較表示は未実装
 
 
 既存仕様との衝突確認メモ:

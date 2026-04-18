@@ -78,6 +78,7 @@ class PurchaseCandidatePayloadBuilder
             'is_rain_ok' => $candidate->is_rain_ok,
             'group_id' => $candidate->group_id,
             'group_order' => $candidate->group_order,
+            'group_candidates' => self::buildGroupCandidates($candidate),
             'converted_item_id' => $candidate->converted_item_id,
             'converted_at' => $candidate->converted_at?->toISOString(),
             'colors' => $candidate->colors
@@ -258,6 +259,42 @@ class PurchaseCandidatePayloadBuilder
             'converted_item_id' => $candidate->converted_item_id,
             'converted_at' => $candidate->converted_at?->toISOString(),
         ];
+    }
+
+    private static function buildGroupCandidates(PurchaseCandidate $candidate): array
+    {
+        if ($candidate->group_id === null) {
+            return [];
+        }
+
+        return PurchaseCandidate::query()
+            ->where('user_id', $candidate->user_id)
+            ->where('group_id', $candidate->group_id)
+            ->with('colors')
+            ->orderBy('group_order')
+            ->orderBy('id')
+            ->get()
+            ->map(fn (PurchaseCandidate $groupCandidate) => [
+                'id' => $groupCandidate->id,
+                'status' => $groupCandidate->status,
+                'name' => $groupCandidate->name,
+                'price' => $groupCandidate->price,
+                'sale_price' => $groupCandidate->sale_price,
+                'group_order' => $groupCandidate->group_order,
+                'is_current' => $groupCandidate->id === $candidate->id,
+                'colors' => $groupCandidate->colors
+                    ->sortBy('sort_order')
+                    ->values()
+                    ->map(fn ($color) => [
+                        'role' => $color->role,
+                        'mode' => $color->mode,
+                        'value' => $color->value,
+                        'hex' => $color->hex,
+                        'label' => $color->label,
+                    ])
+                    ->all(),
+            ])
+            ->all();
     }
 
     public static function buildImage(PurchaseCandidateImage $image): array

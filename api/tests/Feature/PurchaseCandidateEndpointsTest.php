@@ -340,6 +340,74 @@ class PurchaseCandidateEndpointsTest extends TestCase
             ->assertJsonPath('purchaseCandidate.materials', []);
     }
 
+    public function test_get_purchase_candidate_includes_same_group_candidates_in_order(): void
+    {
+        $user = User::factory()->create();
+        $group = PurchaseCandidateGroup::query()->create([
+            'user_id' => $user->id,
+        ]);
+
+        $first = $this->createCandidate($user, [
+            'name' => '赤の候補',
+            'status' => 'purchased',
+            'price' => 9800,
+            'sale_price' => 7800,
+            'group_id' => $group->id,
+            'group_order' => 1,
+        ]);
+        $current = $this->createCandidate($user, [
+            'name' => '青の候補',
+            'status' => 'considering',
+            'price' => 10800,
+            'group_id' => $group->id,
+            'group_order' => 2,
+        ]);
+        $third = $this->createCandidate($user, [
+            'name' => '緑の候補',
+            'status' => 'dropped',
+            'price' => 11800,
+            'group_id' => $group->id,
+            'group_order' => 3,
+        ]);
+
+        $first->colors()->delete();
+        $first->colors()->create([
+            'role' => 'main',
+            'mode' => 'preset',
+            'value' => 'red',
+            'hex' => '#DC2626',
+            'label' => '赤',
+            'sort_order' => 1,
+        ]);
+        $third->colors()->delete();
+        $third->colors()->create([
+            'role' => 'main',
+            'mode' => 'preset',
+            'value' => 'green',
+            'hex' => '#16A34A',
+            'label' => '緑',
+            'sort_order' => 1,
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->getJson("/api/purchase-candidates/{$current->id}", [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonCount(3, 'purchaseCandidate.group_candidates')
+            ->assertJsonPath('purchaseCandidate.group_candidates.0.id', $first->id)
+            ->assertJsonPath('purchaseCandidate.group_candidates.0.status', 'purchased')
+            ->assertJsonPath('purchaseCandidate.group_candidates.0.sale_price', 7800)
+            ->assertJsonPath('purchaseCandidate.group_candidates.0.colors.0.label', '赤')
+            ->assertJsonPath('purchaseCandidate.group_candidates.0.is_current', false)
+            ->assertJsonPath('purchaseCandidate.group_candidates.1.id', $current->id)
+            ->assertJsonPath('purchaseCandidate.group_candidates.1.is_current', true)
+            ->assertJsonPath('purchaseCandidate.group_candidates.2.id', $third->id)
+            ->assertJsonPath('purchaseCandidate.group_candidates.2.status', 'dropped');
+    }
+
     public function test_post_purchase_candidate_creates_candidate_with_array_fields(): void
     {
         $user = User::factory()->create();

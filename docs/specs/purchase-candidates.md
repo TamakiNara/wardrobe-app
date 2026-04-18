@@ -200,10 +200,13 @@
 
 ### 同グループ候補表示
 
-- `group_order asc` で表示する
+- 詳細画面上部の基本情報エリア付近に「同じ商品の色違い」として表示する
+- `group_order asc`, `id asc` で安定表示する
 - `considering` / `on_hold` / `purchased` / `dropped` が分かるようにする
-- `purchased` は詳細では見えてよい
+- `purchased` / `dropped` は詳細では見えてよい
+- 現在表示中の candidate は「表示中」として区別する
 - 他 candidate へ移動できる導線を持つ
+- `group_id = null`、または同 group 候補が 1 件だけの場合は表示しない
 
 ---
 

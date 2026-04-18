@@ -193,6 +193,132 @@ describe("PurchaseCandidateDetailPage", () => {
     expect(markup).toContain('href="/purchase-candidates/10/edit"');
   });
 
+  it("同じ group の候補ナビを上部に表示し、別候補へのリンクと状態を示す", async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        purchaseCandidate: {
+          id: 12,
+          status: "considering",
+          priority: "medium",
+          name: "色違い候補",
+          category_id: "tops_tshirt",
+          category_name: "Tシャツ・カットソー",
+          brand_name: "Brand",
+          price: 8800,
+          sale_price: null,
+          sale_ends_at: null,
+          purchase_url: "https://example.test",
+          memo: null,
+          wanted_reason: null,
+          size_gender: null,
+          size_label: null,
+          size_note: null,
+          size_details: null,
+          is_rain_ok: false,
+          group_id: 5,
+          group_order: 2,
+          group_candidates: [
+            {
+              id: 11,
+              status: "purchased",
+              name: "赤の候補",
+              price: 9800,
+              sale_price: 7800,
+              group_order: 1,
+              is_current: false,
+              colors: [
+                {
+                  role: "main",
+                  mode: "preset",
+                  value: "red",
+                  hex: "#DC2626",
+                  label: "赤",
+                },
+              ],
+            },
+            {
+              id: 12,
+              status: "considering",
+              name: "青の候補",
+              price: 8800,
+              sale_price: null,
+              group_order: 2,
+              is_current: true,
+              colors: [
+                {
+                  role: "main",
+                  mode: "preset",
+                  value: "blue",
+                  hex: "#2563EB",
+                  label: "青",
+                },
+              ],
+            },
+            {
+              id: 13,
+              status: "dropped",
+              name: "緑の候補",
+              price: 9800,
+              sale_price: null,
+              group_order: 3,
+              is_current: false,
+              colors: [
+                {
+                  role: "main",
+                  mode: "preset",
+                  value: "green",
+                  hex: "#16A34A",
+                  label: "緑",
+                },
+              ],
+            },
+          ],
+          converted_item_id: null,
+          converted_at: null,
+          colors: [
+            {
+              role: "main",
+              mode: "preset",
+              value: "blue",
+              hex: "#2563EB",
+              label: "青",
+            },
+          ],
+          seasons: [],
+          tpos: [],
+          materials: [],
+          images: [],
+          created_at: "2026-03-24T10:00:00+09:00",
+          updated_at: "2026-03-24T10:00:00+09:00",
+        },
+      }),
+    });
+
+    const { default: PurchaseCandidateDetailPage } = await import("./page");
+    const markup = renderToStaticMarkup(
+      await PurchaseCandidateDetailPage({
+        params: Promise.resolve({ id: "12" }),
+      }),
+    );
+
+    expect(markup).toContain("同じ商品の色違い");
+    expect(markup).toContain("色違い 3件");
+    expect(markup).toContain("赤");
+    expect(markup).toContain("青");
+    expect(markup).toContain("緑");
+    expect(markup).toContain("7,800円");
+    expect(markup).toContain("9,800円");
+    expect(markup).toContain("8,800円");
+    expect(markup).toContain("購入済み");
+    expect(markup).toContain("見送り");
+    expect(markup).toContain("表示中");
+    expect(markup).toContain('href="/purchase-candidates/11"');
+    expect(markup).toContain('href="/purchase-candidates/13"');
+    expect(markup).toContain('aria-current="page"');
+  });
+
   it("購入済みの購入検討では item-draft 導線を出さず複製導線を維持する", async () => {
     fetchMock.mockResolvedValue({
       ok: true,

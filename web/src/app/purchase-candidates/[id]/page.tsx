@@ -18,7 +18,11 @@ import {
 } from "@/lib/items/size-details";
 import { resolvePurchaseCandidateItemCategory } from "@/lib/purchase-candidates/category-map";
 import { fetchLaravelWithCookie } from "@/lib/server/laravel";
-import type { PurchaseCandidateDetailResponse } from "@/types/purchase-candidates";
+import type {
+  PurchaseCandidateDetailResponse,
+  PurchaseCandidateGroupCandidate,
+  PurchaseCandidateStatus,
+} from "@/types/purchase-candidates";
 
 function formatPrice(price: number | null): string {
   if (price === null) {
@@ -40,6 +44,144 @@ function formatDateTime(value: string | null): string {
     hour: "2-digit",
     minute: "2-digit",
   }).format(new Date(value));
+}
+
+function getStatusBadgeClass(status: PurchaseCandidateStatus): string {
+  switch (status) {
+    case "purchased":
+      return "border-emerald-200 bg-emerald-50 text-emerald-700";
+    case "dropped":
+      return "border-gray-300 bg-gray-100 text-gray-600";
+    case "on_hold":
+      return "border-amber-200 bg-amber-50 text-amber-700";
+    case "considering":
+    default:
+      return "border-blue-200 bg-blue-50 text-blue-700";
+  }
+}
+
+function resolveGroupCandidateColor(
+  candidate: PurchaseCandidateGroupCandidate,
+) {
+  return (
+    candidate.colors.find((color) => color.role === "main") ??
+    candidate.colors[0]
+  );
+}
+
+function PurchaseCandidateGroupPrice({
+  price,
+  salePrice,
+}: {
+  price: number | null;
+  salePrice: number | null;
+}) {
+  if (salePrice === null) {
+    return <span>{formatPrice(price)}</span>;
+  }
+
+  return (
+    <span className="inline-flex items-baseline gap-1.5">
+      <span className="font-medium text-rose-700">
+        {formatPrice(salePrice)}
+      </span>
+      {price !== null ? (
+        <span className="text-[11px] text-slate-400 line-through">
+          {formatPrice(price)}
+        </span>
+      ) : null}
+    </span>
+  );
+}
+
+function PurchaseCandidateGroupNavigation({
+  candidates,
+}: {
+  candidates: PurchaseCandidateGroupCandidate[];
+}) {
+  if (candidates.length <= 1) {
+    return null;
+  }
+
+  return (
+    <section className="rounded-2xl border border-slate-200 bg-slate-50/70 px-4 py-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <h2 className="text-sm font-medium text-slate-800">
+            同じ商品の色違い
+          </h2>
+          <p className="mt-0.5 text-xs text-slate-500">
+            候補を選ぶと別の詳細へ移動します。
+          </p>
+        </div>
+        <span className="rounded-full border border-slate-200 bg-white px-2.5 py-0.5 text-xs font-medium text-slate-500">
+          色違い {candidates.length}件
+        </span>
+      </div>
+      <nav
+        aria-label="同じ商品の色違い"
+        className="mt-2.5 flex gap-2 overflow-x-auto pb-1"
+      >
+        {candidates.map((groupCandidate) => {
+          const color = resolveGroupCandidateColor(groupCandidate);
+          const content = (
+            <>
+              <span
+                className="h-5 w-5 shrink-0 rounded-full border border-white shadow-sm ring-1 ring-slate-200"
+                style={{ backgroundColor: color?.hex ?? "#E5E7EB" }}
+                title={color?.label ?? "色未設定"}
+              />
+              <span className="min-w-0 flex-1 space-y-0.5">
+                <span className="block truncate text-[11px] text-slate-400">
+                  {color?.label ?? groupCandidate.name}
+                </span>
+                <span className="block truncate text-xs text-slate-700">
+                  <PurchaseCandidateGroupPrice
+                    price={groupCandidate.price}
+                    salePrice={groupCandidate.sale_price}
+                  />
+                </span>
+              </span>
+              <span
+                className={`shrink-0 rounded-full border px-1.5 py-0.5 text-[10px] font-medium ${getStatusBadgeClass(groupCandidate.status)}`}
+              >
+                {PURCHASE_CANDIDATE_STATUS_LABELS[groupCandidate.status]}
+              </span>
+              {groupCandidate.is_current ? (
+                <span className="shrink-0 rounded-full bg-slate-800 px-1.5 py-0.5 text-[10px] font-medium text-white">
+                  表示中
+                </span>
+              ) : null}
+            </>
+          );
+
+          const className = `flex min-w-48 items-center gap-2 rounded-xl border px-2.5 py-2 text-left transition ${
+            groupCandidate.is_current
+              ? "border-slate-500 bg-white shadow-sm"
+              : "border-slate-200 bg-white/80 hover:border-slate-300 hover:bg-white"
+          }`;
+
+          return groupCandidate.is_current ? (
+            <span
+              key={groupCandidate.id}
+              aria-current="page"
+              className={className}
+            >
+              {content}
+            </span>
+          ) : (
+            <Link
+              key={groupCandidate.id}
+              href={`/purchase-candidates/${groupCandidate.id}`}
+              className={className}
+            >
+              {content}
+            </Link>
+          );
+        })}
+      </nav>
+    </section>
+  );
 }
 
 async function getPurchaseCandidate(id: string) {
@@ -162,6 +304,10 @@ export default async function PurchaseCandidateDetailPage({
               </Link>
             </>
           }
+        />
+
+        <PurchaseCandidateGroupNavigation
+          candidates={candidate.group_candidates ?? []}
         />
 
         <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">

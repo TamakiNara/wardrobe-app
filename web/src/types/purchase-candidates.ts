@@ -29,6 +29,17 @@ export type PurchaseCandidateImageRecord = {
   is_primary: boolean;
 };
 
+export type PurchaseCandidateGroupCandidate = {
+  id: number;
+  status: PurchaseCandidateStatus;
+  name: string;
+  price: number | null;
+  sale_price: number | null;
+  group_order: number | null;
+  is_current: boolean;
+  colors: PurchaseCandidateColor[];
+};
+
 export type PurchaseCandidateListItem = {
   id: number;
   status: PurchaseCandidateStatus;
@@ -72,6 +83,7 @@ export type PurchaseCandidateRecord = {
   is_rain_ok: boolean;
   group_id: number | null;
   group_order: number | null;
+  group_candidates: PurchaseCandidateGroupCandidate[];
   converted_item_id: number | null;
   converted_at: string | null;
   colors: PurchaseCandidateColor[];
