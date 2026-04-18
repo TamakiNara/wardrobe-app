@@ -9,6 +9,7 @@ import {
   type ClipboardEvent,
   type DragEvent,
 } from "react";
+import SafeImage from "@/components/images/safe-image";
 
 export type UploadableImageRecord = {
   id?: number;
@@ -304,20 +305,20 @@ export default function EntityImageUploader({
                   </div>
                 </div>
 
-                {image.url ? (
-                  <div className="mt-3 flex aspect-[3/4] items-center justify-center rounded-lg bg-gray-50 p-2">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={image.url}
-                      alt={image.original_filename ?? "image"}
-                      className="h-full w-full object-contain"
-                    />
-                  </div>
-                ) : (
-                  <div className="mt-3 flex aspect-[3/4] items-center justify-center rounded-lg bg-gray-100 text-sm text-gray-400">
-                    画像なし
-                  </div>
-                )}
+                <div className="mt-3 flex aspect-[3/4] items-center justify-center rounded-lg bg-gray-50 p-2">
+                  <SafeImage
+                    src={image.url}
+                    alt={image.original_filename ?? "image"}
+                    className="h-full w-full object-contain"
+                    fallback={
+                      <div className="flex h-full w-full flex-col items-center justify-center rounded-lg bg-gray-100 px-3 text-center text-sm text-gray-500">
+                        <span>
+                          {image.url ? "画像を表示できません" : "画像なし"}
+                        </span>
+                      </div>
+                    }
+                  />
+                </div>
               </article>
             ))}
           </div>

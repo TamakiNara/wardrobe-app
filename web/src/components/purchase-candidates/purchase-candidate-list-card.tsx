@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
+import SafeImage from "@/components/images/safe-image";
 import {
   PURCHASE_CANDIDATE_PRIORITY_LABELS,
   PURCHASE_CANDIDATE_STATUS_LABELS,
@@ -115,6 +116,30 @@ export default function PurchaseCandidateListCard({
           : selectedImageIndex + 1,
     });
   };
+  const imageFallback = (
+    <div className="flex h-full w-full flex-col items-center justify-center rounded-xl border border-dashed border-gray-300 bg-white px-3 text-center">
+      <p className="text-sm font-medium text-gray-500">画像なし</p>
+      <p className="mt-2 text-xs font-medium text-gray-600">
+        {selectedCandidate.category_name ?? "カテゴリ未設定"}
+      </p>
+      <p className="mt-1 text-xs text-gray-400">
+        {selectedCandidate.brand_name || "ブランド未設定"}
+      </p>
+      {selectedCandidate.colors.length > 0 && !shouldShowVariants && (
+        <div className="mt-3 flex items-center gap-1">
+          {selectedCandidate.colors.map((color, index) => (
+            <span
+              key={`${selectedCandidate.id}-empty-color-${index}`}
+              data-testid="candidate-color-swatch"
+              className="h-3 w-5 rounded-[4px] border border-gray-300"
+              style={{ backgroundColor: color.hex }}
+              title={color.label}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <div className="relative h-full pr-1 pb-1">
@@ -145,39 +170,12 @@ export default function PurchaseCandidateListCard({
             className="block outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2"
           >
             <div className="relative flex aspect-[4/3] min-h-44 items-center justify-center bg-gray-50 p-1 transition hover:bg-gray-100 sm:aspect-square sm:min-h-[13rem] lg:min-h-[14rem]">
-              {selectedImage?.url ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={selectedImage.url}
-                  alt={selectedCandidate.name}
-                  className="h-full w-full object-contain"
-                />
-              ) : (
-                <div className="flex h-full w-full flex-col items-center justify-center rounded-xl border border-dashed border-gray-300 bg-white px-3 text-center">
-                  <p className="text-sm font-medium text-gray-500">画像なし</p>
-                  <p className="mt-2 text-xs font-medium text-gray-600">
-                    {selectedCandidate.category_name ?? "カテゴリ未設定"}
-                  </p>
-                  <p className="mt-1 text-xs text-gray-400">
-                    {selectedCandidate.brand_name || "ブランド未設定"}
-                  </p>
-                  {selectedImages.length === 0 &&
-                    selectedCandidate.colors.length > 0 &&
-                    !shouldShowVariants && (
-                      <div className="mt-3 flex items-center gap-1">
-                        {selectedCandidate.colors.map((color, index) => (
-                          <span
-                            key={`${selectedCandidate.id}-empty-color-${index}`}
-                            data-testid="candidate-color-swatch"
-                            className="h-3 w-5 rounded-[4px] border border-gray-300"
-                            style={{ backgroundColor: color.hex }}
-                            title={color.label}
-                          />
-                        ))}
-                      </div>
-                    )}
-                </div>
-              )}
+              <SafeImage
+                src={selectedImage?.url}
+                alt={selectedCandidate.name}
+                className="h-full w-full object-contain"
+                fallback={imageFallback}
+              />
             </div>
           </Link>
 

@@ -173,4 +173,46 @@ describe("PurchaseCandidateImageUploader", () => {
       "画像は5枚まで登録できます。不要な画像を削除してから追加してください。",
     );
   });
+
+  it("既存画像の読み込み失敗時に fallback と削除導線を残す", async () => {
+    const onDeleteExistingImage = vi.fn();
+    renderUploader({
+      existingImages: [
+        {
+          id: 10,
+          purchase_candidate_id: 1,
+          disk: "public",
+          path: "purchase-candidates/1/broken.png",
+          url: "http://localhost:8000/storage/purchase-candidates/1/broken.png",
+          original_filename: "broken.png",
+          mime_type: "image/png",
+          file_size: 1000,
+          sort_order: 1,
+          is_primary: true,
+        },
+      ],
+      onDeleteExistingImage,
+    });
+
+    const image = container.querySelector<HTMLImageElement>(
+      'img[src="http://localhost:8000/storage/purchase-candidates/1/broken.png"]',
+    );
+    expect(image).not.toBeNull();
+
+    await act(async () => {
+      image!.dispatchEvent(new Event("error"));
+    });
+
+    expect(container.textContent).toContain("画像を表示できません");
+    const deleteButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent === "削除",
+    ) as HTMLButtonElement | undefined;
+    expect(deleteButton).toBeDefined();
+
+    await act(async () => {
+      deleteButton!.click();
+    });
+
+    expect(onDeleteExistingImage).toHaveBeenCalledWith(10);
+  });
 });

@@ -356,4 +356,190 @@ describe("PurchaseCandidateListCard", () => {
       container.querySelector('img[src="https://example.test/blue-front.png"]'),
     ).not.toBeNull();
   });
+
+  it("複数画像の読み込み失敗を画像ごとに扱える", async () => {
+    const { default: PurchaseCandidateListCard } =
+      await import("./purchase-candidate-list-card");
+
+    await act(async () => {
+      root.render(
+        React.createElement(PurchaseCandidateListCard, {
+          candidates: [
+            buildCandidate({
+              id: 30,
+              name: "画像失敗候補",
+              colors: [
+                {
+                  role: "main",
+                  mode: "preset",
+                  value: "brown",
+                  hex: "#8A5A38",
+                  label: "ブラウン",
+                },
+              ],
+              images: [
+                {
+                  id: 31,
+                  purchase_candidate_id: 30,
+                  disk: "public",
+                  path: "purchase-candidates/30/broken.png",
+                  url: "https://example.test/broken.png",
+                  original_filename: "broken.png",
+                  mime_type: "image/png",
+                  file_size: 1024,
+                  sort_order: 1,
+                  is_primary: true,
+                },
+                {
+                  id: 32,
+                  purchase_candidate_id: 30,
+                  disk: "public",
+                  path: "purchase-candidates/30/ok.png",
+                  url: "https://example.test/ok.png",
+                  original_filename: "ok.png",
+                  mime_type: "image/png",
+                  file_size: 2048,
+                  sort_order: 2,
+                  is_primary: false,
+                },
+              ],
+            }),
+          ],
+        }),
+      );
+    });
+
+    const brokenImage = container.querySelector<HTMLImageElement>(
+      'img[src="https://example.test/broken.png"]',
+    );
+    expect(brokenImage).not.toBeNull();
+
+    await act(async () => {
+      brokenImage!.dispatchEvent(new Event("error"));
+    });
+
+    expect(container.textContent).toContain("画像なし");
+    expect(
+      container.querySelector('img[src="https://example.test/broken.png"]'),
+    ).toBeNull();
+    expect(
+      container.querySelectorAll('[data-testid="candidate-color-swatch"]'),
+    ).toHaveLength(1);
+
+    const nextButton = container.querySelector<HTMLButtonElement>(
+      'button[aria-label="次の画像を表示"]',
+    );
+    expect(nextButton).not.toBeNull();
+
+    await act(async () => {
+      nextButton!.click();
+    });
+
+    expect(
+      container.querySelector('img[src="https://example.test/ok.png"]'),
+    ).not.toBeNull();
+    expect(container.textContent).toContain("2/2");
+  });
+
+  it("色違い切り替え時に画像失敗状態を引きずらない", async () => {
+    const { default: PurchaseCandidateListCard } =
+      await import("./purchase-candidate-list-card");
+
+    await act(async () => {
+      root.render(
+        React.createElement(PurchaseCandidateListCard, {
+          candidates: [
+            buildCandidate({
+              id: 40,
+              name: "レッド候補",
+              group_id: 44,
+              group_order: 1,
+              colors: [
+                {
+                  role: "main",
+                  mode: "preset",
+                  value: "red",
+                  hex: "#E53935",
+                  label: "レッド",
+                },
+              ],
+              images: [
+                {
+                  id: 41,
+                  purchase_candidate_id: 40,
+                  disk: "public",
+                  path: "purchase-candidates/40/broken.png",
+                  url: "https://example.test/red-broken.png",
+                  original_filename: "red-broken.png",
+                  mime_type: "image/png",
+                  file_size: 1024,
+                  sort_order: 1,
+                  is_primary: true,
+                },
+              ],
+            }),
+            buildCandidate({
+              id: 45,
+              name: "ブルー候補",
+              group_id: 44,
+              group_order: 2,
+              colors: [
+                {
+                  role: "main",
+                  mode: "preset",
+                  value: "blue",
+                  hex: "#0077D9",
+                  label: "ブルー",
+                },
+              ],
+              images: [
+                {
+                  id: 46,
+                  purchase_candidate_id: 45,
+                  disk: "public",
+                  path: "purchase-candidates/45/front.png",
+                  url: "https://example.test/blue-front.png",
+                  original_filename: "blue-front.png",
+                  mime_type: "image/png",
+                  file_size: 1024,
+                  sort_order: 1,
+                  is_primary: true,
+                },
+              ],
+            }),
+          ],
+        }),
+      );
+    });
+
+    const brokenImage = container.querySelector<HTMLImageElement>(
+      'img[src="https://example.test/red-broken.png"]',
+    );
+    expect(brokenImage).not.toBeNull();
+
+    await act(async () => {
+      brokenImage!.dispatchEvent(new Event("error"));
+    });
+
+    expect(container.textContent).toContain("画像なし");
+    expect(
+      container.querySelectorAll('[data-testid="variant-swatch"]'),
+    ).toHaveLength(2);
+    expect(
+      container.querySelectorAll('[data-testid="candidate-color-swatch"]'),
+    ).toHaveLength(0);
+
+    const blueButton = container.querySelector<HTMLButtonElement>(
+      'button[aria-label="ブルーを表示"]',
+    );
+    expect(blueButton).not.toBeNull();
+
+    await act(async () => {
+      blueButton!.click();
+    });
+
+    expect(
+      container.querySelector('img[src="https://example.test/blue-front.png"]'),
+    ).not.toBeNull();
+  });
 });

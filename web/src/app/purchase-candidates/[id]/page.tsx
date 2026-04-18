@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import PurchaseCandidateColorVariantAction from "@/components/purchase-candidates/purchase-candidate-color-variant-action";
+import PurchaseCandidateDetailImages from "@/components/purchase-candidates/purchase-candidate-detail-images";
 import PurchaseCandidateDuplicateAction from "@/components/purchase-candidates/purchase-candidate-duplicate-action";
 import PurchaseCandidateItemDraftAction from "@/components/purchase-candidates/purchase-candidate-item-draft-action";
 import { EntityDetailHeader } from "@/components/shared/entity-detail-header";
@@ -541,37 +542,10 @@ export default async function PurchaseCandidateDetailPage({
         <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-gray-900">画像</h2>
 
-          {candidate.images.length === 0 ? (
-            <p className="mt-3 text-sm text-gray-600">画像はまだありません。</p>
-          ) : (
-            <div className="mt-4 grid gap-4 sm:grid-cols-2">
-              {candidate.images.map((image) => (
-                <article
-                  key={image.id}
-                  className="overflow-hidden rounded-xl border border-gray-200"
-                >
-                  {image.url ? (
-                    <div className="flex aspect-[3/4] items-center justify-center bg-gray-50 p-2">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={image.url}
-                        alt={image.original_filename ?? candidate.name}
-                        className="h-full w-full object-contain"
-                      />
-                    </div>
-                  ) : (
-                    <div className="flex aspect-[4/3] items-center justify-center bg-gray-100 text-sm text-gray-400">
-                      画像なし
-                    </div>
-                  )}
-                  <div className="p-3 text-sm text-gray-600">
-                    {image.sort_order}枚目
-                    {image.is_primary ? " / 代表画像" : ""}
-                  </div>
-                </article>
-              ))}
-            </div>
-          )}
+          <PurchaseCandidateDetailImages
+            images={candidate.images}
+            candidateName={candidate.name}
+          />
         </section>
       </div>
     </main>
