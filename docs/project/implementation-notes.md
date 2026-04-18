@@ -739,12 +739,19 @@ current で同じ意味の規則が重複している主な箇所は次のとお
 - settings 配下以外でも同じ操作系アイコンの利用が増えた場合は、`settings-icons.ts` をより汎用な shared icon 定義へ切り出すかを再判断する
 - ブランド候補用 `SampleUserBrandSeeder` を追加し、`empty-user` 0 件、`standard-user` 標準件数、`large-user` 多件数の `user_brands` を再投入できる
 - `standard-user` は item 側の `brand_name` と揃えた候補を中心に持ち、`large-user` は絞り込み・無効候補折りたたみ確認向けに inactive 候補も含める
+- 対応済み: 購入検討 / item の画像表示確認用 seed を追加済み
+  - `standard-user` では、単独 purchase candidate の複数画像、画像あり色違い group、一部画像あり group、全件画像なし group、`purchased` / `dropped` 混在 group を確認できる
+  - `large-user` では、多件数データ内で一部画像あり purchase candidate / item を確認できる
+  - item 側では、単独画像 / 複数画像を持つ確認用データを確認できる
+  - seed 画像は `api/database/seeders/assets/sample-images` 配下の `sample-shape-{色}-{縦横比}.png` 形式で、表示確認用の単純図形として管理する
+  - 縦長 / 横長 / 正方形 / 余白多め / 暗色 / 明色の画像表示確認に使う
+  - seed 実行時に画像アセットが欠けている場合は `Sample image asset not found: {filename}` で明示的に失敗する
 
 補足:
 
 - sample data では category / colors / seasons / tpos / tpo_ids / spec に加え、brand 候補確認用の `items.brand_name` と `user_brands` も反映済み
+- seed 画像を含む確認用データを再投入するときは、`TestDatasetSeeder` を実行する
 - 将来タスク: wear log の sample date は固定日ではなく、seed 実行日を基準に前後日・月またぎを確認できる相対日付投入へ寄せる
-- 将来タスク: 購入検討の確認用 seed には、単独 candidate の複数画像、色違い group 各 candidate の単色画像、一部画像なし group を追加し、画像切替・色違い切替・画像なし fallback を確認できるようにする
 
 ### 認証
 
