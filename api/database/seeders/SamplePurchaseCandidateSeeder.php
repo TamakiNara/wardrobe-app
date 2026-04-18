@@ -5,11 +5,13 @@ namespace Database\Seeders;
 use App\Models\PurchaseCandidate;
 use App\Models\PurchaseCandidateColor;
 use App\Models\PurchaseCandidateGroup;
+use App\Models\PurchaseCandidateImage;
 use App\Models\PurchaseCandidateSeason;
 use App\Models\PurchaseCandidateTpo;
 use App\Models\User;
 use Database\Seeders\Support\TestSeedUsers;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Storage;
 
 class SamplePurchaseCandidateSeeder extends Seeder
 {
@@ -107,6 +109,29 @@ class SamplePurchaseCandidateSeeder extends Seeder
                 ],
                 'seasons' => ['春', '秋'],
                 'tpos' => ['仕事', '休日'],
+                'images' => [
+                    ['file' => 'sample-shape-ivory-square.png', 'is_primary' => true],
+                ],
+            ],
+            [
+                'name' => '画像確認_単独候補 複数画像',
+                'status' => 'considering',
+                'priority' => 'high',
+                'category_id' => 'outerwear_coat',
+                'brand_name' => 'Image Sample',
+                'price' => 16800,
+                'sale_price' => 12800,
+                'wanted_reason' => '単独候補の複数画像切替確認用',
+                'colors' => [
+                    ['role' => 'main', 'mode' => 'preset', 'value' => 'navy', 'hex' => '#1F3A5F', 'label' => 'ネイビー'],
+                ],
+                'seasons' => ['春', '秋'],
+                'tpos' => ['仕事', '休日'],
+                'images' => [
+                    ['file' => 'sample-shape-navy-portrait.png', 'is_primary' => true],
+                    ['file' => 'sample-shape-ivory-square.png'],
+                    ['file' => 'sample-shape-brown-landscape.png'],
+                ],
             ],
             [
                 'name' => '色違いスニーカー候補 ブラック',
@@ -123,6 +148,10 @@ class SamplePurchaseCandidateSeeder extends Seeder
                 ],
                 'seasons' => ['オール'],
                 'tpos' => ['休日'],
+                'images' => [
+                    ['file' => 'sample-shape-charcoal-square.png', 'is_primary' => true],
+                    ['file' => 'sample-shape-gray-padding.png'],
+                ],
             ],
             [
                 'name' => '色違いスニーカー候補 ホワイト',
@@ -139,6 +168,9 @@ class SamplePurchaseCandidateSeeder extends Seeder
                 ],
                 'seasons' => ['オール'],
                 'tpos' => ['休日'],
+                'images' => [
+                    ['file' => 'sample-shape-ivory-square.png', 'is_primary' => true],
+                ],
             ],
             [
                 'name' => '色違いバッグ候補 ブラウン',
@@ -155,6 +187,9 @@ class SamplePurchaseCandidateSeeder extends Seeder
                 ],
                 'seasons' => ['オール'],
                 'tpos' => ['休日'],
+                'images' => [
+                    ['file' => 'sample-shape-brown-landscape.png', 'is_primary' => true],
+                ],
             ],
             [
                 'name' => '色違いバッグ候補 グレー',
@@ -187,6 +222,95 @@ class SamplePurchaseCandidateSeeder extends Seeder
                     ['role' => 'main', 'mode' => 'preset', 'value' => 'navy', 'hex' => '#1F3A5F', 'label' => 'ネイビー'],
                 ],
                 'seasons' => ['オール'],
+                'tpos' => ['休日'],
+                'images' => [
+                    ['file' => 'sample-shape-navy-portrait.png', 'is_primary' => true],
+                ],
+            ],
+            [
+                'name' => '画像なし色違い候補 レッド',
+                'status' => 'considering',
+                'priority' => 'medium',
+                'category_id' => 'fashion_accessories_scarf_bandana',
+                'brand_name' => 'No Image Sample',
+                'price' => 3900,
+                'wanted_reason' => '画像なし group の fallback 確認用',
+                'group_key' => 'no-image-color-variants',
+                'group_order' => 1,
+                'colors' => [
+                    ['role' => 'main', 'mode' => 'preset', 'value' => 'red', 'hex' => '#C94444', 'label' => 'レッド'],
+                ],
+                'seasons' => ['春', '秋'],
+                'tpos' => ['休日'],
+            ],
+            [
+                'name' => '画像なし色違い候補 ブルー',
+                'status' => 'on_hold',
+                'priority' => 'low',
+                'category_id' => 'fashion_accessories_scarf_bandana',
+                'brand_name' => 'No Image Sample',
+                'price' => 3900,
+                'wanted_reason' => '画像なし group の fallback 確認用',
+                'group_key' => 'no-image-color-variants',
+                'group_order' => 2,
+                'colors' => [
+                    ['role' => 'main', 'mode' => 'preset', 'value' => 'blue', 'hex' => '#0077D9', 'label' => 'ブルー'],
+                ],
+                'seasons' => ['春', '秋'],
+                'tpos' => ['休日'],
+            ],
+            [
+                'name' => '状態混在色違い候補 グリーン',
+                'status' => 'considering',
+                'priority' => 'high',
+                'category_id' => 'tops_knit_sweater',
+                'brand_name' => 'Status Sample',
+                'price' => 7900,
+                'wanted_reason' => '詳細の同 group 候補ナビで状態混在を確認する',
+                'group_key' => 'status-mixed-color-variants',
+                'group_order' => 1,
+                'colors' => [
+                    ['role' => 'main', 'mode' => 'preset', 'value' => 'green', 'hex' => '#3F7A4D', 'label' => 'グリーン'],
+                ],
+                'seasons' => ['秋', '冬'],
+                'tpos' => ['休日'],
+                'images' => [
+                    ['file' => 'sample-shape-green-portrait.png', 'is_primary' => true],
+                ],
+            ],
+            [
+                'name' => '状態混在色違い候補 アイボリー',
+                'status' => 'purchased',
+                'priority' => 'medium',
+                'category_id' => 'tops_knit_sweater',
+                'brand_name' => 'Status Sample',
+                'price' => 7900,
+                'wanted_reason' => '詳細の同 group 候補ナビで購入済み表示を確認する',
+                'group_key' => 'status-mixed-color-variants',
+                'group_order' => 2,
+                'colors' => [
+                    ['role' => 'main', 'mode' => 'preset', 'value' => 'ivory', 'hex' => '#F2EEE4', 'label' => 'アイボリー'],
+                ],
+                'seasons' => ['秋', '冬'],
+                'tpos' => ['休日'],
+                'images' => [
+                    ['file' => 'sample-shape-ivory-square.png', 'is_primary' => true],
+                ],
+            ],
+            [
+                'name' => '状態混在色違い候補 グレー',
+                'status' => 'dropped',
+                'priority' => 'low',
+                'category_id' => 'tops_knit_sweater',
+                'brand_name' => 'Status Sample',
+                'price' => 7900,
+                'wanted_reason' => '詳細の同 group 候補ナビで見送り表示を確認する',
+                'group_key' => 'status-mixed-color-variants',
+                'group_order' => 3,
+                'colors' => [
+                    ['role' => 'main', 'mode' => 'preset', 'value' => 'gray', 'hex' => '#8A9099', 'label' => 'グレー'],
+                ],
+                'seasons' => ['秋', '冬'],
                 'tpos' => ['休日'],
             ],
             [
@@ -325,6 +449,10 @@ class SamplePurchaseCandidateSeeder extends Seeder
                 ],
                 'seasons' => ['春', '秋'],
                 'tpos' => ['仕事'],
+                'images' => [
+                    ['file' => 'sample-shape-ivory-square.png', 'is_primary' => true],
+                    ['file' => 'sample-shape-blue-landscape.png'],
+                ],
             ],
             [
                 'name' => 'デニム候補',
@@ -345,6 +473,10 @@ class SamplePurchaseCandidateSeeder extends Seeder
                 ],
                 'seasons' => ['春', '秋', '冬'],
                 'tpos' => ['休日'],
+                'images' => [
+                    ['file' => 'sample-shape-navy-portrait.png', 'is_primary' => true],
+                    ['file' => 'sample-shape-brown-landscape.png'],
+                ],
             ],
         ];
 
@@ -374,6 +506,10 @@ class SamplePurchaseCandidateSeeder extends Seeder
                     'group_order' => $group === null ? null : ($definition['group_order'] ?? $group->nextGroupOrder()),
                     'brand_name' => $definition['brand_name'] ?? null,
                     'price' => $definition['price'] ?? null,
+                    'sale_price' => $definition['sale_price'] ?? null,
+                    'sale_ends_at' => $definition['sale_ends_at'] ?? null,
+                    'purchase_url' => $definition['purchase_url'] ?? null,
+                    'memo' => $definition['memo'] ?? null,
                     'wanted_reason' => $definition['wanted_reason'] ?? null,
                     'size_gender' => $definition['size_gender'] ?? null,
                     'size_label' => $definition['size_label'] ?? null,
@@ -387,6 +523,7 @@ class SamplePurchaseCandidateSeeder extends Seeder
             PurchaseCandidateSeason::query()->where('purchase_candidate_id', $candidate->id)->delete();
             PurchaseCandidateTpo::query()->where('purchase_candidate_id', $candidate->id)->delete();
             $candidate->materials()->delete();
+            $candidate->images()->delete();
 
             foreach ($definition['colors'] ?? [] as $index => $color) {
                 PurchaseCandidateColor::query()->create([
@@ -415,6 +552,35 @@ class SamplePurchaseCandidateSeeder extends Seeder
             if (! empty($definition['materials'])) {
                 $candidate->materials()->createMany($definition['materials']);
             }
+
+            $this->syncImages($candidate, $definition['images'] ?? []);
+        }
+    }
+
+    private function syncImages(PurchaseCandidate $candidate, array $images): void
+    {
+        foreach ($images as $index => $image) {
+            $filename = $image['file'];
+            $sourcePath = database_path('seeders/assets/sample-images/'.$filename);
+            $targetPath = 'seed/purchase-candidates/'.$candidate->user_id.'/'.md5($candidate->name).'/'.$filename;
+            if (! is_file($sourcePath)) {
+                throw new \RuntimeException('Sample image asset not found: '.$filename);
+            }
+
+            $contents = file_get_contents($sourcePath);
+
+            Storage::disk('public')->put($targetPath, $contents);
+
+            PurchaseCandidateImage::query()->create([
+                'purchase_candidate_id' => $candidate->id,
+                'disk' => 'public',
+                'path' => $targetPath,
+                'original_filename' => $filename,
+                'mime_type' => 'image/png',
+                'file_size' => strlen($contents),
+                'sort_order' => $index + 1,
+                'is_primary' => (bool) ($image['is_primary'] ?? $index === 0),
+            ]);
         }
     }
 }

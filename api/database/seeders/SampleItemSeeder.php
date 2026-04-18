@@ -3,10 +3,12 @@
 namespace Database\Seeders;
 
 use App\Models\Item;
+use App\Models\ItemImage;
 use App\Models\User;
 use App\Models\UserTpo;
 use Database\Seeders\Support\TestSeedUsers;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Storage;
 
 class SampleItemSeeder extends Seeder
 {
@@ -42,6 +44,10 @@ class SampleItemSeeder extends Seeder
                         'design' => null,
                         'fit' => 'normal',
                     ],
+                ],
+                'images' => [
+                    ['file' => 'sample-shape-ivory-square.png', 'is_primary' => true],
+                    ['file' => 'sample-shape-navy-portrait.png'],
                 ],
             ],
             [
@@ -99,6 +105,9 @@ class SampleItemSeeder extends Seeder
                         'design' => null,
                         'fit' => 'normal',
                     ],
+                ],
+                'images' => [
+                    ['file' => 'sample-shape-blue-landscape.png', 'is_primary' => true],
                 ],
             ],
             [
@@ -540,6 +549,10 @@ class SampleItemSeeder extends Seeder
                 'seasons' => ['春', '夏', '秋', '冬'],
                 'tpos' => ['仕事', '休日', 'フォーマル'],
                 'spec' => null,
+                'images' => [
+                    ['file' => 'sample-shape-brown-landscape.png', 'is_primary' => true],
+                    ['file' => 'sample-shape-gray-padding.png'],
+                ],
             ],
             [
                 'name' => 'シルバーネックレス',
@@ -579,12 +592,13 @@ class SampleItemSeeder extends Seeder
             $itemRecord = Item::query()->updateOrCreate(
                 ['user_id' => $user->id, 'name' => $item['name']],
                 [
-                    ...collect($item)->except('materials')->all(),
+                    ...collect($item)->except('materials', 'images')->all(),
                     'tpo_ids' => $this->resolveTpoIds($user, $item['tpos'] ?? []),
                 ],
             );
 
             $this->syncMaterials($itemRecord, $item['materials'] ?? []);
+            $this->syncImages($itemRecord, $item['images'] ?? []);
         }
     }
 
@@ -617,6 +631,30 @@ class SampleItemSeeder extends Seeder
                         ->all(),
                 ])->save();
             });
+
+        $imageSets = [
+            [
+                ['file' => 'sample-shape-navy-portrait.png', 'is_primary' => true],
+                ['file' => 'sample-shape-ivory-square.png'],
+            ],
+            [
+                ['file' => 'sample-shape-brown-landscape.png', 'is_primary' => true],
+            ],
+            [
+                ['file' => 'sample-shape-gray-padding.png', 'is_primary' => true],
+                ['file' => 'sample-shape-blue-landscape.png'],
+            ],
+        ];
+
+        Item::query()
+            ->where('user_id', $user->id)
+            ->orderBy('id')
+            ->take(count($imageSets))
+            ->get()
+            ->values()
+            ->each(function (Item $item, int $index) use ($imageSets) {
+                $this->syncImages($item, $imageSets[$index]);
+            });
     }
 
     private function resolveTpoIds(User $user, array $names): array
@@ -642,5 +680,34 @@ class SampleItemSeeder extends Seeder
         }
 
         $item->materials()->createMany($materials);
+    }
+
+    private function syncImages(Item $item, array $images): void
+    {
+        $item->images()->delete();
+
+        foreach ($images as $index => $image) {
+            $filename = $image['file'];
+            $sourcePath = database_path('seeders/assets/sample-images/'.$filename);
+            $targetPath = 'seed/items/'.$item->user_id.'/'.md5($item->name).'/'.$filename;
+            if (! is_file($sourcePath)) {
+                throw new \RuntimeException('Sample image asset not found: '.$filename);
+            }
+
+            $contents = file_get_contents($sourcePath);
+
+            Storage::disk('public')->put($targetPath, $contents);
+
+            ItemImage::query()->create([
+                'item_id' => $item->id,
+                'disk' => 'public',
+                'path' => $targetPath,
+                'original_filename' => $filename,
+                'mime_type' => 'image/png',
+                'file_size' => strlen($contents),
+                'sort_order' => $index + 1,
+                'is_primary' => (bool) ($image['is_primary'] ?? $index === 0),
+            ]);
+        }
     }
 }
