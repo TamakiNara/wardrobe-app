@@ -85,6 +85,7 @@ thumbnail の現状確認用パターン一覧を見返すときは `docs/specs/
 - 購入検討で導入した `必須` バッジを items / outfits / wear logs の主要フォームにも揃え、必須項目をラベル上で事前判別できるようにした
 - item 作成時に `purchase_candidate_id` を受け取り、Laravel 側で candidate の `purchased` 反映と `converted_item_id` / `converted_at` 更新まで処理する
 - `sale_price` / `sale_ends_at` は購入検討専用の補助情報として create / edit / list / detail まで実装済み
+- `sale_ends_at` 入力は `datetime-local` を避け、日付入力と時刻入力へ分離済み。ブラウザ picker の見た目や時刻補正の制御が難しいため、日付選択時に内部値を `YYYY-MM-DDT00:00` として組み立てる
 - candidate 複製機能は詳細画面から使える 現時点で実装済みの機能として実装済みで、colors / seasons / tpos / images を引き継ぎ、画像は新 candidate 用保存先へ物理コピーする
 - 色違い対応の DB 基盤として `purchase_candidate_groups` と `purchase_candidates.group_id` / `group_order` を追加済み。
   `group_order` は group 内表示順の正本とし、`group_id + group_order` の重複は DB 制約で禁止する
@@ -152,14 +153,16 @@ thumbnail の現状確認用パターン一覧を見返すときは `docs/specs/
    - 補足: category は親カテゴリ、subcategory は category 選択後だけ有効な current 語彙の種類として扱う
    - 補足: brand フィルターは一覧探索用の候補として、ブランド候補設定と既存の購入検討データに含まれるブランド名を統合している
    - 補足: サムネイルは実画像優先を維持しつつ、画像なしカードではカテゴリ / ブランドの補助表示を残し、商品ページリンクは外部リンクとして控えめに整理済み
-   - 補足: カラーチップは一覧比較の補助情報として維持し、価格情報は比較しやすいよう主役寄りに整理済み
+   - 補足: 購入検討一覧カードの詳細な表示仕様は `docs/specs/purchase-candidates.md` を正本とし、ここでは実装判断のみを残す
 8-2. 対応済み: 購入検討一覧の色違い group 表示
    - 現状: 同じ `group_id` を持つ購入検討は、一覧上で 1 カードに束ねて表示する
    - 補足: 初期表示は `group_order` 最小の candidate を使い、色チップは `group_order asc` で並べる
    - 補足: チップ切り替え時は、カード内の画像 / 名前 / ブランド / 価格 / sale 情報 / status / priority / 詳細リンクを選択中 candidate に合わせて切り替える
    - 補足: 一覧カードでは、選択中 candidate の複数画像を左右矢印で切り替え、画像位置は `1/n` 表示で補足する。色違いチップで別 candidate へ切り替えた場合は、その candidate の先頭画像へ戻す
-   - 後続: group / non-group を含む購入検討カード全体の再設計は別TODOとし、今回は `色違い n件` ラベル、画像直下の色チップ切替、画像切替導線までを現行到達点とする
+   - 現状: 購入検討一覧カードは PC 幅で最大 2 列の横長カードとし、grouped card は背面カード表現を深追いせず swatch 表示で識別する
    - 後続: group 並び替え UI と、group 内候補のより詳細な比較表示は未実装
+   - 後続: 画像読み込み失敗時の UI fallback は未対応
+   - 後続: group 解除 UI と詳細画面全体の再設計は未実装
 9. 将来タスク: 色違い group の識別性向上として、main color に任意の色名ラベルを持たせるか検討する。既存の color label とは責務を分け、まずは main color のみを候補とする。
 
 既存仕様との衝突確認メモ:
