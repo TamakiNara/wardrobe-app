@@ -114,10 +114,10 @@ thumbnail の現状確認用パターン一覧を見返すときは `docs/specs/
    - item 側画像 upload / delete UI は実装済み
    - item 側では並び替え / 代表画像切り替え UI まで実装済み
    - candidate 側の並び替え / 代表画像切り替え UI と保存後の編集責務分離を整理する
-2-1. 対応済み: 購入検討から item 作成へ進んだ時の画像表示整理
+     2-1. 対応済み: 購入検討から item 作成へ進んだ時の画像表示整理
    - 現状: item 新規 / 編集では、左を画像操作の正本、右を最終確認プレビューとして整理済み
    - 補足: 購入検討由来画像は item 側初期値として扱い、右側の重複画像確認 UI は解消済み
-2-2. 対応済み: 購入検討の複製後導線見直し
+     2-2. 対応済み: 購入検討の複製後導線見直し
    - 現状: duplicate は保存前 payload を返して新規作成画面へ遷移する方式へ整理済み
    - 補足: 保存前に record は増えず、`（コピー）` 付き初期値で新しい購入検討として再利用できる
 3. 比較結果の扱いを整理する
@@ -148,13 +148,13 @@ thumbnail の現状確認用パターン一覧を見返すときは `docs/specs/
      - 実画像優先か、SVG / プレースホルダー優先か
      - item 一覧と完全にそろえるか、purchase candidate 用に別方針を持つか
    - 補足: 購入検討一覧の brand フィルター候補は、ブランド候補設定に登録されたブランド名と、既存の購入検討データに含まれるブランド名を統合して生成する。目的は入力補助ではなく一覧で既存データを探しやすくすることであり、フォームのブランド候補と完全一致しなくてよい。候補整形は少なくとも trim・空文字除外・重複除去を行い、大文字小文字や表記ゆれの完全統一は将来課題とする。
-8-1. 対応済み: 購入検討一覧の filter UI とカード比較性の整理
+     8-1. 対応済み: 購入検討一覧の filter UI とカード比較性の整理
    - 現状: 購入検討一覧では keyword / status / priority / category / subcategory / sort / brand の filter UI とページング UI を一覧上で自然に使える形へ整理済み
    - 補足: category は親カテゴリ、subcategory は category 選択後だけ有効な current 語彙の種類として扱う
    - 補足: brand フィルターは一覧探索用の候補として、ブランド候補設定と既存の購入検討データに含まれるブランド名を統合している
    - 補足: サムネイルは実画像優先を維持しつつ、画像なしカードではカテゴリ / ブランドの補助表示を残し、商品ページリンクは外部リンクとして控えめに整理済み
    - 補足: 購入検討一覧カードの詳細な表示仕様は `docs/specs/purchase-candidates.md` を正本とし、ここでは実装判断のみを残す
-8-2. 対応済み: 購入検討一覧の色違い group 表示
+     8-2. 対応済み: 購入検討一覧の色違い group 表示
    - 現状: 同じ `group_id` を持つ購入検討は、一覧上で 1 カードに束ねて表示する
    - 補足: 初期表示は `group_order` 最小の candidate を使い、色チップは `group_order asc` で並べる
    - 補足: チップ切り替え時は、カード内の画像 / 名前 / ブランド / 価格 / sale 情報 / status / priority / 詳細リンクを選択中 candidate に合わせて切り替える
@@ -360,9 +360,11 @@ thumbnail の現状確認用パターン一覧を見返すときは `docs/specs/
 - `roomwear_inner` は現時点で item 側の current category を `inner` として扱いつつ、`subcategory` を `roomwear / underwear / pajamas / other` で持ち、`shape` は同名1件の候補を自動補完する薄い補助値として扱う
 - 一覧・検索で独立して使いたい粒度を基準に見直すと、`bags` の用途差、`fashion_accessories` の種類差、`shoes` の靴種、`legwear` の種別、`roomwear_inner` の大きい種類差は、現状の `shape` や代表カテゴリ固定より `subcategory` へ上げる余地がある。将来の filter / settings を自然につなぐには、フォーム都合だけでなく「独立して絞りたいか」を優先して `subcategory` 粒度を再判断する方針を追加で持つ。
 - 一覧・検索で使いたい粒度を優先した実装順の第一候補は、`bags` → `fashion_accessories` → `shoes` → `legwear` → `roomwear_inner` とする。`bags` と `fashion_accessories` は current で `subcategory` 厚めへ寄せ始めており、次は `shoes` 以降を同じ説明粒度へそろえる。
+
 ## サブカテゴリ検索の初期方針
 
 ### 現在の正式方針
+
 - サブカテゴリ検索は、まず `category` を選んだうえで `subcategory` 候補を絞り込むフィルタ型を第一候補とする
 - 検索キーは内部値を正本とし、UI 表示は表示名を正本とする
 - 旧語彙は検索 UI には出さず、必要な場合は backend / read model 側で吸収する
@@ -370,11 +372,13 @@ thumbnail の現状確認用パターン一覧を見返すときは `docs/specs/
 - current 語彙を正本とし、表示名が変わったカテゴリ（例: `eyewear` → メガネ・サングラス）でも内部値は安定して扱う
 
 ### 初期実装の想定
+
 - 初期実装は単一選択の `subcategory` フィルタでよい
 - 将来的には複数選択フィルタへ拡張できる余地を残す
 - 自由語検索との統合は後続課題とし、まずは category → subcategory の順で絞り込める構成を優先する
 
 ### 設計上の注意点
+
 - 検索 UI は current 語彙のみを出し、legacy 語彙を検索選択肢として復活させない
 - visible category / settings / 一覧フィルタで同じ内部値を参照できるよう、`subcategory` の内部値を変えずに表示名だけを切り替えられる構造を優先する
 - `other` は未分類を指す選択肢であることを前提にし、検索候補に含めつつ、個別の具体種類と混同しないよう最後に配置する
@@ -410,14 +414,14 @@ thumbnail の現状確認用パターン一覧を見返すときは `docs/specs/
 
 特に `roomwear_inner` 系は、settings / master、item データ、legacy bridge で文字面が分かれて見えるため、現時点では次のように読む。
 
-| 役割 | 現在の値 | 説明 |
-| --- | --- | --- |
-| settings / master の大分類 ID | `roomwear_inner` | 表示設定と category master で使う大分類 ID |
-| settings / master の中分類 ID | `roomwear_inner_roomwear` / `roomwear_inner_underwear` / `roomwear_inner_pajamas` / `roomwear_inner_other` | `visible_category_ids` に入る表示対象の種類 ID |
-| item データの `category` | `inner` | item モデル上の current category |
-| item データの `subcategory` | `roomwear` / `underwear` / `pajamas` / `other` | item で主導線として使う種類名 |
-| legacy bridge の旧値 | `inner_roomwear` / `inner_underwear` / `inner_pajamas` | 旧 map や旧データ互換のために読む値 |
-| item データの `shape` | `roomwear` / `underwear` / `pajamas` | current では同名1件の候補を自動補完する薄い補助値 |
+| 役割                          | 現在の値                                                                                                   | 説明                                              |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
+| settings / master の大分類 ID | `roomwear_inner`                                                                                           | 表示設定と category master で使う大分類 ID        |
+| settings / master の中分類 ID | `roomwear_inner_roomwear` / `roomwear_inner_underwear` / `roomwear_inner_pajamas` / `roomwear_inner_other` | `visible_category_ids` に入る表示対象の種類 ID    |
+| item データの `category`      | `inner`                                                                                                    | item モデル上の current category                  |
+| item データの `subcategory`   | `roomwear` / `underwear` / `pajamas` / `other`                                                             | item で主導線として使う種類名                     |
+| legacy bridge の旧値          | `inner_roomwear` / `inner_underwear` / `inner_pajamas`                                                     | 旧 map や旧データ互換のために読む値               |
+| item データの `shape`         | `roomwear` / `underwear` / `pajamas`                                                                       | current では同名1件の候補を自動補完する薄い補助値 |
 
 補足:
 
@@ -432,11 +436,11 @@ thumbnail の現状確認用パターン一覧を見返すときは `docs/specs/
 
 ### 設計負債 TODO の整理
 
-| 優先度 | 論点 | current の分散先 / 症状 | 後続で目指したい方向 |
-| --- | --- | --- | --- |
-| 高 | category / subcategory / shape の変換規則分散 | backend では `ListQuerySupport`、`ItemSubcategorySupport`、`ItemInputRequirementSupport`、`PurchaseCandidateCategoryMap`、frontend では `web/src/lib/api/categories.ts`、`web/src/lib/master-data/item-subcategories.ts`、`web/src/lib/master-data/item-shapes.ts` などに分散 | category・subcategory・shape の対応表を正本化し、settings / item / candidate 変換が同じ規則を見る形へ寄せる |
-| 中 | item 新規登録画面のカード構成 | カテゴリによって詳細属性カードが分類カードから浮いて見え、分類導線と詳細導線のまとまりが弱く見える | `カテゴリ / 種類 / 形 / 詳細` の流れに沿ってカード構成を見直し、分類カードとの連続性を高める |
-| 中 | `legwear` の `coverage_type` 候補 | 特にソックスで、現在の候補が十分か再判断の余地がある | `subcategory` 主導の current 設計を維持したまま、ソックス長さなどの候補粒度を後続で見直す |
+| 優先度 | 論点                                          | current の分散先 / 症状                                                                                                                                                                                                                                                       | 後続で目指したい方向                                                                                        |
+| ------ | --------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| 高     | category / subcategory / shape の変換規則分散 | backend では `ListQuerySupport`、`ItemSubcategorySupport`、`ItemInputRequirementSupport`、`PurchaseCandidateCategoryMap`、frontend では `web/src/lib/api/categories.ts`、`web/src/lib/master-data/item-subcategories.ts`、`web/src/lib/master-data/item-shapes.ts` などに分散 | category・subcategory・shape の対応表を正本化し、settings / item / candidate 変換が同じ規則を見る形へ寄せる |
+| 中     | item 新規登録画面のカード構成                 | カテゴリによって詳細属性カードが分類カードから浮いて見え、分類導線と詳細導線のまとまりが弱く見える                                                                                                                                                                            | `カテゴリ / 種類 / 形 / 詳細` の流れに沿ってカード構成を見直し、分類カードとの連続性を高める                |
+| 中     | `legwear` の `coverage_type` 候補             | 特にソックスで、現在の候補が十分か再判断の余地がある                                                                                                                                                                                                                          | `subcategory` 主導の current 設計を維持したまま、ソックス長さなどの候補粒度を後続で見直す                   |
 
 補足:
 
@@ -447,15 +451,15 @@ thumbnail の現状確認用パターン一覧を見返すときは `docs/specs/
 
 current では `category / subcategory / shape` の変換規則が backend / frontend の複数 helper に分散しているが、後続では次の責務で読む方針を第一候補とする。
 
-| 層 | 主なファイル | 持つべき責務 | 正本 / 派生 |
-| --- | --- | --- | --- |
-| backend の正本寄り層 | `ItemSubcategorySupport` | item が取りうる `subcategory` 値、必須条件、正規化 | 正本 |
-| backend の正本寄り層 | `ItemInputRequirementSupport` | `category + subcategory` に対する `shape` 候補、必須条件、自動補完 | 正本 |
-| backend の正本寄り層 | `ListQuerySupport` | settings 用 ID と item 実データの橋渡し、visible 判定 | 正本寄りだが、上記 2 つから導出できる形へ寄せたい |
-| backend の境界層 | `PurchaseCandidateCategoryMap` | category master ID から item draft への変換 | 境界専用の派生 |
-| frontend の表示層 | `web/src/lib/master-data/item-subcategories.ts` | 表示順、ラベル、UI 種別、legacy 値の補助解釈 | 派生 |
-| frontend の表示層 | `web/src/lib/master-data/item-shapes.ts` | 形の表示順、ラベル、UI 上の候補絞り込み | 派生 |
-| frontend の表示層 | `web/src/lib/api/categories.ts` | settings / item 一覧で使う中分類 ID 解決、表示対象判定 | backend 正本の読み替え |
+| 層                   | 主なファイル                                    | 持つべき責務                                                       | 正本 / 派生                                       |
+| -------------------- | ----------------------------------------------- | ------------------------------------------------------------------ | ------------------------------------------------- |
+| backend の正本寄り層 | `ItemSubcategorySupport`                        | item が取りうる `subcategory` 値、必須条件、正規化                 | 正本                                              |
+| backend の正本寄り層 | `ItemInputRequirementSupport`                   | `category + subcategory` に対する `shape` 候補、必須条件、自動補完 | 正本                                              |
+| backend の正本寄り層 | `ListQuerySupport`                              | settings 用 ID と item 実データの橋渡し、visible 判定              | 正本寄りだが、上記 2 つから導出できる形へ寄せたい |
+| backend の境界層     | `PurchaseCandidateCategoryMap`                  | category master ID から item draft への変換                        | 境界専用の派生                                    |
+| frontend の表示層    | `web/src/lib/master-data/item-subcategories.ts` | 表示順、ラベル、UI 種別、legacy 値の補助解釈                       | 派生                                              |
+| frontend の表示層    | `web/src/lib/master-data/item-shapes.ts`        | 形の表示順、ラベル、UI 上の候補絞り込み                            | 派生                                              |
+| frontend の表示層    | `web/src/lib/api/categories.ts`                 | settings / item 一覧で使う中分類 ID 解決、表示対象判定             | backend 正本の読み替え                            |
 
 整理の第一候補:
 
@@ -472,14 +476,14 @@ current では `category / subcategory / shape` の変換規則が backend / fro
 
 current で同じ意味の規則が重複している主な箇所は次のとおり。
 
-| 優先度 | 論点 | 重複している主なファイル | 判断 |
-| --- | --- | --- | --- |
-| 高 | `subcategory` 値一覧・必須カテゴリ | backend の `ItemSubcategorySupport`、frontend の `item-subcategories.ts` | 意味づけは backend を正本、frontend は表示専用に寄せたい |
-| 高 | `category + subcategory -> shape` 候補、default / fallback shape | backend の `ItemInputRequirementSupport`、frontend の `item-shapes.ts` / `item-subcategories.ts` | backend を正本、frontend は表示用候補と自動選択 UI に限定したい |
-| 高 | settings 用 ID と item 実データの橋渡し | backend の `ItemSubcategorySupport` / `ListQuerySupport`、frontend の `web/src/lib/api/categories.ts` | backend 側で意味づけを決め、frontend は read model に薄くしたい |
-| 中 | legacy 値からの bridge | backend の `ListQuerySupport`、frontend の `web/src/lib/api/categories.ts` / `item-subcategories.ts` / `item-shapes.ts` | staged rollout 互換のため当面残すが、最終的には backend 側へ寄せたい |
-| 中 | purchase candidate → item draft 変換 | `PurchaseCandidateCategoryMap` と backend 正本 helper | 境界ロジックとして独立維持しつつ、戻り値解釈は backend 正本を通す方針でよい |
-| 低 | ラベル、並び順、UI 種別 | frontend の `item-subcategories.ts` / `item-shapes.ts` | これは表示責務として frontend に残してよい |
+| 優先度 | 論点                                                             | 重複している主なファイル                                                                                                | 判断                                                                        |
+| ------ | ---------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| 高     | `subcategory` 値一覧・必須カテゴリ                               | backend の `ItemSubcategorySupport`、frontend の `item-subcategories.ts`                                                | 意味づけは backend を正本、frontend は表示専用に寄せたい                    |
+| 高     | `category + subcategory -> shape` 候補、default / fallback shape | backend の `ItemInputRequirementSupport`、frontend の `item-shapes.ts` / `item-subcategories.ts`                        | backend を正本、frontend は表示用候補と自動選択 UI に限定したい             |
+| 高     | settings 用 ID と item 実データの橋渡し                          | backend の `ItemSubcategorySupport` / `ListQuerySupport`、frontend の `web/src/lib/api/categories.ts`                   | backend 側で意味づけを決め、frontend は read model に薄くしたい             |
+| 中     | legacy 値からの bridge                                           | backend の `ListQuerySupport`、frontend の `web/src/lib/api/categories.ts` / `item-subcategories.ts` / `item-shapes.ts` | staged rollout 互換のため当面残すが、最終的には backend 側へ寄せたい        |
+| 中     | purchase candidate → item draft 変換                             | `PurchaseCandidateCategoryMap` と backend 正本 helper                                                                   | 境界ロジックとして独立維持しつつ、戻り値解釈は backend 正本を通す方針でよい |
+| 低     | ラベル、並び順、UI 種別                                          | frontend の `item-subcategories.ts` / `item-shapes.ts`                                                                  | これは表示責務として frontend に残してよい                                  |
 
 一本化対象の第一候補は、1. backend の `subcategory` 値一覧と必須カテゴリ、2. backend の `shape` 候補 / default / fallback、3. settings 用 ID と item 実データの橋渡し、の順とする。
 
