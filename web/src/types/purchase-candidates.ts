@@ -47,6 +47,7 @@ export type PurchaseCandidateListItem = {
   converted_item_id: number | null;
   converted_at: string | null;
   primary_image: PurchaseCandidateImageRecord | null;
+  images: PurchaseCandidateImageRecord[];
   updated_at: string | null;
 };
 

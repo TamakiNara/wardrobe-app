@@ -32,6 +32,7 @@ function buildCandidate(
     converted_item_id: null,
     converted_at: null,
     primary_image: null,
+    images: [],
     updated_at: "2026-04-18T10:00:00+09:00",
     ...overrides,
   };
@@ -109,14 +110,15 @@ describe("PurchaseCandidateListCard", () => {
     expect(container.textContent).toContain("レッドコート");
     expect(container.textContent).toContain("Red Brand");
     expect(container.textContent).toContain("7,800");
+    expect(container.textContent).toContain("色違い 2件");
     expect(
       container.querySelector('a[href="/purchase-candidates/1"]'),
     ).not.toBeNull();
 
-    const blueButton = Array.from(container.querySelectorAll("button")).find(
-      (button) => button.textContent?.includes("ブルー"),
-    ) as HTMLButtonElement | undefined;
-    expect(blueButton).not.toBeUndefined();
+    const blueButton = container.querySelector<HTMLButtonElement>(
+      'button[aria-label="ブルーを表示"]',
+    );
+    expect(blueButton).not.toBeNull();
 
     await act(async () => {
       blueButton!.click();
@@ -151,5 +153,177 @@ describe("PurchaseCandidateListCard", () => {
 
     expect(container.textContent).toContain("単独グループ候補");
     expect(container.querySelector("button")).toBeNull();
+  });
+
+  it("複数画像がある候補はカード内で画像だけを切り替えられる", async () => {
+    const { default: PurchaseCandidateListCard } =
+      await import("./purchase-candidate-list-card");
+
+    await act(async () => {
+      root.render(
+        React.createElement(PurchaseCandidateListCard, {
+          candidates: [
+            buildCandidate({
+              id: 4,
+              name: "画像切替候補",
+              images: [
+                {
+                  id: 11,
+                  purchase_candidate_id: 4,
+                  disk: "public",
+                  path: "purchase-candidates/4/front.png",
+                  url: "https://example.test/front.png",
+                  original_filename: "front.png",
+                  mime_type: "image/png",
+                  file_size: 1024,
+                  sort_order: 1,
+                  is_primary: true,
+                },
+                {
+                  id: 12,
+                  purchase_candidate_id: 4,
+                  disk: "public",
+                  path: "purchase-candidates/4/side.png",
+                  url: "https://example.test/side.png",
+                  original_filename: "side.png",
+                  mime_type: "image/png",
+                  file_size: 2048,
+                  sort_order: 2,
+                  is_primary: false,
+                },
+              ],
+            }),
+          ],
+        }),
+      );
+    });
+
+    expect(
+      container.querySelector('img[src="https://example.test/front.png"]'),
+    ).not.toBeNull();
+    expect(container.textContent).toContain("1/2");
+
+    const nextButton = container.querySelector<HTMLButtonElement>(
+      'button[aria-label="次の画像を表示"]',
+    );
+    expect(nextButton).not.toBeNull();
+
+    await act(async () => {
+      nextButton!.click();
+    });
+
+    expect(
+      container.querySelector('img[src="https://example.test/side.png"]'),
+    ).not.toBeNull();
+    expect(container.textContent).toContain("2/2");
+  });
+
+  it("色違い候補を切り替えると画像表示を先頭に戻す", async () => {
+    const { default: PurchaseCandidateListCard } =
+      await import("./purchase-candidate-list-card");
+
+    await act(async () => {
+      root.render(
+        React.createElement(PurchaseCandidateListCard, {
+          candidates: [
+            buildCandidate({
+              id: 1,
+              name: "レッドコート",
+              group_id: 10,
+              group_order: 1,
+              colors: [
+                {
+                  role: "main",
+                  mode: "preset",
+                  value: "red",
+                  hex: "#E53935",
+                  label: "レッド",
+                },
+              ],
+              images: [
+                {
+                  id: 21,
+                  purchase_candidate_id: 1,
+                  disk: "public",
+                  path: "purchase-candidates/1/front.png",
+                  url: "https://example.test/red-front.png",
+                  original_filename: "red-front.png",
+                  mime_type: "image/png",
+                  file_size: 1024,
+                  sort_order: 1,
+                  is_primary: true,
+                },
+                {
+                  id: 22,
+                  purchase_candidate_id: 1,
+                  disk: "public",
+                  path: "purchase-candidates/1/side.png",
+                  url: "https://example.test/red-side.png",
+                  original_filename: "red-side.png",
+                  mime_type: "image/png",
+                  file_size: 2048,
+                  sort_order: 2,
+                  is_primary: false,
+                },
+              ],
+            }),
+            buildCandidate({
+              id: 2,
+              name: "ブルーコート",
+              group_id: 10,
+              group_order: 2,
+              colors: [
+                {
+                  role: "main",
+                  mode: "preset",
+                  value: "blue",
+                  hex: "#0077D9",
+                  label: "ブルー",
+                },
+              ],
+              images: [
+                {
+                  id: 23,
+                  purchase_candidate_id: 2,
+                  disk: "public",
+                  path: "purchase-candidates/2/front.png",
+                  url: "https://example.test/blue-front.png",
+                  original_filename: "blue-front.png",
+                  mime_type: "image/png",
+                  file_size: 1024,
+                  sort_order: 1,
+                  is_primary: true,
+                },
+              ],
+            }),
+          ],
+        }),
+      );
+    });
+
+    const nextButton = container.querySelector<HTMLButtonElement>(
+      'button[aria-label="次の画像を表示"]',
+    );
+    expect(nextButton).not.toBeNull();
+
+    await act(async () => {
+      nextButton!.click();
+    });
+    expect(
+      container.querySelector('img[src="https://example.test/red-side.png"]'),
+    ).not.toBeNull();
+
+    const blueButton = container.querySelector<HTMLButtonElement>(
+      'button[aria-label="ブルーを表示"]',
+    );
+    expect(blueButton).not.toBeNull();
+
+    await act(async () => {
+      blueButton!.click();
+    });
+
+    expect(
+      container.querySelector('img[src="https://example.test/blue-front.png"]'),
+    ).not.toBeNull();
   });
 });

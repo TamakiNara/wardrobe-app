@@ -44,6 +44,11 @@ class PurchaseCandidatePayloadBuilder
             'converted_item_id' => $candidate->converted_item_id,
             'converted_at' => $candidate->converted_at?->toISOString(),
             'primary_image' => $primaryImage === null ? null : self::buildImage($primaryImage),
+            'images' => $candidate->images
+                ->sortBy('sort_order')
+                ->values()
+                ->map(fn (PurchaseCandidateImage $image) => self::buildImage($image))
+                ->all(),
             'updated_at' => $candidate->updated_at?->toISOString(),
         ];
     }

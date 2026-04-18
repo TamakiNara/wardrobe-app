@@ -157,6 +157,8 @@ thumbnail の現状確認用パターン一覧を見返すときは `docs/specs/
    - 現状: 同じ `group_id` を持つ購入検討は、一覧上で 1 カードに束ねて表示する
    - 補足: 初期表示は `group_order` 最小の candidate を使い、色チップは `group_order asc` で並べる
    - 補足: チップ切り替え時は、カード内の画像 / 名前 / ブランド / 価格 / sale 情報 / status / priority / 詳細リンクを選択中 candidate に合わせて切り替える
+   - 補足: 一覧カードでは、選択中 candidate の複数画像を左右矢印で切り替え、画像位置は `1/n` 表示で補足する。色違いチップで別 candidate へ切り替えた場合は、その candidate の先頭画像へ戻す
+   - 後続: group / non-group を含む購入検討カード全体の再設計は別TODOとし、今回は `色違い n件` ラベル、画像直下の色チップ切替、画像切替導線までを現行到達点とする
    - 後続: 詳細画面の同 group 候補表示、group 内 purchased の見せ方、並び替え UI は未実装
 
 
@@ -742,6 +744,7 @@ current で同じ意味の規則が重複している主な箇所は次のとお
 
 - sample data では category / colors / seasons / tpos / tpo_ids / spec に加え、brand 候補確認用の `items.brand_name` と `user_brands` も反映済み
 - 将来タスク: wear log の sample date は固定日ではなく、seed 実行日を基準に前後日・月またぎを確認できる相対日付投入へ寄せる
+- 将来タスク: 購入検討の確認用 seed には、単独 candidate の複数画像、色違い group 各 candidate の単色画像、一部画像なし group を追加し、画像切替・色違い切替・画像なし fallback を確認できるようにする
 
 ### 認証
 

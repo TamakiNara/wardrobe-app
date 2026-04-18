@@ -260,6 +260,26 @@ class PurchaseCandidateEndpointsTest extends TestCase
             'group_id' => $group->id,
             'group_order' => 2,
         ]);
+        $candidate->images()->createMany([
+            [
+                'disk' => 'public',
+                'path' => "purchase-candidates/{$candidate->id}/front.png",
+                'original_filename' => 'front.png',
+                'mime_type' => 'image/png',
+                'file_size' => 1024,
+                'sort_order' => 1,
+                'is_primary' => true,
+            ],
+            [
+                'disk' => 'public',
+                'path' => "purchase-candidates/{$candidate->id}/side.png",
+                'original_filename' => 'side.png',
+                'mime_type' => 'image/png',
+                'file_size' => 2048,
+                'sort_order' => 2,
+                'is_primary' => false,
+            ],
+        ]);
 
         $this->actingAs($user, 'web');
 
@@ -270,7 +290,9 @@ class PurchaseCandidateEndpointsTest extends TestCase
         $response->assertOk()
             ->assertJsonPath('purchaseCandidates.0.id', $candidate->id)
             ->assertJsonPath('purchaseCandidates.0.group_id', $group->id)
-            ->assertJsonPath('purchaseCandidates.0.group_order', 2);
+            ->assertJsonPath('purchaseCandidates.0.group_order', 2)
+            ->assertJsonPath('purchaseCandidates.0.images.0.path', "purchase-candidates/{$candidate->id}/front.png")
+            ->assertJsonPath('purchaseCandidates.0.images.1.path', "purchase-candidates/{$candidate->id}/side.png");
     }
 
     public function test_get_purchase_candidates_filters_by_parent_category(): void
