@@ -1336,6 +1336,18 @@ paths:
           required: false
           schema:
             type: string
+          description: 親カテゴリ。subcategory は category 選択後のみ有効。
+        - name: subcategory
+          in: query
+          required: false
+          schema:
+            type: string
+          description: category 配下の current subcategory。category 未指定時の単独指定は初期実装では扱わない。
+        - name: brand
+          in: query
+          required: false
+          schema:
+            type: string
         - name: sort
           in: query
           required: false
@@ -1539,32 +1551,53 @@ paths:
         - Purchase Candidates
       summary: 購入候補複製
       description: |
-        指定 purchase candidate を元に、新しい purchase candidate record を 1 件作成する。
-        status は常に `considering` へ戻し、colors / seasons / tpos / images / materials も引き継ぐ。
-        画像は record 共有ではなく、新 candidate 用保存先へ物理コピーする。
-        元 candidate の status が `purchased` / `dropped` でも複製は許可する。
+        指定 purchase candidate を元に、新規作成画面へ渡す duplicate draft を返す。
+        この API 呼び出し時点では新しい purchase candidate record は作成しない。
+        status は `considering` へ戻し、colors / seasons / tpos / images / materials も draft として引き継ぐ。
+        通常複製では `group_id` を引き継がない。
       security:
         - SessionCookieAuth: []
       parameters:
         - $ref: '#/components/parameters/PurchaseCandidateIdPath'
         - $ref: '#/components/parameters/XCsrfTokenHeader'
       responses:
-        '201':
-          description: "作成成功。message は `created`。purchaseCandidate には複製後の新しい record を返す"
+        '200':
+          description: "draft 作成成功。message は `duplicated_payload_ready`。purchaseCandidate には新規作成画面用 draft を返す"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PurchaseCandidateResponseWithMessage'
+                $ref: '#/components/schemas/PurchaseCandidateDuplicateResponse'
         '401':
           description: 未認証
         '404':
           description: 未検出（対象なし・他人データ秘匿を含む）
-        '422':
-          description: 画像コピー失敗などのバリデーションエラー
+
+  /api/purchase-candidates/{id}/color-variant:
+    post:
+      tags:
+        - Purchase Candidates
+      summary: 色違い追加 draft 作成
+      description: |
+        指定 purchase candidate を元に、色違い追加用の draft を返す。
+        draft 作成時点では元 candidate を更新せず、group も作成しない。
+        response の draft payload には `variant_source_candidate_id` を含める。
+        新 candidate 保存時に backend が source candidate の group を解決し、未所属なら保存 transaction 内で group を作成する。
+      security:
+        - SessionCookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PurchaseCandidateIdPath'
+        - $ref: '#/components/parameters/XCsrfTokenHeader'
+      responses:
+        '200':
+          description: "draft 作成成功。message は `color_variant_payload_ready`。purchaseCandidate には色違い追加用 draft を返す"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ValidationErrorResponse'
+                $ref: '#/components/schemas/PurchaseCandidateDuplicateResponse'
+        '401':
+          description: 未認証
+        '404':
+          description: 未検出（対象なし・他人データ秘匿を含む）
 
   /api/purchase-candidates/{id}/item-draft:
     post:
@@ -3414,7 +3447,24 @@ components:
         - priority
         - name
         - category_id
+        - category_name
+        - brand_name
+        - price
+        - sale_price
+        - sale_ends_at
+        - purchase_url
+        - memo
+        - wanted_reason
+        - size_gender
+        - size_label
+        - size_note
+        - size_details
         - is_rain_ok
+        - group_id
+        - group_order
+        - group_candidates
+        - converted_item_id
+        - converted_at
         - colors
         - seasons
         - tpos
@@ -3436,6 +3486,10 @@ components:
         category_id:
           type: string
           example: outer_coat
+        category_name:
+          type: string
+          nullable: true
+          example: コート
         brand_name:
           type: string
           nullable: true
@@ -3492,6 +3546,21 @@ components:
         is_rain_ok:
           type: boolean
           example: true
+        group_id:
+          type: integer
+          nullable: true
+          example: 3
+          description: 色違い group ID。未所属 candidate では null。
+        group_order:
+          type: integer
+          nullable: true
+          example: 1
+          description: group 内表示順。未所属 candidate では null。
+        group_candidates:
+          type: array
+          description: 同じ group に属する候補の詳細画面用要約。未所属または単独 group の場合は空配列。
+          items:
+            $ref: '#/components/schemas/PurchaseCandidateGroupCandidateRecord'
         colors:
           type: array
           items:
@@ -3527,6 +3596,47 @@ components:
           type: string
           format: date-time
 
+
+    PurchaseCandidateGroupCandidateRecord:
+      type: object
+      required:
+        - id
+        - status
+        - name
+        - price
+        - sale_price
+        - group_order
+        - is_current
+        - colors
+      properties:
+        id:
+          type: integer
+          example: 11
+        status:
+          $ref: '#/components/schemas/PurchaseCandidateStatus'
+        name:
+          type: string
+          example: 赤の候補
+        price:
+          type: integer
+          nullable: true
+          example: 9800
+        sale_price:
+          type: integer
+          nullable: true
+          example: 7800
+        group_order:
+          type: integer
+          nullable: true
+          example: 1
+        is_current:
+          type: boolean
+          example: false
+        colors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ItemColor'
+
     PurchaseCandidateUpsertRequest:
       type: object
       description: |
@@ -3549,6 +3659,10 @@ components:
         category_id:
           type: string
           maxLength: 100
+        variant_source_candidate_id:
+          type: integer
+          nullable: true
+          description: 色違い追加保存時だけ指定する元 candidate ID。`group_id` を直接受け取る代わりに backend が source から group を解決する。
         brand_name:
           type: string
           nullable: true
@@ -3611,6 +3725,16 @@ components:
           description: item 側と同じ shape を使う素材・混率明細。未入力時は空配列または未指定を許可する。
           items:
             $ref: '#/components/schemas/ItemMaterialRecord'
+        duplicate_images:
+          type: array
+          description: duplicate / color-variant draft 保存時にコピーする元画像。通常作成では未指定。
+          items:
+            type: object
+            required:
+              - source_image_id
+            properties:
+              source_image_id:
+                type: integer
 
     PurchaseCandidateListResponse:
       type: object
@@ -3628,9 +3752,19 @@ components:
               - priority
               - name
               - category_id
+              - category_name
+              - brand_name
+              - price
+              - sale_price
+              - sale_ends_at
+              - purchase_url
+              - group_id
+              - group_order
+              - colors
               - converted_item_id
               - converted_at
               - primary_image
+              - images
               - updated_at
             properties:
               id:
@@ -3650,6 +3784,10 @@ components:
                 type: string
                 nullable: true
                 example: コート
+              brand_name:
+                type: string
+                nullable: true
+                example: Sample Brand
               price:
                 type: integer
                 nullable: true
@@ -3662,6 +3800,22 @@ components:
                 type: string
                 format: date-time
                 nullable: true
+              purchase_url:
+                type: string
+                nullable: true
+                example: https://example.test/products/10
+              group_id:
+                type: integer
+                nullable: true
+                example: 3
+              group_order:
+                type: integer
+                nullable: true
+                example: 1
+              colors:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ItemColor'
               converted_item_id:
                 type: integer
                 nullable: true
@@ -3674,6 +3828,11 @@ components:
                 allOf:
                   - $ref: '#/components/schemas/PurchaseCandidateImageRecord'
                 nullable: true
+              images:
+                type: array
+                description: 一覧カードの画像切替に使う要約配列。UI は選択中 candidate の images を使い、0〜1 枚の場合は矢印を出さない。
+                items:
+                  $ref: '#/components/schemas/PurchaseCandidateImageRecord'
               updated_at:
                 type: string
                 format: date-time
@@ -3710,7 +3869,7 @@ components:
     PurchaseCandidateResponseWithMessage:
       description: |
         action keyword の `message` と purchase candidate record をまとめて返す response。
-        create / update / duplicate で `created` または `updated` を返す。
+        create / update で `created` または `updated` を返す。
       allOf:
         - $ref: '#/components/schemas/MessageOnlyResponse'
         - type: object
@@ -3719,6 +3878,44 @@ components:
           properties:
             purchaseCandidate:
               $ref: '#/components/schemas/PurchaseCandidateRecord'
+
+
+    PurchaseCandidateDuplicateImageRecord:
+      allOf:
+        - $ref: '#/components/schemas/PurchaseCandidateImageRecord'
+        - type: object
+          required:
+            - source_image_id
+          properties:
+            source_image_id:
+              type: integer
+              description: draft 保存時にコピー元画像として送る purchase candidate image ID。
+
+    PurchaseCandidateDuplicatePayload:
+      allOf:
+        - $ref: '#/components/schemas/PurchaseCandidateUpsertRequest'
+        - type: object
+          required:
+            - images
+          properties:
+            images:
+              type: array
+              description: 新規作成画面へ引き継ぐ画像 draft。保存時は duplicate_images に変換して送る。
+              items:
+                $ref: '#/components/schemas/PurchaseCandidateDuplicateImageRecord'
+
+    PurchaseCandidateDuplicateResponse:
+      description: |
+        duplicate / color-variant draft 用 response。
+        `color-variant` の場合、purchaseCandidate には `variant_source_candidate_id` を含める。
+      allOf:
+        - $ref: '#/components/schemas/MessageOnlyResponse'
+        - type: object
+          required:
+            - purchaseCandidate
+          properties:
+            purchaseCandidate:
+              $ref: '#/components/schemas/PurchaseCandidateDuplicatePayload'
 
     PurchaseCandidateImageUploadRequest:
       type: object
