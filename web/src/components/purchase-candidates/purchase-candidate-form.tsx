@@ -114,21 +114,35 @@ function toDateTimeLocalValue(value: string | null): string {
   return localDate.toISOString().slice(0, 16);
 }
 
-export function normalizeSaleEndsAtInputValue(
-  value: string,
+function getSaleEndsAtDateValue(value: string): string {
+  return value.match(/^(\d{4}-\d{2}-\d{2})T\d{2}:\d{2}$/)?.[1] ?? "";
+}
+
+function getSaleEndsAtTimeValue(value: string): string {
+  return value.match(/^\d{4}-\d{2}-\d{2}T(\d{2}:\d{2})$/)?.[1] ?? "";
+}
+
+export function resolveSaleEndsAtFromDateInput(
+  dateValue: string,
   currentValue: string,
 ): string {
-  const dateOnlyMatch = value.match(/^(\d{4}-\d{2}-\d{2})$/);
-  if (dateOnlyMatch) {
-    return `${dateOnlyMatch[1]}T00:00`;
+  if (dateValue === "") {
+    return "";
   }
 
-  const dateTimeMatch = value.match(/^(\d{4}-\d{2}-\d{2})T\d{2}:\d{2}$/);
-  if (currentValue === "" && dateTimeMatch) {
-    return `${dateTimeMatch[1]}T00:00`;
+  return `${dateValue}T${getSaleEndsAtTimeValue(currentValue) || "00:00"}`;
+}
+
+export function resolveSaleEndsAtFromTimeInput(
+  timeValue: string,
+  currentValue: string,
+): string {
+  const dateValue = getSaleEndsAtDateValue(currentValue);
+  if (dateValue === "") {
+    return currentValue;
   }
 
-  return value;
+  return `${dateValue}T${timeValue || "00:00"}`;
 }
 
 function extractFirstErrorMessage(data: unknown, fallback: string): string {
@@ -1041,23 +1055,54 @@ export default function PurchaseCandidateForm({
           </div>
 
           <div>
-            <label
-              htmlFor="sale_ends_at"
-              className="mb-1 block text-sm font-medium text-gray-700"
-            >
-              セール終了予定
-            </label>
-            <input
-              id="sale_ends_at"
-              type="datetime-local"
-              value={saleEndsAt}
-              onChange={(event) =>
-                setSaleEndsAt(
-                  normalizeSaleEndsAtInputValue(event.target.value, saleEndsAt),
-                )
-              }
-              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-            />
+            <div className="mb-1 flex items-center justify-between gap-3">
+              <span className="block text-sm font-medium text-gray-700">
+                セール終了予定
+              </span>
+              <button
+                type="button"
+                onClick={() => setSaleEndsAt("")}
+                disabled={saleEndsAt === ""}
+                className="text-xs font-medium text-gray-500 underline-offset-2 transition hover:text-gray-800 hover:underline disabled:cursor-not-allowed disabled:text-gray-300 disabled:no-underline"
+              >
+                リセット
+              </button>
+            </div>
+            <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_8rem]">
+              <input
+                id="sale_ends_at_date"
+                aria-label="セール終了予定の日付"
+                type="date"
+                value={getSaleEndsAtDateValue(saleEndsAt)}
+                onChange={(event) =>
+                  setSaleEndsAt(
+                    resolveSaleEndsAtFromDateInput(
+                      event.target.value,
+                      saleEndsAt,
+                    ),
+                  )
+                }
+                style={{ colorScheme: "light", accentColor: "#2563eb" }}
+                className="h-[50px] w-full rounded-lg border border-gray-300 bg-white px-4 text-gray-950 shadow-sm outline-none transition [color-scheme:light] focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              />
+              <input
+                id="sale_ends_at_time"
+                aria-label="セール終了予定の時刻"
+                type="time"
+                value={getSaleEndsAtTimeValue(saleEndsAt)}
+                onChange={(event) =>
+                  setSaleEndsAt(
+                    resolveSaleEndsAtFromTimeInput(
+                      event.target.value,
+                      saleEndsAt,
+                    ),
+                  )
+                }
+                disabled={getSaleEndsAtDateValue(saleEndsAt) === ""}
+                style={{ colorScheme: "light", accentColor: "#2563eb" }}
+                className="h-[50px] w-full rounded-lg border border-gray-300 bg-white px-4 text-gray-950 shadow-sm outline-none transition [color-scheme:light] focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400"
+              />
+            </div>
           </div>
         </div>
 

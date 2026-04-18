@@ -338,8 +338,11 @@ describe("PurchaseCandidateForm", () => {
     const salePriceInput = container.querySelector(
       "#sale_price",
     ) as HTMLInputElement;
-    const saleEndsAtInput = container.querySelector(
-      "#sale_ends_at",
+    const saleEndsAtDateInput = container.querySelector(
+      "#sale_ends_at_date",
+    ) as HTMLInputElement;
+    const saleEndsAtTimeInput = container.querySelector(
+      "#sale_ends_at_time",
     ) as HTMLInputElement;
     const customMainCheckbox = container.querySelector(
       'input[aria-label="メインカラーをカラーコードで入力"]',
@@ -352,8 +355,8 @@ describe("PurchaseCandidateForm", () => {
       setNativeValue(nameInput, "レインコート候補");
       setNativeValue(categorySelect, "tops_tshirt_cutsew");
       setNativeValue(salePriceInput, "12800");
-      setNativeValue(saleEndsAtInput, "2026-03-31T00:00");
-      setNativeValue(saleEndsAtInput, "2026-03-31T18:00");
+      setNativeValue(saleEndsAtDateInput, "2026-03-31");
+      setNativeValue(saleEndsAtTimeInput, "18:00");
       setNativeValue(sizeNoteInput, "厚手対応");
       customMainCheckbox.click();
     });
@@ -433,19 +436,90 @@ describe("PurchaseCandidateForm", () => {
   });
 
   it("sale_ends_at の日付だけの入力は時刻を 00:00 に補正する", async () => {
-    const { normalizeSaleEndsAtInputValue } =
+    const { resolveSaleEndsAtFromDateInput, resolveSaleEndsAtFromTimeInput } =
       await import("./purchase-candidate-form");
 
-    expect(normalizeSaleEndsAtInputValue("2026-03-31", "")).toBe(
+    expect(resolveSaleEndsAtFromDateInput("2026-03-31", "")).toBe(
       "2026-03-31T00:00",
     );
-    expect(normalizeSaleEndsAtInputValue("2026-03-31T18:00", "")).toBe(
-      "2026-03-31T00:00",
+    expect(resolveSaleEndsAtFromTimeInput("18:00", "2026-03-31T00:00")).toBe(
+      "2026-03-31T18:00",
     );
     expect(
-      normalizeSaleEndsAtInputValue("2026-03-31T18:00", "2026-03-31T00:00"),
-    ).toBe("2026-03-31T18:00");
-    expect(normalizeSaleEndsAtInputValue("", "2026-03-31T00:00")).toBe("");
+      resolveSaleEndsAtFromDateInput("2026-04-30", "2026-03-31T18:00"),
+    ).toBe("2026-04-30T18:00");
+    expect(resolveSaleEndsAtFromDateInput("", "2026-03-31T18:00")).toBe("");
+  });
+
+  it("sale_ends_at のリセットで送信値を null に戻せる", async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 201,
+      json: async () => ({
+        purchaseCandidate: {
+          id: 18,
+        },
+      }),
+    });
+
+    await renderForm();
+
+    const nameInput = container.querySelector("#name") as HTMLInputElement;
+    const categorySelect = container.querySelector(
+      "#category_id",
+    ) as HTMLSelectElement;
+    const saleEndsAtDateInput = container.querySelector(
+      "#sale_ends_at_date",
+    ) as HTMLInputElement;
+    const saleEndsAtTimeInput = container.querySelector(
+      "#sale_ends_at_time",
+    ) as HTMLInputElement;
+    const customMainCheckbox = container.querySelector(
+      'input[aria-label="\u30e1\u30a4\u30f3\u30ab\u30e9\u30fc\u3092\u30ab\u30e9\u30fc\u30b3\u30fc\u30c9\u3067\u5165\u529b"]',
+    ) as HTMLInputElement;
+    const resetButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent?.trim() === "リセット",
+    ) as HTMLButtonElement;
+
+    expect(resetButton.disabled).toBe(true);
+
+    await act(async () => {
+      setNativeValue(nameInput, "Sale reset candidate");
+      setNativeValue(categorySelect, "tops_tshirt_cutsew");
+      setNativeValue(saleEndsAtDateInput, "2026-03-31");
+      customMainCheckbox.click();
+    });
+
+    const mainColorCodeInput = container.querySelector(
+      'input[aria-label="\u30e1\u30a4\u30f3\u30ab\u30e9\u30fc\u30b3\u30fc\u30c9"]',
+    ) as HTMLInputElement;
+
+    await act(async () => {
+      setNativeValue(mainColorCodeInput, "#112233");
+    });
+
+    expect(resetButton.disabled).toBe(false);
+
+    await act(async () => {
+      resetButton.click();
+    });
+
+    expect(saleEndsAtDateInput.value).toBe("");
+    expect(saleEndsAtTimeInput.value).toBe("");
+
+    const form = container.querySelector("form") as HTMLFormElement;
+
+    await act(async () => {
+      form.dispatchEvent(
+        new Event("submit", { bubbles: true, cancelable: true }),
+      );
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [, requestInit] = fetchMock.mock.calls[0];
+    const payload = JSON.parse(requestInit.body as string);
+
+    expect(payload.sale_ends_at).toBeNull();
   });
 
   it("素材・混率を送信 payload に含められる", async () => {
@@ -847,8 +921,11 @@ describe("PurchaseCandidateForm", () => {
     const salePriceInput = container.querySelector(
       "#sale_price",
     ) as HTMLInputElement;
-    const saleEndsAtInput = container.querySelector(
-      "#sale_ends_at",
+    const saleEndsAtDateInput = container.querySelector(
+      "#sale_ends_at_date",
+    ) as HTMLInputElement;
+    const saleEndsAtTimeInput = container.querySelector(
+      "#sale_ends_at_time",
     ) as HTMLInputElement;
     const purchaseUrlInput = container.querySelector(
       "#purchase_url",
@@ -870,15 +947,18 @@ describe("PurchaseCandidateForm", () => {
       container.querySelector("#structured-size-shoulder_width"),
     ).toBeNull();
     expect(salePriceInput.disabled).toBe(false);
-    expect(saleEndsAtInput.disabled).toBe(false);
-    expect(saleEndsAtInput.value).toBe("2026-03-31T18:00");
+    expect(saleEndsAtDateInput.disabled).toBe(false);
+    expect(saleEndsAtTimeInput.disabled).toBe(false);
+    expect(saleEndsAtDateInput.value).toBe("2026-03-31");
+    expect(saleEndsAtTimeInput.value).toBe("18:00");
     expect(purchaseUrlInput.disabled).toBe(false);
     expect(wantedReasonTextarea.disabled).toBe(false);
     expect(memoTextarea.disabled).toBe(false);
 
     await act(async () => {
       setNativeValue(salePriceInput, "9900");
-      setNativeValue(saleEndsAtInput, "2026-04-30T12:00");
+      setNativeValue(saleEndsAtDateInput, "2026-04-30");
+      setNativeValue(saleEndsAtTimeInput, "12:00");
       setNativeValue(purchaseUrlInput, "https://example.test/purchased");
       setNativeValue(memoTextarea, "更新メモ");
       setNativeValue(wantedReasonTextarea, "更新理由");
