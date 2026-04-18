@@ -132,18 +132,19 @@ export default function PurchaseCandidateListCard({
           )}
         </>
       )}
-      <article className="relative flex h-full flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-        <div className="relative">
+      <article
+        data-testid="purchase-candidate-card"
+        className="relative grid h-full overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm sm:grid-cols-[13rem_minmax(0,1fr)] sm:grid-rows-[auto_1fr] lg:grid-cols-[14rem_minmax(0,1fr)]"
+      >
+        <div
+          data-testid="purchase-candidate-card-media"
+          className="relative sm:col-start-1 sm:row-start-1"
+        >
           <Link
             href={`/purchase-candidates/${selectedCandidate.id}`}
             className="block outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2"
           >
-            <div className="relative flex aspect-[2/3] items-center justify-center bg-gray-50 p-1 transition hover:bg-gray-100">
-              {shouldShowVariants && (
-                <span className="absolute left-2 top-2 z-10 rounded-full border border-white/80 bg-white/90 px-2 py-0.5 text-[11px] font-medium text-gray-700 shadow-sm">
-                  色違い {sortedCandidates.length}件
-                </span>
-              )}
+            <div className="relative flex aspect-[4/3] min-h-44 items-center justify-center bg-gray-50 p-1 transition hover:bg-gray-100 sm:aspect-square sm:min-h-[13rem] lg:min-h-[14rem]">
               {selectedImage?.url ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -160,13 +161,15 @@ export default function PurchaseCandidateListCard({
                   <p className="mt-1 text-xs text-gray-400">
                     {selectedCandidate.brand_name || "ブランド未設定"}
                   </p>
-                  {selectedCandidate.colors.length > 0 &&
+                  {selectedImages.length === 0 &&
+                    selectedCandidate.colors.length > 0 &&
                     !shouldShowVariants && (
                       <div className="mt-3 flex items-center gap-1">
                         {selectedCandidate.colors.map((color, index) => (
                           <span
                             key={`${selectedCandidate.id}-empty-color-${index}`}
-                            className="h-2.5 w-2.5 rounded-full border border-gray-300"
+                            data-testid="candidate-color-swatch"
+                            className="h-3 w-5 rounded-[4px] border border-gray-300"
                             style={{ backgroundColor: color.hex }}
                             title={color.label}
                           />
@@ -204,7 +207,7 @@ export default function PurchaseCandidateListCard({
         </div>
 
         {shouldShowVariants && (
-          <div className="flex flex-wrap items-center justify-center gap-2 border-b border-gray-100 bg-gray-50/70 px-3 py-2">
+          <div className="flex flex-wrap items-center justify-center gap-2 border-t border-gray-100 bg-white px-3 py-2 sm:col-start-1 sm:row-start-2">
             {sortedCandidates.map((candidate) => {
               const isSelected = candidate.id === selectedCandidate.id;
               const variantLabel = resolveVariantLabel(candidate);
@@ -216,16 +219,15 @@ export default function PurchaseCandidateListCard({
                   aria-label={`${variantLabel}を表示`}
                   title={variantLabel}
                   onClick={() => setSelectedCandidateId(candidate.id)}
-                  className={`inline-flex h-7 w-7 items-center justify-center rounded-full border bg-white transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 ${
+                  data-testid="variant-swatch"
+                  className={`inline-flex h-7 w-9 items-center justify-center rounded-md border bg-white p-0.5 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 ${
                     isSelected
-                      ? "border-slate-500 ring-2 ring-slate-200"
+                      ? "border-slate-500 bg-slate-50 shadow-sm"
                       : "border-gray-200 hover:border-gray-300"
                   }`}
                 >
                   <span
-                    className={`rounded-full border border-gray-300 ${
-                      isSelected ? "h-4 w-4" : "h-3.5 w-3.5"
-                    }`}
+                    className="h-full w-full rounded-[5px] border border-gray-300"
                     style={{ backgroundColor: resolveVariantHex(candidate) }}
                     aria-hidden="true"
                   />
@@ -235,7 +237,10 @@ export default function PurchaseCandidateListCard({
           </div>
         )}
 
-        <div className="flex flex-1 flex-col gap-2 p-2.5">
+        <div
+          data-testid="purchase-candidate-card-content"
+          className="flex flex-1 flex-col gap-3 p-3.5 sm:col-start-2 sm:row-span-2 sm:row-start-1 sm:p-4"
+        >
           <div className="flex flex-wrap items-center gap-2">
             <span className="rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
               {PURCHASE_CANDIDATE_STATUS_LABELS[selectedCandidate.status]}
@@ -248,18 +253,6 @@ export default function PurchaseCandidateListCard({
               <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
                 アイテム化済み
               </span>
-            )}
-            {selectedCandidate.colors.length > 0 && !shouldShowVariants && (
-              <div className="ml-auto flex items-center gap-1">
-                {selectedCandidate.colors.map((color, index) => (
-                  <span
-                    key={`${selectedCandidate.id}-color-${index}`}
-                    className="h-2.5 w-2.5 rounded-full border border-gray-300"
-                    style={{ backgroundColor: color.hex }}
-                    title={color.label}
-                  />
-                ))}
-              </div>
             )}
           </div>
 
@@ -278,7 +271,7 @@ export default function PurchaseCandidateListCard({
             </p>
           </Link>
 
-          <section className="flex min-h-[92px] flex-col justify-between rounded-xl bg-gray-50 px-3 py-2.5">
+          <section className="flex flex-col justify-between rounded-xl bg-gray-50 px-3 py-2.5">
             <div className="flex items-start justify-between gap-3">
               {selectedCandidate.sale_price !== null ? (
                 <span className="inline-flex rounded-full border border-rose-200 bg-rose-50 px-2 py-0.5 text-xs font-medium text-rose-700">
@@ -328,7 +321,7 @@ export default function PurchaseCandidateListCard({
               {selectedCandidate.sale_ends_at !== null ? (
                 <div className="flex items-center justify-between gap-3">
                   <span>セール終了予定</span>
-                  <span>
+                  <span className="font-medium text-rose-700">
                     {new Intl.DateTimeFormat("ja-JP", {
                       month: "2-digit",
                       day: "2-digit",
@@ -343,26 +336,24 @@ export default function PurchaseCandidateListCard({
             </div>
           </section>
 
-          <div className="mt-auto flex items-center justify-between gap-3 pt-1.5">
+          <div className="mt-auto flex items-center justify-end gap-3 pt-1.5">
+            {selectedCandidate.purchase_url ? (
+              <a
+                href={selectedCandidate.purchase_url}
+                target="_blank"
+                rel="noreferrer"
+                className="mr-auto inline-flex items-center gap-1 text-xs font-medium text-gray-500 hover:text-blue-600 hover:underline"
+              >
+                商品ページ
+                <ExternalLink className="h-3.5 w-3.5" />
+              </a>
+            ) : null}
             <Link
               href={`/purchase-candidates/${selectedCandidate.id}`}
               className="text-sm font-medium text-blue-600 hover:underline"
             >
               詳細を見る
             </Link>
-            {selectedCandidate.purchase_url ? (
-              <a
-                href={selectedCandidate.purchase_url}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-1 text-xs font-medium text-gray-500 hover:text-blue-600 hover:underline"
-              >
-                商品ページ
-                <ExternalLink className="h-3.5 w-3.5" />
-              </a>
-            ) : (
-              <span aria-hidden="true" />
-            )}
           </div>
         </div>
       </article>

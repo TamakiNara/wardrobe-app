@@ -315,10 +315,13 @@ describe("PurchaseCandidatesPage", () => {
     expect(markup).toContain("名前・メモで検索");
     expect(markup).toContain("ブランド名で絞り込み");
     expect(markup).toContain('href="/purchase-candidates/1"');
+    expect(markup).toContain('data-testid="purchase-candidate-card-grid"');
+    expect(markup).toContain("lg:grid-cols-2");
+    expect(markup).not.toContain("md:grid-cols-4");
     expect(markup).toContain(
       'src="http://localhost:8000/storage/purchase-candidates/1/front.png"',
     );
-    expect(markup).toContain('style="background-color:#1F3A5F"');
+    expect(markup).not.toContain('style="background-color:#1F3A5F"');
     expect(markup).toContain("詳細を見る");
     expect(markup).toContain('href="https://example.test/products/coat"');
     expect(markup).toContain("商品ページ");

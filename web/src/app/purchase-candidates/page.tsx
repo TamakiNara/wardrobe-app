@@ -343,7 +343,10 @@ export default async function PurchaseCandidatesPage({
           </section>
         ) : (
           <>
-            <section className="grid gap-3 sm:grid-cols-2 md:grid-cols-4">
+            <section
+              data-testid="purchase-candidate-card-grid"
+              className="grid gap-4 lg:grid-cols-2"
+            >
               {purchaseCandidateGroups.map((group) => (
                 <PurchaseCandidateListCard
                   key={group.key}

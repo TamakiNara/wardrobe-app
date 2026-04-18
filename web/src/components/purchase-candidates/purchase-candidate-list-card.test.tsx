@@ -110,7 +110,13 @@ describe("PurchaseCandidateListCard", () => {
     expect(container.textContent).toContain("レッドコート");
     expect(container.textContent).toContain("Red Brand");
     expect(container.textContent).toContain("7,800");
-    expect(container.textContent).toContain("色違い 2件");
+    expect(container.textContent).not.toContain("色違い 2件");
+    const variantSwatches = container.querySelectorAll(
+      '[data-testid="variant-swatch"]',
+    );
+    expect(variantSwatches).toHaveLength(2);
+    expect(variantSwatches[0].className).toContain("rounded-md");
+    expect(variantSwatches[0].className).not.toContain("rounded-full");
     expect(
       container.querySelector('a[href="/purchase-candidates/1"]'),
     ).not.toBeNull();
@@ -145,6 +151,15 @@ describe("PurchaseCandidateListCard", () => {
               name: "単独グループ候補",
               group_id: 20,
               group_order: 1,
+              colors: [
+                {
+                  role: "main",
+                  mode: "preset",
+                  value: "brown",
+                  hex: "#8A5A38",
+                  label: "Brown",
+                },
+              ],
             }),
           ],
         }),
@@ -153,6 +168,9 @@ describe("PurchaseCandidateListCard", () => {
 
     expect(container.textContent).toContain("単独グループ候補");
     expect(container.querySelector("button")).toBeNull();
+    expect(
+      container.querySelectorAll('[data-testid="candidate-color-swatch"]'),
+    ).toHaveLength(1);
   });
 
   it("複数画像がある候補はカード内で画像だけを切り替えられる", async () => {
@@ -166,6 +184,15 @@ describe("PurchaseCandidateListCard", () => {
             buildCandidate({
               id: 4,
               name: "画像切替候補",
+              colors: [
+                {
+                  role: "main",
+                  mode: "preset",
+                  value: "navy",
+                  hex: "#1F3A5F",
+                  label: "Navy",
+                },
+              ],
               images: [
                 {
                   id: 11,
@@ -202,6 +229,9 @@ describe("PurchaseCandidateListCard", () => {
       container.querySelector('img[src="https://example.test/front.png"]'),
     ).not.toBeNull();
     expect(container.textContent).toContain("1/2");
+    expect(
+      container.querySelectorAll('[data-testid="candidate-color-swatch"]'),
+    ).toHaveLength(0);
 
     const nextButton = container.querySelector<HTMLButtonElement>(
       'button[aria-label="次の画像を表示"]',
