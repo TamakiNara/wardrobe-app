@@ -309,6 +309,7 @@ describe("PurchaseCandidateDetailPage", () => {
     expect(markup).toContain("色違い 3件");
     expect(markup).toContain("赤");
     expect(markup).toContain("64 BLUE");
+    expect(markup).toContain("メイン: 64 BLUE");
     expect(markup).toContain('title="64 BLUE"');
     expect(markup).toContain("rounded-[5px]");
     expect(markup).toContain("緑");

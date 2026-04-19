@@ -72,6 +72,11 @@ function resolveColorDisplayLabel(
   return color.custom_label?.trim() || color.label;
 }
 
+function formatDetailColorLabel(color: PurchaseCandidateColor): string {
+  const customLabel = color.role === "main" ? color.custom_label?.trim() : "";
+
+  return customLabel || color.label;
+}
 function resolveGroupCandidateColor(
   candidate: PurchaseCandidateGroupCandidate,
 ) {
@@ -410,7 +415,7 @@ export default async function PurchaseCandidateDetailPage({
                   candidate.colors.map((color) => (
                     <li key={`${color.role}-${color.value}`}>
                       {PURCHASE_CANDIDATE_COLOR_ROLE_LABELS[color.role]}:{" "}
-                      {color.label}
+                      {formatDetailColorLabel(color)}
                     </li>
                   ))
                 )}

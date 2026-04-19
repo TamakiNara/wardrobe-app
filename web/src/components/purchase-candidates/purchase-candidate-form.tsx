@@ -465,11 +465,17 @@ export default function PurchaseCandidateForm({
       return;
     }
 
-    const main = payload.colors.find((color) => color.role === "main");
-    const sub = payload.colors.find((color) => color.role === "sub");
-    setMainColorCustomLabel(
-      isColorVariantSource ? "" : (main?.custom_label ?? ""),
-    );
+    const main = isColorVariantSource
+      ? undefined
+      : payload.colors.find((color) => color.role === "main");
+    const sub = isColorVariantSource
+      ? undefined
+      : payload.colors.find((color) => color.role === "sub");
+    setMainColorCustomLabel(main?.custom_label ?? "");
+    if (isColorVariantSource) {
+      setCustomMainHex("#3B82F6");
+      setCustomSubHex("#3B82F6");
+    }
 
     setStatus(payload.status);
     setPriority(payload.priority);

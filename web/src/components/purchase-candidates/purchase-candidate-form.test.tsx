@@ -798,7 +798,23 @@ describe("PurchaseCandidateForm", () => {
         size_note: "",
         size_details: null,
         is_rain_ok: true,
-        colors: [],
+        colors: [
+          {
+            role: "main",
+            mode: "custom",
+            value: "#1F3A5F",
+            hex: "#1F3A5F",
+            label: "カスタムカラー",
+            custom_label: "31 BEIGE",
+          },
+          {
+            role: "sub",
+            mode: "preset",
+            value: "black",
+            hex: "#111827",
+            label: "ブラック",
+          },
+        ],
         seasons: [],
         tpos: [],
         materials: [],
@@ -828,6 +844,11 @@ describe("PurchaseCandidateForm", () => {
       container.querySelector<HTMLInputElement>("#main_color_custom_label")
         ?.value,
     ).toBe("");
+    expect(
+      container.querySelector<HTMLInputElement>(
+        'input[aria-label="メインカラーコード"]',
+      ),
+    ).toBeNull();
 
     const form = container.querySelector("form") as HTMLFormElement;
 
