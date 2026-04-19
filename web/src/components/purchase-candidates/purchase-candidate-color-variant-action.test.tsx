@@ -10,6 +10,17 @@ const refreshMock = vi.fn();
 const apiFetchMock = vi.fn();
 const saveColorVariantPayloadMock = vi.fn();
 
+class MockApiClientError extends Error {
+  status: number;
+  data: { message?: string } | null;
+
+  constructor(status: number, data: { message?: string } | null = null) {
+    super(data?.message ?? `status ${status}`);
+    this.status = status;
+    this.data = data;
+  }
+}
+
 vi.mock("next/navigation", () => ({
   useRouter: () => ({
     push: pushMock,
@@ -18,16 +29,7 @@ vi.mock("next/navigation", () => ({
 }));
 
 vi.mock("@/lib/api/client", () => ({
-  ApiClientError: class extends Error {
-    status: number;
-    data: { message?: string } | null;
-
-    constructor(status: number, data: { message?: string } | null = null) {
-      super(data?.message ?? `status ${status}`);
-      this.status = status;
-      this.data = data;
-    }
-  },
+  ApiClientError: MockApiClientError,
   apiFetch: (...args: unknown[]) => apiFetchMock(...args),
 }));
 
@@ -123,5 +125,42 @@ describe("PurchaseCandidateColorVariantAction", () => {
       "/purchase-candidates/new?source=color-variant",
     );
     expect(refreshMock).not.toHaveBeenCalled();
+  });
+
+  it("raw message を action error として表示しない", async () => {
+    apiFetchMock.mockRejectedValue(
+      new MockApiClientError(500, {
+        message:
+          "SQLSTATE[42S22]: Column not found: 1054 Unknown column custom_label",
+      }),
+    );
+
+    const { default: PurchaseCandidateColorVariantAction } =
+      await import("./purchase-candidate-color-variant-action");
+
+    await act(async () => {
+      root.render(
+        React.createElement(PurchaseCandidateColorVariantAction, {
+          candidateId: 10,
+        }),
+      );
+      await waitForEffects();
+    });
+
+    const button = container.querySelector("button");
+
+    await act(async () => {
+      button?.click();
+      await waitForEffects();
+    });
+
+    expect(apiFetchMock).toHaveBeenCalledWith(
+      "/api/purchase-candidates/10/color-variant",
+      expect.objectContaining({ method: "POST" }),
+    );
+    expect(container.textContent).toContain(
+      "色違いの初期値作成に失敗しました。時間をおいて再度お試しください。",
+    );
+    expect(container.textContent).not.toContain("SQLSTATE");
   });
 });

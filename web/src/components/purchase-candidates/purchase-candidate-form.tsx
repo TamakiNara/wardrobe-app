@@ -19,6 +19,10 @@ import ItemMaterialFields from "@/components/items/item-material-fields";
 import ItemSizeDetailsFields from "@/components/items/item-size-details-fields";
 import PurchaseCandidateImageUploader from "@/components/purchase-candidates/purchase-candidate-image-uploader";
 import { fetchCategoryGroups } from "@/lib/api/categories";
+import {
+  flattenValidationErrors,
+  getUserFacingSubmitErrorMessage,
+} from "@/lib/api/error-message";
 import { fetchCategoryVisibilitySettings } from "@/lib/api/settings";
 import { SEASON_OPTIONS, TPO_OPTIONS } from "@/lib/master-data/item-attributes";
 import {
@@ -68,6 +72,22 @@ type PurchaseCandidateFormProps = {
   cancelHref?: string;
   footerAction?: ReactNode;
 };
+
+const PURCHASE_CANDIDATE_SAVE_ERROR_MESSAGE =
+  "保存に失敗しました。時間をおいて再度お試しください。";
+const PURCHASE_CANDIDATE_IMAGE_ADD_ERROR_MESSAGE =
+  "画像の追加に失敗しました。時間をおいて再度お試しください。";
+const PURCHASE_CANDIDATE_IMAGE_DELETE_ERROR_MESSAGE =
+  "画像の削除に失敗しました。時間をおいて再度お試しください。";
+const PURCHASE_CANDIDATE_VALIDATION_SUMMARY_MESSAGE =
+  "入力内容を確認してください。";
+
+class UserFacingFormError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "UserFacingFormError";
+  }
+}
 
 function buildCategoryOptions(
   groups: CategoryGroupRecord[],
@@ -143,30 +163,6 @@ export function resolveSaleEndsAtFromTimeInput(
   }
 
   return `${dateValue}T${timeValue || "00:00"}`;
-}
-
-function extractFirstErrorMessage(data: unknown, fallback: string): string {
-  if (data && typeof data === "object") {
-    const message = (data as { message?: unknown }).message;
-    if (typeof message === "string" && message.trim() !== "") {
-      const errors = (data as { errors?: Record<string, unknown> }).errors;
-      if (!errors || message !== "The given data was invalid.") {
-        return message;
-      }
-    }
-
-    const errors = (data as { errors?: Record<string, unknown> }).errors;
-    if (errors && typeof errors === "object") {
-      for (const value of Object.values(errors)) {
-        const first = Array.isArray(value) ? value[0] : value;
-        if (typeof first === "string" && first.trim() !== "") {
-          return first;
-        }
-      }
-    }
-  }
-
-  return fallback;
 }
 
 function createEditableCustomSizeFieldId(index: number): string {
@@ -785,8 +781,11 @@ export default function PurchaseCandidateForm({
 
       if (!uploadResponse.ok) {
         const uploadData = await uploadResponse.json().catch(() => null);
-        throw new Error(
-          extractFirstErrorMessage(uploadData, "画像の追加に失敗しました。"),
+        throw new UserFacingFormError(
+          getUserFacingSubmitErrorMessage(
+            uploadData,
+            PURCHASE_CANDIDATE_IMAGE_ADD_ERROR_MESSAGE,
+          ),
         );
       }
     }
@@ -829,16 +828,17 @@ export default function PurchaseCandidateForm({
       }
 
       if (!response.ok) {
-        setSubmitError(extractFirstErrorMessage(data, "保存に失敗しました。"));
-        if (data?.errors && typeof data.errors === "object") {
-          const flattenedErrors: Record<string, string> = {};
-          for (const [key, value] of Object.entries(data.errors)) {
-            const first = Array.isArray(value) ? value[0] : value;
-            if (typeof first === "string") {
-              flattenedErrors[key] = first;
-            }
-          }
-          setErrors((current) => ({ ...current, ...flattenedErrors }));
+        const flattenedErrors = flattenValidationErrors(data);
+        if (Object.keys(flattenedErrors).length > 0) {
+          setErrors(flattenedErrors);
+          setSubmitError(PURCHASE_CANDIDATE_VALIDATION_SUMMARY_MESSAGE);
+        } else {
+          setSubmitError(
+            getUserFacingSubmitErrorMessage(
+              data,
+              PURCHASE_CANDIDATE_SAVE_ERROR_MESSAGE,
+            ),
+          );
         }
         return;
       }
@@ -864,9 +864,9 @@ export default function PurchaseCandidateForm({
       }, 800);
     } catch (error) {
       setSubmitError(
-        error instanceof Error
+        error instanceof UserFacingFormError
           ? error.message
-          : "通信に失敗しました。時間をおいて再度お試しください。",
+          : PURCHASE_CANDIDATE_SAVE_ERROR_MESSAGE,
       );
     } finally {
       setSubmitting(false);
@@ -882,7 +882,12 @@ export default function PurchaseCandidateForm({
     const data = await response.json().catch(() => null);
 
     if (!response.ok) {
-      setSubmitError(data?.message ?? "画像の削除に失敗しました。");
+      setSubmitError(
+        getUserFacingSubmitErrorMessage(
+          data,
+          PURCHASE_CANDIDATE_IMAGE_DELETE_ERROR_MESSAGE,
+        ),
+      );
       return;
     }
 

@@ -1016,4 +1016,217 @@ describe("PurchaseCandidateForm", () => {
     expect(payload.colors).toBeUndefined();
     expect(payload.materials).toBeUndefined();
   });
+
+  it("サーバーエラーの raw message を保存エラーとして表示しない", async () => {
+    fetchMock.mockResolvedValue({
+      ok: false,
+      status: 500,
+      json: async () => ({
+        message:
+          "SQLSTATE[42S22]: Column not found: 1054 Unknown column custom_label",
+      }),
+    });
+
+    await renderForm();
+
+    const nameInput = container.querySelector("#name") as HTMLInputElement;
+    const categorySelect = container.querySelector(
+      "#category_id",
+    ) as HTMLSelectElement;
+    const checkboxes = container.querySelectorAll<HTMLInputElement>(
+      'input[type="checkbox"]',
+    );
+    const form = container.querySelector("form") as HTMLFormElement;
+
+    await act(async () => {
+      setNativeValue(nameInput, "Sample Candidate");
+      setNativeValue(categorySelect, "outerwear_coat");
+      checkboxes[1]?.click();
+    });
+
+    await act(async () => {
+      form.dispatchEvent(
+        new Event("submit", { bubbles: true, cancelable: true }),
+      );
+      await Promise.resolve();
+    });
+
+    expect(container.textContent).toContain(
+      "保存に失敗しました。時間をおいて再度お試しください。",
+    );
+    expect(container.textContent).not.toContain("SQLSTATE");
+  });
+
+  it("422 validation error は field error として表示する", async () => {
+    fetchMock.mockResolvedValue({
+      ok: false,
+      status: 422,
+      json: async () => ({
+        message: "The given data was invalid.",
+        errors: { name: ["名前を入力してください。"] },
+      }),
+    });
+
+    await renderForm();
+
+    const nameInput = container.querySelector("#name") as HTMLInputElement;
+    const categorySelect = container.querySelector(
+      "#category_id",
+    ) as HTMLSelectElement;
+    const checkboxes = container.querySelectorAll<HTMLInputElement>(
+      'input[type="checkbox"]',
+    );
+    const form = container.querySelector("form") as HTMLFormElement;
+
+    await act(async () => {
+      setNativeValue(nameInput, "Sample Candidate");
+      setNativeValue(categorySelect, "outerwear_coat");
+      checkboxes[1]?.click();
+    });
+
+    await act(async () => {
+      form.dispatchEvent(
+        new Event("submit", { bubbles: true, cancelable: true }),
+      );
+      await Promise.resolve();
+    });
+
+    expect(container.textContent).toContain("入力内容を確認してください。");
+    expect(container.textContent).toContain("名前を入力してください。");
+  });
+
+  it("画像エラーの raw message を表示しない", async () => {
+    vi.stubGlobal("URL", {
+      ...URL,
+      createObjectURL: vi.fn(() => "blob:image-preview"),
+      revokeObjectURL: vi.fn(),
+    });
+    fetchMock
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 201,
+        json: async () => ({ purchaseCandidate: { id: 7 } }),
+      })
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        json: async () => ({
+          message:
+            "SQLSTATE[HY000]: General error: 1364 Field image has no default value",
+        }),
+      });
+
+    await renderForm();
+
+    const nameInput = container.querySelector("#name") as HTMLInputElement;
+    const categorySelect = container.querySelector(
+      "#category_id",
+    ) as HTMLSelectElement;
+    const checkboxes = container.querySelectorAll<HTMLInputElement>(
+      'input[type="checkbox"]',
+    );
+    const fileInput = container.querySelector("#images") as HTMLInputElement;
+    const form = container.querySelector("form") as HTMLFormElement;
+
+    await act(async () => {
+      setNativeValue(nameInput, "Image Candidate");
+      setNativeValue(categorySelect, "outerwear_coat");
+      checkboxes[1]?.click();
+      Object.defineProperty(fileInput, "files", {
+        value: [new File(["image"], "sample.png", { type: "image/png" })],
+        configurable: true,
+      });
+      fileInput.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+
+    await act(async () => {
+      form.dispatchEvent(
+        new Event("submit", { bubbles: true, cancelable: true }),
+      );
+      await Promise.resolve();
+    });
+
+    expect(container.textContent).toContain(
+      "画像の追加に失敗しました。時間をおいて再度お試しください。",
+    );
+    expect(container.textContent).not.toContain("SQLSTATE");
+  });
+
+  it("画像エラーの raw message を表示しない", async () => {
+    fetchMock
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          purchaseCandidate: {
+            id: 12,
+            status: "considering",
+            priority: "medium",
+            name: "Image Candidate",
+            category_id: "outerwear_coat",
+            brand_name: null,
+            price: null,
+            sale_price: null,
+            sale_ends_at: null,
+            purchase_url: null,
+            memo: null,
+            wanted_reason: null,
+            size_gender: null,
+            size_label: null,
+            size_note: null,
+            size_details: null,
+            is_rain_ok: false,
+            converted_item_id: null,
+            converted_at: null,
+            colors: [
+              {
+                role: "main",
+                mode: "preset",
+                value: "black",
+                hex: "#111827",
+                label: "Black",
+                custom_label: null,
+              },
+            ],
+            seasons: [],
+            tpos: [],
+            materials: [],
+            images: [
+              {
+                id: 5,
+                url: "/storage/sample.png",
+                original_filename: "sample.png",
+                file_size: 100,
+                sort_order: 1,
+                is_primary: true,
+              },
+            ],
+            created_at: "2026-04-01T00:00:00+09:00",
+            updated_at: "2026-04-01T00:00:00+09:00",
+          },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        json: async () => ({ message: "SQLSTATE[HY000]: delete failed" }),
+      });
+
+    await renderForm({ mode: "edit", candidateId: "12" });
+
+    const imageDeleteButton = container.querySelector("article button");
+    expect(imageDeleteButton).not.toBeNull();
+
+    await act(async () => {
+      imageDeleteButton!.dispatchEvent(
+        new MouseEvent("click", { bubbles: true }),
+      );
+      await Promise.resolve();
+    });
+
+    expect(container.textContent).toContain(
+      "画像の削除に失敗しました。時間をおいて再度お試しください。",
+    );
+    expect(container.textContent).not.toContain("SQLSTATE");
+  });
 });

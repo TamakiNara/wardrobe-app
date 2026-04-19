@@ -2,6 +2,10 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { getUserFacingSubmitErrorMessage } from "@/lib/api/error-message";
+
+const DELETE_ERROR_MESSAGE =
+  "削除に失敗しました。時間をおいて再度お試しください。";
 
 type DeletePurchaseCandidateButtonProps = {
   candidateId: string;
@@ -38,14 +42,14 @@ export default function DeletePurchaseCandidateButton({
       }
 
       if (!response.ok) {
-        setError(data?.message ?? "削除に失敗しました。");
+        setError(getUserFacingSubmitErrorMessage(data, DELETE_ERROR_MESSAGE));
         return;
       }
 
       router.push("/purchase-candidates?message=deleted");
       router.refresh();
     } catch {
-      setError("通信に失敗しました。時間をおいて再度お試しください。");
+      setError(DELETE_ERROR_MESSAGE);
     } finally {
       setSubmitting(false);
     }

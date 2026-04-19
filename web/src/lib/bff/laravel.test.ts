@@ -299,4 +299,109 @@ describe("BFF CSRF forwarding", () => {
     );
     expect(res.status).toBe(200);
   });
+
+  it("sanitizes upstream 500 responses without exposing raw Laravel messages", async () => {
+    global.fetch = vi.fn().mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          message:
+            "SQLSTATE[42S22]: Column not found: 1054 Unknown column custom_label",
+          error: "Illuminate\\Database\\QueryException",
+        }),
+        {
+          status: 500,
+          headers: {
+            "content-type": "application/json",
+          },
+        },
+      ),
+    ) as typeof fetch;
+
+    const req = new Request("http://localhost:3000/api/purchase-candidates", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Cookie: "laravel-session=session; XSRF-TOKEN=token",
+      },
+      body: JSON.stringify({ name: "sample" }),
+    });
+
+    const res = await forwardPatchWithCsrfAndCookie(
+      req as any,
+      "/api/purchase-candidates/1",
+      { name: "sample" },
+    );
+    const json = await res.json();
+
+    expect(res.status).toBe(500);
+    expect(json).toEqual({
+      message: "処理に失敗しました。時間をおいて再度お試しください。",
+    });
+    expect(JSON.stringify(json)).not.toContain("SQLSTATE");
+  });
+
+  it("sanitizes BFF communication failures without exposing error.message", async () => {
+    global.fetch = vi
+      .fn()
+      .mockRejectedValueOnce(
+        new Error("connect ECONNREFUSED SQLSTATE raw failure"),
+      ) as typeof fetch;
+
+    const req = new Request("http://localhost:3000/api/purchase-candidates", {
+      method: "GET",
+      headers: { Cookie: "laravel-session=session" },
+    });
+    (req as any).nextUrl = new URL(req.url);
+
+    const res = await forwardGetWithCookie(
+      req as any,
+      "/api/purchase-candidates",
+    );
+    const json = await res.json();
+
+    expect(res.status).toBe(502);
+    expect(json).toEqual({
+      message: "処理に失敗しました。時間をおいて再度お試しください。",
+    });
+    expect(JSON.stringify(json)).not.toContain("ECONNREFUSED");
+  });
+
+  it("keeps 422 validation responses intact", async () => {
+    global.fetch = vi.fn().mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          message: "The given data was invalid.",
+          errors: { name: ["名前を入力してください。"] },
+        }),
+        {
+          status: 422,
+          headers: {
+            "content-type": "application/json",
+          },
+        },
+      ),
+    ) as typeof fetch;
+
+    const req = new Request("http://localhost:3000/api/purchase-candidates", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Cookie: "laravel-session=session; XSRF-TOKEN=token",
+      },
+      body: JSON.stringify({ name: "" }),
+    });
+
+    const res = await forwardPatchWithCsrfAndCookie(
+      req as any,
+      "/api/purchase-candidates/1",
+      { name: "" },
+    );
+    const json = await res.json();
+
+    expect(res.status).toBe(422);
+    expect(json).toEqual({
+      message: "The given data was invalid.",
+      errors: { name: ["名前を入力してください。"] },
+    });
+  });
 });

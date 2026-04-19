@@ -3,8 +3,12 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ApiClientError, apiFetch } from "@/lib/api/client";
+import { getUserFacingSubmitErrorMessage } from "@/lib/api/error-message";
 import { savePurchaseCandidateDuplicatePayload } from "@/lib/purchase-candidates/duplicate";
 import type { PurchaseCandidateDuplicateResponse } from "@/types/purchase-candidates";
+
+const DUPLICATE_DRAFT_ERROR_MESSAGE =
+  "複製の初期値作成に失敗しました。時間をおいて再度お試しください。";
 
 type PurchaseCandidateDuplicateActionProps = {
   candidateId: number;
@@ -53,11 +57,16 @@ export default function PurchaseCandidateDuplicateAction({
         }
 
         if (error.status === 404) {
-          setError("対象の購入検討が見つかりませんでした。");
+          setError(DUPLICATE_DRAFT_ERROR_MESSAGE);
           return;
         }
 
-        setError(error.data?.message ?? "複製の初期値を作成できませんでした。");
+        setError(
+          getUserFacingSubmitErrorMessage(
+            error.data,
+            DUPLICATE_DRAFT_ERROR_MESSAGE,
+          ),
+        );
         return;
       }
 

@@ -122,4 +122,44 @@ describe("PurchaseCandidateItemDraftAction", () => {
       "/items/new?source=purchase-candidate",
     );
   });
+
+  it("item-draft ? raw message を action error として表示しない", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            message:
+              "SQLSTATE[42S22]: Column not found: 1054 Unknown column custom_label",
+          }),
+          { status: 500, headers: { "content-type": "application/json" } },
+        ),
+      ),
+    );
+
+    const { default: PurchaseCandidateItemDraftAction } =
+      await import("./purchase-candidate-item-draft-action");
+
+    await act(async () => {
+      root.render(
+        React.createElement(PurchaseCandidateItemDraftAction, {
+          candidateId: 10,
+          convertedItemId: null,
+        }),
+      );
+      await waitForEffects();
+    });
+
+    const button = container.querySelector("button");
+
+    await act(async () => {
+      button?.click();
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain(
+      "アイテム作成用の初期値作成に失敗しました。時間をおいて再度お試しください。",
+    );
+    expect(container.textContent).not.toContain("SQLSTATE");
+  });
 });

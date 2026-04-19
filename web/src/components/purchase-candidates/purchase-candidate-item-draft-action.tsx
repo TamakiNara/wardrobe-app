@@ -2,8 +2,12 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { getUserFacingSubmitErrorMessage } from "@/lib/api/error-message";
 import { savePurchaseCandidateItemDraft } from "@/lib/purchase-candidates/item-draft";
 import type { PurchaseCandidateItemDraftResponse } from "@/types/purchase-candidates";
+
+const ITEM_DRAFT_ERROR_MESSAGE =
+  "アイテム作成用の初期値作成に失敗しました。時間をおいて再度お試しください。";
 
 type PurchaseCandidateItemDraftActionProps = {
   candidateId: number;
@@ -46,14 +50,16 @@ export default function PurchaseCandidateItemDraftAction({
       }
 
       if (!response.ok || !data || !("item_draft" in data)) {
-        setError(data?.message ?? "アイテム初期値の生成に失敗しました。");
+        setError(
+          getUserFacingSubmitErrorMessage(data, ITEM_DRAFT_ERROR_MESSAGE),
+        );
         return;
       }
 
       savePurchaseCandidateItemDraft(data);
       router.push("/items/new?source=purchase-candidate");
     } catch {
-      setError("通信に失敗しました。時間をおいて再度お試しください。");
+      setError(ITEM_DRAFT_ERROR_MESSAGE);
     } finally {
       setSubmitting(false);
     }

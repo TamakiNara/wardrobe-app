@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 
 const LARAVEL_BASE_URL =
   process.env.LARAVEL_BASE_URL ?? "http://localhost:8000";
+const GENERIC_UPSTREAM_ERROR_MESSAGE =
+  "処理に失敗しました。時間をおいて再度お試しください。";
 
 function extractSetCookie(res: Response): string[] {
   const headers = res.headers as Headers & {
@@ -53,6 +55,27 @@ function appendCookieStrings(cookies: string[], response: NextResponse) {
 function appendSetCookies(from: Response, to: NextResponse) {
   const cookies = extractSetCookie(from);
   appendCookieStrings(cookies, to);
+}
+
+function buildForwardedJsonResponse(
+  data: unknown,
+  status: number,
+): NextResponse {
+  if (status >= 500) {
+    return NextResponse.json(
+      { message: GENERIC_UPSTREAM_ERROR_MESSAGE },
+      { status },
+    );
+  }
+
+  return NextResponse.json(data, { status });
+}
+
+function buildUpstreamCommunicationFailureResponse(): NextResponse {
+  return NextResponse.json(
+    { message: GENERIC_UPSTREAM_ERROR_MESSAGE },
+    { status: 502 },
+  );
 }
 
 function buildMergedCookie(
@@ -139,24 +162,31 @@ export async function forwardGetWithCookie(
   req: NextRequest,
   targetPath: string,
 ): Promise<NextResponse> {
-  const incomingCookie = req.headers.get("cookie") ?? "";
-  const search = req.nextUrl.search;
+  try {
+    const incomingCookie = req.headers.get("cookie") ?? "";
+    const search = req.nextUrl.search;
 
-  const upstreamRes = await fetch(`${LARAVEL_BASE_URL}${targetPath}${search}`, {
-    method: "GET",
-    headers: {
-      Accept: "application/json",
-      ...(incomingCookie ? { Cookie: incomingCookie } : {}),
-    },
-    cache: "no-store",
-  });
+    const upstreamRes = await fetch(
+      `${LARAVEL_BASE_URL}${targetPath}${search}`,
+      {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+          ...(incomingCookie ? { Cookie: incomingCookie } : {}),
+        },
+        cache: "no-store",
+      },
+    );
 
-  const data = await upstreamRes.json().catch(() => ({}));
-  const final = NextResponse.json(data, { status: upstreamRes.status });
+    const data = await upstreamRes.json().catch(() => ({}));
+    const final = buildForwardedJsonResponse(data, upstreamRes.status);
 
-  appendSetCookies(upstreamRes, final);
+    appendSetCookies(upstreamRes, final);
 
-  return final;
+    return final;
+  } catch {
+    return buildUpstreamCommunicationFailureResponse();
+  }
 }
 
 export async function forwardJsonWithCsrf(
@@ -271,7 +301,7 @@ async function forwardMutationWithCsrfAndCookie(
     }
 
     const data = await upstreamRes.json().catch(() => ({}));
-    const final = NextResponse.json(data, { status: upstreamRes.status });
+    const final = buildForwardedJsonResponse(data, upstreamRes.status);
 
     if (refreshedSetCookies.length > 0) {
       appendCookieStrings(refreshedSetCookies, final);
@@ -280,13 +310,8 @@ async function forwardMutationWithCsrfAndCookie(
     appendSetCookies(upstreamRes, final);
 
     return final;
-  } catch (error) {
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Unexpected upstream communication error.";
-
-    return NextResponse.json({ error: message }, { status: 502 });
+  } catch {
+    return buildUpstreamCommunicationFailureResponse();
   }
 }
 
@@ -342,7 +367,7 @@ export async function forwardMultipartWithCsrfAndCookie(
     }
 
     const data = await upstreamRes.json().catch(() => ({}));
-    const final = NextResponse.json(data, { status: upstreamRes.status });
+    const final = buildForwardedJsonResponse(data, upstreamRes.status);
 
     if (refreshedSetCookies.length > 0) {
       appendCookieStrings(refreshedSetCookies, final);
@@ -351,13 +376,8 @@ export async function forwardMultipartWithCsrfAndCookie(
     appendSetCookies(upstreamRes, final);
 
     return final;
-  } catch (error) {
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Unexpected upstream communication error.";
-
-    return NextResponse.json({ error: message }, { status: 502 });
+  } catch {
+    return buildUpstreamCommunicationFailureResponse();
   }
 }
 
@@ -411,7 +431,7 @@ export async function forwardPutWithCsrfAndCookie(
     }
 
     const data = await upstreamRes.json().catch(() => ({}));
-    const final = NextResponse.json(data, { status: upstreamRes.status });
+    const final = buildForwardedJsonResponse(data, upstreamRes.status);
 
     if (refreshedSetCookies.length > 0) {
       appendCookieStrings(refreshedSetCookies, final);
@@ -420,13 +440,8 @@ export async function forwardPutWithCsrfAndCookie(
     appendSetCookies(upstreamRes, final);
 
     return final;
-  } catch (error) {
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Unexpected upstream communication error.";
-
-    return NextResponse.json({ error: message }, { status: 502 });
+  } catch {
+    return buildUpstreamCommunicationFailureResponse();
   }
 }
 
@@ -477,7 +492,7 @@ export async function forwardDeleteWithCookie(
     }
 
     const data = await upstreamRes.json().catch(() => ({}));
-    const final = NextResponse.json(data, { status: upstreamRes.status });
+    const final = buildForwardedJsonResponse(data, upstreamRes.status);
 
     if (refreshedSetCookies.length > 0) {
       appendCookieStrings(refreshedSetCookies, final);
@@ -486,12 +501,7 @@ export async function forwardDeleteWithCookie(
     appendSetCookies(upstreamRes, final);
 
     return final;
-  } catch (error) {
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Unexpected upstream communication error.";
-
-    return NextResponse.json({ error: message }, { status: 502 });
+  } catch {
+    return buildUpstreamCommunicationFailureResponse();
   }
 }

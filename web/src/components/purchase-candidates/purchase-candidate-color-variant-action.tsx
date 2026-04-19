@@ -3,8 +3,12 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ApiClientError, apiFetch } from "@/lib/api/client";
+import { getUserFacingSubmitErrorMessage } from "@/lib/api/error-message";
 import { savePurchaseCandidateColorVariantPayload } from "@/lib/purchase-candidates/duplicate";
 import type { PurchaseCandidateColorVariantResponse } from "@/types/purchase-candidates";
+
+const COLOR_VARIANT_DRAFT_ERROR_MESSAGE =
+  "色違いの初期値作成に失敗しました。時間をおいて再度お試しください。";
 
 type PurchaseCandidateColorVariantActionProps = {
   candidateId: number;
@@ -53,12 +57,15 @@ export default function PurchaseCandidateColorVariantAction({
         }
 
         if (error.status === 404) {
-          setError("対象の購入検討が見つかりませんでした。");
+          setError(COLOR_VARIANT_DRAFT_ERROR_MESSAGE);
           return;
         }
 
         setError(
-          error.data?.message ?? "色違いの初期値を作成できませんでした。",
+          getUserFacingSubmitErrorMessage(
+            error.data,
+            COLOR_VARIANT_DRAFT_ERROR_MESSAGE,
+          ),
         );
         return;
       }
