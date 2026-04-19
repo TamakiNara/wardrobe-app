@@ -14,6 +14,7 @@ export type PurchaseCandidateColor = {
   value: string;
   hex: string;
   label: string;
+  custom_label?: string | null;
 };
 
 export type PurchaseCandidateImageRecord = {

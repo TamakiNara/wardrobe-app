@@ -261,6 +261,7 @@ class PurchaseCandidateService
                     'value' => $color['value'],
                     'hex' => $color['hex'],
                     'label' => $color['label'],
+                    'custom_label' => $this->normalizeMainColorCustomLabel($color),
                     'sort_order' => $index + 1,
                 ];
             })->all()
@@ -285,6 +286,17 @@ class PurchaseCandidateService
         );
 
         PurchaseCandidateMaterialSync::sync($candidate, $validated['materials'] ?? []);
+    }
+
+    private function normalizeMainColorCustomLabel(array $color): ?string
+    {
+        if (($color['role'] ?? null) !== 'main') {
+            return null;
+        }
+
+        $customLabel = trim((string) ($color['custom_label'] ?? ''));
+
+        return $customLabel === '' ? null : $customLabel;
     }
 
     private function validatePayload(array $validated): void

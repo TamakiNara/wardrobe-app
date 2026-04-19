@@ -9,6 +9,7 @@ import {
   PURCHASE_CANDIDATE_STATUS_LABELS,
 } from "@/lib/purchase-candidates/labels";
 import type {
+  PurchaseCandidateColor,
   PurchaseCandidateImageRecord,
   PurchaseCandidateListItem,
 } from "@/types/purchase-candidates";
@@ -33,10 +34,20 @@ function formatPriceNumber(price: number | null): string {
   return price.toLocaleString("ja-JP");
 }
 
+function resolveColorDisplayLabel(
+  color: PurchaseCandidateColor | undefined,
+): string | null {
+  if (!color) {
+    return null;
+  }
+
+  return color.custom_label?.trim() || color.label;
+}
+
 function resolveVariantLabel(candidate: PurchaseCandidateListItem): string {
   const mainColor = candidate.colors.find((color) => color.role === "main");
 
-  return mainColor?.label ?? candidate.name;
+  return resolveColorDisplayLabel(mainColor) ?? candidate.name;
 }
 
 function resolveVariantHex(candidate: PurchaseCandidateListItem): string {
@@ -98,6 +109,10 @@ export default function PurchaseCandidateListCard({
       : 0;
   const selectedImage = selectedImages[selectedImageIndex] ?? selectedImages[0];
   const shouldShowImageControls = selectedImages.length > 1;
+  const selectedMainColor = selectedCandidate.colors.find(
+    (color) => color.role === "main",
+  );
+  const selectedMainColorCustomLabel = selectedMainColor?.custom_label?.trim();
   const showPreviousImage = () => {
     setSelectedImageState({
       candidateId: selectedCandidate.id,
@@ -133,10 +148,15 @@ export default function PurchaseCandidateListCard({
               data-testid="candidate-color-swatch"
               className="h-3 w-5 rounded-[4px] border border-gray-300"
               style={{ backgroundColor: color.hex }}
-              title={color.label}
+              title={resolveColorDisplayLabel(color) ?? color.label}
             />
           ))}
         </div>
+      )}
+      {selectedMainColorCustomLabel && !shouldShowVariants && (
+        <p className="mt-2 max-w-full truncate text-xs text-gray-500">
+          {selectedMainColorCustomLabel}
+        </p>
       )}
     </div>
   );

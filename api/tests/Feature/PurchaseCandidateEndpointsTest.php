@@ -489,6 +489,95 @@ class PurchaseCandidateEndpointsTest extends TestCase
         ]);
     }
 
+    public function test_post_purchase_candidate_stores_main_color_custom_label_only(): void
+    {
+        $user = User::factory()->create();
+        $this->createCategory('tops_shirt_blouse', 'tops', 'shirt');
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $response = $this->postJson('/api/purchase-candidates', [
+            'status' => 'considering',
+            'priority' => 'medium',
+            'name' => 'Color label candidate',
+            'category_id' => 'tops_shirt_blouse',
+            'colors' => [
+                [
+                    'role' => 'main',
+                    'mode' => 'preset',
+                    'value' => 'beige',
+                    'hex' => '#D6B98C',
+                    'label' => 'Beige',
+                    'custom_label' => '31 BEIGE',
+                ],
+                [
+                    'role' => 'sub',
+                    'mode' => 'preset',
+                    'value' => 'black',
+                    'hex' => '#111827',
+                    'label' => 'Black',
+                    'custom_label' => 'sub label should not persist',
+                ],
+            ],
+            'seasons' => [],
+            'tpos' => [],
+            'materials' => [],
+        ], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('purchaseCandidate.colors.0.custom_label', '31 BEIGE')
+            ->assertJsonPath('purchaseCandidate.colors.1.custom_label', null);
+
+        $candidateId = $response->json('purchaseCandidate.id');
+        $this->assertDatabaseHas('purchase_candidate_colors', [
+            'purchase_candidate_id' => $candidateId,
+            'role' => 'main',
+            'custom_label' => '31 BEIGE',
+        ]);
+        $this->assertDatabaseHas('purchase_candidate_colors', [
+            'purchase_candidate_id' => $candidateId,
+            'role' => 'sub',
+            'custom_label' => null,
+        ]);
+    }
+
+    public function test_post_purchase_candidate_validates_main_color_custom_label_length(): void
+    {
+        $user = User::factory()->create();
+        $this->createCategory('tops_shirt_blouse', 'tops', 'shirt');
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $response = $this->postJson('/api/purchase-candidates', [
+            'status' => 'considering',
+            'priority' => 'medium',
+            'name' => 'Long color label candidate',
+            'category_id' => 'tops_shirt_blouse',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'beige',
+                'hex' => '#D6B98C',
+                'label' => 'Beige',
+                'custom_label' => str_repeat('A', 51),
+            ]],
+            'seasons' => [],
+            'tpos' => [],
+            'materials' => [],
+        ], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors('colors.0.custom_label');
+    }
+
     public function test_post_purchase_candidate_stores_materials_when_each_part_totals_100(): void
     {
         $user = User::factory()->create();
@@ -681,6 +770,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
                 'value' => 'gray',
                 'hex' => '#cccccc',
                 'label' => 'グレー',
+                'custom_label' => '12 GRAY',
             ]],
             'seasons' => ['冬'],
             'tpos' => ['休日'],
@@ -695,13 +785,19 @@ class PurchaseCandidateEndpointsTest extends TestCase
             ->assertJsonPath('purchaseCandidate.category_id', 'tops_knit_sweater')
             ->assertJsonPath('purchaseCandidate.sale_price', 9800)
             ->assertJsonPath('purchaseCandidate.size_details.structured.body_length', 68)
-            ->assertJsonPath('purchaseCandidate.colors.0.value', 'gray');
+            ->assertJsonPath('purchaseCandidate.colors.0.value', 'gray')
+            ->assertJsonPath('purchaseCandidate.colors.0.custom_label', '12 GRAY');
 
         $this->assertDatabaseHas('purchase_candidates', [
             'id' => $candidate->id,
             'status' => 'on_hold',
             'category_id' => 'tops_knit_sweater',
             'sale_price' => 9800,
+        ]);
+        $this->assertDatabaseHas('purchase_candidate_colors', [
+            'purchase_candidate_id' => $candidate->id,
+            'role' => 'main',
+            'custom_label' => '12 GRAY',
         ]);
         $this->assertDatabaseMissing('purchase_candidate_colors', [
             'purchase_candidate_id' => $candidate->id,
@@ -853,6 +949,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
             'priority' => 'high',
             'category_id' => 'tops_shirt_blouse',
         ]);
+        $candidate->colors()->where('role', 'main')->update(['custom_label' => '09 BLACK']);
         $sourcePath = "purchase-candidates/{$candidate->id}/source.png";
 
         $candidate->images()->create([
@@ -886,6 +983,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
             ->assertJsonPath('purchaseCandidate.category_id', 'tops_shirt_blouse')
             ->assertJsonPath('purchaseCandidate.sale_price', 12800)
             ->assertJsonPath('purchaseCandidate.colors.0.value', 'navy')
+            ->assertJsonPath('purchaseCandidate.colors.0.custom_label', '09 BLACK')
             ->assertJsonPath('purchaseCandidate.seasons.0', '春')
             ->assertJsonPath('purchaseCandidate.tpos.0', '休日')
             ->assertJsonPath('purchaseCandidate.materials', [])
@@ -949,6 +1047,8 @@ class PurchaseCandidateEndpointsTest extends TestCase
             'category_id' => 'tops_shirt_blouse',
         ]);
 
+        $candidate->colors()->where('role', 'main')->update(['custom_label' => '31 BEIGE']);
+
         $this->actingAs($user, 'web');
         $token = $this->issueCsrfToken();
 
@@ -960,6 +1060,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
         $draftResponse->assertOk()
             ->assertJsonPath('message', 'color_variant_payload_ready')
             ->assertJsonPath('purchaseCandidate.name', '春コート')
+            ->assertJsonCount(0, 'purchaseCandidate.colors')
             ->assertJsonPath('purchaseCandidate.variant_source_candidate_id', $candidate->id)
             ->assertJsonMissingPath('purchaseCandidate.group_id');
 
@@ -972,6 +1073,14 @@ class PurchaseCandidateEndpointsTest extends TestCase
 
         $payload = $draftResponse->json('purchaseCandidate');
         unset($payload['images']);
+        $payload['colors'] = [[
+            'role' => 'main',
+            'mode' => 'preset',
+            'value' => 'blue',
+            'hex' => '#2563EB',
+            'label' => 'Blue',
+            'custom_label' => '64 BLUE',
+        ]];
 
         $storeResponse = $this->postJson('/api/purchase-candidates', $payload, [
             'Accept' => 'application/json',
@@ -1032,6 +1141,14 @@ class PurchaseCandidateEndpointsTest extends TestCase
 
         $payload = $draftResponse->json('purchaseCandidate');
         unset($payload['images']);
+        $payload['colors'] = [[
+            'role' => 'main',
+            'mode' => 'preset',
+            'value' => 'blue',
+            'hex' => '#2563EB',
+            'label' => 'Blue',
+            'custom_label' => '64 BLUE',
+        ]];
 
         $storeResponse = $this->postJson('/api/purchase-candidates', $payload, [
             'Accept' => 'application/json',

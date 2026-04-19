@@ -158,6 +158,14 @@ describe("PurchaseCandidateForm", () => {
     expect(container.textContent).toContain("必須");
     expect(container.textContent).not.toContain("size_gender");
     expect(container.textContent).not.toContain("priority");
+    expect(container.textContent).toContain("色名（任意）");
+    const mainColorCustomLabelInput = container.querySelector<HTMLInputElement>(
+      "#main_color_custom_label",
+    );
+    expect(mainColorCustomLabelInput).not.toBeNull();
+    expect(mainColorCustomLabelInput?.placeholder).toBe(
+      "例: 00 WHITE / 31 BEIGE / 64 BLUE",
+    );
 
     const sectionCards = container.querySelectorAll(
       "form > section.rounded-2xl.border.border-gray-200.bg-white",
@@ -392,9 +400,13 @@ describe("PurchaseCandidateForm", () => {
     const mainColorCodeInput = container.querySelector(
       'input[aria-label="メインカラーコード"]',
     ) as HTMLInputElement;
+    const mainColorCustomLabelInput = container.querySelector(
+      "#main_color_custom_label",
+    ) as HTMLInputElement;
 
     await act(async () => {
       setNativeValue(mainColorCodeInput, "#112233");
+      setNativeValue(mainColorCustomLabelInput, "31 BEIGE");
     });
 
     const form = container.querySelector("form") as HTMLFormElement;
@@ -416,6 +428,7 @@ describe("PurchaseCandidateForm", () => {
         value: "#112233",
         hex: "#112233",
         label: "カスタムカラー",
+        custom_label: "31 BEIGE",
       },
     ]);
     expect(payload.size_note).toBe("厚手対応");
@@ -700,6 +713,7 @@ describe("PurchaseCandidateForm", () => {
             value: "navy",
             hex: "#1F3A5F",
             label: "ネイビー",
+            custom_label: "09 BLACK",
           },
         ],
         seasons: ["春"],
@@ -758,6 +772,7 @@ describe("PurchaseCandidateForm", () => {
     const [, requestInit] = fetchMock.mock.calls[0];
     const payload = JSON.parse(requestInit.body as string);
 
+    expect(payload.colors[0].custom_label).toBe("09 BLACK");
     expect(payload.duplicate_images).toEqual([{ source_image_id: 7 }]);
   });
 
@@ -783,15 +798,7 @@ describe("PurchaseCandidateForm", () => {
         size_note: "",
         size_details: null,
         is_rain_ok: true,
-        colors: [
-          {
-            role: "main",
-            mode: "preset",
-            value: "navy",
-            hex: "#1F3A5F",
-            label: "春コート",
-          },
-        ],
+        colors: [],
         seasons: [],
         tpos: [],
         materials: [],
@@ -817,6 +824,10 @@ describe("PurchaseCandidateForm", () => {
       "色違いの初期値を読み込みました。保存前に色や画像を調整してください。",
     );
     expect(replaceMock).toHaveBeenCalledWith("/purchase-candidates/new");
+    expect(
+      container.querySelector<HTMLInputElement>("#main_color_custom_label")
+        ?.value,
+    ).toBe("");
 
     const form = container.querySelector("form") as HTMLFormElement;
 
@@ -826,12 +837,7 @@ describe("PurchaseCandidateForm", () => {
       );
     });
 
-    expect(fetchMock).toHaveBeenCalledTimes(1);
-    const [, requestInit] = fetchMock.mock.calls[0];
-    const payload = JSON.parse(requestInit.body as string);
-
-    expect(payload.variant_source_candidate_id).toBe(10);
-    expect(payload.name).toBe("春コート");
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("購入済みの購入検討では編集可能項目だけ送信する", async () => {

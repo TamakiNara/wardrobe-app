@@ -182,6 +182,7 @@ class PurchaseCandidateController extends Controller
             'colors.*.value' => ['required', 'string', 'max:100'],
             'colors.*.hex' => ['required', 'string', 'max:20'],
             'colors.*.label' => ['required', 'string', 'max:100'],
+            'colors.*.custom_label' => ['nullable', 'string', 'max:50'],
             'seasons' => ['nullable', 'array'],
             'seasons.*' => ['string', 'max:50'],
             'tpos' => ['nullable', 'array'],

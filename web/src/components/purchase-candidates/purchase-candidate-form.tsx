@@ -224,6 +224,7 @@ export default function PurchaseCandidateForm({
   );
 
   const [mainColor, setMainColor] = useState<ItemColorValue | "">("");
+  const [mainColorCustomLabel, setMainColorCustomLabel] = useState("");
   const [subColor, setSubColor] = useState<ItemColorValue | "">("");
   const [useCustomMainColor, setUseCustomMainColor] = useState(false);
   const [useCustomSubColor, setUseCustomSubColor] = useState(false);
@@ -392,6 +393,7 @@ export default function PurchaseCandidateForm({
           setIsRainOk(candidate.is_rain_ok);
           const main = candidate.colors.find((color) => color.role === "main");
           const sub = candidate.colors.find((color) => color.role === "sub");
+          setMainColorCustomLabel(main?.custom_label ?? "");
 
           if (main?.mode === "custom") {
             setUseCustomMainColor(true);
@@ -465,6 +467,9 @@ export default function PurchaseCandidateForm({
 
     const main = payload.colors.find((color) => color.role === "main");
     const sub = payload.colors.find((color) => color.role === "sub");
+    setMainColorCustomLabel(
+      isColorVariantSource ? "" : (main?.custom_label ?? ""),
+    );
 
     setStatus(payload.status);
     setPriority(payload.priority);
@@ -654,6 +659,7 @@ export default function PurchaseCandidateForm({
         value: useCustomMainColor ? customMainHex : mainColor,
         hex: selectedMainColor.hex,
         label: selectedMainColor.label,
+        custom_label: normalizeNullableString(mainColorCustomLabel) || null,
       });
     }
 
@@ -717,6 +723,14 @@ export default function PurchaseCandidateForm({
 
     if (!isPurchasedLocked && !selectedMainColor) {
       nextErrors.colors = "メインカラーを選択してください。";
+    }
+
+    if (
+      !isPurchasedLocked &&
+      normalizeNullableString(mainColorCustomLabel).length > 50
+    ) {
+      nextErrors.main_color_custom_label =
+        "色名（任意）は50文字以内で入力してください。";
     }
 
     if (
@@ -1176,6 +1190,26 @@ export default function PurchaseCandidateForm({
                   disabled={isPurchasedLocked}
                 />
               )}
+              <div>
+                <label
+                  htmlFor="main_color_custom_label"
+                  className="mb-1 block text-sm font-medium text-gray-700"
+                >
+                  色名（任意）
+                </label>
+                <input
+                  id="main_color_custom_label"
+                  type="text"
+                  value={mainColorCustomLabel}
+                  onChange={(event) =>
+                    setMainColorCustomLabel(event.target.value)
+                  }
+                  placeholder="例: 00 WHITE / 31 BEIGE / 64 BLUE"
+                  maxLength={50}
+                  disabled={isPurchasedLocked || !selectedMainColor}
+                  className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400 ${errors.main_color_custom_label ? "border-red-400" : "border-gray-300"}`}
+                />
+              </div>
             </div>
           </div>
           <div>
@@ -1238,6 +1272,11 @@ export default function PurchaseCandidateForm({
         )}
         {errors.sub_color && (
           <p className="text-sm text-red-600">{errors.sub_color}</p>
+        )}
+        {errors.main_color_custom_label && (
+          <p className="text-sm text-red-600">
+            {errors.main_color_custom_label}
+          </p>
         )}
 
         {(selectedMainColor || selectedSubColor) && (

@@ -17,6 +17,7 @@ class PurchaseCandidateColor extends Model
         'value',
         'hex',
         'label',
+        'custom_label',
         'sort_order',
     ];
 

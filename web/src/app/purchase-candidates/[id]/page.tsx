@@ -20,6 +20,7 @@ import {
 import { resolvePurchaseCandidateItemCategory } from "@/lib/purchase-candidates/category-map";
 import { fetchLaravelWithCookie } from "@/lib/server/laravel";
 import type {
+  PurchaseCandidateColor,
   PurchaseCandidateDetailResponse,
   PurchaseCandidateGroupCandidate,
   PurchaseCandidateStatus,
@@ -61,6 +62,16 @@ function getStatusBadgeClass(status: PurchaseCandidateStatus): string {
   }
 }
 
+function resolveColorDisplayLabel(
+  color: PurchaseCandidateColor | undefined,
+): string | null {
+  if (!color) {
+    return null;
+  }
+
+  return color.custom_label?.trim() || color.label;
+}
+
 function resolveGroupCandidateColor(
   candidate: PurchaseCandidateGroupCandidate,
 ) {
@@ -78,7 +89,7 @@ function PurchaseCandidateGroupPrice({
   salePrice: number | null;
 }) {
   if (salePrice === null) {
-    return <span>{formatPrice(price)}</span>;
+    return <span>{price === null ? "価格未設定" : formatPrice(price)}</span>;
   }
 
   return (
@@ -125,16 +136,17 @@ function PurchaseCandidateGroupNavigation({
       >
         {candidates.map((groupCandidate) => {
           const color = resolveGroupCandidateColor(groupCandidate);
+          const colorDisplayLabel = resolveColorDisplayLabel(color);
           const content = (
             <>
               <span
-                className="h-5 w-5 shrink-0 rounded-full border border-white shadow-sm ring-1 ring-slate-200"
+                className="h-4 w-6 shrink-0 rounded-[5px] border border-slate-300 shadow-sm"
                 style={{ backgroundColor: color?.hex ?? "#E5E7EB" }}
-                title={color?.label ?? "色未設定"}
+                title={colorDisplayLabel ?? "色未設定"}
               />
               <span className="min-w-0 flex-1 space-y-0.5">
                 <span className="block truncate text-[11px] text-slate-400">
-                  {color?.label ?? groupCandidate.name}
+                  {colorDisplayLabel ?? groupCandidate.name}
                 </span>
                 <span className="block truncate text-xs text-slate-700">
                   <PurchaseCandidateGroupPrice

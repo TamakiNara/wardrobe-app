@@ -33,13 +33,7 @@ class PurchaseCandidatePayloadBuilder
                 ->sortBy('sort_order')
                 ->take(4)
                 ->values()
-                ->map(fn ($color) => [
-                    'role' => $color->role,
-                    'mode' => $color->mode,
-                    'value' => $color->value,
-                    'hex' => $color->hex,
-                    'label' => $color->label,
-                ])
+                ->map(fn ($color) => self::buildColorPayload($color))
                 ->all(),
             'converted_item_id' => $candidate->converted_item_id,
             'converted_at' => $candidate->converted_at?->toISOString(),
@@ -84,13 +78,7 @@ class PurchaseCandidatePayloadBuilder
             'colors' => $candidate->colors
                 ->sortBy('sort_order')
                 ->values()
-                ->map(fn ($color) => [
-                    'role' => $color->role,
-                    'mode' => $color->mode,
-                    'value' => $color->value,
-                    'hex' => $color->hex,
-                    'label' => $color->label,
-                ])
+                ->map(fn ($color) => self::buildColorPayload($color))
                 ->all(),
             'seasons' => $candidate->seasons
                 ->sortBy('sort_order')
@@ -151,13 +139,7 @@ class PurchaseCandidatePayloadBuilder
             'colors' => $candidate->colors
                 ->sortBy('sort_order')
                 ->values()
-                ->map(fn ($color) => [
-                    'role' => $color->role,
-                    'mode' => $color->mode,
-                    'value' => $color->value,
-                    'hex' => $color->hex,
-                    'label' => $color->label,
-                ])
+                ->map(fn ($color) => self::buildItemDraftColorPayload($color))
                 ->all(),
             'seasons' => $candidate->seasons
                 ->sortBy('sort_order')
@@ -207,13 +189,7 @@ class PurchaseCandidatePayloadBuilder
             'colors' => $candidate->colors
                 ->sortBy('sort_order')
                 ->values()
-                ->map(fn ($color) => [
-                    'role' => $color->role,
-                    'mode' => $color->mode,
-                    'value' => $color->value,
-                    'hex' => $color->hex,
-                    'label' => $color->label,
-                ])
+                ->map(fn ($color) => self::buildColorPayload($color))
                 ->all(),
             'seasons' => $candidate->seasons
                 ->sortBy('sort_order')
@@ -244,7 +220,10 @@ class PurchaseCandidatePayloadBuilder
 
     public static function buildColorVariantDraft(PurchaseCandidate $candidate): array
     {
-        return array_merge(self::buildDuplicateDraft($candidate, $candidate->name ?? ''), [
+        $draft = self::buildDuplicateDraft($candidate, $candidate->name ?? '');
+        $draft['colors'] = [];
+
+        return array_merge($draft, [
             'variant_source_candidate_id' => $candidate->id,
         ]);
     }
@@ -258,6 +237,29 @@ class PurchaseCandidatePayloadBuilder
             'name' => $candidate->name,
             'converted_item_id' => $candidate->converted_item_id,
             'converted_at' => $candidate->converted_at?->toISOString(),
+        ];
+    }
+
+    private static function buildColorPayload($color): array
+    {
+        return [
+            'role' => $color->role,
+            'mode' => $color->mode,
+            'value' => $color->value,
+            'hex' => $color->hex,
+            'label' => $color->label,
+            'custom_label' => $color->custom_label,
+        ];
+    }
+
+    private static function buildItemDraftColorPayload($color): array
+    {
+        return [
+            'role' => $color->role,
+            'mode' => $color->mode,
+            'value' => $color->value,
+            'hex' => $color->hex,
+            'label' => $color->label,
         ];
     }
 
@@ -285,13 +287,7 @@ class PurchaseCandidatePayloadBuilder
                 'colors' => $groupCandidate->colors
                     ->sortBy('sort_order')
                     ->values()
-                    ->map(fn ($color) => [
-                        'role' => $color->role,
-                        'mode' => $color->mode,
-                        'value' => $color->value,
-                        'hex' => $color->hex,
-                        'label' => $color->label,
-                    ])
+                    ->map(fn ($color) => self::buildColorPayload($color))
                     ->all(),
             ])
             ->all();

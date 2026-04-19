@@ -253,6 +253,7 @@ describe("PurchaseCandidateDetailPage", () => {
                   value: "blue",
                   hex: "#2563EB",
                   label: "青",
+                  custom_label: "64 BLUE",
                 },
               ],
             },
@@ -260,7 +261,7 @@ describe("PurchaseCandidateDetailPage", () => {
               id: 13,
               status: "dropped",
               name: "緑の候補",
-              price: 9800,
+              price: null,
               sale_price: null,
               group_order: 3,
               is_current: false,
@@ -284,6 +285,7 @@ describe("PurchaseCandidateDetailPage", () => {
               value: "blue",
               hex: "#2563EB",
               label: "青",
+              custom_label: "64 BLUE",
             },
           ],
           seasons: [],
@@ -306,7 +308,9 @@ describe("PurchaseCandidateDetailPage", () => {
     expect(markup).toContain("同じ商品の色違い");
     expect(markup).toContain("色違い 3件");
     expect(markup).toContain("赤");
-    expect(markup).toContain("青");
+    expect(markup).toContain("64 BLUE");
+    expect(markup).toContain('title="64 BLUE"');
+    expect(markup).toContain("rounded-[5px]");
     expect(markup).toContain("緑");
     expect(markup).toContain("7,800円");
     expect(markup).toContain("9,800円");

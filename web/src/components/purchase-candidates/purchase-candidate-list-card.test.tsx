@@ -80,6 +80,7 @@ describe("PurchaseCandidateListCard", () => {
                   value: "blue",
                   hex: "#0077D9",
                   label: "ブルー",
+                  custom_label: "64 BLUE",
                 },
               ],
             }),
@@ -99,6 +100,7 @@ describe("PurchaseCandidateListCard", () => {
                   value: "red",
                   hex: "#E53935",
                   label: "レッド",
+                  custom_label: "09 RED",
                 },
               ],
             }),
@@ -122,7 +124,7 @@ describe("PurchaseCandidateListCard", () => {
     ).not.toBeNull();
 
     const blueButton = container.querySelector<HTMLButtonElement>(
-      'button[aria-label="ブルーを表示"]',
+      'button[aria-label="64 BLUEを表示"]',
     );
     expect(blueButton).not.toBeNull();
 
@@ -309,6 +311,7 @@ describe("PurchaseCandidateListCard", () => {
                   value: "blue",
                   hex: "#0077D9",
                   label: "ブルー",
+                  custom_label: "64 BLUE",
                 },
               ],
               images: [
@@ -344,7 +347,7 @@ describe("PurchaseCandidateListCard", () => {
     ).not.toBeNull();
 
     const blueButton = container.querySelector<HTMLButtonElement>(
-      'button[aria-label="ブルーを表示"]',
+      'button[aria-label="64 BLUEを表示"]',
     );
     expect(blueButton).not.toBeNull();
 
@@ -375,6 +378,7 @@ describe("PurchaseCandidateListCard", () => {
                   value: "brown",
                   hex: "#8A5A38",
                   label: "ブラウン",
+                  custom_label: "33 BROWN",
                 },
               ],
               images: [
@@ -425,6 +429,7 @@ describe("PurchaseCandidateListCard", () => {
     expect(
       container.querySelectorAll('[data-testid="candidate-color-swatch"]'),
     ).toHaveLength(1);
+    expect(container.textContent).toContain("33 BROWN");
 
     const nextButton = container.querySelector<HTMLButtonElement>(
       'button[aria-label="次の画像を表示"]',
