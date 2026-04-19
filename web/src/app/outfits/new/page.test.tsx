@@ -228,6 +228,65 @@ describe("NewOutfitPage", () => {
     expect(container.textContent).toContain("白T");
   });
 
+  it("successful submit does not render debug preview", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          items: [
+            {
+              id: 1,
+              name: "Sample top",
+              category: "tops",
+              shape: "tshirt",
+              colors: [],
+              seasons: [],
+              tpos: [],
+            },
+          ],
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 201,
+        json: async () => ({ id: 10, debug: "raw response body" }),
+      });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { default: NewOutfitPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(NewOutfitPage));
+      await waitForEffects();
+    });
+
+    const checkboxes = container.querySelectorAll<HTMLInputElement>(
+      'input[type="checkbox"]',
+    );
+    const checkbox = checkboxes[checkboxes.length - 1] ?? null;
+    const submitButton = container.querySelector<HTMLButtonElement>(
+      'button[type="submit"]',
+    );
+
+    await act(async () => {
+      checkbox?.click();
+      submitButton?.click();
+      await waitForEffects();
+    });
+
+    expect(
+      fetchMock.mock.calls.some(
+        ([url, init]) =>
+          url === "/api/outfits" &&
+          (init as RequestInit | undefined)?.method === "POST",
+      ),
+    ).toBe(true);
+    expect(container.textContent).not.toContain("raw response body");
+    expect(container.querySelector("pre")).toBeNull();
+  });
+
   it("422 の field error を項目近くに表示する", async () => {
     vi.stubGlobal(
       "fetch",

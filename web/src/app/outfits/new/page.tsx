@@ -86,7 +86,6 @@ export default function NewOutfitPage() {
 
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
-  const [submitPreview, setSubmitPreview] = useState("");
   const [initializationSuccess, setInitializationSuccess] = useState<
     string | null
   >(null);
@@ -270,7 +269,6 @@ export default function NewOutfitPage() {
 
     setSubmitError(null);
     setSubmitSuccess(null);
-    setSubmitPreview("");
 
     if (!validateForm()) return;
 
@@ -315,7 +313,6 @@ export default function NewOutfitPage() {
         return;
       }
 
-      setSubmitPreview(JSON.stringify(data, null, 2));
       setSubmitSuccess("コーディネートの登録に成功しました。");
 
       setTimeout(() => {
@@ -622,17 +619,6 @@ export default function NewOutfitPage() {
               キャンセル
             </Link>
           </div>
-
-          {submitPreview && (
-            <section className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
-              <h2 className="mb-3 text-sm font-semibold text-gray-800">
-                送信プレビュー
-              </h2>
-              <pre className="overflow-x-auto rounded-lg bg-gray-900 p-4 text-sm text-gray-100">
-                {submitPreview}
-              </pre>
-            </section>
-          )}
         </form>
 
         {submitError && (
