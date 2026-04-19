@@ -5,6 +5,10 @@ import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import FieldLabel from "@/components/forms/field-label";
 import { FormPageHeader } from "@/components/shared/form-page-header";
+import {
+  flattenValidationErrors,
+  getUserFacingSubmitErrorMessage,
+} from "@/lib/api/error-message";
 import { isItemVisibleByCategorySettings } from "@/lib/api/categories";
 import {
   fetchCategoryVisibilitySettings,
@@ -36,32 +40,10 @@ type Item = {
   tpos: string[];
 };
 
-function flattenFieldErrors(rawErrors: unknown): Record<string, string> {
-  if (!rawErrors || typeof rawErrors !== "object") {
-    return {};
-  }
-
-  return Object.entries(rawErrors).reduce<Record<string, string>>(
-    (carry, [key, value]) => {
-      if (Array.isArray(value) && value.length > 0) {
-        return {
-          ...carry,
-          [key]: String(value[0]),
-        };
-      }
-
-      if (typeof value === "string" && value !== "") {
-        return {
-          ...carry,
-          [key]: value,
-        };
-      }
-
-      return carry;
-    },
-    {},
-  );
-}
+const OUTFIT_ITEMS_LOAD_ERROR_MESSAGE =
+  "アイテム一覧の取得に失敗しました。時間をおいて再度お試しください。";
+const OUTFIT_CREATE_ERROR_MESSAGE =
+  "コーディネートの登録に失敗しました。時間をおいて再度お試しください。";
 
 export default function NewOutfitPage() {
   const router = useRouter();
@@ -118,7 +100,12 @@ export default function NewOutfitPage() {
         const data = await res.json().catch(() => null);
 
         if (!res.ok) {
-          setSubmitError(data?.message ?? "アイテム一覧の取得に失敗しました。");
+          setSubmitError(
+            getUserFacingSubmitErrorMessage(
+              data,
+              OUTFIT_ITEMS_LOAD_ERROR_MESSAGE,
+            ),
+          );
           return;
         }
 
@@ -299,15 +286,15 @@ export default function NewOutfitPage() {
 
       if (!res.ok) {
         if (data?.errors) {
-          const nextErrors = flattenFieldErrors(data.errors);
+          const nextErrors = flattenValidationErrors(data);
           setErrors(nextErrors);
 
           if (Object.keys(nextErrors).length === 0) {
-            setSubmitError("コーディネートの登録に失敗しました。");
+            setSubmitError(OUTFIT_CREATE_ERROR_MESSAGE);
           }
         } else {
           setSubmitError(
-            data?.message ?? "コーディネートの登録に失敗しました。",
+            getUserFacingSubmitErrorMessage(data, OUTFIT_CREATE_ERROR_MESSAGE),
           );
         }
         return;

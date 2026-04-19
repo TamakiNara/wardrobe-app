@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { getUserFacingSubmitErrorMessage } from "@/lib/api/error-message";
 
 type DeleteOutfitButtonProps = {
   outfitId: number;
@@ -35,7 +36,12 @@ export default function DeleteOutfitButton({
       }
 
       if (!res.ok) {
-        setError(data?.message ?? "削除に失敗しました。");
+        setError(
+          getUserFacingSubmitErrorMessage(
+            data,
+            "コーディネートの削除に失敗しました。時間をおいて再度お試しください。",
+          ),
+        );
         return;
       }
 

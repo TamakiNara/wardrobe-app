@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { getUserFacingSubmitErrorMessage } from "@/lib/api/error-message";
 
 type OutfitRestoreActionProps = {
   outfitId: number;
@@ -50,7 +51,12 @@ export default function OutfitRestoreAction({
           return;
         }
 
-        setError(data?.message ?? "コーディネートを戻せませんでした。");
+        setError(
+          getUserFacingSubmitErrorMessage(
+            data,
+            "コーディネートの復帰に失敗しました。時間をおいて再度お試しください。",
+          ),
+        );
         return;
       }
 

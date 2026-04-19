@@ -336,4 +336,97 @@ describe("EditOutfitPage", () => {
     expect(container.textContent).toContain("季節の指定を見直してください。");
     expect(container.textContent).not.toContain("更新に失敗しました。");
   });
+
+  it("500 応答の raw message は編集画面に表示しない", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn()
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => ({
+            outfit: {
+              id: 10,
+              name: "通勤コーデ",
+              memo: null,
+              seasons: [],
+              tpos: [],
+              tpo_ids: [],
+              outfitItems: [
+                {
+                  id: 201,
+                  item_id: 1,
+                  sort_order: 1,
+                  item: {
+                    id: 1,
+                    name: "白T",
+                    status: "active",
+                    category: "tops",
+                    shape: "tshirt",
+                    colors: [],
+                    seasons: [],
+                    tpos: [],
+                    tpo_ids: [],
+                  },
+                },
+              ],
+            },
+          }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => ({
+            items: [
+              {
+                id: 1,
+                name: "白T",
+                status: "active",
+                category: "tops",
+                shape: "tshirt",
+                colors: [],
+                seasons: [],
+                tpos: [],
+                tpo_ids: [],
+              },
+            ],
+          }),
+        })
+        .mockResolvedValueOnce({
+          ok: false,
+          status: 500,
+          json: async () => ({
+            message:
+              "SQLSTATE[42S22]: Column not found: 1054 Unknown column debug",
+          }),
+        }),
+    );
+
+    const { default: EditOutfitPage } = await import("./page");
+
+    await act(async () => {
+      root.render(
+        React.createElement(EditOutfitPage, {
+          params: Promise.resolve({ id: "10" }),
+        }),
+      );
+      await waitForEffects();
+    });
+
+    const submitButton = container.querySelector<HTMLButtonElement>(
+      'button[type="submit"]',
+    );
+
+    await act(async () => {
+      submitButton?.click();
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain(
+      "コーディネートの更新に失敗しました。時間をおいて再度お試しください。",
+    );
+    expect(container.textContent).not.toContain("SQLSTATE");
+    expect(container.textContent).not.toContain("Unknown column debug");
+  });
 });

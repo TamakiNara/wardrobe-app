@@ -350,4 +350,64 @@ describe("NewOutfitPage", () => {
       "コーディネートの登録に失敗しました。",
     );
   });
+
+  it("500 応答の raw message は登録画面に表示しない", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn()
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => ({
+            items: [
+              {
+                id: 1,
+                name: "白T",
+                category: "tops",
+                shape: "tshirt",
+                colors: [],
+                seasons: [],
+                tpos: [],
+              },
+            ],
+          }),
+        })
+        .mockResolvedValueOnce({
+          ok: false,
+          status: 500,
+          json: async () => ({
+            message:
+              "SQLSTATE[42S22]: Column not found: 1054 Unknown column debug",
+          }),
+        }),
+    );
+
+    const { default: NewOutfitPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(NewOutfitPage));
+      await waitForEffects();
+    });
+
+    const checkboxes = container.querySelectorAll<HTMLInputElement>(
+      'input[type="checkbox"]',
+    );
+    const checkbox = checkboxes[checkboxes.length - 1] ?? null;
+    const submitButton = container.querySelector<HTMLButtonElement>(
+      'button[type="submit"]',
+    );
+
+    await act(async () => {
+      checkbox?.click();
+      submitButton?.click();
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain(
+      "コーディネートの登録に失敗しました。時間をおいて再度お試しください。",
+    );
+    expect(container.textContent).not.toContain("SQLSTATE");
+    expect(container.textContent).not.toContain("Unknown column debug");
+  });
 });

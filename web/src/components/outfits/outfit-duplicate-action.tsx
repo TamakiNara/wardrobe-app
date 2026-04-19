@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ApiClientError, apiFetch } from "@/lib/api/client";
+import { getUserFacingSubmitErrorMessage } from "@/lib/api/error-message";
 import { saveOutfitDuplicatePayload } from "@/lib/outfits/duplicate";
 import type { OutfitDuplicateResponse } from "@/types/outfits";
 
@@ -57,7 +58,12 @@ export default function OutfitDuplicateAction({
           return;
         }
 
-        setError(error.data?.message ?? "複製の初期値を作成できませんでした。");
+        setError(
+          getUserFacingSubmitErrorMessage(
+            error.data,
+            "コーディネート複製用の初期値作成に失敗しました。時間をおいて再度お試しください。",
+          ),
+        );
         return;
       }
 

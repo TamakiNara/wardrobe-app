@@ -143,4 +143,45 @@ describe("OutfitDuplicateAction", () => {
     );
     expect(pushMock).not.toHaveBeenCalled();
   });
+
+  it("duplicate の 500 raw message は表示しない", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            message:
+              "SQLSTATE[42S22]: Column not found: 1054 Unknown column debug",
+          }),
+          {
+            status: 500,
+            headers: {
+              "content-type": "application/json",
+            },
+          },
+        ),
+      ),
+    );
+
+    const { default: OutfitDuplicateAction } =
+      await import("./outfit-duplicate-action");
+
+    await act(async () => {
+      root.render(React.createElement(OutfitDuplicateAction, { outfitId: 10 }));
+      await waitForEffects();
+    });
+
+    const button = container.querySelector("button");
+
+    await act(async () => {
+      button?.click();
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain(
+      "コーディネート複製用の初期値作成に失敗しました。時間をおいて再度お試しください。",
+    );
+    expect(container.textContent).not.toContain("SQLSTATE");
+    expect(container.textContent).not.toContain("Unknown column debug");
+  });
 });

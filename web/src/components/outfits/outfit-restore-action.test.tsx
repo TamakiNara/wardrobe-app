@@ -124,4 +124,44 @@ describe("OutfitRestoreAction", () => {
     );
     expect(fetchMock).not.toHaveBeenCalled();
   });
+
+  it("restore の 500 raw message は表示しない", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 500,
+        json: async () => ({
+          message:
+            "SQLSTATE[42S22]: Column not found: 1054 Unknown column debug",
+        }),
+      }),
+    );
+
+    const { default: OutfitRestoreAction } =
+      await import("./outfit-restore-action");
+
+    await act(async () => {
+      root.render(
+        React.createElement(OutfitRestoreAction, {
+          outfitId: 10,
+          canRestore: true,
+        }),
+      );
+      await waitForEffects();
+    });
+
+    const button = container.querySelector("button");
+
+    await act(async () => {
+      button?.click();
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain(
+      "コーディネートの復帰に失敗しました。時間をおいて再度お試しください。",
+    );
+    expect(container.textContent).not.toContain("SQLSTATE");
+    expect(container.textContent).not.toContain("Unknown column debug");
+  });
 });

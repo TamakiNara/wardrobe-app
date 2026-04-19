@@ -5,6 +5,10 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import FieldLabel from "@/components/forms/field-label";
 import { FormPageHeader } from "@/components/shared/form-page-header";
+import {
+  flattenValidationErrors,
+  getUserFacingSubmitErrorMessage,
+} from "@/lib/api/error-message";
 import { isItemVisibleByCategorySettings } from "@/lib/api/categories";
 import {
   fetchCategoryVisibilitySettings,
@@ -35,32 +39,8 @@ type Outfit = {
   outfitItems?: OutfitItem[];
 };
 
-function flattenFieldErrors(rawErrors: unknown): Record<string, string> {
-  if (!rawErrors || typeof rawErrors !== "object") {
-    return {};
-  }
-
-  return Object.entries(rawErrors).reduce<Record<string, string>>(
-    (carry, [key, value]) => {
-      if (Array.isArray(value) && value.length > 0) {
-        return {
-          ...carry,
-          [key]: String(value[0]),
-        };
-      }
-
-      if (typeof value === "string" && value !== "") {
-        return {
-          ...carry,
-          [key]: value,
-        };
-      }
-
-      return carry;
-    },
-    {},
-  );
-}
+const OUTFIT_UPDATE_ERROR_MESSAGE =
+  "コーディネートの更新に失敗しました。時間をおいて再度お試しください。";
 
 export default function EditOutfitPage({
   params,
@@ -300,14 +280,16 @@ export default function EditOutfitPage({
 
       if (!res.ok) {
         if (data?.errors) {
-          const nextErrors = flattenFieldErrors(data.errors);
+          const nextErrors = flattenValidationErrors(data);
           setErrors(nextErrors);
 
           if (Object.keys(nextErrors).length === 0) {
-            setSubmitError("更新に失敗しました。");
+            setSubmitError(OUTFIT_UPDATE_ERROR_MESSAGE);
           }
         } else {
-          setSubmitError(data?.message ?? "更新に失敗しました。");
+          setSubmitError(
+            getUserFacingSubmitErrorMessage(data, OUTFIT_UPDATE_ERROR_MESSAGE),
+          );
         }
         return;
       }
