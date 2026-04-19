@@ -1305,7 +1305,8 @@ paths:
       summary: 購入候補一覧取得
       description: |
         considering / on_hold / purchased / dropped の purchase candidate を返す。
-        一覧は purchaseCandidates 配列と meta.total / totalAll / page / lastPage を返す。
+        一覧の正本 payload は purchaseCandidateEntries と meta.total / totalAll / page / lastPage。
+        purchaseCandidateEntries は single / group の group-aware response とし、pagination は candidate 行数ではなく表示カード数を基準にする。
         比較結果は詳細ロジックを固定せず、現時点では補助表示向けの情報に留める。
       security:
         - SessionCookieAuth: []
@@ -2142,6 +2143,18 @@ components:
         label:
           type: string
           example: ネイビー
+
+    PurchaseCandidateColor:
+      allOf:
+        - $ref: '#/components/schemas/ItemColor'
+        - type: object
+          properties:
+            custom_label:
+              type: string
+              nullable: true
+              maxLength: 50
+              example: 64 BLUE
+              description: purchase candidate の main color だけで使うユーザー任意の色名ラベル。既存の label は preset / custom 由来のシステム表示名として扱い、custom_label とは責務を分ける。sub color では null または未指定にする。
 
     TopsSpec:
       type: object
@@ -3564,7 +3577,7 @@ components:
         colors:
           type: array
           items:
-            $ref: '#/components/schemas/ItemColor'
+            $ref: '#/components/schemas/PurchaseCandidateColor'
         seasons:
           type: array
           items:
@@ -3635,7 +3648,7 @@ components:
         colors:
           type: array
           items:
-            $ref: '#/components/schemas/ItemColor'
+            $ref: '#/components/schemas/PurchaseCandidateColor'
 
     PurchaseCandidateUpsertRequest:
       type: object
@@ -3711,7 +3724,7 @@ components:
         colors:
           type: array
           items:
-            $ref: '#/components/schemas/ItemColor'
+            $ref: '#/components/schemas/PurchaseCandidateColor'
         seasons:
           type: array
           items:
@@ -3736,127 +3749,197 @@ components:
               source_image_id:
                 type: integer
 
+    PurchaseCandidateListItem:
+      type: object
+      required:
+        - id
+        - status
+        - priority
+        - name
+        - category_id
+        - category_name
+        - brand_name
+        - price
+        - sale_price
+        - sale_ends_at
+        - purchase_url
+        - group_id
+        - group_order
+        - colors
+        - converted_item_id
+        - converted_at
+        - primary_image
+        - images
+        - updated_at
+      properties:
+        id:
+          type: integer
+          example: 10
+        status:
+          $ref: '#/components/schemas/PurchaseCandidateStatus'
+        priority:
+          $ref: '#/components/schemas/PurchaseCandidatePriority'
+        name:
+          type: string
+          example: Navy rain coat
+        category_id:
+          type: string
+          example: outer_coat
+        category_name:
+          type: string
+          nullable: true
+          example: Coat
+        brand_name:
+          type: string
+          nullable: true
+          example: Sample Brand
+        price:
+          type: integer
+          nullable: true
+          example: 14800
+        sale_price:
+          type: integer
+          nullable: true
+          example: 12800
+        sale_ends_at:
+          type: string
+          format: date-time
+          nullable: true
+        purchase_url:
+          type: string
+          nullable: true
+          example: https://example.test/products/10
+        group_id:
+          type: integer
+          nullable: true
+          example: 3
+        group_order:
+          type: integer
+          nullable: true
+          example: 1
+        colors:
+          type: array
+          items:
+            $ref: '#/components/schemas/PurchaseCandidateColor'
+        converted_item_id:
+          type: integer
+          nullable: true
+          example: 201
+        converted_at:
+          type: string
+          format: date-time
+          nullable: true
+        primary_image:
+          allOf:
+            - $ref: '#/components/schemas/PurchaseCandidateImageRecord'
+          nullable: true
+        images:
+          type: array
+          description: 一覧カードの画像切替に使う要約配列。UI は選択中 candidate の images を使い、0〜1 枚の場合は矢印を出さない。
+          items:
+            $ref: '#/components/schemas/PurchaseCandidateImageRecord'
+        updated_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    PurchaseCandidateSingleListEntry:
+      type: object
+      required:
+        - type
+        - candidate
+      properties:
+        type:
+          type: string
+          enum: [single]
+        candidate:
+          $ref: '#/components/schemas/PurchaseCandidateListItem'
+
+    PurchaseCandidateGroupListEntry:
+      type: object
+      required:
+        - type
+        - group_id
+        - representative_candidate_id
+        - candidates
+      properties:
+        type:
+          type: string
+          enum: [group]
+        group_id:
+          type: integer
+          example: 3
+        representative_candidate_id:
+          type: integer
+          nullable: true
+          example: 10
+          description: group_order 最小、同値または null がある場合は id で安定化した代表 candidate ID。candidate payload がない不正な group の場合のみ null。
+        candidates:
+          type: array
+          description: 現在の filter に一致した同一 group 内 candidates。group 内は group_order asc, id asc で返す。
+          items:
+            $ref: '#/components/schemas/PurchaseCandidateListItem'
+
+    PurchaseCandidateListEntry:
+      oneOf:
+        - $ref: '#/components/schemas/PurchaseCandidateSingleListEntry'
+        - $ref: '#/components/schemas/PurchaseCandidateGroupListEntry'
+      discriminator:
+        propertyName: type
+        mapping:
+          single: '#/components/schemas/PurchaseCandidateSingleListEntry'
+          group: '#/components/schemas/PurchaseCandidateGroupListEntry'
+
     PurchaseCandidateListResponse:
       type: object
       required:
-        - purchaseCandidates
+        - purchaseCandidateEntries
         - meta
       properties:
-        purchaseCandidates:
+        purchaseCandidateEntries:
           type: array
+          description: 一覧表示の正本 payload。単独 candidate は single、同じ group_id を持つ candidates は group として返す。
           items:
-            type: object
-            required:
-              - id
-              - status
-              - priority
-              - name
-              - category_id
-              - category_name
-              - brand_name
-              - price
-              - sale_price
-              - sale_ends_at
-              - purchase_url
-              - group_id
-              - group_order
-              - colors
-              - converted_item_id
-              - converted_at
-              - primary_image
-              - images
-              - updated_at
-            properties:
-              id:
-                type: integer
-                example: 10
-              status:
-                $ref: '#/components/schemas/PurchaseCandidateStatus'
-              priority:
-                $ref: '#/components/schemas/PurchaseCandidatePriority'
-              name:
-                type: string
-                example: ネイビーのレインコート
-              category_id:
-                type: string
-                example: outer_coat
-              category_name:
-                type: string
-                nullable: true
-                example: コート
-              brand_name:
-                type: string
-                nullable: true
-                example: Sample Brand
-              price:
-                type: integer
-                nullable: true
-                example: 14800
-              sale_price:
-                type: integer
-                nullable: true
-                example: 12800
-              sale_ends_at:
-                type: string
-                format: date-time
-                nullable: true
-              purchase_url:
-                type: string
-                nullable: true
-                example: https://example.test/products/10
-              group_id:
-                type: integer
-                nullable: true
-                example: 3
-              group_order:
-                type: integer
-                nullable: true
-                example: 1
-              colors:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ItemColor'
-              converted_item_id:
-                type: integer
-                nullable: true
-                example: 201
-              converted_at:
-                type: string
-                format: date-time
-                nullable: true
-              primary_image:
-                allOf:
-                  - $ref: '#/components/schemas/PurchaseCandidateImageRecord'
-                nullable: true
-              images:
-                type: array
-                description: 一覧カードの画像切替に使う要約配列。UI は選択中 candidate の images を使い、0〜1 枚の場合は矢印を出さない。
-                items:
-                  $ref: '#/components/schemas/PurchaseCandidateImageRecord'
-              updated_at:
-                type: string
-                format: date-time
-                nullable: true
+            $ref: '#/components/schemas/PurchaseCandidateListEntry'
+        availableBrands:
+          type: array
+          description: 実装が返す場合に filter UI で使うブランド候補。
+          items:
+            type: string
         meta:
           type: object
           required:
             - total
             - totalAll
+            - per_page
+            - current_page
             - page
             - lastPage
           properties:
             total:
               type: integer
               example: 12
+              description: filter 後の表示カード数。candidate 件数ではなく、group は 1 カードとして数える。
             totalAll:
               type: integer
               example: 20
+              description: filter 前の全 candidate 件数、または空状態判定用の全 candidate 件数。表示カード数ではない。
+            per_page:
+              type: integer
+              example: 8
+              description: 1ページあたりの表示カード数。
+            current_page:
+              type: integer
+              example: 1
+              description: 表示カード単位の現在ページ。
             page:
               type: integer
               example: 1
+              description: 表示カード単位の現在ページ。current_page と同じ意味で扱う。
             lastPage:
               type: integer
               example: 2
+              description: 表示カード数 total と per_page から算出した最終ページ。
 
     PurchaseCandidateResponse:
       type: object
@@ -4031,7 +4114,7 @@ components:
           type: array
           description: candidate 側の保存構造に関わらず、item 作成用の配列として正規化して返す。
           items:
-            $ref: '#/components/schemas/ItemColor'
+            $ref: '#/components/schemas/PurchaseCandidateColor'
         seasons:
           type: array
           description: candidate 側の保存構造に関わらず、item 作成用の配列として正規化して返す。
