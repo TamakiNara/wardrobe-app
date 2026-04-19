@@ -169,15 +169,18 @@ class PurchaseCandidateEndpointsTest extends TestCase
         ]);
 
         $response->assertOk()
-            ->assertJsonCount(1, 'purchaseCandidates')
-            ->assertJsonPath('purchaseCandidates.0.id', $candidate->id)
-            ->assertJsonPath('purchaseCandidates.0.name', '自分の候補')
-            ->assertJsonPath('purchaseCandidates.0.sale_price', 12800)
-            ->assertJsonPath('purchaseCandidates.0.purchase_url', 'https://example.test/products/1')
-            ->assertJsonPath('purchaseCandidates.0.colors.0.hex', '#1F3A5F')
+            ->assertJsonCount(1, 'purchaseCandidateEntries')
+            ->assertJsonPath('purchaseCandidateEntries.0.type', 'single')
+            ->assertJsonPath('purchaseCandidateEntries.0.candidate.id', $candidate->id)
+            ->assertJsonPath('purchaseCandidateEntries.0.candidate.name', '自分の候補')
+            ->assertJsonPath('purchaseCandidateEntries.0.candidate.sale_price', 12800)
+            ->assertJsonPath('purchaseCandidateEntries.0.candidate.purchase_url', 'https://example.test/products/1')
+            ->assertJsonPath('purchaseCandidateEntries.0.candidate.colors.0.hex', '#1F3A5F')
             ->assertJsonPath('availableBrands.0', 'Sample Brand')
             ->assertJsonPath('meta.total', 1)
-            ->assertJsonPath('meta.totalAll', 1);
+            ->assertJsonPath('meta.totalAll', 1)
+            ->assertJsonPath('meta.per_page', 12)
+            ->assertJsonPath('meta.current_page', 1);
     }
 
     public function test_get_purchase_candidates_applies_filters_sort_and_pagination(): void
@@ -232,13 +235,16 @@ class PurchaseCandidateEndpointsTest extends TestCase
         ]);
 
         $response->assertOk()
-            ->assertJsonCount(1, 'purchaseCandidates')
-            ->assertJsonPath('purchaseCandidates.0.name', '在宅コート13')
+            ->assertJsonCount(1, 'purchaseCandidateEntries')
+            ->assertJsonPath('purchaseCandidateEntries.0.type', 'single')
+            ->assertJsonPath('purchaseCandidateEntries.0.candidate.name', '在宅コート13')
             ->assertJsonPath('availableBrands.0', '休日ブランド')
             ->assertJsonPath('availableBrands.1', '別ブランド')
             ->assertJsonPath('availableBrands.2', '在宅ブランド')
             ->assertJsonPath('meta.total', 13)
             ->assertJsonPath('meta.totalAll', 15)
+            ->assertJsonPath('meta.per_page', 12)
+            ->assertJsonPath('meta.current_page', 2)
             ->assertJsonPath('meta.page', 2)
             ->assertJsonPath('meta.lastPage', 2);
 
@@ -288,11 +294,108 @@ class PurchaseCandidateEndpointsTest extends TestCase
         ]);
 
         $response->assertOk()
-            ->assertJsonPath('purchaseCandidates.0.id', $candidate->id)
-            ->assertJsonPath('purchaseCandidates.0.group_id', $group->id)
-            ->assertJsonPath('purchaseCandidates.0.group_order', 2)
-            ->assertJsonPath('purchaseCandidates.0.images.0.path', "purchase-candidates/{$candidate->id}/front.png")
-            ->assertJsonPath('purchaseCandidates.0.images.1.path', "purchase-candidates/{$candidate->id}/side.png");
+            ->assertJsonPath('purchaseCandidateEntries.0.type', 'group')
+            ->assertJsonPath('purchaseCandidateEntries.0.group_id', $group->id)
+            ->assertJsonPath('purchaseCandidateEntries.0.representative_candidate_id', $candidate->id)
+            ->assertJsonPath('purchaseCandidateEntries.0.candidates.0.id', $candidate->id)
+            ->assertJsonPath('purchaseCandidateEntries.0.candidates.0.group_id', $group->id)
+            ->assertJsonPath('purchaseCandidateEntries.0.candidates.0.group_order', 2)
+            ->assertJsonPath('purchaseCandidateEntries.0.candidates.0.images.0.path', "purchase-candidates/{$candidate->id}/front.png")
+            ->assertJsonPath('purchaseCandidateEntries.0.candidates.0.images.1.path', "purchase-candidates/{$candidate->id}/side.png");
+    }
+
+    public function test_get_purchase_candidates_paginates_by_display_cards_without_splitting_group(): void
+    {
+        $user = User::factory()->create();
+        $group = PurchaseCandidateGroup::query()->create([
+            'user_id' => $user->id,
+        ]);
+
+        for ($index = 1; $index <= 11; $index++) {
+            $this->createCandidate($user, [
+                'name' => sprintf('A single candidate %02d', $index),
+            ]);
+        }
+
+        $first = $this->createCandidate($user, [
+            'name' => 'Z group candidate 01',
+            'group_id' => $group->id,
+            'group_order' => 1,
+        ]);
+        $second = $this->createCandidate($user, [
+            'name' => 'Z group candidate 02',
+            'group_id' => $group->id,
+            'group_order' => 2,
+        ]);
+        $third = $this->createCandidate($user, [
+            'name' => 'Z group candidate 03',
+            'group_id' => $group->id,
+            'group_order' => 3,
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->getJson('/api/purchase-candidates?sort=name_asc', [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonCount(12, 'purchaseCandidateEntries')
+            ->assertJsonPath('purchaseCandidateEntries.11.type', 'group')
+            ->assertJsonPath('purchaseCandidateEntries.11.group_id', $group->id)
+            ->assertJsonPath('purchaseCandidateEntries.11.representative_candidate_id', $first->id)
+            ->assertJsonCount(3, 'purchaseCandidateEntries.11.candidates')
+            ->assertJsonPath('purchaseCandidateEntries.11.candidates.0.id', $first->id)
+            ->assertJsonPath('purchaseCandidateEntries.11.candidates.1.id', $second->id)
+            ->assertJsonPath('purchaseCandidateEntries.11.candidates.2.id', $third->id)
+            ->assertJsonPath('meta.total', 12)
+            ->assertJsonPath('meta.per_page', 12)
+            ->assertJsonPath('meta.current_page', 1)
+            ->assertJsonPath('meta.lastPage', 1);
+    }
+
+    public function test_get_purchase_candidates_groups_only_filtered_candidates(): void
+    {
+        $user = User::factory()->create();
+        $group = PurchaseCandidateGroup::query()->create([
+            'user_id' => $user->id,
+        ]);
+
+        $first = $this->createCandidate($user, [
+            'name' => 'Filtered group 01',
+            'status' => 'considering',
+            'group_id' => $group->id,
+            'group_order' => 1,
+        ]);
+        $this->createCandidate($user, [
+            'name' => 'Filtered group purchased',
+            'status' => 'purchased',
+            'group_id' => $group->id,
+            'group_order' => 2,
+        ]);
+        $third = $this->createCandidate($user, [
+            'name' => 'Filtered group 03',
+            'status' => 'considering',
+            'group_id' => $group->id,
+            'group_order' => 3,
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->getJson('/api/purchase-candidates?status=considering', [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonCount(1, 'purchaseCandidateEntries')
+            ->assertJsonPath('purchaseCandidateEntries.0.type', 'group')
+            ->assertJsonCount(2, 'purchaseCandidateEntries.0.candidates')
+            ->assertJsonPath('purchaseCandidateEntries.0.candidates.0.id', $first->id)
+            ->assertJsonPath('purchaseCandidateEntries.0.candidates.1.id', $third->id)
+            ->assertJsonMissing([
+                'name' => 'Filtered group purchased',
+            ])
+            ->assertJsonPath('meta.total', 1);
     }
 
     public function test_get_purchase_candidates_filters_by_parent_category(): void
@@ -314,9 +417,10 @@ class PurchaseCandidateEndpointsTest extends TestCase
         ]);
 
         $response->assertOk()
-            ->assertJsonCount(1, 'purchaseCandidates')
-            ->assertJsonPath('purchaseCandidates.0.id', $outerwearCandidate->id)
-            ->assertJsonPath('purchaseCandidates.0.name', 'outerwear candidate');
+            ->assertJsonCount(1, 'purchaseCandidateEntries')
+            ->assertJsonPath('purchaseCandidateEntries.0.type', 'single')
+            ->assertJsonPath('purchaseCandidateEntries.0.candidate.id', $outerwearCandidate->id)
+            ->assertJsonPath('purchaseCandidateEntries.0.candidate.name', 'outerwear candidate');
     }
 
     public function test_get_purchase_candidate_returns_detail(): void

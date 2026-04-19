@@ -96,12 +96,27 @@ export type PurchaseCandidateRecord = {
   updated_at: string | null;
 };
 
+export type PurchaseCandidateListEntry =
+  | {
+      type: "single";
+      candidate: PurchaseCandidateListItem;
+    }
+  | {
+      type: "group";
+      group_id: number;
+      representative_candidate_id: number | null;
+      candidates: PurchaseCandidateListItem[];
+    };
+
 export type PurchaseCandidatesResponse = {
-  purchaseCandidates: PurchaseCandidateListItem[];
+  purchaseCandidateEntries: PurchaseCandidateListEntry[];
+  purchaseCandidates?: PurchaseCandidateListItem[];
   availableBrands?: string[];
   meta: {
     total: number;
     totalAll: number;
+    per_page?: number;
+    current_page?: number;
     page: number;
     lastPage: number;
   };

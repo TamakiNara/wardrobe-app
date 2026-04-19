@@ -6,6 +6,7 @@ use App\Models\PurchaseCandidate;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
 class PurchaseCandidatesIndexQuery
 {
@@ -41,19 +42,146 @@ class PurchaseCandidatesIndexQuery
             $brand,
             $sort
         );
-        $pagination = $query->paginate(ListQuerySupport::PAGE_SIZE, ['*'], 'page', $page);
+        $pagination = ListQuerySupport::paginate(
+            self::buildListEntries($query->get(), $sort),
+            $page,
+            ListQuerySupport::PAGE_SIZE
+        );
 
         return [
-            'purchaseCandidates' => $pagination->getCollection()
-                ->map(fn (PurchaseCandidate $candidate) => PurchaseCandidatePayloadBuilder::buildListItem($candidate))
+            'purchaseCandidateEntries' => $pagination['items']
+                ->map(fn (array $entry) => self::buildListEntryPayload($entry))
                 ->all(),
             'availableBrands' => $availableBrands,
             'meta' => [
-                'total' => $pagination->total(),
+                'total' => $pagination['total'],
                 'totalAll' => $visibleCandidatesCount,
-                'page' => $pagination->currentPage(),
-                'lastPage' => $pagination->lastPage(),
+                'per_page' => ListQuerySupport::PAGE_SIZE,
+                'current_page' => $pagination['page'],
+                'page' => $pagination['page'],
+                'lastPage' => $pagination['lastPage'],
             ],
+        ];
+    }
+
+    /**
+     * @param  Collection<int, PurchaseCandidate>  $candidates
+     * @return Collection<int, array{type:string, representative:PurchaseCandidate, candidates:Collection<int, PurchaseCandidate>}>
+     */
+    private static function buildListEntries(Collection $candidates, string $sort): Collection
+    {
+        $entries = collect();
+
+        $candidates
+            ->filter(fn (PurchaseCandidate $candidate) => $candidate->group_id === null)
+            ->each(function (PurchaseCandidate $candidate) use ($entries) {
+                $entries->push([
+                    'type' => 'single',
+                    'representative' => $candidate,
+                    'candidates' => collect([$candidate]),
+                ]);
+            });
+
+        $candidates
+            ->filter(fn (PurchaseCandidate $candidate) => $candidate->group_id !== null)
+            ->groupBy('group_id')
+            ->each(function (Collection $groupCandidates, int|string $groupId) use ($entries) {
+                $orderedCandidates = self::sortGroupCandidates($groupCandidates);
+
+                $entries->push([
+                    'type' => 'group',
+                    'group_id' => (int) $groupId,
+                    'representative' => $orderedCandidates->first(),
+                    'candidates' => $orderedCandidates,
+                ]);
+            });
+
+        return self::sortListEntries($entries, $sort)->values();
+    }
+
+    /**
+     * @param  Collection<int, PurchaseCandidate>  $candidates
+     * @return Collection<int, PurchaseCandidate>
+     */
+    private static function sortGroupCandidates(Collection $candidates): Collection
+    {
+        return $candidates
+            ->sort(function (PurchaseCandidate $left, PurchaseCandidate $right) {
+                $leftOrder = $left->group_order ?? PHP_INT_MAX;
+                $rightOrder = $right->group_order ?? PHP_INT_MAX;
+
+                if ($leftOrder !== $rightOrder) {
+                    return $leftOrder <=> $rightOrder;
+                }
+
+                return $left->id <=> $right->id;
+            })
+            ->values();
+    }
+
+    /**
+     * @param  Collection<int, array{type:string, representative:PurchaseCandidate, candidates:Collection<int, PurchaseCandidate>}>  $entries
+     * @return Collection<int, array{type:string, representative:PurchaseCandidate, candidates:Collection<int, PurchaseCandidate>}>
+     */
+    private static function sortListEntries(Collection $entries, string $sort): Collection
+    {
+        return $entries
+            ->sort(function (array $left, array $right) use ($sort) {
+                /** @var PurchaseCandidate $leftRepresentative */
+                $leftRepresentative = $left['representative'];
+                /** @var PurchaseCandidate $rightRepresentative */
+                $rightRepresentative = $right['representative'];
+
+                if ($sort === 'name_asc') {
+                    $nameComparison = strnatcasecmp(
+                        (string) $leftRepresentative->name,
+                        (string) $rightRepresentative->name
+                    );
+
+                    if ($nameComparison !== 0) {
+                        return $nameComparison;
+                    }
+
+                    return $leftRepresentative->id <=> $rightRepresentative->id;
+                }
+
+                $leftTimestamp = $leftRepresentative->created_at?->getTimestamp() ?? 0;
+                $rightTimestamp = $rightRepresentative->created_at?->getTimestamp() ?? 0;
+
+                if ($leftTimestamp !== $rightTimestamp) {
+                    return $rightTimestamp <=> $leftTimestamp;
+                }
+
+                return $rightRepresentative->id <=> $leftRepresentative->id;
+            })
+            ->values();
+    }
+
+    /**
+     * @param  array{type:string, group_id?:int, candidates:Collection<int, PurchaseCandidate>}  $entry
+     */
+    private static function buildListEntryPayload(array $entry): array
+    {
+        if ($entry['type'] === 'group') {
+            $candidates = $entry['candidates']
+                ->map(fn (PurchaseCandidate $candidate) => PurchaseCandidatePayloadBuilder::buildListItem($candidate))
+                ->values()
+                ->all();
+
+            return [
+                'type' => 'group',
+                'group_id' => $entry['group_id'] ?? null,
+                'representative_candidate_id' => $candidates[0]['id'] ?? null,
+                'candidates' => $candidates,
+            ];
+        }
+
+        /** @var PurchaseCandidate $candidate */
+        $candidate = $entry['candidates']->first();
+
+        return [
+            'type' => 'single',
+            'candidate' => PurchaseCandidatePayloadBuilder::buildListItem($candidate),
         ];
     }
 

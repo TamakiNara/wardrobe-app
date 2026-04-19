@@ -334,93 +334,108 @@ describe("PurchaseCandidatesPage", () => {
     expect(markup).not.toContain('href="/purchase-candidates/1/edit"');
   });
 
-  it("同じ group_id の候補を一覧上で 1 カードに束ねる", async () => {
+  it("renders group-aware response entries without page-local grouping", async () => {
     fetchMock.mockResolvedValueOnce({
       ok: true,
       status: 200,
       json: async () => ({
-        purchaseCandidates: [
+        purchaseCandidateEntries: [
           {
-            id: 2,
-            status: "considering",
-            priority: "medium",
-            name: "ブルーコート",
-            category_id: "outerwear_coat",
-            category_name: "コート",
-            brand_name: "Blue Brand",
-            price: 12000,
-            sale_price: null,
-            sale_ends_at: null,
-            purchase_url: null,
+            type: "group",
             group_id: 10,
-            group_order: 2,
-            colors: [
+            representative_candidate_id: 1,
+            candidates: [
               {
-                role: "main",
-                mode: "preset",
-                value: "blue",
-                hex: "#0077D9",
-                label: "ブルー",
+                id: 2,
+                status: "considering",
+                priority: "medium",
+                name: "Blue coat",
+                category_id: "outerwear_coat",
+                category_name: "Coat",
+                brand_name: "Blue Brand",
+                price: 12000,
+                sale_price: null,
+                sale_ends_at: null,
+                purchase_url: null,
+                group_id: 10,
+                group_order: 2,
+                colors: [
+                  {
+                    role: "main",
+                    mode: "preset",
+                    value: "blue",
+                    hex: "#0077D9",
+                    label: "Blue",
+                  },
+                ],
+                converted_item_id: null,
+                converted_at: null,
+                primary_image: null,
+                images: [],
+                updated_at: "2026-03-24T10:00:00+09:00",
+              },
+              {
+                id: 1,
+                status: "considering",
+                priority: "high",
+                name: "Red coat",
+                category_id: "outerwear_coat",
+                category_name: "Coat",
+                brand_name: "Red Brand",
+                price: 9800,
+                sale_price: 7800,
+                sale_ends_at: null,
+                purchase_url: null,
+                group_id: 10,
+                group_order: 1,
+                colors: [
+                  {
+                    role: "main",
+                    mode: "preset",
+                    value: "red",
+                    hex: "#E53935",
+                    label: "Red",
+                  },
+                ],
+                converted_item_id: null,
+                converted_at: null,
+                primary_image: null,
+                images: [],
+                updated_at: "2026-03-24T10:00:00+09:00",
               },
             ],
-            converted_item_id: null,
-            converted_at: null,
-            primary_image: null,
-            updated_at: "2026-03-24T10:00:00+09:00",
           },
           {
-            id: 1,
-            status: "considering",
-            priority: "high",
-            name: "レッドコート",
-            category_id: "outerwear_coat",
-            category_name: "コート",
-            brand_name: "Red Brand",
-            price: 9800,
-            sale_price: 7800,
-            sale_ends_at: null,
-            purchase_url: null,
-            group_id: 10,
-            group_order: 1,
-            colors: [
-              {
-                role: "main",
-                mode: "preset",
-                value: "red",
-                hex: "#E53935",
-                label: "レッド",
-              },
-            ],
-            converted_item_id: null,
-            converted_at: null,
-            primary_image: null,
-            updated_at: "2026-03-24T10:00:00+09:00",
-          },
-          {
-            id: 3,
-            status: "on_hold",
-            priority: "low",
-            name: "単独候補",
-            category_id: "tops_tshirt_cutsew",
-            category_name: "Tシャツ",
-            brand_name: null,
-            price: null,
-            sale_price: null,
-            sale_ends_at: null,
-            purchase_url: null,
-            group_id: null,
-            group_order: null,
-            colors: [],
-            converted_item_id: null,
-            converted_at: null,
-            primary_image: null,
-            updated_at: "2026-03-24T10:00:00+09:00",
+            type: "single",
+            candidate: {
+              id: 3,
+              status: "on_hold",
+              priority: "low",
+              name: "Single candidate",
+              category_id: "tops_tshirt_cutsew",
+              category_name: "T-shirt",
+              brand_name: null,
+              price: null,
+              sale_price: null,
+              sale_ends_at: null,
+              purchase_url: null,
+              group_id: null,
+              group_order: null,
+              colors: [],
+              converted_item_id: null,
+              converted_at: null,
+              primary_image: null,
+              images: [],
+              updated_at: "2026-03-24T10:00:00+09:00",
+            },
           },
         ],
         availableBrands: [],
         meta: {
-          total: 3,
+          total: 2,
           totalAll: 3,
+          per_page: 12,
+          current_page: 1,
           page: 1,
           lastPage: 1,
         },
@@ -434,12 +449,12 @@ describe("PurchaseCandidatesPage", () => {
       await PurchaseCandidatesPage({ searchParams: Promise.resolve({}) }),
     );
 
-    expect(markup).toContain("表示件数: 2 / 3");
-    expect(markup).toContain("レッドコート");
+    expect(markup).toContain("2 / 2");
+    expect(markup).toContain("Red coat");
     expect(markup).toContain("Red Brand");
     expect(markup).toContain("7,800");
-    expect(markup).toContain("ブルー");
-    expect(markup).toContain("単独候補");
+    expect(markup).toContain("Blue");
+    expect(markup).toContain("Single candidate");
     expect(markup).toContain('href="/purchase-candidates/1"');
   });
 

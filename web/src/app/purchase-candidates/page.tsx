@@ -7,6 +7,7 @@ import { buildSupportedCategoryOptions } from "@/lib/api/categories";
 import { fetchLaravelWithCookie } from "@/lib/server/laravel";
 import type { CategoriesResponse, CategoryOption } from "@/types/categories";
 import type {
+  PurchaseCandidateListEntry,
   PurchaseCandidateListItem,
   PurchaseCandidatesResponse,
 } from "@/types/purchase-candidates";
@@ -88,7 +89,7 @@ async function getPurchaseCandidates(
 
   if (!response.ok) {
     return {
-      purchaseCandidates: [],
+      purchaseCandidateEntries: [],
       availableBrands: [],
       meta: {
         total: 0,
@@ -100,14 +101,23 @@ async function getPurchaseCandidates(
   }
 
   const data = (await response.json()) as Partial<PurchaseCandidatesResponse>;
+  const fallbackEntries = (data.purchaseCandidates ?? []).map(
+    (candidate): PurchaseCandidateListEntry => ({
+      type: "single",
+      candidate,
+    }),
+  );
+  const currentPage = data.meta?.current_page ?? data.meta?.page ?? 1;
 
   return {
-    purchaseCandidates: data.purchaseCandidates ?? [],
+    purchaseCandidateEntries: data.purchaseCandidateEntries ?? fallbackEntries,
     availableBrands: data.availableBrands ?? [],
     meta: {
       total: data.meta?.total ?? 0,
       totalAll: data.meta?.totalAll ?? 0,
-      page: data.meta?.page ?? 1,
+      per_page: data.meta?.per_page,
+      current_page: currentPage,
+      page: currentPage,
       lastPage: data.meta?.lastPage ?? 1,
     },
   };
@@ -205,44 +215,21 @@ type PurchaseCandidateListGroup = {
 };
 
 function buildPurchaseCandidateListGroups(
-  candidates: PurchaseCandidateListItem[],
+  entries: PurchaseCandidateListEntry[],
 ): PurchaseCandidateListGroup[] {
-  const groupedById = new Map<number, PurchaseCandidateListItem[]>();
-  const groups: PurchaseCandidateListGroup[] = [];
-
-  for (const candidate of candidates) {
-    if (candidate.group_id == null) {
-      groups.push({
-        key: `candidate-${candidate.id}`,
-        candidates: [candidate],
-      });
-      continue;
+  return entries.map((entry) => {
+    if (entry.type === "group") {
+      return {
+        key: `group-${entry.group_id}`,
+        candidates: entry.candidates,
+      };
     }
 
-    const groupedCandidates = groupedById.get(candidate.group_id);
-    if (groupedCandidates) {
-      groupedCandidates.push(candidate);
-      continue;
-    }
-
-    const nextGroup = [candidate];
-    groupedById.set(candidate.group_id, nextGroup);
-    groups.push({ key: `group-${candidate.group_id}`, candidates: nextGroup });
-  }
-
-  return groups.map((group) => ({
-    ...group,
-    candidates: [...group.candidates].sort((a, b) => {
-      const aOrder = a.group_order ?? Number.MAX_SAFE_INTEGER;
-      const bOrder = b.group_order ?? Number.MAX_SAFE_INTEGER;
-
-      if (aOrder !== bOrder) {
-        return aOrder - bOrder;
-      }
-
-      return a.id - b.id;
-    }),
-  }));
+    return {
+      key: `candidate-${entry.candidate.id}`,
+      candidates: [entry.candidate],
+    };
+  });
 }
 
 export default async function PurchaseCandidatesPage({
@@ -273,11 +260,11 @@ export default async function PurchaseCandidatesPage({
   const brand = readSearchParam(resolvedSearchParams, "brand");
   const sort = readSearchParam(resolvedSearchParams, "sort");
   const subcategory = readSearchParam(resolvedSearchParams, "subcategory");
-  const shouldShowFilteredEmptyState =
-    data.meta.totalAll > 0 && data.purchaseCandidates.length === 0;
   const purchaseCandidateGroups = buildPurchaseCandidateListGroups(
-    data.purchaseCandidates,
+    data.purchaseCandidateEntries,
   );
+  const shouldShowFilteredEmptyState =
+    data.meta.totalAll > 0 && purchaseCandidateGroups.length === 0;
 
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">
