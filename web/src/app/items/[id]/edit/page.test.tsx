@@ -13,6 +13,7 @@ const fetchCategoryVisibilitySettingsMock = vi.fn();
 const fetchUserPreferencesMock = vi.fn();
 const fetchUserBrandsMock = vi.fn();
 const fetchUserTposMock = vi.fn();
+const scrollIntoViewMock = vi.fn();
 const routerMock = { push: pushMock, refresh: refreshMock };
 
 vi.mock("next/link", () => ({
@@ -324,6 +325,62 @@ async function waitForEffects() {
   await new Promise((resolve) => setTimeout(resolve, 0));
 }
 
+function createEditableItemResponse(overrides: Record<string, unknown> = {}) {
+  return {
+    id: 1,
+    name: "Sample Item",
+    status: "active",
+    care_status: "good",
+    brand_name: "Sample Brand",
+    price: 19800,
+    purchase_url: "https://example.test/items/1",
+    memo: "sample memo",
+    purchased_at: "2026-03-24T00:00:00.000000Z",
+    size_gender: "women",
+    size_label: "M",
+    size_note: "sample note",
+    size_details: {
+      structured: {
+        shoulder_width: 42,
+      },
+      custom_fields: [
+        {
+          label: "length",
+          value: 78,
+          sort_order: 1,
+        },
+      ],
+    },
+    is_rain_ok: true,
+    category: "tops",
+    subcategory: "tshirt_cutsew",
+    shape: "tshirt",
+    colors: [
+      {
+        role: "main",
+        mode: "preset",
+        value: "blue",
+        hex: "#3B82F6",
+        label: "ブルー",
+      },
+    ],
+    seasons: [],
+    tpos: [],
+    tpo_ids: [],
+    spec: null,
+    materials: [],
+    images: [],
+    ...overrides,
+  };
+}
+
+function setInputFiles(input: HTMLInputElement, files: File[]) {
+  Object.defineProperty(input, "files", {
+    configurable: true,
+    value: files,
+  });
+}
+
 describe("編集画面", () => {
   let container: HTMLDivElement;
   let root: ReturnType<typeof createRoot>;
@@ -331,6 +388,7 @@ describe("編集画面", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     globalThis.IS_REACT_ACT_ENVIRONMENT = true;
+    window.HTMLElement.prototype.scrollIntoView = scrollIntoViewMock;
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
@@ -2081,5 +2139,207 @@ describe("編集画面", () => {
     });
 
     expect(container.querySelector("#shape")).toBeNull();
+  });
+
+  it("5000系の更新失敗でも raw message を表示しない", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+        const url = String(input);
+        if (!init || !init.method || init.method === "GET") {
+          return Promise.resolve({
+            ok: true,
+            status: 200,
+            json: async () => ({ item: createEditableItemResponse() }),
+          });
+        }
+        if (url === "/api/items/1" && init.method === "PUT") {
+          return Promise.resolve({
+            ok: false,
+            status: 500,
+            json: async () => ({
+              message: "SQLSTATE[42S22]: Unknown column custom_label",
+            }),
+          });
+        }
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: async () => ({ item: createEditableItemResponse() }),
+        });
+      }),
+    );
+
+    const { default: EditItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(
+        React.createElement(EditItemPage, {
+          params: Promise.resolve({ id: "1" }),
+        }),
+      );
+      await waitForEffects();
+    });
+
+    const form = container.querySelector("form");
+    expect(form).not.toBeNull();
+
+    await act(async () => {
+      form!.dispatchEvent(
+        new Event("submit", { bubbles: true, cancelable: true }),
+      );
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain("アイテムの更新に失敗しました");
+    expect(container.textContent).not.toContain("SQLSTATE");
+  });
+
+  it("更新済み後の画像追加失敗でも raw message を表示しない", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+        const url = String(input);
+        if (!init || !init.method || init.method === "GET") {
+          return Promise.resolve({
+            ok: true,
+            status: 200,
+            json: async () => ({ item: createEditableItemResponse() }),
+          });
+        }
+        if (url === "/api/items/1" && init.method === "PUT") {
+          return Promise.resolve({
+            ok: true,
+            status: 200,
+            json: async () => ({ item: createEditableItemResponse() }),
+          });
+        }
+        if (url === "/api/items/1/images" && init.method === "POST") {
+          return Promise.resolve({
+            ok: false,
+            status: 500,
+            json: async () => ({
+              message: "SQLSTATE[42S22]: Unknown column custom_label",
+            }),
+          });
+        }
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: async () => ({ item: createEditableItemResponse() }),
+        });
+      }),
+    );
+
+    const { default: EditItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(
+        React.createElement(EditItemPage, {
+          params: Promise.resolve({ id: "1" }),
+        }),
+      );
+      await waitForEffects();
+    });
+
+    const fileInput =
+      container.querySelector<HTMLInputElement>('input[type="file"]');
+    expect(fileInput).not.toBeNull();
+
+    await act(async () => {
+      setInputFiles(fileInput!, [
+        new File(["test"], "sample.png", { type: "image/png" }),
+      ]);
+      fileInput!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    const form = container.querySelector("form");
+    expect(form).not.toBeNull();
+
+    await act(async () => {
+      form!.dispatchEvent(
+        new Event("submit", { bubbles: true, cancelable: true }),
+      );
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain(
+      "アイテムは更新済みですが、画像の追加に失敗しました",
+    );
+    expect(container.textContent).not.toContain("SQLSTATE");
+  });
+
+  it("画像削除失敗でも raw message を表示しない", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+        const url = String(input);
+        if (!init || !init.method || init.method === "GET") {
+          return Promise.resolve({
+            ok: true,
+            status: 200,
+            json: async () => ({
+              item: createEditableItemResponse({
+                images: [
+                  {
+                    id: 1,
+                    item_id: 1,
+                    disk: "public",
+                    path: "items/1/sample.png",
+                    url: "https://example.test/storage/items/1/sample.png",
+                    original_filename: "sample.png",
+                    mime_type: "image/png",
+                    file_size: 1000,
+                    sort_order: 1,
+                    is_primary: true,
+                  },
+                ],
+              }),
+            }),
+          });
+        }
+        if (url === "/api/items/1/images/1" && init?.method === "DELETE") {
+          return Promise.resolve({
+            ok: false,
+            status: 500,
+            json: async () => ({
+              message: "SQLSTATE[42S22]: Unknown column custom_label",
+            }),
+          });
+        }
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: async () => ({ item: createEditableItemResponse() }),
+        });
+      }),
+    );
+
+    const { default: EditItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(
+        React.createElement(EditItemPage, {
+          params: Promise.resolve({ id: "1" }),
+        }),
+      );
+      await waitForEffects();
+    });
+    await waitForEffects();
+
+    const deleteButtons = Array.from(
+      container.querySelectorAll("button"),
+    ).filter((button) => button.textContent?.includes("削除"));
+    const deleteButton = deleteButtons.at(-1);
+    expect(deleteButton).not.toBeUndefined();
+
+    await act(async () => {
+      deleteButton!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain("画像の削除に失敗しました");
+    expect(container.textContent).not.toContain("SQLSTATE");
   });
 });

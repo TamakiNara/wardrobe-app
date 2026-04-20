@@ -142,4 +142,42 @@ describe("ItemCareStatusAction", () => {
     expect(refreshMock).toHaveBeenCalled();
     expect(container.textContent).toContain("クリーニング状態を解除しました。");
   });
+
+  it("500系エラーでも raw message を表示しない", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 500,
+        json: async () => ({
+          message: "SQLSTATE[42S22]: Unknown column custom_label",
+        }),
+      }),
+    );
+
+    const { default: ItemCareStatusAction } =
+      await import("./item-care-status-action");
+
+    await act(async () => {
+      root.render(
+        React.createElement(ItemCareStatusAction, {
+          itemId: 1,
+          careStatus: null,
+        }),
+      );
+      await waitForEffects();
+    });
+
+    const button = container.querySelector("button");
+
+    await act(async () => {
+      button?.click();
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain(
+      "ケア状態の更新に失敗しました。時間をおいて再度お試しください。",
+    );
+    expect(container.textContent).not.toContain("SQLSTATE");
+  });
 });

@@ -31,6 +31,7 @@ import {
   fetchUserPreferences,
   fetchUserTpos,
 } from "@/lib/api/settings";
+import { getUserFacingSubmitErrorMessage } from "@/lib/api/error-message";
 import type { CategoryOption } from "@/types/categories";
 import {
   ITEM_COLORS,
@@ -1116,12 +1117,7 @@ export default function EditItemPage({
       });
 
       if (!uploadResponse.ok) {
-        const uploadData = await uploadResponse.json().catch(() => null);
-        throw new Error(
-          uploadData?.message ??
-            uploadData?.errors?.image?.[0] ??
-            "画像の追加に失敗しました。",
-        );
+        throw new Error("IMAGE_UPLOAD_FAILED");
       }
     }
   }
@@ -1138,7 +1134,12 @@ export default function EditItemPage({
     const data = await response.json().catch(() => null);
 
     if (!response.ok) {
-      setSubmitError(data?.message ?? "画像の削除に失敗しました。");
+      setSubmitError(
+        getUserFacingSubmitErrorMessage(
+          data,
+          "画像の削除に失敗しました。時間をおいて再度お試しください。",
+        ),
+      );
       return;
     }
 
@@ -1235,6 +1236,7 @@ export default function EditItemPage({
     if (!validateForm() || !itemId) return;
 
     setSubmitting(true);
+    let itemUpdated = false;
 
     try {
       const response = await fetch(`/api/items/${itemId}`, {
@@ -1246,7 +1248,7 @@ export default function EditItemPage({
       const data = await response.json().catch(() => null);
 
       if (response.status === 401) {
-        setSubmitError("セッションが切れました。再度ログインしてください。");
+        setSubmitError("ログインが必要です。再度ログインしてください。");
         setTimeout(() => router.push("/login"), 800);
         return;
       }
@@ -1259,24 +1261,40 @@ export default function EditItemPage({
           setSubmitError("入力内容を確認してください。");
           return;
         }
-        setSubmitError(data?.message ?? "更新に失敗しました。");
+        setSubmitError(
+          getUserFacingSubmitErrorMessage(
+            data,
+            "アイテムの更新に失敗しました。時間をおいて再度お試しください。",
+          ),
+        );
         return;
       }
+
+      itemUpdated = true;
 
       if (pendingImages.length > 0) {
         await uploadPendingImages(itemId);
       }
 
-      setSubmitSuccess("更新に成功しました。");
+      setSubmitSuccess("アイテムを更新しました。");
       setTimeout(() => {
         router.push(`/items/${itemId}`);
         router.refresh();
       }, 800);
     } catch (error) {
+      if (
+        itemUpdated &&
+        error instanceof Error &&
+        error.message === "IMAGE_UPLOAD_FAILED"
+      ) {
+        setSubmitError(
+          "アイテムは更新済みですが、画像の追加に失敗しました。時間をおいて再度お試しください。",
+        );
+        return;
+      }
+
       setSubmitError(
-        error instanceof Error
-          ? error.message
-          : "通信に失敗しました。時間をおいて再度お試しください。",
+        "アイテムの更新に失敗しました。時間をおいて再度お試しください。",
       );
     } finally {
       setSubmitting(false);

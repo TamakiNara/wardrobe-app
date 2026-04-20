@@ -24,6 +24,7 @@ import {
   fetchCategoryGroups,
 } from "@/lib/api/categories";
 import { ApiClientError } from "@/lib/api/client";
+import { getUserFacingSubmitErrorMessage } from "@/lib/api/error-message";
 import {
   fetchCategoryVisibilitySettings,
   fetchUserPreferences,
@@ -979,12 +980,7 @@ export default function NewItemPage() {
       });
 
       if (!uploadResponse.ok) {
-        const uploadData = await uploadResponse.json().catch(() => null);
-        throw new Error(
-          uploadData?.message ??
-            uploadData?.errors?.image?.[0] ??
-            "画像の追加に失敗しました。",
-        );
+        throw new Error("IMAGE_UPLOAD_FAILED");
       }
     }
   }
@@ -1046,11 +1042,10 @@ export default function NewItemPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(buildPayload()),
       });
-
       const data = await response.json().catch(() => null);
 
       if (response.status === 401) {
-        setSubmitError("セッションが切れました。再度ログインしてください。");
+        setSubmitError("ログインが必要です。再度ログインしてください。");
         setTimeout(() => router.push("/login"), 800);
         return;
       }
@@ -1063,7 +1058,12 @@ export default function NewItemPage() {
           setSubmitError("入力内容を確認してください。");
           return;
         }
-        setSubmitError(data?.message ?? "登録に失敗しました。");
+        setSubmitError(
+          getUserFacingSubmitErrorMessage(
+            data,
+            "アイテムの登録に失敗しました。時間をおいて再度お試しください。",
+          ),
+        );
         return;
       }
 
@@ -1073,17 +1073,19 @@ export default function NewItemPage() {
         await uploadPendingImages(createdItemId);
       }
 
-      setSubmitSuccess("登録に成功しました。");
+      setSubmitSuccess("アイテムを登録しました。");
       setTimeout(() => {
         router.push("/items");
         router.refresh();
       }, 800);
     } catch (error) {
-      if (createdItemId !== null) {
+      if (
+        createdItemId !== null &&
+        error instanceof Error &&
+        error.message === "IMAGE_UPLOAD_FAILED"
+      ) {
         setSubmitError(
-          error instanceof Error
-            ? `アイテム本体は登録しましたが、${error.message}`
-            : "アイテム本体は登録しましたが、画像の追加に失敗しました。",
+          "アイテムは登録済みですが、画像の追加に失敗しました。時間をおいて再度お試しください。",
         );
         setTimeout(() => {
           router.push(`/items/${createdItemId}/edit`);
@@ -1092,7 +1094,9 @@ export default function NewItemPage() {
         return;
       }
 
-      setSubmitError("通信に失敗しました。時間をおいて再度お試しください。");
+      setSubmitError(
+        "アイテムの登録に失敗しました。時間をおいて再度お試しください。",
+      );
     } finally {
       setSubmitting(false);
     }

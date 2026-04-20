@@ -324,6 +324,80 @@ async function waitForEffects() {
   await new Promise((resolve) => setTimeout(resolve, 0));
 }
 
+function createValidPurchaseCandidateItemDraft() {
+  return {
+    message: "item_draft_ready",
+    item_draft: {
+      name: "Sample Coat",
+      source_category_id: "tops_tshirt_cutsew",
+      category: "tops",
+      subcategory: "tshirt_cutsew",
+      shape: "tshirt",
+      brand_name: "Sample Brand",
+      price: 9800,
+      purchase_url: "https://example.test/products/coat",
+      memo: "draft memo",
+      size_gender: "women",
+      size_label: "M",
+      size_note: "sample note",
+      purchased_at: null,
+      size_details: {
+        structured: {
+          shoulder_width: 42,
+        },
+        custom_fields: [
+          {
+            label: "length",
+            value: 78,
+            sort_order: 1,
+          },
+        ],
+      },
+      spec: null,
+      is_rain_ok: true,
+      colors: [
+        {
+          role: "main",
+          mode: "preset",
+          value: "blue",
+          hex: "#3B82F6",
+          label: "ブルー",
+        },
+      ],
+      seasons: ["spring"],
+      tpos: ["office"],
+      materials: [
+        {
+          part_label: "body",
+          material_name: "cotton",
+          ratio: 80,
+        },
+        {
+          part_label: "body",
+          material_name: "polyester",
+          ratio: 20,
+        },
+      ],
+    },
+    candidate_summary: {
+      id: 1,
+      status: "considering",
+      priority: "medium",
+      name: "Sample Coat",
+      converted_item_id: null,
+      converted_at: null,
+    },
+    images: [],
+  };
+}
+
+function setInputFiles(input: HTMLInputElement, files: File[]) {
+  Object.defineProperty(input, "files", {
+    configurable: true,
+    value: files,
+  });
+}
+
 function setNativeInputValue(
   element: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement,
   value: string,
@@ -1652,5 +1726,100 @@ describe("新規登録画面", () => {
     expect(container.textContent).not.toContain(
       "有効な TPO はまだありません。",
     );
+  });
+
+  it("5000系の登録失敗でも raw message を表示しない", async () => {
+    searchParamsSourceValue = "purchase-candidate";
+    window.sessionStorage.setItem(
+      "purchase-candidate-item-draft",
+      JSON.stringify(createValidPurchaseCandidateItemDraft()),
+    );
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 500,
+        json: async () => ({
+          message: "SQLSTATE[42S22]: Unknown column custom_label",
+        }),
+      }),
+    );
+
+    const { default: NewItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(NewItemPage));
+      await waitForEffects();
+    });
+
+    const form = container.querySelector("form");
+    expect(form).not.toBeNull();
+
+    await act(async () => {
+      form!.dispatchEvent(
+        new Event("submit", { bubbles: true, cancelable: true }),
+      );
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain("アイテムの登録に失敗しました");
+    expect(container.textContent).not.toContain("SQLSTATE");
+  });
+
+  it("登録済み後の画像追加失敗でも raw message を表示しない", async () => {
+    searchParamsSourceValue = "purchase-candidate";
+    window.sessionStorage.setItem(
+      "purchase-candidate-item-draft",
+      JSON.stringify(createValidPurchaseCandidateItemDraft()),
+    );
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ item: { id: 101 } }),
+      })
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        json: async () => ({
+          message: "SQLSTATE[42S22]: Unknown column custom_label",
+        }),
+      });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { default: NewItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(NewItemPage));
+      await waitForEffects();
+    });
+
+    const fileInput =
+      container.querySelector<HTMLInputElement>('input[type="file"]');
+    expect(fileInput).not.toBeNull();
+
+    await act(async () => {
+      setInputFiles(fileInput!, [
+        new File(["test"], "sample.png", { type: "image/png" }),
+      ]);
+      fileInput!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    const form = container.querySelector("form");
+    expect(form).not.toBeNull();
+
+    await act(async () => {
+      form!.dispatchEvent(
+        new Event("submit", { bubbles: true, cancelable: true }),
+      );
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain(
+      "アイテムは登録済みですが、画像の追加に失敗しました",
+    );
+    expect(container.textContent).not.toContain("SQLSTATE");
   });
 });

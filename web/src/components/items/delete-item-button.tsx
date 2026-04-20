@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { getUserFacingSubmitErrorMessage } from "@/lib/api/error-message";
 
 type DeleteItemButtonProps = {
   itemId: number;
@@ -14,7 +15,7 @@ export default function DeleteItemButton({ itemId }: DeleteItemButtonProps) {
 
   async function handleDelete() {
     const ok = window.confirm(
-      "このアイテムを完全に削除しますか？\n登録ミスなど、履歴を残さず消したい場合に限って使います。",
+      "このアイテムを削除しますか？\\n削除したデータは元に戻せません。",
     );
     if (!ok) return;
 
@@ -29,20 +30,27 @@ export default function DeleteItemButton({ itemId }: DeleteItemButtonProps) {
       const data = await res.json().catch(() => null);
 
       if (res.status === 401) {
-        window.alert("セッションが切れました。再度ログインしてください。");
+        window.alert("ログインが必要です。再度ログインしてください。");
         router.push("/login");
         return;
       }
 
       if (!res.ok) {
-        setError(data?.message ?? "完全削除に失敗しました。");
+        setError(
+          getUserFacingSubmitErrorMessage(
+            data,
+            "アイテムの削除に失敗しました。時間をおいて再度お試しください。",
+          ),
+        );
         return;
       }
 
       router.push("/items");
       router.refresh();
     } catch {
-      setError("通信に失敗しました。時間をおいて再度お試しください。");
+      setError(
+        "アイテムの削除に失敗しました。時間をおいて再度お試しください。",
+      );
     } finally {
       setSubmitting(false);
     }
@@ -56,7 +64,7 @@ export default function DeleteItemButton({ itemId }: DeleteItemButtonProps) {
         disabled={submitting}
         className="rounded-lg border border-red-300 bg-red-50 px-4 py-2 text-sm font-medium text-red-700 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {submitting ? "削除中..." : "完全に削除"}
+        {submitting ? "削除中..." : "削除する"}
       </button>
 
       {error && <p className="text-sm text-red-600">{error}</p>}

@@ -151,4 +151,41 @@ describe("ItemStatusAction", () => {
       "アイテムをクローゼットに戻しました。",
     );
   });
+
+  it("500系エラーでも raw message を表示しない", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 500,
+        json: async () => ({
+          message: "SQLSTATE[42S22]: Unknown column custom_label",
+        }),
+      }),
+    );
+
+    const { default: ItemStatusAction } = await import("./item-status-action");
+
+    await act(async () => {
+      root.render(
+        React.createElement(ItemStatusAction, {
+          itemId: 1,
+          status: "active",
+        }),
+      );
+      await waitForEffects();
+    });
+
+    const button = container.querySelector("button");
+
+    await act(async () => {
+      button?.click();
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain(
+      "アイテム状態の更新に失敗しました。時間をおいて再度お試しください。",
+    );
+    expect(container.textContent).not.toContain("SQLSTATE");
+  });
 });
