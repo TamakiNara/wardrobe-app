@@ -54,7 +54,7 @@ import {
   loadPurchaseCandidateDuplicatePayload,
 } from "@/lib/purchase-candidates/duplicate";
 import { resolvePurchaseCandidateItemCategory } from "@/lib/purchase-candidates/category-map";
-import type { CategoryGroupRecord, CategoryOption } from "@/types/categories";
+import type { CategoryGroupRecord } from "@/types/categories";
 import type {
   PurchaseCandidateDetailResponse,
   PurchaseCandidateDuplicateImageRecord,
@@ -89,10 +89,22 @@ class UserFacingFormError extends Error {
   }
 }
 
+type PurchaseCandidateCategoryOption = {
+  value: string;
+  label: string;
+  groupId: string;
+  groupLabel: string;
+};
+
+type PurchaseCandidateCategoryGroupOption = {
+  value: string;
+  label: string;
+};
+
 function buildCategoryOptions(
   groups: CategoryGroupRecord[],
   visibleCategoryIds?: string[],
-): CategoryOption[] {
+): PurchaseCandidateCategoryOption[] {
   const visibleSet = visibleCategoryIds ? new Set(visibleCategoryIds) : null;
 
   return groups.flatMap((group) =>
@@ -106,9 +118,38 @@ function buildCategoryOptions(
       })
       .map((category) => ({
         value: category.id,
-        label: `${group.name} / ${category.name}`,
+        label: category.name,
+        groupId: group.id,
+        groupLabel: group.name,
       })),
   );
+}
+
+function buildCategoryGroupOptions(
+  options: PurchaseCandidateCategoryOption[],
+): PurchaseCandidateCategoryGroupOption[] {
+  const seen = new Set<string>();
+
+  return options.flatMap((option) => {
+    if (seen.has(option.groupId)) {
+      return [];
+    }
+
+    seen.add(option.groupId);
+    return [
+      {
+        value: option.groupId,
+        label: option.groupLabel,
+      },
+    ];
+  });
+}
+
+function resolveCategoryGroupId(
+  categoryId: string,
+  options: PurchaseCandidateCategoryOption[],
+): string {
+  return options.find((option) => option.value === categoryId)?.groupId ?? "";
 }
 
 function normalizeNullableString(value: string): string {
@@ -191,6 +232,7 @@ export default function PurchaseCandidateForm({
   const [status, setStatus] = useState<PurchaseCandidateStatus>("considering");
   const [priority, setPriority] = useState<PurchaseCandidatePriority>("medium");
   const [name, setName] = useState("");
+  const [categoryGroupId, setCategoryGroupId] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [variantSourceCandidateId, setVariantSourceCandidateId] = useState<
     number | null
@@ -229,7 +271,9 @@ export default function PurchaseCandidateForm({
   const [selectedSeasons, setSelectedSeasons] = useState<string[]>([]);
   const [selectedTpos, setSelectedTpos] = useState<string[]>([]);
 
-  const [categoryOptions, setCategoryOptions] = useState<CategoryOption[]>([]);
+  const [categoryOptions, setCategoryOptions] = useState<
+    PurchaseCandidateCategoryOption[]
+  >([]);
   const [existingImages, setExistingImages] = useState<
     PurchaseCandidateImageRecord[]
   >([]);
@@ -272,6 +316,15 @@ export default function PurchaseCandidateForm({
     return ITEM_COLORS.find((color) => color.value === subColor) ?? null;
   }, [customSubHex, subColor, useCustomSubColor]);
 
+  const categoryGroupOptions = useMemo(
+    () => buildCategoryGroupOptions(categoryOptions),
+    [categoryOptions],
+  );
+  const filteredCategoryOptions = useMemo(
+    () =>
+      categoryOptions.filter((option) => option.groupId === categoryGroupId),
+    [categoryGroupId, categoryOptions],
+  );
   const resolvedItemCategory = useMemo(
     () => resolvePurchaseCandidateItemCategory(categoryId),
     [categoryId],
@@ -320,9 +373,12 @@ export default function PurchaseCandidateForm({
           fetchCategoryVisibilitySettings(),
         ]);
 
-        setCategoryOptions(
-          buildCategoryOptions(groups, settings.visibleCategoryIds),
+        const nextCategoryOptions = buildCategoryOptions(
+          groups,
+          settings.visibleCategoryIds,
         );
+
+        setCategoryOptions(nextCategoryOptions);
 
         if (mode === "edit" && candidateId) {
           const response = await fetch(
@@ -349,6 +405,9 @@ export default function PurchaseCandidateForm({
           setStatus(candidate.status);
           setPriority(candidate.priority);
           setName(candidate.name);
+          setCategoryGroupId(
+            resolveCategoryGroupId(candidate.category_id, nextCategoryOptions),
+          );
           setCategoryId(candidate.category_id);
           setVariantSourceCandidateId(null);
           setBrandName(candidate.brand_name ?? "");
@@ -480,6 +539,9 @@ export default function PurchaseCandidateForm({
         ? payload.name
         : ensurePurchaseCandidateDuplicateName(payload.name),
     );
+    setCategoryGroupId(
+      resolveCategoryGroupId(payload.category_id, categoryOptions),
+    );
     setCategoryId(payload.category_id);
     setVariantSourceCandidateId(
       isColorVariantSource
@@ -549,7 +611,7 @@ export default function PurchaseCandidateForm({
         ? "色違いの初期値を読み込みました。保存前に色や画像を調整してください。"
         : "複製元の内容を初期値として読み込みました。",
     );
-  }, [loading, mode, router, searchParams]);
+  }, [categoryOptions, loading, mode, router, searchParams]);
 
   function toggleValue(
     value: string,
@@ -720,7 +782,7 @@ export default function PurchaseCandidateForm({
     }
 
     if (!isPurchasedLocked && !categoryId) {
-      nextErrors.category_id = "カテゴリを選択してください。";
+      nextErrors.category_id = "種類を選択してください。";
     }
 
     if (!isPurchasedLocked && !selectedMainColor) {
@@ -1002,25 +1064,53 @@ export default function PurchaseCandidateForm({
           )}
         </div>
 
-        <div>
-          <FieldLabel htmlFor="category_id" label="カテゴリ" required />
-          <select
-            id="category_id"
-            value={categoryId}
-            onChange={(event) => setCategoryId(event.target.value)}
-            disabled={isPurchasedLocked}
-            className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors.category_id ? "border-red-400" : "border-gray-300"}`}
-          >
-            <option value="">選択してください</option>
-            {categoryOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
+        <div className="grid gap-4 md:grid-cols-2">
+          <div>
+            <FieldLabel htmlFor="category_group_id" label="カテゴリ" required />
+            <select
+              id="category_group_id"
+              value={categoryGroupId}
+              onChange={(event) => {
+                const nextGroupId = event.target.value;
+                setCategoryGroupId(nextGroupId);
+                setCategoryId("");
+              }}
+              disabled={isPurchasedLocked}
+              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            >
+              <option value="">選択してください</option>
+              {categoryGroupOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <FieldLabel htmlFor="category_id" label="種類" required />
+            <select
+              id="category_id"
+              value={categoryId}
+              onChange={(event) => setCategoryId(event.target.value)}
+              disabled={isPurchasedLocked || !categoryGroupId}
+              className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors.category_id ? "border-red-400" : "border-gray-300"}`}
+            >
+              <option value="">
+                {categoryGroupId
+                  ? "選択してください"
+                  : "カテゴリを先に選択してください"}
               </option>
-            ))}
-          </select>
-          {errors.category_id && (
-            <p className="mt-2 text-sm text-red-600">{errors.category_id}</p>
-          )}
+              {filteredCategoryOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            {errors.category_id && (
+              <p className="mt-2 text-sm text-red-600">{errors.category_id}</p>
+            )}
+          </div>
         </div>
       </ItemFormSection>
 

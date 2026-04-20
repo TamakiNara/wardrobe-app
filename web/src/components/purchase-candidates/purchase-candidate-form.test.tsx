@@ -132,6 +132,24 @@ describe("PurchaseCandidateForm", () => {
     element.dispatchEvent(new Event("change", { bubbles: true }));
   }
 
+  function getCategoryGroupSelect() {
+    return container.querySelector("#category_group_id") as HTMLSelectElement;
+  }
+
+  function getCategorySelect() {
+    return container.querySelector("#category_id") as HTMLSelectElement;
+  }
+
+  async function setCategorySelection(groupId: string, categoryId: string) {
+    await act(async () => {
+      setNativeValue(getCategoryGroupSelect(), groupId);
+    });
+
+    await act(async () => {
+      setNativeValue(getCategorySelect(), categoryId);
+    });
+  }
+
   it("日本語ラベルと必須表示を描画できる", async () => {
     await renderForm();
 
@@ -243,9 +261,6 @@ describe("PurchaseCandidateForm", () => {
     await renderForm();
 
     const nameInput = container.querySelector("#name") as HTMLInputElement;
-    const categorySelect = container.querySelector(
-      "#category_id",
-    ) as HTMLSelectElement;
     const brandNameInput = container.querySelector(
       "#brand-name",
     ) as HTMLInputElement;
@@ -263,7 +278,7 @@ describe("PurchaseCandidateForm", () => {
 
     await act(async () => {
       setNativeValue(nameInput, "ブランド候補追加テスト");
-      setNativeValue(categorySelect, "outerwear_coat");
+      await setCategorySelection("outerwear", "outerwear_coat");
       setNativeValue(brandNameInput, "UNIQLO");
       saveBrandCheckbox!.click();
       customMainCheckbox.click();
@@ -340,9 +355,6 @@ describe("PurchaseCandidateForm", () => {
     await renderForm();
 
     const nameInput = container.querySelector("#name") as HTMLInputElement;
-    const categorySelect = container.querySelector(
-      "#category_id",
-    ) as HTMLSelectElement;
     const salePriceInput = container.querySelector(
       "#sale_price",
     ) as HTMLInputElement;
@@ -361,7 +373,7 @@ describe("PurchaseCandidateForm", () => {
 
     await act(async () => {
       setNativeValue(nameInput, "レインコート候補");
-      setNativeValue(categorySelect, "tops_tshirt_cutsew");
+      await setCategorySelection("tops", "tops_tshirt_cutsew");
       setNativeValue(salePriceInput, "12800");
       setNativeValue(saleEndsAtDateInput, "2026-03-31");
       setNativeValue(saleEndsAtTimeInput, "18:00");
@@ -478,9 +490,6 @@ describe("PurchaseCandidateForm", () => {
     await renderForm();
 
     const nameInput = container.querySelector("#name") as HTMLInputElement;
-    const categorySelect = container.querySelector(
-      "#category_id",
-    ) as HTMLSelectElement;
     const saleEndsAtDateInput = container.querySelector(
       "#sale_ends_at_date",
     ) as HTMLInputElement;
@@ -498,7 +507,7 @@ describe("PurchaseCandidateForm", () => {
 
     await act(async () => {
       setNativeValue(nameInput, "Sale reset candidate");
-      setNativeValue(categorySelect, "tops_tshirt_cutsew");
+      await setCategorySelection("tops", "tops_tshirt_cutsew");
       setNativeValue(saleEndsAtDateInput, "2026-03-31");
       customMainCheckbox.click();
     });
@@ -549,9 +558,6 @@ describe("PurchaseCandidateForm", () => {
     await renderForm();
 
     const nameInput = container.querySelector("#name") as HTMLInputElement;
-    const categorySelect = container.querySelector(
-      "#category_id",
-    ) as HTMLSelectElement;
     const customMainCheckbox = container.querySelector(
       'input[aria-label="メインカラーをカラーコードで入力"]',
     ) as HTMLInputElement;
@@ -563,7 +569,7 @@ describe("PurchaseCandidateForm", () => {
 
     await act(async () => {
       setNativeValue(nameInput, "素材付き候補");
-      setNativeValue(categorySelect, "tops_tshirt_cutsew");
+      await setCategorySelection("tops", "tops_tshirt_cutsew");
       customMainCheckbox.click();
       addMaterialButton.click();
     });
@@ -625,7 +631,7 @@ describe("PurchaseCandidateForm", () => {
     ) as HTMLSelectElement;
 
     await act(async () => {
-      setNativeValue(categorySelect, "tops_tshirt_cutsew");
+      await setCategorySelection("tops", "tops_tshirt_cutsew");
     });
 
     const addButton = Array.from(container.querySelectorAll("button")).find(
@@ -941,9 +947,8 @@ describe("PurchaseCandidateForm", () => {
     await renderForm({ mode: "edit", candidateId: "12" });
 
     const nameInput = container.querySelector("#name") as HTMLInputElement;
-    const categorySelect = container.querySelector(
-      "#category_id",
-    ) as HTMLSelectElement;
+    const categoryGroupSelect = getCategoryGroupSelect();
+    const categorySelect = getCategorySelect();
     const priceInput = container.querySelector("#price") as HTMLInputElement;
     const salePriceInput = container.querySelector(
       "#sale_price",
@@ -1030,9 +1035,6 @@ describe("PurchaseCandidateForm", () => {
     await renderForm();
 
     const nameInput = container.querySelector("#name") as HTMLInputElement;
-    const categorySelect = container.querySelector(
-      "#category_id",
-    ) as HTMLSelectElement;
     const checkboxes = container.querySelectorAll<HTMLInputElement>(
       'input[type="checkbox"]',
     );
@@ -1040,7 +1042,7 @@ describe("PurchaseCandidateForm", () => {
 
     await act(async () => {
       setNativeValue(nameInput, "Sample Candidate");
-      setNativeValue(categorySelect, "outerwear_coat");
+      await setCategorySelection("outerwear", "outerwear_coat");
       checkboxes[1]?.click();
     });
 
@@ -1070,9 +1072,6 @@ describe("PurchaseCandidateForm", () => {
     await renderForm();
 
     const nameInput = container.querySelector("#name") as HTMLInputElement;
-    const categorySelect = container.querySelector(
-      "#category_id",
-    ) as HTMLSelectElement;
     const checkboxes = container.querySelectorAll<HTMLInputElement>(
       'input[type="checkbox"]',
     );
@@ -1080,7 +1079,7 @@ describe("PurchaseCandidateForm", () => {
 
     await act(async () => {
       setNativeValue(nameInput, "Sample Candidate");
-      setNativeValue(categorySelect, "outerwear_coat");
+      await setCategorySelection("outerwear", "outerwear_coat");
       checkboxes[1]?.click();
     });
 
@@ -1119,9 +1118,6 @@ describe("PurchaseCandidateForm", () => {
     await renderForm();
 
     const nameInput = container.querySelector("#name") as HTMLInputElement;
-    const categorySelect = container.querySelector(
-      "#category_id",
-    ) as HTMLSelectElement;
     const checkboxes = container.querySelectorAll<HTMLInputElement>(
       'input[type="checkbox"]',
     );
@@ -1130,7 +1126,7 @@ describe("PurchaseCandidateForm", () => {
 
     await act(async () => {
       setNativeValue(nameInput, "Image Candidate");
-      setNativeValue(categorySelect, "outerwear_coat");
+      await setCategorySelection("outerwear", "outerwear_coat");
       checkboxes[1]?.click();
       Object.defineProperty(fileInput, "files", {
         value: [new File(["image"], "sample.png", { type: "image/png" })],
