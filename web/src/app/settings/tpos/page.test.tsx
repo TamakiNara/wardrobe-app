@@ -4,6 +4,7 @@ import React from "react";
 import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { ApiClientError } from "@/lib/api/client";
 
 const pushMock = vi.fn();
 const fetchUserTposMock = vi.fn();
@@ -83,7 +84,7 @@ describe("SettingsTposPage", () => {
     ).not.toBeNull();
   });
 
-  it("追加と無効化の操作を API へ送る", async () => {
+  it("追加と有効化の操作を API へ送る", async () => {
     createUserTpoMock.mockResolvedValue({
       message: "created",
       tpo: {
@@ -100,20 +101,12 @@ describe("SettingsTposPage", () => {
         id: 4,
         name: "出張",
         sortOrder: 4,
-        isActive: false,
+        isActive: true,
         isPreset: false,
       },
     });
 
     const { default: SettingsTposPage } = await import("./page");
-
-    fetchUserTposMock.mockResolvedValue({
-      tpos: [
-        { id: 1, name: "仕事", sortOrder: 1, isActive: true, isPreset: true },
-        { id: 2, name: "休日", sortOrder: 2, isActive: true, isPreset: true },
-        { id: 4, name: "出張", sortOrder: 4, isActive: true, isPreset: false },
-      ],
-    });
 
     await act(async () => {
       root.render(React.createElement(SettingsTposPage));
@@ -131,12 +124,6 @@ describe("SettingsTposPage", () => {
       HTMLInputElement.prototype,
       "value",
     )?.set;
-    const customRow = Array.from(container.querySelectorAll("article")).find(
-      (article) => article.textContent?.includes("出張"),
-    );
-    const deactivateButton = Array.from(
-      customRow?.querySelectorAll<HTMLButtonElement>("button") ?? [],
-    ).find((button) => button.textContent === "無効にする");
 
     await act(async () => {
       valueSetter?.call(input, "在宅");
@@ -148,11 +135,213 @@ describe("SettingsTposPage", () => {
 
     expect(createUserTpoMock).toHaveBeenCalledWith({ name: "在宅" });
 
+    const activateButton = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button"),
+    ).find((button) => button.textContent?.trim() === "有効にする");
+
     await act(async () => {
-      deactivateButton?.click();
+      activateButton?.click();
       await waitForEffects();
     });
 
-    expect(updateUserTpoMock).toHaveBeenCalledWith(4, { isActive: false });
+    expect(updateUserTpoMock).toHaveBeenCalledWith(4, { isActive: true });
+  });
+
+  it("422 validation では具体的な項目エラーを表示する", async () => {
+    createUserTpoMock.mockRejectedValue(
+      new ApiClientError(422, {
+        message: "SQLSTATE[42S22]: Unknown column custom_label",
+        errors: {
+          name: ["TPO名を入力してください。"],
+        },
+      }),
+    );
+
+    const { default: SettingsTposPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(SettingsTposPage));
+      await waitForEffects();
+    });
+
+    const input =
+      container.querySelector<HTMLInputElement>('input[type="text"]');
+    const addButton = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button"),
+    ).find((button) => button.textContent?.trim() === "追加");
+    const valueSetter = Object.getOwnPropertyDescriptor(
+      HTMLInputElement.prototype,
+      "value",
+    )?.set;
+
+    await act(async () => {
+      valueSetter?.call(input, "");
+      input!.dispatchEvent(new Event("input", { bubbles: true }));
+      input!.dispatchEvent(new Event("change", { bubbles: true }));
+      addButton?.click();
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain("TPO名を入力してください。");
+    expect(container.textContent).not.toContain(
+      "TPO設定の保存に失敗しました。時間をおいて再度お試しください。",
+    );
+  });
+
+  it("一覧取得失敗でも raw message を表示しない", async () => {
+    fetchUserTposMock.mockRejectedValue(
+      new ApiClientError(500, {
+        message: "SQLSTATE[42S22]: Unknown column custom_label",
+      }),
+    );
+
+    const { default: SettingsTposPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(SettingsTposPage));
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain(
+      "TPO一覧の取得に失敗しました。時間をおいて再度お試しください。",
+    );
+    expect(container.textContent).not.toContain("SQLSTATE");
+  });
+
+  it("作成失敗でも raw message を表示しない", async () => {
+    createUserTpoMock.mockRejectedValue(
+      new ApiClientError(500, {
+        message: "SQLSTATE[42S22]: Unknown column custom_label",
+      }),
+    );
+
+    const { default: SettingsTposPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(SettingsTposPage));
+      await waitForEffects();
+    });
+
+    const input =
+      container.querySelector<HTMLInputElement>('input[type="text"]');
+    const addButton = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button"),
+    ).find((button) => button.textContent?.trim() === "追加");
+    const valueSetter = Object.getOwnPropertyDescriptor(
+      HTMLInputElement.prototype,
+      "value",
+    )?.set;
+
+    await act(async () => {
+      valueSetter?.call(input, "在宅");
+      input!.dispatchEvent(new Event("input", { bubbles: true }));
+      input!.dispatchEvent(new Event("change", { bubbles: true }));
+      addButton?.click();
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain(
+      "TPO設定の保存に失敗しました。時間をおいて再度お試しください。",
+    );
+    expect(container.textContent).not.toContain("SQLSTATE");
+  });
+
+  it("並び順更新失敗でも raw message を表示しない", async () => {
+    updateUserTpoMock.mockRejectedValue(
+      new ApiClientError(500, {
+        message: "SQLSTATE[42S22]: Unknown column custom_label",
+      }),
+    );
+
+    const { default: SettingsTposPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(SettingsTposPage));
+      await waitForEffects();
+    });
+
+    const moveDownButton = container.querySelector<HTMLButtonElement>(
+      'button[aria-label="仕事 を 1 つ下へ移動"]',
+    );
+
+    await act(async () => {
+      moveDownButton?.click();
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain(
+      "TPOの並び順更新に失敗しました。時間をおいて再度お試しください。",
+    );
+    expect(container.textContent).not.toContain("SQLSTATE");
+  });
+
+  it("状態更新失敗でも raw message を表示しない", async () => {
+    updateUserTpoMock.mockRejectedValue(
+      new ApiClientError(500, {
+        message: "SQLSTATE[42S22]: Unknown column custom_label",
+      }),
+    );
+
+    const { default: SettingsTposPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(SettingsTposPage));
+      await waitForEffects();
+    });
+
+    const activateButton = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button"),
+    ).find((button) => button.textContent?.trim() === "有効にする");
+
+    await act(async () => {
+      activateButton?.click();
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain(
+      "TPO設定の更新に失敗しました。時間をおいて再度お試しください。",
+    );
+    expect(container.textContent).not.toContain("SQLSTATE");
+  });
+
+  it("名称更新失敗でも raw message を表示しない", async () => {
+    updateUserTpoMock.mockRejectedValue(
+      new ApiClientError(500, {
+        message: "SQLSTATE[42S22]: Unknown column custom_label",
+      }),
+    );
+
+    const { default: SettingsTposPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(SettingsTposPage));
+      await waitForEffects();
+    });
+
+    const customRow = Array.from(container.querySelectorAll("article")).find(
+      (article) => article.textContent?.includes("出張"),
+    );
+    const editButton = Array.from(
+      customRow?.querySelectorAll<HTMLButtonElement>("button") ?? [],
+    ).find((button) => button.textContent?.trim() === "編集");
+
+    await act(async () => {
+      editButton?.click();
+      await waitForEffects();
+    });
+
+    const saveButton = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button"),
+    ).find((button) => button.textContent?.trim() === "保存");
+
+    await act(async () => {
+      saveButton?.click();
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain(
+      "TPO設定の保存に失敗しました。時間をおいて再度お試しください。",
+    );
+    expect(container.textContent).not.toContain("SQLSTATE");
   });
 });

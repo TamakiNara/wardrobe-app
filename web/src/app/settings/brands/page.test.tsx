@@ -4,6 +4,7 @@ import React from "react";
 import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { ApiClientError } from "@/lib/api/client";
 
 const pushMock = vi.fn();
 const routerMock = { push: pushMock };
@@ -191,5 +192,133 @@ describe("SettingsBrandsPage", () => {
       is_active: false,
     });
     expect(container.textContent).toContain("ブランド候補を無効にしました。");
+  });
+
+  it("422 validation では具体的な項目エラーを表示する", async () => {
+    fetchUserBrandsMock.mockResolvedValue({ brands: [] });
+    createUserBrandMock.mockRejectedValue(
+      new ApiClientError(422, {
+        message: "SQLSTATE[42S22]: Unknown column custom_label",
+        errors: {
+          name: ["ブランド名を入力してください。"],
+        },
+      }),
+    );
+
+    const { default: SettingsBrandsPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(SettingsBrandsPage));
+      await waitForEffects();
+    });
+
+    const nameInput =
+      container.querySelector<HTMLInputElement>("#new-brand-name");
+    const addButton = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button"),
+    ).find((button) => button.textContent?.trim() === "追加する");
+
+    await act(async () => {
+      setInputValue(nameInput!, "");
+      addButton!.click();
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain("ブランド名を入力してください。");
+    expect(container.textContent).not.toContain(
+      "ブランド設定の保存に失敗しました。時間をおいて再度お試しください。",
+    );
+  });
+
+  it("500 系の追加失敗でも raw message を表示しない", async () => {
+    fetchUserBrandsMock.mockResolvedValue({ brands: [] });
+    createUserBrandMock.mockRejectedValue(
+      new ApiClientError(500, {
+        message: "SQLSTATE[42S22]: Unknown column custom_label",
+      }),
+    );
+
+    const { default: SettingsBrandsPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(SettingsBrandsPage));
+      await waitForEffects();
+    });
+
+    const nameInput =
+      container.querySelector<HTMLInputElement>("#new-brand-name");
+    const addButton = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button"),
+    ).find((button) => button.textContent?.trim() === "追加する");
+
+    await act(async () => {
+      setInputValue(nameInput!, "UNIQLO");
+      addButton!.click();
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain(
+      "ブランド設定の保存に失敗しました。時間をおいて再度お試しください。",
+    );
+    expect(container.textContent).not.toContain("SQLSTATE");
+  });
+
+  it("一覧取得失敗でも raw message を表示しない", async () => {
+    fetchUserBrandsMock.mockRejectedValue(
+      new ApiClientError(500, {
+        message: "SQLSTATE[42S22]: Unknown column custom_label",
+      }),
+    );
+
+    const { default: SettingsBrandsPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(SettingsBrandsPage));
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain(
+      "ブランド候補を読み込めませんでした。時間をおいて再度お試しください。",
+    );
+    expect(container.textContent).not.toContain("SQLSTATE");
+  });
+
+  it("更新失敗でも raw message を表示しない", async () => {
+    fetchUserBrandsMock.mockResolvedValue({ brands: [buildBrand()] });
+    updateUserBrandMock.mockRejectedValue(
+      new ApiClientError(500, {
+        message: "SQLSTATE[42S22]: Unknown column custom_label",
+      }),
+    );
+
+    const { default: SettingsBrandsPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(SettingsBrandsPage));
+      await waitForEffects();
+    });
+
+    const editButton = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button"),
+    ).find((button) => button.textContent?.trim() === "編集");
+
+    await act(async () => {
+      editButton!.click();
+      await waitForEffects();
+    });
+
+    const updateButton = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button"),
+    ).find((button) => button.textContent?.trim() === "更新する");
+
+    await act(async () => {
+      updateButton!.click();
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain(
+      "ブランド候補の更新に失敗しました。時間をおいて再度お試しください。",
+    );
+    expect(container.textContent).not.toContain("SQLSTATE");
   });
 });

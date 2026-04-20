@@ -3,6 +3,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ApiClientError } from "@/lib/api/client";
+import {
+  flattenValidationErrors,
+  getUserFacingSubmitErrorMessage,
+} from "@/lib/api/error-message";
 import { SettingsBreadcrumbs } from "@/components/settings/settings-breadcrumbs";
 import { SettingsCard } from "@/components/settings/settings-card";
 import { SettingsPageHeader } from "@/components/settings/settings-page-header";
@@ -52,7 +56,7 @@ export default function SettingsTposPage() {
         }
 
         setLoadError(
-          "TPO 設定を読み込めませんでした。時間をおいて再度お試しください。",
+          "TPO一覧の取得に失敗しました。時間をおいて再度お試しください。",
         );
       })
       .finally(() => {
@@ -80,6 +84,20 @@ export default function SettingsTposPage() {
     [sortedTpos],
   );
 
+  function getFirstValidationMessage(
+    data: unknown,
+    fields: string[],
+  ): string | null {
+    const errors = flattenValidationErrors(data);
+
+    for (const field of fields) {
+      const message = errors[field];
+      if (message) return message;
+    }
+
+    return null;
+  }
+
   function resetMessages() {
     setFormMessage(null);
     setListMessage(null);
@@ -101,10 +119,16 @@ export default function SettingsTposPage() {
     } catch (createError) {
       if (createError instanceof ApiClientError) {
         setFormError(
-          createError.data?.errors?.name?.[0] ?? createError.message,
+          getFirstValidationMessage(createError.data, ["name"]) ??
+            getUserFacingSubmitErrorMessage(
+              createError.data,
+              "TPO設定の保存に失敗しました。時間をおいて再度お試しください。",
+            ),
         );
       } else {
-        setFormError("TPO を追加できませんでした。");
+        setFormError(
+          "TPO設定の保存に失敗しました。時間をおいて再度お試しください。",
+        );
       }
     } finally {
       setAdding(false);
@@ -125,9 +149,16 @@ export default function SettingsTposPage() {
       );
     } catch (updateError) {
       if (updateError instanceof ApiClientError) {
-        setListError(updateError.message);
+        setListError(
+          getUserFacingSubmitErrorMessage(
+            updateError.data,
+            "TPO設定の更新に失敗しました。時間をおいて再度お試しください。",
+          ),
+        );
       } else {
-        setListError("TPO の状態を更新できませんでした。");
+        setListError(
+          "TPO設定の更新に失敗しました。時間をおいて再度お試しください。",
+        );
       }
     } finally {
       setUpdatingId(null);
@@ -148,9 +179,16 @@ export default function SettingsTposPage() {
       setListMessage("TPO の並び順を更新しました。");
     } catch (updateError) {
       if (updateError instanceof ApiClientError) {
-        setListError(updateError.message);
+        setListError(
+          getUserFacingSubmitErrorMessage(
+            updateError.data,
+            "TPOの並び順更新に失敗しました。時間をおいて再度お試しください。",
+          ),
+        );
       } else {
-        setListError("並び順を更新できませんでした。");
+        setListError(
+          "TPOの並び順更新に失敗しました。時間をおいて再度お試しください。",
+        );
       }
     } finally {
       setUpdatingId(null);
@@ -172,10 +210,16 @@ export default function SettingsTposPage() {
     } catch (updateError) {
       if (updateError instanceof ApiClientError) {
         setListError(
-          updateError.data?.errors?.name?.[0] ?? updateError.message,
+          getFirstValidationMessage(updateError.data, ["name"]) ??
+            getUserFacingSubmitErrorMessage(
+              updateError.data,
+              "TPO設定の保存に失敗しました。時間をおいて再度お試しください。",
+            ),
         );
       } else {
-        setListError("TPO 名を更新できませんでした。");
+        setListError(
+          "TPO設定の保存に失敗しました。時間をおいて再度お試しください。",
+        );
       }
     } finally {
       setUpdatingId(null);

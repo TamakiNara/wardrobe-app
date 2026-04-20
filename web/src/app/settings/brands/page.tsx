@@ -3,6 +3,10 @@
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ApiClientError } from "@/lib/api/client";
+import {
+  flattenValidationErrors,
+  getUserFacingSubmitErrorMessage,
+} from "@/lib/api/error-message";
 import { SettingsBreadcrumbs } from "@/components/settings/settings-breadcrumbs";
 import { SettingsCard } from "@/components/settings/settings-card";
 import { SettingsPageHeader } from "@/components/settings/settings-page-header";
@@ -13,6 +17,18 @@ import {
   updateUserBrand,
 } from "@/lib/api/settings";
 import type { UserBrandRecord } from "@/types/settings";
+
+function getFirstValidationMessage(data: unknown, keys: string[]) {
+  const errors = flattenValidationErrors(data);
+
+  for (const key of keys) {
+    if (errors[key]) {
+      return errors[key];
+    }
+  }
+
+  return null;
+}
 
 function SettingsBrandsPageContent() {
   const EditIcon = settingsActionIcons.edit;
@@ -125,13 +141,15 @@ function SettingsBrandsPageContent() {
     } catch (error) {
       if (error instanceof ApiClientError) {
         setBrandFormError(
-          error.data?.errors?.name?.[0] ??
-            error.data?.errors?.kana?.[0] ??
-            error.message,
+          getFirstValidationMessage(error.data, ["name", "kana"]) ??
+            getUserFacingSubmitErrorMessage(
+              error.data,
+              "ブランド設定の保存に失敗しました。時間をおいて再度お試しください。",
+            ),
         );
       } else {
         setBrandFormError(
-          "ブランド候補を追加できませんでした。時間をおいて再度お試しください。",
+          "ブランド設定の保存に失敗しました。時間をおいて再度お試しください。",
         );
       }
     } finally {
@@ -165,13 +183,15 @@ function SettingsBrandsPageContent() {
     } catch (error) {
       if (error instanceof ApiClientError) {
         setBrandListError(
-          error.data?.errors?.name?.[0] ??
-            error.data?.errors?.kana?.[0] ??
-            error.message,
+          getFirstValidationMessage(error.data, ["name", "kana"]) ??
+            getUserFacingSubmitErrorMessage(
+              error.data,
+              "ブランド候補の更新に失敗しました。時間をおいて再度お試しください。",
+            ),
         );
       } else {
         setBrandListError(
-          "ブランド候補を更新できませんでした。時間をおいて再度お試しください。",
+          "ブランド候補の更新に失敗しました。時間をおいて再度お試しください。",
         );
       }
     } finally {
@@ -197,10 +217,15 @@ function SettingsBrandsPageContent() {
       );
     } catch (error) {
       if (error instanceof ApiClientError) {
-        setBrandListError(error.message);
+        setBrandListError(
+          getUserFacingSubmitErrorMessage(
+            error.data,
+            "ブランド候補の更新に失敗しました。時間をおいて再度お試しください。",
+          ),
+        );
       } else {
         setBrandListError(
-          "ブランド候補の状態を更新できませんでした。時間をおいて再度お試しください。",
+          "ブランド候補の更新に失敗しました。時間をおいて再度お試しください。",
         );
       }
     } finally {
