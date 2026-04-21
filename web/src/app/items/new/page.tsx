@@ -1820,7 +1820,7 @@ export default function NewItemPage() {
               ) : null}
             </ItemClassificationGroup>
 
-            <ItemFormSection title="色とプレビュー">
+            <ItemFormSection title="色">
               <div className="grid gap-6 md:grid-cols-2">
                 <div className="space-y-3" data-error-key="mainColor">
                   <FieldLabel
@@ -2070,7 +2070,7 @@ export default function NewItemPage() {
               </div>
             </ItemFormSection>
 
-            <ItemFormSection title="サイズ">
+            <ItemFormSection title="サイズ・実寸">
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
                   <label
@@ -2224,7 +2224,9 @@ export default function NewItemPage() {
                   className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                 />
               </div>
+            </ItemFormSection>
 
+            <ItemFormSection title="メモ">
               <div>
                 <label
                   htmlFor="memo"

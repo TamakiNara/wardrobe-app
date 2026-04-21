@@ -200,11 +200,13 @@ describe("PurchaseCandidateForm", () => {
 
     const sectionTitles = [
       "基本情報",
+      "分類",
       "購入情報",
-      "色 / 季節 / TPO",
-      "サイズ・属性",
-      "素材・混率",
       "メモ",
+      "色",
+      "利用条件・状態",
+      "サイズ・実寸",
+      "素材・混率",
       "画像",
     ];
 
@@ -233,7 +235,7 @@ describe("PurchaseCandidateForm", () => {
     const sectionCards = container.querySelectorAll(
       "form > section.rounded-2xl.border.border-gray-200.bg-white",
     );
-    expect(sectionCards).toHaveLength(7);
+    expect(sectionCards).toHaveLength(9);
   });
 
   it("tops では spec UI を表示しない", async () => {
@@ -262,12 +264,14 @@ describe("PurchaseCandidateForm", () => {
 
     await setCategorySelection("pants", "pants_pants");
 
-    const categorySection = container
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    const classificationSection = container
       .querySelector("#category_id")
       ?.closest("section");
-    const specSection = container
-      .querySelector("#spec-bottoms-length-type")
-      ?.closest("section");
+    const specField = container.querySelector("#spec-bottoms-length-type");
     const purchaseSection = container
       .querySelector("#price")
       ?.closest("section");
@@ -275,15 +279,15 @@ describe("PurchaseCandidateForm", () => {
       .querySelector("#size_gender")
       ?.closest("section");
 
-    expect(categorySection).not.toBeNull();
-    expect(specSection).not.toBeNull();
+    expect(classificationSection).not.toBeNull();
+    expect(specField).not.toBeNull();
     expect(purchaseSection).not.toBeNull();
     expect(sizeSection).not.toBeNull();
-    expect(categorySection!.nextElementSibling).toBe(specSection);
-    expect(specSection!.compareDocumentPosition(purchaseSection!)).toBe(
-      Node.DOCUMENT_POSITION_FOLLOWING,
-    );
-    expect(specSection!.compareDocumentPosition(sizeSection!)).toBe(
+    expect(specField?.closest("section")).toBe(classificationSection);
+    expect(
+      classificationSection!.compareDocumentPosition(purchaseSection!),
+    ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    expect(classificationSection!.compareDocumentPosition(sizeSection!)).toBe(
       Node.DOCUMENT_POSITION_FOLLOWING,
     );
   });
@@ -307,6 +311,26 @@ describe("PurchaseCandidateForm", () => {
     ).not.toBeNull();
     expect(container.querySelector("#spec-tops-shape")).toBeNull();
     expect(container.querySelector("#spec-bottoms-length-type")).toBeNull();
+  });
+
+  it("雨対応を利用条件・状態へ移動して表示する", async () => {
+    await renderForm();
+
+    const sectionCards = Array.from(
+      container.querySelectorAll(
+        "form > section.rounded-2xl.border.border-gray-200.bg-white",
+      ),
+    );
+    const conditionsSection = sectionCards.find(
+      (section) =>
+        section.querySelector("h2")?.textContent === "利用条件・状態",
+    );
+    const sizeSection = container
+      .querySelector("#size_gender")
+      ?.closest("section");
+
+    expect(conditionsSection?.textContent).toContain("雨対応");
+    expect(sizeSection?.textContent).not.toContain("雨対応");
   });
 
   it("ブランド候補を表示し、候補選択と自由入力を両立できる", async () => {

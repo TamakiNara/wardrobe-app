@@ -507,11 +507,30 @@ describe("新規登録画面", () => {
     );
     expect(container.innerHTML).toContain('href="/items"');
     expect(container.textContent).toContain("一覧に戻る");
-    expect(container.textContent).toContain("色とプレビュー");
+    expect(container.textContent).toContain("色");
     expect(container.textContent).toContain("利用条件・状態");
-    expect(container.textContent).toContain("サイズ");
+    expect(container.textContent).toContain("サイズ・実寸");
     expect(container.textContent).toContain("素材・混率");
     expect(container.textContent).toContain("購入・補足");
+    expect(container.textContent).toContain("メモ");
+
+    const formColumn = container.querySelector("form > div.space-y-5");
+    const renderedSectionTitles = Array.from(
+      formColumn?.querySelectorAll(
+        "section.rounded-2xl.border.border-gray-200.bg-white h2",
+      ) ?? [],
+    ).map((heading) => heading.textContent);
+    expect(renderedSectionTitles).toEqual([
+      "基本情報",
+      "分類",
+      "色",
+      "利用条件・状態",
+      "サイズ・実寸",
+      "素材・混率",
+      "購入・補足",
+      "メモ",
+      "画像",
+    ]);
     expect(container.textContent).toContain("ケア状態");
     expect(container.textContent).toContain("メインカラー");
     expect(container.textContent).toContain("ブランド候補にも追加する");
