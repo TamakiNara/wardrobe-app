@@ -94,6 +94,7 @@ const PURCHASE_CANDIDATE_ITEM_CATEGORY_MAP = {
     subcategory: "sweat_jersey",
     shape: "pants",
   },
+  pants_short: { category: "pants", subcategory: "pants", shape: "pants" },
   pants_other: { category: "pants", subcategory: "other", shape: "pants" },
   skirts_skirt: { category: "skirts", subcategory: "skirt", shape: "skirt" },
   skirts_other: { category: "skirts", subcategory: "other", shape: "other" },
@@ -166,6 +167,11 @@ const PURCHASE_CANDIDATE_ITEM_CATEGORY_MAP = {
     category: "legwear",
     subcategory: "leggings",
     shape: "leggings",
+  },
+  legwear_leg_warmer: {
+    category: "legwear",
+    subcategory: "leg_warmer",
+    shape: "leg-warmer",
   },
   legwear_other: { category: "legwear", subcategory: "other", shape: "socks" },
   shoes_sneakers: {

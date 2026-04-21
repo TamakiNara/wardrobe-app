@@ -61,7 +61,7 @@ describe("PurchaseCandidateForm", () => {
           {
             id: "outerwear_coat",
             groupId: "outerwear",
-            name: "コート",
+            name: "パンツ",
             sortOrder: 10,
           },
         ],
@@ -85,12 +85,47 @@ describe("PurchaseCandidateForm", () => {
           },
         ],
       },
+      {
+        id: "pants",
+        name: "パンツ",
+        sortOrder: 30,
+        categories: [
+          {
+            id: "pants_pants",
+            groupId: "pants",
+            name: "パンツ",
+            sortOrder: 10,
+          },
+          {
+            id: "pants_short",
+            groupId: "pants",
+            name: "ショートパンツ",
+            sortOrder: 20,
+          },
+        ],
+      },
+      {
+        id: "legwear",
+        name: "レッグウェア",
+        sortOrder: 40,
+        categories: [
+          {
+            id: "legwear_socks",
+            groupId: "legwear",
+            name: "トップス",
+            sortOrder: 10,
+          },
+        ],
+      },
     ]);
     fetchCategoryVisibilitySettingsMock.mockResolvedValue({
       visibleCategoryIds: [
         "outerwear_coat",
         "tops_tshirt_cutsew",
         "tops_shirt_blouse",
+        "pants_pants",
+        "pants_short",
+        "legwear_socks",
       ],
     });
     fetchUserBrandsMock.mockResolvedValue({ brands: [] });
@@ -168,7 +203,6 @@ describe("PurchaseCandidateForm", () => {
       "購入情報",
       "色 / 季節 / TPO",
       "サイズ・属性",
-      "仕様・属性",
       "素材・混率",
       "メモ",
       "画像",
@@ -181,7 +215,7 @@ describe("PurchaseCandidateForm", () => {
     ).map((heading) => heading.textContent);
     expect(renderedSectionTitles).toEqual(sectionTitles);
 
-    expect(container.textContent).toContain("ステータス");
+    expect(container.textContent).toContain("サイズ区分");
     expect(container.textContent).toContain("優先度");
     expect(container.textContent).toContain("サイズ区分");
     expect(container.textContent).toContain("必須");
@@ -199,7 +233,80 @@ describe("PurchaseCandidateForm", () => {
     const sectionCards = container.querySelectorAll(
       "form > section.rounded-2xl.border.border-gray-200.bg-white",
     );
-    expect(sectionCards).toHaveLength(8);
+    expect(sectionCards).toHaveLength(7);
+  });
+
+  it("tops では spec UI を表示しない", async () => {
+    await renderForm();
+
+    await setCategorySelection("tops", "tops_tshirt_cutsew");
+
+    expect(container.querySelector("#spec-tops-shape")).toBeNull();
+    expect(container.querySelector("#spec-bottoms-length-type")).toBeNull();
+    expect(container.querySelector("#spec-legwear-coverage-type")).toBeNull();
+  });
+
+  it("pants では spec UI を表示する", async () => {
+    await renderForm();
+
+    await setCategorySelection("pants", "pants_pants");
+
+    expect(container.querySelector("#spec-bottoms-length-type")).not.toBeNull();
+    expect(container.querySelector("#spec-bottoms-rise-type")).not.toBeNull();
+    expect(container.querySelector("#spec-tops-shape")).toBeNull();
+    expect(container.querySelector("#spec-legwear-coverage-type")).toBeNull();
+  });
+
+  it("spec セクションをカテゴリ選択の直後に表示する", async () => {
+    await renderForm();
+
+    await setCategorySelection("pants", "pants_pants");
+
+    const categorySection = container
+      .querySelector("#category_id")
+      ?.closest("section");
+    const specSection = container
+      .querySelector("#spec-bottoms-length-type")
+      ?.closest("section");
+    const purchaseSection = container
+      .querySelector("#price")
+      ?.closest("section");
+    const sizeSection = container
+      .querySelector("#size_gender")
+      ?.closest("section");
+
+    expect(categorySection).not.toBeNull();
+    expect(specSection).not.toBeNull();
+    expect(purchaseSection).not.toBeNull();
+    expect(sizeSection).not.toBeNull();
+    expect(categorySection!.nextElementSibling).toBe(specSection);
+    expect(specSection!.compareDocumentPosition(purchaseSection!)).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING,
+    );
+    expect(specSection!.compareDocumentPosition(sizeSection!)).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING,
+    );
+  });
+
+  it("pants_short でも spec UI を表示する", async () => {
+    await renderForm();
+
+    await setCategorySelection("pants", "pants_short");
+
+    expect(container.querySelector("#spec-bottoms-length-type")).not.toBeNull();
+    expect(container.querySelector("#spec-bottoms-rise-type")).not.toBeNull();
+  });
+
+  it("legwear socks では spec UI を表示する", async () => {
+    await renderForm();
+
+    await setCategorySelection("legwear", "legwear_socks");
+
+    expect(
+      container.querySelector("#spec-legwear-coverage-type"),
+    ).not.toBeNull();
+    expect(container.querySelector("#spec-tops-shape")).toBeNull();
+    expect(container.querySelector("#spec-bottoms-length-type")).toBeNull();
   });
 
   it("ブランド候補を表示し、候補選択と自由入力を両立できる", async () => {
@@ -778,12 +885,8 @@ describe("PurchaseCandidateForm", () => {
     );
     expect(getCategoryGroupSelect().value).toBe("tops");
     expect(getCategorySelect().value).toBe("tops_shirt_blouse");
-    expect(
-      (container.querySelector("#spec-tops-shape") as HTMLSelectElement).value,
-    ).toBe("blouse");
-    expect(
-      (container.querySelector("#spec-tops-sleeve") as HTMLSelectElement).value,
-    ).toBe("short");
+    expect(container.querySelector("#spec-tops-shape")).toBeNull();
+    expect(container.querySelector("#spec-tops-sleeve")).toBeNull();
     expect(container.textContent).toContain(
       "複製元の内容を初期値として読み込みました。",
     );
@@ -806,14 +909,7 @@ describe("PurchaseCandidateForm", () => {
     const payload = JSON.parse(requestInit.body as string);
 
     expect(payload.colors[0].custom_label).toBe("09 BLACK");
-    expect(payload.spec).toEqual({
-      tops: {
-        shape: "blouse",
-        sleeve: "short",
-        neck: "square",
-        fit: "oversized",
-      },
-    });
+    expect(payload.spec).toBeNull();
     expect(payload.duplicate_images).toEqual([{ source_image_id: 7 }]);
   });
 

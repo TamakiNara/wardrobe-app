@@ -490,9 +490,7 @@ export default function PurchaseCandidateForm({
       TOPS_FITS.filter((item) => topsRule?.fits.includes(item.value) ?? false),
     [topsRule],
   );
-  const isTopsSpecVisible =
-    resolvedItemCategory?.category === "tops" &&
-    resolvedItemCategory?.subcategory !== "other";
+  const isTopsSpecVisible = false;
   const shouldShowTopsShapeField =
     isTopsSpecVisible && topsShapeOptions.length > 1;
   const shouldShowTopsSleeveField =
@@ -1432,6 +1430,228 @@ export default function PurchaseCandidateForm({
           </div>
         </div>
       </ItemFormSection>
+      {(isTopsSpecVisible ||
+        isBottomsSpecVisible ||
+        (isLegwearSpecVisible && legwearCoverageOptions.length > 0)) && (
+        <ItemFormSection title="仕様・属性">
+          {isTopsSpecVisible && (
+            <div className="grid gap-4 md:grid-cols-2">
+              {shouldShowTopsShapeField && (
+                <div>
+                  <FieldLabel htmlFor="spec-tops-shape" label="型" />
+                  <select
+                    id="spec-tops-shape"
+                    value={topsShape}
+                    onChange={(event) => {
+                      setTopsShape(event.target.value as TopsShapeValue | "");
+                      setTopsSleeve("");
+                      setTopsLength("");
+                      setTopsNeck("");
+                      setTopsDesign("");
+                      setTopsFit(DEFAULT_TOPS_FIT);
+                    }}
+                    disabled={isPurchasedLocked}
+                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  >
+                    <option value="">選択してください</option>
+                    {topsShapeOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {shouldShowTopsSleeveField && (
+                <div>
+                  <FieldLabel htmlFor="spec-tops-sleeve" label="袖" />
+                  <select
+                    id="spec-tops-sleeve"
+                    value={topsSleeve}
+                    onChange={(event) =>
+                      setTopsSleeve(event.target.value as TopsSleeveValue | "")
+                    }
+                    disabled={isPurchasedLocked}
+                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  >
+                    <option value="">選択してください</option>
+                    {availableTopsSleeves.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {shouldShowTopsLengthField && (
+                <div>
+                  <FieldLabel htmlFor="spec-tops-length" label="丈" />
+                  <select
+                    id="spec-tops-length"
+                    value={topsLength}
+                    onChange={(event) =>
+                      setTopsLength(event.target.value as TopsLengthValue | "")
+                    }
+                    disabled={isPurchasedLocked}
+                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  >
+                    <option value="">選択してください</option>
+                    {availableTopsLengths.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {shouldShowTopsNeckField && (
+                <div>
+                  <FieldLabel htmlFor="spec-tops-neck" label="首回り" />
+                  <select
+                    id="spec-tops-neck"
+                    value={topsNeck}
+                    onChange={(event) =>
+                      setTopsNeck(event.target.value as TopsNeckValue | "")
+                    }
+                    disabled={isPurchasedLocked}
+                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  >
+                    <option value="">選択してください</option>
+                    {availableTopsNecks.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {shouldShowTopsDesignField && (
+                <div>
+                  <FieldLabel htmlFor="spec-tops-design" label="デザイン" />
+                  <select
+                    id="spec-tops-design"
+                    value={topsDesign}
+                    onChange={(event) =>
+                      setTopsDesign(event.target.value as TopsDesignValue | "")
+                    }
+                    disabled={isPurchasedLocked}
+                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  >
+                    <option value="">選択してください</option>
+                    {availableTopsDesigns.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {shouldShowTopsFitField && (
+                <div>
+                  <FieldLabel htmlFor="spec-tops-fit" label="シルエット" />
+                  <select
+                    id="spec-tops-fit"
+                    value={topsFit}
+                    onChange={(event) =>
+                      setTopsFit(event.target.value as TopsFitValue)
+                    }
+                    disabled={isPurchasedLocked}
+                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  >
+                    {availableTopsFits.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
+          )}
+
+          {isBottomsSpecVisible && (
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <FieldLabel htmlFor="spec-bottoms-length-type" label="丈" />
+                <select
+                  id="spec-bottoms-length-type"
+                  value={bottomsLengthType}
+                  onChange={(event) =>
+                    setBottomsLengthType(
+                      event.target.value as BottomsLengthType | "",
+                    )
+                  }
+                  disabled={isPurchasedLocked}
+                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                >
+                  <option value="">選択してください</option>
+                  {BOTTOMS_LENGTH_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <FieldLabel htmlFor="spec-bottoms-rise-type" label="股上" />
+                <select
+                  id="spec-bottoms-rise-type"
+                  value={bottomsRiseType}
+                  onChange={(event) =>
+                    setBottomsRiseType(
+                      event.target.value as BottomsRiseType | "",
+                    )
+                  }
+                  disabled={isPurchasedLocked}
+                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                >
+                  <option value="">股上を選択してください</option>
+                  {BOTTOMS_RISE_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          )}
+
+          {isLegwearSpecVisible && legwearCoverageOptions.length > 0 && (
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <FieldLabel
+                  htmlFor="spec-legwear-coverage-type"
+                  label={legwearCoverageLabel}
+                />
+                <select
+                  id="spec-legwear-coverage-type"
+                  value={legwearCoverageType}
+                  onChange={(event) =>
+                    setLegwearCoverageType(
+                      event.target.value as LegwearCoverageType | "",
+                    )
+                  }
+                  disabled={isPurchasedLocked}
+                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                >
+                  <option value="">{legwearCoveragePlaceholder}</option>
+                  {legwearCoverageOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          )}
+        </ItemFormSection>
+      )}
 
       <ItemFormSection title="購入情報">
         <div className="grid gap-4 md:grid-cols-2">
@@ -1867,223 +2087,6 @@ export default function PurchaseCandidateForm({
           onUpdateCustomSizeField={updateCustomSizeField}
           onRemoveCustomSizeField={removeCustomSizeField}
         />
-      </ItemFormSection>
-
-      <ItemFormSection title="仕様・属性">
-        {isTopsSpecVisible && (
-          <div className="grid gap-4 md:grid-cols-2">
-            {shouldShowTopsShapeField && (
-              <div>
-                <FieldLabel htmlFor="spec-tops-shape" label="型" />
-                <select
-                  id="spec-tops-shape"
-                  value={topsShape}
-                  onChange={(event) => {
-                    setTopsShape(event.target.value as TopsShapeValue | "");
-                    setTopsSleeve("");
-                    setTopsLength("");
-                    setTopsNeck("");
-                    setTopsDesign("");
-                    setTopsFit(DEFAULT_TOPS_FIT);
-                  }}
-                  disabled={isPurchasedLocked}
-                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                >
-                  <option value="">選択してください</option>
-                  {topsShapeOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-
-            {shouldShowTopsSleeveField && (
-              <div>
-                <FieldLabel htmlFor="spec-tops-sleeve" label="袖" />
-                <select
-                  id="spec-tops-sleeve"
-                  value={topsSleeve}
-                  onChange={(event) =>
-                    setTopsSleeve(event.target.value as TopsSleeveValue | "")
-                  }
-                  disabled={isPurchasedLocked}
-                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                >
-                  <option value="">選択してください</option>
-                  {availableTopsSleeves.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-
-            {shouldShowTopsLengthField && (
-              <div>
-                <FieldLabel htmlFor="spec-tops-length" label="丈" />
-                <select
-                  id="spec-tops-length"
-                  value={topsLength}
-                  onChange={(event) =>
-                    setTopsLength(event.target.value as TopsLengthValue | "")
-                  }
-                  disabled={isPurchasedLocked}
-                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                >
-                  <option value="">選択してください</option>
-                  {availableTopsLengths.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-
-            {shouldShowTopsNeckField && (
-              <div>
-                <FieldLabel htmlFor="spec-tops-neck" label="首回り" />
-                <select
-                  id="spec-tops-neck"
-                  value={topsNeck}
-                  onChange={(event) =>
-                    setTopsNeck(event.target.value as TopsNeckValue | "")
-                  }
-                  disabled={isPurchasedLocked}
-                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                >
-                  <option value="">選択してください</option>
-                  {availableTopsNecks.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-
-            {shouldShowTopsDesignField && (
-              <div>
-                <FieldLabel htmlFor="spec-tops-design" label="デザイン" />
-                <select
-                  id="spec-tops-design"
-                  value={topsDesign}
-                  onChange={(event) =>
-                    setTopsDesign(event.target.value as TopsDesignValue | "")
-                  }
-                  disabled={isPurchasedLocked}
-                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                >
-                  <option value="">選択してください</option>
-                  {availableTopsDesigns.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-
-            {shouldShowTopsFitField && (
-              <div>
-                <FieldLabel htmlFor="spec-tops-fit" label="シルエット" />
-                <select
-                  id="spec-tops-fit"
-                  value={topsFit}
-                  onChange={(event) =>
-                    setTopsFit(event.target.value as TopsFitValue)
-                  }
-                  disabled={isPurchasedLocked}
-                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                >
-                  {availableTopsFits.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-          </div>
-        )}
-
-        {isBottomsSpecVisible && (
-          <div className="grid gap-4 md:grid-cols-2">
-            <div>
-              <FieldLabel htmlFor="spec-bottoms-length-type" label="丈" />
-              <select
-                id="spec-bottoms-length-type"
-                value={bottomsLengthType}
-                onChange={(event) =>
-                  setBottomsLengthType(
-                    event.target.value as BottomsLengthType | "",
-                  )
-                }
-                disabled={isPurchasedLocked}
-                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-              >
-                <option value="">選択してください</option>
-                {BOTTOMS_LENGTH_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <FieldLabel htmlFor="spec-bottoms-rise-type" label="股上" />
-              <select
-                id="spec-bottoms-rise-type"
-                value={bottomsRiseType}
-                onChange={(event) =>
-                  setBottomsRiseType(event.target.value as BottomsRiseType | "")
-                }
-                disabled={isPurchasedLocked}
-                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-              >
-                <option value="">股上を選択してください</option>
-                {BOTTOMS_RISE_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-        )}
-
-        {isLegwearSpecVisible && legwearCoverageOptions.length > 0 && (
-          <div className="grid gap-4 md:grid-cols-2">
-            <div>
-              <FieldLabel
-                htmlFor="spec-legwear-coverage-type"
-                label={legwearCoverageLabel}
-              />
-              <select
-                id="spec-legwear-coverage-type"
-                value={legwearCoverageType}
-                onChange={(event) =>
-                  setLegwearCoverageType(
-                    event.target.value as LegwearCoverageType | "",
-                  )
-                }
-                disabled={isPurchasedLocked}
-                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-              >
-                <option value="">{legwearCoveragePlaceholder}</option>
-                {legwearCoverageOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-        )}
       </ItemFormSection>
 
       <ItemFormSection

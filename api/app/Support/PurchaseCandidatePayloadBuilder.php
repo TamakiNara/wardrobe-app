@@ -69,7 +69,7 @@ class PurchaseCandidatePayloadBuilder
             'size_label' => $candidate->size_label,
             'size_note' => $candidate->size_note,
             'size_details' => $candidate->size_details,
-            'spec' => $candidate->spec,
+            'spec' => self::buildScopedSpec($candidate),
             'is_rain_ok' => $candidate->is_rain_ok,
             'group_id' => $candidate->group_id,
             'group_order' => $candidate->group_order,
@@ -125,7 +125,7 @@ class PurchaseCandidatePayloadBuilder
             'source_category_id' => $candidate->category_id,
             'category' => $resolvedCategory['category'],
             'subcategory' => $resolvedCategory['subcategory'] ?? null,
-            'shape' => $candidate->spec['tops']['shape'] ?? $resolvedCategory['shape'],
+            'shape' => $resolvedCategory['shape'],
             'brand_name' => $candidate->brand_name,
             'price' => $candidate->price,
             'purchase_url' => $candidate->purchase_url,
@@ -135,7 +135,7 @@ class PurchaseCandidatePayloadBuilder
             'size_note' => $candidate->size_note,
             'purchased_at' => null,
             'size_details' => $candidate->size_details,
-            'spec' => $candidate->spec,
+            'spec' => self::buildScopedSpec($candidate),
             'is_rain_ok' => $candidate->is_rain_ok,
             'colors' => $candidate->colors
                 ->sortBy('sort_order')
@@ -186,7 +186,7 @@ class PurchaseCandidatePayloadBuilder
             'size_label' => $candidate->size_label,
             'size_note' => $candidate->size_note,
             'size_details' => $candidate->size_details,
-            'spec' => $candidate->spec,
+            'spec' => self::buildScopedSpec($candidate),
             'is_rain_ok' => $candidate->is_rain_ok,
             'colors' => $candidate->colors
                 ->sortBy('sort_order')
@@ -252,6 +252,18 @@ class PurchaseCandidatePayloadBuilder
             'label' => $color->label,
             'custom_label' => $color->custom_label,
         ];
+    }
+
+    private static function buildScopedSpec(PurchaseCandidate $candidate): ?array
+    {
+        $resolvedCategory = PurchaseCandidateCategoryMap::resolveItemDraftCategory($candidate->category_id);
+        $itemCategory = $resolvedCategory['category'] ?? null;
+
+        if (! in_array($itemCategory, ['pants', 'legwear'], true)) {
+            return null;
+        }
+
+        return is_array($candidate->spec) ? $candidate->spec : null;
     }
 
     private static function buildItemDraftColorPayload($color): array
