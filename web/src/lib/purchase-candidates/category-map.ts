@@ -17,17 +17,17 @@ const PURCHASE_CANDIDATE_ITEM_CATEGORY_MAP = {
   tops_polo_shirt: {
     category: "tops",
     subcategory: "polo_shirt",
-    shape: "shirt",
+    shape: "polo",
   },
   tops_sweat_trainer: {
     category: "tops",
     subcategory: "sweat_trainer",
-    shape: "tshirt",
+    shape: "sweatshirt",
   },
   tops_hoodie: {
     category: "tops",
     subcategory: "hoodie",
-    shape: "tshirt",
+    shape: "hoodie",
   },
   tops_cardigan: {
     category: "tops",
@@ -37,7 +37,7 @@ const PURCHASE_CANDIDATE_ITEM_CATEGORY_MAP = {
   tops_vest_gilet: {
     category: "tops",
     subcategory: "vest_gilet",
-    shape: "camisole",
+    shape: "vest",
   },
   tops_camisole: {
     category: "tops",
@@ -52,7 +52,7 @@ const PURCHASE_CANDIDATE_ITEM_CATEGORY_MAP = {
   tops_other: {
     category: "tops",
     subcategory: "other",
-    shape: "tshirt",
+    shape: "",
   },
   outerwear_jacket: {
     category: "outerwear",
@@ -345,7 +345,7 @@ const PURCHASE_CANDIDATE_ITEM_CATEGORY_MAP = {
   tops_vest: {
     category: "tops",
     subcategory: "vest_gilet",
-    shape: "camisole",
+    shape: "vest",
   },
   outer_jacket: {
     category: "outerwear",

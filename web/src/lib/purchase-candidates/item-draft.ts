@@ -2,7 +2,11 @@ import type {
   PurchaseCandidateImageRecord,
   PurchaseCandidateItemDraftResponse,
 } from "@/types/purchase-candidates";
-import type { ItemMaterialRecord, ItemSizeDetails } from "@/types/items";
+import type {
+  ItemMaterialRecord,
+  ItemSizeDetails,
+  ItemSpec,
+} from "@/types/items";
 
 const ITEM_DRAFT_STORAGE_KEY = "purchase-candidate-item-draft";
 
@@ -28,7 +32,7 @@ export type PurchaseCandidateItemDraft = {
   tpos: string[];
   materials: ItemMaterialRecord[];
   images: PurchaseCandidateImageRecord[];
-  spec: Record<string, unknown> | null;
+  spec: ItemSpec | null;
   candidateSummary: PurchaseCandidateItemDraftResponse["candidate_summary"];
 };
 

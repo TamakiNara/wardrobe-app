@@ -1,4 +1,8 @@
-import type { ItemMaterialRecord, ItemSizeDetails } from "@/types/items";
+import type {
+  ItemMaterialRecord,
+  ItemSizeDetails,
+  ItemSpec,
+} from "@/types/items";
 
 export type PurchaseCandidateStatus =
   | "considering"
@@ -81,6 +85,7 @@ export type PurchaseCandidateRecord = {
   size_label: string | null;
   size_note: string | null;
   size_details: ItemSizeDetails | null;
+  spec: ItemSpec | null;
   is_rain_ok: boolean;
   group_id: number | null;
   group_order: number | null;
@@ -144,6 +149,7 @@ export type PurchaseCandidateUpsertPayload = {
   size_label: string | null;
   size_note: string | null;
   size_details: ItemSizeDetails | null;
+  spec: ItemSpec | null;
   is_rain_ok: boolean;
   colors: PurchaseCandidateColor[];
   seasons: string[];
@@ -196,7 +202,7 @@ export type PurchaseCandidateItemDraftPayload = {
   size_note: string | null;
   purchased_at: string | null;
   size_details: ItemSizeDetails | null;
-  spec: Record<string, unknown> | null;
+  spec: ItemSpec | null;
   is_rain_ok: boolean;
   colors: PurchaseCandidateColor[];
   seasons: string[];

@@ -26,6 +26,34 @@ import {
 import { fetchCategoryVisibilitySettings } from "@/lib/api/settings";
 import { SEASON_OPTIONS, TPO_OPTIONS } from "@/lib/master-data/item-attributes";
 import {
+  BOTTOMS_LENGTH_OPTIONS,
+  BOTTOMS_RISE_OPTIONS,
+  getLegwearCoverageFieldLabel,
+  getLegwearCoverageOptions,
+  getLegwearCoveragePlaceholder,
+  resolveBottomsLengthType,
+  resolveLegwearCoverageType,
+  type BottomsLengthType,
+  type BottomsRiseType,
+  type LegwearCoverageType,
+} from "@/lib/master-data/item-skin-exposure";
+import {
+  DEFAULT_TOPS_FIT,
+  TOPS_DESIGNS,
+  TOPS_FITS,
+  TOPS_LENGTHS,
+  TOPS_NECKS,
+  TOPS_RULES,
+  TOPS_SLEEVES,
+  getTopsShapeOptions,
+  type TopsDesignValue,
+  type TopsFitValue,
+  type TopsLengthValue,
+  type TopsNeckValue,
+  type TopsShapeValue,
+  type TopsSleeveValue,
+} from "@/lib/master-data/item-tops";
+import {
   ITEM_COLORS,
   resolveCustomColorHex,
   type ItemColorValue,
@@ -64,7 +92,7 @@ import type {
   PurchaseCandidateStatus,
   PurchaseCandidateUpsertPayload,
 } from "@/types/purchase-candidates";
-import type { StructuredSizeFieldName } from "@/types/items";
+import type { ItemSpec, StructuredSizeFieldName } from "@/types/items";
 
 type PurchaseCandidateFormProps = {
   mode: "create" | "edit";
@@ -100,6 +128,64 @@ type PurchaseCandidateCategoryGroupOption = {
   value: string;
   label: string;
 };
+
+type PurchaseCandidateSpecFormState = {
+  topsShape: TopsShapeValue | "";
+  topsSleeve: TopsSleeveValue | "";
+  topsLength: TopsLengthValue | "";
+  topsNeck: TopsNeckValue | "";
+  topsDesign: TopsDesignValue | "";
+  topsFit: TopsFitValue;
+  bottomsLengthType: BottomsLengthType | "";
+  bottomsRiseType: BottomsRiseType | "";
+  legwearCoverageType: LegwearCoverageType | "";
+};
+
+function resolvePurchaseCandidateSpecFormState(
+  categoryId: string,
+  spec?: ItemSpec | null,
+): PurchaseCandidateSpecFormState {
+  const resolvedCategory = resolvePurchaseCandidateItemCategory(categoryId);
+  const topsShapeOptions = getTopsShapeOptions(resolvedCategory?.subcategory);
+  const topsShape = (() => {
+    const rawShape = spec?.tops?.shape as TopsShapeValue | undefined;
+
+    if (
+      rawShape &&
+      topsShapeOptions.some((option) => option.value === rawShape)
+    ) {
+      return rawShape;
+    }
+
+    if (topsShapeOptions.length === 1) {
+      return topsShapeOptions[0].value;
+    }
+
+    return "";
+  })();
+
+  return {
+    topsShape,
+    topsSleeve: (spec?.tops?.sleeve as TopsSleeveValue | undefined) ?? "",
+    topsLength: (spec?.tops?.length as TopsLengthValue | undefined) ?? "",
+    topsNeck: (spec?.tops?.neck as TopsNeckValue | undefined) ?? "",
+    topsDesign: (spec?.tops?.design as TopsDesignValue | undefined) ?? "",
+    topsFit: (spec?.tops?.fit as TopsFitValue | undefined) ?? DEFAULT_TOPS_FIT,
+    bottomsLengthType:
+      (resolveBottomsLengthType(
+        spec?.bottoms?.length_type ?? null,
+      ) as BottomsLengthType | null) ?? "",
+    bottomsRiseType:
+      (spec?.bottoms?.rise_type as BottomsRiseType | undefined) ?? "",
+    legwearCoverageType:
+      (resolveLegwearCoverageType(
+        resolvedCategory?.category ?? null,
+        resolvedCategory?.shape ?? null,
+        spec?.legwear?.coverage_type ?? null,
+        resolvedCategory?.subcategory ?? null,
+      ) as LegwearCoverageType | null) ?? "",
+  };
+}
 
 function buildCategoryOptions(
   groups: CategoryGroupRecord[],
@@ -256,6 +342,21 @@ export default function PurchaseCandidateForm({
   const [customSizeFields, setCustomSizeFields] = useState<
     EditableCustomSizeField[]
   >([]);
+  const [topsShape, setTopsShape] = useState<TopsShapeValue | "">("");
+  const [topsSleeve, setTopsSleeve] = useState<TopsSleeveValue | "">("");
+  const [topsLength, setTopsLength] = useState<TopsLengthValue | "">("");
+  const [topsNeck, setTopsNeck] = useState<TopsNeckValue | "">("");
+  const [topsDesign, setTopsDesign] = useState<TopsDesignValue | "">("");
+  const [topsFit, setTopsFit] = useState<TopsFitValue>(DEFAULT_TOPS_FIT);
+  const [bottomsLengthType, setBottomsLengthType] = useState<
+    BottomsLengthType | ""
+  >("");
+  const [bottomsRiseType, setBottomsRiseType] = useState<BottomsRiseType | "">(
+    "",
+  );
+  const [legwearCoverageType, setLegwearCoverageType] = useState<
+    LegwearCoverageType | ""
+  >("");
   const [isRainOk, setIsRainOk] = useState(false);
   const [materialRows, setMaterialRows] = useState<EditableItemMaterial[]>(() =>
     buildEditableItemMaterials(),
@@ -329,6 +430,118 @@ export default function PurchaseCandidateForm({
     () => resolvePurchaseCandidateItemCategory(categoryId),
     [categoryId],
   );
+  const topsShapeOptions = useMemo(
+    () => getTopsShapeOptions(resolvedItemCategory?.subcategory),
+    [resolvedItemCategory?.subcategory],
+  );
+  const resolvedTopsShape = useMemo(() => {
+    if (
+      topsShape &&
+      topsShapeOptions.some((option) => option.value === topsShape)
+    ) {
+      return topsShape;
+    }
+
+    if (topsShapeOptions.length === 1) {
+      return topsShapeOptions[0].value;
+    }
+
+    return "";
+  }, [topsShape, topsShapeOptions]);
+  const topsRule = useMemo(
+    () =>
+      resolvedItemCategory?.category === "tops" &&
+      resolvedItemCategory?.subcategory !== "other" &&
+      resolvedTopsShape
+        ? TOPS_RULES[resolvedTopsShape]
+        : null,
+    [resolvedItemCategory, resolvedTopsShape],
+  );
+  const availableTopsSleeves = useMemo(
+    () =>
+      TOPS_SLEEVES.filter(
+        (item) => topsRule?.sleeves.includes(item.value) ?? false,
+      ),
+    [topsRule],
+  );
+  const availableTopsLengths = useMemo(
+    () =>
+      TOPS_LENGTHS.filter(
+        (item) => topsRule?.lengths.includes(item.value) ?? false,
+      ),
+    [topsRule],
+  );
+  const availableTopsNecks = useMemo(
+    () =>
+      TOPS_NECKS.filter(
+        (item) => topsRule?.necks.includes(item.value) ?? false,
+      ),
+    [topsRule],
+  );
+  const availableTopsDesigns = useMemo(
+    () =>
+      TOPS_DESIGNS.filter(
+        (item) => topsRule?.designs.includes(item.value) ?? false,
+      ),
+    [topsRule],
+  );
+  const availableTopsFits = useMemo(
+    () =>
+      TOPS_FITS.filter((item) => topsRule?.fits.includes(item.value) ?? false),
+    [topsRule],
+  );
+  const isTopsSpecVisible =
+    resolvedItemCategory?.category === "tops" &&
+    resolvedItemCategory?.subcategory !== "other";
+  const shouldShowTopsShapeField =
+    isTopsSpecVisible && topsShapeOptions.length > 1;
+  const shouldShowTopsSleeveField =
+    isTopsSpecVisible &&
+    resolvedTopsShape !== "" &&
+    availableTopsSleeves.length > 0;
+  const shouldShowTopsLengthField =
+    isTopsSpecVisible &&
+    resolvedTopsShape !== "" &&
+    availableTopsLengths.length > 0;
+  const shouldShowTopsNeckField =
+    isTopsSpecVisible &&
+    resolvedTopsShape !== "" &&
+    availableTopsNecks.length > 0;
+  const shouldShowTopsDesignField =
+    isTopsSpecVisible &&
+    resolvedTopsShape !== "" &&
+    availableTopsDesigns.length > 0;
+  const shouldShowTopsFitField =
+    isTopsSpecVisible &&
+    resolvedTopsShape !== "" &&
+    resolvedTopsShape !== "tanktop" &&
+    availableTopsFits.length > 1;
+  const isBottomsSpecVisible = resolvedItemCategory?.category === "pants";
+  const isLegwearSpecVisible = resolvedItemCategory?.category === "legwear";
+  const legwearCoverageOptions = useMemo(
+    () =>
+      getLegwearCoverageOptions(
+        resolvedItemCategory?.shape ?? null,
+        resolvedItemCategory?.subcategory ?? null,
+      ),
+    [resolvedItemCategory],
+  );
+  const legwearCoverageLabel = useMemo(
+    () =>
+      getLegwearCoverageFieldLabel(
+        resolvedItemCategory?.shape ?? null,
+        resolvedItemCategory?.subcategory ?? null,
+      ),
+    [resolvedItemCategory],
+  );
+  const legwearCoveragePlaceholder = useMemo(
+    () =>
+      getLegwearCoveragePlaceholder(
+        resolvedItemCategory?.shape ?? null,
+        resolvedItemCategory?.subcategory ?? null,
+      ),
+    [resolvedItemCategory],
+  );
   const structuredSizeFieldDefinitions = useMemo(
     () =>
       getStructuredSizeFieldDefinitions(
@@ -361,6 +574,34 @@ export default function PurchaseCandidateForm({
         ].join("");
   const initializationMessage = initializationError ?? initializationSuccess;
   const submitMessage = submitError ?? submitSuccess;
+
+  function resetSpecFormState() {
+    setTopsShape("");
+    setTopsSleeve("");
+    setTopsLength("");
+    setTopsNeck("");
+    setTopsDesign("");
+    setTopsFit(DEFAULT_TOPS_FIT);
+    setBottomsLengthType("");
+    setBottomsRiseType("");
+    setLegwearCoverageType("");
+  }
+
+  function applySpecFormState(categoryIdValue: string, spec?: ItemSpec | null) {
+    const nextState = resolvePurchaseCandidateSpecFormState(
+      categoryIdValue,
+      spec,
+    );
+    setTopsShape(nextState.topsShape);
+    setTopsSleeve(nextState.topsSleeve);
+    setTopsLength(nextState.topsLength);
+    setTopsNeck(nextState.topsNeck);
+    setTopsDesign(nextState.topsDesign);
+    setTopsFit(nextState.topsFit);
+    setBottomsLengthType(nextState.bottomsLengthType);
+    setBottomsRiseType(nextState.bottomsRiseType);
+    setLegwearCoverageType(nextState.legwearCoverageType);
+  }
 
   useEffect(() => {
     async function loadInitialData() {
@@ -473,6 +714,7 @@ export default function PurchaseCandidateForm({
           setMaterialRows(buildEditableItemMaterials(candidate.materials));
           setExistingImages(candidate.images);
           setDuplicateImages([]);
+          applySpecFormState(candidate.category_id, candidate.spec);
         }
       } catch {
         setLoadError("購入検討フォームの初期化に失敗しました。");
@@ -605,6 +847,7 @@ export default function PurchaseCandidateForm({
     setExistingImages(payload.images);
     setDuplicateImages(payload.images);
     setPendingImages([]);
+    applySpecFormState(payload.category_id, payload.spec);
     setErrors({});
     setInitializationSuccess(
       isColorVariantSource
@@ -612,6 +855,22 @@ export default function PurchaseCandidateForm({
         : "複製元の内容を初期値として読み込みました。",
     );
   }, [categoryOptions, loading, mode, router, searchParams]);
+
+  useEffect(() => {
+    if (!categoryId || categoryOptions.length === 0) {
+      return;
+    }
+
+    const nextCategoryGroupId = resolveCategoryGroupId(
+      categoryId,
+      categoryOptions,
+    );
+    if (!nextCategoryGroupId || nextCategoryGroupId === categoryGroupId) {
+      return;
+    }
+
+    setCategoryGroupId(nextCategoryGroupId);
+  }, [categoryGroupId, categoryId, categoryOptions]);
 
   function toggleValue(
     value: string,
@@ -744,6 +1003,62 @@ export default function PurchaseCandidateForm({
       category_id: categoryId,
       variant_source_candidate_id:
         mode === "create" ? variantSourceCandidateId : undefined,
+      spec: (() => {
+        if (isTopsSpecVisible && resolvedTopsShape) {
+          const nextSpec: NonNullable<ItemSpec["tops"]> = {
+            shape: resolvedTopsShape,
+          };
+
+          if (topsSleeve) {
+            nextSpec.sleeve = topsSleeve;
+          }
+
+          if (topsLength) {
+            nextSpec.length = topsLength;
+          }
+
+          if (topsNeck) {
+            nextSpec.neck = topsNeck;
+          }
+
+          if (topsDesign) {
+            nextSpec.design = topsDesign;
+          }
+
+          if (topsFit !== DEFAULT_TOPS_FIT) {
+            nextSpec.fit = topsFit;
+          }
+
+          return { tops: nextSpec } satisfies ItemSpec;
+        }
+
+        if (isBottomsSpecVisible) {
+          if (!bottomsLengthType && !bottomsRiseType) {
+            return null;
+          }
+
+          return {
+            bottoms: {
+              length_type: bottomsLengthType || null,
+              rise_type: bottomsRiseType || null,
+            },
+          } satisfies ItemSpec;
+        }
+
+        if (isLegwearSpecVisible) {
+          if (!legwearCoverageType) {
+            return null;
+          }
+
+          return {
+            legwear: {
+              coverage_type: legwearCoverageType,
+            },
+          } satisfies ItemSpec;
+        }
+
+        return null;
+      })(),
       brand_name: normalizeNullableString(brandName) || null,
       save_brand_as_candidate: saveBrandAsCandidate,
       price: price === "" ? null : Number(price),
@@ -1074,6 +1389,7 @@ export default function PurchaseCandidateForm({
                 const nextGroupId = event.target.value;
                 setCategoryGroupId(nextGroupId);
                 setCategoryId("");
+                resetSpecFormState();
               }}
               disabled={isPurchasedLocked}
               className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
@@ -1092,7 +1408,10 @@ export default function PurchaseCandidateForm({
             <select
               id="category_id"
               value={categoryId}
-              onChange={(event) => setCategoryId(event.target.value)}
+              onChange={(event) => {
+                setCategoryId(event.target.value);
+                resetSpecFormState();
+              }}
               disabled={isPurchasedLocked || !categoryGroupId}
               className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors.category_id ? "border-red-400" : "border-gray-300"}`}
             >
@@ -1548,6 +1867,223 @@ export default function PurchaseCandidateForm({
           onUpdateCustomSizeField={updateCustomSizeField}
           onRemoveCustomSizeField={removeCustomSizeField}
         />
+      </ItemFormSection>
+
+      <ItemFormSection title="仕様・属性">
+        {isTopsSpecVisible && (
+          <div className="grid gap-4 md:grid-cols-2">
+            {shouldShowTopsShapeField && (
+              <div>
+                <FieldLabel htmlFor="spec-tops-shape" label="型" />
+                <select
+                  id="spec-tops-shape"
+                  value={topsShape}
+                  onChange={(event) => {
+                    setTopsShape(event.target.value as TopsShapeValue | "");
+                    setTopsSleeve("");
+                    setTopsLength("");
+                    setTopsNeck("");
+                    setTopsDesign("");
+                    setTopsFit(DEFAULT_TOPS_FIT);
+                  }}
+                  disabled={isPurchasedLocked}
+                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                >
+                  <option value="">選択してください</option>
+                  {topsShapeOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {shouldShowTopsSleeveField && (
+              <div>
+                <FieldLabel htmlFor="spec-tops-sleeve" label="袖" />
+                <select
+                  id="spec-tops-sleeve"
+                  value={topsSleeve}
+                  onChange={(event) =>
+                    setTopsSleeve(event.target.value as TopsSleeveValue | "")
+                  }
+                  disabled={isPurchasedLocked}
+                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                >
+                  <option value="">選択してください</option>
+                  {availableTopsSleeves.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {shouldShowTopsLengthField && (
+              <div>
+                <FieldLabel htmlFor="spec-tops-length" label="丈" />
+                <select
+                  id="spec-tops-length"
+                  value={topsLength}
+                  onChange={(event) =>
+                    setTopsLength(event.target.value as TopsLengthValue | "")
+                  }
+                  disabled={isPurchasedLocked}
+                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                >
+                  <option value="">選択してください</option>
+                  {availableTopsLengths.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {shouldShowTopsNeckField && (
+              <div>
+                <FieldLabel htmlFor="spec-tops-neck" label="首回り" />
+                <select
+                  id="spec-tops-neck"
+                  value={topsNeck}
+                  onChange={(event) =>
+                    setTopsNeck(event.target.value as TopsNeckValue | "")
+                  }
+                  disabled={isPurchasedLocked}
+                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                >
+                  <option value="">選択してください</option>
+                  {availableTopsNecks.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {shouldShowTopsDesignField && (
+              <div>
+                <FieldLabel htmlFor="spec-tops-design" label="デザイン" />
+                <select
+                  id="spec-tops-design"
+                  value={topsDesign}
+                  onChange={(event) =>
+                    setTopsDesign(event.target.value as TopsDesignValue | "")
+                  }
+                  disabled={isPurchasedLocked}
+                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                >
+                  <option value="">選択してください</option>
+                  {availableTopsDesigns.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {shouldShowTopsFitField && (
+              <div>
+                <FieldLabel htmlFor="spec-tops-fit" label="シルエット" />
+                <select
+                  id="spec-tops-fit"
+                  value={topsFit}
+                  onChange={(event) =>
+                    setTopsFit(event.target.value as TopsFitValue)
+                  }
+                  disabled={isPurchasedLocked}
+                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                >
+                  {availableTopsFits.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </div>
+        )}
+
+        {isBottomsSpecVisible && (
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <FieldLabel htmlFor="spec-bottoms-length-type" label="丈" />
+              <select
+                id="spec-bottoms-length-type"
+                value={bottomsLengthType}
+                onChange={(event) =>
+                  setBottomsLengthType(
+                    event.target.value as BottomsLengthType | "",
+                  )
+                }
+                disabled={isPurchasedLocked}
+                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              >
+                <option value="">選択してください</option>
+                {BOTTOMS_LENGTH_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <FieldLabel htmlFor="spec-bottoms-rise-type" label="股上" />
+              <select
+                id="spec-bottoms-rise-type"
+                value={bottomsRiseType}
+                onChange={(event) =>
+                  setBottomsRiseType(event.target.value as BottomsRiseType | "")
+                }
+                disabled={isPurchasedLocked}
+                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              >
+                <option value="">股上を選択してください</option>
+                {BOTTOMS_RISE_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        )}
+
+        {isLegwearSpecVisible && legwearCoverageOptions.length > 0 && (
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <FieldLabel
+                htmlFor="spec-legwear-coverage-type"
+                label={legwearCoverageLabel}
+              />
+              <select
+                id="spec-legwear-coverage-type"
+                value={legwearCoverageType}
+                onChange={(event) =>
+                  setLegwearCoverageType(
+                    event.target.value as LegwearCoverageType | "",
+                  )
+                }
+                disabled={isPurchasedLocked}
+                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              >
+                <option value="">{legwearCoveragePlaceholder}</option>
+                {legwearCoverageOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        )}
       </ItemFormSection>
 
       <ItemFormSection

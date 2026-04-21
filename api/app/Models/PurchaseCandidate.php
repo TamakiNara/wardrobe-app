@@ -30,6 +30,7 @@ class PurchaseCandidate extends Model
         'size_label',
         'size_note',
         'size_details',
+        'spec',
         'is_rain_ok',
         'converted_item_id',
         'converted_at',
@@ -41,6 +42,7 @@ class PurchaseCandidate extends Model
         'sale_price' => 'integer',
         'sale_ends_at' => 'datetime',
         'size_details' => 'array',
+        'spec' => 'array',
         'is_rain_ok' => 'boolean',
         'converted_at' => 'datetime',
     ];

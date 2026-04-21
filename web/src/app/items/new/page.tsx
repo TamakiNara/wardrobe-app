@@ -88,6 +88,7 @@ import {
   isLegwearCoverageTypeRequired,
   isLegwearSpecCategory,
   isSkirtLengthTypeRequired,
+  resolveBottomsLengthType,
   resolveLegwearCoverageType,
   shouldShowLegwearCoverageSelect,
   type BottomsLengthType,
@@ -502,6 +503,40 @@ export default function NewItemPage() {
       ) ?? "",
     );
     setShape(draft.shape);
+    setTopsShape(
+      (draft.spec?.tops?.shape as TopsShapeValue | undefined) ??
+        (draft.shape as TopsShapeValue | undefined) ??
+        "",
+    );
+    setTopsSleeve(
+      (draft.spec?.tops?.sleeve as TopsSleeveValue | undefined) ?? "",
+    );
+    setTopsLength(
+      (draft.spec?.tops?.length as TopsLengthValue | undefined) ?? "",
+    );
+    setTopsNeck((draft.spec?.tops?.neck as TopsNeckValue | undefined) ?? "");
+    setTopsDesign(
+      (draft.spec?.tops?.design as TopsDesignValue | undefined) ?? "",
+    );
+    setTopsFit(
+      (draft.spec?.tops?.fit as TopsFitValue | undefined) ?? DEFAULT_TOPS_FIT,
+    );
+    setBottomsLengthType(
+      (resolveBottomsLengthType(
+        draft.spec?.bottoms?.length_type ?? null,
+      ) as BottomsLengthType | null) ?? "",
+    );
+    setBottomsRiseType(
+      (draft.spec?.bottoms?.rise_type as BottomsRiseType | undefined) ?? "",
+    );
+    setLegwearCoverageType(
+      (resolveLegwearCoverageType(
+        draft.category,
+        draft.shape,
+        draft.spec?.legwear?.coverage_type ?? null,
+        draft.subcategory,
+      ) as LegwearCoverageType | null) ?? "",
+    );
     setSelectedSeasons(draft.seasons);
     setDraftTpoNames(draft.tpos);
     setMaterialRows(buildEditableItemMaterials(draft.materials));

@@ -77,11 +77,21 @@ describe("PurchaseCandidateForm", () => {
             name: "Tシャツ・カットソー",
             sortOrder: 10,
           },
+          {
+            id: "tops_shirt_blouse",
+            groupId: "tops",
+            name: "シャツ・ブラウス",
+            sortOrder: 20,
+          },
         ],
       },
     ]);
     fetchCategoryVisibilitySettingsMock.mockResolvedValue({
-      visibleCategoryIds: ["outerwear_coat", "tops_tshirt_cutsew"],
+      visibleCategoryIds: [
+        "outerwear_coat",
+        "tops_tshirt_cutsew",
+        "tops_shirt_blouse",
+      ],
     });
     fetchUserBrandsMock.mockResolvedValue({ brands: [] });
   });
@@ -158,6 +168,7 @@ describe("PurchaseCandidateForm", () => {
       "購入情報",
       "色 / 季節 / TPO",
       "サイズ・属性",
+      "仕様・属性",
       "素材・混率",
       "メモ",
       "画像",
@@ -188,7 +199,7 @@ describe("PurchaseCandidateForm", () => {
     const sectionCards = container.querySelectorAll(
       "form > section.rounded-2xl.border.border-gray-200.bg-white",
     );
-    expect(sectionCards).toHaveLength(7);
+    expect(sectionCards).toHaveLength(8);
   });
 
   it("ブランド候補を表示し、候補選択と自由入力を両立できる", async () => {
@@ -698,8 +709,16 @@ describe("PurchaseCandidateForm", () => {
       JSON.stringify({
         status: "considering",
         priority: "high",
-        name: "春コート（コピー）",
-        category_id: "outerwear_coat",
+        name: "春ブラウス",
+        category_id: "tops_shirt_blouse",
+        spec: {
+          tops: {
+            shape: "blouse",
+            sleeve: "short",
+            neck: "square",
+            fit: "oversized",
+          },
+        },
         brand_name: "Sample Brand",
         price: 14800,
         sale_price: 12800,
@@ -755,8 +774,16 @@ describe("PurchaseCandidateForm", () => {
     await renderForm();
 
     expect(container.querySelector<HTMLInputElement>("#name")?.value).toBe(
-      "春コート（コピー）",
+      "春ブラウス（コピー）",
     );
+    expect(getCategoryGroupSelect().value).toBe("tops");
+    expect(getCategorySelect().value).toBe("tops_shirt_blouse");
+    expect(
+      (container.querySelector("#spec-tops-shape") as HTMLSelectElement).value,
+    ).toBe("blouse");
+    expect(
+      (container.querySelector("#spec-tops-sleeve") as HTMLSelectElement).value,
+    ).toBe("short");
     expect(container.textContent).toContain(
       "複製元の内容を初期値として読み込みました。",
     );
@@ -779,6 +806,14 @@ describe("PurchaseCandidateForm", () => {
     const payload = JSON.parse(requestInit.body as string);
 
     expect(payload.colors[0].custom_label).toBe("09 BLACK");
+    expect(payload.spec).toEqual({
+      tops: {
+        shape: "blouse",
+        sleeve: "short",
+        neck: "square",
+        fit: "oversized",
+      },
+    });
     expect(payload.duplicate_images).toEqual([{ source_image_id: 7 }]);
   });
 

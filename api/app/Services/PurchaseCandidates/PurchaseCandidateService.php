@@ -8,6 +8,7 @@ use App\Models\PurchaseCandidateGroup;
 use App\Models\PurchaseCandidateImage;
 use App\Models\User;
 use App\Services\Brands\UserBrandService;
+use App\Support\ItemSpecNormalizer;
 use App\Support\PurchaseCandidateCategoryMap;
 use App\Support\PurchaseCandidateGroupSupport;
 use App\Support\PurchaseCandidateMaterialSync;
@@ -51,6 +52,7 @@ class PurchaseCandidateService
                     'size_label' => $validated['size_label'] ?? null,
                     'size_note' => $validated['size_note'] ?? null,
                     'size_details' => $validated['size_details'] ?? null,
+                    'spec' => $this->normalizeSpec($validated),
                     'is_rain_ok' => (bool) ($validated['is_rain_ok'] ?? false),
                 ]);
 
@@ -113,6 +115,7 @@ class PurchaseCandidateService
                 'size_label' => $validated['size_label'] ?? null,
                 'size_note' => $validated['size_note'] ?? null,
                 'size_details' => $validated['size_details'] ?? null,
+                'spec' => $this->normalizeSpec($validated),
                 'is_rain_ok' => (bool) ($validated['is_rain_ok'] ?? false),
             ]);
 
@@ -317,6 +320,27 @@ class PurchaseCandidateService
                 'category_id' => 'このカテゴリはまだ購入候補に対応していません。',
             ]);
         }
+    }
+
+    private function normalizeSpec(array $validated): ?array
+    {
+        if (! array_key_exists('spec', $validated)) {
+            return null;
+        }
+
+        $resolvedCategory = PurchaseCandidateCategoryMap::resolveItemDraftCategory($validated['category_id']);
+        $itemCategory = $resolvedCategory['category'] ?? null;
+
+        if (! in_array($itemCategory, ['tops', 'pants', 'legwear'], true)) {
+            return null;
+        }
+
+        return ItemSpecNormalizer::normalize(
+            $itemCategory,
+            $resolvedCategory['shape'] ?? null,
+            $validated['spec'] ?? null,
+            $resolvedCategory['subcategory'] ?? null,
+        );
     }
 
     private function resolveColorVariantGroupForCreate(User $user, array $validated): ?PurchaseCandidateGroup

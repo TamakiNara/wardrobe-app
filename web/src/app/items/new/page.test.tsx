@@ -553,7 +553,13 @@ describe("新規登録画面", () => {
               },
             ],
           },
-          spec: null,
+          spec: {
+            tops: {
+              shape: "tshirt",
+              sleeve: "short",
+              neck: "boat",
+            },
+          },
           is_rain_ok: true,
           colors: [],
           seasons: ["春"],
@@ -621,6 +627,10 @@ describe("新規登録画面", () => {
       container.querySelector<HTMLSelectElement>("#subcategory");
     const careStatusSelect =
       container.querySelector<HTMLSelectElement>("#care-status");
+    const topsSleeveSelect =
+      container.querySelector<HTMLSelectElement>("#tops-sleeve");
+    const topsNeckSelect =
+      container.querySelector<HTMLSelectElement>("#tops-neck");
     expect(nameInput?.value).toBe("レインコート候補");
     expect(brandNameInput?.value).toBe("Sample Brand");
     expect(priceInput?.value).toBe("9800");
@@ -635,6 +645,8 @@ describe("新規登録画面", () => {
     expect(rainCheckbox?.checked).toBe(true);
     expect(categorySelect?.value).toBe("tops");
     expect(subcategorySelect?.value).toBe("tshirt_cutsew");
+    expect(topsSleeveSelect?.value).toBe("short");
+    expect(topsNeckSelect?.value).toBe("boat");
     expect(careStatusSelect?.value).toBe("");
     const materialPartInputs = Array.from(
       container.querySelectorAll('input[list="item-material-part-options"]'),
