@@ -213,6 +213,24 @@ vi.mock("@/lib/api/categories", async () => {
       )?.value,
     ).toBe("42.5");
   });
+  it("色セクションでは選択中の色 summary や preview を表示しない", async () => {
+    const { default: NewItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(NewItemPage));
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain("メインカラー");
+    expect(container.textContent).toContain("サブカラー");
+    expect(container.textContent).not.toContain("選択中の色");
+    expect(
+      container.querySelector('[data-testid="item-preview-panel"]'),
+    ).toBeNull();
+    expect(
+      container.querySelector('[data-testid="item-preview-card"]'),
+    ).toBeNull();
+  });
 });
 
 vi.mock("@/lib/api/settings", () => ({

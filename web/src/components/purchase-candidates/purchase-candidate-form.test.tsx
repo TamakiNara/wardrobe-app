@@ -248,6 +248,7 @@ describe("PurchaseCandidateForm", () => {
     expect(container.textContent).not.toContain("size_gender");
     expect(container.textContent).not.toContain("priority");
     expect(container.textContent).toContain("色名（任意）");
+    expect(container.textContent).not.toContain("選択中の色");
     expect(container.textContent).toContain("欲しい理由");
     expect(container.textContent).toContain("補足情報");
     expect(container.textContent).toContain("雨対応");
@@ -567,6 +568,10 @@ describe("PurchaseCandidateForm", () => {
     await act(async () => {
       redButton!.click();
     });
+
+    const redHexMatches = container.textContent?.match(/#E53935/g) ?? [];
+    expect(redHexMatches).toHaveLength(1);
+    expect(container.textContent).not.toContain("選択中の色");
 
     const customMainCheckbox = container.querySelector(
       'input[aria-label="メインカラーをカラーコードで入力"]',

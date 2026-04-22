@@ -27,7 +27,6 @@ import { ApiClientError } from "@/lib/api/client";
 import { getUserFacingSubmitErrorMessage } from "@/lib/api/error-message";
 import {
   fetchCategoryVisibilitySettings,
-  fetchUserPreferences,
   fetchUserTpos,
 } from "@/lib/api/settings";
 import type { CategoryOption } from "@/types/categories";
@@ -38,10 +37,8 @@ import {
 } from "@/lib/master-data/item-colors";
 import FieldLabel from "@/components/forms/field-label";
 import BrandNameField from "@/components/items/brand-name-field";
-import ColorChip from "@/components/items/color-chip";
 import ColorSelect from "@/components/items/color-select";
 import ItemClassificationGroup from "@/components/items/item-classification-group";
-import ItemFormPreviewPanel from "@/components/items/item-form-preview-panel";
 import ItemFormSection from "@/components/items/item-form-section";
 import ItemMaterialFields from "@/components/items/item-material-fields";
 import ItemImageUploader from "@/components/items/item-image-uploader";
@@ -52,12 +49,8 @@ import type {
   ItemFormColor,
   ItemImageRecord,
 } from "@/types/items";
-import ItemPreviewCard from "@/components/items/item-preview-card";
 import { SEASON_OPTIONS } from "@/lib/master-data/item-attributes";
-import { DEFAULT_SKIN_TONE_PRESET } from "@/lib/master-data/skin-tone-presets";
 import {
-  buildTopsSpecLabels,
-  buildTopsSpecRaw,
   DEFAULT_TOPS_FIT,
   TOPS_DESIGNS,
   TOPS_FITS,
@@ -130,7 +123,6 @@ import {
   shouldShowItemShapeField,
 } from "@/lib/items/input-requirements";
 import type { UserTpoRecord } from "@/types/settings";
-import type { SkinTonePreset } from "@/types/settings";
 import type { StructuredSizeFieldName } from "@/types/items";
 
 export default function NewItemPage() {
@@ -178,9 +170,6 @@ export default function NewItemPage() {
   const [selectedTpoIds, setSelectedTpoIds] = useState<number[]>([]);
   const [tpoOptions, setTpoOptions] = useState<UserTpoRecord[]>([]);
   const [tpoLoadError, setTpoLoadError] = useState<string | null>(null);
-  const [skinTonePreset, setSkinTonePreset] = useState<SkinTonePreset>(
-    DEFAULT_SKIN_TONE_PRESET,
-  );
   const [draftTpoNames, setDraftTpoNames] = useState<string[]>([]);
 
   const [topsShape, setTopsShape] = useState<TopsShapeValue | "">("");
@@ -417,16 +406,13 @@ export default function NewItemPage() {
       fetchCategoryGroups(),
       fetchCategoryVisibilitySettings(),
       fetchUserTpos(true),
-      fetchUserPreferences(),
-    ]).then(([groupsResult, settingsResult, tpoResult, preferencesResult]) => {
+    ]).then(([groupsResult, settingsResult, tpoResult]) => {
       if (!active) return;
 
       if (
         (settingsResult.status === "rejected" &&
           isUnauthorized(settingsResult.reason)) ||
-        (tpoResult.status === "rejected" && isUnauthorized(tpoResult.reason)) ||
-        (preferencesResult.status === "rejected" &&
-          isUnauthorized(preferencesResult.reason))
+        (tpoResult.status === "rejected" && isUnauthorized(tpoResult.reason))
       ) {
         router.push("/login");
         return;
@@ -451,10 +437,6 @@ export default function NewItemPage() {
         setTpoLoadError(
           "TPO の取得に失敗しました。再読み込みしても改善しない場合は設定を確認してください。",
         );
-      }
-
-      if (preferencesResult.status === "fulfilled") {
-        setSkinTonePreset(preferencesResult.value.preferences.skinTonePreset);
       }
     });
 
@@ -1165,79 +1147,6 @@ export default function NewItemPage() {
     }
   }
 
-  const previewTopsSpec = isTopsCategory
-    ? buildTopsSpecLabels({
-        shape: topsShape || undefined,
-        sleeve: topsSleeve || undefined,
-        length: topsLength || undefined,
-        neck: topsNeck || undefined,
-        design: topsDesign || undefined,
-        fit: topsFit || undefined,
-      })
-    : null;
-
-  const previewTopsSpecRaw = isTopsCategory
-    ? buildTopsSpecRaw({
-        shape: topsShape || undefined,
-        sleeve: topsSleeve || undefined,
-        length: topsLength || undefined,
-        neck: topsNeck || undefined,
-        design: topsDesign || undefined,
-        fit: topsFit || undefined,
-      })
-    : null;
-  const previewSpec = {
-    tops: previewTopsSpecRaw,
-    bottoms:
-      category === "bottoms" || category === "pants"
-        ? {
-            length_type: bottomsLengthType || undefined,
-            rise_type:
-              category === "pants" ? bottomsRiseType || undefined : undefined,
-          }
-        : undefined,
-    skirt:
-      category === "skirts"
-        ? {
-            length_type: skirtLengthType || undefined,
-            material_type: skirtMaterialType || undefined,
-            design_type: skirtDesignType || undefined,
-          }
-        : undefined,
-    legwear: isLegwearSpecCategory(category)
-      ? {
-          coverage_type:
-            resolveLegwearCoverageType(
-              category,
-              shape,
-              legwearCoverageType,
-              normalizedSubcategory,
-            ) ?? undefined,
-        }
-      : undefined,
-  };
-  const previewSummary =
-    selectedMainColor || selectedSubColor ? (
-      <div className="rounded-xl border border-gray-200 bg-gray-50 p-3">
-        <p className="mb-2 text-sm font-medium text-gray-700">選択中の色</p>
-        <div className="flex flex-wrap gap-2">
-          {selectedMainColor && (
-            <ColorChip
-              label={selectedMainColor.label}
-              hex={selectedMainColor.hex}
-              tone="main"
-            />
-          )}
-          {selectedSubColor && (
-            <ColorChip
-              label={selectedSubColor.label}
-              hex={selectedSubColor.hex}
-              tone="sub"
-            />
-          )}
-        </div>
-      </div>
-    ) : null;
   const shouldShowDetailsSection =
     isTopsCategory || isBottomsSpecVisible || isLegwearCoverageSelectVisible;
 
@@ -1339,36 +1248,8 @@ export default function NewItemPage() {
           </section>
         )}
 
-        <form
-          onSubmit={handleSubmit}
-          className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start lg:gap-6"
-        >
-          <div className="hidden lg:col-start-2 lg:row-start-1 lg:block lg:sticky lg:top-6 lg:self-start">
-            <ItemFormPreviewPanel
-              showHeader={false}
-              summary={previewSummary}
-              preview={
-                <ItemPreviewCard
-                  name={name}
-                  category={category}
-                  subcategory={subcategory}
-                  shape={shape}
-                  mainColorHex={selectedMainColor?.hex}
-                  mainColorLabel={selectedMainColor?.label}
-                  subColorHex={selectedSubColor?.hex}
-                  subColorLabel={selectedSubColor?.label}
-                  topsSpec={previewTopsSpec}
-                  topsSpecRaw={previewTopsSpecRaw}
-                  spec={previewSpec}
-                  images={itemImages}
-                  skinTonePreset={skinTonePreset}
-                  showDebugDetails={false}
-                />
-              }
-            />
-          </div>
-
-          <div className="space-y-5 lg:col-start-1">
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div className="space-y-5">
             <ItemFormSection title="基本情報">
               <div>
                 <FieldLabel htmlFor="name" label="名前" />
@@ -1961,33 +1842,6 @@ export default function NewItemPage() {
                     />
                   )}
                 </div>
-              </div>
-
-              <div className="lg:hidden">
-                <ItemFormPreviewPanel
-                  compact
-                  showHeader={false}
-                  summary={previewSummary}
-                  preview={
-                    <ItemPreviewCard
-                      name={name}
-                      category={category}
-                      subcategory={subcategory}
-                      shape={shape}
-                      mainColorHex={selectedMainColor?.hex}
-                      mainColorLabel={selectedMainColor?.label}
-                      subColorHex={selectedSubColor?.hex}
-                      subColorLabel={selectedSubColor?.label}
-                      topsSpec={previewTopsSpec}
-                      topsSpecRaw={previewTopsSpecRaw}
-                      spec={previewSpec}
-                      images={itemImages}
-                      skinTonePreset={skinTonePreset}
-                      compact
-                      showDebugDetails={false}
-                    />
-                  }
-                />
               </div>
             </ItemFormSection>
 

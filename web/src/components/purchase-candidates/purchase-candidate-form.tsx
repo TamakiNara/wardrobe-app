@@ -11,7 +11,6 @@ import {
 } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import FieldLabel from "@/components/forms/field-label";
-import ColorChip from "@/components/items/color-chip";
 import ColorSelect from "@/components/items/color-select";
 import BrandNameField from "@/components/items/brand-name-field";
 import ItemFormSection from "@/components/items/item-form-section";
@@ -1957,25 +1956,6 @@ export default function PurchaseCandidateForm({
           <p className="text-sm text-red-600">
             {errors.main_color_custom_label}
           </p>
-        )}
-
-        {(selectedMainColor || selectedSubColor) && (
-          <div className="flex flex-wrap gap-2">
-            {selectedMainColor && (
-              <ColorChip
-                label={selectedMainColor.label}
-                hex={selectedMainColor.hex}
-                tone="main"
-              />
-            )}
-            {selectedSubColor && (
-              <ColorChip
-                label={selectedSubColor.label}
-                hex={selectedSubColor.hex}
-                tone="sub"
-              />
-            )}
-          </div>
         )}
       </ItemFormSection>
 
