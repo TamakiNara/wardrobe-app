@@ -511,8 +511,8 @@ describe("新規登録画面", () => {
     expect(container.textContent).toContain("利用条件・状態");
     expect(container.textContent).toContain("サイズ・実寸");
     expect(container.textContent).toContain("素材・混率");
-    expect(container.textContent).toContain("購入・補足");
-    expect(container.textContent).toContain("メモ");
+    expect(container.textContent).toContain("購入情報");
+    expect(container.textContent).toContain("補足情報");
 
     const formColumn = container.querySelector("form > div.space-y-5");
     const renderedSectionTitles = Array.from(
@@ -527,14 +527,17 @@ describe("新規登録画面", () => {
       "利用条件・状態",
       "サイズ・実寸",
       "素材・混率",
-      "購入・補足",
-      "メモ",
+      "購入情報",
+      "補足情報",
       "画像",
     ]);
     expect(container.textContent).toContain("ケア状態");
     expect(container.textContent).toContain("メインカラー");
     expect(container.textContent).toContain("ブランド候補にも追加する");
     expect(container.textContent).toContain("クリックして画像を選択");
+    expect(container.textContent).toContain("購入情報");
+    expect(container.textContent).toContain("補足情報");
+    expect(container.textContent).toContain("雨対応");
     expect(container.textContent).not.toContain(
       "実寸は cm 単位で入力します。未入力の項目は保存しません。",
     );
@@ -637,9 +640,9 @@ describe("新規登録画面", () => {
     const customValueInput = container.querySelector<HTMLInputElement>(
       'input[placeholder="値"]',
     );
-    const rainCheckbox = Array.from(container.querySelectorAll("label"))
-      .find((element) => element.textContent?.includes("雨対応"))
-      ?.querySelector<HTMLInputElement>('input[type="checkbox"]');
+    const rainCheckbox = container.querySelector<HTMLInputElement>(
+      'input[aria-label="\u96e8\u5bfe\u5fdc"]',
+    );
     const categorySelect =
       container.querySelector<HTMLSelectElement>("#category");
     const subcategorySelect =
@@ -687,6 +690,39 @@ describe("新規登録画面", () => {
     );
     expect(container.textContent).not.toContain("引き継ぎ画像の確認");
     expect(container.textContent).toContain("ブランド候補にも追加する");
+  });
+
+  it("季節のオールを排他的に切り替える", async () => {
+    const { default: NewItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(NewItemPage));
+      await waitForEffects();
+    });
+
+    const allButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent === "オール",
+    );
+    const springButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent === "春",
+    );
+
+    expect(allButton).toBeDefined();
+    expect(springButton).toBeDefined();
+
+    await act(async () => {
+      allButton!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+
+    expect(allButton?.getAttribute("aria-pressed")).toBe("true");
+    expect(springButton?.getAttribute("aria-pressed")).toBe("false");
+
+    await act(async () => {
+      springButton!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+
+    expect(allButton?.getAttribute("aria-pressed")).toBe("false");
+    expect(springButton?.getAttribute("aria-pressed")).toBe("true");
   });
 
   it("カテゴリに応じてボトムス丈とレッグウェア入力を切り替える", async () => {

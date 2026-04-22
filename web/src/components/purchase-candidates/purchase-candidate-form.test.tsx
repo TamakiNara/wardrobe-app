@@ -202,11 +202,11 @@ describe("PurchaseCandidateForm", () => {
       "基本情報",
       "分類",
       "購入情報",
-      "メモ",
       "色",
       "利用条件・状態",
       "サイズ・実寸",
       "素材・混率",
+      "補足情報",
       "画像",
     ];
 
@@ -224,6 +224,9 @@ describe("PurchaseCandidateForm", () => {
     expect(container.textContent).not.toContain("size_gender");
     expect(container.textContent).not.toContain("priority");
     expect(container.textContent).toContain("色名（任意）");
+    expect(container.textContent).toContain("欲しい理由");
+    expect(container.textContent).toContain("補足情報");
+    expect(container.textContent).toContain("雨対応");
     const mainColorCustomLabelInput = container.querySelector<HTMLInputElement>(
       "#main_color_custom_label",
     );
@@ -331,6 +334,34 @@ describe("PurchaseCandidateForm", () => {
 
     expect(conditionsSection?.textContent).toContain("雨対応");
     expect(sizeSection?.textContent).not.toContain("雨対応");
+  });
+
+  it("季節のオールを排他的に切り替える", async () => {
+    await renderForm();
+
+    const allButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent === "オール",
+    );
+    const springButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent === "春",
+    );
+
+    expect(allButton).toBeDefined();
+    expect(springButton).toBeDefined();
+
+    await act(async () => {
+      allButton!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+
+    expect(allButton?.getAttribute("aria-pressed")).toBe("true");
+    expect(springButton?.getAttribute("aria-pressed")).toBe("false");
+
+    await act(async () => {
+      springButton!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+
+    expect(allButton?.getAttribute("aria-pressed")).toBe("false");
+    expect(springButton?.getAttribute("aria-pressed")).toBe("true");
   });
 
   it("ブランド候補を表示し、候補選択と自由入力を両立できる", async () => {

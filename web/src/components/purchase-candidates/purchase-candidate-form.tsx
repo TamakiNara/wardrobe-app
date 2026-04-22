@@ -1376,6 +1376,18 @@ export default function PurchaseCandidateForm({
             <p className="mt-2 text-sm text-red-600">{errors.name}</p>
           )}
         </div>
+
+        <div>
+          <BrandNameField
+            inputId="brand-name"
+            value={brandName}
+            onChange={setBrandName}
+            saveAsCandidate={saveBrandAsCandidate}
+            onSaveAsCandidateChange={setSaveBrandAsCandidate}
+            disabled={isPurchasedLocked}
+            error={errors.brand_name ?? null}
+          />
+        </div>
       </ItemFormSection>
 
       <ItemFormSection title="分類">
@@ -1436,7 +1448,12 @@ export default function PurchaseCandidateForm({
           isBottomsSpecVisible ||
           (isLegwearSpecVisible && legwearCoverageOptions.length > 0)) && (
           <div className="space-y-4 rounded-xl border border-gray-200/80 bg-gray-50/70 p-4">
-            <h3 className="text-sm font-medium text-gray-900">仕様・属性</h3>
+            <div className="space-y-1">
+              <h3 className="text-sm font-medium text-gray-900">仕様・属性</h3>
+              <p className="text-xs text-gray-500">
+                カテゴリと種類に応じた補助情報です。
+              </p>
+            </div>
             {isTopsSpecVisible && (
               <div className="grid gap-4 md:grid-cols-2">
                 {shouldShowTopsShapeField && (
@@ -1666,18 +1683,6 @@ export default function PurchaseCandidateForm({
       <ItemFormSection title="購入情報">
         <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <BrandNameField
-              inputId="brand-name"
-              value={brandName}
-              onChange={setBrandName}
-              saveAsCandidate={saveBrandAsCandidate}
-              onSaveAsCandidateChange={setSaveBrandAsCandidate}
-              disabled={isPurchasedLocked}
-              error={errors.brand_name ?? null}
-            />
-          </div>
-
-          <div>
             <label
               htmlFor="price"
               className="mb-1 block text-sm font-medium text-gray-700"
@@ -1785,9 +1790,7 @@ export default function PurchaseCandidateForm({
             className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
           />
         </div>
-      </ItemFormSection>
 
-      <ItemFormSection title="メモ">
         <div>
           <label
             htmlFor="wanted_reason"
@@ -1800,27 +1803,6 @@ export default function PurchaseCandidateForm({
             value={wantedReason}
             onChange={(event) => setWantedReason(event.target.value)}
             rows={3}
-            className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-          />
-        </div>
-
-        <div>
-          <div className="mb-1 flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
-            <label
-              htmlFor="memo"
-              className="block text-sm font-medium text-gray-700"
-            >
-              メモ
-            </label>
-            <p className="text-xs text-gray-500">
-              このメモは購入後アイテムに引き継がれます。
-            </p>
-          </div>
-          <textarea
-            id="memo"
-            value={memo}
-            onChange={(event) => setMemo(event.target.value)}
-            rows={4}
             className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
           />
         </div>
@@ -2042,10 +2024,10 @@ export default function PurchaseCandidateForm({
         </div>
 
         <div>
-          <FieldLabel as="div" label="雨対応" />
           <label className="inline-flex h-[50px] w-full items-center gap-3 rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700">
             <input
               type="checkbox"
+              aria-label="雨対応"
               checked={isRainOk}
               onChange={(event) => setIsRainOk(event.target.checked)}
               disabled={isPurchasedLocked}
@@ -2153,6 +2135,29 @@ export default function PurchaseCandidateForm({
           onAddRow={addMaterialRow}
           onRemoveRow={removeMaterialRow}
         />
+      </ItemFormSection>
+
+      <ItemFormSection title="補足情報">
+        <div>
+          <div className="mb-1 flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
+            <label
+              htmlFor="memo"
+              className="block text-sm font-medium text-gray-700"
+            >
+              メモ
+            </label>
+            <p className="text-xs text-gray-500">
+              このメモは購入後アイテムに引き継がれます。
+            </p>
+          </div>
+          <textarea
+            id="memo"
+            value={memo}
+            onChange={(event) => setMemo(event.target.value)}
+            rows={4}
+            className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+          />
+        </div>
       </ItemFormSection>
 
       <ItemFormSection

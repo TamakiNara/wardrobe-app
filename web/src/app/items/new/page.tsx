@@ -816,6 +816,21 @@ export default function NewItemPage() {
     );
   }
 
+  function toggleSeason(season: string) {
+    setSelectedSeasons((prev) => {
+      const isSelected = prev.includes(season);
+
+      if (season === "オール") {
+        return isSelected ? [] : ["オール"];
+      }
+
+      const withoutAll = prev.filter((item) => item !== "オール");
+      return isSelected
+        ? withoutAll.filter((item) => item !== season)
+        : [...withoutAll, season];
+    });
+  }
+
   function createCustomSizeField(): EditableCustomSizeField {
     return {
       id: `size-field-${Date.now()}-${Math.random().toString(16).slice(2)}`,
@@ -1369,6 +1384,9 @@ export default function NewItemPage() {
                   <div className="space-y-4">
                     {isTopsCategory && isTopsDetailsVisible && (
                       <div className="space-y-4 rounded-xl border border-gray-200/80 bg-gray-50/70 p-4">
+                        <h3 className="text-sm font-medium text-gray-900">
+                          仕様・属性
+                        </h3>
                         <div className="grid gap-4 md:grid-cols-2">
                           {shouldShowTopsSleeveField ? (
                             <div>
@@ -1516,6 +1534,9 @@ export default function NewItemPage() {
                     )}
                     {isBottomsSpecVisible ? (
                       <div className="space-y-4 rounded-xl border border-gray-200/80 bg-gray-50/70 p-4">
+                        <h3 className="text-sm font-medium text-gray-900">
+                          仕様・属性
+                        </h3>
                         <div>
                           <FieldLabel
                             htmlFor="bottoms-length-type"
@@ -1649,6 +1670,9 @@ export default function NewItemPage() {
 
                     {isLegwearSpecVisible ? (
                       <div className="space-y-4 rounded-xl border border-gray-200/80 bg-gray-50/70 p-4">
+                        <h3 className="text-sm font-medium text-gray-900">
+                          仕様・属性
+                        </h3>
                         {isLegwearCoverageSelectVisible ? (
                           <div data-error-key="spec.legwear.coverage_type">
                             <FieldLabel
@@ -1956,58 +1980,50 @@ export default function NewItemPage() {
 
             <ItemFormSection title="利用条件・状態">
               <div>
-                <p className="mb-2 text-sm font-medium">季節</p>
-                <div className="flex flex-wrap gap-3">
+                <p className="mb-2 text-sm font-medium text-gray-700">季節</p>
+                <div className="flex flex-wrap gap-2">
                   {SEASON_OPTIONS.map((season) => {
                     const checked = selectedSeasons.includes(season);
                     return (
-                      <label
+                      <button
                         key={season}
-                        className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition ${checked ? "border-blue-500 bg-blue-50 text-blue-700" : "border-gray-300 bg-white text-gray-700"}`}
+                        type="button"
+                        aria-pressed={checked}
+                        onClick={() => toggleSeason(season)}
+                        className={`rounded-lg border px-3 py-2 text-sm transition ${
+                          checked
+                            ? "border-blue-500 bg-blue-50 text-blue-700"
+                            : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+                        }`}
                       >
-                        <input
-                          type="checkbox"
-                          className="h-4 w-4"
-                          checked={checked}
-                          onChange={() =>
-                            toggleValue(
-                              season,
-                              selectedSeasons,
-                              setSelectedSeasons,
-                            )
-                          }
-                        />
                         {season}
-                      </label>
+                      </button>
                     );
                   })}
                 </div>
               </div>
 
               <div>
-                <p className="mb-2 text-sm font-medium">TPO</p>
-                <div className="flex flex-wrap gap-3">
+                <p className="mb-2 text-sm font-medium text-gray-700">TPO</p>
+                <div className="flex flex-wrap gap-2">
                   {tpoOptions.map((tpo) => {
                     const checked = selectedTpoIds.includes(tpo.id);
                     return (
-                      <label
+                      <button
                         key={tpo.id}
-                        className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition ${checked ? "border-blue-500 bg-blue-50 text-blue-700" : "border-gray-300 bg-white text-gray-700"}`}
+                        type="button"
+                        aria-pressed={checked}
+                        onClick={() =>
+                          toggleValue(tpo.id, selectedTpoIds, setSelectedTpoIds)
+                        }
+                        className={`rounded-lg border px-3 py-2 text-sm transition ${
+                          checked
+                            ? "border-blue-500 bg-blue-50 text-blue-700"
+                            : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+                        }`}
                       >
-                        <input
-                          type="checkbox"
-                          className="h-4 w-4"
-                          checked={checked}
-                          onChange={() =>
-                            toggleValue(
-                              tpo.id,
-                              selectedTpoIds,
-                              setSelectedTpoIds,
-                            )
-                          }
-                        />
                         {tpo.name}
-                      </label>
+                      </button>
                     );
                   })}
                   {tpoLoadError ? (
@@ -2022,15 +2038,11 @@ export default function NewItemPage() {
 
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
-                  <div
-                    className="mb-1 block text-sm font-medium text-gray-700"
-                    aria-hidden="true"
-                  >
-                    雨対応
-                  </div>
-                  <label className="inline-flex h-[50px] w-full items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700">
+                  <div className="mb-1 h-5" aria-hidden="true" />
+                  <label className="inline-flex h-[50px] w-full items-center gap-3 rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700">
                     <input
                       type="checkbox"
+                      aria-label="雨対応"
                       checked={isRainOk}
                       onChange={(e) => setIsRainOk(e.target.checked)}
                       className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
@@ -2164,7 +2176,7 @@ export default function NewItemPage() {
               />
             </ItemFormSection>
 
-            <ItemFormSection title="購入・補足">
+            <ItemFormSection title="購入情報">
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
                   <label
@@ -2226,7 +2238,7 @@ export default function NewItemPage() {
               </div>
             </ItemFormSection>
 
-            <ItemFormSection title="メモ">
+            <ItemFormSection title="補足情報">
               <div>
                 <label
                   htmlFor="memo"
