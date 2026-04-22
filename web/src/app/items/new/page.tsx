@@ -1249,8 +1249,8 @@ export default function NewItemPage() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-5">
-          <div className="space-y-5">
-            <ItemFormSection title="基本情報">
+          <div className="space-y-5 lg:grid lg:grid-cols-2 lg:gap-5 lg:space-y-0">
+            <ItemFormSection title="基本情報" className="lg:col-span-1">
               <div>
                 <FieldLabel htmlFor="name" label="名前" />
                 <input
@@ -1273,6 +1273,7 @@ export default function NewItemPage() {
             </ItemFormSection>
 
             <ItemClassificationGroup
+              className="lg:col-span-1"
               attributeSection={
                 shouldShowDetailsSection ? (
                   <div className="space-y-4">
@@ -1431,134 +1432,137 @@ export default function NewItemPage() {
                         <h3 className="text-sm font-medium text-gray-900">
                           仕様・属性
                         </h3>
-                        <div>
-                          <FieldLabel
-                            htmlFor="bottoms-length-type"
-                            label={lengthTypeFieldLabel}
-                            required={isLengthTypeRequired}
-                          />
-                          <select
-                            id="bottoms-length-type"
-                            value={currentLengthValue}
-                            onChange={(e) => {
-                              if (isSkirtCategory) {
-                                setSkirtLengthType(
-                                  e.target.value as SkirtLengthType | "",
-                                );
-                              } else {
-                                setBottomsLengthType(
-                                  e.target.value as BottomsLengthType | "",
-                                );
-                              }
-                            }}
-                            onBlur={() => clearErrorsFor([lengthTypeErrorKey])}
-                            onChangeCapture={() =>
-                              clearErrorsFor([lengthTypeErrorKey])
-                            }
-                            className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors[lengthTypeErrorKey] ? "border-red-400" : "border-gray-300"}`}
-                          >
-                            <option value="">選択してください</option>
-                            {currentLengthOptions.map((item) => (
-                              <option key={item.value} value={item.value}>
-                                {item.label}
-                              </option>
-                            ))}
-                          </select>
-                          {errors[lengthTypeErrorKey] && (
-                            <p className="mt-2 text-sm text-red-600">
-                              {errors[lengthTypeErrorKey]}
-                            </p>
-                          )}
-                        </div>
-
-                        {isSkirtCategory ? (
-                          <>
-                            <div>
-                              <FieldLabel
-                                htmlFor="skirt-material-type"
-                                label="素材"
-                              />
-                              <select
-                                id="skirt-material-type"
-                                value={skirtMaterialType}
-                                onChange={(e) =>
-                                  setSkirtMaterialType(
-                                    e.target.value as SkirtMaterialType | "",
-                                  )
-                                }
-                                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                              >
-                                <option value="">選択してください</option>
-                                {SKIRT_MATERIAL_OPTIONS.map((item) => (
-                                  <option key={item.value} value={item.value}>
-                                    {item.label}
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
-
-                            <div>
-                              <FieldLabel
-                                htmlFor="skirt-design-type"
-                                label="デザイン"
-                              />
-                              <select
-                                id="skirt-design-type"
-                                value={skirtDesignType}
-                                onChange={(e) =>
-                                  setSkirtDesignType(
-                                    e.target.value as SkirtDesignType | "",
-                                  )
-                                }
-                                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                              >
-                                <option value="">選択してください</option>
-                                {SKIRT_DESIGN_OPTIONS.map((item) => (
-                                  <option key={item.value} value={item.value}>
-                                    {item.label}
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
-                          </>
-                        ) : null}
-
-                        {isBottomsRiseTypeSupported(category) ? (
+                        <div className="grid gap-4 md:grid-cols-2 md:items-start">
                           <div>
                             <FieldLabel
-                              htmlFor="bottoms-rise-type"
-                              label="股上"
+                              htmlFor="bottoms-length-type"
+                              label={lengthTypeFieldLabel}
+                              required={isLengthTypeRequired}
                             />
                             <select
-                              id="bottoms-rise-type"
-                              value={bottomsRiseType}
-                              onChange={(e) =>
-                                setBottomsRiseType(
-                                  e.target.value as BottomsRiseType | "",
-                                )
-                              }
+                              id="bottoms-length-type"
+                              value={currentLengthValue}
+                              onChange={(e) => {
+                                if (isSkirtCategory) {
+                                  setSkirtLengthType(
+                                    e.target.value as SkirtLengthType | "",
+                                  );
+                                } else {
+                                  setBottomsLengthType(
+                                    e.target.value as BottomsLengthType | "",
+                                  );
+                                }
+                              }}
                               onBlur={() =>
-                                clearErrorsFor(["spec.bottoms.rise_type"])
+                                clearErrorsFor([lengthTypeErrorKey])
                               }
                               onChangeCapture={() =>
-                                clearErrorsFor(["spec.bottoms.rise_type"])
+                                clearErrorsFor([lengthTypeErrorKey])
                               }
-                              className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors["spec.bottoms.rise_type"] ? "border-red-400" : "border-gray-300"}`}
+                              className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors[lengthTypeErrorKey] ? "border-red-400" : "border-gray-300"}`}
                             >
-                              <option value="">股上を選択してください</option>
-                              {BOTTOMS_RISE_OPTIONS.map((item) => (
+                              <option value="">選択してください</option>
+                              {currentLengthOptions.map((item) => (
                                 <option key={item.value} value={item.value}>
                                   {item.label}
                                 </option>
                               ))}
                             </select>
-                            {errors["spec.bottoms.rise_type"] && (
+                            {errors[lengthTypeErrorKey] && (
                               <p className="mt-2 text-sm text-red-600">
-                                {errors["spec.bottoms.rise_type"]}
+                                {errors[lengthTypeErrorKey]}
                               </p>
                             )}
                           </div>
-                        ) : null}
+                          {isSkirtCategory ? (
+                            <>
+                              <div>
+                                <FieldLabel
+                                  htmlFor="skirt-material-type"
+                                  label="素材"
+                                />
+                                <select
+                                  id="skirt-material-type"
+                                  value={skirtMaterialType}
+                                  onChange={(e) =>
+                                    setSkirtMaterialType(
+                                      e.target.value as SkirtMaterialType | "",
+                                    )
+                                  }
+                                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                >
+                                  <option value="">選択してください</option>
+                                  {SKIRT_MATERIAL_OPTIONS.map((item) => (
+                                    <option key={item.value} value={item.value}>
+                                      {item.label}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+
+                              <div>
+                                <FieldLabel
+                                  htmlFor="skirt-design-type"
+                                  label="デザイン"
+                                />
+                                <select
+                                  id="skirt-design-type"
+                                  value={skirtDesignType}
+                                  onChange={(e) =>
+                                    setSkirtDesignType(
+                                      e.target.value as SkirtDesignType | "",
+                                    )
+                                  }
+                                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                >
+                                  <option value="">選択してください</option>
+                                  {SKIRT_DESIGN_OPTIONS.map((item) => (
+                                    <option key={item.value} value={item.value}>
+                                      {item.label}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                            </>
+                          ) : null}
+
+                          {isBottomsRiseTypeSupported(category) ? (
+                            <div>
+                              <FieldLabel
+                                htmlFor="bottoms-rise-type"
+                                label="股上"
+                              />
+                              <select
+                                id="bottoms-rise-type"
+                                value={bottomsRiseType}
+                                onChange={(e) =>
+                                  setBottomsRiseType(
+                                    e.target.value as BottomsRiseType | "",
+                                  )
+                                }
+                                onBlur={() =>
+                                  clearErrorsFor(["spec.bottoms.rise_type"])
+                                }
+                                onChangeCapture={() =>
+                                  clearErrorsFor(["spec.bottoms.rise_type"])
+                                }
+                                className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors["spec.bottoms.rise_type"] ? "border-red-400" : "border-gray-300"}`}
+                              >
+                                <option value="">股上を選択してください</option>
+                                {BOTTOMS_RISE_OPTIONS.map((item) => (
+                                  <option key={item.value} value={item.value}>
+                                    {item.label}
+                                  </option>
+                                ))}
+                              </select>
+                              {errors["spec.bottoms.rise_type"] && (
+                                <p className="mt-2 text-sm text-red-600">
+                                  {errors["spec.bottoms.rise_type"]}
+                                </p>
+                              )}
+                            </div>
+                          ) : null}
+                        </div>
                       </div>
                     ) : null}
 
@@ -1568,42 +1572,44 @@ export default function NewItemPage() {
                           仕様・属性
                         </h3>
                         {isLegwearCoverageSelectVisible ? (
-                          <div data-error-key="spec.legwear.coverage_type">
-                            <FieldLabel
-                              htmlFor="legwear-coverage-type"
-                              label={legwearCoverageFieldLabel}
-                              required={isLegwearCoverageRequired}
-                            />
-                            <select
-                              id="legwear-coverage-type"
-                              value={legwearCoverageType}
-                              onChange={(e) =>
-                                setLegwearCoverageType(
-                                  e.target.value as LegwearCoverageType | "",
-                                )
-                              }
-                              onBlur={() =>
-                                clearErrorsFor(["spec.legwear.coverage_type"])
-                              }
-                              onChangeCapture={() =>
-                                clearErrorsFor(["spec.legwear.coverage_type"])
-                              }
-                              className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors["spec.legwear.coverage_type"] ? "border-red-400" : "border-gray-300"}`}
-                            >
-                              <option value="">
-                                {legwearCoveragePlaceholder}
-                              </option>
-                              {legwearCoverageOptions.map((item) => (
-                                <option key={item.value} value={item.value}>
-                                  {item.label}
+                          <div className="grid gap-4 md:grid-cols-2 md:items-start">
+                            <div data-error-key="spec.legwear.coverage_type">
+                              <FieldLabel
+                                htmlFor="legwear-coverage-type"
+                                label={legwearCoverageFieldLabel}
+                                required={isLegwearCoverageRequired}
+                              />
+                              <select
+                                id="legwear-coverage-type"
+                                value={legwearCoverageType}
+                                onChange={(e) =>
+                                  setLegwearCoverageType(
+                                    e.target.value as LegwearCoverageType | "",
+                                  )
+                                }
+                                onBlur={() =>
+                                  clearErrorsFor(["spec.legwear.coverage_type"])
+                                }
+                                onChangeCapture={() =>
+                                  clearErrorsFor(["spec.legwear.coverage_type"])
+                                }
+                                className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors["spec.legwear.coverage_type"] ? "border-red-400" : "border-gray-300"}`}
+                              >
+                                <option value="">
+                                  {legwearCoveragePlaceholder}
                                 </option>
-                              ))}
-                            </select>
-                            {errors["spec.legwear.coverage_type"] && (
-                              <p className="mt-2 text-sm text-red-600">
-                                {errors["spec.legwear.coverage_type"]}
-                              </p>
-                            )}
+                                {legwearCoverageOptions.map((item) => (
+                                  <option key={item.value} value={item.value}>
+                                    {item.label}
+                                  </option>
+                                ))}
+                              </select>
+                              {errors["spec.legwear.coverage_type"] && (
+                                <p className="mt-2 text-sm text-red-600">
+                                  {errors["spec.legwear.coverage_type"]}
+                                </p>
+                              )}
+                            </div>
                           </div>
                         ) : null}
                       </div>
@@ -1738,7 +1744,7 @@ export default function NewItemPage() {
               ) : null}
             </ItemClassificationGroup>
 
-            <ItemFormSection title="色">
+            <ItemFormSection title="色" className="lg:col-span-1">
               <div className="grid gap-6 md:grid-cols-2">
                 <div className="space-y-3" data-error-key="mainColor">
                   <FieldLabel
@@ -1845,7 +1851,7 @@ export default function NewItemPage() {
               </div>
             </ItemFormSection>
 
-            <ItemFormSection title="利用条件・状態">
+            <ItemFormSection title="利用条件・状態" className="lg:col-span-1">
               <div>
                 <p className="mb-2 text-sm font-medium text-gray-700">季節</p>
                 <div className="flex flex-wrap gap-2">
@@ -1949,7 +1955,7 @@ export default function NewItemPage() {
               </div>
             </ItemFormSection>
 
-            <ItemFormSection title="サイズ・実寸">
+            <ItemFormSection title="サイズ・実寸" className="lg:col-span-2">
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
                   <label
@@ -2032,6 +2038,7 @@ export default function NewItemPage() {
             <ItemFormSection
               title="素材・混率"
               description="分かる場合だけ入力します。区分ごとの合計が100%になるように設定してください。"
+              className="lg:col-span-2"
             >
               <ItemMaterialFields
                 rows={materialRows}
@@ -2043,7 +2050,7 @@ export default function NewItemPage() {
               />
             </ItemFormSection>
 
-            <ItemFormSection title="購入情報">
+            <ItemFormSection title="購入情報" className="lg:col-span-1">
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
                   <label
@@ -2105,7 +2112,7 @@ export default function NewItemPage() {
               </div>
             </ItemFormSection>
 
-            <ItemFormSection title="補足情報">
+            <ItemFormSection title="補足情報" className="lg:col-span-1">
               <div>
                 <label
                   htmlFor="memo"
@@ -2130,6 +2137,7 @@ export default function NewItemPage() {
                   ? "購入検討から引き継いだ画像を確認しながら、画像の追加や削除を行えます。"
                   : "画像の追加や削除などの操作は、画像セクションで行います。"
               }
+              className="lg:col-span-2"
             >
               <ItemImageUploader
                 existingImages={itemImages}
@@ -2158,7 +2166,7 @@ export default function NewItemPage() {
               />
             </ItemFormSection>
 
-            <div className="rounded-2xl border border-gray-200 bg-gray-50/70 px-5 py-4 shadow-sm">
+            <div className="rounded-2xl border border-gray-200 bg-gray-50/70 px-5 py-4 shadow-sm lg:col-span-2">
               {Object.keys(errors).length > 0 ? (
                 <p className="mb-3 text-sm font-medium text-red-600">
                   入力内容を確認してください。

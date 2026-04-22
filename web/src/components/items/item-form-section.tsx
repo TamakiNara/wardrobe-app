@@ -15,7 +15,7 @@ export default function ItemFormSection({
 }: ItemFormSectionProps) {
   return (
     <section
-      className={`space-y-3 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm lg:col-start-1 ${className}`.trim()}
+      className={`space-y-3 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm ${className}`.trim()}
     >
       <div>
         <h2 className="text-lg font-semibold text-gray-900">{title}</h2>

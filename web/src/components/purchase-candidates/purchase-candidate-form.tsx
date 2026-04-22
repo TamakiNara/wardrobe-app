@@ -1296,10 +1296,13 @@ export default function PurchaseCandidateForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form
+      onSubmit={handleSubmit}
+      className="grid gap-6 lg:grid-cols-2 lg:gap-5"
+    >
       {initializationMessage && (
         <section
-          className={`rounded-xl border px-4 py-3 text-sm ${
+          className={`rounded-xl border px-4 py-3 text-sm lg:col-span-2 ${
             initializationError
               ? "border-red-200 bg-red-50 text-red-700"
               : "border-green-200 bg-green-50 text-green-700"
@@ -1309,10 +1312,7 @@ export default function PurchaseCandidateForm({
         </section>
       )}
 
-      <ItemFormSection
-        title="基本情報"
-        description="「必須」が付いた項目は登録に必要です。"
-      >
+      <ItemFormSection title="基本情報" className="lg:col-span-1 lg:order-1">
         {isPurchasedLocked && (
           <p className="text-sm text-amber-700">
             購入済みの購入検討では、メモ・欲しい理由・優先度・セール情報・購入
@@ -1397,8 +1397,7 @@ export default function PurchaseCandidateForm({
           />
         </div>
       </ItemFormSection>
-
-      <ItemFormSection title="分類">
+      <ItemFormSection title="分類" className="lg:col-span-1 lg:order-2">
         <div className="grid gap-4 md:grid-cols-2">
           <div>
             <FieldLabel htmlFor="category_group_id" label="カテゴリ" required />
@@ -1688,7 +1687,7 @@ export default function PurchaseCandidateForm({
         )}
       </ItemFormSection>
 
-      <ItemFormSection title="購入情報">
+      <ItemFormSection title="購入情報" className="lg:col-span-1 lg:order-3">
         <div className="grid gap-4 md:grid-cols-2">
           <div>
             <label
@@ -1816,7 +1815,7 @@ export default function PurchaseCandidateForm({
         </div>
       </ItemFormSection>
 
-      <ItemFormSection title="色">
+      <ItemFormSection title="色" className="lg:col-span-1 lg:order-4">
         <div className="grid gap-4 md:grid-cols-2">
           <div>
             <FieldLabel label="メインカラー" required />
@@ -1959,7 +1958,10 @@ export default function PurchaseCandidateForm({
         )}
       </ItemFormSection>
 
-      <ItemFormSection title="利用条件・状態">
+      <ItemFormSection
+        title="利用条件・状態"
+        className="lg:col-span-1 lg:order-5"
+      >
         <div>
           <p className="mb-2 text-sm font-medium text-gray-700">季節</p>
           <div className="flex flex-wrap gap-2">
@@ -2027,7 +2029,10 @@ export default function PurchaseCandidateForm({
         </div>
       </ItemFormSection>
 
-      <ItemFormSection title="サイズ・実寸">
+      <ItemFormSection
+        title="サイズ・実寸"
+        className="lg:col-span-2 lg:order-7"
+      >
         <div className="grid gap-4 md:grid-cols-2">
           <div>
             <FieldLabel htmlFor="size_gender" label="サイズ区分" />
@@ -2105,11 +2110,7 @@ export default function PurchaseCandidateForm({
           onRemoveCustomSizeField={removeCustomSizeField}
         />
       </ItemFormSection>
-
-      <ItemFormSection
-        title="素材・混率"
-        description="分かる場合だけ入力します。区分ごとの合計が100%になるように設定してください。"
-      >
+      <ItemFormSection title="素材・混率" className="lg:col-span-2 lg:order-8">
         {isPurchasedLocked && (
           <p className="text-sm text-amber-700">
             購入済みの購入検討では素材・混率は変更できません。
@@ -2126,7 +2127,7 @@ export default function PurchaseCandidateForm({
         />
       </ItemFormSection>
 
-      <ItemFormSection title="補足情報">
+      <ItemFormSection title="補足情報" className="lg:col-span-1 lg:order-6">
         <div>
           <div className="mb-1 flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
             <label
@@ -2148,11 +2149,7 @@ export default function PurchaseCandidateForm({
           />
         </div>
       </ItemFormSection>
-
-      <ItemFormSection
-        title="画像"
-        description="5枚まで登録できます。作成 / 更新後に追加画像を反映します。"
-      >
+      <ItemFormSection title="画像" className="lg:col-span-2 lg:order-9">
         <PurchaseCandidateImageUploader
           existingImages={existingImages}
           pendingImages={pendingImages}
@@ -2169,7 +2166,7 @@ export default function PurchaseCandidateForm({
 
       {submitMessage && (
         <section
-          className={`rounded-xl border px-4 py-3 text-sm ${
+          className={`rounded-xl border px-4 py-3 text-sm lg:col-span-2 lg:order-10 ${
             submitError
               ? "border-red-200 bg-red-50 text-red-700"
               : "border-green-200 bg-green-50 text-green-700"
@@ -2179,7 +2176,7 @@ export default function PurchaseCandidateForm({
         </section>
       )}
 
-      <div className="flex flex-col gap-3 border-t border-gray-200 pt-6 md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col gap-3 border-t border-gray-200 pt-6 md:flex-row md:items-center md:justify-between lg:col-span-2 lg:order-11">
         <div>{footerAction}</div>
         <div className="flex items-center gap-3">
           <Link
