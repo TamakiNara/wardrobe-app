@@ -114,7 +114,7 @@ import {
   buildItemSizeDetailsPayload,
   buildSizeDetailDuplicateWarnings,
   formatSizeDetailValue,
-  getStructuredSizeFieldDefinitions,
+  getStructuredSizeFieldDefinitionsFromContext,
   normalizeItemSizeDetails,
   type EditableCustomSizeField,
 } from "@/lib/items/size-details";
@@ -377,9 +377,22 @@ export default function NewItemPage() {
     shouldShowTopsNeckField ||
     shouldShowTopsDesignField ||
     shouldShowTopsFitField;
+  const resolvedSizeDetailsShape = useMemo(
+    () =>
+      resolveItemShapeForSubmit(
+        category,
+        normalizedSubcategory,
+        currentShapeValue,
+      ),
+    [category, currentShapeValue, normalizedSubcategory],
+  );
   const structuredSizeFieldDefinitions = useMemo(
-    () => getStructuredSizeFieldDefinitions(category, shape),
-    [category, shape],
+    () =>
+      getStructuredSizeFieldDefinitionsFromContext({
+        category,
+        shape: resolvedSizeDetailsShape,
+      }),
+    [category, resolvedSizeDetailsShape],
   );
   const sizeDetailDuplicateWarnings = useMemo(
     () =>

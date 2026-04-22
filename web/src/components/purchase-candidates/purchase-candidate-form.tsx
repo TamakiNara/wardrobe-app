@@ -67,7 +67,7 @@ import {
 import {
   buildItemSizeDetailsPayload,
   buildSizeDetailDuplicateWarnings,
-  getStructuredSizeFieldDefinitions,
+  getStructuredSizeFieldDefinitionsFromContext,
   normalizeItemSizeDetails,
   type EditableCustomSizeField,
 } from "@/lib/items/size-details";
@@ -543,13 +543,17 @@ export default function PurchaseCandidateForm({
       ),
     [resolvedItemCategory],
   );
+  const resolvedSizeDetailsShape = useMemo(
+    () => resolvedItemCategory?.shape ?? null,
+    [resolvedItemCategory],
+  );
   const structuredSizeFieldDefinitions = useMemo(
     () =>
-      getStructuredSizeFieldDefinitions(
-        resolvedItemCategory?.category,
-        resolvedItemCategory?.shape,
-      ),
-    [resolvedItemCategory],
+      getStructuredSizeFieldDefinitionsFromContext({
+        category: resolvedItemCategory?.category,
+        shape: resolvedSizeDetailsShape,
+      }),
+    [resolvedItemCategory?.category, resolvedSizeDetailsShape],
   );
   const sizeDetailDuplicateWarnings = useMemo(
     () =>

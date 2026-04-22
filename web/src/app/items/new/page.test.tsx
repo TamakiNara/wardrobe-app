@@ -39,6 +39,180 @@ vi.mock("@/lib/api/categories", async () => {
     ...actual,
     fetchCategoryGroups: fetchCategoryGroupsMock,
   };
+  it("折りたたんでも structured 値を保持し、再展開すると再表示する", async () => {
+    const { default: NewItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(NewItemPage));
+      await waitForEffects();
+    });
+
+    const categorySelect =
+      container.querySelector<HTMLSelectElement>("#category");
+    expect(categorySelect).not.toBeNull();
+
+    await act(async () => {
+      categorySelect!.value = "tops";
+      categorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    const subcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
+    expect(subcategorySelect).not.toBeNull();
+
+    await act(async () => {
+      subcategorySelect!.value = "tshirt_cutsew";
+      subcategorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    await openSizeDetails();
+
+    const shoulderWidthInput = container.querySelector<HTMLInputElement>(
+      "#structured-size-shoulder_width",
+    );
+    expect(shoulderWidthInput).not.toBeNull();
+
+    await act(async () => {
+      setNativeInputValue(shoulderWidthInput!, "42.5");
+      shoulderWidthInput!.dispatchEvent(new Event("input", { bubbles: true }));
+      shoulderWidthInput!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    await collapseSizeDetails();
+    expect(container.textContent).toContain("実寸を入力");
+    expect(container.textContent).not.toContain("閉じる");
+
+    await openSizeDetails();
+
+    expect(
+      container.querySelector<HTMLInputElement>(
+        "#structured-size-shoulder_width",
+      )?.value,
+    ).toBe("42.5");
+  });
+
+  it("分類を変えて definitions から外れた structured 値は送信対象にならない", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 201,
+      json: async () => ({ id: 1 }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { default: NewItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(NewItemPage));
+      await waitForEffects();
+    });
+
+    const nameInput = container.querySelector<HTMLInputElement>("#name");
+    const categorySelect =
+      container.querySelector<HTMLSelectElement>("#category");
+    const sizeGenderSelect =
+      container.querySelector<HTMLSelectElement>("#size-gender");
+    const springButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent?.includes("春"),
+    );
+    const mainColorButton = Array.from(
+      container.querySelectorAll("button"),
+    ).find((button) => button.textContent?.includes("ネイビー"));
+    expect(nameInput).not.toBeNull();
+    expect(categorySelect).not.toBeNull();
+    expect(sizeGenderSelect).not.toBeNull();
+    expect(springButton).not.toBeUndefined();
+    expect(mainColorButton).not.toBeUndefined();
+
+    await act(async () => {
+      setNativeInputValue(nameInput!, "サイズ実寸テスト");
+      nameInput!.dispatchEvent(new Event("input", { bubbles: true }));
+      nameInput!.dispatchEvent(new Event("change", { bubbles: true }));
+      categorySelect!.value = "tops";
+      categorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    const subcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
+    expect(subcategorySelect).not.toBeNull();
+
+    await act(async () => {
+      subcategorySelect!.value = "tshirt_cutsew";
+      subcategorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    await openSizeDetails();
+
+    const shoulderWidthInput = container.querySelector<HTMLInputElement>(
+      "#structured-size-shoulder_width",
+    );
+    expect(shoulderWidthInput).not.toBeNull();
+
+    await act(async () => {
+      setNativeInputValue(shoulderWidthInput!, "42.5");
+      shoulderWidthInput!.dispatchEvent(new Event("input", { bubbles: true }));
+      shoulderWidthInput!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    await act(async () => {
+      categorySelect!.value = "shoes";
+      categorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      setNativeInputValue(sizeGenderSelect!, "women");
+      sizeGenderSelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      springButton!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      mainColorButton!.dispatchEvent(
+        new MouseEvent("click", { bubbles: true }),
+      );
+      await waitForEffects();
+    });
+
+    const form = container.querySelector("form");
+    expect(form).not.toBeNull();
+
+    await act(async () => {
+      form!.dispatchEvent(
+        new Event("submit", { bubbles: true, cancelable: true }),
+      );
+      await waitForEffects();
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [, requestInit] = fetchMock.mock.calls[0];
+    const payload = JSON.parse(requestInit.body as string);
+
+    expect(payload.size_details).toBeNull();
+
+    await act(async () => {
+      categorySelect!.value = "tops";
+      categorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    const nextSubcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
+    expect(nextSubcategorySelect).not.toBeNull();
+
+    await act(async () => {
+      nextSubcategorySelect!.value = "tshirt_cutsew";
+      nextSubcategorySelect!.dispatchEvent(
+        new Event("change", { bubbles: true }),
+      );
+      await waitForEffects();
+    });
+
+    await openSizeDetails();
+
+    expect(
+      container.querySelector<HTMLInputElement>(
+        "#structured-size-shoulder_width",
+      )?.value,
+    ).toBe("42.5");
+  });
 });
 
 vi.mock("@/lib/api/settings", () => ({
@@ -416,6 +590,30 @@ describe("新規登録画面", () => {
   let container: HTMLDivElement;
   let root: ReturnType<typeof createRoot>;
 
+  async function openSizeDetails() {
+    const toggleButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent?.includes("実寸を入力"),
+    );
+    expect(toggleButton).not.toBeUndefined();
+
+    await act(async () => {
+      toggleButton!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      await waitForEffects();
+    });
+  }
+
+  async function collapseSizeDetails() {
+    const toggleButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent?.includes("折りたたむ"),
+    );
+    expect(toggleButton).not.toBeUndefined();
+
+    await act(async () => {
+      toggleButton!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      await waitForEffects();
+    });
+  }
+
   beforeEach(() => {
     vi.clearAllMocks();
     window.sessionStorage.clear();
@@ -618,6 +816,8 @@ describe("新規登録画面", () => {
       await waitForEffects();
     });
 
+    await openSizeDetails();
+
     const nameInput = container.querySelector<HTMLInputElement>("#name");
     const brandNameInput =
       container.querySelector<HTMLInputElement>("#brand-name");
@@ -723,6 +923,53 @@ describe("新規登録画面", () => {
 
     expect(allButton?.getAttribute("aria-pressed")).toBe("false");
     expect(springButton?.getAttribute("aria-pressed")).toBe("true");
+  });
+
+  it("初期状態では実寸本体を閉じ、開くと structured fields を表示する", async () => {
+    const { default: NewItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(NewItemPage));
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain("実寸");
+    expect(container.textContent).toContain("実寸を入力");
+    expect(container.textContent).not.toContain("自由項目を追加");
+    expect(container.querySelector("#structured-size-waist")).toBeNull();
+
+    const categorySelect =
+      container.querySelector<HTMLSelectElement>("#category");
+    expect(categorySelect).not.toBeNull();
+
+    await act(async () => {
+      categorySelect!.value = "pants";
+      categorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    const subcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
+    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
+    expect(subcategorySelect).not.toBeNull();
+    expect(shapeSelect).not.toBeNull();
+
+    await act(async () => {
+      subcategorySelect!.value = "denim";
+      subcategorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    await act(async () => {
+      shapeSelect!.value = "straight";
+      shapeSelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    await openSizeDetails();
+
+    expect(container.textContent).toContain("自由項目を追加");
+    expect(container.querySelector("#structured-size-waist")).not.toBeNull();
   });
 
   it("カテゴリに応じてボトムス丈とレッグウェア入力を切り替える", async () => {
@@ -1906,6 +2153,8 @@ describe("新規登録画面", () => {
       await waitForEffects();
     });
 
+    await openSizeDetails();
+
     const addButton = Array.from(container.querySelectorAll("button")).find(
       (element) => element.textContent?.includes("自由項目を追加"),
     );
@@ -2043,5 +2292,88 @@ describe("新規登録画面", () => {
       "アイテムは登録済みですが、画像の追加に失敗しました",
     );
     expect(container.textContent).not.toContain("SQLSTATE");
+  });
+
+  it("shape 未解決では fallback を出し、解決後に structured fields を表示する", async () => {
+    const { default: NewItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(NewItemPage));
+      await waitForEffects();
+    });
+
+    const categorySelect =
+      container.querySelector<HTMLSelectElement>("#category");
+    expect(categorySelect).not.toBeNull();
+
+    await act(async () => {
+      categorySelect!.value = "pants";
+      categorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    const subcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
+    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
+    expect(subcategorySelect).not.toBeNull();
+    expect(shapeSelect).not.toBeNull();
+
+    await act(async () => {
+      subcategorySelect!.value = "denim";
+      subcategorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    await openSizeDetails();
+
+    expect(container.querySelector("#structured-size-waist")).toBeNull();
+    expect(container.textContent).toContain(
+      "現在のカテゴリと形に対応する固定実寸はありません。必要なら自由項目を追加してください。",
+    );
+
+    await act(async () => {
+      shapeSelect!.value = "straight";
+      shapeSelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    expect(container.querySelector("#structured-size-waist")).not.toBeNull();
+  });
+
+  it("分類情報から shape が解決できる場合は明示入力前でも structured fields を表示する", async () => {
+    const { default: NewItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(NewItemPage));
+      await waitForEffects();
+    });
+
+    const categorySelect =
+      container.querySelector<HTMLSelectElement>("#category");
+    expect(categorySelect).not.toBeNull();
+
+    await act(async () => {
+      categorySelect!.value = "tops";
+      categorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    const subcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
+    expect(subcategorySelect).not.toBeNull();
+
+    await act(async () => {
+      subcategorySelect!.value = "tshirt_cutsew";
+      subcategorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    await openSizeDetails();
+
+    expect(
+      container.querySelector<HTMLInputElement>(
+        "#structured-size-shoulder_width",
+      ),
+    ).not.toBeNull();
   });
 });

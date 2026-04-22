@@ -42,6 +42,30 @@ describe("PurchaseCandidateForm", () => {
   let container: HTMLDivElement;
   let root: ReturnType<typeof createRoot>;
 
+  async function openSizeDetails() {
+    const toggleButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent?.includes("実寸を入力"),
+    );
+    expect(toggleButton).not.toBeUndefined();
+
+    await act(async () => {
+      toggleButton!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      await Promise.resolve();
+    });
+  }
+
+  async function collapseSizeDetails() {
+    const toggleButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent?.includes("折りたたむ"),
+    );
+    expect(toggleButton).not.toBeUndefined();
+
+    await act(async () => {
+      toggleButton!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      await Promise.resolve();
+    });
+  }
+
   beforeEach(() => {
     vi.clearAllMocks();
     globalThis.IS_REACT_ACT_ENVIRONMENT = true;
@@ -316,6 +340,24 @@ describe("PurchaseCandidateForm", () => {
     expect(container.querySelector("#spec-bottoms-length-type")).toBeNull();
   });
 
+  it("初期状態では実寸本体を閉じ、開くと fallback を表示する", async () => {
+    await renderForm();
+
+    expect(container.textContent).toContain("実寸");
+    expect(container.textContent).toContain("実寸を入力");
+    expect(container.textContent).not.toContain("自由項目を追加");
+    expect(container.textContent).not.toContain(
+      "現在のカテゴリと形に対応する固定実寸はありません。必要なら自由項目を追加してください。",
+    );
+
+    await openSizeDetails();
+
+    expect(container.textContent).toContain("自由項目を追加");
+    expect(container.textContent).toContain(
+      "現在のカテゴリと形に対応する固定実寸はありません。必要なら自由項目を追加してください。",
+    );
+  });
+
   it("purchase candidate spec は Phase 1 では未入力許容の表示を維持する", async () => {
     await renderForm();
 
@@ -580,6 +622,8 @@ describe("PurchaseCandidateForm", () => {
       customMainCheckbox.click();
     });
 
+    await openSizeDetails();
+
     const shoulderWidthInput = container.querySelector(
       "#structured-size-shoulder_width",
     ) as HTMLInputElement;
@@ -832,6 +876,8 @@ describe("PurchaseCandidateForm", () => {
     await act(async () => {
       await setCategorySelection("tops", "tops_tshirt_cutsew");
     });
+
+    await openSizeDetails();
 
     const addButton = Array.from(container.querySelectorAll("button")).find(
       (button) => button.textContent?.includes("自由項目を追加"),
@@ -1436,5 +1482,53 @@ describe("PurchaseCandidateForm", () => {
       "画像の削除に失敗しました。時間をおいて再度お試しください。",
     );
     expect(container.textContent).not.toContain("SQLSTATE");
+  });
+
+  it("shape 未解決では fallback を出し、分類解決後に structured fields を表示する", async () => {
+    await renderForm();
+
+    await openSizeDetails();
+
+    expect(
+      container.querySelector("#structured-size-shoulder_width"),
+    ).toBeNull();
+    expect(container.textContent).toContain(
+      "現在のカテゴリと形に対応する固定実寸はありません。必要なら自由項目を追加してください。",
+    );
+
+    await setCategorySelection("tops", "tops_tshirt_cutsew");
+
+    expect(
+      container.querySelector<HTMLInputElement>(
+        "#structured-size-shoulder_width",
+      ),
+    ).not.toBeNull();
+  });
+  it("折りたたんでも structured 値を保持し、再展開すると再表示する", async () => {
+    await renderForm();
+
+    await setCategorySelection("tops", "tops_tshirt_cutsew");
+    await openSizeDetails();
+
+    const shoulderWidthInput = container.querySelector<HTMLInputElement>(
+      "#structured-size-shoulder_width",
+    );
+    expect(shoulderWidthInput).not.toBeNull();
+
+    await act(async () => {
+      setNativeValue(shoulderWidthInput!, "42.5");
+    });
+
+    await collapseSizeDetails();
+    expect(container.textContent).toContain("実寸を入力");
+    expect(container.textContent).not.toContain("閉じる");
+
+    await openSizeDetails();
+
+    expect(
+      container.querySelector<HTMLInputElement>(
+        "#structured-size-shoulder_width",
+      )?.value,
+    ).toBe("42.5");
   });
 });

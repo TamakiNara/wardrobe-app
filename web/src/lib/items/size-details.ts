@@ -5,6 +5,11 @@ import type {
   StructuredSizeFieldName,
 } from "@/types/items";
 
+export type StructuredSizeFieldContext = {
+  category?: string | null;
+  shape?: string | null;
+};
+
 export type StructuredSizeFieldDefinition = {
   name: StructuredSizeFieldName;
   label: string;
@@ -142,6 +147,12 @@ export function getStructuredSizeFieldDefinitions(
     name,
     label: STRUCTURED_SIZE_FIELD_LABELS[name],
   }));
+}
+
+export function getStructuredSizeFieldDefinitionsFromContext(
+  context?: StructuredSizeFieldContext | null,
+): StructuredSizeFieldDefinition[] {
+  return getStructuredSizeFieldDefinitions(context?.category, context?.shape);
 }
 
 export function normalizeItemSizeDetails(
