@@ -877,6 +877,60 @@ Phase 3:
 - category ごとの `spec` UI を洗練する
 - 比較ロジックやサムネイル描画に活用する
 
+### 必須/任意ルール
+
+purchase candidate の spec 必須/任意ルールは、最終的に item 側の現行ルールを起点に共通化する。  
+ただし purchase candidate は段階導入中のため、Phase 1 では `nullable` を維持し、未入力を許容する。
+
+#### 基本方針
+
+- 最終的な基準ルールは item 側の現行 spec ルールを起点にする
+- purchase candidate 側は、実装段階に応じて適用範囲と必須化時期を分ける
+- 現時点では「共通ルールに揃える方針」と「Phase 差分として未入力許容を残す方針」を併記する
+
+#### item 側ルールを起点にした最終方針
+
+- tops
+  - `sleeve`: 任意
+  - `length`: 任意
+  - `neck`: 任意
+  - `design`: 任意
+  - `fit`: 任意
+
+- bottoms / pants
+  - `length_type`: 必須
+  - `rise_type`: 任意
+
+- skirts
+  - `length_type`: 必須
+  - `material_type`: 任意
+  - `design_type`: 任意
+
+- legwear
+  - `coverage_type`: 条件付き必須
+  - `socks` / `leggings` では必須
+  - それ以外では非表示または任意
+
+#### purchase candidate での現時点の扱い
+
+- Phase 1 では、spec は `nullable` とし未入力を許容する
+- そのため、item 側で必須の項目であっても purchase candidate では直ちに必須化しない
+- 必須表示や validation は、Phase 2 以降で item 側ルールを起点に再判断する
+
+#### 将来の適用候補
+
+- `bottoms.length_type`
+- `skirts.length_type`
+- `legwear.coverage_type` のうち `socks` / `leggings`
+
+これらは item 側ですでに分類・比較に必要な項目として扱っているため、purchase candidate 側でも将来的な必須化候補とする。
+
+#### 補足
+
+- purchase candidate 側の差異は「正本が違う」ためではなく、「段階導入中のため」として扱う
+- tops spec は将来対応時も、直ちに全項目必須とはしない
+- 必須化の実装前には、UI 表示・validation・restore・draft 挙動を item 側と照合して再確認する
+
 ## 画像テーブル
 
 ## `purchase_candidate_images`
