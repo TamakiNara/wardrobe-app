@@ -613,14 +613,19 @@ export default function PurchaseCandidateForm({
       setLoadError(null);
 
       try {
-        const [groups, settings] = await Promise.all([
-          fetchCategoryGroups(),
-          fetchCategoryVisibilitySettings(),
-        ]);
+        const groups = await fetchCategoryGroups();
+        let visibleCategoryIds: string[] | undefined;
+
+        try {
+          const settings = await fetchCategoryVisibilitySettings();
+          visibleCategoryIds = settings.visibleCategoryIds;
+        } catch {
+          visibleCategoryIds = undefined;
+        }
 
         const nextCategoryOptions = buildCategoryOptions(
           groups,
-          settings.visibleCategoryIds,
+          visibleCategoryIds,
         );
 
         setCategoryOptions(nextCategoryOptions);
@@ -1298,7 +1303,7 @@ export default function PurchaseCandidateForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="grid gap-6 lg:grid-cols-2 lg:gap-5"
+      className="grid gap-6 lg:grid-cols-2 lg:items-start lg:gap-5"
     >
       {initializationMessage && (
         <section

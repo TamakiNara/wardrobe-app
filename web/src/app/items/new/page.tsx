@@ -1249,7 +1249,7 @@ export default function NewItemPage() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-5">
-          <div className="space-y-5 lg:grid lg:grid-cols-2 lg:gap-5 lg:space-y-0">
+          <div className="space-y-5 lg:grid lg:grid-cols-2 lg:items-start lg:gap-5 lg:space-y-0">
             <ItemFormSection title="基本情報" className="lg:col-span-1">
               <div>
                 <FieldLabel htmlFor="name" label="名前" />

@@ -266,6 +266,22 @@ describe("PurchaseCandidateForm", () => {
     expect(sectionCards).toHaveLength(9);
   });
 
+  it("表示設定の取得に失敗してもカテゴリ一覧だけで初期化できる", async () => {
+    fetchCategoryVisibilitySettingsMock.mockRejectedValueOnce(
+      new Error("settings failed"),
+    );
+
+    await renderForm();
+
+    expect(
+      container.textContent?.includes(
+        "購入検討フォームの初期化に失敗しました。",
+      ),
+    ).toBe(false);
+    expect(getCategoryGroupSelect().options.length).toBeGreaterThan(1);
+    expect(getCategorySelect().options.length).toBeGreaterThan(0);
+  });
+
   it("tops では spec UI を表示しない", async () => {
     await renderForm();
 
