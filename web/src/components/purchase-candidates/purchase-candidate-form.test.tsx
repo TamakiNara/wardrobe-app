@@ -316,6 +316,32 @@ describe("PurchaseCandidateForm", () => {
     expect(container.querySelector("#spec-bottoms-length-type")).toBeNull();
   });
 
+  it("purchase candidate spec は Phase 1 では未入力許容の表示を維持する", async () => {
+    await renderForm();
+
+    await setCategorySelection("pants", "pants_pants");
+
+    expect(
+      container.querySelector('label[for="spec-bottoms-length-type"]')
+        ?.textContent,
+    ).not.toContain("必須");
+    expect(
+      container.querySelector('label[for="spec-bottoms-rise-type"]')
+        ?.textContent,
+    ).not.toContain("必須");
+
+    await setCategorySelection("legwear", "legwear_socks");
+
+    expect(
+      container.querySelector('label[for="spec-legwear-coverage-type"]')
+        ?.textContent,
+    ).not.toContain("必須");
+
+    await setCategorySelection("tops", "tops_tshirt_cutsew");
+
+    expect(container.querySelector("#spec-tops-length")).toBeNull();
+  });
+
   it("雨対応を利用条件・状態へ移動して表示する", async () => {
     await renderForm();
 

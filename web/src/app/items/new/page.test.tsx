@@ -864,6 +864,161 @@ describe("新規登録画面", () => {
     expect(container.textContent).not.toContain("レギンス・スパッツの長さ");
   });
 
+  it("item spec の必須表示を docs どおり描画する", async () => {
+    fetchCategoryGroupsMock.mockResolvedValueOnce([
+      ...sampleGroups,
+      {
+        id: "skirts",
+        name: "スカート",
+        sortOrder: 16,
+        categories: [
+          {
+            id: "skirts_skirt",
+            groupId: "skirts",
+            name: "スカート",
+            sortOrder: 10,
+          },
+        ],
+      },
+    ]);
+    fetchCategoryVisibilitySettingsMock.mockResolvedValueOnce({
+      visibleCategoryIds: [
+        "tops_tshirt_cutsew",
+        "outerwear_jacket",
+        "pants_pants",
+        "skirts_skirt",
+        "onepiece_dress_onepiece",
+        "allinone_allinone",
+        "roomwear_inner_roomwear",
+        "legwear_socks",
+        "shoes_sneakers",
+        "bags_tote",
+      ],
+    });
+
+    const { default: NewItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(NewItemPage));
+      await waitForEffects();
+    });
+
+    const categorySelect =
+      container.querySelector<HTMLSelectElement>("#category");
+    expect(categorySelect).not.toBeNull();
+
+    await act(async () => {
+      categorySelect!.value = "pants";
+      categorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    const pantsSubcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
+    expect(pantsSubcategorySelect).not.toBeNull();
+
+    await act(async () => {
+      pantsSubcategorySelect!.value = "denim";
+      pantsSubcategorySelect!.dispatchEvent(
+        new Event("change", { bubbles: true }),
+      );
+      await waitForEffects();
+    });
+
+    expect(
+      container.querySelector('label[for="bottoms-length-type"]')?.textContent,
+    ).toContain("必須");
+    expect(
+      container.querySelector('label[for="bottoms-rise-type"]')?.textContent,
+    ).not.toContain("必須");
+
+    await act(async () => {
+      categorySelect!.value = "skirts";
+      categorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    expect(
+      container.querySelector('label[for="bottoms-length-type"]')?.textContent,
+    ).toContain("必須");
+    expect(
+      container.querySelector('label[for="skirt-material-type"]')?.textContent,
+    ).not.toContain("必須");
+    expect(
+      container.querySelector('label[for="skirt-design-type"]')?.textContent,
+    ).not.toContain("必須");
+
+    await act(async () => {
+      categorySelect!.value = "legwear";
+      categorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    const legwearSubcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
+    expect(legwearSubcategorySelect).not.toBeNull();
+
+    await act(async () => {
+      legwearSubcategorySelect!.value = "socks";
+      legwearSubcategorySelect!.dispatchEvent(
+        new Event("change", { bubbles: true }),
+      );
+      await waitForEffects();
+    });
+
+    expect(
+      container.querySelector('label[for="legwear-coverage-type"]')
+        ?.textContent,
+    ).toContain("必須");
+
+    await act(async () => {
+      legwearSubcategorySelect!.value = "leggings";
+      legwearSubcategorySelect!.dispatchEvent(
+        new Event("change", { bubbles: true }),
+      );
+      await waitForEffects();
+    });
+
+    expect(
+      container.querySelector('label[for="legwear-coverage-type"]')
+        ?.textContent,
+    ).toContain("必須");
+
+    await act(async () => {
+      categorySelect!.value = "tops";
+      categorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    const topsSubcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
+    expect(topsSubcategorySelect).not.toBeNull();
+
+    await act(async () => {
+      topsSubcategorySelect!.value = "tshirt_cutsew";
+      topsSubcategorySelect!.dispatchEvent(
+        new Event("change", { bubbles: true }),
+      );
+      await waitForEffects();
+    });
+
+    expect(
+      container.querySelector('label[for="tops-sleeve"]')?.textContent ?? "",
+    ).not.toContain("必須");
+    expect(
+      container.querySelector('label[for="tops-length"]')?.textContent ?? "",
+    ).not.toContain("必須");
+    expect(
+      container.querySelector('label[for="tops-neck"]')?.textContent ?? "",
+    ).not.toContain("必須");
+    expect(
+      container.querySelector('label[for="tops-design"]')?.textContent ?? "",
+    ).not.toContain("必須");
+    expect(
+      container.querySelector('label[for="tops-fit"]')?.textContent ?? "",
+    ).not.toContain("必須");
+  });
+
   it("認証切れで TPO 取得が失敗した場合はログインへ戻す", async () => {
     fetchUserTposMock.mockRejectedValueOnce(new ApiClientError(401, null));
 

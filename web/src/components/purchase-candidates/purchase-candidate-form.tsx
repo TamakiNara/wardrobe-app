@@ -514,6 +514,9 @@ export default function PurchaseCandidateForm({
     resolvedTopsShape !== "" &&
     resolvedTopsShape !== "tanktop" &&
     availableTopsFits.length > 1;
+  // Phase 1 keeps purchase candidate spec nullable even where item treats
+  // some axes as required. We still align visible categories and fields with
+  // the item-side classification model.
   const isBottomsSpecVisible = resolvedItemCategory?.category === "pants";
   const isLegwearSpecVisible = resolvedItemCategory?.category === "legwear";
   const legwearCoverageOptions = useMemo(
@@ -1031,6 +1034,7 @@ export default function PurchaseCandidateForm({
         }
 
         if (isBottomsSpecVisible) {
+          // Phase 1: purchase candidate spec remains nullable.
           if (!bottomsLengthType && !bottomsRiseType) {
             return null;
           }
@@ -1044,6 +1048,7 @@ export default function PurchaseCandidateForm({
         }
 
         if (isLegwearSpecVisible) {
+          // Phase 1: purchase candidate spec remains nullable.
           if (!legwearCoverageType) {
             return null;
           }
