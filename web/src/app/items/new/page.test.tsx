@@ -1026,7 +1026,7 @@ describe("新規登録画面", () => {
     const payload = JSON.parse(requestInit.body as string);
 
     expect(payload.shape).toBe("shirt");
-    expect(payload.spec?.tops?.shape).toBe("shirt");
+    expect(payload.spec?.tops?.shape).toBeUndefined();
   });
 
   it("purchase candidate draft の tops restore→submit は互換 fallback を維持する", async () => {
@@ -1079,7 +1079,7 @@ describe("新規登録画面", () => {
     const payload = JSON.parse(requestInit.body as string);
 
     expect(payload.shape).toBe("blouse");
-    expect(payload.spec?.tops?.shape).toBe("blouse");
+    expect(payload.spec?.tops?.shape).toBeUndefined();
   });
 
   it("tops / other の未解決 shape は送信時もそのまま許容する", async () => {
@@ -1164,7 +1164,8 @@ describe("新規登録画面", () => {
     const payload = JSON.parse(requestInit.body as string);
 
     expect(payload.shape).toBe("");
-    expect(payload.spec).toBeNull();
+    expect(payload.spec?.tops?.shape).toBeUndefined();
+    expect(payload.spec?.tops?.fit).toBe("normal");
   });
 
   it("季節のオールを排他的に切り替える", async () => {

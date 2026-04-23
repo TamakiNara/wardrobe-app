@@ -1000,7 +1000,6 @@ export default function EditItemPage({
     );
     const submitSpec = buildItemSpecForSubmit({
       category,
-      resolvedShape: submitShape,
       tops: isTopsCategory
         ? {
             sleeve: topsSleeve || null,

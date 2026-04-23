@@ -4,7 +4,6 @@ import type {
   ItemSpec,
   LegwearSpec,
   SkirtSpec,
-  TopsSpec,
 } from "@/types/items";
 
 export function isItemShapeRequired(
@@ -49,7 +48,6 @@ export function buildItemShapeForSubmit(
 
 export function buildItemSpecForSubmit(params: {
   category?: string | null;
-  resolvedShape?: string | null;
   tops?: {
     sleeve?: string | null;
     length?: string | null;
@@ -63,16 +61,21 @@ export function buildItemSpecForSubmit(params: {
 }): ItemSpec | null {
   const spec: ItemSpec = {};
 
-  if (params.category === "tops" && params.resolvedShape) {
-    const topsSpec: TopsSpec = {
-      shape: params.resolvedShape,
+  if (
+    params.category === "tops" &&
+    (params.tops?.sleeve ||
+      params.tops?.length ||
+      params.tops?.neck ||
+      params.tops?.design ||
+      params.tops?.fit)
+  ) {
+    spec.tops = {
       sleeve: params.tops?.sleeve || null,
       length: params.tops?.length || null,
       neck: params.tops?.neck || null,
       design: params.tops?.design || null,
       fit: params.tops?.fit || null,
-    };
-    spec.tops = topsSpec;
+    } as ItemSpec["tops"];
   }
 
   if (

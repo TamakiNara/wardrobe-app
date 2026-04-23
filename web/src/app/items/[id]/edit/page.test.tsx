@@ -1956,7 +1956,7 @@ describe("編集画面", () => {
     expect(putPayload?.shape).toBe("shirt");
     expect(
       (putPayload?.spec as { tops?: { shape?: string } })?.tops?.shape,
-    ).toBe("shirt");
+    ).toBeUndefined();
   });
 
   it("編集画面の tops submit は互換 fallback を維持する", async () => {
@@ -2037,7 +2037,7 @@ describe("編集画面", () => {
     expect(putPayload?.shape).toBe("blouse");
     expect(
       (putPayload?.spec as { tops?: { shape?: string } })?.tops?.shape,
-    ).toBe("blouse");
+    ).toBeUndefined();
   });
 
   it("編集画面でも tops の種類変更に応じて形と候補を連動する", async () => {

@@ -916,7 +916,6 @@ export default function NewItemPage() {
     );
     const submitSpec = buildItemSpecForSubmit({
       category,
-      resolvedShape: submitShape,
       tops: isTopsCategory
         ? {
             sleeve: topsSleeve || null,

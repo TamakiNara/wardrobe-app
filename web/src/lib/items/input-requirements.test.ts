@@ -105,11 +105,10 @@ describe("item input requirements", () => {
     expect(buildItemShapeForSubmit("outerwear", "blouson", "")).toBe("blouson");
   });
 
-  it("tops spec は解決済み shape からだけ互換値を生成する", () => {
+  it("tops spec は shape を含めず詳細属性だけを送信する", () => {
     expect(
       buildItemSpecForSubmit({
         category: "tops",
-        resolvedShape: "hoodie",
         tops: {
           sleeve: "long",
           length: "regular",
@@ -120,7 +119,6 @@ describe("item input requirements", () => {
       }),
     ).toEqual({
       tops: {
-        shape: "hoodie",
         sleeve: "long",
         length: "regular",
         neck: "crew",
@@ -132,7 +130,6 @@ describe("item input requirements", () => {
     expect(
       buildItemSpecForSubmit({
         category: "tops",
-        resolvedShape: "",
         tops: {
           sleeve: "long",
           length: "regular",
@@ -141,14 +138,21 @@ describe("item input requirements", () => {
           fit: "standard",
         },
       }),
-    ).toBeNull();
+    ).toEqual({
+      tops: {
+        sleeve: "long",
+        length: "regular",
+        neck: "crew",
+        design: null,
+        fit: "standard",
+      },
+    });
   });
 
   it("tops 以外の spec は既存の送信条件を維持する", () => {
     expect(
       buildItemSpecForSubmit({
         category: "pants",
-        resolvedShape: "",
         bottoms: {
           length_type: "full",
           rise_type: "high",
@@ -164,7 +168,6 @@ describe("item input requirements", () => {
     expect(
       buildItemSpecForSubmit({
         category: "legwear",
-        resolvedShape: "",
         legwear: {
           coverage_type: "ankle",
         },
