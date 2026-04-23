@@ -1,4 +1,4 @@
-const PURCHASE_CANDIDATE_ITEM_CATEGORY_MAP = {
+export const PURCHASE_CANDIDATE_ITEM_CATEGORY_MAP = {
   tops_tshirt_cutsew: {
     category: "tops",
     subcategory: "tshirt_cutsew",

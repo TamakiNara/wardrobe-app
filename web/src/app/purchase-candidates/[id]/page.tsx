@@ -5,6 +5,7 @@ import PurchaseCandidateDetailImages from "@/components/purchase-candidates/purc
 import PurchaseCandidateDuplicateAction from "@/components/purchase-candidates/purchase-candidate-duplicate-action";
 import PurchaseCandidateItemDraftAction from "@/components/purchase-candidates/purchase-candidate-item-draft-action";
 import { EntityDetailHeader } from "@/components/shared/entity-detail-header";
+import { resolvePurchaseCandidateItemClassification } from "@/lib/items/classification";
 import { groupItemMaterialsForDisplay } from "@/lib/items/materials";
 import {
   PURCHASE_CANDIDATE_COLOR_ROLE_LABELS,
@@ -17,7 +18,6 @@ import {
   getStructuredSizeFieldDefinitions,
   normalizeItemSizeDetails,
 } from "@/lib/items/size-details";
-import { resolvePurchaseCandidateItemCategory } from "@/lib/purchase-candidates/category-map";
 import { fetchLaravelWithCookie } from "@/lib/server/laravel";
 import type {
   PurchaseCandidateColor,
@@ -226,7 +226,7 @@ export default async function PurchaseCandidateDetailPage({
 }) {
   const { id } = await params;
   const candidate = await getPurchaseCandidate(id);
-  const resolvedItemCategory = resolvePurchaseCandidateItemCategory(
+  const resolvedItemCategory = resolvePurchaseCandidateItemClassification(
     candidate.category_id,
   );
   const normalizedSizeDetails = normalizeItemSizeDetails(

@@ -70,6 +70,7 @@ import {
   normalizeItemSizeDetails,
   type EditableCustomSizeField,
 } from "@/lib/items/size-details";
+import { resolvePurchaseCandidateItemClassification } from "@/lib/items/classification";
 import {
   PURCHASE_CANDIDATE_PRIORITY_LABELS,
   PURCHASE_CANDIDATE_SIZE_GENDER_LABELS,
@@ -80,7 +81,6 @@ import {
   ensurePurchaseCandidateDuplicateName,
   loadPurchaseCandidateDuplicatePayload,
 } from "@/lib/purchase-candidates/duplicate";
-import { resolvePurchaseCandidateItemCategory } from "@/lib/purchase-candidates/category-map";
 import type { CategoryGroupRecord } from "@/types/categories";
 import type {
   PurchaseCandidateDetailResponse,
@@ -144,7 +144,8 @@ function resolvePurchaseCandidateSpecFormState(
   categoryId: string,
   spec?: ItemSpec | null,
 ): PurchaseCandidateSpecFormState {
-  const resolvedCategory = resolvePurchaseCandidateItemCategory(categoryId);
+  const resolvedCategory =
+    resolvePurchaseCandidateItemClassification(categoryId);
   const topsShapeOptions = getTopsShapeOptions(resolvedCategory?.subcategory);
   const topsShape = (() => {
     const rawShape = spec?.tops?.shape as TopsShapeValue | undefined;
@@ -426,7 +427,7 @@ export default function PurchaseCandidateForm({
     [categoryGroupId, categoryOptions],
   );
   const resolvedItemCategory = useMemo(
-    () => resolvePurchaseCandidateItemCategory(categoryId),
+    () => resolvePurchaseCandidateItemClassification(categoryId),
     [categoryId],
   );
   const topsShapeOptions = useMemo(
