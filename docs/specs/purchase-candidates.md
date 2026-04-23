@@ -705,6 +705,21 @@ purchase candidate 側でも、item と同様に `spec` を持てるようにす
 - `category / shape / spec` の責務整合
 - 将来の比較ロジックやサムネイル描画の拡張
 
+### 分類責務の整理
+
+- `カテゴリ`: アイテムの大分類。最初に選ぶ分類軸として扱う
+- `種類`: カテゴリ内の主要分類。ユーザーがカテゴリの次に選ぶ軸として扱う
+- `形`: 保存上は独立した分類軸として扱う
+- `spec`: 分類の先にある詳細属性として扱い、丈・覆い方・袖・首回り・股上などを含む
+
+補足:
+
+- purchase candidate の画面上は `カテゴリ` と `種類` を主に選択する
+- `形` は独立入力としては出さず、選択した種類に対応する分類情報として内部で解決する
+- 保存上は item と整合するため `shape` を保持する
+- `形` が必要なカテゴリでは、将来的に補助入力として出す余地を残す
+- `spec` は分類の続きとして見える位置に置き、`カテゴリ / 種類 / 形` とは役割を分ける
+
 ### `size_details` との責務分離
 
 `size_details` と `spec` は別物として扱う。
@@ -712,11 +727,11 @@ purchase candidate 側でも、item と同様に `spec` を持てるようにす
 - `size_details`: 実寸
   - 例: 肩幅、身幅、着丈、股下、総丈
 - `spec`: 実寸以外の構造・補助属性
-  - 例: tops の shape / sleeve / neck / fit
+  - 例: tops の sleeve / neck / fit
   - 例: bottoms の `length_type`
   - 例: legwear の `coverage_type`
 
-つまり、`size_details` は数値の実寸、`spec` は形・丈・覆い方・補助属性として役割を分ける。
+つまり、`size_details` は数値の実寸、`spec` は分類の先にある詳細属性として役割を分ける。
 
 ### 基本方針
 
@@ -775,6 +790,12 @@ type ItemSpec = {
   };
 };
 ```
+
+補足:
+
+- 現行 API / item-draft 互換では `spec.tops.shape` を含む shape が残る
+- ただし概念上は `shape` を分類軸として扱い、`spec` はその先の詳細属性として整理する
+- 互換 shape の扱いは、実装修正時に item 側との整合を見ながら段階的に整理する
 
 ### 初期の入力方針
 
@@ -854,6 +875,7 @@ purchase candidate 側に `spec` を入れる場合も、item 側と別実装を
 - item 側で既に持っている `spec` 関連の型・入力定義・validation helper があれば、purchase candidate 側でも流用を第一候補とする
 - ただし、purchase candidate では入力負荷を抑えるため、UI は item 側より簡略化してよい
 - 「保存 shape は揃えるが、UI の出し方は必要に応じて変える」を基本方針とする
+- item / purchase candidate の違いは「分類責務が違う」ためではなく、「shape を UI で明示入力するか、内部解決するかの扱い差」として扱う
 
 ### 段階分け
 
