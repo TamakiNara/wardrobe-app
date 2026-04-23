@@ -981,6 +981,118 @@ class ItemsEndpointsTest extends TestCase
             ->assertJsonPath('item.shape', '');
     }
 
+    public function test_post_items_can_save_tops_with_shape_without_spec_tops_shape(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/items', [
+            'name' => 'shape正本トップス',
+            'category' => 'tops',
+            'subcategory' => 'shirt_blouse',
+            'shape' => 'shirt',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'white',
+                'hex' => '#eeeeee',
+                'label' => 'ホワイト',
+            ]],
+            'spec' => [
+                'tops' => [
+                    'sleeve' => 'long',
+                ],
+            ],
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('item.shape', 'shirt')
+            ->assertJsonPath('item.spec.tops.shape', 'shirt')
+            ->assertJsonPath('item.spec.tops.sleeve', 'long');
+
+        $item = Item::query()->latest('id')->first();
+        $this->assertSame('shirt', $item?->shape);
+        $this->assertSame('shirt', data_get($item?->spec, 'tops.shape'));
+    }
+
+    public function test_post_items_prefers_shape_over_spec_tops_shape_when_both_are_present(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/items', [
+            'name' => 'shape優先トップス',
+            'category' => 'tops',
+            'subcategory' => 'shirt_blouse',
+            'shape' => 'shirt',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'white',
+                'hex' => '#eeeeee',
+                'label' => 'ホワイト',
+            ]],
+            'spec' => [
+                'tops' => [
+                    'shape' => 'tshirt',
+                    'sleeve' => 'long',
+                ],
+            ],
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('item.shape', 'shirt')
+            ->assertJsonPath('item.spec.tops.shape', 'shirt')
+            ->assertJsonPath('item.spec.tops.sleeve', 'long');
+
+        $item = Item::query()->latest('id')->first();
+        $this->assertSame('shirt', $item?->shape);
+        $this->assertSame('shirt', data_get($item?->spec, 'tops.shape'));
+    }
+
+    public function test_post_items_ignores_spec_tops_shape_when_tops_other_shape_is_unresolved(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/items', [
+            'name' => '未解決トップス互換値',
+            'category' => 'tops',
+            'subcategory' => 'other',
+            'shape' => '',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'black',
+                'hex' => '#111111',
+                'label' => 'ブラック',
+            ]],
+            'spec' => [
+                'tops' => [
+                    'shape' => 'tshirt',
+                ],
+            ],
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('item.subcategory', 'other')
+            ->assertJsonPath('item.shape', '')
+            ->assertJsonPath('item.spec', null);
+
+        $item = Item::query()->latest('id')->first();
+        $this->assertSame('', $item?->shape);
+        $this->assertNull($item?->spec);
+    }
+
     public function test_post_items_can_save_kimono_other_without_explicit_shape(): void
     {
         $user = User::factory()->create();
@@ -2202,6 +2314,141 @@ class ItemsEndpointsTest extends TestCase
             'sort_order' => 2,
             'is_primary' => 0,
         ]);
+    }
+
+    public function test_put_item_can_save_tops_with_shape_when_spec_is_null(): void
+    {
+        $user = User::factory()->create();
+        $item = $this->createItem($user, [
+            'category' => 'tops',
+            'subcategory' => 'tshirt_cutsew',
+            'shape' => 'tshirt',
+            'spec' => null,
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->putJson("/api/items/{$item->id}", [
+            'name' => 'shape正本トップス更新',
+            'category' => 'tops',
+            'subcategory' => 'shirt_blouse',
+            'shape' => 'shirt',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'white',
+                'hex' => '#eeeeee',
+                'label' => 'ホワイト',
+            ]],
+            'spec' => null,
+            'images' => [],
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('item.shape', 'shirt')
+            ->assertJsonPath('item.spec', null);
+
+        $item->refresh();
+
+        $this->assertSame('shirt', $item->shape);
+        $this->assertNull($item->spec);
+    }
+
+    public function test_put_item_prefers_shape_over_spec_tops_shape_when_both_are_present(): void
+    {
+        $user = User::factory()->create();
+        $item = $this->createItem($user, [
+            'category' => 'tops',
+            'subcategory' => 'shirt_blouse',
+            'shape' => 'shirt',
+            'spec' => [
+                'tops' => [
+                    'shape' => 'shirt',
+                    'sleeve' => 'long',
+                ],
+            ],
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->putJson("/api/items/{$item->id}", [
+            'name' => 'shape優先トップス更新',
+            'category' => 'tops',
+            'subcategory' => 'shirt_blouse',
+            'shape' => 'shirt',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'white',
+                'hex' => '#eeeeee',
+                'label' => 'ホワイト',
+            ]],
+            'spec' => [
+                'tops' => [
+                    'shape' => 'tshirt',
+                    'sleeve' => 'short',
+                ],
+            ],
+            'images' => [],
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('item.shape', 'shirt')
+            ->assertJsonPath('item.spec.tops.shape', 'shirt')
+            ->assertJsonPath('item.spec.tops.sleeve', 'short');
+
+        $item->refresh();
+
+        $this->assertSame('shirt', $item->shape);
+        $this->assertSame('shirt', data_get($item->spec, 'tops.shape'));
+    }
+
+    public function test_put_item_can_save_tops_other_with_unresolved_shape(): void
+    {
+        $user = User::factory()->create();
+        $item = $this->createItem($user, [
+            'category' => 'tops',
+            'subcategory' => 'other',
+            'shape' => '',
+            'spec' => null,
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->putJson("/api/items/{$item->id}", [
+            'name' => '未解決トップス更新',
+            'category' => 'tops',
+            'subcategory' => 'other',
+            'shape' => '',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'black',
+                'hex' => '#111111',
+                'label' => 'ブラック',
+            ]],
+            'spec' => [
+                'tops' => [
+                    'shape' => 'tshirt',
+                ],
+            ],
+            'images' => [],
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('item.shape', '')
+            ->assertJsonPath('item.spec', null);
+
+        $item->refresh();
+
+        $this->assertSame('', $item->shape);
+        $this->assertNull($item->spec);
     }
 
     public function test_put_item_can_add_brand_candidate_without_failing_item_update(): void
