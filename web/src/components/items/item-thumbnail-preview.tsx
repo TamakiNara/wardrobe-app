@@ -23,7 +23,6 @@ type ItemThumbnailPreviewProps = {
   mainColorHex?: string;
   subColorHex?: string;
   topsSpecRaw?: {
-    shape?: string;
     sleeve?: string | null;
     neck?: string | null;
     design?: string | null;

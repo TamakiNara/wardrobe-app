@@ -263,7 +263,9 @@ class PurchaseCandidatePayloadBuilder
             return null;
         }
 
-        return is_array($candidate->spec) ? $candidate->spec : null;
+        return ItemSpecPayloadSupport::buildResponseSpec(
+            is_array($candidate->spec) ? $candidate->spec : null,
+        );
     }
 
     private static function buildItemDraftColorPayload($color): array

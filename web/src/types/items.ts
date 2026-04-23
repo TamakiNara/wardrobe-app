@@ -9,7 +9,6 @@ export type ItemFormColor = {
 export type ItemCareStatus = "in_cleaning";
 
 export type TopsSpec = {
-  shape: string;
   sleeve?: string | null;
   length?: string | null;
   neck?: string | null;

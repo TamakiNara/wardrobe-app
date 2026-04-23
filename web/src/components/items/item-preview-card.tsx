@@ -28,7 +28,6 @@ type ItemPreviewCardProps = {
   subColorHex?: string;
   subColorLabel?: string;
   topsSpec?: {
-    shape?: string;
     sleeve?: string;
     length?: string;
     neck?: string;
@@ -36,7 +35,6 @@ type ItemPreviewCardProps = {
     fit?: string;
   } | null;
   topsSpecRaw?: {
-    shape?: string;
     sleeve?: string;
     length?: string;
     neck?: string;
@@ -225,9 +223,6 @@ export default function ItemPreviewCard({
                 >
                   <div>
                     <dt className="font-medium text-gray-700">形</dt>
-                    <dd>{topsSpec.shape || "未選択"}</dd>
-                  </div>
-                  <div>
                     <dt className="font-medium text-gray-700">袖</dt>
                     <dd>{topsSpec.sleeve || "未選択"}</dd>
                   </div>

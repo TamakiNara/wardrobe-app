@@ -70,6 +70,7 @@ import {
   normalizeItemSizeDetails,
   type EditableCustomSizeField,
 } from "@/lib/items/size-details";
+import { readLegacyTopsSpecShape } from "@/lib/items/tops-shape-compat";
 import { resolvePurchaseCandidateItemClassification } from "@/lib/items/classification";
 import {
   PURCHASE_CANDIDATE_PRIORITY_LABELS,
@@ -148,7 +149,9 @@ function resolvePurchaseCandidateSpecFormState(
     resolvePurchaseCandidateItemClassification(categoryId);
   const topsShapeOptions = getTopsShapeOptions(resolvedCategory?.subcategory);
   const topsShape = (() => {
-    const rawShape = spec?.tops?.shape as TopsShapeValue | undefined;
+    const rawShape = readLegacyTopsSpecShape(spec) as
+      | TopsShapeValue
+      | undefined;
 
     if (
       rawShape &&

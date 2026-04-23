@@ -43,9 +43,9 @@ class ItemPayloadBuilder
                 ? UserTpoNameResolver::resolveNames($item->user, $item->tpo_ids ?? [], $item->tpos ?? [])
                 : ($item->tpos ?? []),
             'tpo_ids' => $item->tpo_ids ?? [],
-            // spec.tops.shape は移行期間中の互換値として残りうるが、
-            // 分類軸の正本はトップレベルの shape を参照する。
-            'spec' => $item->spec,
+            // 分類軸の正本はトップレベルの shape とする。
+            // spec.tops.shape は互換値なので、response には含めない。
+            'spec' => ItemSpecPayloadSupport::buildResponseSpec($item->spec),
             'materials' => $includeMaterials
                 ? ItemMaterialSupport::buildPayload(
                     $item->materials

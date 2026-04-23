@@ -1,15 +1,13 @@
-﻿import {
+import {
   TOPS_DESIGNS,
   TOPS_FITS,
   TOPS_LENGTHS,
   TOPS_NECKS,
-  TOPS_SHAPES,
   TOPS_SLEEVES,
 } from "./index";
 import type { TopsSpec } from "@/types/items";
 
 export type TopsSpecDisplay = {
-  shape: string;
   sleeve: string;
   length: string;
   neck: string;
@@ -18,7 +16,6 @@ export type TopsSpecDisplay = {
 };
 
 export type TopsSpecRawDisplay = {
-  shape: string;
   sleeve?: string;
   length?: string;
   neck?: string;
@@ -40,7 +37,6 @@ export function buildTopsSpecLabels(
   if (!tops) return null;
 
   return {
-    shape: findLabel(TOPS_SHAPES, tops.shape),
     sleeve: findLabel(TOPS_SLEEVES, tops.sleeve),
     length: findLabel(TOPS_LENGTHS, tops.length),
     neck: findLabel(TOPS_NECKS, tops.neck),
@@ -55,7 +51,6 @@ export function buildTopsSpecRaw(
   if (!tops) return null;
 
   return {
-    shape: tops.shape ?? "",
     sleeve: tops.sleeve ?? undefined,
     length: tops.length ?? undefined,
     neck: tops.neck ?? undefined,

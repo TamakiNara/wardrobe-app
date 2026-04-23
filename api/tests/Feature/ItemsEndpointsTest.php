@@ -1010,12 +1010,12 @@ class ItemsEndpointsTest extends TestCase
 
         $response->assertCreated()
             ->assertJsonPath('item.shape', 'shirt')
-            ->assertJsonPath('item.spec.tops.shape', 'shirt')
+            ->assertJsonMissingPath('item.spec.tops.shape')
             ->assertJsonPath('item.spec.tops.sleeve', 'long');
 
         $item = Item::query()->latest('id')->first();
         $this->assertSame('shirt', $item?->shape);
-        $this->assertSame('shirt', data_get($item?->spec, 'tops.shape'));
+        $this->assertSame('shirt', $item?->shape);
     }
 
     public function test_post_items_prefers_shape_over_spec_tops_shape_when_both_are_present(): void
@@ -1048,12 +1048,12 @@ class ItemsEndpointsTest extends TestCase
 
         $response->assertCreated()
             ->assertJsonPath('item.shape', 'shirt')
-            ->assertJsonPath('item.spec.tops.shape', 'shirt')
+            ->assertJsonMissingPath('item.spec.tops.shape')
             ->assertJsonPath('item.spec.tops.sleeve', 'long');
 
         $item = Item::query()->latest('id')->first();
         $this->assertSame('shirt', $item?->shape);
-        $this->assertSame('shirt', data_get($item?->spec, 'tops.shape'));
+        $this->assertSame('shirt', $item?->shape);
     }
 
     public function test_post_items_ignores_spec_tops_shape_when_tops_other_shape_is_unresolved(): void
@@ -2178,6 +2178,35 @@ class ItemsEndpointsTest extends TestCase
             ->assertJsonPath('item.materials.2.part_label', '裏地');
     }
 
+    public function test_get_item_omits_tops_shape_from_spec_response(): void
+    {
+        $user = User::factory()->create();
+        $item = $this->createItem($user, [
+            'category' => 'tops',
+            'subcategory' => 'shirt_blouse',
+            'shape' => 'shirt',
+            'spec' => [
+                'tops' => [
+                    'shape' => 'shirt',
+                    'sleeve' => 'long',
+                    'neck' => 'regular_collar',
+                ],
+            ],
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->getJson("/api/items/{$item->id}", [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('item.shape', 'shirt')
+            ->assertJsonMissingPath('item.spec.tops.shape')
+            ->assertJsonPath('item.spec.tops.sleeve', 'long')
+            ->assertJsonPath('item.spec.tops.neck', 'regular_collar');
+    }
+
     public function test_put_item_updates_purchase_fields_and_image_ordering(): void
     {
         Storage::fake('public');
@@ -2398,13 +2427,13 @@ class ItemsEndpointsTest extends TestCase
 
         $response->assertOk()
             ->assertJsonPath('item.shape', 'shirt')
-            ->assertJsonPath('item.spec.tops.shape', 'shirt')
+            ->assertJsonMissingPath('item.spec.tops.shape')
             ->assertJsonPath('item.spec.tops.sleeve', 'short');
 
         $item->refresh();
 
         $this->assertSame('shirt', $item->shape);
-        $this->assertSame('shirt', data_get($item->spec, 'tops.shape'));
+        $this->assertSame('shirt', $item->shape);
     }
 
     public function test_put_item_can_save_tops_other_with_unresolved_shape(): void

@@ -1065,6 +1065,58 @@ class PurchaseCandidateEndpointsTest extends TestCase
             ->assertJsonPath('item_draft.spec', null);
     }
 
+    public function test_get_purchase_candidate_detail_does_not_return_tops_shape_compatibility_spec(): void
+    {
+        $user = User::factory()->create();
+        $candidate = $this->createCandidate($user, [
+            'category_id' => 'tops_shirt_blouse',
+            'spec' => [
+                'tops' => [
+                    'shape' => 'blouse',
+                    'sleeve' => 'short',
+                ],
+            ],
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->getJson("/api/purchase-candidates/{$candidate->id}", [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('purchaseCandidate.category_id', 'tops_shirt_blouse')
+            ->assertJsonPath('purchaseCandidate.spec', null);
+    }
+
+    public function test_post_purchase_candidate_duplicate_does_not_return_tops_shape_compatibility_spec(): void
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->create();
+        $candidate = $this->createCandidate($user, [
+            'category_id' => 'tops_shirt_blouse',
+            'spec' => [
+                'tops' => [
+                    'shape' => 'blouse',
+                    'sleeve' => 'short',
+                ],
+            ],
+        ]);
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $response = $this->postJson("/api/purchase-candidates/{$candidate->id}/duplicate", [], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('purchaseCandidate.category_id', 'tops_shirt_blouse')
+            ->assertJsonPath('purchaseCandidate.spec', null);
+    }
+
     public function test_post_purchase_candidate_item_draft_supports_fashion_accessories_shoes_swimwear_and_kimono(): void
     {
         $user = User::factory()->create();

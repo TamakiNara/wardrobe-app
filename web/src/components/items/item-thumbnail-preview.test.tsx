@@ -83,14 +83,14 @@ describe("ItemThumbnailPreview", () => {
             category="tops"
             shape="tshirt"
             mainColorHex="#2563EB"
-            topsSpecRaw={{ shape: "tshirt", sleeve: "short" }}
+            topsSpecRaw={{ sleeve: "short" }}
             size="small"
           />
           <ItemThumbnailPreview
             category="tops"
             shape="shirt"
             mainColorHex="#2563EB"
-            topsSpecRaw={{ shape: "shirt", sleeve: "long" }}
+            topsSpecRaw={{ sleeve: "long" }}
             size="small"
           />
         </div>,

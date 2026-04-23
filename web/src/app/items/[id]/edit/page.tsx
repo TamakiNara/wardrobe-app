@@ -131,6 +131,7 @@ import {
   isItemShapeRequired,
   shouldShowItemShapeField,
 } from "@/lib/items/input-requirements";
+import { readLegacyTopsSpecShape } from "@/lib/items/tops-shape-compat";
 import type { SkinTonePreset, UserTpoRecord } from "@/types/settings";
 import type { StructuredSizeFieldName } from "@/types/items";
 
@@ -570,12 +571,14 @@ export default function EditItemPage({
         }
 
         if (currentCategory === "tops") {
-          // `shape` を分類軸の正本として扱い、
+          // `shape` を分類軸の正本として扱う。
           // `spec.tops.shape` は移行期間中の互換 fallback としてだけ参照する。
           const resolvedShape =
             currentSubcategory === "other"
               ? ""
-              : ((currentShape || tops?.shape || "") as TopsShapeValue);
+              : ((currentShape ||
+                  readLegacyTopsSpecShape({ tops }) ||
+                  "") as TopsShapeValue);
           setTopsShape(resolvedShape);
 
           const rule = TOPS_RULES[resolvedShape];
@@ -1265,7 +1268,6 @@ export default function EditItemPage({
 
   const previewTopsSpec = isTopsCategory
     ? buildTopsSpecLabels({
-        shape: topsShape || undefined,
         sleeve: topsSleeve || undefined,
         length: topsLength || undefined,
         neck: topsNeck || undefined,
@@ -1276,7 +1278,6 @@ export default function EditItemPage({
 
   const previewTopsSpecRaw = isTopsCategory
     ? buildTopsSpecRaw({
-        shape: topsShape || undefined,
         sleeve: topsSleeve || undefined,
         length: topsLength || undefined,
         neck: topsNeck || undefined,
