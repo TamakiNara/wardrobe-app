@@ -943,7 +943,46 @@ describe("新規登録画面", () => {
     expect(shapeSelect!.value).toBe("shirt");
   });
 
-  it("purchase candidate draft の tops restore は spec.tops.shape を fallback として使う", async () => {
+  it("purchase candidate draft の tops restore は shape だけで成立し、詳細属性も復元できる", async () => {
+    searchParamsSourceValue = "purchase-candidate";
+    const draft = createValidPurchaseCandidateItemDraft();
+    window.sessionStorage.setItem(
+      "purchase-candidate-item-draft",
+      JSON.stringify({
+        ...draft,
+        item_draft: {
+          ...draft.item_draft,
+          category: "tops",
+          subcategory: "shirt_blouse",
+          shape: "shirt",
+          spec: {
+            tops: {
+              sleeve: "long",
+              neck: "regular_collar",
+            },
+          },
+        },
+      }),
+    );
+
+    const { default: NewItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(NewItemPage));
+      await waitForEffects();
+    });
+
+    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
+    expect(shapeSelect).not.toBeNull();
+    expect(shapeSelect!.value).toBe("shirt");
+
+    const sleeveSelect =
+      container.querySelector<HTMLSelectElement>("#tops-sleeve");
+    expect(sleeveSelect).not.toBeNull();
+    expect(sleeveSelect!.value).toBe("long");
+  });
+
+  it("旧互換: purchase candidate draft の tops restore は spec.tops.shape を fallback として使う", async () => {
     searchParamsSourceValue = "purchase-candidate";
     const draft = createValidPurchaseCandidateItemDraft();
     window.sessionStorage.setItem(
@@ -974,6 +1013,42 @@ describe("新規登録画面", () => {
     const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
     expect(shapeSelect).not.toBeNull();
     expect(shapeSelect!.value).toBe("blouse");
+  });
+
+  it("purchase candidate draft の tops / other restore は shape 未解決を維持する", async () => {
+    searchParamsSourceValue = "purchase-candidate";
+    const draft = createValidPurchaseCandidateItemDraft();
+    window.sessionStorage.setItem(
+      "purchase-candidate-item-draft",
+      JSON.stringify({
+        ...draft,
+        item_draft: {
+          ...draft.item_draft,
+          category: "tops",
+          subcategory: "other",
+          shape: "",
+          spec: {
+            tops: {
+              sleeve: "long",
+            },
+          },
+        },
+      }),
+    );
+
+    const { default: NewItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(NewItemPage));
+      await waitForEffects();
+    });
+
+    const subcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
+    expect(subcategorySelect).not.toBeNull();
+    expect(subcategorySelect!.value).toBe("other");
+    expect(container.querySelector("#shape")).toBeNull();
+    expect(container.querySelector("#tops-shape")).toBeNull();
   });
 
   it("purchase candidate draft の tops restore→submit は shape を正本として送信する", async () => {
@@ -1029,7 +1104,7 @@ describe("新規登録画面", () => {
     expect(payload.spec?.tops?.shape).toBeUndefined();
   });
 
-  it("purchase candidate draft の tops restore→submit は互換 fallback を維持する", async () => {
+  it("旧互換: purchase candidate draft の tops restore→submit は互換 fallback を維持する", async () => {
     searchParamsSourceValue = "purchase-candidate";
     const draft = createValidPurchaseCandidateItemDraft();
     window.sessionStorage.setItem(

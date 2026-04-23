@@ -1841,7 +1841,50 @@ describe("編集画面", () => {
     expect(shapeSelect!.value).toBe("shirt");
   });
 
-  it("編集画面の tops restore は spec.tops.shape を fallback として使う", async () => {
+  it("編集画面の tops restore は shape だけで成立し、詳細属性も復元できる", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          item: createEditableItemResponse({
+            category: "tops",
+            subcategory: "shirt_blouse",
+            shape: "shirt",
+            spec: {
+              tops: {
+                sleeve: "long",
+                neck: "regular_collar",
+              },
+            },
+          }),
+        }),
+      }),
+    );
+
+    const { default: EditItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(
+        React.createElement(EditItemPage, {
+          params: Promise.resolve({ id: "1" }),
+        }),
+      );
+      await waitForEffects();
+    });
+
+    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
+    expect(shapeSelect).not.toBeNull();
+    expect(shapeSelect!.value).toBe("shirt");
+
+    const sleeveSelect =
+      container.querySelector<HTMLSelectElement>("#tops-sleeve");
+    expect(sleeveSelect).not.toBeNull();
+    expect(sleeveSelect!.value).toBe("long");
+  });
+
+  it("旧互換: 編集画面の tops restore は spec.tops.shape を fallback として使う", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn().mockResolvedValue({
