@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  buildItemShapeForSubmit,
+  buildItemSpecForSubmit,
   isItemShapeRequired,
   resolveItemShapeForSubmit,
   shouldShowItemShapeField,
@@ -95,5 +97,82 @@ describe("item input requirements", () => {
     expect(resolveItemShapeForSubmit("skirts", "skirt", "")).toBe("");
     expect(resolveItemShapeForSubmit("outerwear", "coat", "")).toBe("");
     expect(resolveItemShapeForSubmit("tops", "shirt_blouse", "")).toBe("");
+  });
+
+  it("submit 用 shape は分類軸の正本として組み立てる", () => {
+    expect(buildItemShapeForSubmit("tops", "hoodie", "")).toBe("hoodie");
+    expect(buildItemShapeForSubmit("tops", "other", "")).toBe("");
+    expect(buildItemShapeForSubmit("outerwear", "blouson", "")).toBe("blouson");
+  });
+
+  it("tops spec は解決済み shape からだけ互換値を生成する", () => {
+    expect(
+      buildItemSpecForSubmit({
+        category: "tops",
+        resolvedShape: "hoodie",
+        tops: {
+          sleeve: "long",
+          length: "regular",
+          neck: "crew",
+          design: null,
+          fit: "standard",
+        },
+      }),
+    ).toEqual({
+      tops: {
+        shape: "hoodie",
+        sleeve: "long",
+        length: "regular",
+        neck: "crew",
+        design: null,
+        fit: "standard",
+      },
+    });
+
+    expect(
+      buildItemSpecForSubmit({
+        category: "tops",
+        resolvedShape: "",
+        tops: {
+          sleeve: "long",
+          length: "regular",
+          neck: "crew",
+          design: null,
+          fit: "standard",
+        },
+      }),
+    ).toBeNull();
+  });
+
+  it("tops 以外の spec は既存の送信条件を維持する", () => {
+    expect(
+      buildItemSpecForSubmit({
+        category: "pants",
+        resolvedShape: "",
+        bottoms: {
+          length_type: "full",
+          rise_type: "high",
+        },
+      }),
+    ).toEqual({
+      bottoms: {
+        length_type: "full",
+        rise_type: "high",
+      },
+    });
+
+    expect(
+      buildItemSpecForSubmit({
+        category: "legwear",
+        resolvedShape: "",
+        legwear: {
+          coverage_type: "ankle",
+        },
+      }),
+    ).toEqual({
+      legwear: {
+        coverage_type: "ankle",
+      },
+    });
   });
 });

@@ -976,6 +976,197 @@ describe("新規登録画面", () => {
     expect(shapeSelect!.value).toBe("blouse");
   });
 
+  it("purchase candidate draft の tops restore→submit は shape を正本として送信する", async () => {
+    searchParamsSourceValue = "purchase-candidate";
+    const draft = createValidPurchaseCandidateItemDraft();
+    window.sessionStorage.setItem(
+      "purchase-candidate-item-draft",
+      JSON.stringify({
+        ...draft,
+        item_draft: {
+          ...draft.item_draft,
+          category: "tops",
+          subcategory: "shirt_blouse",
+          shape: "shirt",
+          spec: {
+            tops: {
+              shape: "blouse",
+            },
+          },
+        },
+      }),
+    );
+
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 201,
+      json: async () => ({ id: 1 }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { default: NewItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(NewItemPage));
+      await waitForEffects();
+    });
+
+    const form = container.querySelector("form");
+    expect(form).not.toBeNull();
+
+    await act(async () => {
+      form!.dispatchEvent(
+        new Event("submit", { bubbles: true, cancelable: true }),
+      );
+      await waitForEffects();
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [, requestInit] = fetchMock.mock.calls[0];
+    const payload = JSON.parse(requestInit.body as string);
+
+    expect(payload.shape).toBe("shirt");
+    expect(payload.spec?.tops?.shape).toBe("shirt");
+  });
+
+  it("purchase candidate draft の tops restore→submit は互換 fallback を維持する", async () => {
+    searchParamsSourceValue = "purchase-candidate";
+    const draft = createValidPurchaseCandidateItemDraft();
+    window.sessionStorage.setItem(
+      "purchase-candidate-item-draft",
+      JSON.stringify({
+        ...draft,
+        item_draft: {
+          ...draft.item_draft,
+          category: "tops",
+          subcategory: "shirt_blouse",
+          shape: "",
+          spec: {
+            tops: {
+              shape: "blouse",
+            },
+          },
+        },
+      }),
+    );
+
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 201,
+      json: async () => ({ id: 1 }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { default: NewItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(NewItemPage));
+      await waitForEffects();
+    });
+
+    const form = container.querySelector("form");
+    expect(form).not.toBeNull();
+
+    await act(async () => {
+      form!.dispatchEvent(
+        new Event("submit", { bubbles: true, cancelable: true }),
+      );
+      await waitForEffects();
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [, requestInit] = fetchMock.mock.calls[0];
+    const payload = JSON.parse(requestInit.body as string);
+
+    expect(payload.shape).toBe("blouse");
+    expect(payload.spec?.tops?.shape).toBe("blouse");
+  });
+
+  it("tops / other の未解決 shape は送信時もそのまま許容する", async () => {
+    searchParamsSourceValue = "purchase-candidate";
+    fetchCategoryGroupsMock.mockResolvedValueOnce([
+      {
+        ...sampleGroups[0],
+        categories: [
+          ...sampleGroups[0]!.categories,
+          {
+            id: "tops_other",
+            groupId: "tops",
+            name: "その他トップス",
+            sortOrder: 999,
+          },
+        ],
+      },
+      ...sampleGroups.slice(1),
+    ]);
+    fetchCategoryVisibilitySettingsMock.mockResolvedValueOnce({
+      visibleCategoryIds: [
+        "tops_tshirt_cutsew",
+        "tops_other",
+        "outerwear_jacket",
+        "pants_pants",
+        "onepiece_dress_onepiece",
+        "allinone_allinone",
+        "roomwear_inner_roomwear",
+        "legwear_socks",
+        "shoes_sneakers",
+        "bags_tote",
+        "fashion_accessories_belt",
+        "fashion_accessories_eyewear",
+        "swimwear_swimwear",
+        "kimono_kimono",
+      ],
+    });
+    const draft = createValidPurchaseCandidateItemDraft();
+    window.sessionStorage.setItem(
+      "purchase-candidate-item-draft",
+      JSON.stringify({
+        ...draft,
+        item_draft: {
+          ...draft.item_draft,
+          source_category_id: "tops_other",
+          category: "tops",
+          subcategory: "other",
+          shape: "",
+          spec: null,
+        },
+      }),
+    );
+
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 201,
+      json: async () => ({ id: 1 }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { default: NewItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(NewItemPage));
+      await waitForEffects();
+    });
+
+    expect(container.querySelector("#shape")).toBeNull();
+
+    const form = container.querySelector("form");
+    expect(form).not.toBeNull();
+
+    await act(async () => {
+      form!.dispatchEvent(
+        new Event("submit", { bubbles: true, cancelable: true }),
+      );
+      await waitForEffects();
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [, requestInit] = fetchMock.mock.calls[0];
+    const payload = JSON.parse(requestInit.body as string);
+
+    expect(payload.shape).toBe("");
+    expect(payload.spec).toBeNull();
+  });
+
   it("季節のオールを排他的に切り替える", async () => {
     const { default: NewItemPage } = await import("./page");
 

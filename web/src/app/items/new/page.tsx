@@ -118,6 +118,8 @@ import {
   type EditableItemMaterial,
 } from "@/lib/items/materials";
 import {
+  buildItemShapeForSubmit,
+  buildItemSpecForSubmit,
   isItemShapeRequired,
   resolveItemShapeForSubmit,
   shouldShowItemShapeField,
@@ -907,6 +909,38 @@ export default function NewItemPage() {
             design_type: skirtDesignType || undefined,
           }
         : null;
+    const submitShape = buildItemShapeForSubmit(
+      category,
+      normalizedSubcategory,
+      currentShapeValue,
+    );
+    const submitSpec = buildItemSpecForSubmit({
+      category,
+      resolvedShape: submitShape,
+      tops: isTopsCategory
+        ? {
+            sleeve: topsSleeve || null,
+            length: topsLength || null,
+            neck: topsNeck || null,
+            design: topsDesign || null,
+            fit: topsFit || null,
+          }
+        : null,
+      bottoms:
+        isBottomsSpecVisible && (bottomsLengthType || bottomsRiseType)
+          ? {
+              length_type: bottomsLengthType || undefined,
+              rise_type:
+                category === "pants" ? bottomsRiseType || undefined : undefined,
+            }
+          : null,
+      skirt: skirtSpecPayload,
+      legwear: resolvedLegwearCoverageType
+        ? {
+            coverage_type: resolvedLegwearCoverageType,
+          }
+        : null,
+    });
 
     return {
       name,
@@ -929,84 +963,12 @@ export default function NewItemPage() {
       is_rain_ok: isRainOk,
       category,
       subcategory: normalizedSubcategory,
-      shape: resolveItemShapeForSubmit(
-        category,
-        normalizedSubcategory,
-        currentShapeValue,
-      ),
+      shape: submitShape,
       colors,
       seasons: selectedSeasons,
       tpo_ids: selectedTpoIds,
       materials,
-      spec:
-        isTopsCategory && topsShape
-          ? {
-              tops: {
-                shape: topsShape,
-                sleeve: topsSleeve || null,
-                length: topsLength || null,
-                neck: topsNeck || null,
-                design: topsDesign || null,
-                fit: topsFit || null,
-              },
-              ...(skirtSpecPayload
-                ? {
-                    skirt: skirtSpecPayload,
-                  }
-                : isBottomsSpecVisible && (bottomsLengthType || bottomsRiseType)
-                  ? {
-                      bottoms: {
-                        length_type: bottomsLengthType || undefined,
-                        rise_type:
-                          category === "pants"
-                            ? bottomsRiseType || undefined
-                            : undefined,
-                      },
-                    }
-                  : {}),
-              ...(resolvedLegwearCoverageType
-                ? {
-                    legwear: {
-                      coverage_type: resolvedLegwearCoverageType,
-                    },
-                  }
-                : {}),
-            }
-          : skirtSpecPayload
-            ? {
-                skirt: skirtSpecPayload,
-                ...(resolvedLegwearCoverageType
-                  ? {
-                      legwear: {
-                        coverage_type: resolvedLegwearCoverageType,
-                      },
-                    }
-                  : {}),
-              }
-            : isBottomsSpecVisible && (bottomsLengthType || bottomsRiseType)
-              ? {
-                  bottoms: {
-                    length_type: bottomsLengthType || undefined,
-                    rise_type:
-                      category === "pants"
-                        ? bottomsRiseType || undefined
-                        : undefined,
-                  },
-                  ...(resolvedLegwearCoverageType
-                    ? {
-                        legwear: {
-                          coverage_type: resolvedLegwearCoverageType,
-                        },
-                      }
-                    : {}),
-                }
-              : resolvedLegwearCoverageType
-                ? {
-                    legwear: {
-                      coverage_type: resolvedLegwearCoverageType,
-                    },
-                  }
-                : null,
+      spec: submitSpec,
       images: itemImages,
     };
   }
