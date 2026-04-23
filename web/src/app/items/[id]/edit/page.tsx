@@ -569,10 +569,12 @@ export default function EditItemPage({
         }
 
         if (currentCategory === "tops") {
+          // `shape` を分類軸の正本として扱い、
+          // `spec.tops.shape` は移行期間中の互換 fallback としてだけ参照する。
           const resolvedShape =
             currentSubcategory === "other"
               ? ""
-              : ((tops?.shape ?? currentShape) as TopsShapeValue);
+              : ((currentShape || tops?.shape || "") as TopsShapeValue);
           setTopsShape(resolvedShape);
 
           const rule = TOPS_RULES[resolvedShape];

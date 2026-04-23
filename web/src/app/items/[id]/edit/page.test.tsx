@@ -385,6 +385,18 @@ describe("編集画面", () => {
   let container: HTMLDivElement;
   let root: ReturnType<typeof createRoot>;
 
+  async function openSizeDetails() {
+    const toggleButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent?.includes("実寸を入力"),
+    );
+    expect(toggleButton).not.toBeUndefined();
+
+    await act(async () => {
+      toggleButton!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      await waitForEffects();
+    });
+  }
+
   beforeEach(() => {
     vi.clearAllMocks();
     globalThis.IS_REACT_ACT_ENVIRONMENT = true;
@@ -560,7 +572,6 @@ describe("編集画面", () => {
       'input[list="item-material-name-options"]',
     );
     expect(materialInput?.value).toBe("綿");
-    expect(container.textContent).toContain("形");
     expect(container.textContent).toContain("分類");
     expect(container.textContent).toContain("色とプレビュー");
     expect(container.textContent).toContain("利用条件・状態");
@@ -581,6 +592,9 @@ describe("編集画面", () => {
     expect(
       (container.querySelector("#price") as HTMLInputElement | null)?.value,
     ).toBe("19800");
+
+    await openSizeDetails();
+
     expect(
       (
         container.querySelector(
@@ -892,9 +906,8 @@ describe("編集画面", () => {
 
     const subcategorySelect =
       container.querySelector<HTMLSelectElement>("#subcategory");
-    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
     expect(subcategorySelect?.value).toBe("underwear");
-    expect(shapeSelect?.value).toBe("underwear");
+    expect(container.querySelector("#shape")).toBeNull();
 
     await act(async () => {
       subcategorySelect!.value = "other";
@@ -902,7 +915,7 @@ describe("編集画面", () => {
       await waitForEffects();
     });
 
-    expect(shapeSelect?.value).toBe("roomwear");
+    expect(container.querySelector("#shape")).toBeNull();
   });
 
   it("編集画面でも pants の種類に応じて shape 候補を絞り込める", async () => {
@@ -926,8 +939,7 @@ describe("編集画面", () => {
       container.querySelector<HTMLSelectElement>("#subcategory");
     expect(categorySelect).not.toBeNull();
     expect(subcategorySelect).not.toBeNull();
-    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
-    expect(shapeSelect).not.toBeNull();
+    expect(container.querySelector("#shape")).toBeNull();
 
     await act(async () => {
       categorySelect!.value = "pants";
@@ -941,6 +953,8 @@ describe("編集画面", () => {
       await waitForEffects();
     });
 
+    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
+    expect(shapeSelect).not.toBeNull();
     expect(
       Array.from(shapeSelect!.options).map((option) => option.value),
     ).toEqual([
@@ -1302,11 +1316,9 @@ describe("編集画面", () => {
       container.querySelector<HTMLSelectElement>("#category");
     const subcategorySelect =
       container.querySelector<HTMLSelectElement>("#subcategory");
-    const initialShapeSelect =
-      container.querySelector<HTMLSelectElement>("#shape");
     expect(categorySelect).not.toBeNull();
     expect(subcategorySelect).not.toBeNull();
-    expect(initialShapeSelect).not.toBeNull();
+    expect(container.querySelector("#shape")).toBeNull();
 
     await act(async () => {
       categorySelect!.value = "outerwear";
@@ -1395,9 +1407,8 @@ describe("編集画面", () => {
 
     const categorySelect =
       container.querySelector<HTMLSelectElement>("#category");
-    let shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
     expect(categorySelect).not.toBeNull();
-    expect(shapeSelect).not.toBeNull();
+    expect(container.querySelector("#shape")).toBeNull();
 
     await act(async () => {
       categorySelect!.value = "bags";
@@ -1514,9 +1525,8 @@ describe("編集画面", () => {
 
     const categorySelect =
       container.querySelector<HTMLSelectElement>("#category");
-    let shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
     expect(categorySelect).not.toBeNull();
-    expect(shapeSelect).not.toBeNull();
+    expect(container.querySelector("#shape")).toBeNull();
 
     await act(async () => {
       categorySelect!.value = "fashion_accessories";
@@ -1734,8 +1744,7 @@ describe("編集画面", () => {
     });
 
     const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
-    expect(shapeSelect).not.toBeNull();
-    expect(shapeSelect!.value).toBe("tshirt");
+    expect(shapeSelect).toBeNull();
     expect(container.querySelector("#tops-shape")).toBeNull();
   });
 
@@ -1795,6 +1804,80 @@ describe("編集画面", () => {
     expect(container.querySelector("#tops-shape")).toBeNull();
   });
 
+  it("編集画面の tops restore は shape を優先する", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          item: createEditableItemResponse({
+            category: "tops",
+            subcategory: "shirt_blouse",
+            shape: "shirt",
+            spec: {
+              tops: {
+                shape: "blouse",
+              },
+            },
+          }),
+        }),
+      }),
+    );
+
+    const { default: EditItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(
+        React.createElement(EditItemPage, {
+          params: Promise.resolve({ id: "1" }),
+        }),
+      );
+      await waitForEffects();
+    });
+
+    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
+    expect(shapeSelect).not.toBeNull();
+    expect(shapeSelect!.value).toBe("shirt");
+  });
+
+  it("編集画面の tops restore は spec.tops.shape を fallback として使う", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          item: createEditableItemResponse({
+            category: "tops",
+            subcategory: "shirt_blouse",
+            shape: "",
+            spec: {
+              tops: {
+                shape: "blouse",
+              },
+            },
+          }),
+        }),
+      }),
+    );
+
+    const { default: EditItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(
+        React.createElement(EditItemPage, {
+          params: Promise.resolve({ id: "1" }),
+        }),
+      );
+      await waitForEffects();
+    });
+
+    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
+    expect(shapeSelect).not.toBeNull();
+    expect(shapeSelect!.value).toBe("blouse");
+  });
+
   it("編集画面でも tops の種類変更に応じて形と候補を連動する", async () => {
     const { default: EditItemPage } = await import("./page");
 
@@ -1818,10 +1901,25 @@ describe("編集画面", () => {
     });
 
     let shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
-    expect(shapeSelect).not.toBeNull();
-    expect(shapeSelect!.value).toBe("polo");
+    expect(shapeSelect).toBeNull();
     expect(container.querySelector("#tops-neck")).toBeNull();
     expect(container.querySelector("#tops-design")).toBeNull();
+
+    await act(async () => {
+      subcategorySelect!.value = "vest_gilet";
+      subcategorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    const vestNeckSelect =
+      container.querySelector<HTMLSelectElement>("#tops-neck");
+    expect(shapeSelect).toBeNull();
+    expect(container.querySelector("#tops-sleeve")).toBeNull();
+    expect(vestNeckSelect).not.toBeNull();
+    expect(vestNeckSelect!.value).toBe("crew");
+    expect(
+      Array.from(vestNeckSelect!.options).map((option) => option.value),
+    ).toEqual(["", "crew", "v", "boat", "turtle"]);
 
     await act(async () => {
       subcategorySelect!.value = "tanktop";
@@ -1857,7 +1955,7 @@ describe("編集画面", () => {
     expect(container.querySelector("#tops-neck")).toBeNull();
   });
 
-  it("編集画面でも swimwear は種類ラジオを表示し、shape を表示しない", async () => {
+  it("編集画面でも swimwear は種類 select を表示し、shape を表示しない", async () => {
     const { default: EditItemPage } = await import("./page");
 
     await act(async () => {
@@ -1879,20 +1977,18 @@ describe("編集画面", () => {
       await waitForEffects();
     });
 
-    const subcategoryRadios = Array.from(
-      container.querySelectorAll<HTMLInputElement>('input[name="subcategory"]'),
-    );
-
-    expect(subcategoryRadios.map((radio) => radio.value)).toEqual([
-      "swimwear",
-      "rashguard",
-      "other",
-    ]);
-    expect(subcategoryRadios[0]?.checked).toBe(true);
+    const subcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
+    expect(subcategorySelect).not.toBeNull();
+    expect(
+      Array.from(subcategorySelect!.options).map((option) => option.value),
+    ).toEqual(["", "swimwear", "rashguard", "other"]);
+    expect(subcategorySelect!.value).toBe("swimwear");
     expect(container.querySelector("#shape")).toBeNull();
 
     await act(async () => {
-      subcategoryRadios[1]!.click();
+      subcategorySelect!.value = "rashguard";
+      subcategorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
       await waitForEffects();
     });
 
@@ -1946,13 +2042,9 @@ describe("編集画面", () => {
       await waitForEffects();
     });
 
-    const subcategoryRadios = Array.from(
-      container.querySelectorAll<HTMLInputElement>('input[name="subcategory"]'),
-    );
-
-    expect(
-      subcategoryRadios.find((radio) => radio.value === "rashguard")?.checked,
-    ).toBe(true);
+    const subcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
+    expect(subcategorySelect?.value).toBe("rashguard");
     expect(container.querySelector("#shape")).toBeNull();
   });
 
@@ -2003,13 +2095,9 @@ describe("編集画面", () => {
       await waitForEffects();
     });
 
-    const subcategoryRadios = Array.from(
-      container.querySelectorAll<HTMLInputElement>('input[name="subcategory"]'),
-    );
-    expect(
-      subcategoryRadios.find((radio) => radio.value === "leather_shoes")
-        ?.checked,
-    ).toBe(true);
+    const subcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
+    expect(subcategorySelect?.value).toBe("leather_shoes");
     expect(container.querySelector("#shape")).toBeNull();
   });
 
@@ -2060,16 +2148,12 @@ describe("編集画面", () => {
       await waitForEffects();
     });
 
-    const subcategoryRadios = Array.from(
-      container.querySelectorAll<HTMLInputElement>('input[name="subcategory"]'),
-    );
-    expect(
-      subcategoryRadios.find((radio) => radio.value === "rain_shoes_boots")
-        ?.checked,
-    ).toBe(true);
+    const subcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
+    expect(subcategorySelect?.value).toBe("rain_shoes_boots");
     expect(container.querySelector("#shape")).toBeNull();
   });
-  it("編集画面でも shoes は種類ラジオに応じて shape を自動設定できる", async () => {
+  it("編集画面でも shoes は種類 select を表示し、選択に応じて shape を自動設定できる", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn().mockResolvedValue({
@@ -2116,12 +2200,15 @@ describe("編集画面", () => {
       await waitForEffects();
     });
 
-    const subcategoryRadios = Array.from(
-      container.querySelectorAll<HTMLInputElement>('input[name="subcategory"]'),
-    );
+    const subcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
     const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
 
-    expect(subcategoryRadios.map((radio) => radio.value)).toEqual([
+    expect(subcategorySelect).not.toBeNull();
+    expect(
+      Array.from(subcategorySelect!.options).map((option) => option.value),
+    ).toEqual([
+      "",
       "sneakers",
       "pumps",
       "boots",
@@ -2130,11 +2217,12 @@ describe("編集画面", () => {
       "rain_shoes_boots",
       "other",
     ]);
-    expect(subcategoryRadios[0]?.checked).toBe(true);
+    expect(subcategorySelect!.value).toBe("sneakers");
     expect(container.querySelector("#shape")).toBeNull();
 
     await act(async () => {
-      subcategoryRadios[2]!.click();
+      subcategorySelect!.value = "boots";
+      subcategorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
       await waitForEffects();
     });
 

@@ -910,6 +910,72 @@ describe("新規登録画面", () => {
     expect(container.textContent).toContain("ブランド候補にも追加する");
   });
 
+  it("purchase candidate draft の tops restore は shape を優先する", async () => {
+    searchParamsSourceValue = "purchase-candidate";
+    const draft = createValidPurchaseCandidateItemDraft();
+    window.sessionStorage.setItem(
+      "purchase-candidate-item-draft",
+      JSON.stringify({
+        ...draft,
+        item_draft: {
+          ...draft.item_draft,
+          category: "tops",
+          subcategory: "shirt_blouse",
+          shape: "shirt",
+          spec: {
+            tops: {
+              shape: "blouse",
+            },
+          },
+        },
+      }),
+    );
+
+    const { default: NewItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(NewItemPage));
+      await waitForEffects();
+    });
+
+    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
+    expect(shapeSelect).not.toBeNull();
+    expect(shapeSelect!.value).toBe("shirt");
+  });
+
+  it("purchase candidate draft の tops restore は spec.tops.shape を fallback として使う", async () => {
+    searchParamsSourceValue = "purchase-candidate";
+    const draft = createValidPurchaseCandidateItemDraft();
+    window.sessionStorage.setItem(
+      "purchase-candidate-item-draft",
+      JSON.stringify({
+        ...draft,
+        item_draft: {
+          ...draft.item_draft,
+          category: "tops",
+          subcategory: "shirt_blouse",
+          shape: "",
+          spec: {
+            tops: {
+              shape: "blouse",
+            },
+          },
+        },
+      }),
+    );
+
+    const { default: NewItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(NewItemPage));
+      await waitForEffects();
+    });
+
+    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
+    expect(shapeSelect).not.toBeNull();
+    expect(shapeSelect!.value).toBe("blouse");
+  });
+
   it("季節のオールを排他的に切り替える", async () => {
     const { default: NewItemPage } = await import("./page");
 

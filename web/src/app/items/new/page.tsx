@@ -498,9 +498,11 @@ export default function NewItemPage() {
       ) ?? "",
     );
     setShape(draft.shape);
+    // `shape` を分類軸の正本として扱い、
+    // `spec.tops.shape` は移行期間中の互換 fallback としてだけ参照する。
     setTopsShape(
-      (draft.spec?.tops?.shape as TopsShapeValue | undefined) ??
-        (draft.shape as TopsShapeValue | undefined) ??
+      (draft.shape as TopsShapeValue | undefined) ||
+        (draft.spec?.tops?.shape as TopsShapeValue | undefined) ||
         "",
     );
     setTopsSleeve(
