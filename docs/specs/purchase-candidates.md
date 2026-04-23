@@ -816,9 +816,12 @@ type ItemSpec = {
 
 補足:
 
-- 現行 API / item-draft 互換では `spec.tops.shape` を含む shape が残る
-- ただし概念上は `shape` を分類軸として扱い、`spec` はその先の詳細属性として整理する
-- 互換 shape の扱いは、実装修正時に item 側との整合を見ながら段階的に整理する
+- `shape` は分類軸の正本として扱う
+- 現行 API / item-draft 互換では `spec.tops.shape` が残るが、これは恒久仕様ではなく当面の互換値として扱う
+- tops 再導入時も `shape` を分類軸、`spec` をその先の詳細属性として扱う
+- tops の restore は将来的に `shape` を優先し、`spec.tops.shape` は fallback として扱う
+- tops の submit は移行期間中、`shape` と互換 `spec.tops.shape` の両方を扱ってよい
+- 互換 shape の扱いは、実装修正時に item 側との整合を見ながら段階的に縮退する
 
 ### 初期の入力方針
 
@@ -911,6 +914,8 @@ Phase 1:
 - 初期は `nullable` で運用する
 - item 化時に `spec` を引き継ぐ
 - item 側コードとの共通化は、型・入力定義・helper の流用を第一候補とする
+- tops spec は Phase 1 では未対応のため dormant 扱いでよい
+- tops の `spec.tops.shape` は item-draft / API 互換のため当面残る
 
 Phase 2:
 
