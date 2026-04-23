@@ -442,9 +442,9 @@ wear logs も本資料の対象とし、その保存方針を定義します。
 - lower-body 系では、丈は原則 `spec` に寄せ、テーパード / フレアのような型差は `shape` に寄せる前提を優先する
 - `pants` の `spec.bottoms.length_type` は、まず `mini / short / half / cropped / full` を候補とし、短さの違いは category ではなく spec で持つ前提を優先する
 - `shape` は分類軸の正本として扱う
-- `tops` は現行実装では `spec.tops.shape` に種類名相当の値が残るが、これは恒久仕様ではなく互換整理対象とする
-- 移行期間中は `spec.tops.shape` を互換値として残しつつ、将来的な正本は `shape` に寄せる
-- restore は将来的に `shape` 優先、`spec.tops.shape` fallback とし、submit も移行期間中だけ両方を扱う前提とする
+- `tops` では旧データに `spec.tops.shape` 相当の値が残りうるが、これは恒久仕様ではなく互換整理対象とする
+- 現行実装の分類軸の正本は `shape` であり、restore / submit / response は `spec.tops.shape` を新規には参照しない
+- 古いローカル下書きや旧データ読込の互換整理は段階的に縮退する前提とする
 - カテゴリ再編の方針としては種類名として定着したものを中分類に寄せ、首元・袖・fit・丈を `shape / spec` 側へ寄せる方向で整理する
 - `is_rain_ok` は正式項目として持ち、初期値は `false` とする
 - 雨対応はまず boolean で表現し、`weather_tags` のような拡張は後回しにする

@@ -124,7 +124,6 @@ import {
   resolveItemShapeForSubmit,
   shouldShowItemShapeField,
 } from "@/lib/items/input-requirements";
-import { readLegacyTopsSpecShape } from "@/lib/items/tops-shape-compat";
 import type { UserTpoRecord } from "@/types/settings";
 import type { StructuredSizeFieldName } from "@/types/items";
 
@@ -501,13 +500,8 @@ export default function NewItemPage() {
       ) ?? "",
     );
     setShape(draft.shape);
-    // `shape` を分類軸の正本として扱い、
-    // `spec.tops.shape` は移行期間中の互換 fallback としてだけ参照する。
-    setTopsShape(
-      (draft.shape as TopsShapeValue | undefined) ||
-        (readLegacyTopsSpecShape(draft.spec) as TopsShapeValue | undefined) ||
-        "",
-    );
+    // `shape` を分類軸の正本として復元する。
+    setTopsShape((draft.shape as TopsShapeValue | undefined) || "");
     setTopsSleeve(
       (draft.spec?.tops?.sleeve as TopsSleeveValue | undefined) ?? "",
     );

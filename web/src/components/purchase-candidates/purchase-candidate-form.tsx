@@ -70,7 +70,6 @@ import {
   normalizeItemSizeDetails,
   type EditableCustomSizeField,
 } from "@/lib/items/size-details";
-import { readLegacyTopsSpecShape } from "@/lib/items/tops-shape-compat";
 import { resolvePurchaseCandidateItemClassification } from "@/lib/items/classification";
 import {
   PURCHASE_CANDIDATE_PRIORITY_LABELS,
@@ -149,9 +148,10 @@ function resolvePurchaseCandidateSpecFormState(
     resolvePurchaseCandidateItemClassification(categoryId);
   const topsShapeOptions = getTopsShapeOptions(resolvedCategory?.subcategory);
   const topsShape = (() => {
-    const rawShape = readLegacyTopsSpecShape(spec) as
-      | TopsShapeValue
-      | undefined;
+    const rawShape =
+      resolvedCategory?.category === "tops"
+        ? (resolvedCategory.shape as TopsShapeValue | undefined)
+        : undefined;
 
     if (
       rawShape &&
@@ -1018,9 +1018,7 @@ export default function PurchaseCandidateForm({
         mode === "create" ? variantSourceCandidateId : undefined,
       spec: (() => {
         if (isTopsSpecVisible && resolvedTopsShape) {
-          const nextSpec: NonNullable<ItemSpec["tops"]> = {
-            shape: resolvedTopsShape,
-          };
+          const nextSpec: NonNullable<ItemSpec["tops"]> = {};
 
           if (topsSleeve) {
             nextSpec.sleeve = topsSleeve;

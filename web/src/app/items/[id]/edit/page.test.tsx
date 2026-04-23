@@ -1884,43 +1884,6 @@ describe("編集画面", () => {
     expect(sleeveSelect!.value).toBe("long");
   });
 
-  it("旧互換: 編集画面の tops restore は spec.tops.shape を fallback として使う", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockResolvedValue({
-        ok: true,
-        status: 200,
-        json: async () => ({
-          item: createEditableItemResponse({
-            category: "tops",
-            subcategory: "shirt_blouse",
-            shape: "",
-            spec: {
-              tops: {
-                shape: "blouse",
-              },
-            },
-          }),
-        }),
-      }),
-    );
-
-    const { default: EditItemPage } = await import("./page");
-
-    await act(async () => {
-      root.render(
-        React.createElement(EditItemPage, {
-          params: Promise.resolve({ id: "1" }),
-        }),
-      );
-      await waitForEffects();
-    });
-
-    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
-    expect(shapeSelect).not.toBeNull();
-    expect(shapeSelect!.value).toBe("blouse");
-  });
-
   it("編集画面の tops submit は shape を正本として送信する", async () => {
     let putPayload: Record<string, unknown> | null = null;
 
@@ -1997,87 +1960,6 @@ describe("編集画面", () => {
 
     expect(putPayload).not.toBeNull();
     expect(putPayload?.shape).toBe("shirt");
-    expect(
-      (putPayload?.spec as { tops?: { shape?: string } })?.tops?.shape,
-    ).toBeUndefined();
-  });
-
-  it("編集画面の tops submit は互換 fallback を維持する", async () => {
-    let putPayload: Record<string, unknown> | null = null;
-
-    vi.stubGlobal(
-      "fetch",
-      vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
-        const url = String(input);
-
-        if (!init || !init.method || init.method === "GET") {
-          return Promise.resolve({
-            ok: true,
-            status: 200,
-            json: async () => ({
-              item: createEditableItemResponse({
-                category: "tops",
-                subcategory: "shirt_blouse",
-                shape: "",
-                spec: {
-                  tops: {
-                    shape: "blouse",
-                  },
-                },
-              }),
-            }),
-          });
-        }
-
-        if (url === "/api/items/1" && init.method === "PUT") {
-          putPayload = JSON.parse(init.body as string) as Record<
-            string,
-            unknown
-          >;
-          return Promise.resolve({
-            ok: true,
-            status: 200,
-            json: async () => ({
-              item: createEditableItemResponse({
-                category: "tops",
-                subcategory: "shirt_blouse",
-                shape: "blouse",
-              }),
-            }),
-          });
-        }
-
-        return Promise.resolve({
-          ok: true,
-          status: 200,
-          json: async () => ({ item: createEditableItemResponse() }),
-        });
-      }),
-    );
-
-    const { default: EditItemPage } = await import("./page");
-
-    await act(async () => {
-      root.render(
-        React.createElement(EditItemPage, {
-          params: Promise.resolve({ id: "1" }),
-        }),
-      );
-      await waitForEffects();
-    });
-
-    const form = container.querySelector("form");
-    expect(form).not.toBeNull();
-
-    await act(async () => {
-      form!.dispatchEvent(
-        new Event("submit", { bubbles: true, cancelable: true }),
-      );
-      await waitForEffects();
-    });
-
-    expect(putPayload).not.toBeNull();
-    expect(putPayload?.shape).toBe("blouse");
     expect(
       (putPayload?.spec as { tops?: { shape?: string } })?.tops?.shape,
     ).toBeUndefined();

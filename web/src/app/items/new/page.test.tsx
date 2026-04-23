@@ -982,39 +982,6 @@ describe("新規登録画面", () => {
     expect(sleeveSelect!.value).toBe("long");
   });
 
-  it("旧互換: purchase candidate draft の tops restore は spec.tops.shape を fallback として使う", async () => {
-    searchParamsSourceValue = "purchase-candidate";
-    const draft = createValidPurchaseCandidateItemDraft();
-    window.sessionStorage.setItem(
-      "purchase-candidate-item-draft",
-      JSON.stringify({
-        ...draft,
-        item_draft: {
-          ...draft.item_draft,
-          category: "tops",
-          subcategory: "shirt_blouse",
-          shape: "",
-          spec: {
-            tops: {
-              shape: "blouse",
-            },
-          },
-        },
-      }),
-    );
-
-    const { default: NewItemPage } = await import("./page");
-
-    await act(async () => {
-      root.render(React.createElement(NewItemPage));
-      await waitForEffects();
-    });
-
-    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
-    expect(shapeSelect).not.toBeNull();
-    expect(shapeSelect!.value).toBe("blouse");
-  });
-
   it("purchase candidate draft の tops / other restore は shape 未解決を維持する", async () => {
     searchParamsSourceValue = "purchase-candidate";
     const draft = createValidPurchaseCandidateItemDraft();
@@ -1101,59 +1068,6 @@ describe("新規登録画面", () => {
     const payload = JSON.parse(requestInit.body as string);
 
     expect(payload.shape).toBe("shirt");
-    expect(payload.spec?.tops?.shape).toBeUndefined();
-  });
-
-  it("旧互換: purchase candidate draft の tops restore→submit は互換 fallback を維持する", async () => {
-    searchParamsSourceValue = "purchase-candidate";
-    const draft = createValidPurchaseCandidateItemDraft();
-    window.sessionStorage.setItem(
-      "purchase-candidate-item-draft",
-      JSON.stringify({
-        ...draft,
-        item_draft: {
-          ...draft.item_draft,
-          category: "tops",
-          subcategory: "shirt_blouse",
-          shape: "",
-          spec: {
-            tops: {
-              shape: "blouse",
-            },
-          },
-        },
-      }),
-    );
-
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      status: 201,
-      json: async () => ({ id: 1 }),
-    });
-    vi.stubGlobal("fetch", fetchMock);
-
-    const { default: NewItemPage } = await import("./page");
-
-    await act(async () => {
-      root.render(React.createElement(NewItemPage));
-      await waitForEffects();
-    });
-
-    const form = container.querySelector("form");
-    expect(form).not.toBeNull();
-
-    await act(async () => {
-      form!.dispatchEvent(
-        new Event("submit", { bubbles: true, cancelable: true }),
-      );
-      await waitForEffects();
-    });
-
-    expect(fetchMock).toHaveBeenCalledTimes(1);
-    const [, requestInit] = fetchMock.mock.calls[0];
-    const payload = JSON.parse(requestInit.body as string);
-
-    expect(payload.shape).toBe("blouse");
     expect(payload.spec?.tops?.shape).toBeUndefined();
   });
 
