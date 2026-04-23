@@ -39,5 +39,9 @@ export function getTopsShapeOptions(subcategory?: string | null) {
     return TOPS_SHAPES;
   }
 
+  if (allowedValues.length === 0) {
+    return TOPS_SHAPES;
+  }
+
   return TOPS_SHAPES.filter((item) => allowedValues.includes(item.value));
 }

@@ -8,6 +8,9 @@ import {
 describe("item input requirements", () => {
   it("候補が複数ある種類では形を必須にする", () => {
     expect(isItemShapeRequired("outerwear", "coat")).toBe(true);
+    expect(isItemShapeRequired("pants", "denim")).toBe(true);
+    expect(isItemShapeRequired("skirts", "skirt")).toBe(true);
+    expect(isItemShapeRequired("tops", "shirt_blouse")).toBe(true);
   });
 
   it("候補が1件または other の種類では形を任意寄りにする", () => {
@@ -28,16 +31,34 @@ describe("item input requirements", () => {
     expect(isItemShapeRequired("inner", "roomwear")).toBe(false);
     expect(isItemShapeRequired("inner", "other")).toBe(false);
     expect(isItemShapeRequired("inner", null)).toBe(false);
+    expect(isItemShapeRequired("tops", "hoodie")).toBe(false);
     expect(isItemShapeRequired("tops", "other")).toBe(false);
     expect(isItemShapeRequired("kimono", "other")).toBe(false);
   });
-  it("other 系の一部カテゴリでは shape UI を出さない", () => {
+  it("形が不要なカテゴリや種類では shape UI を出さない", () => {
+    expect(shouldShowItemShapeField(undefined, undefined)).toBe(false);
+    expect(shouldShowItemShapeField("onepiece_dress", "dress")).toBe(false);
+    expect(shouldShowItemShapeField("allinone", "allinone")).toBe(false);
+    expect(shouldShowItemShapeField("inner", "roomwear")).toBe(false);
+    expect(shouldShowItemShapeField("legwear", "socks")).toBe(false);
+    expect(shouldShowItemShapeField("shoes", "sneakers")).toBe(false);
+    expect(shouldShowItemShapeField("bags", "other")).toBe(false);
     expect(shouldShowItemShapeField("outerwear", null)).toBe(false);
-    expect(shouldShowItemShapeField("tops", "other")).toBe(false);
+    expect(shouldShowItemShapeField("outerwear", "blouson")).toBe(false);
+    expect(shouldShowItemShapeField("outerwear", "other")).toBe(false);
     expect(shouldShowItemShapeField("pants", "other")).toBe(false);
     expect(shouldShowItemShapeField("skirts", "other")).toBe(false);
-    expect(shouldShowItemShapeField("outerwear", "other")).toBe(false);
-    expect(shouldShowItemShapeField("bags", "other")).toBe(false);
+    expect(shouldShowItemShapeField("tops", null)).toBe(false);
+    expect(shouldShowItemShapeField("tops", "hoodie")).toBe(false);
+    expect(shouldShowItemShapeField("tops", "other")).toBe(false);
+  });
+
+  it("種類だけで shape が一意に決まらない場合は shape UI を出す", () => {
+    expect(shouldShowItemShapeField("pants", "denim")).toBe(true);
+    expect(shouldShowItemShapeField("skirts", "skirt")).toBe(true);
+    expect(shouldShowItemShapeField("outerwear", "jacket")).toBe(true);
+    expect(shouldShowItemShapeField("outerwear", "coat")).toBe(true);
+    expect(shouldShowItemShapeField("tops", "shirt_blouse")).toBe(true);
   });
 
   it("任意寄りのときは送信用の形を自動補完する", () => {
@@ -64,7 +85,15 @@ describe("item input requirements", () => {
     expect(resolveItemShapeForSubmit("inner", "roomwear", "")).toBe("roomwear");
     expect(resolveItemShapeForSubmit("inner", "other", "")).toBe("roomwear");
     expect(resolveItemShapeForSubmit("inner", null, "")).toBe("roomwear");
+    expect(resolveItemShapeForSubmit("tops", "hoodie", "")).toBe("hoodie");
     expect(resolveItemShapeForSubmit("tops", "other", "")).toBe("");
     expect(resolveItemShapeForSubmit("kimono", "other", "")).toBe("kimono");
+  });
+
+  it("shape が複数候補に分かれる種類では明示入力を要求する", () => {
+    expect(resolveItemShapeForSubmit("pants", "denim", "")).toBe("");
+    expect(resolveItemShapeForSubmit("skirts", "skirt", "")).toBe("");
+    expect(resolveItemShapeForSubmit("outerwear", "coat", "")).toBe("");
+    expect(resolveItemShapeForSubmit("tops", "shirt_blouse", "")).toBe("");
   });
 });

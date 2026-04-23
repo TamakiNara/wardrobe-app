@@ -714,7 +714,7 @@ describe("新規登録画面", () => {
       "着物",
     ]);
     expect(container.textContent).toContain("カテゴリ");
-    expect(container.textContent).toContain("形");
+    expect(container.textContent).not.toContain("形");
     expect(container.textContent).toContain("分類");
     expect(container.textContent).toContain("アイテム管理");
     expect(container.textContent).toContain("新規作成");
@@ -968,15 +968,17 @@ describe("新規登録画面", () => {
 
     const subcategorySelect =
       container.querySelector<HTMLSelectElement>("#subcategory");
-    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
     expect(subcategorySelect).not.toBeNull();
-    expect(shapeSelect).not.toBeNull();
+    expect(container.querySelector("#shape")).toBeNull();
 
     await act(async () => {
       subcategorySelect!.value = "denim";
       subcategorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
       await waitForEffects();
     });
+
+    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
+    expect(shapeSelect).not.toBeNull();
 
     await act(async () => {
       shapeSelect!.value = "straight";
@@ -1010,15 +1012,17 @@ describe("新規登録画面", () => {
 
     const subcategorySelect =
       container.querySelector<HTMLSelectElement>("#subcategory");
-    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
     expect(subcategorySelect).not.toBeNull();
-    expect(shapeSelect).not.toBeNull();
+    expect(container.querySelector("#shape")).toBeNull();
 
     await act(async () => {
       subcategorySelect!.value = "denim";
       subcategorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
       await waitForEffects();
     });
+
+    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
+    expect(shapeSelect).not.toBeNull();
 
     expect(container.textContent).toContain("丈");
     expect(container.textContent).toContain("股上");
@@ -1300,7 +1304,7 @@ describe("新規登録画面", () => {
     );
   });
 
-  it("roomwear_inner は種類に応じて shape を自動設定できる", async () => {
+  it("roomwear_inner は形を表示せず種類に応じて内部補完する", async () => {
     const { default: NewItemPage } = await import("./page");
 
     await act(async () => {
@@ -1310,9 +1314,7 @@ describe("新規登録画面", () => {
 
     const categorySelect =
       container.querySelector<HTMLSelectElement>("#category");
-    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
     expect(categorySelect).not.toBeNull();
-    expect(shapeSelect).not.toBeNull();
 
     await act(async () => {
       categorySelect!.value = "inner";
@@ -1330,7 +1332,7 @@ describe("新規登録画面", () => {
       await waitForEffects();
     });
 
-    expect(shapeSelect!.value).toBe("underwear");
+    expect(container.querySelector("#shape")).toBeNull();
 
     await act(async () => {
       subcategorySelect!.value = "other";
@@ -1338,7 +1340,7 @@ describe("新規登録画面", () => {
       await waitForEffects();
     });
 
-    expect(shapeSelect!.value).toBe("roomwear");
+    expect(container.querySelector("#shape")).toBeNull();
   });
 
   it("ボトムス丈とソックスの未選択時に分かりやすいエラーを表示する", async () => {
@@ -1361,15 +1363,17 @@ describe("新規登録画面", () => {
 
     const subcategorySelect =
       container.querySelector<HTMLSelectElement>("#subcategory");
-    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
     expect(subcategorySelect).not.toBeNull();
-    expect(shapeSelect).not.toBeNull();
+    expect(container.querySelector("#shape")).toBeNull();
 
     await act(async () => {
       subcategorySelect!.value = "denim";
       subcategorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
       await waitForEffects();
     });
+
+    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
+    expect(shapeSelect).not.toBeNull();
 
     await act(async () => {
       shapeSelect!.value = "straight";
@@ -1449,15 +1453,17 @@ describe("新規登録画面", () => {
 
     const subcategorySelect =
       container.querySelector<HTMLSelectElement>("#subcategory");
-    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
     expect(subcategorySelect).not.toBeNull();
-    expect(shapeSelect).not.toBeNull();
+    expect(container.querySelector("#shape")).toBeNull();
 
     await act(async () => {
       subcategorySelect!.value = "denim";
       subcategorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
       await waitForEffects();
     });
+
+    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
+    expect(shapeSelect).not.toBeNull();
 
     expect(
       Array.from(shapeSelect!.options).map((option) => option.value),
@@ -1661,7 +1667,7 @@ describe("新規登録画面", () => {
     expect(container.querySelector("#shape")).toBeNull();
   });
 
-  it("onepiece_dress と allinone は種類に応じて shape 候補を絞り込む", async () => {
+  it("onepiece_dress と allinone は形を表示せず内部補完する", async () => {
     const { default: NewItemPage } = await import("./page");
 
     await act(async () => {
@@ -1683,7 +1689,7 @@ describe("新規登録画面", () => {
       container.querySelector<HTMLSelectElement>("#subcategory");
     let shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
     expect(subcategorySelect).not.toBeNull();
-    expect(shapeSelect).not.toBeNull();
+    expect(shapeSelect).toBeNull();
 
     await act(async () => {
       subcategorySelect!.value = "onepiece";
@@ -1691,10 +1697,7 @@ describe("新規登録画面", () => {
       await waitForEffects();
     });
 
-    expect(
-      Array.from(shapeSelect!.options).map((option) => option.value),
-    ).toEqual(["", "onepiece"]);
-    expect(shapeSelect!.value).toBe("onepiece");
+    expect(container.querySelector("#shape")).toBeNull();
 
     await act(async () => {
       subcategorySelect!.value = "dress";
@@ -1702,10 +1705,7 @@ describe("新規登録画面", () => {
       await waitForEffects();
     });
 
-    expect(
-      Array.from(shapeSelect!.options).map((option) => option.value),
-    ).toEqual(["", "dress"]);
-    expect(shapeSelect!.value).toBe("dress");
+    expect(container.querySelector("#shape")).toBeNull();
 
     await act(async () => {
       categorySelect!.value = "allinone";
@@ -1861,7 +1861,7 @@ describe("新規登録画面", () => {
     expect(container.querySelector("#shape")).toBeNull();
   });
 
-  it("swimwear は種類ラジオを表示し、shape を表示しない", async () => {
+  it("swimwear は種類 select を表示し、shape を表示しない", async () => {
     const { default: NewItemPage } = await import("./page");
 
     await act(async () => {
@@ -1879,27 +1879,25 @@ describe("新規登録画面", () => {
       await waitForEffects();
     });
 
-    const subcategoryRadios = Array.from(
-      container.querySelectorAll<HTMLInputElement>('input[name="subcategory"]'),
-    );
-
-    expect(subcategoryRadios.map((radio) => radio.value)).toEqual([
-      "swimwear",
-      "rashguard",
-      "other",
-    ]);
-    expect(subcategoryRadios[0]?.checked).toBe(true);
+    const subcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
+    expect(subcategorySelect).not.toBeNull();
+    expect(
+      Array.from(subcategorySelect!.options).map((option) => option.value),
+    ).toEqual(["", "swimwear", "rashguard", "other"]);
+    expect(subcategorySelect!.value).toBe("swimwear");
     expect(container.querySelector("#shape")).toBeNull();
 
     await act(async () => {
-      subcategoryRadios[1]!.click();
+      subcategorySelect!.value = "rashguard";
+      subcategorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
       await waitForEffects();
     });
 
     expect(container.querySelector("#shape")).toBeNull();
   });
 
-  it("shoes は種類ラジオを表示し、選択に応じて shape を自動設定できる", async () => {
+  it("shoes は種類 select を表示し、選択に応じて shape を自動設定できる", async () => {
     const { default: NewItemPage } = await import("./page");
 
     await act(async () => {
@@ -1917,12 +1915,15 @@ describe("新規登録画面", () => {
       await waitForEffects();
     });
 
-    const subcategoryRadios = Array.from(
-      container.querySelectorAll<HTMLInputElement>('input[name="subcategory"]'),
-    );
+    const subcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
     const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
 
-    expect(subcategoryRadios.map((radio) => radio.value)).toEqual([
+    expect(subcategorySelect).not.toBeNull();
+    expect(
+      Array.from(subcategorySelect!.options).map((option) => option.value),
+    ).toEqual([
+      "",
       "sneakers",
       "pumps",
       "boots",
@@ -1931,20 +1932,58 @@ describe("新規登録画面", () => {
       "rain_shoes_boots",
       "other",
     ]);
-    expect(subcategoryRadios[0]?.checked).toBe(true);
+    expect(subcategorySelect!.value).toBe("sneakers");
     expect(shapeSelect).toBeNull();
 
     await act(async () => {
-      subcategoryRadios[2]!.click();
+      subcategorySelect!.value = "boots";
+      subcategorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
       await waitForEffects();
     });
 
     expect(container.querySelector("#shape")).toBeNull();
 
     await act(async () => {
-      subcategoryRadios[4]!.click();
+      subcategorySelect!.value = "leather_shoes";
+      subcategorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
       await waitForEffects();
     });
+  });
+
+  it("kimono は種類 select を表示し、shape を表示しない", async () => {
+    const { default: NewItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(NewItemPage));
+      await waitForEffects();
+    });
+
+    const categorySelect =
+      container.querySelector<HTMLSelectElement>("#category");
+    expect(categorySelect).not.toBeNull();
+
+    await act(async () => {
+      categorySelect!.value = "kimono";
+      categorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    const subcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
+    expect(subcategorySelect).not.toBeNull();
+    expect(
+      Array.from(subcategorySelect!.options).map((option) => option.value),
+    ).toEqual(["", "kimono", "yukata", "japanese_accessory", "other"]);
+    expect(subcategorySelect!.value).toBe("kimono");
+    expect(container.querySelector("#shape")).toBeNull();
+
+    await act(async () => {
+      subcategorySelect!.value = "yukata";
+      subcategorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    expect(container.querySelector("#shape")).toBeNull();
   });
 
   it("fashion_accessories の other では形を任意寄りで扱う", async () => {
@@ -1978,7 +2017,7 @@ describe("新規登録画面", () => {
     expect(container.querySelector("#shape")).toBeNull();
   });
 
-  it("tops で候補が1つの形を自動選択する", async () => {
+  it("tops で候補が1つの形は表示せず内部補完する", async () => {
     const { default: NewItemPage } = await import("./page");
 
     await act(async () => {
@@ -1998,9 +2037,8 @@ describe("新規登録画面", () => {
 
     const subcategorySelect =
       container.querySelector<HTMLSelectElement>("#subcategory");
-    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
     expect(subcategorySelect).not.toBeNull();
-    expect(shapeSelect).not.toBeNull();
+    expect(container.querySelector("#shape")).toBeNull();
 
     await act(async () => {
       subcategorySelect!.value = "hoodie";
@@ -2008,11 +2046,7 @@ describe("新規登録画面", () => {
       await waitForEffects();
     });
 
-    expect(
-      Array.from(shapeSelect!.options).map((option) => option.value),
-    ).toEqual(["", "hoodie"]);
-    expect(shapeSelect!.value).toBe("hoodie");
-    expect(shapeSelect!.disabled).toBe(true);
+    expect(container.querySelector("#shape")).toBeNull();
     expect(container.querySelector("#tops-neck")).toBeNull();
     expect(container.querySelector("#tops-shape")).toBeNull();
   });
@@ -2046,8 +2080,7 @@ describe("新規登録画面", () => {
     });
 
     let shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
-    expect(shapeSelect).not.toBeNull();
-    expect(shapeSelect!.value).toBe("polo");
+    expect(shapeSelect).toBeNull();
     expect(container.querySelector("#tops-neck")).toBeNull();
     expect(container.querySelector("#tops-design")).toBeNull();
 
@@ -2060,8 +2093,7 @@ describe("新規登録画面", () => {
     shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
     const vestNeckSelect =
       container.querySelector<HTMLSelectElement>("#tops-neck");
-    expect(shapeSelect).not.toBeNull();
-    expect(shapeSelect!.value).toBe("vest");
+    expect(shapeSelect).toBeNull();
     expect(container.querySelector("#tops-sleeve")).toBeNull();
     expect(vestNeckSelect).not.toBeNull();
     expect(vestNeckSelect!.value).toBe("crew");
@@ -2138,11 +2170,8 @@ describe("新規登録画面", () => {
     const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
     const shapeLabel =
       container.querySelector<HTMLLabelElement>('label[for="shape"]');
-    expect(shapeSelect).not.toBeNull();
-    expect(shapeLabel).not.toBeNull();
-    expect(shapeSelect!.value).toBe("blouson");
-    expect(shapeSelect!.disabled).toBe(true);
-    expect(shapeLabel?.textContent).not.toContain("必須");
+    expect(shapeSelect).toBeNull();
+    expect(shapeLabel).toBeNull();
   });
 
   it("固定項目と自由項目の重複は短い警告文で表示する", async () => {
@@ -2155,9 +2184,7 @@ describe("新規登録画面", () => {
 
     const categorySelect =
       container.querySelector<HTMLSelectElement>("#category");
-    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
     expect(categorySelect).not.toBeNull();
-    expect(shapeSelect).not.toBeNull();
 
     await act(async () => {
       categorySelect!.value = "tops";
@@ -2165,9 +2192,13 @@ describe("新規登録画面", () => {
       await waitForEffects();
     });
 
+    const subcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
+    expect(subcategorySelect).not.toBeNull();
+
     await act(async () => {
-      shapeSelect!.value = "tshirt";
-      shapeSelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      subcategorySelect!.value = "tshirt_cutsew";
+      subcategorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
       await waitForEffects();
     });
 
@@ -2332,9 +2363,8 @@ describe("新規登録画面", () => {
 
     const subcategorySelect =
       container.querySelector<HTMLSelectElement>("#subcategory");
-    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
     expect(subcategorySelect).not.toBeNull();
-    expect(shapeSelect).not.toBeNull();
+    expect(container.querySelector("#shape")).toBeNull();
 
     await act(async () => {
       subcategorySelect!.value = "denim";
@@ -2348,6 +2378,9 @@ describe("新規登録画面", () => {
     expect(container.textContent).toContain(
       "現在のカテゴリと形に対応する固定実寸はありません。必要なら自由項目を追加してください。",
     );
+
+    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
+    expect(shapeSelect).not.toBeNull();
 
     await act(async () => {
       shapeSelect!.value = "straight";
