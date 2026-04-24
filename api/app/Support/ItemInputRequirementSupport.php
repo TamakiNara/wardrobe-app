@@ -21,7 +21,7 @@ class ItemInputRequirementSupport
             'other' => [],
         ],
         'outerwear' => [
-            'jacket' => ['jacket', 'tailored', 'no_collar'],
+            'jacket' => ['jacket', 'tailored', 'no_collar', 'blazer'],
             'coat' => ['coat', 'trench', 'chester', 'stainless'],
             'blouson' => ['blouson'],
             'down_padded' => ['down-padded'],

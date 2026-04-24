@@ -560,4 +560,114 @@ describe("PurchaseCandidateDetailPage", () => {
     expect(markup).toContain("デザイン");
     expect(markup).toContain("プリーツ");
   });
+  it("legwear spec の詳細画面でルーズソックスを表示する", async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        purchaseCandidate: {
+          id: 23,
+          status: "considering",
+          priority: "medium",
+          name: "ルーズソックス候補",
+          category_id: "legwear_socks",
+          category_name: "ソックス",
+          brand_name: null,
+          price: null,
+          sale_price: null,
+          sale_ends_at: null,
+          purchase_url: null,
+          memo: null,
+          wanted_reason: null,
+          size_gender: null,
+          size_label: null,
+          size_note: null,
+          size_details: null,
+          spec: {
+            legwear: {
+              coverage_type: "loose_socks",
+            },
+          },
+          is_rain_ok: false,
+          group_id: null,
+          group_order: null,
+          group_candidates: [],
+          converted_item_id: null,
+          converted_at: null,
+          colors: [],
+          seasons: [],
+          tpos: [],
+          materials: [],
+          images: [],
+          created_at: "2026-03-24T10:00:00+09:00",
+          updated_at: "2026-03-24T10:00:00+09:00",
+        },
+      }),
+    });
+
+    const { default: PurchaseCandidateDetailPage } = await import("./page");
+    const markup = renderToStaticMarkup(
+      await PurchaseCandidateDetailPage({
+        params: Promise.resolve({ id: "23" }),
+      }),
+    );
+
+    expect(markup).toContain("仕様・属性");
+    expect(markup).toContain("ルーズソックス");
+  });
+  it("legwear spec の詳細画面でニーハイソックスを表示する", async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        purchaseCandidate: {
+          id: 24,
+          status: "considering",
+          priority: "medium",
+          name: "ニーハイソックス候補",
+          category_id: "legwear_socks",
+          category_name: "ソックス",
+          brand_name: null,
+          price: null,
+          sale_price: null,
+          sale_ends_at: null,
+          purchase_url: null,
+          memo: null,
+          wanted_reason: null,
+          size_gender: null,
+          size_label: null,
+          size_note: null,
+          size_details: null,
+          spec: {
+            legwear: {
+              coverage_type: "thigh_high_socks",
+            },
+          },
+          is_rain_ok: false,
+          group_id: null,
+          group_order: null,
+          group_candidates: [],
+          converted_item_id: null,
+          converted_at: null,
+          colors: [],
+          seasons: [],
+          tpos: [],
+          materials: [],
+          images: [],
+          created_at: "2026-03-24T10:00:00+09:00",
+          updated_at: "2026-03-24T10:00:00+09:00",
+        },
+      }),
+    });
+
+    const { default: PurchaseCandidateDetailPage } = await import("./page");
+    const markup = renderToStaticMarkup(
+      await PurchaseCandidateDetailPage({
+        params: Promise.resolve({ id: "24" }),
+      }),
+    );
+
+    expect(markup).toContain("仕様・属性");
+    expect(markup).toContain("ニーハイソックス");
+  });
 });

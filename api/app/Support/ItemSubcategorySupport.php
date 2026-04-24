@@ -48,6 +48,7 @@ class ItemSubcategorySupport
             'jacket' => 'jacket',
             'tailored' => 'jacket',
             'no_collar' => 'jacket',
+            'blazer' => 'jacket',
             'coat' => 'coat',
             'trench' => 'coat',
             'chester' => 'coat',

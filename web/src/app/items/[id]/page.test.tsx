@@ -308,4 +308,168 @@ describe("ItemPage", () => {
     expect(markup).toContain("チュール");
     expect(markup).toContain("プリーツ");
   });
+
+  it("legwear のルーズソックスと outerwear のブレザーを正しいラベルで表示する", async () => {
+    fetchMock
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          item: {
+            id: 3,
+            name: "ルーズソックス",
+            status: "active",
+            care_status: null,
+            brand_name: null,
+            price: null,
+            purchase_url: null,
+            memo: null,
+            purchased_at: null,
+            size_gender: null,
+            size_label: null,
+            size_note: null,
+            size_details: null,
+            is_rain_ok: false,
+            category: "legwear",
+            subcategory: "socks",
+            shape: "socks",
+            colors: [],
+            seasons: [],
+            tpos: [],
+            spec: {
+              legwear: {
+                coverage_type: "loose_socks",
+              },
+            },
+            images: [],
+            materials: [],
+          },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          preferences: {
+            skinTonePreset: "neutral_medium",
+          },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          item: {
+            id: 4,
+            name: "紺ブレザー",
+            status: "active",
+            care_status: null,
+            brand_name: null,
+            price: null,
+            purchase_url: null,
+            memo: null,
+            purchased_at: null,
+            size_gender: null,
+            size_label: null,
+            size_note: null,
+            size_details: null,
+            is_rain_ok: false,
+            category: "outerwear",
+            subcategory: "jacket",
+            shape: "blazer",
+            colors: [],
+            seasons: [],
+            tpos: [],
+            spec: null,
+            images: [],
+            materials: [],
+          },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          preferences: {
+            skinTonePreset: "neutral_medium",
+          },
+        }),
+      });
+
+    const { default: ItemPage } = await import("./page");
+
+    const legwearMarkup = renderToStaticMarkup(
+      await ItemPage({
+        params: Promise.resolve({ id: "3" }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+    const blazerMarkup = renderToStaticMarkup(
+      await ItemPage({
+        params: Promise.resolve({ id: "4" }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+
+    expect(legwearMarkup).toContain("ルーズソックス");
+    expect(blazerMarkup).toContain("ブレザー");
+  });
+
+  it("legwear のニーハイソックスを正しいラベルで表示する", async () => {
+    fetchMock
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          item: {
+            id: 5,
+            name: "ニーハイソックス",
+            status: "active",
+            care_status: null,
+            brand_name: null,
+            price: null,
+            purchase_url: null,
+            memo: null,
+            purchased_at: null,
+            size_gender: null,
+            size_label: null,
+            size_note: null,
+            size_details: null,
+            is_rain_ok: false,
+            category: "legwear",
+            subcategory: "socks",
+            shape: "socks",
+            colors: [],
+            seasons: [],
+            tpos: [],
+            spec: {
+              legwear: {
+                coverage_type: "thigh_high_socks",
+              },
+            },
+            images: [],
+            materials: [],
+          },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          preferences: {
+            skinTonePreset: "neutral_medium",
+          },
+        }),
+      });
+
+    const { default: ItemPage } = await import("./page");
+    const markup = renderToStaticMarkup(
+      await ItemPage({
+        params: Promise.resolve({ id: "5" }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+
+    expect(markup).toContain("ニーハイソックス");
+  });
 });

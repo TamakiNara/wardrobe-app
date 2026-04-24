@@ -1381,6 +1381,24 @@ describe("新規登録画面", () => {
       )?.options[0]?.textContent,
     ).toBe("選択してください");
     expect(container.querySelector("#legwear-coverage-type")).not.toBeNull();
+    expect(
+      Array.from(
+        (
+          container.querySelector(
+            "#legwear-coverage-type",
+          ) as HTMLSelectElement | null
+        )?.options ?? [],
+      ).some((option) => option.textContent === "ルーズソックス"),
+    ).toBe(true);
+    expect(
+      Array.from(
+        (
+          container.querySelector(
+            "#legwear-coverage-type",
+          ) as HTMLSelectElement | null
+        )?.options ?? [],
+      ).some((option) => option.textContent === "ニーハイソックス"),
+    ).toBe(true);
 
     await act(async () => {
       legwearSubcategorySelect!.value = "leggings";
@@ -1806,7 +1824,7 @@ describe("新規登録画面", () => {
 
     expect(
       Array.from(shapeSelect!.options).map((option) => option.value),
-    ).toEqual(["", "jacket", "tailored", "no_collar"]);
+    ).toEqual(["", "jacket", "tailored", "no_collar", "blazer"]);
   });
 
   it("skirts は軽い種類 UI と shape 候補を表示できる", async () => {

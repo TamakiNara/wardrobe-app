@@ -432,6 +432,24 @@ describe("PurchaseCandidateForm", () => {
     expect(
       container.querySelector("#spec-legwear-coverage-type"),
     ).not.toBeNull();
+    expect(
+      Array.from(
+        (
+          container.querySelector(
+            "#spec-legwear-coverage-type",
+          ) as HTMLSelectElement | null
+        )?.options ?? [],
+      ).some((option) => option.textContent === "ルーズソックス"),
+    ).toBe(true);
+    expect(
+      Array.from(
+        (
+          container.querySelector(
+            "#spec-legwear-coverage-type",
+          ) as HTMLSelectElement | null
+        )?.options ?? [],
+      ).some((option) => option.textContent === "ニーハイソックス"),
+    ).toBe(true);
     expect(container.querySelector("#spec-tops-shape")).toBeNull();
     expect(container.querySelector("#spec-bottoms-length-type")).toBeNull();
   });

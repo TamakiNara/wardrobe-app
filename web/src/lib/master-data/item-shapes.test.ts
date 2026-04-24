@@ -26,7 +26,7 @@ describe("getItemShapeOptions", () => {
     ).toEqual(["coat", "trench", "chester", "stainless"]);
     expect(
       getItemShapeOptions("outerwear", "jacket").map((item) => item.value),
-    ).toEqual(["jacket", "tailored", "no_collar"]);
+    ).toEqual(["jacket", "tailored", "no_collar", "blazer"]);
     expect(
       getItemShapeOptions("outerwear", "other").map((item) => item.value),
     ).toEqual([]);

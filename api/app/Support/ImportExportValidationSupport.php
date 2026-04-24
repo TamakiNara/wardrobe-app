@@ -113,7 +113,7 @@ class ImportExportValidationSupport
             'spec.skirt.material_type' => ['nullable', 'string', 'in:tulle,lace,denim,leather,satin'],
             'spec.skirt.design_type' => ['nullable', 'string', 'in:tuck,gather,pleats,tiered,wrap,balloon,trench'],
             'spec.legwear' => ['nullable', 'array:coverage_type'],
-            'spec.legwear.coverage_type' => ['nullable', 'string', 'in:foot_cover,ankle_sneaker,crew,three_quarter,high_socks,stockings,tights,one_tenth,three_tenths,five_tenths,seven_tenths,seven_eighths,ten_tenths,twelve_tenths'],
+            'spec.legwear.coverage_type' => ['nullable', 'string', 'in:foot_cover,ankle_sneaker,crew,three_quarter,high_socks,loose_socks,thigh_high_socks,stockings,tights,one_tenth,three_tenths,five_tenths,seven_tenths,seven_eighths,ten_tenths,twelve_tenths'],
             'is_rain_ok' => ['nullable', 'boolean'],
             'colors' => ['required', 'array', 'min:1'],
             'colors.*.role' => ['required', 'string', 'in:main,sub'],

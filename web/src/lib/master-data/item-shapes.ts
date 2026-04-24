@@ -48,6 +48,7 @@ export const ITEM_SHAPES = {
     { value: "jacket", label: "ジャケット" },
     { value: "tailored", label: "テーラードジャケット" },
     { value: "no_collar", label: "ノーカラージャケット" },
+    { value: "blazer", label: "ブレザー" },
     { value: "blouson", label: "ブルゾン" },
     { value: "down-padded", label: "ダウンジャケット・中綿ジャケット" },
     { value: "coat", label: "コート" },
@@ -232,7 +233,7 @@ const SHAPE_VALUES_BY_SUBCATEGORY: Partial<
     other: [],
   },
   outerwear: {
-    jacket: ["jacket", "tailored", "no_collar"],
+    jacket: ["jacket", "tailored", "no_collar", "blazer"],
     coat: ["coat", "trench", "chester", "stainless"],
     blouson: ["blouson"],
     down_padded: ["down-padded"],

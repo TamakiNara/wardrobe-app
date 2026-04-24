@@ -1038,6 +1038,162 @@ class PurchaseCandidateEndpointsTest extends TestCase
             ->assertJsonPath('purchaseCandidate.spec.skirt.design_type', 'pleats');
     }
 
+    public function test_post_purchase_candidate_accepts_loose_socks_legwear_coverage_type(): void
+    {
+        $user = User::factory()->create();
+        $this->createCategory('legwear_socks', 'legwear', 'ソックス');
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $response = $this->postJson('/api/purchase-candidates', [
+            'status' => 'considering',
+            'priority' => 'medium',
+            'name' => 'ルーズソックス候補',
+            'category_id' => 'legwear_socks',
+            'spec' => [
+                'legwear' => [
+                    'coverage_type' => 'loose_socks',
+                ],
+            ],
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'white',
+                'hex' => '#ffffff',
+                'label' => 'ホワイト',
+            ]],
+        ], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('purchaseCandidate.category_id', 'legwear_socks')
+            ->assertJsonPath('purchaseCandidate.spec.legwear.coverage_type', 'loose_socks');
+    }
+
+    public function test_post_purchase_candidate_accepts_thigh_high_socks_legwear_coverage_type(): void
+    {
+        $user = User::factory()->create();
+        $this->createCategory('legwear_socks', 'legwear', 'ソックス');
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $response = $this->postJson('/api/purchase-candidates', [
+            'status' => 'considering',
+            'priority' => 'medium',
+            'name' => 'ニーハイソックス候補',
+            'category_id' => 'legwear_socks',
+            'spec' => [
+                'legwear' => [
+                    'coverage_type' => 'thigh_high_socks',
+                ],
+            ],
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'black',
+                'hex' => '#111111',
+                'label' => 'ブラック',
+            ]],
+        ], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('purchaseCandidate.category_id', 'legwear_socks')
+            ->assertJsonPath('purchaseCandidate.spec.legwear.coverage_type', 'thigh_high_socks');
+    }
+
+    public function test_post_purchase_candidate_legwear_item_draft_can_flow_into_item_create_with_loose_socks_spec(): void
+    {
+        $user = User::factory()->create();
+        $candidate = $this->createCandidate($user, [
+            'category_id' => 'legwear_socks',
+            'name' => 'ルーズソックス候補',
+            'spec' => [
+                'legwear' => [
+                    'coverage_type' => 'loose_socks',
+                ],
+            ],
+        ]);
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $draftResponse = $this->postJson("/api/purchase-candidates/{$candidate->id}/item-draft", [], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $draftResponse->assertOk()
+            ->assertJsonPath('item_draft.category', 'legwear')
+            ->assertJsonPath('item_draft.subcategory', 'socks')
+            ->assertJsonPath('item_draft.shape', 'socks')
+            ->assertJsonPath('item_draft.spec.legwear.coverage_type', 'loose_socks');
+
+        $payload = $draftResponse->json('item_draft');
+        $payload['purchase_candidate_id'] = $candidate->id;
+        $payload['images'] = [];
+
+        $createResponse = $this->postJson('/api/items', $payload, [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $createResponse->assertCreated()
+            ->assertJsonPath('item.category', 'legwear')
+            ->assertJsonPath('item.subcategory', 'socks')
+            ->assertJsonPath('item.shape', 'socks')
+            ->assertJsonPath('item.spec.legwear.coverage_type', 'loose_socks');
+    }
+
+    public function test_post_purchase_candidate_legwear_item_draft_can_flow_into_item_create_with_thigh_high_socks_spec(): void
+    {
+        $user = User::factory()->create();
+        $candidate = $this->createCandidate($user, [
+            'category_id' => 'legwear_socks',
+            'name' => 'ニーハイソックス候補',
+            'spec' => [
+                'legwear' => [
+                    'coverage_type' => 'thigh_high_socks',
+                ],
+            ],
+        ]);
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $draftResponse = $this->postJson("/api/purchase-candidates/{$candidate->id}/item-draft", [], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $draftResponse->assertOk()
+            ->assertJsonPath('item_draft.category', 'legwear')
+            ->assertJsonPath('item_draft.subcategory', 'socks')
+            ->assertJsonPath('item_draft.shape', 'socks')
+            ->assertJsonPath('item_draft.spec.legwear.coverage_type', 'thigh_high_socks');
+
+        $payload = $draftResponse->json('item_draft');
+        $payload['purchase_candidate_id'] = $candidate->id;
+        $payload['images'] = [];
+
+        $createResponse = $this->postJson('/api/items', $payload, [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $createResponse->assertCreated()
+            ->assertJsonPath('item.category', 'legwear')
+            ->assertJsonPath('item.subcategory', 'socks')
+            ->assertJsonPath('item.shape', 'socks')
+            ->assertJsonPath('item.spec.legwear.coverage_type', 'thigh_high_socks');
+    }
+
     public function test_post_purchase_candidate_allows_empty_optional_skirt_spec(): void
     {
         $user = User::factory()->create();

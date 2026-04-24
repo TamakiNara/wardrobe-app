@@ -1348,7 +1348,7 @@ describe("編集画面", () => {
 
     expect(
       Array.from(shapeSelect!.options).map((option) => option.value),
-    ).toEqual(["", "jacket", "tailored", "no_collar"]);
+    ).toEqual(["", "jacket", "tailored", "no_collar", "blazer"]);
   });
 
   it("編集画面でも allinone の shape を常に表示しない", async () => {

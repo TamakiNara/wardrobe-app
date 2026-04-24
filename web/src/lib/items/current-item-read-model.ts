@@ -50,6 +50,7 @@ const LEGACY_INFERRED_SUBCATEGORY_BY_CATEGORY: Record<
   outerwear: {
     jacket: "jacket",
     tailored: "jacket",
+    blazer: "jacket",
     coat: "coat",
     trench: "coat",
     chester: "coat",
@@ -377,6 +378,7 @@ const VISIBLE_CATEGORY_ID_BY_SHAPE: Record<string, Record<string, string>> = {
     jacket: "outerwear_jacket",
     tailored: "outerwear_jacket",
     no_collar: "outerwear_jacket",
+    blazer: "outerwear_jacket",
     blouson: "outerwear_blouson",
     "down-padded": "outerwear_down_padded",
     coat: "outerwear_coat",

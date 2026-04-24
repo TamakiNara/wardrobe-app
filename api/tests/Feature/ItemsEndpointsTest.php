@@ -1647,6 +1647,107 @@ class ItemsEndpointsTest extends TestCase
         $this->assertSame('crew', data_get($item->spec, 'legwear.coverage_type'));
     }
 
+    public function test_post_items_accepts_loose_socks_legwear_coverage_type_spec(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/items', [
+            'name' => 'ルーズソックス',
+            'category' => 'legwear',
+            'subcategory' => 'socks',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'white',
+                'hex' => '#f5f5f5',
+                'label' => 'ホワイト',
+            ]],
+            'spec' => [
+                'legwear' => [
+                    'coverage_type' => 'loose_socks',
+                ],
+            ],
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('item.subcategory', 'socks')
+            ->assertJsonPath('item.shape', 'socks')
+            ->assertJsonPath('item.spec.legwear.coverage_type', 'loose_socks');
+
+        $item = Item::query()->findOrFail($response->json('item.id'));
+        $this->assertSame('loose_socks', data_get($item->spec, 'legwear.coverage_type'));
+    }
+
+    public function test_post_items_accepts_thigh_high_socks_legwear_coverage_type_spec(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/items', [
+            'name' => 'ニーハイソックス',
+            'category' => 'legwear',
+            'subcategory' => 'socks',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'black',
+                'hex' => '#111111',
+                'label' => 'ブラック',
+            ]],
+            'spec' => [
+                'legwear' => [
+                    'coverage_type' => 'thigh_high_socks',
+                ],
+            ],
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('item.subcategory', 'socks')
+            ->assertJsonPath('item.shape', 'socks')
+            ->assertJsonPath('item.spec.legwear.coverage_type', 'thigh_high_socks');
+
+        $item = Item::query()->findOrFail($response->json('item.id'));
+        $this->assertSame('thigh_high_socks', data_get($item->spec, 'legwear.coverage_type'));
+    }
+
+    public function test_post_items_accepts_blazer_shape_for_outerwear_jacket(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/items', [
+            'name' => '紺ブレザー',
+            'category' => 'outerwear',
+            'subcategory' => 'jacket',
+            'shape' => 'blazer',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'navy',
+                'hex' => '#1f3a5f',
+                'label' => 'ネイビー',
+            ]],
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('item.category', 'outerwear')
+            ->assertJsonPath('item.subcategory', 'jacket')
+            ->assertJsonPath('item.shape', 'blazer');
+
+        $item = Item::query()->findOrFail($response->json('item.id'));
+        $this->assertSame('blazer', $item->shape);
+    }
+
     public function test_post_items_requires_legwear_coverage_type_for_socks(): void
     {
         $user = User::factory()->create();

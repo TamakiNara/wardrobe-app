@@ -79,7 +79,7 @@ class ItemCategoryMappingSupportTest extends TestCase
     public function test_item_input_requirement_support_exposes_shape_options_and_defaults(): void
     {
         $this->assertSame(
-            ['jacket', 'tailored', 'no_collar'],
+            ['jacket', 'tailored', 'no_collar', 'blazer'],
             ItemInputRequirementSupport::shapeOptionsFor('outerwear', 'jacket')
         );
         $this->assertSame(

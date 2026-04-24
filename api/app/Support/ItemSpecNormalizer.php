@@ -111,7 +111,7 @@ class ItemSpecNormalizer
         }
 
         if ($resolvedSubcategory === 'socks') {
-            if (in_array($coverageType, ['foot_cover', 'ankle_sneaker', 'crew', 'three_quarter', 'high_socks'], true)) {
+            if (in_array($coverageType, ['foot_cover', 'ankle_sneaker', 'crew', 'three_quarter', 'high_socks', 'loose_socks', 'thigh_high_socks'], true)) {
                 return $coverageType;
             }
 
@@ -119,6 +119,8 @@ class ItemSpecNormalizer
                 'ankle_socks' => 'ankle_sneaker',
                 'crew_socks' => 'crew',
                 'knee_socks', 'over_knee' => 'high_socks',
+                'loose' => 'loose_socks',
+                'thigh_high' => 'thigh_high_socks',
                 default => null,
             };
         }

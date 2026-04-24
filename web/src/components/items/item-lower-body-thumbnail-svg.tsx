@@ -51,6 +51,8 @@ const SOCKS_START_Y: Record<string, number> = {
   crew: 76,
   three_quarter: 58,
   high_socks: 40,
+  loose_socks: 40,
+  thigh_high_socks: 32,
   ankle_socks: 86,
   crew_socks: 76,
   knee_socks: 58,

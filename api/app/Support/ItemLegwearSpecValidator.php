@@ -81,7 +81,7 @@ class ItemLegwearSpecValidator
         }
 
         $allowedCoverageTypes = match ($resolvedLegwearType) {
-            'socks' => ['foot_cover', 'ankle_sneaker', 'crew', 'three_quarter', 'high_socks'],
+            'socks' => ['foot_cover', 'ankle_sneaker', 'crew', 'three_quarter', 'high_socks', 'loose_socks', 'thigh_high_socks'],
             'leggings' => ['one_tenth', 'three_tenths', 'five_tenths', 'seven_tenths', 'seven_eighths', 'ten_tenths', 'twelve_tenths'],
             'stockings' => ['stockings'],
             'tights' => ['tights'],

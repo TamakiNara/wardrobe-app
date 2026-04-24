@@ -114,6 +114,7 @@ class ListQuerySupport
                 'jacket' => 'outerwear_jacket',
                 'tailored' => 'outerwear_jacket',
                 'no_collar' => 'outerwear_jacket',
+                'blazer' => 'outerwear_jacket',
                 'blouson' => 'outerwear_blouson',
                 'down-padded' => 'outerwear_down_padded',
                 'coat' => 'outerwear_coat',

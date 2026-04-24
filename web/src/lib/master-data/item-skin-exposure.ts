@@ -45,6 +45,8 @@ export const LEGWEAR_COVERAGE_OPTIONS = [
   { value: "crew", label: "クルーソックス" },
   { value: "three_quarter", label: "スリークォーターソックス" },
   { value: "high_socks", label: "ハイソックス" },
+  { value: "loose_socks", label: "ルーズソックス" },
+  { value: "thigh_high_socks", label: "ニーハイソックス" },
   { value: "stockings", label: "ストッキング" },
   { value: "tights", label: "タイツ" },
   { value: "one_tenth", label: "1分丈" },
@@ -75,6 +77,8 @@ const SOCKS_COVERAGE_TYPES = [
   "crew",
   "three_quarter",
   "high_socks",
+  "loose_socks",
+  "thigh_high_socks",
 ] as const;
 const LEGGINGS_COVERAGE_TYPES = [
   "one_tenth",
@@ -196,6 +200,8 @@ export function resolveLegwearCoverageType(
         crew_socks: "crew",
         knee_socks: "high_socks",
         over_knee: "high_socks",
+        loose: "loose_socks",
+        thigh_high: "thigh_high_socks",
       }[value ?? ""] ?? null
     );
   }
