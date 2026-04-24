@@ -463,6 +463,63 @@ paths:
               schema:
                 $ref: '#/components/schemas/ValidationErrorResponse'
 
+  /api/export:
+    get:
+      tags:
+        - Settings
+      summary: バックアップファイル取得
+      description: |
+        ログイン中のユーザーのアイテム・購入検討・コーディネート・着用履歴を、
+        import 用 JSON として返す。
+        item / candidate 画像は Base64 を含むため payload は大きくなる場合がある。
+      security:
+        - SessionCookieAuth: []
+      responses:
+        '200':
+          description: 取得成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImportExportBackupPayload'
+        '401':
+          description: 未認証
+
+  /api/import:
+    post:
+      tags:
+        - Settings
+      summary: バックアップファイル復元
+      description: |
+        ログイン中のユーザーのアイテム・購入検討・コーディネート・着用履歴を
+        バックアップ JSON から復元する。
+        復元前に現在ユーザーの対象データを削除し、item / outfit / wear log 参照は新しい ID に張り替える。
+        owner.user_id が現在ユーザーと一致しない場合は復元しない。
+      security:
+        - SessionCookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XCsrfTokenHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ImportExportBackupPayload'
+      responses:
+        '200':
+          description: 復元成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImportExecutionResponse'
+        '401':
+          description: 未認証
+        '422':
+          description: バリデーションエラーまたは復元失敗
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+
   /api/items:
     get:
       tags:
@@ -1843,6 +1900,159 @@ components:
         purchaseCandidatesCount:
           type: integer
           example: 8
+
+    ImportExportOwner:
+      type: object
+      required:
+        - user_id
+      properties:
+        user_id:
+          type: integer
+          example: 1
+
+    ImportExportOpaqueEntity:
+      type: object
+      additionalProperties: true
+      description: |
+        import / export 用の entity payload。
+        現状の実装では item / purchase candidate / outfit の保存項目をそのまま含み、
+        画像は Base64 を含む。
+
+    WearLogBackupItem:
+      type: object
+      required:
+        - item_source_type
+        - sort_order
+      properties:
+        source_item_id:
+          type: integer
+          nullable: true
+          example: 10
+        item_source_type:
+          type: string
+          enum: [outfit, manual]
+          example: outfit
+        sort_order:
+          type: integer
+          minimum: 1
+          example: 1
+
+    WearLogBackupPayload:
+      type: object
+      required:
+        - id
+        - status
+        - event_date
+        - display_order
+        - items
+      properties:
+        id:
+          type: integer
+          example: 1
+        status:
+          type: string
+          enum: [planned, worn]
+          example: worn
+        event_date:
+          type: string
+          format: date
+          example: 2026-04-25
+        display_order:
+          type: integer
+          minimum: 1
+          example: 1
+        source_outfit_id:
+          type: integer
+          nullable: true
+          example: 5
+        memo:
+          type: string
+          nullable: true
+          example: 通勤コーデの記録
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/WearLogBackupItem'
+
+    ImportExportBackupPayload:
+      type: object
+      required:
+        - version
+        - exported_at
+        - owner
+        - items
+        - purchase_candidates
+        - outfits
+        - wear_logs
+      properties:
+        version:
+          type: integer
+          enum: [1]
+          example: 1
+        exported_at:
+          type: string
+          format: date-time
+          example: '2026-04-25T06:51:38+09:00'
+        owner:
+          $ref: '#/components/schemas/ImportExportOwner'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ImportExportOpaqueEntity'
+        purchase_candidates:
+          type: array
+          items:
+            $ref: '#/components/schemas/ImportExportOpaqueEntity'
+        outfits:
+          type: array
+          items:
+            $ref: '#/components/schemas/ImportExportOpaqueEntity'
+        wear_logs:
+          type: array
+          items:
+            $ref: '#/components/schemas/WearLogBackupPayload'
+
+    ImportExecutionCountSummary:
+      type: object
+      required:
+        - total
+      properties:
+        total:
+          type: integer
+          example: 32
+        visible:
+          type: integer
+          nullable: true
+          example: 31
+
+    ImportExecutionCounts:
+      type: object
+      required:
+        - items
+        - purchase_candidates
+        - outfits
+        - wear_logs
+      properties:
+        items:
+          $ref: '#/components/schemas/ImportExecutionCountSummary'
+        purchase_candidates:
+          $ref: '#/components/schemas/ImportExecutionCountSummary'
+        outfits:
+          $ref: '#/components/schemas/ImportExecutionCountSummary'
+        wear_logs:
+          $ref: '#/components/schemas/ImportExecutionCountSummary'
+
+    ImportExecutionResponse:
+      type: object
+      required:
+        - message
+        - counts
+      properties:
+        message:
+          type: string
+          example: imported
+        counts:
+          $ref: '#/components/schemas/ImportExecutionCounts'
 
     CategoryGroup:
       type: object
