@@ -459,19 +459,19 @@ export default function PurchaseCandidateForm({
   const shouldShowTopsSleeveField =
     isTopsSpecVisible &&
     resolvedTopsShape !== "" &&
-    availableTopsSleeves.length > 0;
+    availableTopsSleeves.length > 1;
   const shouldShowTopsLengthField =
     isTopsSpecVisible &&
     resolvedTopsShape !== "" &&
-    availableTopsLengths.length > 0;
+    availableTopsLengths.length > 1;
   const shouldShowTopsNeckField =
     isTopsSpecVisible &&
     resolvedTopsShape !== "" &&
-    availableTopsNecks.length > 0;
+    availableTopsNecks.length > 1;
   const shouldShowTopsDesignField =
     isTopsSpecVisible &&
     resolvedTopsShape !== "" &&
-    availableTopsDesigns.length > 0;
+    availableTopsDesigns.length > 1;
   const shouldShowTopsFitField =
     isTopsSpecVisible &&
     resolvedTopsShape !== "" &&

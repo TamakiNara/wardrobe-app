@@ -107,6 +107,12 @@ describe("PurchaseCandidateForm", () => {
             name: "シャツ・ブラウス",
             sortOrder: 20,
           },
+          {
+            id: "tops_polo_shirt",
+            groupId: "tops",
+            name: "ポロシャツ",
+            sortOrder: 30,
+          },
         ],
       },
       {
@@ -147,6 +153,7 @@ describe("PurchaseCandidateForm", () => {
         "outerwear_coat",
         "tops_tshirt_cutsew",
         "tops_shirt_blouse",
+        "tops_polo_shirt",
         "pants_pants",
         "pants_short",
         "legwear_socks",
@@ -293,6 +300,19 @@ describe("PurchaseCandidateForm", () => {
     expect(container.querySelector("#spec-tops-neck")).not.toBeNull();
     expect(container.querySelector("#spec-bottoms-length-type")).toBeNull();
     expect(container.querySelector("#spec-legwear-coverage-type")).toBeNull();
+  });
+
+  it("tops では選択肢が1つしかない spec 項目を表示しない", async () => {
+    await renderForm();
+
+    await setCategorySelection("tops", "tops_polo_shirt");
+
+    expect(container.querySelector("#spec-tops-shape")).toBeNull();
+    expect(container.querySelector("#spec-tops-sleeve")).not.toBeNull();
+    expect(container.querySelector("#spec-tops-length")).not.toBeNull();
+    expect(container.querySelector("#spec-tops-neck")).toBeNull();
+    expect(container.querySelector("#spec-tops-design")).toBeNull();
+    expect(container.querySelector("#spec-tops-fit")).toBeNull();
   });
 
   it("pants では spec UI を表示する", async () => {
