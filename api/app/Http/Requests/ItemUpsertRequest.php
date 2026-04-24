@@ -24,7 +24,7 @@ abstract class ItemUpsertRequest extends FormRequest
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
-    protected function commonRules(): array
+    public static function commonRulesForPayload(): array
     {
         return [
             'name' => ['nullable', 'string', 'max:255'],
@@ -105,6 +105,11 @@ abstract class ItemUpsertRequest extends FormRequest
             'images.*.sort_order' => ['required', 'integer', 'min:1'],
             'images.*.is_primary' => ['nullable', 'boolean'],
         ];
+    }
+
+    protected function commonRules(): array
+    {
+        return self::commonRulesForPayload();
     }
 
     protected function prepareForValidation(): void

@@ -577,7 +577,7 @@ export default function EditItemPage({
               : ((currentShape || "") as TopsShapeValue);
           setTopsShape(resolvedShape);
 
-          const rule = TOPS_RULES[resolvedShape];
+          const rule = resolvedShape ? TOPS_RULES[resolvedShape] : undefined;
           setTopsSleeve(
             (tops?.sleeve as TopsSleeveValue | null | undefined) ??
               rule?.defaults?.sleeve ??
@@ -786,7 +786,10 @@ export default function EditItemPage({
       return;
     }
 
-    if (shape && !allowedValues.includes(shape)) {
+    if (
+      shape &&
+      !allowedValues.includes(shape as (typeof allowedValues)[number])
+    ) {
       setShape(nextShape);
       clearErrorsFor(["shape", "spec.legwear.coverage_type"]);
       if (isLegwearSpecCategory(category) && nextShape) {

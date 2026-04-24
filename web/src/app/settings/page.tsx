@@ -357,6 +357,23 @@ function SettingsPageContent() {
               </Link>
             </div>
           </SettingsCard>
+
+          <SettingsCard>
+            <h2 className="text-lg font-semibold text-gray-900">
+              インポート・エクスポート
+            </h2>
+            <p className="mt-2 text-sm text-gray-600">
+              アイテム・購入検討・コーディネートのバックアップと復元を行います。
+            </p>
+            <div className="mt-4">
+              <Link
+                href="/settings/import-export"
+                className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+              >
+                インポート・エクスポートへ
+              </Link>
+            </div>
+          </SettingsCard>
         </section>
       </div>
     </main>

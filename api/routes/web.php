@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\ImportExportController;
 use App\Http\Controllers\Api\ItemImageController;
 use App\Http\Controllers\Api\ItemStatusController;
 use App\Http\Controllers\Api\PurchaseCandidateController;
@@ -71,6 +72,11 @@ Route::prefix('api')->middleware(['web'])->group(function () {
 
     Route::middleware('auth:web')->get('/home/summary', function (Request $request) {
         return response()->json(HomeSummaryQuery::build($request->user()));
+    });
+
+    Route::middleware('auth:web')->controller(ImportExportController::class)->group(function () {
+        Route::get('/export', 'export');
+        Route::post('/import', 'import');
     });
 
     // Settings

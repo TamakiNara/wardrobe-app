@@ -720,15 +720,17 @@ export function resolveVisibleCategoryIdForItem(
     return null;
   }
 
-  const visibleIdFromRawShape =
-    VISIBLE_CATEGORY_ID_BY_SHAPE[category]?.[shape] ?? null;
+  const visibleIdFromRawShape = category
+    ? (VISIBLE_CATEGORY_ID_BY_SHAPE[category]?.[shape] ?? null)
+    : null;
   if (visibleIdFromRawShape) {
     return visibleIdFromRawShape;
   }
 
-  return (
-    VISIBLE_CATEGORY_ID_BY_SHAPE[currentCategory ?? category]?.[
-      currentShape ?? shape
-    ] ?? null
-  );
+  const fallbackCategory = currentCategory ?? category;
+  const fallbackShape = currentShape ?? shape;
+
+  return fallbackCategory
+    ? (VISIBLE_CATEGORY_ID_BY_SHAPE[fallbackCategory]?.[fallbackShape] ?? null)
+    : null;
 }

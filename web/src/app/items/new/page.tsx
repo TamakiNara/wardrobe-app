@@ -677,7 +677,10 @@ export default function NewItemPage() {
       return;
     }
 
-    if (shape && !allowedValues.includes(shape)) {
+    if (
+      shape &&
+      !allowedValues.includes(shape as (typeof allowedValues)[number])
+    ) {
       setShape(nextShape);
       clearErrorsFor(["shape", "spec.legwear.coverage_type"]);
       if (isLegwearSpecCategory(category) && nextShape) {

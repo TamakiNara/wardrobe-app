@@ -417,8 +417,9 @@ export default function PurchaseCandidateForm({
     () =>
       resolvedItemCategory?.category === "tops" &&
       resolvedItemCategory?.subcategory !== "other" &&
-      resolvedTopsShape
-        ? TOPS_RULES[resolvedTopsShape]
+      resolvedTopsShape &&
+      resolvedTopsShape in TOPS_RULES
+        ? TOPS_RULES[resolvedTopsShape as keyof typeof TOPS_RULES]
         : null,
     [resolvedItemCategory, resolvedTopsShape],
   );

@@ -80,7 +80,7 @@ export default function BrandNameField({
   function handleKeyDown(event: KeyboardEvent<HTMLInputElement>) {
     if (!open && (event.key === "ArrowDown" || event.key === "ArrowUp")) {
       setLoading(true);
-      setError(null);
+      setSuggestionError(null);
       setOpen(true);
       return;
     }

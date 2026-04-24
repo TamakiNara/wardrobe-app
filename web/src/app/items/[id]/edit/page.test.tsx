@@ -1136,8 +1136,8 @@ describe("編集画面", () => {
 
     const categorySelect =
       container.querySelector<HTMLSelectElement>("#category");
-    const skirtRadio =
-      container.querySelector<HTMLInputElement>("#subcategory-skirt");
+    const subcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
     const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
     const lengthTypeSelect = container.querySelector<HTMLSelectElement>(
       "#bottoms-length-type",
@@ -1149,7 +1149,7 @@ describe("編集画面", () => {
       container.querySelector<HTMLSelectElement>("#skirt-design-type");
 
     expect(categorySelect?.value).toBe("skirts");
-    expect(skirtRadio?.checked).toBe(true);
+    expect(subcategorySelect?.value).toBe("skirt");
     expect(shapeSelect?.value).toBe("a_line");
     expect(lengthTypeSelect?.value).toBe("mid_calf");
     expect(materialTypeSelect?.value).toBe("lace");
@@ -1245,15 +1245,15 @@ describe("編集画面", () => {
 
     const categorySelect =
       container.querySelector<HTMLSelectElement>("#category");
-    const skirtRadio =
-      container.querySelector<HTMLInputElement>("#subcategory-skirt");
+    const subcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
     const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
     const lengthTypeSelect = container.querySelector<HTMLSelectElement>(
       "#bottoms-length-type",
     );
 
     expect(categorySelect?.value).toBe("skirts");
-    expect(skirtRadio?.checked).toBe(true);
+    expect(subcategorySelect?.value).toBe("skirt");
     expect(shapeSelect?.value).toBe("flare");
     expect(lengthTypeSelect?.value).toBe("midi");
     expect(container.querySelector("#bottoms-rise-type")).toBeNull();

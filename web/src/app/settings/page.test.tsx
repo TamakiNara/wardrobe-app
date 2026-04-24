@@ -76,9 +76,14 @@ describe("SettingsPage", () => {
     expect(container.innerHTML).toContain('href="/settings/categories"');
     expect(container.innerHTML).toContain('href="/settings/tpos"');
     expect(container.innerHTML).toContain('href="/settings/brands"');
+    expect(container.innerHTML).toContain('href="/settings/import-export"');
     expect(container.textContent).toContain("カテゴリ設定へ");
     expect(container.textContent).toContain("TPO 設定へ");
     expect(container.textContent).toContain("ブランド候補設定へ");
+    expect(container.textContent).toContain(
+      "アイテム・購入検討・コーディネートのバックアップと復元を行います。",
+    );
+    expect(container.textContent).toContain("インポート・エクスポートへ");
   });
 
   it("表示・初期値設定を保存できる", async () => {
