@@ -220,16 +220,16 @@ export default async function ItemPage({
           actions={
             <>
               <Link
-                href={backHref}
-                className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
-              >
-                {backLabel}
-              </Link>
-              <Link
                 href={`/items/${item.id}/edit`}
                 className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
               >
                 編集
+              </Link>
+              <Link
+                href={backHref}
+                className="inline-flex items-center justify-center rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-500 transition hover:bg-gray-50 hover:text-gray-700"
+              >
+                {backLabel}
               </Link>
             </>
           }

@@ -350,34 +350,41 @@ export default async function PurchaseCandidateDetailPage({
             </div>
           }
           actions={
-            <>
-              {candidate.status !== "purchased" && (
-                <PurchaseCandidateItemDraftAction
+            <div className="flex w-full flex-col items-stretch gap-2 sm:w-auto sm:min-w-[18rem] sm:items-end">
+              <div className="flex flex-wrap justify-end gap-2">
+                {candidate.status !== "purchased" && (
+                  <PurchaseCandidateItemDraftAction
+                    candidateId={candidate.id}
+                    convertedItemId={candidate.converted_item_id}
+                  />
+                )}
+                <Link
+                  href={`/purchase-candidates/${candidate.id}/edit`}
+                  className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+                >
+                  編集
+                </Link>
+              </div>
+              <div className="flex flex-wrap justify-end gap-2">
+                <PurchaseCandidateColorVariantAction
                   candidateId={candidate.id}
-                  convertedItemId={candidate.converted_item_id}
+                  className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:text-gray-400 disabled:no-underline"
                 />
-              )}
-              <Link
-                href={`/purchase-candidates/${candidate.id}/edit`}
-                className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
-              >
-                編集
-              </Link>
-              <PurchaseCandidateColorVariantAction
-                candidateId={candidate.id}
-                className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:text-gray-400 disabled:no-underline"
-              />
-              <PurchaseCandidateDuplicateAction
-                candidateId={candidate.id}
-                className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:text-gray-400 disabled:no-underline"
-              />
-              <Link
-                href="/purchase-candidates"
-                className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
-              >
-                一覧に戻る
-              </Link>
-            </>
+                <PurchaseCandidateDuplicateAction
+                  candidateId={candidate.id}
+                  buttonLabel="複製"
+                  className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:text-gray-400 disabled:no-underline"
+                />
+              </div>
+              <div className="flex justify-end">
+                <Link
+                  href="/purchase-candidates"
+                  className="inline-flex items-center justify-center rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-500 transition hover:bg-gray-50 hover:text-gray-700"
+                >
+                  一覧に戻る
+                </Link>
+              </div>
+            </div>
           }
         />
 

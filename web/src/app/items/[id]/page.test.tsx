@@ -168,6 +168,9 @@ describe("ItemPage", () => {
     expect(markup).toContain("裏地： ポリエステル 100%");
     expect(markup).not.toContain("購入・サイズ情報");
     expect(markup).toContain("coat.png");
+    expect(markup.indexOf(">編集<")).toBeLessThan(
+      markup.indexOf(">一覧に戻る<"),
+    );
   });
 
   it("return_to があるときだけ着用履歴フォームへの戻りリンクを表示する", async () => {
@@ -227,6 +230,9 @@ describe("ItemPage", () => {
     expect(markup).toContain("着用履歴フォームへ戻る");
     expect(markup).toContain('href="/items/1/edit"');
     expect(markup).toContain("編集");
+    expect(markup.indexOf(">編集<")).toBeLessThan(
+      markup.indexOf(">着用履歴フォームへ戻る<"),
+    );
     expect(markup).toContain("カテゴリ");
     expect(markup).toContain("コート");
     expect(markup).toContain("トレンチコート");

@@ -22,14 +22,22 @@ vi.mock("next/link", () => ({
 vi.mock(
   "@/components/purchase-candidates/purchase-candidate-item-draft-action",
   () => ({
-    default: ({ candidateId }: { candidateId: number }) =>
+    default: ({
+      candidateId,
+      convertedItemId,
+    }: {
+      candidateId: number;
+      convertedItemId: number | null;
+    }) =>
       React.createElement(
-        "div",
+        "button",
         {
           "data-testid": "item-draft-action",
           "data-candidate-id": candidateId,
         },
-        "item-draft-action",
+        convertedItemId === null
+          ? "アイテムに追加する"
+          : "アイテム初期値を再生成する",
       ),
   }),
 );
@@ -37,14 +45,20 @@ vi.mock(
 vi.mock(
   "@/components/purchase-candidates/purchase-candidate-color-variant-action",
   () => ({
-    default: ({ candidateId }: { candidateId: number }) =>
+    default: ({
+      candidateId,
+      buttonLabel = "色違いを追加",
+    }: {
+      candidateId: number;
+      buttonLabel?: string;
+    }) =>
       React.createElement(
-        "div",
+        "button",
         {
           "data-testid": "color-variant-action",
           "data-candidate-id": candidateId,
         },
-        "color-variant-action",
+        buttonLabel,
       ),
   }),
 );
@@ -52,11 +66,17 @@ vi.mock(
 vi.mock(
   "@/components/purchase-candidates/purchase-candidate-duplicate-action",
   () => ({
-    default: ({ candidateId }: { candidateId: number }) =>
+    default: ({
+      candidateId,
+      buttonLabel = "複製",
+    }: {
+      candidateId: number;
+      buttonLabel?: string;
+    }) =>
       React.createElement(
-        "div",
+        "button",
         { "data-testid": "duplicate-action", "data-candidate-id": candidateId },
-        "duplicate-action",
+        buttonLabel,
       ),
   }),
 );
@@ -153,6 +173,18 @@ describe("PurchaseCandidateDetailPage", () => {
     expect(markup).toContain("ネイビーコート");
     expect(markup).toContain("購入検討管理");
     expect(markup).toContain("一覧に戻る");
+    expect(markup.indexOf("アイテムに追加する")).toBeLessThan(
+      markup.indexOf(">編集<"),
+    );
+    expect(markup.indexOf(">編集<")).toBeLessThan(
+      markup.indexOf(">色違いを追加<"),
+    );
+    expect(markup.indexOf(">色違いを追加<")).toBeLessThan(
+      markup.indexOf(">複製<"),
+    );
+    expect(markup.indexOf(">複製<")).toBeLessThan(
+      markup.indexOf(">一覧に戻る<"),
+    );
     expect(sectionTitles).toEqual([
       "基本情報",
       "分類",
@@ -186,9 +218,9 @@ describe("PurchaseCandidateDetailPage", () => {
     expect(markup).toContain("総丈");
     expect(markup).toContain("92cm");
     expect(markup).not.toContain("仕様・属性");
-    expect(markup).toContain("item-draft-action");
-    expect(markup).toContain("color-variant-action");
-    expect(markup).toContain("duplicate-action");
+    expect(markup).toContain("アイテムに追加する");
+    expect(markup).toContain("色違いを追加");
+    expect(markup).toContain("複製");
     expect(markup).toContain(
       "現在の候補内容からアイテム作成画面の初期値を生成します。",
     );
@@ -382,9 +414,9 @@ describe("PurchaseCandidateDetailPage", () => {
     );
 
     expect(markup).toContain("この購入検討はアイテム化済みの履歴です。");
-    expect(markup).toContain("color-variant-action");
-    expect(markup).toContain("duplicate-action");
-    expect(markup).not.toContain("item-draft-action");
+    expect(markup).toContain("色違いを追加");
+    expect(markup).toContain("複製");
+    expect(markup).not.toContain("アイテムに追加する");
     expect(markup).not.toContain("アイテム追加");
   });
 
