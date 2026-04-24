@@ -817,9 +817,10 @@ type ItemSpec = {
 補足:
 
 - `shape` は分類軸の正本として扱う
-- 旧データ / 旧 item-draft 互換では `spec.tops.shape` 相当の値が残りうるが、これは恒久仕様ではなく当面の互換値として扱う
+- 旧データ / 旧 item-draft 互換では `spec.tops.shape` 相当の値が残りうるが、これは恒久仕様ではなく旧互換値として扱う
 - tops 再導入時も `shape` を分類軸、`spec` をその先の詳細属性として扱う
-- 現行の restore / submit / response / item-draft は `shape` を分類軸の正本として扱い、`spec.tops.shape` を新規には参照しない
+- 現行の request / restore / submit / response / item-draft は `shape` を分類軸の正本として扱い、`spec.tops.shape` を正規ルートとしては参照しない
+- backend に `spec.tops.shape` が送られてきても、保存値や response / item-draft の正本としては扱わない
 - 古いローカル下書きが残っている場合は、必要に応じて手動クリアを前提とする
 - 互換 shape の扱いは、実装修正時に item 側との整合を見ながら段階的に縮退する
 
@@ -916,6 +917,7 @@ Phase 1:
 - item 側コードとの共通化は、型・入力定義・helper の流用を第一候補とする
 - tops spec は Phase 1 では未対応のため dormant 扱いでよい
 - tops の `spec.tops.shape` は旧データ互換としてのみ残りうる
+- 現行の Phase 1 では tops spec 自体が dormant のため、request / response / item-draft の正規経路では扱わない
 
 Phase 2:
 
