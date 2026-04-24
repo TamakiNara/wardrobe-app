@@ -26,11 +26,13 @@ class ImportExportController extends Controller
     {
         $validated = $request->validate([
             'version' => ['required', 'integer', 'in:1'],
-            'owner' => ['required', 'array:user_id'],
             'owner.user_id' => ['required', 'integer'],
-            'items' => ['required', 'array'],
-            'purchase_candidates' => ['required', 'array'],
-            'outfits' => ['required', 'array'],
+            'items' => ['present', 'array'],
+            'purchase_candidates' => ['present', 'array'],
+            'outfits' => ['present', 'array'],
+        ], [
+            'owner.user_id.required' => 'このバックアップファイルは現在の形式に対応していないため復元できません。最新の形式で再度バックアップしてください。',
+            'owner.user_id.integer' => 'バックアップファイルの所有者情報を確認できません。別のバックアップファイルを選択してください。',
         ]);
 
         $counts = $this->importService->import($request->user(), array_merge($validated, [

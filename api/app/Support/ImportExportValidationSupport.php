@@ -13,6 +13,7 @@ class ImportExportValidationSupport
      */
     public static function validateItemPayload(array $payload): array
     {
+        $payload = self::normalizeLegacyItemPayload($payload);
         $rules = ItemUpsertRequest::commonRulesForPayload();
 
         unset(
@@ -41,7 +42,7 @@ class ImportExportValidationSupport
         $validated = Validator::make($payload, $rules)->validate();
 
         ItemInputRequirementSupport::validate($validated);
-        ItemLegwearSpecValidator::validate($validated);
+        ItemLegwearSpecValidator::validateForImport($validated);
         ItemMaterialValidator::validate($validated);
         ItemSubcategorySupport::validate($validated);
 
@@ -188,6 +189,36 @@ class ImportExportValidationSupport
                 'ratio' => $material['ratio'] ?? null,
             ];
         }, $materials);
+
+        return $payload;
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
+    private static function normalizeLegacyItemPayload(array $payload): array
+    {
+        $category = is_string($payload['category'] ?? null) ? $payload['category'] : null;
+        $subcategory = ItemSubcategorySupport::normalize($category, $payload['subcategory'] ?? null);
+
+        if ($subcategory !== null) {
+            $payload['subcategory'] = $subcategory;
+        } else {
+            $inferredSubcategory = ItemSubcategorySupport::inferFromShape($category, $payload['shape'] ?? null);
+
+            if ($inferredSubcategory !== null) {
+                $payload['subcategory'] = $inferredSubcategory;
+            }
+        }
+
+        $resolvedSubcategory = ItemSubcategorySupport::normalize($category, $payload['subcategory'] ?? null);
+        $payload['spec'] = ItemSpecNormalizer::normalize(
+            $category,
+            ItemInputRequirementSupport::normalizeShape($payload['shape'] ?? null) ?? $payload['shape'] ?? null,
+            $payload['spec'] ?? null,
+            $resolvedSubcategory,
+        );
 
         return $payload;
     }

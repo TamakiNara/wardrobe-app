@@ -32,9 +32,17 @@ describe("POST /api/import", () => {
           JSON.stringify({
             message: "imported",
             counts: {
-              items: 1,
-              purchase_candidates: 2,
-              outfits: 3,
+              items: {
+                total: 1,
+                visible: 1,
+              },
+              purchase_candidates: {
+                total: 2,
+              },
+              outfits: {
+                total: 3,
+                visible: 2,
+              },
             },
           }),
           {
@@ -85,9 +93,17 @@ describe("POST /api/import", () => {
     expect(json).toEqual({
       message: "imported",
       counts: {
-        items: 1,
-        purchase_candidates: 2,
-        outfits: 3,
+        items: {
+          total: 1,
+          visible: 1,
+        },
+        purchase_candidates: {
+          total: 2,
+        },
+        outfits: {
+          total: 3,
+          visible: 2,
+        },
       },
     });
   });

@@ -14,9 +14,17 @@ export type ExportPayload = {
 export type ImportResponse = {
   message: string;
   counts: {
-    items: number;
-    purchase_candidates: number;
-    outfits: number;
+    items: {
+      total: number;
+      visible: number;
+    };
+    purchase_candidates: {
+      total: number;
+    };
+    outfits: {
+      total: number;
+      visible: number;
+    };
   };
 };
 
@@ -38,6 +46,14 @@ export async function importUserData(
 
 export function getImportExportErrorMessage(error: unknown): string {
   if (error instanceof ApiClientError) {
+    const firstValidationError = Object.values(error.data?.errors ?? {})
+      .flatMap((messages) => (Array.isArray(messages) ? messages : [messages]))
+      .find((message): message is string => typeof message === "string");
+
+    if (firstValidationError) {
+      return firstValidationError;
+    }
+
     return error.message;
   }
 

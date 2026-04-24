@@ -126,7 +126,7 @@ function ImportExportPageContent() {
     if (!selectedFile || importing) return;
 
     const confirmedText = window.prompt(
-      "続行するには「インポート」と入力してください。\n実行すると、現在の items・purchase_candidates・outfits はすべて削除されて置き換わります。",
+      "続行するには「インポート」と入力してください。\n実行すると、現在のアイテム・購入検討・コーディネートはすべて削除されて置き換わります。",
     );
 
     if (confirmedText !== "インポート") {
@@ -147,7 +147,7 @@ function ImportExportPageContent() {
       const response = await importUserData(parsed);
 
       setSuccessMessage(
-        `インポートが完了しました。items: ${response.counts.items} 件、purchase_candidates: ${response.counts.purchase_candidates} 件、outfits: ${response.counts.outfits} 件`,
+        `復元が完了しました。アイテム ${response.counts.items.total} 件（表示対象 ${response.counts.items.visible} 件）、購入検討 ${response.counts.purchase_candidates.total} 件、コーディネート ${response.counts.outfits.total} 件（表示対象 ${response.counts.outfits.visible} 件）を復元しました。`,
       );
       setSelectedFile(null);
     } catch (error) {

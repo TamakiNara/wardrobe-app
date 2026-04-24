@@ -6,6 +6,135 @@ use Illuminate\Validation\ValidationException;
 
 class ItemSubcategorySupport
 {
+    private const LEGACY_INFERRED_SUBCATEGORY_BY_SHAPE = [
+        'tops' => [
+            'tshirt' => 'tshirt_cutsew',
+            'shirt' => 'shirt_blouse',
+            'blouse' => 'shirt_blouse',
+            'knit' => 'knit_sweater',
+            'cardigan' => 'cardigan',
+            'camisole' => 'camisole',
+            'tanktop' => 'tanktop',
+            'vest' => 'vest_gilet',
+            'polo' => 'polo_shirt',
+            'sweatshirt' => 'sweat_trainer',
+            'hoodie' => 'hoodie',
+            'other' => 'other',
+        ],
+        'pants' => [
+            'pants' => 'pants',
+            'denim' => 'denim',
+            'slacks' => 'slacks',
+            'cargo' => 'cargo',
+            'chino' => 'chino',
+            'straight' => 'pants',
+            'tapered' => 'pants',
+            'wide' => 'pants',
+            'culottes' => 'pants',
+            'jogger' => 'pants',
+            'skinny' => 'pants',
+            'gaucho' => 'pants',
+            'other' => 'other',
+        ],
+        'skirts' => [
+            'skirt' => 'skirt',
+            'tight' => 'skirt',
+            'flare' => 'skirt',
+            'a_line' => 'skirt',
+            'mermaid' => 'skirt',
+            'other' => 'other',
+        ],
+        'outerwear' => [
+            'jacket' => 'jacket',
+            'tailored' => 'jacket',
+            'no_collar' => 'jacket',
+            'coat' => 'coat',
+            'trench' => 'coat',
+            'chester' => 'coat',
+            'stainless' => 'coat',
+            'blouson' => 'blouson',
+            'down-padded' => 'down_padded',
+            'mountain-parka' => 'mountain_parka',
+            'other' => 'other',
+        ],
+        'onepiece_dress' => [
+            'onepiece' => 'onepiece',
+            'dress' => 'dress',
+            'other' => 'other',
+        ],
+        'allinone' => [
+            'allinone' => 'allinone',
+            'salopette' => 'salopette',
+            'other' => 'other',
+        ],
+        'inner' => [
+            'roomwear' => 'roomwear',
+            'underwear' => 'underwear',
+            'pajamas' => 'pajamas',
+            'other' => 'other',
+        ],
+        'bags' => [
+            'tote' => 'tote',
+            'shoulder' => 'shoulder',
+            'boston' => 'boston',
+            'rucksack' => 'rucksack',
+            'hand' => 'hand',
+            'body' => 'body',
+            'waist-pouch' => 'waist_pouch',
+            'messenger' => 'messenger',
+            'clutch' => 'clutch',
+            'sacoche' => 'sacoche',
+            'pochette' => 'pochette',
+            'drawstring' => 'drawstring',
+            'basket-bag' => 'basket_bag',
+            'briefcase' => 'briefcase',
+            'marche-bag' => 'marche_bag',
+            'bag' => 'other',
+            'other' => 'other',
+        ],
+        'fashion_accessories' => [
+            'hat' => 'hat',
+            'belt' => 'belt',
+            'scarf-stole' => 'scarf_stole',
+            'gloves' => 'gloves',
+            'jewelry' => 'jewelry',
+            'scarf-bandana' => 'scarf_bandana',
+            'hair-accessory' => 'hair_accessory',
+            'eyewear' => 'eyewear',
+            'watch' => 'watch',
+            'other' => 'other',
+            'accessory' => 'other',
+        ],
+        'shoes' => [
+            'sneakers' => 'sneakers',
+            'pumps' => 'pumps',
+            'short-boots' => 'boots',
+            'sandals' => 'sandals',
+            'leather-shoes' => 'leather_shoes',
+            'rain-shoes-boots' => 'rain_shoes_boots',
+            'other' => 'other',
+        ],
+        'legwear' => [
+            'socks' => 'socks',
+            'stockings' => 'stockings',
+            'tights' => 'tights',
+            'leggings' => 'leggings',
+            'leg-warmer' => 'leg_warmer',
+            'other' => 'other',
+        ],
+        'swimwear' => [
+            'swimwear' => 'swimwear',
+            'rashguard' => 'rashguard',
+            'other' => 'other',
+        ],
+        'kimono' => [
+            'kimono' => 'kimono',
+            'yukata' => 'yukata',
+            'japanese-accessory' => 'japanese_accessory',
+            'other' => 'other',
+        ],
+    ];
+
     private const OPTIONS = [
         'tops' => [
             'tshirt_cutsew',
@@ -323,6 +452,27 @@ class ItemSubcategorySupport
         }
 
         return $normalized;
+    }
+
+    public static function inferFromShape(?string $category, mixed $shape): ?string
+    {
+        if (! is_string($category) || $category === '') {
+            return null;
+        }
+
+        if (! is_string($shape)) {
+            return null;
+        }
+
+        $normalizedShape = trim($shape);
+
+        if ($normalizedShape === '') {
+            return null;
+        }
+
+        $subcategory = self::LEGACY_INFERRED_SUBCATEGORY_BY_SHAPE[$category][$normalizedShape] ?? null;
+
+        return self::normalize($category, $subcategory);
     }
 
     public static function validate(array $validated): void

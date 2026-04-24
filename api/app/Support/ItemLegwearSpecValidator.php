@@ -8,6 +8,16 @@ class ItemLegwearSpecValidator
 {
     public static function validate(array $validated): void
     {
+        self::validateInternal($validated, true);
+    }
+
+    public static function validateForImport(array $validated): void
+    {
+        self::validateInternal($validated, false);
+    }
+
+    private static function validateInternal(array $validated, bool $requireMissingFields): void
+    {
         $category = $validated['category'] ?? null;
         $shape = $validated['shape'] ?? null;
         $subcategory = ItemSubcategorySupport::normalize(
@@ -28,12 +38,17 @@ class ItemLegwearSpecValidator
             },
         };
 
-        if (in_array($category, ['bottoms', 'pants'], true) && ($bottomsLengthType === null || $bottomsLengthType === '')) {
+        if (
+            $requireMissingFields
+            && in_array($category, ['bottoms', 'pants'], true)
+            && ($bottomsLengthType === null || $bottomsLengthType === '')
+        ) {
             self::throwBottomsLengthTypeRequiredError();
         }
 
         if (
-            $category === 'skirts'
+            $requireMissingFields
+            && $category === 'skirts'
             && ($skirtLengthType === null || $skirtLengthType === '')
             && ($legacySkirtLengthType === null || $legacySkirtLengthType === '')
         ) {
@@ -49,7 +64,8 @@ class ItemLegwearSpecValidator
         }
 
         if (
-            $category === 'legwear'
+            $requireMissingFields
+            && $category === 'legwear'
             && in_array($resolvedLegwearType, ['socks', 'leggings'], true)
             && ($coverageType === null || $coverageType === '')
         ) {
@@ -80,35 +96,35 @@ class ItemLegwearSpecValidator
     private static function throwCoverageTypeError(): never
     {
         throw ValidationException::withMessages([
-            'spec.legwear.coverage_type' => '選択した形では、このレッグウェア詳細を保存できません。',
+            'spec.legwear.coverage_type' => '指定された仕様・属性では、このレッグウェア丈は保存できません。',
         ]);
     }
 
     private static function throwBottomsLengthTypeRequiredError(): never
     {
         throw ValidationException::withMessages([
-            'spec.bottoms.length_type' => 'ボトムス丈を選択してください。',
+            'spec.bottoms.length_type' => 'ボトムス丈の情報が不足しています。',
         ]);
     }
 
     private static function throwSkirtLengthTypeRequiredError(): never
     {
         throw ValidationException::withMessages([
-            'spec.skirt.length_type' => '丈を選択してください。',
+            'spec.skirt.length_type' => 'スカート丈の情報が不足しています。',
         ]);
     }
 
     private static function throwCoverageTypeRequiredError(): never
     {
         throw ValidationException::withMessages([
-            'spec.legwear.coverage_type' => 'レッグウェアを選択してください。',
+            'spec.legwear.coverage_type' => 'レッグウェア丈の情報が不足しています。',
         ]);
     }
 
     private static function throwBottomsRiseTypeError(): never
     {
         throw ValidationException::withMessages([
-            'spec.bottoms.rise_type' => '選択した種類では、この股上は指定できません。',
+            'spec.bottoms.rise_type' => '指定された種類では、この股上は保存できません。',
         ]);
     }
 }

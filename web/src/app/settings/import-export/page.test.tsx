@@ -102,9 +102,17 @@ describe("ImportExportPage", () => {
     importUserDataMock.mockResolvedValue({
       message: "imported",
       counts: {
-        items: 1,
-        purchase_candidates: 2,
-        outfits: 3,
+        items: {
+          total: 1,
+          visible: 1,
+        },
+        purchase_candidates: {
+          total: 2,
+        },
+        outfits: {
+          total: 3,
+          visible: 2,
+        },
       },
     });
     promptMock = vi.fn(() => "インポート");
@@ -266,7 +274,7 @@ describe("ImportExportPage", () => {
       outfits: [],
     });
     expect(container.textContent).toContain(
-      "インポートが完了しました。items: 1 件、purchase_candidates: 2 件、outfits: 3 件",
+      "復元が完了しました。アイテム 1 件（表示対象 1 件）、購入検討 2 件、コーディネート 3 件（表示対象 2 件）を復元しました。",
     );
   });
 

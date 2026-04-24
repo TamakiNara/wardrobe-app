@@ -10,7 +10,9 @@ use App\Models\PurchaseCandidateMaterial;
 use App\Models\User;
 use App\Support\ImportExportImageSupport;
 use App\Support\ItemMaterialSupport;
+use App\Support\ItemSpecNormalizer;
 use App\Support\ItemSpecPayloadSupport;
+use App\Support\ItemSubcategorySupport;
 
 class ExportService
 {
@@ -48,6 +50,9 @@ class ExportService
 
     private function buildItemPayload(Item $item): array
     {
+        $resolvedSubcategory = ItemSubcategorySupport::normalize($item->category, $item->subcategory)
+            ?? ItemSubcategorySupport::inferFromShape($item->category, $item->shape);
+
         return [
             'id' => $item->id,
             'status' => $item->status,
@@ -64,13 +69,20 @@ class ExportService
             'size_details' => $item->size_details,
             'is_rain_ok' => $item->is_rain_ok,
             'category' => $item->category,
-            'subcategory' => $item->subcategory,
+            'subcategory' => $resolvedSubcategory,
             'shape' => $item->shape,
             'colors' => $item->colors ?? [],
             'seasons' => $item->seasons ?? [],
             'tpo_ids' => $item->tpo_ids ?? [],
             'tpos' => $item->tpos ?? [],
-            'spec' => ItemSpecPayloadSupport::buildResponseSpec($item->spec),
+            'spec' => ItemSpecPayloadSupport::buildResponseSpec(
+                ItemSpecNormalizer::normalize(
+                    $item->category,
+                    $item->shape,
+                    $item->spec,
+                    $resolvedSubcategory,
+                ),
+            ),
             'materials' => ItemMaterialSupport::buildPayload(
                 $item->materials
                     ->map(fn (ItemMaterial $material) => [

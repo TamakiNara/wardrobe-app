@@ -26,7 +26,11 @@ class ImportService
 
     /**
      * @param  array<string, mixed>  $payload
-     * @return array<string, int>
+     * @return array{
+     *   items: array{total: int, visible: int},
+     *   purchase_candidates: array{total: int},
+     *   outfits: array{total: int, visible: int}
+     * }
      */
     public function import(User $user, array $payload): array
     {
@@ -38,15 +42,24 @@ class ImportService
             ]);
         }
 
-        $validatedItems = collect($payload['items'] ?? [])
-            ->map(fn ($item) => ImportExportValidationSupport::validateItemPayload((array) $item))
-            ->all();
-        $validatedCandidates = collect($payload['purchase_candidates'] ?? [])
-            ->map(fn ($candidate) => ImportExportValidationSupport::validatePurchaseCandidatePayload((array) $candidate))
-            ->all();
-        $validatedOutfits = collect($payload['outfits'] ?? [])
-            ->map(fn ($outfit) => ImportExportValidationSupport::validateOutfitPayload((array) $outfit))
-            ->all();
+        $validatedItems = $this->validateCollectionPayloads(
+            $payload['items'] ?? [],
+            'items',
+            'アイテム',
+            fn ($item) => ImportExportValidationSupport::validateItemPayload((array) $item),
+        );
+        $validatedCandidates = $this->validateCollectionPayloads(
+            $payload['purchase_candidates'] ?? [],
+            'purchase_candidates',
+            '購入検討',
+            fn ($candidate) => ImportExportValidationSupport::validatePurchaseCandidatePayload((array) $candidate),
+        );
+        $validatedOutfits = $this->validateCollectionPayloads(
+            $payload['outfits'] ?? [],
+            'outfits',
+            'コーディネート',
+            fn ($outfit) => ImportExportValidationSupport::validateOutfitPayload((array) $outfit),
+        );
 
         $existingItemFiles = ImportExportImageSupport::collectStoredFiles(
             Item::query()->where('user_id', $user->id)->with('images')->get()->pluck('images')->flatten()
@@ -143,7 +156,7 @@ class ImportService
 
                     if (collect($mappedItems)->contains(fn (array $item) => ! is_int($item['item_id']))) {
                         throw ValidationException::withMessages([
-                            'outfits' => '存在しない item を参照する outfit は復元できません。',
+                            'outfits' => '対応しないアイテムを参照するコーディネートは復元できません。',
                         ]);
                     }
 
@@ -167,9 +180,21 @@ class ImportService
                 }
 
                 return [
-                    'items' => count($validatedItems),
-                    'purchase_candidates' => count($validatedCandidates),
-                    'outfits' => count($validatedOutfits),
+                    'items' => [
+                        'total' => count($validatedItems),
+                        'visible' => collect($validatedItems)
+                            ->where('status', 'active')
+                            ->count(),
+                    ],
+                    'purchase_candidates' => [
+                        'total' => count($validatedCandidates),
+                    ],
+                    'outfits' => [
+                        'total' => count($validatedOutfits),
+                        'visible' => collect($validatedOutfits)
+                            ->where('status', 'active')
+                            ->count(),
+                    ],
                 ];
             });
         } catch (\Throwable $exception) {
@@ -183,5 +208,60 @@ class ImportService
         ]);
 
         return $counts;
+    }
+
+    /**
+     * @param  callable(array<string, mixed>): array<string, mixed>  $validator
+     * @return array<int, array<string, mixed>>
+     */
+    private function validateCollectionPayloads(
+        mixed $payloads,
+        string $payloadKey,
+        string $entityLabel,
+        callable $validator,
+    ): array {
+        $validated = [];
+
+        foreach (collect($payloads)->values() as $index => $payload) {
+            try {
+                $validated[] = $validator((array) $payload);
+            } catch (ValidationException $exception) {
+                $messages = [];
+
+                foreach ($exception->errors() as $field => $fieldMessages) {
+                    $fieldLabel = $this->fieldLabel($field);
+
+                    foreach ((array) $fieldMessages as $message) {
+                        $messages[sprintf('%s.%d.%s', $payloadKey, $index, $field)][] =
+                            sprintf('%sの%d件目の%sでエラーが発生しました: %s', $entityLabel, $index + 1, $fieldLabel, $message);
+                    }
+                }
+
+                throw ValidationException::withMessages($messages);
+            }
+        }
+
+        return $validated;
+    }
+
+    private function fieldLabel(string $field): string
+    {
+        return match ($field) {
+            'subcategory', 'category_id' => '種類',
+            'shape' => '形',
+            'spec.tops.sleeve' => '仕様・属性（袖）',
+            'spec.tops.length' => '仕様・属性（丈）',
+            'spec.tops.neck' => '仕様・属性（首まわり）',
+            'spec.tops.design' => '仕様・属性（デザイン）',
+            'spec.tops.fit' => '仕様・属性（フィット）',
+            'spec.bottoms.length_type' => '仕様・属性（ボトムス丈）',
+            'spec.bottoms.rise_type' => '仕様・属性（股上）',
+            'spec.skirt.length_type' => '仕様・属性（スカート丈）',
+            'spec.skirt.material_type' => '仕様・属性（スカート素材）',
+            'spec.skirt.design_type' => '仕様・属性（スカートデザイン）',
+            'spec.legwear.coverage_type' => '仕様・属性（レッグウェア丈）',
+            'owner.user_id' => 'バックアップ所有者',
+            default => $field,
+        };
     }
 }
