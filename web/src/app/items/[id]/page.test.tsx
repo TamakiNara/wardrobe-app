@@ -145,6 +145,13 @@ describe("ItemPage", () => {
     expect(markup).toContain("購入後メモ");
     expect(markup).toContain("対応");
     expect(markup).toContain("クリーニング中");
+    expect(markup).toContain("画像 / プレビュー");
+    expect(markup).toContain("基本情報");
+    expect(markup).toContain("分類");
+    expect(markup).toContain("色 / 利用条件・状態");
+    expect(markup).toContain("サイズ・実寸");
+    expect(markup).toContain("購入情報");
+    expect(markup).toContain("補足情報");
     expect(markup).toContain("状態操作");
     expect(markup).toContain("所持状態");
     expect(markup).toContain("ケア状態");
@@ -153,12 +160,13 @@ describe("ItemPage", () => {
     expect(markup).toContain(
       "所持しなくなった場合は「手放す」を使います。必要になった時は「クローゼットに戻す」で通常状態へ戻せます。",
     );
-    expect(markup).toContain("ボトムス丈： クロップド丈");
-    expect(markup).toContain("レッグウェア： タイツ");
+    expect(markup).toContain("仕様・属性");
+    expect(markup).toContain("クロップド丈");
+    expect(markup).toContain("タイツ");
     expect(markup).toContain("素材・混率");
     expect(markup).toContain("本体： 綿 80%、ポリエステル 20%");
     expect(markup).toContain("裏地： ポリエステル 100%");
-    expect(markup).toContain("画像");
+    expect(markup).not.toContain("購入・サイズ情報");
     expect(markup).toContain("coat.png");
   });
 
@@ -219,7 +227,10 @@ describe("ItemPage", () => {
     expect(markup).toContain("着用履歴フォームへ戻る");
     expect(markup).toContain('href="/items/1/edit"');
     expect(markup).toContain("編集");
-    expect(markup).toContain("ジャケット・アウター / コート / トレンチコート");
+    expect(markup).toContain("カテゴリ");
+    expect(markup).toContain("コート");
+    expect(markup).toContain("トレンチコート");
+    expect(markup).not.toContain("仕様・属性");
   });
 
   it("skirts の素材とデザイン spec を詳細画面で表示する", async () => {
@@ -287,7 +298,8 @@ describe("ItemPage", () => {
       }),
     );
 
-    expect(markup).toContain("素材： チュール");
-    expect(markup).toContain("デザイン： プリーツ");
+    expect(markup).toContain("仕様・属性");
+    expect(markup).toContain("チュール");
+    expect(markup).toContain("プリーツ");
   });
 });

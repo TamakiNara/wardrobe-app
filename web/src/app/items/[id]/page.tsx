@@ -17,6 +17,7 @@ import {
 } from "@/lib/items/size-details";
 import { groupItemMaterialsForDisplay } from "@/lib/items/materials";
 import {
+  BOTTOMS_RISE_OPTIONS,
   findBottomsLengthLabel,
   findLegwearCoverageLabel,
   findSkirtDesignLabel,
@@ -123,9 +124,6 @@ export default async function ItemPage({
     currentSubcategory,
   );
   const shapeLabel = findItemShapeLabel(item.category, item.shape);
-  const classificationLabels = [categoryLabel, subcategoryLabel, shapeLabel]
-    .filter((label): label is string => Boolean(label))
-    .filter((label, index, labels) => labels.indexOf(label) === index);
   const itemImages = item.images ?? [];
   const normalizedSizeDetails = normalizeItemSizeDetails(item.size_details);
   const structuredSizeFieldDefinitions = getStructuredSizeFieldDefinitions(
@@ -137,6 +135,48 @@ export default async function ItemPage({
   );
   const visibleCustomSizeFields = normalizedSizeDetails?.custom_fields ?? [];
   const groupedMaterials = groupItemMaterialsForDisplay(item.materials);
+  const bottomsRiseLabel =
+    BOTTOMS_RISE_OPTIONS.find(
+      (option) => option.value === item.spec?.bottoms?.rise_type,
+    )?.label ?? "";
+  const classificationDetails = [
+    { label: "カテゴリ", value: categoryLabel },
+    { label: "種類", value: subcategoryLabel },
+    { label: "形", value: shapeLabel },
+  ].filter((detail): detail is { label: string; value: string } =>
+    Boolean(detail.value),
+  );
+  const specDetails = [
+    { label: "袖", value: topsSpec?.sleeve ?? "" },
+    { label: "丈", value: topsSpec?.length || bottomsLengthLabel },
+    { label: "首回り", value: topsSpec?.neck ?? "" },
+    { label: "デザイン", value: topsSpec?.design || skirtDesignLabel },
+    { label: "シルエット", value: topsSpec?.fit ?? "" },
+    { label: "股上", value: bottomsRiseLabel },
+    { label: "素材", value: skirtMaterialLabel },
+    { label: "レッグウェア", value: legwearCoverageLabel },
+  ].filter((detail): detail is { label: string; value: string } =>
+    Boolean(detail.value),
+  );
+  const colorDetails = [
+    { label: "メインカラー", value: mainColor?.label ?? "" },
+    { label: "サブカラー", value: subColor?.label ?? "" },
+    {
+      label: "季節",
+      value: item.seasons?.length ? item.seasons.join(" / ") : "",
+    },
+    {
+      label: "TPO",
+      value: item.tpos?.length ? item.tpos.join(" / ") : "",
+    },
+    { label: "雨対応", value: item.is_rain_ok ? "対応" : "非対応" },
+    {
+      label: "ケア状態",
+      value: item.care_status ? ITEM_CARE_STATUS_LABELS[item.care_status] : "",
+    },
+  ].filter((detail): detail is { label: string; value: string } =>
+    Boolean(detail.value),
+  );
   const backHref = returnToParam ?? "/items";
   const backLabel = returnToParam
     ? `${returnLabelParam ?? "戻る"}へ戻る`
@@ -232,171 +272,135 @@ export default async function ItemPage({
           </div>
         </section>
 
-        <ItemPreviewCard
-          name={item.name ?? ""}
-          category={item.category}
-          subcategory={item.subcategory}
-          shape={item.shape}
-          mainColorHex={mainColor?.hex}
-          mainColorLabel={mainColor?.label}
-          subColorHex={subColor?.hex}
-          subColorLabel={subColor?.label}
-          topsSpec={topsSpec}
-          topsSpecRaw={topsSpecRaw}
-          spec={item.spec}
-          images={item.images}
-          skinTonePreset={skinTonePreset}
-        />
-
-        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-          <p className="text-gray-600">{classificationLabels.join(" / ")}</p>
-
-          <div className="mt-4 flex flex-wrap gap-2">
-            {mainColor && (
-              <span className="inline-flex items-center gap-2 rounded-full border border-gray-300 px-3 py-1 text-sm">
-                <span
-                  className="h-4 w-4 rounded-full border border-gray-300"
-                  style={{ backgroundColor: mainColor.hex }}
-                />
-                {mainColor.label}
-              </span>
-            )}
-            {subColor && (
-              <span className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-sm">
-                <span
-                  className="h-4 w-4 rounded-full border border-gray-300"
-                  style={{ backgroundColor: subColor.hex }}
-                />
-                {subColor.label}
-              </span>
-            )}
-          </div>
-
-          <p className="mt-4 text-sm text-gray-600">
-            季節： {item.seasons?.length ? item.seasons.join(" / ") : "未設定"}
-          </p>
-          <p className="mt-1 text-sm text-gray-600">
-            TPO： {item.tpos?.length ? item.tpos.join(" / ") : "未設定"}
-          </p>
-          {bottomsLengthLabel ? (
-            <p className="mt-1 text-sm text-gray-600">
-              ボトムス丈： {bottomsLengthLabel}
-            </p>
-          ) : null}
-          {legwearCoverageLabel ? (
-            <p className="mt-1 text-sm text-gray-600">
-              レッグウェア： {legwearCoverageLabel}
-            </p>
-          ) : null}
-          {skirtMaterialLabel ? (
-            <p className="mt-1 text-sm text-gray-600">
-              素材： {skirtMaterialLabel}
-            </p>
-          ) : null}
-          {skirtDesignLabel ? (
-            <p className="mt-1 text-sm text-gray-600">
-              デザイン： {skirtDesignLabel}
-            </p>
-          ) : null}
-          {groupedMaterials.length > 0 ? (
-            <div className="mt-4 border-t border-gray-100 pt-4">
-              <h2 className="text-sm font-semibold text-gray-900">
-                素材・混率
-              </h2>
-              <div className="mt-2 space-y-1">
-                {groupedMaterials.map((group) => (
-                  <p key={group.partLabel} className="text-sm text-gray-600">
-                    {group.partLabel}： {group.labels.join("、")}
-                  </p>
+        <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <h2 className="text-lg font-semibold text-gray-900">
+            画像 / プレビュー
+          </h2>
+          <div className="mt-4 space-y-4">
+            <ItemPreviewCard
+              name={item.name ?? ""}
+              category={item.category}
+              subcategory={item.subcategory}
+              shape={item.shape}
+              mainColorHex={mainColor?.hex}
+              mainColorLabel={mainColor?.label}
+              subColorHex={subColor?.hex}
+              subColorLabel={subColor?.label}
+              topsSpec={topsSpec}
+              topsSpecRaw={topsSpecRaw}
+              spec={item.spec}
+              images={item.images}
+              skinTonePreset={skinTonePreset}
+              showSummary={false}
+              showDebugDetails={false}
+            />
+            {itemImages.length > 0 ? (
+              <div className="grid gap-4 md:grid-cols-2">
+                {itemImages.map((image) => (
+                  <article
+                    key={image.id ?? `${image.path}-${image.sort_order}`}
+                    className="overflow-hidden rounded-xl border border-gray-200"
+                  >
+                    {image.url ? (
+                      <div className="flex aspect-[3/4] items-center justify-center bg-gray-50 p-2">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={image.url}
+                          alt={image.original_filename ?? "item image"}
+                          className="h-full w-full object-contain"
+                        />
+                      </div>
+                    ) : (
+                      <div className="flex aspect-[4/3] items-center justify-center bg-gray-100 text-sm text-gray-400">
+                        画像なし
+                      </div>
+                    )}
+                    <div className="p-3 text-sm text-gray-600">
+                      {image.sort_order}枚目
+                      {image.is_primary ? " / 代表画像" : ""}
+                    </div>
+                  </article>
                 ))}
               </div>
-            </div>
-          ) : null}
-        </div>
-
-        <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-gray-900">画像</h2>
-          {itemImages.length > 0 ? (
-            <div className="mt-4 grid gap-4 md:grid-cols-2">
-              {itemImages.map((image) => (
-                <article
-                  key={image.id ?? `${image.path}-${image.sort_order}`}
-                  className="overflow-hidden rounded-xl border border-gray-200"
-                >
-                  {image.url ? (
-                    <div className="flex aspect-[3/4] items-center justify-center bg-gray-50 p-2">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={image.url}
-                        alt={image.original_filename ?? "item image"}
-                        className="h-full w-full object-contain"
-                      />
-                    </div>
-                  ) : (
-                    <div className="flex aspect-[4/3] items-center justify-center bg-gray-100 text-sm text-gray-400">
-                      画像なし
-                    </div>
-                  )}
-                  <div className="p-3 text-sm text-gray-600">
-                    {image.sort_order}枚目
-                    {image.is_primary ? " / 代表画像" : ""}
-                  </div>
-                </article>
-              ))}
-            </div>
-          ) : (
-            <p className="mt-3 text-sm text-gray-600">画像はまだありません。</p>
-          )}
+            ) : (
+              <p className="text-sm text-gray-600">画像はまだありません。</p>
+            )}
+          </div>
         </section>
 
         <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-gray-900">
-            購入・サイズ情報
-          </h2>
+          <h2 className="text-lg font-semibold text-gray-900">基本情報</h2>
           <dl className="mt-4 grid gap-4 md:grid-cols-2">
             <div>
-              <dt className="text-sm font-medium text-gray-700">ブランド名</dt>
+              <dt className="text-sm font-medium text-gray-700">名前</dt>
+              <dd className="mt-1 text-sm text-gray-600">
+                {item.name ?? "未設定"}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-sm font-medium text-gray-700">ブランド</dt>
               <dd className="mt-1 text-sm text-gray-600">
                 {item.brand_name ?? "未設定"}
               </dd>
             </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-700">実購入価格</dt>
-              <dd className="mt-1 text-sm text-gray-600">
-                {formatItemPrice(item.price ?? null)}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-700">ケア状態</dt>
-              <dd className="mt-1 text-sm text-gray-600">
-                {item.care_status
-                  ? ITEM_CARE_STATUS_LABELS[item.care_status]
-                  : "未設定"}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-700">購入 URL</dt>
-              <dd className="mt-1 text-sm text-gray-600">
-                {item.purchase_url ? (
-                  <a
-                    href={item.purchase_url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-blue-600 hover:underline"
-                  >
-                    開く
-                  </a>
-                ) : (
-                  "未設定"
-                )}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-700">購入日</dt>
-              <dd className="mt-1 text-sm text-gray-600">
-                {item.purchased_at ? item.purchased_at.slice(0, 10) : "未設定"}
-              </dd>
-            </div>
+          </dl>
+        </section>
+
+        <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <h2 className="text-lg font-semibold text-gray-900">分類</h2>
+          <dl className="mt-4 grid gap-4 md:grid-cols-2">
+            {classificationDetails.map((detail) => (
+              <div key={detail.label}>
+                <dt className="text-sm font-medium text-gray-700">
+                  {detail.label}
+                </dt>
+                <dd className="mt-1 text-sm text-gray-600">{detail.value}</dd>
+              </div>
+            ))}
+            {specDetails.length > 0 ? (
+              <div className="md:col-span-2">
+                <dt className="text-sm font-medium text-gray-700">
+                  仕様・属性
+                </dt>
+                <dd className="mt-2 grid gap-2 md:grid-cols-2">
+                  {specDetails.map((detail) => (
+                    <div
+                      key={detail.label}
+                      className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2"
+                    >
+                      <p className="text-xs font-medium text-gray-500">
+                        {detail.label}
+                      </p>
+                      <p className="mt-1 text-sm text-gray-700">
+                        {detail.value}
+                      </p>
+                    </div>
+                  ))}
+                </dd>
+              </div>
+            ) : null}
+          </dl>
+        </section>
+
+        <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <h2 className="text-lg font-semibold text-gray-900">
+            色 / 利用条件・状態
+          </h2>
+          <dl className="mt-4 grid gap-4 md:grid-cols-2">
+            {colorDetails.map((detail) => (
+              <div key={detail.label}>
+                <dt className="text-sm font-medium text-gray-700">
+                  {detail.label}
+                </dt>
+                <dd className="mt-1 text-sm text-gray-600">{detail.value}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+
+        <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <h2 className="text-lg font-semibold text-gray-900">サイズ・実寸</h2>
+          <dl className="mt-4 grid gap-4 md:grid-cols-2">
             <div>
               <dt className="text-sm font-medium text-gray-700">サイズ区分</dt>
               <dd className="mt-1 text-sm text-gray-600">
@@ -411,18 +415,12 @@ export default async function ItemPage({
                 {item.size_label ?? "未設定"}
               </dd>
             </div>
-            <div>
+            <div className="md:col-span-2">
               <dt className="text-sm font-medium text-gray-700">
                 サイズ感メモ
               </dt>
               <dd className="mt-1 text-sm text-gray-600">
                 {item.size_note ?? "未設定"}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-700">雨対応</dt>
-              <dd className="mt-1 text-sm text-gray-600">
-                {item.is_rain_ok ? "対応" : "未対応"}
               </dd>
             </div>
             <div className="md:col-span-2">
@@ -472,7 +470,63 @@ export default async function ItemPage({
                 <dd className="mt-1 text-sm text-gray-600">未設定</dd>
               )}
             </div>
+          </dl>
+        </section>
+
+        <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <h2 className="text-lg font-semibold text-gray-900">素材・混率</h2>
+          {groupedMaterials.length > 0 ? (
+            <div className="mt-4 space-y-1">
+              {groupedMaterials.map((group) => (
+                <p key={group.partLabel} className="text-sm text-gray-600">
+                  {group.partLabel}： {group.labels.join("、")}
+                </p>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-3 text-sm text-gray-600">未設定</p>
+          )}
+        </section>
+
+        <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <h2 className="text-lg font-semibold text-gray-900">購入情報</h2>
+          <dl className="mt-4 grid gap-4 md:grid-cols-2">
+            <div>
+              <dt className="text-sm font-medium text-gray-700">実購入価格</dt>
+              <dd className="mt-1 text-sm text-gray-600">
+                {formatItemPrice(item.price ?? null)}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-sm font-medium text-gray-700">購入日</dt>
+              <dd className="mt-1 text-sm text-gray-600">
+                {item.purchased_at ? item.purchased_at.slice(0, 10) : "未設定"}
+              </dd>
+            </div>
             <div className="md:col-span-2">
+              <dt className="text-sm font-medium text-gray-700">購入 URL</dt>
+              <dd className="mt-1 text-sm text-gray-600">
+                {item.purchase_url ? (
+                  <a
+                    href={item.purchase_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-blue-600 hover:underline"
+                  >
+                    開く
+                  </a>
+                ) : (
+                  "未設定"
+                )}
+              </dd>
+            </div>
+          </dl>
+        </section>
+
+        <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <h2 className="text-lg font-semibold text-gray-900">補足情報</h2>
+          <dl className="mt-4">
+            <div>
               <dt className="text-sm font-medium text-gray-700">メモ</dt>
               <dd className="mt-1 whitespace-pre-wrap text-sm text-gray-600">
                 {item.memo ?? "未設定"}

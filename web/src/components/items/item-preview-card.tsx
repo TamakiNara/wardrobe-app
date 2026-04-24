@@ -46,6 +46,7 @@ type ItemPreviewCardProps = {
   skinTonePreset?: SkinTonePreset;
   compact?: boolean;
   showDebugDetails?: boolean;
+  showSummary?: boolean;
 };
 
 function ColorDot({
@@ -92,6 +93,7 @@ export default function ItemPreviewCard({
   skinTonePreset,
   compact = false,
   showDebugDetails,
+  showSummary = true,
 }: ItemPreviewCardProps) {
   const shouldShowDebugDetails =
     showDebugDetails ?? isItemPreviewDebugEnabled();
@@ -145,22 +147,24 @@ export default function ItemPreviewCard({
 
   return (
     <section className={`rounded-2xl border border-gray-200 bg-gray-50 p-4`}>
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <p className="text-sm text-gray-500">プレビュー</p>
-          <h2
-            className={`mt-1 font-semibold text-gray-900 ${compact ? "text-base" : "text-lg"}`}
-          >
-            {name || "名称未設定"}
-          </h2>
-          <p className="mt-1 text-sm text-gray-600">
-            {classificationLabels.join(" / ")}
-          </p>
+      {showSummary ? (
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="text-sm text-gray-500">プレビュー</p>
+            <h2
+              className={`mt-1 font-semibold text-gray-900 ${compact ? "text-base" : "text-lg"}`}
+            >
+              {name || "名称未設定"}
+            </h2>
+            <p className="mt-1 text-sm text-gray-600">
+              {classificationLabels.join(" / ")}
+            </p>
+          </div>
         </div>
-      </div>
+      ) : null}
 
       <div
-        className={`mt-4 ${compact ? "grid grid-cols-[88px_1fr] items-start gap-3" : "space-y-4"}`}
+        className={`${showSummary ? "mt-4 " : ""}${compact ? "grid grid-cols-[88px_1fr] items-start gap-3" : "space-y-4"}`}
       >
         <div className={compact ? "" : "flex justify-center"}>
           <div className={compact ? "" : "w-full max-w-[9.5rem]"}>
