@@ -27,7 +27,21 @@ type SaveFilePickerWindow = Window & {
 };
 
 function isSavePickerAbortError(error: unknown): boolean {
-  return error instanceof DOMException && error.name === "AbortError";
+  if (error instanceof DOMException) {
+    return error.name === "AbortError";
+  }
+
+  if (error instanceof Error) {
+    const normalizedMessage = error.message.toLowerCase();
+
+    return (
+      error.name === "AbortError" ||
+      normalizedMessage.includes("user aborted") ||
+      normalizedMessage.includes("aborted a request")
+    );
+  }
+
+  return false;
 }
 
 function buildExportFileName(exportedAt: string) {

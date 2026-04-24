@@ -252,6 +252,38 @@ describe("ImportExportPage", () => {
     );
   });
 
+  it("save picker が user aborted を返した場合もメッセージを表示しない", async () => {
+    const { default: ImportExportPage } = await import("./page");
+
+    showSaveFilePickerMock.mockRejectedValueOnce(
+      new Error("The user aborted a request."),
+    );
+
+    await act(async () => {
+      root.render(React.createElement(ImportExportPage));
+      await waitForEffects();
+    });
+
+    const exportButton = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button"),
+    ).find((button) => button.textContent === "データをバックアップする");
+
+    await act(async () => {
+      exportButton!.click();
+      await waitForEffects();
+    });
+
+    expect(exportUserDataMock).toHaveBeenCalledTimes(1);
+    expect(showSaveFilePickerMock).toHaveBeenCalledTimes(1);
+    expect(container.textContent).not.toContain("The user aborted a request.");
+    expect(container.textContent).not.toContain(
+      "バックアップを作成しました。JSON を保存してください。",
+    );
+    expect(container.textContent).not.toContain(
+      "インポート・エクスポートの処理に失敗しました。",
+    );
+  });
+
   it("JSON ファイルを選択して復元できる", async () => {
     const { default: ImportExportPage } = await import("./page");
 
