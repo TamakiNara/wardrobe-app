@@ -126,8 +126,6 @@ export const REQUIRED_SUBCATEGORY_CATEGORIES = new Set<string>([
   "kimono",
 ]);
 
-const RADIO_SUBCATEGORY_UI_CATEGORIES = new Set<string>(["skirts"]);
-
 const REPRESENTATIVE_SUBCATEGORY_BY_CATEGORY: Record<string, string> = {
   skirts: "skirt",
   shoes: "sneakers",
@@ -151,8 +149,9 @@ export function shouldShowItemSubcategoryField(category?: string | null) {
   return Boolean(category && getItemSubcategoryOptions(category).length > 0);
 }
 
-export function shouldUseItemSubcategoryRadioField(category?: string | null) {
-  return Boolean(category && RADIO_SUBCATEGORY_UI_CATEGORIES.has(category));
+export function shouldUseItemSubcategoryRadioField(_category?: string | null) {
+  void _category;
+  return false;
 }
 
 export function normalizeItemSubcategory(

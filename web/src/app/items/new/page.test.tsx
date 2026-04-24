@@ -1819,9 +1819,8 @@ describe("新規登録画面", () => {
       await waitForEffects();
     });
 
-    const subcategoryRadios = Array.from(
-      container.querySelectorAll<HTMLInputElement>('input[name="subcategory"]'),
-    );
+    const subcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
     const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
     const lengthTypeSelect = container.querySelector<HTMLSelectElement>(
       "#bottoms-length-type",
@@ -1831,12 +1830,11 @@ describe("新規登録画面", () => {
     );
     const designTypeSelect =
       container.querySelector<HTMLSelectElement>("#skirt-design-type");
-    expect(subcategoryRadios).toHaveLength(2);
-    expect(subcategoryRadios.map((radio) => radio.value)).toEqual([
-      "skirt",
-      "other",
-    ]);
-    expect(subcategoryRadios[0]?.checked).toBe(true);
+    expect(subcategorySelect).not.toBeNull();
+    expect(
+      Array.from(subcategorySelect!.options).map((option) => option.value),
+    ).toEqual(["", "skirt", "other"]);
+    expect(subcategorySelect!.value).toBe("skirt");
     expect(shapeSelect).not.toBeNull();
     expect(lengthTypeSelect).not.toBeNull();
     expect(materialTypeSelect).not.toBeNull();
