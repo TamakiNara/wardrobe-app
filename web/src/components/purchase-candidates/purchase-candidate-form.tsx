@@ -44,12 +44,10 @@ import {
   TOPS_NECKS,
   TOPS_RULES,
   TOPS_SLEEVES,
-  getTopsShapeOptions,
   type TopsDesignValue,
   type TopsFitValue,
   type TopsLengthValue,
   type TopsNeckValue,
-  type TopsShapeValue,
   type TopsSleeveValue,
 } from "@/lib/master-data/item-tops";
 import {
@@ -129,7 +127,6 @@ type PurchaseCandidateCategoryGroupOption = {
 };
 
 type PurchaseCandidateSpecFormState = {
-  topsShape: TopsShapeValue | "";
   topsSleeve: TopsSleeveValue | "";
   topsLength: TopsLengthValue | "";
   topsNeck: TopsNeckValue | "";
@@ -146,29 +143,8 @@ function resolvePurchaseCandidateSpecFormState(
 ): PurchaseCandidateSpecFormState {
   const resolvedCategory =
     resolvePurchaseCandidateItemClassification(categoryId);
-  const topsShapeOptions = getTopsShapeOptions(resolvedCategory?.subcategory);
-  const topsShape = (() => {
-    const rawShape =
-      resolvedCategory?.category === "tops"
-        ? (resolvedCategory.shape as TopsShapeValue | undefined)
-        : undefined;
-
-    if (
-      rawShape &&
-      topsShapeOptions.some((option) => option.value === rawShape)
-    ) {
-      return rawShape;
-    }
-
-    if (topsShapeOptions.length === 1) {
-      return topsShapeOptions[0].value;
-    }
-
-    return "";
-  })();
 
   return {
-    topsShape,
     topsSleeve: (spec?.tops?.sleeve as TopsSleeveValue | undefined) ?? "",
     topsLength: (spec?.tops?.length as TopsLengthValue | undefined) ?? "",
     topsNeck: (spec?.tops?.neck as TopsNeckValue | undefined) ?? "",
@@ -345,7 +321,6 @@ export default function PurchaseCandidateForm({
   const [customSizeFields, setCustomSizeFields] = useState<
     EditableCustomSizeField[]
   >([]);
-  const [topsShape, setTopsShape] = useState<TopsShapeValue | "">("");
   const [topsSleeve, setTopsSleeve] = useState<TopsSleeveValue | "">("");
   const [topsLength, setTopsLength] = useState<TopsLengthValue | "">("");
   const [topsNeck, setTopsNeck] = useState<TopsNeckValue | "">("");
@@ -433,24 +408,11 @@ export default function PurchaseCandidateForm({
     () => resolvePurchaseCandidateItemClassification(categoryId),
     [categoryId],
   );
-  const topsShapeOptions = useMemo(
-    () => getTopsShapeOptions(resolvedItemCategory?.subcategory),
-    [resolvedItemCategory?.subcategory],
-  );
   const resolvedTopsShape = useMemo(() => {
-    if (
-      topsShape &&
-      topsShapeOptions.some((option) => option.value === topsShape)
-    ) {
-      return topsShape;
-    }
-
-    if (topsShapeOptions.length === 1) {
-      return topsShapeOptions[0].value;
-    }
-
-    return "";
-  }, [topsShape, topsShapeOptions]);
+    return resolvedItemCategory?.category === "tops"
+      ? (resolvedItemCategory.shape ?? "")
+      : "";
+  }, [resolvedItemCategory]);
   const topsRule = useMemo(
     () =>
       resolvedItemCategory?.category === "tops" &&
@@ -493,9 +455,7 @@ export default function PurchaseCandidateForm({
       TOPS_FITS.filter((item) => topsRule?.fits.includes(item.value) ?? false),
     [topsRule],
   );
-  const isTopsSpecVisible = false;
-  const shouldShowTopsShapeField =
-    isTopsSpecVisible && topsShapeOptions.length > 1;
+  const isTopsSpecVisible = resolvedItemCategory?.category === "tops";
   const shouldShowTopsSleeveField =
     isTopsSpecVisible &&
     resolvedTopsShape !== "" &&
@@ -517,9 +477,8 @@ export default function PurchaseCandidateForm({
     resolvedTopsShape !== "" &&
     resolvedTopsShape !== "tanktop" &&
     availableTopsFits.length > 1;
-  // Phase 1 keeps purchase candidate spec nullable even where item treats
-  // some axes as required. We still align visible categories and fields with
-  // the item-side classification model.
+  // Purchase candidate では spec を未入力許容のまま扱い、表示する項目だけを
+  // item 側の分類モデルとそろえる。
   const isBottomsSpecVisible = resolvedItemCategory?.category === "pants";
   const isLegwearSpecVisible = resolvedItemCategory?.category === "legwear";
   const legwearCoverageOptions = useMemo(
@@ -584,7 +543,6 @@ export default function PurchaseCandidateForm({
   const submitMessage = submitError ?? submitSuccess;
 
   function resetSpecFormState() {
-    setTopsShape("");
     setTopsSleeve("");
     setTopsLength("");
     setTopsNeck("");
@@ -600,7 +558,6 @@ export default function PurchaseCandidateForm({
       categoryIdValue,
       spec,
     );
-    setTopsShape(nextState.topsShape);
     setTopsSleeve(nextState.topsSleeve);
     setTopsLength(nextState.topsLength);
     setTopsNeck(nextState.topsNeck);
@@ -1017,7 +974,7 @@ export default function PurchaseCandidateForm({
       variant_source_candidate_id:
         mode === "create" ? variantSourceCandidateId : undefined,
       spec: (() => {
-        if (isTopsSpecVisible && resolvedTopsShape) {
+        if (isTopsSpecVisible) {
           const nextSpec: NonNullable<ItemSpec["tops"]> = {};
 
           if (topsSleeve) {
@@ -1038,6 +995,10 @@ export default function PurchaseCandidateForm({
 
           if (topsFit !== DEFAULT_TOPS_FIT) {
             nextSpec.fit = topsFit;
+          }
+
+          if (Object.keys(nextSpec).length === 0) {
+            return null;
           }
 
           return { tops: nextSpec } satisfies ItemSpec;
@@ -1470,33 +1431,6 @@ export default function PurchaseCandidateForm({
             </div>
             {isTopsSpecVisible && (
               <div className="grid gap-4 md:grid-cols-2">
-                {shouldShowTopsShapeField && (
-                  <div>
-                    <FieldLabel htmlFor="spec-tops-shape" label="型" />
-                    <select
-                      id="spec-tops-shape"
-                      value={topsShape}
-                      onChange={(event) => {
-                        setTopsShape(event.target.value as TopsShapeValue | "");
-                        setTopsSleeve("");
-                        setTopsLength("");
-                        setTopsNeck("");
-                        setTopsDesign("");
-                        setTopsFit(DEFAULT_TOPS_FIT);
-                      }}
-                      disabled={isPurchasedLocked}
-                      className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                    >
-                      <option value="">選択してください</option>
-                      {topsShapeOptions.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-
                 {shouldShowTopsSleeveField && (
                   <div>
                     <FieldLabel htmlFor="spec-tops-sleeve" label="袖" />

@@ -798,7 +798,6 @@ purchase candidate の create / update / detail / duplicate / color-variant / it
 ```ts
 type ItemSpec = {
   tops?: {
-    shape?: string;
     sleeve?: string;
     length?: string;
     neck?: string;
@@ -828,12 +827,20 @@ type ItemSpec = {
 
 #### `tops`
 
-入力候補を出してよい。
+Phase 2-1 では、tops spec の詳細属性だけを入力候補として出してよい。  
+`shape` は `category_id` から内部解決し、独立 UI としては出さない。
 
-- shape
 - sleeve
+- length
 - neck
+- design
 - fit
+
+補足:
+
+- すべて任意
+- `tops / other` は `shape=""` を許容し、spec も無理に補わない
+- `spec.tops.shape` は復活させない
 - length
 - design
 
@@ -915,11 +922,15 @@ Phase 1:
 - 初期は `nullable` で運用する
 - item 化時に `spec` を引き継ぐ
 - item 側コードとの共通化は、型・入力定義・helper の流用を第一候補とする
-- tops spec は Phase 1 では未対応のため dormant 扱いでよい
-- tops の `spec.tops.shape` は旧データ互換としてのみ残りうる
-- 現行の Phase 1 では tops spec 自体が dormant のため、request / response / item-draft の正規経路では扱わない
 
-Phase 2:
+Phase 2-1:
+
+- tops spec の詳細属性を create / update / detail / duplicate / color-variant / item-draft で扱う
+- tops の `shape` は `category_id` から内部解決し、独立 UI には戻さない
+- tops spec はすべて任意とし、purchase candidate の入力負荷は抑えたままにする
+- `spec.tops.shape` は旧互換値としても復活させない
+
+Phase 2-2:
 
 - 詳細表示で `spec` を必要に応じて補助表示する
 - `bottoms` / `legwear` の一部を必須化するか再判断する

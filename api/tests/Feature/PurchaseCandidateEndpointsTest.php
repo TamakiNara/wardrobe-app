@@ -999,7 +999,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
             ->assertJsonPath('candidate_summary.id', $candidate->id);
     }
 
-    public function test_post_purchase_candidate_rejects_tops_spec_during_phase_one_scope(): void
+    public function test_post_purchase_candidate_accepts_optional_tops_spec_without_shape_ui(): void
     {
         $user = User::factory()->create();
         $this->createCategory('tops_shirt_blouse', 'tops', 'シャツ・ブラウス');
@@ -1014,8 +1014,9 @@ class PurchaseCandidateEndpointsTest extends TestCase
             'category_id' => 'tops_shirt_blouse',
             'spec' => [
                 'tops' => [
-                    'shape' => 'blouse',
                     'sleeve' => 'short',
+                    'neck' => 'square',
+                    'fit' => 'oversized',
                 ],
             ],
             'colors' => [[
@@ -1030,18 +1031,21 @@ class PurchaseCandidateEndpointsTest extends TestCase
             'X-CSRF-TOKEN' => $token,
         ]);
 
-        $response->assertStatus(422)
-            ->assertJsonValidationErrors(['spec']);
+        $response->assertCreated()
+            ->assertJsonPath('purchaseCandidate.category_id', 'tops_shirt_blouse')
+            ->assertJsonPath('purchaseCandidate.spec.tops.sleeve', 'short')
+            ->assertJsonPath('purchaseCandidate.spec.tops.neck', 'square')
+            ->assertJsonPath('purchaseCandidate.spec.tops.fit', 'oversized')
+            ->assertJsonMissingPath('purchaseCandidate.spec.tops.shape');
     }
 
-    public function test_post_purchase_candidate_item_draft_does_not_pass_tops_spec_in_phase_one(): void
+    public function test_post_purchase_candidate_item_draft_includes_tops_spec_without_shape_compatibility(): void
     {
         $user = User::factory()->create();
         $candidate = $this->createCandidate($user, [
             'category_id' => 'tops_shirt_blouse',
             'spec' => [
                 'tops' => [
-                    'shape' => 'blouse',
                     'sleeve' => 'short',
                     'neck' => 'square',
                     'fit' => 'oversized',
@@ -1062,18 +1066,21 @@ class PurchaseCandidateEndpointsTest extends TestCase
             ->assertJsonPath('item_draft.category', 'tops')
             ->assertJsonPath('item_draft.subcategory', 'shirt_blouse')
             ->assertJsonPath('item_draft.shape', 'shirt')
-            ->assertJsonPath('item_draft.spec', null);
+            ->assertJsonPath('item_draft.spec.tops.sleeve', 'short')
+            ->assertJsonPath('item_draft.spec.tops.neck', 'square')
+            ->assertJsonPath('item_draft.spec.tops.fit', 'oversized')
+            ->assertJsonMissingPath('item_draft.spec.tops.shape');
     }
 
-    public function test_get_purchase_candidate_detail_does_not_return_tops_shape_compatibility_spec(): void
+    public function test_get_purchase_candidate_detail_returns_tops_spec_without_shape_compatibility(): void
     {
         $user = User::factory()->create();
         $candidate = $this->createCandidate($user, [
             'category_id' => 'tops_shirt_blouse',
             'spec' => [
                 'tops' => [
-                    'shape' => 'blouse',
                     'sleeve' => 'short',
+                    'length' => 'regular',
                 ],
             ],
         ]);
@@ -1086,10 +1093,12 @@ class PurchaseCandidateEndpointsTest extends TestCase
 
         $response->assertOk()
             ->assertJsonPath('purchaseCandidate.category_id', 'tops_shirt_blouse')
-            ->assertJsonPath('purchaseCandidate.spec', null);
+            ->assertJsonPath('purchaseCandidate.spec.tops.sleeve', 'short')
+            ->assertJsonPath('purchaseCandidate.spec.tops.length', 'regular')
+            ->assertJsonMissingPath('purchaseCandidate.spec.tops.shape');
     }
 
-    public function test_post_purchase_candidate_duplicate_does_not_return_tops_shape_compatibility_spec(): void
+    public function test_post_purchase_candidate_duplicate_returns_tops_spec_without_shape_compatibility(): void
     {
         Storage::fake('public');
 
@@ -1098,8 +1107,8 @@ class PurchaseCandidateEndpointsTest extends TestCase
             'category_id' => 'tops_shirt_blouse',
             'spec' => [
                 'tops' => [
-                    'shape' => 'blouse',
                     'sleeve' => 'short',
+                    'design' => 'lace',
                 ],
             ],
         ]);
@@ -1114,6 +1123,79 @@ class PurchaseCandidateEndpointsTest extends TestCase
 
         $response->assertOk()
             ->assertJsonPath('purchaseCandidate.category_id', 'tops_shirt_blouse')
+            ->assertJsonPath('purchaseCandidate.spec.tops.sleeve', 'short')
+            ->assertJsonPath('purchaseCandidate.spec.tops.design', 'lace')
+            ->assertJsonMissingPath('purchaseCandidate.spec.tops.shape');
+    }
+
+    public function test_put_purchase_candidate_updates_optional_tops_spec_without_shape_compatibility(): void
+    {
+        $user = User::factory()->create();
+        $candidate = $this->createCandidate($user, [
+            'category_id' => 'tops_shirt_blouse',
+        ]);
+        $this->createCategory('tops_knit_sweater', 'tops', 'ニット・セーター');
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $response = $this->putJson("/api/purchase-candidates/{$candidate->id}", [
+            'status' => 'considering',
+            'priority' => 'medium',
+            'name' => '更新後のトップス',
+            'category_id' => 'tops_knit_sweater',
+            'spec' => [
+                'tops' => [
+                    'sleeve' => 'long',
+                    'fit' => 'regular',
+                ],
+            ],
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'navy',
+                'hex' => '#1F3A5F',
+                'label' => 'ネイビー',
+            ]],
+        ], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('purchaseCandidate.category_id', 'tops_knit_sweater')
+            ->assertJsonPath('purchaseCandidate.spec.tops.sleeve', 'long')
+            ->assertJsonPath('purchaseCandidate.spec.tops.fit', 'regular')
+            ->assertJsonMissingPath('purchaseCandidate.spec.tops.shape');
+    }
+
+    public function test_post_purchase_candidate_accepts_tops_other_with_unresolved_shape(): void
+    {
+        $user = User::factory()->create();
+        $this->createCategory('tops_other', 'tops', 'その他トップス');
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $response = $this->postJson('/api/purchase-candidates', [
+            'status' => 'considering',
+            'priority' => 'medium',
+            'name' => 'その他トップス候補',
+            'category_id' => 'tops_other',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'white',
+                'hex' => '#ffffff',
+                'label' => 'ホワイト',
+            ]],
+        ], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('purchaseCandidate.category_id', 'tops_other')
             ->assertJsonPath('purchaseCandidate.spec', null);
     }
 
@@ -1275,6 +1357,12 @@ class PurchaseCandidateEndpointsTest extends TestCase
         $candidate = $this->createCandidate($user, [
             'name' => '春コート',
             'category_id' => 'tops_shirt_blouse',
+            'spec' => [
+                'tops' => [
+                    'sleeve' => 'short',
+                    'fit' => 'oversized',
+                ],
+            ],
         ]);
 
         $candidate->colors()->where('role', 'main')->update(['custom_label' => '31 BEIGE']);
@@ -1292,6 +1380,9 @@ class PurchaseCandidateEndpointsTest extends TestCase
             ->assertJsonPath('purchaseCandidate.name', '春コート')
             ->assertJsonCount(0, 'purchaseCandidate.colors')
             ->assertJsonPath('purchaseCandidate.variant_source_candidate_id', $candidate->id)
+            ->assertJsonPath('purchaseCandidate.spec.tops.sleeve', 'short')
+            ->assertJsonPath('purchaseCandidate.spec.tops.fit', 'oversized')
+            ->assertJsonMissingPath('purchaseCandidate.spec.tops.shape')
             ->assertJsonMissingPath('purchaseCandidate.group_id');
 
         $this->assertDatabaseCount('purchase_candidate_groups', 0);

@@ -282,12 +282,15 @@ describe("PurchaseCandidateForm", () => {
     expect(getCategorySelect().options.length).toBeGreaterThan(0);
   });
 
-  it("tops では spec UI を表示しない", async () => {
+  it("tops では詳細属性の spec UI を表示し、shape UI は表示しない", async () => {
     await renderForm();
 
     await setCategorySelection("tops", "tops_tshirt_cutsew");
 
     expect(container.querySelector("#spec-tops-shape")).toBeNull();
+    expect(container.querySelector("#spec-tops-sleeve")).not.toBeNull();
+    expect(container.querySelector("#spec-tops-length")).not.toBeNull();
+    expect(container.querySelector("#spec-tops-neck")).not.toBeNull();
     expect(container.querySelector("#spec-bottoms-length-type")).toBeNull();
     expect(container.querySelector("#spec-legwear-coverage-type")).toBeNull();
   });
@@ -357,6 +360,19 @@ describe("PurchaseCandidateForm", () => {
     expect(container.querySelector("#spec-bottoms-length-type")).toBeNull();
   });
 
+  it("tops / other では shape UI を出さず、tops spec も表示しない", async () => {
+    await renderForm();
+
+    await setCategorySelection("tops", "tops_other");
+
+    expect(container.querySelector("#spec-tops-shape")).toBeNull();
+    expect(container.querySelector("#spec-tops-sleeve")).toBeNull();
+    expect(container.querySelector("#spec-tops-length")).toBeNull();
+    expect(container.querySelector("#spec-tops-neck")).toBeNull();
+    expect(container.querySelector("#spec-tops-design")).toBeNull();
+    expect(container.querySelector("#spec-tops-fit")).toBeNull();
+  });
+
   it("初期状態では実寸本体を閉じ、開くと fallback を表示する", async () => {
     await renderForm();
 
@@ -375,7 +391,7 @@ describe("PurchaseCandidateForm", () => {
     );
   });
 
-  it("purchase candidate spec は Phase 1 では未入力許容の表示を維持する", async () => {
+  it("purchase candidate spec は tops を含めて未入力許容の表示を維持する", async () => {
     await renderForm();
 
     await setCategorySelection("pants", "pants_pants");
@@ -398,7 +414,12 @@ describe("PurchaseCandidateForm", () => {
 
     await setCategorySelection("tops", "tops_tshirt_cutsew");
 
-    expect(container.querySelector("#spec-tops-length")).toBeNull();
+    expect(
+      container.querySelector('label[for="spec-tops-sleeve"]')?.textContent,
+    ).not.toContain("必須");
+    expect(
+      container.querySelector('label[for="spec-tops-length"]')?.textContent,
+    ).not.toContain("必須");
   });
 
   it("雨対応を利用条件・状態へ移動して表示する", async () => {
@@ -636,6 +657,22 @@ describe("PurchaseCandidateForm", () => {
     await act(async () => {
       setNativeValue(nameInput, "レインコート候補");
       await setCategorySelection("tops", "tops_tshirt_cutsew");
+      const topsSleeveSelect = container.querySelector(
+        "#spec-tops-sleeve",
+      ) as HTMLSelectElement;
+      const topsLengthSelect = container.querySelector(
+        "#spec-tops-length",
+      ) as HTMLSelectElement;
+      const topsNeckSelect = container.querySelector(
+        "#spec-tops-neck",
+      ) as HTMLSelectElement;
+      const topsFitSelect = container.querySelector(
+        "#spec-tops-fit",
+      ) as HTMLSelectElement;
+      setNativeValue(topsSleeveSelect, "short");
+      setNativeValue(topsLengthSelect, "normal");
+      setNativeValue(topsNeckSelect, "crew");
+      setNativeValue(topsFitSelect, "oversized");
       setNativeValue(salePriceInput, "12800");
       setNativeValue(saleEndsAtDateInput, "2026-03-31");
       setNativeValue(saleEndsAtTimeInput, "18:00");
@@ -722,6 +759,14 @@ describe("PurchaseCandidateForm", () => {
     });
     expect(payload.sale_price).toBe(12800);
     expect(payload.sale_ends_at).toBe("2026-03-31T18:00");
+    expect(payload.spec).toEqual({
+      tops: {
+        sleeve: "short",
+        length: "normal",
+        neck: "crew",
+        fit: "oversized",
+      },
+    });
   });
 
   it("sale_ends_at の日付だけの入力は時刻を 00:00 に補正する", async () => {
@@ -968,9 +1013,8 @@ describe("PurchaseCandidateForm", () => {
         category_id: "tops_shirt_blouse",
         spec: {
           tops: {
-            shape: "blouse",
             sleeve: "short",
-            neck: "square",
+            neck: "collar",
             fit: "oversized",
           },
         },
@@ -1034,7 +1078,15 @@ describe("PurchaseCandidateForm", () => {
     expect(getCategoryGroupSelect().value).toBe("tops");
     expect(getCategorySelect().value).toBe("tops_shirt_blouse");
     expect(container.querySelector("#spec-tops-shape")).toBeNull();
-    expect(container.querySelector("#spec-tops-sleeve")).toBeNull();
+    expect(
+      container.querySelector<HTMLSelectElement>("#spec-tops-sleeve")?.value,
+    ).toBe("short");
+    expect(
+      container.querySelector<HTMLSelectElement>("#spec-tops-neck")?.value,
+    ).toBe("collar");
+    expect(
+      container.querySelector<HTMLSelectElement>("#spec-tops-fit")?.value,
+    ).toBe("oversized");
     expect(container.textContent).toContain(
       "複製元の内容を初期値として読み込みました。",
     );
@@ -1057,10 +1109,68 @@ describe("PurchaseCandidateForm", () => {
     const payload = JSON.parse(requestInit.body as string);
 
     expect(payload.colors[0].custom_label).toBe("09 BLACK");
-    expect(payload.spec).toBeNull();
+    expect(payload.spec).toEqual({
+      tops: {
+        sleeve: "short",
+        neck: "collar",
+        fit: "oversized",
+      },
+    });
     expect(payload.duplicate_images).toEqual([{ source_image_id: 7 }]);
   });
 
+  it("tops の色違い追加ドラフトで tops spec を読み込める", async () => {
+    searchParamsValue = "source=color-variant";
+    window.sessionStorage.setItem(
+      "purchase-candidate-duplicate-payload",
+      JSON.stringify({
+        status: "considering",
+        priority: "high",
+        name: "春ブラウス",
+        category_id: "tops_shirt_blouse",
+        variant_source_candidate_id: 10,
+        spec: {
+          tops: {
+            sleeve: "short",
+            neck: "collar",
+            fit: "oversized",
+          },
+        },
+        brand_name: "Sample Brand",
+        price: 14800,
+        sale_price: null,
+        sale_ends_at: null,
+        purchase_url: "https://example.test/products/1",
+        memo: "メモ",
+        wanted_reason: "新しい色が欲しい",
+        size_gender: "women",
+        size_label: "M",
+        size_note: "",
+        size_details: null,
+        is_rain_ok: true,
+        colors: [],
+        seasons: [],
+        tpos: [],
+        materials: [],
+        images: [],
+      }),
+    );
+
+    await renderForm();
+
+    expect(getCategoryGroupSelect().value).toBe("tops");
+    expect(getCategorySelect().value).toBe("tops_shirt_blouse");
+    expect(container.querySelector("#spec-tops-shape")).toBeNull();
+    expect(
+      container.querySelector<HTMLSelectElement>("#spec-tops-sleeve")?.value,
+    ).toBe("short");
+    expect(
+      container.querySelector<HTMLSelectElement>("#spec-tops-neck")?.value,
+    ).toBe("collar");
+    expect(
+      container.querySelector<HTMLSelectElement>("#spec-tops-fit")?.value,
+    ).toBe("oversized");
+  });
   it("色違い追加の初期値を読み込み、保存時に source candidate id を送る", async () => {
     searchParamsValue = "source=color-variant";
     window.sessionStorage.setItem(
