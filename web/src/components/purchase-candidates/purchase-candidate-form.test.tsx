@@ -273,6 +273,20 @@ describe("PurchaseCandidateForm", () => {
     expect(sectionCards).toHaveLength(9);
   });
 
+  it("カテゴリ未選択では種類を表示せず、カテゴリ選択後に表示する", async () => {
+    await renderForm();
+
+    expect(container.querySelector("#category_id")).toBeNull();
+
+    await act(async () => {
+      const categoryGroupSelect = getCategoryGroupSelect();
+      categoryGroupSelect.value = "tops";
+      categoryGroupSelect.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+
+    expect(container.querySelector("#category_id")).not.toBeNull();
+  });
+
   it("表示設定の取得に失敗してもカテゴリ一覧だけで初期化できる", async () => {
     fetchCategoryVisibilitySettingsMock.mockRejectedValueOnce(
       new Error("settings failed"),
@@ -286,6 +300,14 @@ describe("PurchaseCandidateForm", () => {
       ),
     ).toBe(false);
     expect(getCategoryGroupSelect().options.length).toBeGreaterThan(1);
+    expect(container.querySelector("#category_id")).toBeNull();
+
+    await act(async () => {
+      const categoryGroupSelect = getCategoryGroupSelect();
+      categoryGroupSelect.value = "tops";
+      categoryGroupSelect.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+
     expect(getCategorySelect().options.length).toBeGreaterThan(0);
   });
 

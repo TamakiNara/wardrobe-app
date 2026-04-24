@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { getUserFacingSubmitErrorMessage } from "@/lib/api/error-message";
 import { savePurchaseCandidateItemDraft } from "@/lib/purchase-candidates/item-draft";
 import type { PurchaseCandidateItemDraftResponse } from "@/types/purchase-candidates";
@@ -18,7 +18,9 @@ export default function PurchaseCandidateItemDraftAction({
   candidateId,
   convertedItemId,
 }: PurchaseCandidateItemDraftActionProps) {
+  const pathname = usePathname();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -57,7 +59,17 @@ export default function PurchaseCandidateItemDraftAction({
       }
 
       savePurchaseCandidateItemDraft(data);
-      router.push("/items/new?source=purchase-candidate");
+      const nextSearchParams = new URLSearchParams({
+        source: "purchase-candidate",
+      });
+      const currentSearch = searchParams.toString();
+      const returnTo = `${pathname}${currentSearch ? `?${currentSearch}` : ""}`;
+
+      if (pathname) {
+        nextSearchParams.set("returnTo", returnTo);
+      }
+
+      router.push(`/items/new?${nextSearchParams.toString()}`);
     } catch {
       setError(ITEM_DRAFT_ERROR_MESSAGE);
     } finally {

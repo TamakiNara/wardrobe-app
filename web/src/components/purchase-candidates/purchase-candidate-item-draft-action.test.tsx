@@ -6,10 +6,16 @@ import { createRoot } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const pushMock = vi.fn();
+let pathnameValue = "/purchase-candidates/10";
+let searchParamsValue = "";
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({
     push: pushMock,
+  }),
+  usePathname: () => pathnameValue,
+  useSearchParams: () => ({
+    toString: () => searchParamsValue,
   }),
 }));
 
@@ -25,6 +31,8 @@ describe("PurchaseCandidateItemDraftAction", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     window.sessionStorage.clear();
+    pathnameValue = "/purchase-candidates/10";
+    searchParamsValue = "";
     globalThis.IS_REACT_ACT_ENVIRONMENT = true;
     container = document.createElement("div");
     document.body.appendChild(container);
@@ -119,7 +127,67 @@ describe("PurchaseCandidateItemDraftAction", () => {
     expect(rawDraft).toContain("厚手ニット込み");
     expect(rawDraft).toContain("shoulder_width");
     expect(pushMock).toHaveBeenCalledWith(
-      "/items/new?source=purchase-candidate",
+      "/items/new?source=purchase-candidate&returnTo=%2Fpurchase-candidates%2F10",
+    );
+  });
+
+  it("現在の一覧条件を returnTo として item 新規作成へ引き継ぐ", async () => {
+    pathnameValue = "/purchase-candidates";
+    searchParamsValue = "status=considering&page=2";
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            message: "item_draft_ready",
+            item_draft: {
+              name: "コート候補",
+              source_category_id: "outerwear_coat",
+              category: "outerwear",
+              subcategory: "coat",
+              shape: "coat",
+              colors: [],
+              seasons: ["春"],
+              tpos: ["通勤"],
+              materials: [],
+            },
+            candidate_summary: {
+              id: 10,
+              status: "considering",
+              priority: "medium",
+              name: "コート候補",
+              converted_item_id: null,
+              converted_at: null,
+            },
+            images: [],
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        ),
+      ),
+    );
+
+    const { default: PurchaseCandidateItemDraftAction } =
+      await import("./purchase-candidate-item-draft-action");
+
+    await act(async () => {
+      root.render(
+        React.createElement(PurchaseCandidateItemDraftAction, {
+          candidateId: 10,
+          convertedItemId: null,
+        }),
+      );
+      await waitForEffects();
+    });
+
+    const button = container.querySelector("button");
+
+    await act(async () => {
+      button?.click();
+      await waitForEffects();
+    });
+
+    expect(pushMock).toHaveBeenCalledWith(
+      "/items/new?source=purchase-candidate&returnTo=%2Fpurchase-candidates%3Fstatus%3Dconsidering%26page%3D2",
     );
   });
 

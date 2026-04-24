@@ -557,6 +557,8 @@ Phase 3:
 - `item-draft` は保存済み item を返す API ではなく、item 作成画面用の初期値 payload を返す
 - item 作成時に `purchase_candidate_id` を渡した場合、Laravel 側で item 作成と candidate 更新を同じ transaction で処理する
 - `purchased` の candidate では `item-draft` を生成せず、詳細画面でも item 追加導線を表示しない
+- item 作成画面には `returnTo` を渡し、現行の item 化導線である purchase candidate 詳細へキャンセル時に戻れるようにする
+- 戻るボタンの文言と遷移先の正本は `docs/specs/items/form-structure.md` の「戻る導線」を参照する
 
 ---
 

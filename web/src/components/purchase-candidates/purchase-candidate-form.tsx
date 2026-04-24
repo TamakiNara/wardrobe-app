@@ -1390,33 +1390,33 @@ export default function PurchaseCandidateForm({
             </select>
           </div>
 
-          <div>
-            <FieldLabel htmlFor="category_id" label="種類" required />
-            <select
-              id="category_id"
-              value={categoryId}
-              onChange={(event) => {
-                setCategoryId(event.target.value);
-                resetSpecFormState();
-              }}
-              disabled={isPurchasedLocked || !categoryGroupId}
-              className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors.category_id ? "border-red-400" : "border-gray-300"}`}
-            >
-              <option value="">
-                {categoryGroupId
-                  ? "選択してください"
-                  : "カテゴリを先に選択してください"}
-              </option>
-              {filteredCategoryOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-            {errors.category_id && (
-              <p className="mt-2 text-sm text-red-600">{errors.category_id}</p>
-            )}
-          </div>
+          {categoryGroupId ? (
+            <div>
+              <FieldLabel htmlFor="category_id" label="種類" required />
+              <select
+                id="category_id"
+                value={categoryId}
+                onChange={(event) => {
+                  setCategoryId(event.target.value);
+                  resetSpecFormState();
+                }}
+                disabled={isPurchasedLocked}
+                className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors.category_id ? "border-red-400" : "border-gray-300"}`}
+              >
+                <option value="">選択してください</option>
+                {filteredCategoryOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              {errors.category_id && (
+                <p className="mt-2 text-sm text-red-600">
+                  {errors.category_id}
+                </p>
+              )}
+            </div>
+          ) : null}
         </div>
 
         {(isTopsSpecVisible ||

@@ -16,6 +16,7 @@ const fetchUserBrandsMock = vi.fn();
 const fetchUserTposMock = vi.fn();
 const routerMock = { push: pushMock, refresh: refreshMock };
 let searchParamsSourceValue = "";
+let searchParamsReturnToValue = "";
 const scrollIntoViewMock = vi.fn();
 
 vi.mock("next/link", () => ({
@@ -26,7 +27,12 @@ vi.mock("next/link", () => ({
 vi.mock("next/navigation", () => ({
   useRouter: () => routerMock,
   useSearchParams: () => ({
-    get: (key: string) => (key === "source" ? searchParamsSourceValue : null),
+    get: (key: string) =>
+      key === "source"
+        ? searchParamsSourceValue
+        : key === "returnTo"
+          ? searchParamsReturnToValue
+          : null,
   }),
 }));
 
@@ -636,6 +642,7 @@ describe("新規登録画面", () => {
     vi.clearAllMocks();
     window.sessionStorage.clear();
     searchParamsSourceValue = "";
+    searchParamsReturnToValue = "";
     globalThis.IS_REACT_ACT_ENVIRONMENT = true;
     window.HTMLElement.prototype.scrollIntoView = scrollIntoViewMock;
     container = document.createElement("div");
@@ -757,6 +764,35 @@ describe("新規登録画面", () => {
     expect(container.textContent).not.toContain(
       "実寸は cm 単位で入力します。未入力の項目は保存しません。",
     );
+  });
+
+  it("purchase candidate 由来で returnTo がない場合は購入検討一覧へ戻る", async () => {
+    searchParamsSourceValue = "purchase-candidate";
+
+    const { default: NewItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(NewItemPage));
+      await waitForEffects();
+    });
+
+    expect(container.innerHTML).toContain('href="/purchase-candidates"');
+    expect(container.textContent).toContain("購入検討一覧に戻る");
+  });
+
+  it("purchase candidate 由来で returnTo がある場合は指定画面へ戻る", async () => {
+    searchParamsSourceValue = "purchase-candidate";
+    searchParamsReturnToValue = "/purchase-candidates/42";
+
+    const { default: NewItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(NewItemPage));
+      await waitForEffects();
+    });
+
+    expect(container.innerHTML).toContain('href="/purchase-candidates/42"');
+    expect(container.textContent).toContain("元の画面に戻る");
   });
 
   it("purchase candidate draft から名前とカテゴリ初期値を読み込む", async () => {

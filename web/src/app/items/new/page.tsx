@@ -130,6 +130,22 @@ import type { StructuredSizeFieldName } from "@/types/items";
 export default function NewItemPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const source = searchParams.get("source");
+  const isPurchaseCandidateSource = source === "purchase-candidate";
+  const requestedReturnTo = searchParams.get("returnTo");
+  const cancelHref =
+    requestedReturnTo &&
+    requestedReturnTo.startsWith("/") &&
+    !requestedReturnTo.startsWith("//")
+      ? requestedReturnTo
+      : isPurchaseCandidateSource
+        ? "/purchase-candidates"
+        : "/items";
+  const backLinkLabel = requestedReturnTo
+    ? "元の画面に戻る"
+    : isPurchaseCandidateSource
+      ? "購入検討一覧に戻る"
+      : "一覧に戻る";
 
   const [name, setName] = useState("");
   const [brandName, setBrandName] = useState("");
@@ -448,7 +464,7 @@ export default function NewItemPage() {
   }, [router]);
 
   useEffect(() => {
-    if (searchParams.get("source") !== "purchase-candidate") {
+    if (!isPurchaseCandidateSource) {
       return;
     }
 
@@ -540,7 +556,7 @@ export default function NewItemPage() {
     setDraftInfoMessage("購入検討の内容を初期値として読み込みました。");
 
     clearPurchaseCandidateItemDraft();
-  }, [searchParams]);
+  }, [isPurchaseCandidateSource]);
 
   useEffect(() => {
     if (
@@ -1186,10 +1202,10 @@ export default function NewItemPage() {
           description="基本情報や分類を入力して、新しいアイテムを登録します。"
           actions={
             <Link
-              href="/items"
+              href={cancelHref}
               className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
             >
-              一覧に戻る
+              {backLinkLabel}
             </Link>
           }
         />
@@ -2141,7 +2157,7 @@ export default function NewItemPage() {
                 </button>
 
                 <Link
-                  href="/items"
+                  href={cancelHref}
                   className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
                 >
                   キャンセル
