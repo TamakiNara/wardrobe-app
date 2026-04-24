@@ -22,7 +22,6 @@ class ItemFactory extends Factory
                 'name' => 'Bulk Tシャツ',
                 'spec' => [
                     'tops' => [
-                        'shape' => 'tshirt',
                         'sleeve' => 'short',
                         'length' => 'normal',
                         'neck' => 'crew',
@@ -37,7 +36,6 @@ class ItemFactory extends Factory
                 'name' => 'Bulk シャツ',
                 'spec' => [
                     'tops' => [
-                        'shape' => 'shirt',
                         'sleeve' => 'long',
                         'length' => 'normal',
                         'neck' => 'crew',
@@ -52,7 +50,6 @@ class ItemFactory extends Factory
                 'name' => 'Bulk カーディガン',
                 'spec' => [
                     'tops' => [
-                        'shape' => 'cardigan',
                         'sleeve' => 'long',
                         'length' => 'normal',
                         'neck' => 'v',

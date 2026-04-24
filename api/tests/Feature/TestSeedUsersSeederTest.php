@@ -47,17 +47,17 @@ class TestSeedUsersSeederTest extends TestCase
         $this->assertCount(3, UserTpo::query()->where('user_id', $emptyUser->id)->get());
         $this->assertCount(0, UserBrand::query()->where('user_id', $emptyUser->id)->get());
         $this->assertDatabaseCount('items', 68);
-        $this->assertDatabaseCount('purchase_candidates', 10);
+        $this->assertDatabaseCount('purchase_candidates', 21);
 
         $this->assertNotNull($standardUser->visible_category_ids);
-        $this->assertCount(62, $standardUser->visible_category_ids);
+        $this->assertCount(80, $standardUser->visible_category_ids);
         $this->assertCount(12, $standardUser->outfits);
         $this->assertCount(32, $standardUser->items);
         $standardCandidates = PurchaseCandidate::query()
             ->where('user_id', $standardUser->id)
             ->orderBy('name')
             ->get();
-        $this->assertCount(8, $standardCandidates);
+        $this->assertCount(19, $standardCandidates);
         $this->assertTrue($standardCandidates->contains(
             fn (PurchaseCandidate $candidate) => $candidate->name === 'Tシャツ候補'
                 && data_get($candidate->size_details, 'structured.shoulder_width') === 45
@@ -98,6 +98,9 @@ class TestSeedUsersSeederTest extends TestCase
         $this->assertTrue($standardUser->items->every(
             fn (Item $item) => is_array($item->tpo_ids)
         ));
+        $this->assertTrue($standardUser->items
+            ->where('category', 'tops')
+            ->every(fn (Item $item) => data_get($item->spec, 'tops.shape') === null));
         $bottomsLengthTypes = $standardUser->items
             ->pluck('spec')
             ->map(fn ($spec) => data_get($spec, 'bottoms.length_type'))
@@ -176,6 +179,9 @@ class TestSeedUsersSeederTest extends TestCase
         $this->assertCount(2, PurchaseCandidate::query()->where('user_id', $largeUser->id)->get());
         $this->assertCount(6, UserTpo::query()->where('user_id', $largeUser->id)->get());
         $this->assertGreaterThanOrEqual(30, $largeUser->items->count());
+        $this->assertTrue($largeUser->items
+            ->where('category', 'tops')
+            ->every(fn (Item $item) => data_get($item->spec, 'tops.shape') === null));
         $this->assertGreaterThanOrEqual(10, $largeUser->outfits->count());
         $this->assertGreaterThanOrEqual(14, WearLog::query()->where('user_id', $largeUser->id)->count());
         $this->assertTrue(WearLog::query()
@@ -190,5 +196,22 @@ class TestSeedUsersSeederTest extends TestCase
         $this->assertGreaterThanOrEqual(20, $largeBrands->count());
         $this->assertTrue($largeBrands->contains(fn (UserBrand $brand) => $brand->is_active === false));
         $this->assertTrue($largeBrands->contains(fn (UserBrand $brand) => $brand->kana !== null));
+    }
+
+    public function test_item_factory_does_not_generate_tops_shape_compatibility_spec(): void
+    {
+        $topsItems = Item::factory()
+            ->count(40)
+            ->make()
+            ->where('category', 'tops')
+            ->values();
+
+        $this->assertNotEmpty($topsItems);
+        $this->assertTrue($topsItems->every(
+            fn (Item $item) => data_get($item->spec, 'tops.shape') === null
+        ));
+        $this->assertTrue($topsItems->every(
+            fn (Item $item) => filled($item->shape)
+        ));
     }
 }

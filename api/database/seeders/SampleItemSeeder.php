@@ -37,7 +37,6 @@ class SampleItemSeeder extends Seeder
                 'tpos' => ['休日'],
                 'spec' => [
                     'tops' => [
-                        'shape' => 'tshirt',
                         'sleeve' => 'short',
                         'length' => 'normal',
                         'neck' => 'crew',
@@ -62,7 +61,6 @@ class SampleItemSeeder extends Seeder
                 'tpos' => ['仕事', '休日'],
                 'spec' => [
                     'tops' => [
-                        'shape' => 'cardigan',
                         'sleeve' => 'long',
                         'length' => 'normal',
                         'neck' => 'v',
@@ -98,7 +96,6 @@ class SampleItemSeeder extends Seeder
                 'tpos' => ['仕事'],
                 'spec' => [
                     'tops' => [
-                        'shape' => 'shirt',
                         'sleeve' => 'long',
                         'length' => 'normal',
                         'neck' => 'crew',
@@ -122,7 +119,6 @@ class SampleItemSeeder extends Seeder
                 'tpos' => ['仕事', '休日'],
                 'spec' => [
                     'tops' => [
-                        'shape' => 'knit',
                         'sleeve' => 'long',
                         'length' => 'normal',
                         'neck' => 'crew',
@@ -440,7 +436,6 @@ class SampleItemSeeder extends Seeder
                 'tpos' => ['休日'],
                 'spec' => [
                     'tops' => [
-                        'shape' => 'tshirt',
                         'sleeve' => 'short',
                         'length' => 'normal',
                         'neck' => 'crew',
@@ -482,7 +477,6 @@ class SampleItemSeeder extends Seeder
                 'tpos' => ['休日'],
                 'spec' => [
                     'tops' => [
-                        'shape' => 'shirt',
                         'sleeve' => 'long',
                         'length' => 'normal',
                         'neck' => 'crew',
@@ -507,7 +501,6 @@ class SampleItemSeeder extends Seeder
                 'tpos' => ['仕事', '休日'],
                 'spec' => [
                     'tops' => [
-                        'shape' => 'knit',
                         'sleeve' => 'long',
                         'length' => 'normal',
                         'neck' => 'crew',
@@ -577,7 +570,6 @@ class SampleItemSeeder extends Seeder
                 'tpos' => ['休日'],
                 'spec' => [
                     'tops' => [
-                        'shape' => 'cardigan',
                         'sleeve' => 'long',
                         'length' => 'normal',
                         'neck' => 'crew',
