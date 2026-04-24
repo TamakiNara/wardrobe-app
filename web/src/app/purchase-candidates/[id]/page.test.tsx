@@ -493,4 +493,71 @@ describe("PurchaseCandidateDetailPage", () => {
     expect(markup).toContain("標準");
     expect(markup).not.toContain("spec.tops.shape");
   });
+
+  it("skirts spec がある場合は分類内に仕様・属性を表示する", async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        purchaseCandidate: {
+          id: 22,
+          status: "considering",
+          priority: "high",
+          name: "プリーツスカート候補",
+          category_id: "skirts_skirt",
+          category_name: "スカート",
+          brand_name: "Brand",
+          price: 9800,
+          sale_price: null,
+          sale_ends_at: null,
+          purchase_url: null,
+          memo: null,
+          wanted_reason: "通勤用に使いたい",
+          size_gender: null,
+          size_label: null,
+          size_note: null,
+          size_details: null,
+          spec: {
+            skirt: {
+              length_type: "midi",
+              material_type: "lace",
+              design_type: "pleats",
+            },
+          },
+          is_rain_ok: false,
+          group_id: null,
+          group_order: null,
+          group_candidates: [],
+          converted_item_id: null,
+          converted_at: null,
+          colors: [],
+          seasons: ["春", "秋"],
+          tpos: ["通勤"],
+          materials: [],
+          images: [],
+          created_at: "2026-03-24T10:00:00+09:00",
+          updated_at: "2026-03-24T10:00:00+09:00",
+        },
+      }),
+    });
+
+    const { default: PurchaseCandidateDetailPage } = await import("./page");
+    const markup = renderToStaticMarkup(
+      await PurchaseCandidateDetailPage({
+        params: Promise.resolve({ id: "22" }),
+      }),
+    );
+
+    expect(markup).toContain("分類");
+    expect(markup).toContain("仕様・属性");
+    expect(markup).toContain("カテゴリ");
+    expect(markup).toContain("種類");
+    expect(markup).toContain("形");
+    expect(markup).toContain("丈");
+    expect(markup).toContain("ミディ丈");
+    expect(markup).toContain("素材感");
+    expect(markup).toContain("レース");
+    expect(markup).toContain("デザイン");
+    expect(markup).toContain("プリーツ");
+  });
 });

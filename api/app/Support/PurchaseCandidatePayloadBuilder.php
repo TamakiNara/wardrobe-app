@@ -259,7 +259,7 @@ class PurchaseCandidatePayloadBuilder
         $resolvedCategory = PurchaseCandidateCategoryMap::resolveItemDraftCategory($candidate->category_id);
         $itemCategory = $resolvedCategory['category'] ?? null;
 
-        if (! in_array($itemCategory, ['tops', 'pants', 'legwear'], true)) {
+        if (! in_array($itemCategory, ['tops', 'pants', 'skirts', 'legwear'], true)) {
             return null;
         }
 

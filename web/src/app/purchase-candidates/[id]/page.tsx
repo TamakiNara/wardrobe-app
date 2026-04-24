@@ -10,6 +10,9 @@ import { groupItemMaterialsForDisplay } from "@/lib/items/materials";
 import {
   findBottomsLengthLabel,
   findLegwearCoverageLabel,
+  findSkirtDesignLabel,
+  findSkirtLengthLabel,
+  findSkirtMaterialLabel,
 } from "@/lib/master-data/item-skin-exposure";
 import { buildTopsSpecLabels } from "@/lib/master-data/item-tops";
 import { findItemSubcategoryLabel } from "@/lib/master-data/item-subcategories";
@@ -278,6 +281,18 @@ export default async function PurchaseCandidateDetailPage({
           : candidate.spec?.bottoms?.rise_type === "low_rise"
             ? "ローライズ"
             : "",
+    },
+    {
+      label: "丈",
+      value: findSkirtLengthLabel(candidate.spec?.skirt?.length_type),
+    },
+    {
+      label: "素材感",
+      value: findSkirtMaterialLabel(candidate.spec?.skirt?.material_type),
+    },
+    {
+      label: "デザイン",
+      value: findSkirtDesignLabel(candidate.spec?.skirt?.design_type),
     },
     {
       label: "レッグウェア",

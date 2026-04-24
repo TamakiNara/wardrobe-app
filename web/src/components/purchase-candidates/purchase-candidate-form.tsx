@@ -27,14 +27,23 @@ import { SEASON_OPTIONS, TPO_OPTIONS } from "@/lib/master-data/item-attributes";
 import {
   BOTTOMS_LENGTH_OPTIONS,
   BOTTOMS_RISE_OPTIONS,
+  SKIRT_DESIGN_OPTIONS,
+  SKIRT_LENGTH_OPTIONS,
+  SKIRT_MATERIAL_OPTIONS,
   getLegwearCoverageFieldLabel,
   getLegwearCoverageOptions,
   getLegwearCoveragePlaceholder,
   resolveBottomsLengthType,
   resolveLegwearCoverageType,
+  resolveSkirtDesignType,
+  resolveSkirtLengthType,
+  resolveSkirtMaterialType,
   type BottomsLengthType,
   type BottomsRiseType,
   type LegwearCoverageType,
+  type SkirtDesignType,
+  type SkirtLengthType,
+  type SkirtMaterialType,
 } from "@/lib/master-data/item-skin-exposure";
 import {
   DEFAULT_TOPS_FIT,
@@ -134,6 +143,9 @@ type PurchaseCandidateSpecFormState = {
   topsFit: TopsFitValue;
   bottomsLengthType: BottomsLengthType | "";
   bottomsRiseType: BottomsRiseType | "";
+  skirtLengthType: SkirtLengthType | "";
+  skirtMaterialType: SkirtMaterialType | "";
+  skirtDesignType: SkirtDesignType | "";
   legwearCoverageType: LegwearCoverageType | "";
 };
 
@@ -156,6 +168,18 @@ function resolvePurchaseCandidateSpecFormState(
       ) as BottomsLengthType | null) ?? "",
     bottomsRiseType:
       (spec?.bottoms?.rise_type as BottomsRiseType | undefined) ?? "",
+    skirtLengthType:
+      (resolveSkirtLengthType(
+        spec?.skirt?.length_type ?? null,
+      ) as SkirtLengthType | null) ?? "",
+    skirtMaterialType:
+      (resolveSkirtMaterialType(
+        spec?.skirt?.material_type ?? null,
+      ) as SkirtMaterialType | null) ?? "",
+    skirtDesignType:
+      (resolveSkirtDesignType(
+        spec?.skirt?.design_type ?? null,
+      ) as SkirtDesignType | null) ?? "",
     legwearCoverageType:
       (resolveLegwearCoverageType(
         resolvedCategory?.category ?? null,
@@ -332,6 +356,15 @@ export default function PurchaseCandidateForm({
   const [bottomsRiseType, setBottomsRiseType] = useState<BottomsRiseType | "">(
     "",
   );
+  const [skirtLengthType, setSkirtLengthType] = useState<SkirtLengthType | "">(
+    "",
+  );
+  const [skirtMaterialType, setSkirtMaterialType] = useState<
+    SkirtMaterialType | ""
+  >("");
+  const [skirtDesignType, setSkirtDesignType] = useState<SkirtDesignType | "">(
+    "",
+  );
   const [legwearCoverageType, setLegwearCoverageType] = useState<
     LegwearCoverageType | ""
   >("");
@@ -481,6 +514,7 @@ export default function PurchaseCandidateForm({
   // Purchase candidate では spec を未入力許容のまま扱い、表示する項目だけを
   // item 側の分類モデルとそろえる。
   const isBottomsSpecVisible = resolvedItemCategory?.category === "pants";
+  const isSkirtSpecVisible = resolvedItemCategory?.category === "skirts";
   const isLegwearSpecVisible = resolvedItemCategory?.category === "legwear";
   const legwearCoverageOptions = useMemo(
     () =>
@@ -551,6 +585,9 @@ export default function PurchaseCandidateForm({
     setTopsFit(DEFAULT_TOPS_FIT);
     setBottomsLengthType("");
     setBottomsRiseType("");
+    setSkirtLengthType("");
+    setSkirtMaterialType("");
+    setSkirtDesignType("");
     setLegwearCoverageType("");
   }
 
@@ -566,6 +603,9 @@ export default function PurchaseCandidateForm({
     setTopsFit(nextState.topsFit);
     setBottomsLengthType(nextState.bottomsLengthType);
     setBottomsRiseType(nextState.bottomsRiseType);
+    setSkirtLengthType(nextState.skirtLengthType);
+    setSkirtMaterialType(nextState.skirtMaterialType);
+    setSkirtDesignType(nextState.skirtDesignType);
     setLegwearCoverageType(nextState.legwearCoverageType);
   }
 
@@ -1019,6 +1059,20 @@ export default function PurchaseCandidateForm({
           } satisfies ItemSpec;
         }
 
+        if (isSkirtSpecVisible) {
+          if (!skirtLengthType && !skirtMaterialType && !skirtDesignType) {
+            return null;
+          }
+
+          return {
+            skirt: {
+              length_type: skirtLengthType || null,
+              material_type: skirtMaterialType || null,
+              design_type: skirtDesignType || null,
+            },
+          } satisfies ItemSpec;
+        }
+
         if (isLegwearSpecVisible) {
           // Phase 1: purchase candidate spec remains nullable.
           if (!legwearCoverageType) {
@@ -1422,6 +1476,7 @@ export default function PurchaseCandidateForm({
 
         {(isTopsSpecVisible ||
           isBottomsSpecVisible ||
+          isSkirtSpecVisible ||
           (isLegwearSpecVisible && legwearCoverageOptions.length > 0)) && (
           <div className="space-y-4 rounded-xl border border-gray-200/80 bg-gray-50/70 p-4">
             <div className="space-y-1">
@@ -1588,6 +1643,82 @@ export default function PurchaseCandidateForm({
                   >
                     <option value="">股上を選択してください</option>
                     {BOTTOMS_RISE_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            )}
+
+            {isSkirtSpecVisible && (
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <FieldLabel htmlFor="spec-skirt-length-type" label="丈" />
+                  <select
+                    id="spec-skirt-length-type"
+                    value={skirtLengthType}
+                    onChange={(event) =>
+                      setSkirtLengthType(
+                        event.target.value as SkirtLengthType | "",
+                      )
+                    }
+                    disabled={isPurchasedLocked}
+                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  >
+                    <option value="">選択してください</option>
+                    {SKIRT_LENGTH_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <FieldLabel
+                    htmlFor="spec-skirt-material-type"
+                    label="素材感"
+                  />
+                  <select
+                    id="spec-skirt-material-type"
+                    value={skirtMaterialType}
+                    onChange={(event) =>
+                      setSkirtMaterialType(
+                        event.target.value as SkirtMaterialType | "",
+                      )
+                    }
+                    disabled={isPurchasedLocked}
+                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  >
+                    <option value="">選択してください</option>
+                    {SKIRT_MATERIAL_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <FieldLabel
+                    htmlFor="spec-skirt-design-type"
+                    label="デザイン"
+                  />
+                  <select
+                    id="spec-skirt-design-type"
+                    value={skirtDesignType}
+                    onChange={(event) =>
+                      setSkirtDesignType(
+                        event.target.value as SkirtDesignType | "",
+                      )
+                    }
+                    disabled={isPurchasedLocked}
+                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  >
+                    <option value="">選択してください</option>
+                    {SKIRT_DESIGN_OPTIONS.map((option) => (
                       <option key={option.value} value={option.value}>
                         {option.label}
                       </option>

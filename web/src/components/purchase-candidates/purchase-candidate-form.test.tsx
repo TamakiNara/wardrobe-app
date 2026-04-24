@@ -135,6 +135,25 @@ describe("PurchaseCandidateForm", () => {
         ],
       },
       {
+        id: "skirts",
+        name: "スカート",
+        sortOrder: 35,
+        categories: [
+          {
+            id: "skirts_skirt",
+            groupId: "skirts",
+            name: "スカート",
+            sortOrder: 10,
+          },
+          {
+            id: "skirts_other",
+            groupId: "skirts",
+            name: "その他スカート",
+            sortOrder: 20,
+          },
+        ],
+      },
+      {
         id: "legwear",
         name: "レッグウェア",
         sortOrder: 40,
@@ -156,6 +175,8 @@ describe("PurchaseCandidateForm", () => {
         "tops_polo_shirt",
         "pants_pants",
         "pants_short",
+        "skirts_skirt",
+        "skirts_other",
         "legwear_socks",
       ],
     });
@@ -348,6 +369,19 @@ describe("PurchaseCandidateForm", () => {
     expect(container.querySelector("#spec-legwear-coverage-type")).toBeNull();
   });
 
+  it("skirts では spec UI を表示し、shape UI は表示しない", async () => {
+    await renderForm();
+
+    await setCategorySelection("skirts", "skirts_skirt");
+
+    expect(container.querySelector("#spec-skirt-length-type")).not.toBeNull();
+    expect(container.querySelector("#spec-skirt-material-type")).not.toBeNull();
+    expect(container.querySelector("#spec-skirt-design-type")).not.toBeNull();
+    expect(container.querySelector("#spec-tops-shape")).toBeNull();
+    expect(container.querySelector("#spec-bottoms-length-type")).toBeNull();
+    expect(container.querySelector("#spec-legwear-coverage-type")).toBeNull();
+  });
+
   it("spec セクションをカテゴリ選択の直後に表示する", async () => {
     await renderForm();
 
@@ -444,6 +478,21 @@ describe("PurchaseCandidateForm", () => {
     ).not.toContain("必須");
     expect(
       container.querySelector('label[for="spec-bottoms-rise-type"]')
+        ?.textContent,
+    ).not.toContain("必須");
+
+    await setCategorySelection("skirts", "skirts_skirt");
+
+    expect(
+      container.querySelector('label[for="spec-skirt-length-type"]')
+        ?.textContent,
+    ).not.toContain("必須");
+    expect(
+      container.querySelector('label[for="spec-skirt-material-type"]')
+        ?.textContent,
+    ).not.toContain("必須");
+    expect(
+      container.querySelector('label[for="spec-skirt-design-type"]')
         ?.textContent,
     ).not.toContain("必須");
 
@@ -1703,5 +1752,207 @@ describe("PurchaseCandidateForm", () => {
         "#structured-size-shoulder_width",
       )?.value,
     ).toBe("42.5");
+  });
+
+  it("skirts spec は未入力でも保存でき、送信時は null のままにする", async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 201,
+      json: async () => ({
+        purchaseCandidate: {
+          id: 12,
+        },
+      }),
+    });
+
+    await renderForm();
+
+    const nameInput = container.querySelector("#name") as HTMLInputElement;
+    const customMainCheckbox = container.querySelector(
+      'input[aria-label="メインカラーをカラーコードで入力"]',
+    ) as HTMLInputElement;
+    const form = container.querySelector("form") as HTMLFormElement;
+
+    await act(async () => {
+      setNativeValue(nameInput, "プリーツスカート候補");
+      await setCategorySelection("skirts", "skirts_skirt");
+      customMainCheckbox.click();
+      form.dispatchEvent(
+        new Event("submit", { bubbles: true, cancelable: true }),
+      );
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [, requestInit] = fetchMock.mock.calls[0];
+    const payload = JSON.parse(requestInit.body as string);
+
+    expect(payload.spec).toBeNull();
+    expect(container.querySelector("#spec-tops-shape")).toBeNull();
+  });
+
+  it("skirts spec を入力すると purchase candidate payload に含まれる", async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 201,
+      json: async () => ({
+        purchaseCandidate: {
+          id: 12,
+        },
+      }),
+    });
+
+    await renderForm();
+
+    const nameInput = container.querySelector("#name") as HTMLInputElement;
+    const customMainCheckbox = container.querySelector(
+      'input[aria-label="メインカラーをカラーコードで入力"]',
+    ) as HTMLInputElement;
+    const form = container.querySelector("form") as HTMLFormElement;
+
+    await act(async () => {
+      setNativeValue(nameInput, "プリーツスカート候補");
+      await setCategorySelection("skirts", "skirts_skirt");
+      customMainCheckbox.click();
+      setNativeValue(
+        container.querySelector("#spec-skirt-length-type") as HTMLSelectElement,
+        "midi",
+      );
+      setNativeValue(
+        container.querySelector(
+          "#spec-skirt-material-type",
+        ) as HTMLSelectElement,
+        "lace",
+      );
+      setNativeValue(
+        container.querySelector("#spec-skirt-design-type") as HTMLSelectElement,
+        "pleats",
+      );
+      form.dispatchEvent(
+        new Event("submit", { bubbles: true, cancelable: true }),
+      );
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [, requestInit] = fetchMock.mock.calls[0];
+    const payload = JSON.parse(requestInit.body as string);
+
+    expect(payload.spec).toEqual({
+      skirt: {
+        length_type: "midi",
+        material_type: "lace",
+        design_type: "pleats",
+      },
+    });
+  });
+
+  it("skirts の複製ドラフトで skirts spec を読み込める", async () => {
+    searchParamsValue = "source=duplicate";
+    window.sessionStorage.setItem(
+      "purchase-candidate-duplicate-payload",
+      JSON.stringify({
+        status: "considering",
+        priority: "high",
+        name: "プリーツスカート",
+        category_id: "skirts_skirt",
+        spec: {
+          skirt: {
+            length_type: "midi",
+            material_type: "lace",
+            design_type: "pleats",
+          },
+        },
+        brand_name: "Sample Brand",
+        price: 14800,
+        sale_price: null,
+        sale_ends_at: null,
+        purchase_url: null,
+        memo: "",
+        wanted_reason: "",
+        size_gender: "",
+        size_label: "",
+        size_note: "",
+        size_details: null,
+        is_rain_ok: false,
+        colors: [],
+        seasons: [],
+        tpos: [],
+        materials: [],
+        images: [],
+      }),
+    );
+
+    await renderForm();
+
+    expect(getCategoryGroupSelect().value).toBe("skirts");
+    expect(getCategorySelect().value).toBe("skirts_skirt");
+    expect(container.querySelector("#spec-tops-shape")).toBeNull();
+    expect(
+      container.querySelector<HTMLSelectElement>("#spec-skirt-length-type")
+        ?.value,
+    ).toBe("midi");
+    expect(
+      container.querySelector<HTMLSelectElement>("#spec-skirt-material-type")
+        ?.value,
+    ).toBe("lace");
+    expect(
+      container.querySelector<HTMLSelectElement>("#spec-skirt-design-type")
+        ?.value,
+    ).toBe("pleats");
+  });
+
+  it("skirts の色違い追加ドラフトで skirts spec を読み込める", async () => {
+    searchParamsValue = "source=color-variant";
+    window.sessionStorage.setItem(
+      "purchase-candidate-duplicate-payload",
+      JSON.stringify({
+        status: "considering",
+        priority: "high",
+        name: "プリーツスカート",
+        category_id: "skirts_skirt",
+        variant_source_candidate_id: 10,
+        spec: {
+          skirt: {
+            length_type: "midi",
+            material_type: "lace",
+            design_type: "pleats",
+          },
+        },
+        brand_name: "Sample Brand",
+        price: 14800,
+        sale_price: null,
+        sale_ends_at: null,
+        purchase_url: null,
+        memo: "",
+        wanted_reason: "",
+        size_gender: "",
+        size_label: "",
+        size_note: "",
+        size_details: null,
+        is_rain_ok: false,
+        colors: [],
+        seasons: [],
+        tpos: [],
+        materials: [],
+        images: [],
+      }),
+    );
+
+    await renderForm();
+
+    expect(getCategoryGroupSelect().value).toBe("skirts");
+    expect(getCategorySelect().value).toBe("skirts_skirt");
+    expect(container.querySelector("#spec-tops-shape")).toBeNull();
+    expect(
+      container.querySelector<HTMLSelectElement>("#spec-skirt-length-type")
+        ?.value,
+    ).toBe("midi");
+    expect(
+      container.querySelector<HTMLSelectElement>("#spec-skirt-material-type")
+        ?.value,
+    ).toBe("lace");
+    expect(
+      container.querySelector<HTMLSelectElement>("#spec-skirt-design-type")
+        ?.value,
+    ).toBe("pleats");
   });
 });
