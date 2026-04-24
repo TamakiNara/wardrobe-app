@@ -134,7 +134,7 @@ class SampleOutfitSeeder extends Seeder
 
                 $outfit->outfitItems()->create([
                     'item_id' => $item->id,
-                    'sort_order' => $index,
+                    'sort_order' => $index + 1,
                 ]);
             }
         }
@@ -177,7 +177,7 @@ class SampleOutfitSeeder extends Seeder
             foreach ($selectedItems as $index => $item) {
                 $outfit->outfitItems()->create([
                     'item_id' => $item->id,
-                    'sort_order' => $index,
+                    'sort_order' => $index + 1,
                 ]);
             }
         }

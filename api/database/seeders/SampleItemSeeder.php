@@ -6,6 +6,9 @@ use App\Models\Item;
 use App\Models\ItemImage;
 use App\Models\User;
 use App\Models\UserTpo;
+use App\Support\ItemSpecNormalizer;
+use App\Support\ItemSubcategorySupport;
+use App\Support\ListQuerySupport;
 use Database\Seeders\Support\TestSeedUsers;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Storage;
@@ -581,16 +584,18 @@ class SampleItemSeeder extends Seeder
         ];
 
         foreach ($items as $item) {
+            $normalizedItem = $this->normalizeSeedItemDefinition($item);
+
             $itemRecord = Item::query()->updateOrCreate(
-                ['user_id' => $user->id, 'name' => $item['name']],
+                ['user_id' => $user->id, 'name' => $normalizedItem['name']],
                 [
-                    ...collect($item)->except('materials', 'images')->all(),
-                    'tpo_ids' => $this->resolveTpoIds($user, $item['tpos'] ?? []),
+                    ...collect($normalizedItem)->except('materials', 'images')->all(),
+                    'tpo_ids' => $this->resolveTpoIds($user, $normalizedItem['tpos'] ?? []),
                 ],
             );
 
-            $this->syncMaterials($itemRecord, $item['materials'] ?? []);
-            $this->syncImages($itemRecord, $item['images'] ?? []);
+            $this->syncMaterials($itemRecord, $normalizedItem['materials'] ?? []);
+            $this->syncImages($itemRecord, $normalizedItem['images'] ?? []);
         }
     }
 
@@ -661,6 +666,126 @@ class SampleItemSeeder extends Seeder
             ->filter()
             ->values()
             ->all();
+    }
+
+    private function normalizeSeedItemDefinition(array $item): array
+    {
+        $originalCategory = is_string($item['category'] ?? null) ? $item['category'] : null;
+        $originalShape = is_string($item['shape'] ?? null) ? trim($item['shape']) : null;
+        $category = ListQuerySupport::resolveCurrentItemCategoryValue($originalCategory, $originalShape);
+
+        if ($category === null) {
+            throw new \RuntimeException('Unable to resolve current sample item category.');
+        }
+
+        $shape = $this->resolveCurrentShapeValue($originalCategory, $category, $originalShape);
+        $subcategory = ItemSubcategorySupport::normalize($category, $item['subcategory'] ?? null)
+            ?? ItemSubcategorySupport::inferFromShape($category, $shape);
+        $spec = ItemSpecNormalizer::normalize($category, $shape, $item['spec'] ?? null, $subcategory);
+
+        return [
+            ...$item,
+            'category' => $category,
+            'subcategory' => $subcategory,
+            'shape' => $shape,
+            'spec' => $this->fillMissingSeedSpec($category, $shape, $originalShape, $spec),
+        ];
+    }
+
+    private function resolveCurrentShapeValue(?string $originalCategory, string $category, ?string $shape): ?string
+    {
+        if ($shape === null || $shape === '') {
+            return null;
+        }
+
+        if ($originalCategory === 'bottoms') {
+            return match ($shape) {
+                'tapered' => 'tapered',
+                'wide' => 'wide',
+                'straight' => 'straight',
+                'mini-skirt' => 'skirt',
+                'tight-skirt' => 'tight',
+                'a-line-skirt' => 'a_line',
+                'flare-skirt' => 'flare',
+                default => $shape,
+            };
+        }
+
+        if ($category === 'pants') {
+            return match ($shape) {
+                'pants', 'denim', 'slacks', 'short-pants', 'other' => 'pants',
+                'tapered' => 'tapered',
+                'wide' => 'wide',
+                'straight' => 'straight',
+                'culottes' => 'culottes',
+                default => $shape,
+            };
+        }
+
+        if ($category === 'skirts') {
+            return match ($shape) {
+                'skirt', 'other' => 'skirt',
+                'tight' => 'tight',
+                'flare' => 'flare',
+                'a_line' => 'a_line',
+                'mermaid' => 'mermaid',
+                default => $shape,
+            };
+        }
+
+        if ($originalCategory === 'outer') {
+            return match ($shape) {
+                'down' => 'down-padded',
+                'outer-cardigan' => 'blouson',
+                default => $shape,
+            };
+        }
+
+        if ($originalCategory === 'accessories') {
+            return match ($shape) {
+                'accessory' => 'other',
+                default => $shape,
+            };
+        }
+
+        return $shape;
+    }
+
+    private function fillMissingSeedSpec(
+        string $category,
+        ?string $shape,
+        ?string $originalShape,
+        ?array $spec,
+    ): ?array {
+        $normalized = $spec ?? [];
+
+        if ($category === 'pants' && data_get($normalized, 'bottoms.length_type') === null) {
+            data_set(
+                $normalized,
+                'bottoms.length_type',
+                $shape === 'tapered' ? 'ankle' : 'full',
+            );
+        }
+
+        if ($category === 'skirts' && data_get($normalized, 'skirt.length_type') === null) {
+            $lengthType = match ($originalShape) {
+                'mini-skirt' => 'mini',
+                'tight-skirt' => 'knee',
+                'flare-skirt', 'a-line-skirt' => 'midi',
+                default => match ($shape) {
+                    'tight' => 'knee',
+                    'flare', 'a_line', 'skirt' => 'midi',
+                    'mermaid' => 'long',
+                    default => null,
+                },
+            };
+
+            if ($lengthType !== null) {
+                data_set($normalized, 'skirt.length_type', $lengthType);
+            }
+        }
+
+        return $normalized === [] ? null : $normalized;
     }
 
     private function syncMaterials(Item $item, array $materials): void

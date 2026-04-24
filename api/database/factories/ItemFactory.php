@@ -18,6 +18,7 @@ class ItemFactory extends Factory
         $definitions = [
             [
                 'category' => 'tops',
+                'subcategory' => 'tshirt_cutsew',
                 'shape' => 'tshirt',
                 'name' => 'Bulk Tシャツ',
                 'spec' => [
@@ -32,6 +33,7 @@ class ItemFactory extends Factory
             ],
             [
                 'category' => 'tops',
+                'subcategory' => 'shirt_blouse',
                 'shape' => 'shirt',
                 'name' => 'Bulk シャツ',
                 'spec' => [
@@ -46,6 +48,7 @@ class ItemFactory extends Factory
             ],
             [
                 'category' => 'tops',
+                'subcategory' => 'cardigan',
                 'shape' => 'cardigan',
                 'name' => 'Bulk カーディガン',
                 'spec' => [
@@ -59,31 +62,44 @@ class ItemFactory extends Factory
                 ],
             ],
             [
-                'category' => 'bottoms',
+                'category' => 'pants',
+                'subcategory' => 'pants',
                 'shape' => 'straight',
                 'name' => 'Bulk デニム',
-                'spec' => null,
+                'spec' => [
+                    'bottoms' => [
+                        'length_type' => 'full',
+                    ],
+                ],
             ],
             [
-                'category' => 'bottoms',
+                'category' => 'pants',
+                'subcategory' => 'pants',
                 'shape' => 'wide',
                 'name' => 'Bulk ワイドパンツ',
-                'spec' => null,
+                'spec' => [
+                    'bottoms' => [
+                        'length_type' => 'full',
+                    ],
+                ],
             ],
             [
-                'category' => 'outer',
+                'category' => 'outerwear',
+                'subcategory' => 'coat',
                 'shape' => 'trench',
                 'name' => 'Bulk トレンチ',
                 'spec' => null,
             ],
             [
                 'category' => 'shoes',
+                'subcategory' => 'sneakers',
                 'shape' => 'sneakers',
                 'name' => 'Bulk スニーカー',
                 'spec' => null,
             ],
             [
-                'category' => 'accessories',
+                'category' => 'bags',
+                'subcategory' => 'tote',
                 'shape' => 'tote',
                 'name' => 'Bulk トート',
                 'spec' => null,
@@ -132,6 +148,7 @@ class ItemFactory extends Factory
             'user_id' => User::factory(),
             'name' => $selected['name'].' '.$this->faker->unique()->numberBetween(1, 999),
             'category' => $selected['category'],
+            'subcategory' => $selected['subcategory'],
             'shape' => $selected['shape'],
             'colors' => $colors,
             'seasons' => $this->faker->randomElements($seasonPool, $this->faker->numberBetween(1, 3)),

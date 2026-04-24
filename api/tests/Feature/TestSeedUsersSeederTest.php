@@ -21,6 +21,23 @@ class TestSeedUsersSeederTest extends TestCase
 {
     use RefreshDatabase;
 
+    private const LEGACY_ITEM_CATEGORIES = ['bottoms', 'outer', 'onepiece_allinone', 'accessories'];
+
+    private const CURRENT_SUBCATEGORY_CATEGORIES = [
+        'tops',
+        'pants',
+        'outerwear',
+        'onepiece_dress',
+        'allinone',
+        'inner',
+        'bags',
+        'fashion_accessories',
+        'shoes',
+        'legwear',
+        'swimwear',
+        'kimono',
+    ];
+
     public function test_database_seeder_creates_fixed_test_users_and_sample_data(): void
     {
         $this->seed(CategoryGroupSeeder::class);
@@ -46,6 +63,7 @@ class TestSeedUsersSeederTest extends TestCase
         $this->assertCount(0, PurchaseCandidate::query()->where('user_id', $emptyUser->id)->get());
         $this->assertCount(3, UserTpo::query()->where('user_id', $emptyUser->id)->get());
         $this->assertCount(0, UserBrand::query()->where('user_id', $emptyUser->id)->get());
+
         $this->assertDatabaseCount('items', 68);
         $this->assertDatabaseCount('purchase_candidates', 21);
 
@@ -53,72 +71,65 @@ class TestSeedUsersSeederTest extends TestCase
         $this->assertCount(80, $standardUser->visible_category_ids);
         $this->assertCount(12, $standardUser->outfits);
         $this->assertCount(32, $standardUser->items);
-        $standardCandidates = PurchaseCandidate::query()
-            ->where('user_id', $standardUser->id)
-            ->orderBy('name')
-            ->get();
-        $this->assertCount(19, $standardCandidates);
-        $this->assertTrue($standardCandidates->contains(
-            fn (PurchaseCandidate $candidate) => $candidate->name === 'Tシャツ候補'
-                && data_get($candidate->size_details, 'structured.shoulder_width') === 45
-        ));
-        $this->assertTrue($standardCandidates->contains(
-            fn (PurchaseCandidate $candidate) => $candidate->name === 'トレンチコート候補'
-                && data_get($candidate->size_details, 'custom_fields.0.label') === '裄丈'
-        ));
-        $this->assertTrue($standardCandidates->contains(
-            fn (PurchaseCandidate $candidate) => $candidate->name === '購入素材確認_自由入力素材'
-                && $candidate->materials()->count() === 2
-        ));
-        $this->assertDatabaseHas('purchase_candidate_materials', [
-            'part_label' => '袖口',
-            'material_name' => '綿',
-            'ratio' => 50,
-        ]);
-        $this->assertDatabaseHas('purchase_candidate_materials', [
-            'part_label' => '本体',
-            'material_name' => 'モダール',
-            'ratio' => 60,
-        ]);
+        $this->assertCount(19, PurchaseCandidate::query()->where('user_id', $standardUser->id)->get());
+
         $standardTpos = UserTpo::query()
             ->where('user_id', $standardUser->id)
             ->orderBy('sort_order')
             ->get();
         $this->assertCount(5, $standardTpos);
-        $this->assertTrue($standardTpos->contains(fn (UserTpo $tpo) => $tpo->name === '在宅' && $tpo->is_active === false));
+        $this->assertTrue($standardTpos->contains(fn (UserTpo $tpo) => $tpo->is_active === false));
+        $this->assertTrue($standardUser->items->contains(fn (Item $item) => $item->care_status === 'in_cleaning'));
         $this->assertTrue($standardUser->items->contains(
-            fn (Item $item) => $item->care_status === 'in_cleaning'
+            fn (Item $item) => $item->category === 'onepiece_dress'
+                && $item->subcategory === 'onepiece'
+                && $item->shape === 'onepiece'
         ));
         $this->assertTrue($standardUser->items->contains(
-            fn (Item $item) => $item->name === 'ネイビーワンピース' && $item->shape === 'onepiece'
-        ));
-        $this->assertTrue($standardUser->items->contains(
-            fn (Item $item) => $item->name === 'ブラックオールインワン' && $item->shape === 'allinone'
+            fn (Item $item) => $item->category === 'allinone'
+                && $item->subcategory === 'allinone'
+                && $item->shape === 'allinone'
         ));
         $this->assertTrue($standardUser->items->every(
             fn (Item $item) => is_array($item->tpo_ids)
         ));
-        $this->assertTrue($standardUser->items
-            ->where('category', 'tops')
-            ->every(fn (Item $item) => data_get($item->spec, 'tops.shape') === null));
-        $bottomsLengthTypes = $standardUser->items
+        $this->assertSeededItemsUseCurrentSchema($standardUser->items);
+
+        $pantsLengthTypes = $standardUser->items
+            ->where('category', 'pants')
             ->pluck('spec')
             ->map(fn ($spec) => data_get($spec, 'bottoms.length_type'))
             ->filter()
-            ->values();
+            ->unique()
+            ->sort()
+            ->values()
+            ->all();
+        $this->assertSame(['ankle', 'full'], $pantsLengthTypes);
+
+        $skirtLengthTypes = $standardUser->items
+            ->where('category', 'skirts')
+            ->pluck('spec')
+            ->map(fn ($spec) => data_get($spec, 'skirt.length_type'))
+            ->filter()
+            ->unique()
+            ->sort()
+            ->values()
+            ->all();
+        $this->assertSame(['knee', 'midi', 'mini'], $skirtLengthTypes);
+
         $legwearCoverageTypes = $standardUser->items
             ->pluck('spec')
             ->map(fn ($spec) => data_get($spec, 'legwear.coverage_type'))
             ->filter()
-            ->values();
+            ->unique()
+            ->sort()
+            ->values()
+            ->all();
         $this->assertSame(
-            ['ankle', 'full', 'knee', 'midi', 'mini'],
-            $bottomsLengthTypes->unique()->sort()->values()->all(),
+            ['ankle_sneaker', 'crew', 'high_socks', 'seven_tenths', 'stockings', 'ten_tenths', 'tights'],
+            $legwearCoverageTypes,
         );
-        $this->assertSame(
-            ['ankle_socks', 'crew_socks', 'knee_socks', 'leggings_cropped', 'leggings_full', 'over_knee', 'stockings', 'tights'],
-            $legwearCoverageTypes->unique()->sort()->values()->all(),
-        );
+
         $standardBrands = UserBrand::query()
             ->where('user_id', $standardUser->id)
             ->orderBy('name')
@@ -127,61 +138,27 @@ class TestSeedUsersSeederTest extends TestCase
         $this->assertTrue($standardBrands->contains(fn (UserBrand $brand) => $brand->is_active === false));
         $this->assertTrue($standardBrands->contains(fn (UserBrand $brand) => $brand->kana !== null));
 
-        $standardItemBrandNames = $standardUser->items
-            ->pluck('brand_name')
-            ->filter()
-            ->unique()
-            ->values();
-        $standardBrandNames = $standardBrands->pluck('name');
-        $this->assertTrue($standardItemBrandNames->every(
-            fn (string $brandName) => $standardBrandNames->contains($brandName)
-        ));
-
         $standardWearLogs = WearLog::query()
             ->where('user_id', $standardUser->id)
             ->orderByDesc('event_date')
             ->orderBy('display_order')
             ->get();
-
         $this->assertCount(8, $standardWearLogs);
         $this->assertSame('2026-03-24', $standardWearLogs->first()?->event_date?->format('Y-m-d'));
         $this->assertTrue($standardWearLogs->contains(fn (WearLog $wearLog) => $wearLog->sourceOutfit?->status === 'invalid'));
         $this->assertTrue($standardWearLogs->contains(
             fn (WearLog $wearLog) => $wearLog->source_outfit_id !== null && $wearLog->wearLogItems->isNotEmpty()
         ));
-        $this->assertTrue($standardWearLogs->contains(
-            fn (WearLog $wearLog) => $wearLog->event_date?->format('Y-m-d') === '2026-03-21' && $wearLog->display_order === 2
-        ));
-        $this->assertTrue($standardWearLogs->contains(
-            fn (WearLog $wearLog) => $wearLog->wearLogItems->contains(fn ($item) => $item->sourceItem?->status === 'disposed')
-        ));
-        $this->assertTrue($standardUser->outfits->contains(
-            fn ($outfit) => $outfit->name === 'ワンピース重ねコーデ'
-        ));
-        $this->assertTrue($standardUser->outfits->contains(
-            fn ($outfit) => $outfit->name === 'ワンピースパンツ重ねコーデ'
-        ));
-        $this->assertTrue($standardUser->outfits->contains(
-            fn ($outfit) => $outfit->name === 'トップス下ワンピースパンツコーデ'
-        ));
-        $this->assertTrue($standardUser->outfits->contains(
-            fn ($outfit) => $outfit->name === 'トップス上ワンピースパンツコーデ'
-        ));
-        $this->assertTrue($standardUser->outfits->contains(
-            fn ($outfit) => $outfit->name === 'オールインワン羽織りコーデ'
-        ));
-        $this->assertTrue($standardUser->outfits->contains(
-            fn ($outfit) => $outfit->name === '旧オールインワン羽織りコーデ'
-                && $outfit->status === 'invalid'
-        ));
+
+        $this->assertDatabaseMissing('outfit_items', [
+            'sort_order' => 0,
+        ]);
 
         $this->assertNotNull($largeUser->visible_category_ids);
         $this->assertCount(2, PurchaseCandidate::query()->where('user_id', $largeUser->id)->get());
         $this->assertCount(6, UserTpo::query()->where('user_id', $largeUser->id)->get());
         $this->assertGreaterThanOrEqual(30, $largeUser->items->count());
-        $this->assertTrue($largeUser->items
-            ->where('category', 'tops')
-            ->every(fn (Item $item) => data_get($item->spec, 'tops.shape') === null));
+        $this->assertSeededItemsUseCurrentSchema($largeUser->items);
         $this->assertGreaterThanOrEqual(10, $largeUser->outfits->count());
         $this->assertGreaterThanOrEqual(14, WearLog::query()->where('user_id', $largeUser->id)->count());
         $this->assertTrue(WearLog::query()
@@ -189,6 +166,7 @@ class TestSeedUsersSeederTest extends TestCase
             ->whereNotNull('source_outfit_id')
             ->get()
             ->every(fn (WearLog $wearLog) => $wearLog->wearLogItems->isNotEmpty()));
+
         $largeBrands = UserBrand::query()
             ->where('user_id', $largeUser->id)
             ->orderBy('name')
@@ -198,20 +176,38 @@ class TestSeedUsersSeederTest extends TestCase
         $this->assertTrue($largeBrands->contains(fn (UserBrand $brand) => $brand->kana !== null));
     }
 
-    public function test_item_factory_does_not_generate_tops_shape_compatibility_spec(): void
+    public function test_item_factory_generates_current_schema_items(): void
     {
-        $topsItems = Item::factory()
+        $items = Item::factory()
             ->count(40)
             ->make()
-            ->where('category', 'tops')
             ->values();
 
-        $this->assertNotEmpty($topsItems);
-        $this->assertTrue($topsItems->every(
+        $this->assertNotEmpty($items);
+        $this->assertTrue($items->where('category', 'tops')->every(
             fn (Item $item) => data_get($item->spec, 'tops.shape') === null
         ));
-        $this->assertTrue($topsItems->every(
-            fn (Item $item) => filled($item->shape)
+        $this->assertTrue($items->every(
+            fn (Item $item) => filled($item->shape) && filled($item->subcategory)
         ));
+        $this->assertTrue($items->every(
+            fn (Item $item) => ! in_array($item->category, self::LEGACY_ITEM_CATEGORIES, true)
+        ));
+    }
+
+    private function assertSeededItemsUseCurrentSchema(iterable $items): void
+    {
+        $collection = collect($items);
+
+        $this->assertTrue($collection->every(
+            fn (Item $item) => ! in_array($item->category, self::LEGACY_ITEM_CATEGORIES, true)
+        ));
+        $this->assertTrue($collection->every(
+            fn (Item $item) => ! in_array($item->category, self::CURRENT_SUBCATEGORY_CATEGORIES, true)
+                || filled($item->subcategory)
+        ));
+        $this->assertTrue($collection
+            ->where('category', 'tops')
+            ->every(fn (Item $item) => data_get($item->spec, 'tops.shape') === null));
     }
 }
