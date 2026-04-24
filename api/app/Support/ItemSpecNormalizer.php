@@ -7,7 +7,7 @@ class ItemSpecNormalizer
     public static function normalize(?string $category, ?string $shape, mixed $spec, ?string $subcategory = null): ?array
     {
         $normalized = is_array($spec) ? $spec : [];
-        $resolvedTopsSpec = self::resolveTopsSpec($category, $shape, data_get($normalized, 'tops'));
+        $resolvedTopsSpec = self::resolveTopsSpec($category, data_get($normalized, 'tops'));
         $lengthType = data_get($normalized, 'bottoms.length_type');
         $skirtLengthType = data_get($normalized, 'skirt.length_type');
         $skirtMaterialType = data_get($normalized, 'skirt.material_type');
@@ -76,18 +76,13 @@ class ItemSpecNormalizer
         return $normalized === [] ? null : $normalized;
     }
 
-    private static function resolveTopsSpec(?string $category, ?string $shape, mixed $topsSpec): ?array
+    private static function resolveTopsSpec(?string $category, mixed $topsSpec): ?array
     {
         if ($category !== 'tops' || ! is_array($topsSpec)) {
             return null;
         }
 
         unset($topsSpec['shape']);
-
-        // 分類軸の正本はトップレベルの shape とし、互換値はそこからだけ同期する。
-        if (is_string($shape) && $shape !== '') {
-            $topsSpec['shape'] = $shape;
-        }
 
         return $topsSpec === [] ? null : $topsSpec;
     }

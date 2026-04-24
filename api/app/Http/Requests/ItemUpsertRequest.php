@@ -77,7 +77,6 @@ abstract class ItemUpsertRequest extends FormRequest
             'tpos.*' => ['string', 'max:50'],
             'spec' => ['nullable', 'array'],
             'spec.tops' => ['nullable', 'array'],
-            'spec.tops.shape' => ['nullable', 'string', 'max:100'],
             'spec.tops.sleeve' => ['nullable', 'string', 'max:100'],
             'spec.tops.length' => ['nullable', 'string', 'max:100'],
             'spec.tops.neck' => ['nullable', 'string', 'max:100'],

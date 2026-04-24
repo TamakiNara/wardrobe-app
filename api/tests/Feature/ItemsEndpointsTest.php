@@ -1015,7 +1015,8 @@ class ItemsEndpointsTest extends TestCase
 
         $item = Item::query()->latest('id')->first();
         $this->assertSame('shirt', $item?->shape);
-        $this->assertSame('shirt', $item?->shape);
+        $this->assertNull(data_get($item?->spec, 'tops.shape'));
+        $this->assertSame('long', data_get($item?->spec, 'tops.sleeve'));
     }
 
     public function test_post_items_prefers_shape_over_spec_tops_shape_when_both_are_present(): void
@@ -1053,7 +1054,8 @@ class ItemsEndpointsTest extends TestCase
 
         $item = Item::query()->latest('id')->first();
         $this->assertSame('shirt', $item?->shape);
-        $this->assertSame('shirt', $item?->shape);
+        $this->assertNull(data_get($item?->spec, 'tops.shape'));
+        $this->assertSame('long', data_get($item?->spec, 'tops.sleeve'));
     }
 
     public function test_post_items_ignores_spec_tops_shape_when_tops_other_shape_is_unresolved(): void
@@ -2433,7 +2435,8 @@ class ItemsEndpointsTest extends TestCase
         $item->refresh();
 
         $this->assertSame('shirt', $item->shape);
-        $this->assertSame('shirt', $item->shape);
+        $this->assertNull(data_get($item->spec, 'tops.shape'));
+        $this->assertSame('short', data_get($item->spec, 'tops.sleeve'));
     }
 
     public function test_put_item_can_save_tops_other_with_unresolved_shape(): void
