@@ -152,14 +152,15 @@ describe("PurchaseCandidateDetailPage", () => {
 
     expect(markup).toContain("ネイビーコート");
     expect(markup).toContain("購入検討管理");
-    expect(markup).toContain("一覧へ戻る");
+    expect(markup).toContain("一覧に戻る");
     expect(sectionTitles).toEqual([
       "基本情報",
+      "分類",
       "購入情報",
-      "色 / 季節 / TPO",
-      "サイズ・属性",
+      "色 / 利用条件・状態",
+      "サイズ・実寸",
       "素材・混率",
-      "メモ",
+      "補足情報",
       "画像",
     ]);
     expect(markup).toContain("保留中");
@@ -167,12 +168,13 @@ describe("PurchaseCandidateDetailPage", () => {
     expect(markup).not.toContain(
       '<dt class="text-sm font-medium text-gray-700">ステータス</dt>',
     );
-    expect(markup).not.toContain(
+    expect(markup).toContain(
       '<dt class="text-sm font-medium text-gray-700">優先度</dt>',
     );
     expect(markup).toContain("14,800円");
     expect(markup).toContain("12,800円");
     expect(markup).toContain("セール終了予定");
+    expect(markup).toContain("コート");
     expect(markup).toContain("レディース");
     expect(markup).toContain("理由");
     expect(markup).toContain("厚手対応");
@@ -180,8 +182,10 @@ describe("PurchaseCandidateDetailPage", () => {
     expect(markup).toContain("本体");
     expect(markup).toContain("綿 80%、ポリエステル 20%");
     expect(markup).toContain("実寸");
+    expect(markup).toContain("雨対応");
     expect(markup).toContain("総丈");
     expect(markup).toContain("92cm");
+    expect(markup).not.toContain("仕様・属性");
     expect(markup).toContain("item-draft-action");
     expect(markup).toContain("color-variant-action");
     expect(markup).toContain("duplicate-action");
@@ -191,6 +195,7 @@ describe("PurchaseCandidateDetailPage", () => {
     expect(markup).not.toContain("アイテム追加");
     expect(markup).toContain('href="/purchase-candidates"');
     expect(markup).toContain('href="/purchase-candidates/10/edit"');
+    expect(markup).toContain(">編集<");
   });
 
   it("同じ group の候補ナビを上部に表示し、別候補へのリンクと状態を示す", async () => {
@@ -381,5 +386,79 @@ describe("PurchaseCandidateDetailPage", () => {
     expect(markup).toContain("duplicate-action");
     expect(markup).not.toContain("item-draft-action");
     expect(markup).not.toContain("アイテム追加");
+  });
+
+  it("tops spec がある場合は分類内に仕様・属性を表示し、spec.tops.shape は出さない", async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        purchaseCandidate: {
+          id: 21,
+          status: "considering",
+          priority: "high",
+          name: "白シャツ候補",
+          category_id: "tops_shirt_blouse",
+          category_name: "シャツ・ブラウス",
+          brand_name: "Brand",
+          price: 9800,
+          sale_price: null,
+          sale_ends_at: null,
+          purchase_url: null,
+          memo: null,
+          wanted_reason: "通勤用を探している",
+          size_gender: null,
+          size_label: null,
+          size_note: null,
+          size_details: null,
+          spec: {
+            tops: {
+              sleeve: "long",
+              length: "normal",
+              neck: "collar",
+              design: "raglan",
+              fit: "normal",
+            },
+          },
+          is_rain_ok: false,
+          group_id: null,
+          group_order: null,
+          group_candidates: [],
+          converted_item_id: null,
+          converted_at: null,
+          colors: [],
+          seasons: ["春", "秋"],
+          tpos: ["仕事"],
+          materials: [],
+          images: [],
+          created_at: "2026-03-24T10:00:00+09:00",
+          updated_at: "2026-03-24T10:00:00+09:00",
+        },
+      }),
+    });
+
+    const { default: PurchaseCandidateDetailPage } = await import("./page");
+    const markup = renderToStaticMarkup(
+      await PurchaseCandidateDetailPage({
+        params: Promise.resolve({ id: "21" }),
+      }),
+    );
+
+    expect(markup).toContain("分類");
+    expect(markup).toContain("仕様・属性");
+    expect(markup).toContain("カテゴリ");
+    expect(markup).toContain("種類");
+    expect(markup).toContain("形");
+    expect(markup).toContain("袖");
+    expect(markup).toContain("長袖");
+    expect(markup).toContain("丈");
+    expect(markup).toContain("標準");
+    expect(markup).toContain("首回り");
+    expect(markup).toContain("襟");
+    expect(markup).toContain("デザイン");
+    expect(markup).toContain("ラグラン");
+    expect(markup).toContain("シルエット");
+    expect(markup).toContain("標準");
+    expect(markup).not.toContain("spec.tops.shape");
   });
 });

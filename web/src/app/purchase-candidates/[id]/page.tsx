@@ -8,6 +8,16 @@ import { EntityDetailHeader } from "@/components/shared/entity-detail-header";
 import { resolvePurchaseCandidateItemClassification } from "@/lib/items/classification";
 import { groupItemMaterialsForDisplay } from "@/lib/items/materials";
 import {
+  findBottomsLengthLabel,
+  findLegwearCoverageLabel,
+} from "@/lib/master-data/item-skin-exposure";
+import { buildTopsSpecLabels } from "@/lib/master-data/item-tops";
+import { findItemSubcategoryLabel } from "@/lib/master-data/item-subcategories";
+import {
+  findItemCategoryLabel,
+  findItemShapeLabel,
+} from "@/lib/master-data/item-shapes";
+import {
   PURCHASE_CANDIDATE_COLOR_ROLE_LABELS,
   PURCHASE_CANDIDATE_PRIORITY_LABELS,
   PURCHASE_CANDIDATE_SIZE_GENDER_LABELS,
@@ -229,6 +239,53 @@ export default async function PurchaseCandidateDetailPage({
   const resolvedItemCategory = resolvePurchaseCandidateItemClassification(
     candidate.category_id,
   );
+  const topsSpec = buildTopsSpecLabels(candidate.spec?.tops);
+  const categoryLabel = findItemCategoryLabel(resolvedItemCategory?.category);
+  const subcategoryLabel = findItemSubcategoryLabel(
+    resolvedItemCategory?.category,
+    resolvedItemCategory?.subcategory,
+  );
+  const shapeLabel = findItemShapeLabel(
+    resolvedItemCategory?.category,
+    resolvedItemCategory?.shape,
+  );
+  const classificationDetails = [
+    { label: "カテゴリ", value: categoryLabel },
+    {
+      label: "種類",
+      value:
+        subcategoryLabel || candidate.category_name || candidate.category_id,
+    },
+    { label: "形", value: shapeLabel },
+  ].filter((detail): detail is { label: string; value: string } =>
+    Boolean(detail.value),
+  );
+  const specDetails = [
+    { label: "袖", value: topsSpec?.sleeve ?? "" },
+    { label: "丈", value: topsSpec?.length ?? "" },
+    { label: "首回り", value: topsSpec?.neck ?? "" },
+    { label: "デザイン", value: topsSpec?.design ?? "" },
+    { label: "シルエット", value: topsSpec?.fit ?? "" },
+    {
+      label: "丈",
+      value: findBottomsLengthLabel(candidate.spec?.bottoms?.length_type),
+    },
+    {
+      label: "股上",
+      value:
+        candidate.spec?.bottoms?.rise_type === "high_waist"
+          ? "ハイウエスト"
+          : candidate.spec?.bottoms?.rise_type === "low_rise"
+            ? "ローライズ"
+            : "",
+    },
+    {
+      label: "レッグウェア",
+      value: findLegwearCoverageLabel(candidate.spec?.legwear?.coverage_type),
+    },
+  ].filter((detail): detail is { label: string; value: string } =>
+    Boolean(detail.value),
+  );
   const normalizedSizeDetails = normalizeItemSizeDetails(
     candidate.size_details,
   );
@@ -304,7 +361,7 @@ export default async function PurchaseCandidateDetailPage({
                 href={`/purchase-candidates/${candidate.id}/edit`}
                 className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
               >
-                編集する
+                編集
               </Link>
               <PurchaseCandidateColorVariantAction
                 candidateId={candidate.id}
@@ -318,7 +375,7 @@ export default async function PurchaseCandidateDetailPage({
                 href="/purchase-candidates"
                 className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
               >
-                一覧へ戻る
+                一覧に戻る
               </Link>
             </>
           }
@@ -332,9 +389,19 @@ export default async function PurchaseCandidateDetailPage({
           <h2 className="text-lg font-semibold text-gray-900">基本情報</h2>
           <dl className="mt-4 grid gap-4 md:grid-cols-2">
             <div>
-              <dt className="text-sm font-medium text-gray-700">カテゴリ</dt>
+              <dt className="text-sm font-medium text-gray-700">名前</dt>
+              <dd className="mt-1 text-sm text-gray-600">{candidate.name}</dd>
+            </div>
+            <div>
+              <dt className="text-sm font-medium text-gray-700">ブランド</dt>
               <dd className="mt-1 text-sm text-gray-600">
-                {candidate.category_name ?? candidate.category_id}
+                {candidate.brand_name ?? "未設定"}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-sm font-medium text-gray-700">優先度</dt>
+              <dd className="mt-1 text-sm text-gray-600">
+                {PURCHASE_CANDIDATE_PRIORITY_LABELS[candidate.priority]}
               </dd>
             </div>
             <div>
@@ -351,14 +418,44 @@ export default async function PurchaseCandidateDetailPage({
         </section>
 
         <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <h2 className="text-lg font-semibold text-gray-900">分類</h2>
+          <dl className="mt-4 grid gap-4 md:grid-cols-2">
+            {classificationDetails.map((detail) => (
+              <div key={detail.label}>
+                <dt className="text-sm font-medium text-gray-700">
+                  {detail.label}
+                </dt>
+                <dd className="mt-1 text-sm text-gray-600">{detail.value}</dd>
+              </div>
+            ))}
+            {specDetails.length > 0 ? (
+              <div className="md:col-span-2">
+                <dt className="text-sm font-medium text-gray-700">
+                  仕様・属性
+                </dt>
+                <dd className="mt-2 grid gap-2 md:grid-cols-2">
+                  {specDetails.map((detail) => (
+                    <div
+                      key={`${detail.label}-${detail.value}`}
+                      className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2"
+                    >
+                      <p className="text-xs font-medium text-gray-500">
+                        {detail.label}
+                      </p>
+                      <p className="mt-1 text-sm text-gray-700">
+                        {detail.value}
+                      </p>
+                    </div>
+                  ))}
+                </dd>
+              </div>
+            ) : null}
+          </dl>
+        </section>
+
+        <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-gray-900">購入情報</h2>
           <dl className="mt-4 grid gap-4 md:grid-cols-2">
-            <div>
-              <dt className="text-sm font-medium text-gray-700">ブランド</dt>
-              <dd className="mt-1 text-sm text-gray-600">
-                {candidate.brand_name ?? "未設定"}
-              </dd>
-            </div>
             <div>
               <dt className="text-sm font-medium text-gray-700">想定価格</dt>
               <dd className="mt-1 text-sm text-gray-600">
@@ -403,9 +500,9 @@ export default async function PurchaseCandidateDetailPage({
 
         <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-gray-900">
-            色 / 季節 / TPO
+            色 / 利用条件・状態
           </h2>
-          <div className="mt-4 grid gap-4 md:grid-cols-3">
+          <div className="mt-4 grid gap-4 md:grid-cols-2">
             <div>
               <p className="text-sm font-medium text-gray-700">色</p>
               <ul className="mt-2 space-y-1 text-sm text-gray-600">
@@ -437,11 +534,17 @@ export default async function PurchaseCandidateDetailPage({
                   : candidate.tpos.join(" / ")}
               </p>
             </div>
+            <div>
+              <p className="text-sm font-medium text-gray-700">雨対応</p>
+              <p className="mt-2 text-sm text-gray-600">
+                {candidate.is_rain_ok ? "対応" : "未対応"}
+              </p>
+            </div>
           </div>
         </section>
 
         <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-gray-900">サイズ・属性</h2>
+          <h2 className="text-lg font-semibold text-gray-900">サイズ・実寸</h2>
           <dl className="mt-4 grid gap-4 md:grid-cols-2">
             <div>
               <dt className="text-sm font-medium text-gray-700">サイズ区分</dt>
@@ -457,12 +560,6 @@ export default async function PurchaseCandidateDetailPage({
               <dt className="text-sm font-medium text-gray-700">サイズ表記</dt>
               <dd className="mt-1 text-sm text-gray-600">
                 {candidate.size_label ?? "未設定"}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-700">雨対応</dt>
-              <dd className="mt-1 text-sm text-gray-600">
-                {candidate.is_rain_ok ? "対応" : "未対応"}
               </dd>
             </div>
             <div>
@@ -539,7 +636,7 @@ export default async function PurchaseCandidateDetailPage({
         </section>
 
         <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-gray-900">メモ</h2>
+          <h2 className="text-lg font-semibold text-gray-900">補足情報</h2>
           <dl className="mt-4 grid gap-4 md:grid-cols-2">
             <div>
               <dt className="text-sm font-medium text-gray-700">欲しい理由</dt>
