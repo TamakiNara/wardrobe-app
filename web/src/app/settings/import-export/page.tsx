@@ -26,6 +26,10 @@ type SaveFilePickerWindow = Window & {
   }>;
 };
 
+function isSavePickerAbortError(error: unknown): boolean {
+  return error instanceof DOMException && error.name === "AbortError";
+}
+
 function buildExportFileName(exportedAt: string) {
   const date = new Date(exportedAt);
 
@@ -113,9 +117,15 @@ function ImportExportPageContent() {
       await saveExportBlob(blob, buildExportFileName(payload.exported_at));
 
       setSuccessMessage(
-        "エクスポートを開始しました。JSON を保存してください。",
+        "バックアップを開始しました。JSON を保存してください。",
       );
     } catch (error) {
+      if (isSavePickerAbortError(error)) {
+        setSuccessMessage(null);
+        setErrorMessage(null);
+        return;
+      }
+
       setErrorMessage(getImportExportErrorMessage(error));
     } finally {
       setExporting(false);
@@ -126,7 +136,7 @@ function ImportExportPageContent() {
     if (!selectedFile || importing) return;
 
     const confirmedText = window.prompt(
-      "続行するには「インポート」と入力してください。\n実行すると、現在のアイテム・購入検討・コーディネートはすべて削除されて置き換わります。",
+      "実行するには「インポート」と入力してください。\n実行すると、現在のアイテム・購入検討・コーディネート・着用履歴はすべて削除されて置き換わります。",
     );
 
     if (confirmedText !== "インポート") {
@@ -147,13 +157,13 @@ function ImportExportPageContent() {
       const response = await importUserData(parsed);
 
       setSuccessMessage(
-        `復元が完了しました。アイテム ${response.counts.items.total} 件（表示対象 ${response.counts.items.visible} 件）、購入検討 ${response.counts.purchase_candidates.total} 件、コーディネート ${response.counts.outfits.total} 件（表示対象 ${response.counts.outfits.visible} 件）を復元しました。`,
+        `復元が完了しました。アイテム ${response.counts.items.total} 件（表示対象 ${response.counts.items.visible} 件）、購入検討 ${response.counts.purchase_candidates.total} 件、コーディネート ${response.counts.outfits.total} 件（表示対象 ${response.counts.outfits.visible} 件）、着用履歴 ${response.counts.wear_logs.total} 件を復元しました。`,
       );
       setSelectedFile(null);
     } catch (error) {
       if (error instanceof SyntaxError) {
         setErrorMessage(
-          "JSON の読み込みに失敗しました。ファイル内容を確認してください。",
+          "JSON の読み込みに失敗しました。ファイル形式を確認してください。",
         );
       } else {
         setErrorMessage(getImportExportErrorMessage(error));
@@ -174,7 +184,7 @@ function ImportExportPageContent() {
             <>
               データのバックアップと復元を行います。
               <br />
-              ログイン中のユーザーのアイテム・購入検討・コーディネートを、画像も含めて扱います。
+              ログイン中のユーザーのアイテム・購入検討・コーディネート・着用履歴を、画像も含めて扱います。
             </>
           }
           backHref="/settings"
@@ -209,13 +219,13 @@ function ImportExportPageContent() {
                 インポート
               </h2>
               <p className="mt-2 text-sm text-gray-600">
-                バックアップファイルから、ログイン中のユーザーのデータを復元します。実行すると、現在のアイテム・購入検討・コーディネートはすべて削除されます。
+                バックアップファイルから、ログイン中のユーザーのデータを復元します。実行すると、現在のアイテム・購入検討・コーディネート・着用履歴はすべて削除されます。
               </p>
             </div>
 
             <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700">
               ⚠
-              復元すると、現在のアイテム・購入検討・コーディネートはすべて削除されます
+              復元すると、現在のアイテム・購入検討・コーディネート・着用履歴はすべて削除されます
             </p>
 
             <div className="space-y-2">

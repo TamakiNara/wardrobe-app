@@ -85,8 +85,8 @@ function SettingsPageContent() {
   const preferencesButtonDisabled =
     loading || preferencesSaving || !hasPreferenceChanges;
   const preferencesButtonLabel = preferencesSaving
-    ? "個人設定を保存中..."
-    : "個人設定を保存";
+    ? "表示・初期値設定を保存中..."
+    : "表示・初期値設定を保存";
 
   async function handleSavePreferences() {
     if (preferencesButtonDisabled) return;
@@ -120,7 +120,7 @@ function SettingsPageContent() {
             <>
               各種設定を変更できます。
               <br />
-              表示内容や利用方法に関する項目は、ここから調整できます。
+              表示内容や利用方法に関する設定は、ここから調整できます。
             </>
           }
         />
@@ -185,8 +185,7 @@ function SettingsPageContent() {
                 <option value="winter">冬</option>
               </select>
               <p className="mt-2 text-xs text-gray-500">
-                アイテム一覧 /
-                コーディネート一覧で指定の季節で絞り込んで表示します。
+                アイテム一覧 / コーディネート一覧で絞り込む季節です。
               </p>
             </div>
 
@@ -225,7 +224,7 @@ function SettingsPageContent() {
                 htmlFor="preferences-calendar-week-start"
                 className="mb-1 block text-sm font-medium text-gray-700"
               >
-                カレンダーの週開始
+                カレンダーの週始まり
               </label>
               <select
                 id="preferences-calendar-week-start"
@@ -255,10 +254,10 @@ function SettingsPageContent() {
             <div className="md:col-span-3">
               <div className="flex flex-col gap-2">
                 <label className="block text-sm font-medium text-gray-700">
-                  サムネイル肌色
+                  サムネイル色味
                 </label>
                 <p className="text-xs text-gray-500">
-                  item サムネイルの肌色表現に使います。
+                  item サムネイルの色味表示に使います。
                 </p>
                 <p className="text-sm text-gray-700">
                   選択中:{" "}
@@ -276,7 +275,7 @@ function SettingsPageContent() {
                       key={option.value}
                       type="button"
                       title={option.label}
-                      aria-label={`サムネイル肌色: ${option.label}`}
+                      aria-label={`サムネイル色味: ${option.label}`}
                       onClick={() => {
                         setPreferencesSaveMessage(null);
                         setPreferencesSaveError(null);
@@ -314,7 +313,7 @@ function SettingsPageContent() {
               カテゴリ設定
             </h2>
             <p className="mt-2 text-sm text-gray-600">
-              登録や選択に出すカテゴリを調整できます。
+              表示に使うカテゴリを調整できます。
             </p>
             <div className="mt-4">
               <Link
@@ -329,7 +328,7 @@ function SettingsPageContent() {
           <SettingsCard>
             <h2 className="text-lg font-semibold text-gray-900">TPO 設定</h2>
             <p className="mt-2 text-sm text-gray-600">
-              アイテムとコーディネートで使う TPO 候補を管理できます。
+              アイテムとコーディネートで使う TPO 候補を調整できます。
             </p>
             <div className="mt-4">
               <Link
@@ -343,17 +342,17 @@ function SettingsPageContent() {
 
           <SettingsCard>
             <h2 className="text-lg font-semibold text-gray-900">
-              ブランド候補設定
+              ブランド管理設定
             </h2>
             <p className="mt-2 text-sm text-gray-600">
-              アイテム入力で使うブランド候補を管理できます。
+              アイテム入力で使うブランド候補を調整できます。
             </p>
             <div className="mt-4">
               <Link
                 href="/settings/brands"
                 className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
               >
-                ブランド候補設定へ
+                ブランド管理設定へ
               </Link>
             </div>
           </SettingsCard>
@@ -363,7 +362,7 @@ function SettingsPageContent() {
               インポート・エクスポート
             </h2>
             <p className="mt-2 text-sm text-gray-600">
-              アイテム・購入検討・コーディネートのバックアップと復元を行います。
+              アイテム・購入検討・コーディネート・着用履歴のバックアップと復元を行います。
             </p>
             <div className="mt-4">
               <Link

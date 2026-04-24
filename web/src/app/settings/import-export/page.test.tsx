@@ -98,6 +98,7 @@ describe("ImportExportPage", () => {
       items: [],
       purchase_candidates: [],
       outfits: [],
+      wear_logs: [],
     });
     importUserDataMock.mockResolvedValue({
       message: "imported",
@@ -112,6 +113,9 @@ describe("ImportExportPage", () => {
         outfits: {
           total: 3,
           visible: 2,
+        },
+        wear_logs: {
+          total: 4,
         },
       },
     });
@@ -136,7 +140,7 @@ describe("ImportExportPage", () => {
     globalThis.IS_REACT_ACT_ENVIRONMENT = false;
   });
 
-  it("インポート・エクスポート画面を表示する", async () => {
+  it("インポート・エクスポート画面の説明を表示する", async () => {
     const { default: ImportExportPage } = await import("./page");
 
     await act(async () => {
@@ -148,23 +152,23 @@ describe("ImportExportPage", () => {
     expect(container.textContent).toContain("エクスポート");
     expect(container.textContent).toContain("インポート");
     expect(container.textContent).toContain(
-      "ログイン中のユーザーのアイテム・購入検討・コーディネートを、画像も含めて扱います。",
+      "ログイン中のユーザーのアイテム・購入検討・コーディネート・着用履歴を、画像も含めて扱います。",
     );
     expect(container.textContent).toContain(
       "ログイン中のユーザーのデータをバックアップファイルとして保存します。画像も含まれるため、ファイルサイズが大きくなる場合があります。",
     );
     expect(container.textContent).toContain(
-      "バックアップファイルから、ログイン中のユーザーのデータを復元します。実行すると、現在のアイテム・購入検討・コーディネートはすべて削除されます。",
+      "バックアップファイルから、ログイン中のユーザーのデータを復元します。実行すると、現在のアイテム・購入検討・コーディネート・着用履歴はすべて削除されます。",
     );
     expect(container.textContent).toContain("データをバックアップする");
     expect(container.textContent).toContain("バックアップから復元する");
     expect(container.textContent).toContain("ファイルを選択");
     expect(container.textContent).toContain(
-      "⚠ 復元すると、現在のアイテム・購入検討・コーディネートはすべて削除されます",
+      "⚠ 復元すると、現在のアイテム・購入検討・コーディネート・着用履歴はすべて削除されます",
     );
   });
 
-  it("対応ブラウザでは保存先選択ダイアログでエクスポートできる", async () => {
+  it("対応ブラウザでは保存ダイアログでエクスポートできる", async () => {
     const { default: ImportExportPage } = await import("./page");
 
     await act(async () => {
@@ -187,7 +191,7 @@ describe("ImportExportPage", () => {
     expect(writableCloseMock).toHaveBeenCalledTimes(1);
     expect(createObjectUrlMock).not.toHaveBeenCalled();
     expect(container.textContent).toContain(
-      "エクスポートを開始しました。JSON を保存してください。",
+      "バックアップを開始しました。JSON を保存してください。",
     );
   });
 
@@ -219,7 +223,36 @@ describe("ImportExportPage", () => {
     expect(revokeObjectUrlMock).toHaveBeenCalledWith("blob:mock-url");
   });
 
-  it("JSON ファイルを選択して確認後にインポートを実行できる", async () => {
+  it("保存先選択ダイアログをキャンセルした場合はエラーを表示しない", async () => {
+    const { default: ImportExportPage } = await import("./page");
+
+    showSaveFilePickerMock.mockRejectedValueOnce(
+      new DOMException("The user aborted a request.", "AbortError"),
+    );
+
+    await act(async () => {
+      root.render(React.createElement(ImportExportPage));
+      await waitForEffects();
+    });
+
+    const exportButton = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button"),
+    ).find((button) => button.textContent === "データをバックアップする");
+
+    await act(async () => {
+      exportButton!.click();
+      await waitForEffects();
+    });
+
+    expect(exportUserDataMock).toHaveBeenCalledTimes(1);
+    expect(showSaveFilePickerMock).toHaveBeenCalledTimes(1);
+    expect(container.textContent).not.toContain("The user aborted a request.");
+    expect(container.textContent).not.toContain(
+      "インポート・エクスポートの処理に失敗しました。",
+    );
+  });
+
+  it("JSON ファイルを選択して復元できる", async () => {
     const { default: ImportExportPage } = await import("./page");
 
     await act(async () => {
@@ -242,6 +275,7 @@ describe("ImportExportPage", () => {
           items: [],
           purchase_candidates: [],
           outfits: [],
+          wear_logs: [],
         }),
       ],
       "backup.json",
@@ -272,13 +306,14 @@ describe("ImportExportPage", () => {
       items: [],
       purchase_candidates: [],
       outfits: [],
+      wear_logs: [],
     });
     expect(container.textContent).toContain(
-      "復元が完了しました。アイテム 1 件（表示対象 1 件）、購入検討 2 件、コーディネート 3 件（表示対象 2 件）を復元しました。",
+      "復元が完了しました。アイテム 1 件（表示対象 1 件）、購入検討 2 件、コーディネート 3 件（表示対象 2 件）、着用履歴 4 件を復元しました。",
     );
   });
 
-  it("確認文字列が一致しない場合はインポートを実行しない", async () => {
+  it("確認文字列が一致しない場合はインポートしない", async () => {
     const { default: ImportExportPage } = await import("./page");
 
     promptMock.mockReturnValueOnce("キャンセル");
@@ -303,6 +338,7 @@ describe("ImportExportPage", () => {
           items: [],
           purchase_candidates: [],
           outfits: [],
+          wear_logs: [],
         }),
       ],
       "backup.json",

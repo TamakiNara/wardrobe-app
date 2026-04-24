@@ -10,6 +10,7 @@ use App\Models\PurchaseCandidate;
 use App\Models\PurchaseCandidateGroup;
 use App\Models\User;
 use App\Models\UserTpo;
+use App\Models\WearLog;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
@@ -219,10 +220,25 @@ class ImportExportEndpointsTest extends TestCase
             'sort_order' => 1,
         ]);
 
+        $wearLog = WearLog::query()->create([
+            'user_id' => $user->id,
+            'status' => 'worn',
+            'event_date' => '2026-04-21',
+            'display_order' => 1,
+            'source_outfit_id' => $outfit->id,
+            'memo' => '着用履歴メモ',
+        ]);
+        $wearLog->wearLogItems()->create([
+            'source_item_id' => $item->id,
+            'item_source_type' => 'outfit',
+            'sort_order' => 1,
+        ]);
+
         return [
             'item' => $item,
             'candidate' => $candidate,
             'outfit' => $outfit,
+            'wearLog' => $wearLog,
         ];
     }
 
@@ -246,6 +262,7 @@ class ImportExportEndpointsTest extends TestCase
             ->assertJsonCount(1, 'items')
             ->assertJsonCount(1, 'purchase_candidates')
             ->assertJsonCount(1, 'outfits')
+            ->assertJsonCount(1, 'wear_logs')
             ->assertJsonPath('items.0.name', '白シャツ')
             ->assertJsonPath('purchase_candidates.0.name', '購入候補シャツ')
             ->assertJsonPath('outfits.0.name', '通勤コーデ')
@@ -314,7 +331,8 @@ class ImportExportEndpointsTest extends TestCase
             ->assertJsonPath('counts.items.visible', 1)
             ->assertJsonPath('counts.purchase_candidates.total', 1)
             ->assertJsonPath('counts.outfits.total', 1)
-            ->assertJsonPath('counts.outfits.visible', 1);
+            ->assertJsonPath('counts.outfits.visible', 1)
+            ->assertJsonPath('counts.wear_logs.total', 1);
 
         $this->assertDatabaseMissing('items', ['id' => $staleItem->id]);
         $this->assertDatabaseMissing('purchase_candidates', ['id' => $staleCandidate->id]);
@@ -439,6 +457,7 @@ class ImportExportEndpointsTest extends TestCase
             'items' => $exportPayload['items'] ?? [],
             'purchase_candidates' => [],
             'outfits' => [],
+            'wear_logs' => [],
         ];
 
         Item::query()->where('user_id', $user->id)->delete();
@@ -504,6 +523,7 @@ class ImportExportEndpointsTest extends TestCase
             'items' => $exportPayload['items'] ?? [],
             'purchase_candidates' => [],
             'outfits' => [],
+            'wear_logs' => [],
         ];
 
         Item::query()->where('user_id', $user->id)->delete();
@@ -564,6 +584,7 @@ class ImportExportEndpointsTest extends TestCase
             'items' => $exportPayload['items'] ?? [],
             'purchase_candidates' => [],
             'outfits' => [],
+            'wear_logs' => [],
         ];
 
         Item::query()->where('user_id', $user->id)->delete();
@@ -707,6 +728,7 @@ class ImportExportEndpointsTest extends TestCase
             'items' => [],
             'purchase_candidates' => [],
             'outfits' => [],
+            'wear_logs' => [],
         ], [
             'Accept' => 'application/json',
             'X-CSRF-TOKEN' => $token,

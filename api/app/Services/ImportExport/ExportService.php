@@ -8,6 +8,7 @@ use App\Models\Outfit;
 use App\Models\PurchaseCandidate;
 use App\Models\PurchaseCandidateMaterial;
 use App\Models\User;
+use App\Models\WearLog;
 use App\Support\ImportExportImageSupport;
 use App\Support\ItemMaterialSupport;
 use App\Support\ItemSpecNormalizer;
@@ -44,6 +45,15 @@ class ExportService
                 ->orderBy('id')
                 ->get()
                 ->map(fn (Outfit $outfit) => $this->buildOutfitPayload($outfit))
+                ->all(),
+            'wear_logs' => WearLog::query()
+                ->where('user_id', $user->id)
+                ->with('wearLogItems')
+                ->orderBy('event_date')
+                ->orderBy('display_order')
+                ->orderBy('id')
+                ->get()
+                ->map(fn (WearLog $wearLog) => $this->buildWearLogPayload($wearLog))
                 ->all(),
         ];
     }
@@ -174,6 +184,27 @@ class ExportService
                 ->map(fn ($outfitItem) => [
                     'item_id' => $outfitItem->item_id,
                     'sort_order' => $outfitItem->sort_order,
+                ])
+                ->all(),
+        ];
+    }
+
+    private function buildWearLogPayload(WearLog $wearLog): array
+    {
+        return [
+            'id' => $wearLog->id,
+            'status' => $wearLog->status,
+            'event_date' => $wearLog->event_date?->format('Y-m-d'),
+            'display_order' => $wearLog->display_order,
+            'source_outfit_id' => $wearLog->source_outfit_id,
+            'memo' => $wearLog->memo,
+            'items' => $wearLog->wearLogItems
+                ->sortBy('sort_order')
+                ->values()
+                ->map(fn ($wearLogItem) => [
+                    'source_item_id' => $wearLogItem->source_item_id,
+                    'item_source_type' => $wearLogItem->item_source_type,
+                    'sort_order' => $wearLogItem->sort_order,
                 ])
                 ->all(),
         ];

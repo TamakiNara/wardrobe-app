@@ -43,6 +43,9 @@ describe("POST /api/import", () => {
                 total: 3,
                 visible: 2,
               },
+              wear_logs: {
+                total: 4,
+              },
             },
           }),
           {
@@ -67,6 +70,7 @@ describe("POST /api/import", () => {
         items: [],
         purchase_candidates: [],
         outfits: [],
+        wear_logs: [],
       }),
     });
 
@@ -87,6 +91,7 @@ describe("POST /api/import", () => {
           items: [],
           purchase_candidates: [],
           outfits: [],
+          wear_logs: [],
         }),
       }),
     );
@@ -103,6 +108,9 @@ describe("POST /api/import", () => {
         outfits: {
           total: 3,
           visible: 2,
+        },
+        wear_logs: {
+          total: 4,
         },
       },
     });

@@ -170,6 +170,46 @@ class ImportExportValidationSupport
      * @param  array<string, mixed>  $payload
      * @return array<string, mixed>
      */
+    public static function validateWearLogPayload(array $payload): array
+    {
+        if (is_array($payload['items'] ?? null)) {
+            $payload['items'] = array_map(
+                static function ($item) {
+                    if (! is_array($item)) {
+                        return $item;
+                    }
+
+                    return [
+                        'source_item_id' => $item['source_item_id'] ?? null,
+                        'item_source_type' => $item['item_source_type'] ?? null,
+                        'sort_order' => $item['sort_order'] ?? null,
+                    ];
+                },
+                $payload['items']
+            );
+        }
+
+        return Validator::make($payload, [
+            'id' => ['nullable', 'integer'],
+            'status' => ['required', 'string', 'in:planned,worn'],
+            'event_date' => ['required', 'date'],
+            'display_order' => ['required', 'integer', 'min:1'],
+            'source_outfit_id' => ['nullable', 'integer'],
+            'memo' => ['nullable', 'string'],
+            'items' => ['present', 'array'],
+            'items.*.source_item_id' => ['present', 'nullable', 'integer'],
+            'items.*.sort_order' => ['required', 'integer', 'min:1'],
+            'items.*.item_source_type' => ['required', 'string', 'in:outfit,manual'],
+        ], [
+            'items.present' => '着用アイテムは配列で指定してください。',
+            'items.*.source_item_id.present' => '参照アイテムを配列で指定してください。',
+        ])->validate();
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
     private static function normalizeMaterials(array $payload): array
     {
         $materials = $payload['materials'] ?? null;

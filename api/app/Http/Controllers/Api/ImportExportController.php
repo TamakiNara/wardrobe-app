@@ -30,9 +30,10 @@ class ImportExportController extends Controller
             'items' => ['present', 'array'],
             'purchase_candidates' => ['present', 'array'],
             'outfits' => ['present', 'array'],
+            'wear_logs' => ['present', 'array'],
         ], [
             'owner.user_id.required' => 'このバックアップファイルは現在の形式に対応していないため復元できません。最新の形式で再度バックアップしてください。',
-            'owner.user_id.integer' => 'バックアップファイルの所有者情報を確認できません。別のバックアップファイルを選択してください。',
+            'owner.user_id.integer' => 'バックアップファイルの所有者情報が不正です。最新のバックアップファイルを選択してください。',
         ]);
 
         $counts = $this->importService->import($request->user(), array_merge($validated, [
@@ -40,6 +41,7 @@ class ImportExportController extends Controller
             'items' => $request->input('items', []),
             'purchase_candidates' => $request->input('purchase_candidates', []),
             'outfits' => $request->input('outfits', []),
+            'wear_logs' => $request->input('wear_logs', []),
         ]));
 
         return response()->json([

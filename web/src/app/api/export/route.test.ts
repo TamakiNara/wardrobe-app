@@ -27,6 +27,7 @@ describe("GET /api/export", () => {
           items: [],
           purchase_candidates: [],
           outfits: [],
+          wear_logs: [],
         }),
         {
           status: 200,
@@ -66,6 +67,7 @@ describe("GET /api/export", () => {
       items: [],
       purchase_candidates: [],
       outfits: [],
+      wear_logs: [],
     });
   });
 });
