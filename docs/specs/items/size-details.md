@@ -1,0 +1,142 @@
+# 固定実寸
+
+## 概要
+
+- 固定実寸の正本は `web/src/lib/items/size-details.ts`
+- item / purchase candidate は同じ fixed size resolver を使う
+- 固定実寸は `category + shape` から決まる
+- 対応がない場合は、自由項目の実寸で補う
+- API / import-export は既存の固定実寸キーをそのまま使う
+
+## 固定実寸キー
+
+現在の固定実寸キーは次の 14 個です。
+
+- 肩幅
+- 身幅
+- 着丈
+- 袖丈
+- 袖幅
+- 袖口幅
+- 襟周り
+- ウエスト
+- ヒップ
+- 股上
+- 股下
+- 裾幅
+- わたり
+- 総丈
+
+## 現在の対応範囲
+
+### tops
+
+| shape | 固定実寸 |
+| --- | --- |
+| `tshirt` (`tshirt_cutsew`) | 肩幅 / 身幅 / 着丈 / 袖丈 |
+| `shirt` | 肩幅 / 身幅 / 着丈 / 袖丈 / 襟周り |
+| `blouse` | 肩幅 / 身幅 / 着丈 / 袖丈 |
+| `knit` | 肩幅 / 身幅 / 着丈 / 袖丈 |
+| `cardigan` | 肩幅 / 身幅 / 着丈 / 袖丈 |
+| `sweatshirt` | 肩幅 / 身幅 / 着丈 / 袖丈 |
+| `hoodie` | 肩幅 / 身幅 / 着丈 / 袖丈 |
+
+### pants
+
+| shape | 固定実寸 |
+| --- | --- |
+| `pants` | ウエスト / ヒップ / 股上 / 股下 / 裾幅 / わたり |
+| `straight` | ウエスト / ヒップ / 股上 / 股下 / 裾幅 / わたり |
+| `tapered` | ウエスト / ヒップ / 股上 / 股下 / 裾幅 / わたり |
+| `wide` | ウエスト / ヒップ / 股上 / 股下 / 裾幅 / わたり |
+| `culottes` | ウエスト / ヒップ / 股上 / 股下 / 裾幅 / わたり |
+| `jogger` | ウエスト / ヒップ / 股上 / 股下 / 裾幅 / わたり |
+| `skinny` | ウエスト / ヒップ / 股上 / 股下 / 裾幅 / わたり |
+| `gaucho` | ウエスト / ヒップ / 股上 / 股下 / 裾幅 / わたり |
+
+### skirts
+
+| shape | 固定実寸 |
+| --- | --- |
+| `skirt` | ウエスト / ヒップ / 総丈 |
+| `tight` | ウエスト / ヒップ / 総丈 |
+| `flare` | ウエスト / ヒップ / 総丈 |
+| `a_line` | ウエスト / ヒップ / 総丈 |
+| `mermaid` | ウエスト / ヒップ / 総丈 |
+| `pleated` | ウエスト / ヒップ / 総丈 |
+
+注記:
+
+- `pleated` は現行 master data には見当たらないが、旧データ互換のため resolver 側に残している
+
+### outerwear
+
+| shape | 固定実寸 |
+| --- | --- |
+| `jacket` | 肩幅 / 身幅 / 着丈 / 袖丈 / 袖幅 / 袖口幅 |
+| `blouson` | 肩幅 / 身幅 / 着丈 / 袖丈 / 袖幅 / 袖口幅 |
+| `down_padded` | 肩幅 / 身幅 / 着丈 / 袖丈 / 袖幅 / 袖口幅 |
+| `mountain_parka` | 肩幅 / 身幅 / 着丈 / 袖丈 / 袖幅 / 袖口幅 |
+| `tailored` | 肩幅 / 身幅 / 着丈 / 袖丈 / 袖幅 / 袖口幅 |
+| `no_collar` | 肩幅 / 身幅 / 着丈 / 袖丈 / 袖幅 / 袖口幅 |
+| `blazer` | 肩幅 / 身幅 / 着丈 / 袖丈 / 袖幅 / 袖口幅 |
+
+### onepiece_dress
+
+| shape | 固定実寸 |
+| --- | --- |
+| `onepiece` | 肩幅 / 身幅 / 袖丈 / 総丈 |
+| `dress` | 肩幅 / 身幅 / 袖丈 / 総丈 |
+
+## 固定実寸グループ未対応
+
+次のカテゴリは、現時点では固定実寸グループ未対応です。
+
+- `allinone`
+- `inner`
+- `legwear`
+- `shoes`
+- `bags`
+- `fashion_accessories`
+- `swimwear`
+- `kimono`
+
+これらは必要に応じて自由項目の実寸で補う。
+
+## 今回追加した対応
+
+今回の拡張で、既存 14 キーのまま次を固定実寸対応に追加した。
+
+- tops: `knit` / `cardigan` / `sweatshirt` / `hoodie`
+- outerwear: `tailored` / `no_collar` / `blazer`
+- pants: `jogger` / `skinny` / `gaucho`
+- skirts: `mermaid`
+- onepiece_dress: `dress`
+
+## 今回見送った範囲
+
+### outerwear coat 系
+
+対象:
+
+- `coat`
+- `trench`
+- `chester`
+- `stainless`
+
+理由:
+
+- 既存キーだけでも対応可能だが、`総丈` をどう扱うかなど coat 用グループを分ける判断が必要
+- jacket グループ流用だと少し雑になりやすいため、今回は見送り
+
+### bags / shoes
+
+理由:
+
+- bags は `幅 / 高さ / マチ / 持ち手` など、新しい固定実寸キー追加が必要になりやすい
+- shoes は `ヒール高 / アウトソール長 / 足幅 / 筒丈` など、新しい固定実寸キー追加が必要になりやすい
+
+## 関連 docs
+
+- item form 全体の構成: [form-structure.md](./form-structure.md)
+- purchase candidate の入力仕様: [../purchase-candidates.md](../purchase-candidates.md)
