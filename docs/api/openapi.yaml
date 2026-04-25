@@ -3808,6 +3808,13 @@ components:
         is_rain_ok:
           type: boolean
           example: true
+        sheerness:
+          type: string
+          nullable: true
+          enum:
+            - none
+            - slight
+            - high
         group_id:
           type: integer
           nullable: true
@@ -3969,6 +3976,13 @@ components:
           description: 構造化実寸。`structured` と `custom_fields` を持ち、item 化時も同じ意味で引き継ぐ。
         is_rain_ok:
           type: boolean
+        sheerness:
+          type: string
+          nullable: true
+          enum:
+            - none
+            - slight
+            - high
         colors:
           type: array
           items:
@@ -4359,6 +4373,13 @@ components:
         is_rain_ok:
           type: boolean
           example: true
+        sheerness:
+          type: string
+          nullable: true
+          enum:
+            - none
+            - slight
+            - high
         colors:
           type: array
           description: candidate 側の保存構造に関わらず、item 作成用の配列として正規化して返す。

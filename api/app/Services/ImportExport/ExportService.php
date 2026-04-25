@@ -134,6 +134,7 @@ class ExportService
                 is_array($candidate->spec) ? $candidate->spec : null,
             ),
             'is_rain_ok' => $candidate->is_rain_ok,
+            'sheerness' => $candidate->sheerness,
             'converted_item_id' => $candidate->converted_item_id,
             'converted_at' => $candidate->converted_at?->toISOString(),
             'colors' => $candidate->colors

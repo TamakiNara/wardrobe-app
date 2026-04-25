@@ -7,6 +7,7 @@ import PurchaseCandidateItemDraftAction from "@/components/purchase-candidates/p
 import { EntityDetailHeader } from "@/components/shared/entity-detail-header";
 import { resolvePurchaseCandidateItemClassification } from "@/lib/items/classification";
 import { groupItemMaterialsForDisplay } from "@/lib/items/materials";
+import { ITEM_SHEERNESS_LABELS } from "@/lib/items/metadata";
 import {
   findBottomsLengthLabel,
   findLegwearCoverageLabel,
@@ -547,7 +548,7 @@ export default async function PurchaseCandidateDetailPage({
 
         <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-gray-900">
-            色 / 利用条件・状態
+            色 / 利用条件・特性
           </h2>
           <div className="mt-4 grid gap-4 md:grid-cols-2">
             <div>
@@ -587,6 +588,14 @@ export default async function PurchaseCandidateDetailPage({
                 {candidate.is_rain_ok ? "対応" : "未対応"}
               </p>
             </div>
+            {candidate.sheerness ? (
+              <div>
+                <p className="text-sm font-medium text-gray-700">透け感</p>
+                <p className="mt-2 text-sm text-gray-600">
+                  {ITEM_SHEERNESS_LABELS[candidate.sheerness]}
+                </p>
+              </div>
+            ) : null}
           </div>
         </section>
 

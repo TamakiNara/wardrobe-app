@@ -1,5 +1,6 @@
 import type {
   ItemMaterialRecord,
+  ItemSheerness,
   ItemSizeDetails,
   ItemSpec,
 } from "@/types/items";
@@ -94,6 +95,7 @@ export type PurchaseCandidateRecord = {
   size_details: ItemSizeDetails | null;
   spec: ItemSpec | null;
   is_rain_ok: boolean;
+  sheerness?: ItemSheerness | null;
   group_id: number | null;
   group_order: number | null;
   group_candidates: PurchaseCandidateGroupCandidate[];
@@ -160,6 +162,7 @@ export type PurchaseCandidateUpsertPayload = {
   size_details: ItemSizeDetails | null;
   spec: ItemSpec | null;
   is_rain_ok: boolean;
+  sheerness?: ItemSheerness | null;
   colors: PurchaseCandidateColor[];
   seasons: string[];
   tpos: string[];
@@ -217,6 +220,7 @@ export type PurchaseCandidateItemDraftPayload = {
   size_details: ItemSizeDetails | null;
   spec: ItemSpec | null;
   is_rain_ok: boolean;
+  sheerness?: ItemSheerness | null;
   colors: PurchaseCandidateColor[];
   seasons: string[];
   tpos: string[];

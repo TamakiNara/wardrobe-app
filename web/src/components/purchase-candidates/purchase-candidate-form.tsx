@@ -76,6 +76,7 @@ import {
   validateItemMaterials,
   type EditableItemMaterial,
 } from "@/lib/items/materials";
+import { ITEM_SHEERNESS_LABELS } from "@/lib/items/metadata";
 import {
   buildItemSizeDetailsPayload,
   buildSizeDetailDuplicateWarnings,
@@ -104,7 +105,11 @@ import type {
   PurchaseCandidateStatus,
   PurchaseCandidateUpsertPayload,
 } from "@/types/purchase-candidates";
-import type { ItemSpec, StructuredSizeFieldName } from "@/types/items";
+import type {
+  ItemSheerness,
+  ItemSpec,
+  StructuredSizeFieldName,
+} from "@/types/items";
 
 type PurchaseCandidateFormProps = {
   mode: "create" | "edit";
@@ -380,6 +385,7 @@ export default function PurchaseCandidateForm({
     LegwearCoverageType | ""
   >("");
   const [isRainOk, setIsRainOk] = useState(false);
+  const [sheerness, setSheerness] = useState<ItemSheerness | "">("");
   const [materialRows, setMaterialRows] = useState<EditableItemMaterial[]>(() =>
     buildEditableItemMaterials(),
   );
@@ -711,6 +717,7 @@ export default function PurchaseCandidateForm({
             })) ?? [],
           );
           setIsRainOk(candidate.is_rain_ok);
+          setSheerness(candidate.sheerness ?? "");
           const main = candidate.colors.find((color) => color.role === "main");
           const sub = candidate.colors.find((color) => color.role === "sub");
           setMainColorCustomLabel(main?.custom_label ?? "");
@@ -848,6 +855,7 @@ export default function PurchaseCandidateForm({
       })) ?? [],
     );
     setIsRainOk(payload.is_rain_ok);
+    setSheerness(payload.sheerness ?? "");
 
     if (main?.mode === "custom") {
       setUseCustomMainColor(true);
@@ -1124,6 +1132,7 @@ export default function PurchaseCandidateForm({
         customSizeFields,
       ),
       is_rain_ok: isRainOk,
+      sheerness: sheerness || null,
       colors,
       seasons: selectedSeasons,
       tpos: selectedTpos,
@@ -2161,7 +2170,7 @@ export default function PurchaseCandidateForm({
       </ItemFormSection>
 
       <ItemFormSection
-        title="利用条件・状態"
+        title="利用条件・特性"
         className="lg:col-span-1 lg:order-5"
       >
         <div>
@@ -2228,6 +2237,31 @@ export default function PurchaseCandidateForm({
             />
             雨対応
           </label>
+        </div>
+
+        <div>
+          <label
+            htmlFor="sheerness"
+            className="mb-1 block text-sm font-medium text-gray-700"
+          >
+            透け感
+          </label>
+          <select
+            id="sheerness"
+            value={sheerness}
+            onChange={(event) =>
+              setSheerness(event.target.value as ItemSheerness | "")
+            }
+            disabled={isPurchasedLocked}
+            className={getFormControlClassName()}
+          >
+            <option value=""></option>
+            {Object.entries(ITEM_SHEERNESS_LABELS).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
         </div>
       </ItemFormSection>
 

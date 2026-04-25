@@ -56,6 +56,7 @@ class PurchaseCandidateService
                     'size_details' => $validated['size_details'] ?? null,
                     'spec' => $this->normalizeSpec($validated),
                     'is_rain_ok' => (bool) ($validated['is_rain_ok'] ?? false),
+                    'sheerness' => $validated['sheerness'] ?? null,
                 ]);
 
                 $this->syncAttributes($candidate, $validated);
@@ -123,6 +124,7 @@ class PurchaseCandidateService
                 'size_details' => $validated['size_details'] ?? null,
                 'spec' => $this->normalizeSpec($validated),
                 'is_rain_ok' => (bool) ($validated['is_rain_ok'] ?? false),
+                'sheerness' => $validated['sheerness'] ?? null,
             ]);
 
             $candidate->colors()->delete();

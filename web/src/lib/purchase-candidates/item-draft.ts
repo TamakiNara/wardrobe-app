@@ -4,6 +4,7 @@ import type {
 } from "@/types/purchase-candidates";
 import type {
   ItemMaterialRecord,
+  ItemSheerness,
   ItemSizeDetails,
   ItemSpec,
 } from "@/types/items";
@@ -27,6 +28,7 @@ export type PurchaseCandidateItemDraft = {
   purchasedAt: string | null;
   sizeDetails: ItemSizeDetails | null;
   isRainOk: boolean;
+  sheerness: ItemSheerness | null;
   colors: PurchaseCandidateItemDraftResponse["item_draft"]["colors"];
   seasons: string[];
   tpos: string[];
@@ -83,6 +85,7 @@ export function mapPurchaseCandidateItemDraft(
     purchasedAt: payload.item_draft.purchased_at,
     sizeDetails: payload.item_draft.size_details,
     isRainOk: payload.item_draft.is_rain_ok,
+    sheerness: payload.item_draft.sheerness ?? null,
     colors: payload.item_draft.colors,
     seasons: payload.item_draft.seasons,
     tpos: payload.item_draft.tpos,

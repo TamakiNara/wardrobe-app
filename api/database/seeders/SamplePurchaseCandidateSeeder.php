@@ -52,6 +52,7 @@ class SamplePurchaseCandidateSeeder extends Seeder
                     ],
                 ],
                 'is_rain_ok' => false,
+                'sheerness' => 'slight',
                 'colors' => [
                     ['role' => 'main', 'mode' => 'preset', 'value' => 'white', 'hex' => '#ECECEC', 'label' => 'ホワイト'],
                 ],
@@ -80,6 +81,7 @@ class SamplePurchaseCandidateSeeder extends Seeder
                     ],
                 ],
                 'is_rain_ok' => true,
+                'sheerness' => 'high',
                 'colors' => [
                     ['role' => 'main', 'mode' => 'preset', 'value' => 'black', 'hex' => '#262626', 'label' => 'ブラック'],
                 ],
@@ -522,6 +524,7 @@ class SamplePurchaseCandidateSeeder extends Seeder
                     'size_note' => $definition['size_note'] ?? null,
                     'size_details' => $definition['size_details'] ?? null,
                     'is_rain_ok' => $definition['is_rain_ok'] ?? false,
+                    'sheerness' => $definition['sheerness'] ?? null,
                 ],
             );
 

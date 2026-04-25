@@ -283,7 +283,7 @@ describe("購入検討フォーム", () => {
       "分類",
       "購入情報",
       "色",
-      "利用条件・状態",
+      "利用条件・特性",
       "サイズ・実寸",
       "素材・混率",
       "補足情報",
@@ -594,7 +594,7 @@ describe("購入検討フォーム", () => {
     ).not.toContain("必須");
   });
 
-  it("雨対応を利用条件・状態へ移動して表示する", async () => {
+  it("雨対応を利用条件・特性へ移動して表示する", async () => {
     await renderForm();
 
     const sectionCards = Array.from(
@@ -604,7 +604,7 @@ describe("購入検討フォーム", () => {
     );
     const conditionsSection = sectionCards.find(
       (section) =>
-        section.querySelector("h2")?.textContent === "利用条件・状態",
+        section.querySelector("h2")?.textContent === "利用条件・特性",
     );
     const sizeSection = container
       .querySelector("#size_gender")
@@ -723,6 +723,9 @@ describe("購入検討フォーム", () => {
     const customMainCheckbox = container.querySelector(
       'input[aria-label="メインカラーをカラーコードで入力"]',
     ) as HTMLInputElement;
+    const sheernessSelect = container.querySelector(
+      "#sheerness",
+    ) as HTMLSelectElement;
     const form = container.querySelector("form") as HTMLFormElement;
 
     expect(saveBrandCheckbox).not.toBeUndefined();
@@ -731,6 +734,7 @@ describe("購入検討フォーム", () => {
       setNativeValue(nameInput, "ブランド候補追加テスト");
       await setCategorySelection("outerwear", "outerwear_coat");
       setNativeValue(brandNameInput, "UNIQLO");
+      setNativeValue(sheernessSelect, "slight");
       saveBrandCheckbox!.click();
       customMainCheckbox.click();
     });
@@ -753,6 +757,7 @@ describe("購入検討フォーム", () => {
     const payload = JSON.parse(requestInit.body as string);
 
     expect(payload.save_brand_as_candidate).toBe(true);
+    expect(payload.sheerness).toBe("slight");
   });
 
   it("プリセット色からカスタムカラーへ切り替えると直前の色を引き継ぐ", async () => {

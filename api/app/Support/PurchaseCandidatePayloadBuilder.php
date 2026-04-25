@@ -75,6 +75,7 @@ class PurchaseCandidatePayloadBuilder
             'size_details' => $candidate->size_details,
             'spec' => self::buildScopedSpec($candidate),
             'is_rain_ok' => $candidate->is_rain_ok,
+            'sheerness' => $candidate->sheerness,
             'group_id' => $candidate->group_id,
             'group_order' => $candidate->group_order,
             'group_candidates' => self::buildGroupCandidates($candidate),
@@ -145,6 +146,7 @@ class PurchaseCandidatePayloadBuilder
             'size_details' => $candidate->size_details,
             'spec' => self::buildScopedSpec($candidate),
             'is_rain_ok' => $candidate->is_rain_ok,
+            'sheerness' => $candidate->sheerness,
             'colors' => $candidate->colors
                 ->sortBy('sort_order')
                 ->values()
@@ -198,6 +200,7 @@ class PurchaseCandidatePayloadBuilder
             'size_details' => $candidate->size_details,
             'spec' => self::buildScopedSpec($candidate),
             'is_rain_ok' => $candidate->is_rain_ok,
+            'sheerness' => $candidate->sheerness,
             'colors' => $candidate->colors
                 ->sortBy('sort_order')
                 ->values()

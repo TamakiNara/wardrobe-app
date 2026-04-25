@@ -34,6 +34,7 @@ class PurchaseCandidate extends Model
         'size_details',
         'spec',
         'is_rain_ok',
+        'sheerness',
         'converted_item_id',
         'converted_at',
     ];
@@ -48,6 +49,7 @@ class PurchaseCandidate extends Model
         'size_details' => 'array',
         'spec' => 'array',
         'is_rain_ok' => 'boolean',
+        'sheerness' => 'string',
         'converted_at' => 'datetime',
     ];
 

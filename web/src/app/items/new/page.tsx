@@ -516,6 +516,7 @@ export default function NewItemPage() {
       })),
     );
     setIsRainOk(draft.isRainOk);
+    setSheerness(draft.sheerness ?? "");
     setCategory(draft.category as ItemCategory);
     setSubcategory(
       resolveCurrentItemSubcategoryValue(

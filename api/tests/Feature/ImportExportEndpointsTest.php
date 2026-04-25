@@ -183,6 +183,7 @@ class ImportExportEndpointsTest extends TestCase
                 ],
             ],
             'is_rain_ok' => false,
+            'sheerness' => 'slight',
             'converted_item_id' => $item->id,
             'converted_at' => '2026-04-20 10:00:00',
         ]);
@@ -278,6 +279,7 @@ class ImportExportEndpointsTest extends TestCase
             ->assertJsonCount(1, 'wear_logs')
             ->assertJsonPath('items.0.name', '白シャツ')
             ->assertJsonPath('items.0.sheerness', 'slight')
+            ->assertJsonPath('purchase_candidates.0.sheerness', 'slight')
             ->assertJsonPath('purchase_candidates.0.name', '購入候補シャツ')
             ->assertJsonPath('outfits.0.name', '通勤コーデ')
             ->assertJsonPath('items.0.colors.0.custom_label', '00 WHITE')
@@ -378,6 +380,7 @@ class ImportExportEndpointsTest extends TestCase
         $this->assertSame('slight', $importedItem->sheerness);
         $this->assertSame('long', data_get($importedItem->spec, 'tops.sleeve'));
         $this->assertSame('00 WHITE', data_get($importedItem->colors, '0.custom_label'));
+        $this->assertSame('slight', $importedCandidate->sheerness);
         $this->assertSame('麻', $importedCandidate->materials->first()?->material_name);
         $this->assertSame($importedItem->id, $importedCandidate->converted_item_id);
         $this->assertSame($importedItem->id, $importedOutfit->outfitItems->first()?->item_id);
@@ -408,6 +411,7 @@ class ImportExportEndpointsTest extends TestCase
         ])->assertOk()
             ->assertJsonPath('purchaseCandidate.name', '購入候補シャツ')
             ->assertJsonPath('purchaseCandidate.images.0.original_filename', 'source-candidate.png')
+            ->assertJsonPath('purchaseCandidate.sheerness', 'slight')
             ->assertJsonPath('purchaseCandidate.spec.tops.sleeve', 'long');
 
         $this->getJson("/api/outfits/{$importedOutfit->id}", [

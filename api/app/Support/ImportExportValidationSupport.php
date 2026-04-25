@@ -117,6 +117,7 @@ class ImportExportValidationSupport
             'spec.legwear' => ['nullable', 'array:coverage_type'],
             'spec.legwear.coverage_type' => ['nullable', 'string', 'in:foot_cover,ankle_sneaker,crew,three_quarter,high_socks,loose_socks,thigh_high_socks,stockings,tights,one_tenth,three_tenths,five_tenths,seven_tenths,seven_eighths,ten_tenths,twelve_tenths'],
             'is_rain_ok' => ['nullable', 'boolean'],
+            'sheerness' => ['nullable', 'string', 'in:none,slight,high'],
             'colors' => ['required', 'array', 'min:1'],
             'colors.*.role' => ['required', 'string', 'in:main,sub'],
             'colors.*.mode' => ['required', 'string', 'in:preset,custom'],

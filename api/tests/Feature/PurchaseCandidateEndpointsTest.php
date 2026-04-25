@@ -111,6 +111,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
                 ],
             ],
             'is_rain_ok' => true,
+            'sheerness' => null,
         ], $overrides));
 
         $candidate->colors()->create([
@@ -439,6 +440,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
             ->assertJsonPath('purchaseCandidate.id', $candidate->id)
             ->assertJsonPath('purchaseCandidate.category_id', 'outerwear_coat')
             ->assertJsonPath('purchaseCandidate.sale_price', 12800)
+            ->assertJsonPath('purchaseCandidate.sheerness', null)
             ->assertJsonPath('purchaseCandidate.colors.0.value', 'navy')
             ->assertJsonPath('purchaseCandidate.seasons.0', '春')
             ->assertJsonPath('purchaseCandidate.tpos.0', '休日')
@@ -537,6 +539,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
             'wanted_reason' => '仕事用を補充したい',
             'size_gender' => 'women',
             'size_label' => 'S',
+            'sheerness' => 'slight',
             'size_note' => '肩幅確認',
             'size_details' => [
                 'structured' => [
@@ -579,6 +582,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
             ->assertJsonPath('purchaseCandidate.sale_price', 8800)
             ->assertJsonPath('purchaseCandidate.sale_ends_at', '2026-04-30T18:00:00.000000Z')
             ->assertJsonPath('purchaseCandidate.discount_ends_at', '2026-03-31T18:00:00.000000Z')
+            ->assertJsonPath('purchaseCandidate.sheerness', 'slight')
             ->assertJsonPath('purchaseCandidate.size_details.structured.shoulder_width', 41.5)
             ->assertJsonPath('purchaseCandidate.size_details.custom_fields.0.label', '裄丈')
             ->assertJsonPath('purchaseCandidate.spec.bottoms.length_type', 'ankle')
@@ -592,6 +596,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
             'name' => '白パンツ候補',
             'category_id' => 'pants_pants',
             'sale_price' => 8800,
+            'sheerness' => 'slight',
         ]);
         $this->assertDatabaseHas('purchase_candidate_colors', [
             'purchase_candidate_id' => $response->json('purchaseCandidate.id'),
@@ -878,6 +883,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
             'size_gender' => 'unisex',
             'size_label' => 'L',
             'size_note' => null,
+            'sheerness' => 'high',
             'size_details' => [
                 'structured' => [
                     'body_length' => 68,
@@ -907,6 +913,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
             ->assertJsonPath('purchaseCandidate.sale_price', 9800)
             ->assertJsonPath('purchaseCandidate.sale_ends_at', '2026-04-30T12:00:00.000000Z')
             ->assertJsonPath('purchaseCandidate.discount_ends_at', '2026-04-15T12:00:00.000000Z')
+            ->assertJsonPath('purchaseCandidate.sheerness', 'high')
             ->assertJsonPath('purchaseCandidate.size_details.structured.body_length', 68)
             ->assertJsonPath('purchaseCandidate.colors.0.value', 'gray')
             ->assertJsonPath('purchaseCandidate.colors.0.custom_label', '12 GRAY');
@@ -916,6 +923,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
             'status' => 'on_hold',
             'category_id' => 'tops_knit_sweater',
             'sale_price' => 9800,
+            'sheerness' => 'high',
         ]);
         $this->assertDatabaseHas('purchase_candidate_colors', [
             'purchase_candidate_id' => $candidate->id,
@@ -2229,6 +2237,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
         $candidate = $this->createCandidate($user, [
             'category_id' => 'outerwear_coat',
             'name' => 'トレンチ候補',
+            'sheerness' => 'slight',
         ]);
         $candidate->colors()->where('role', 'main')->update(['custom_label' => '31 BEIGE']);
 
@@ -2243,6 +2252,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
         $draftResponse->assertOk()
             ->assertJsonPath('item_draft.category', 'outerwear')
             ->assertJsonPath('item_draft.shape', 'coat')
+            ->assertJsonPath('item_draft.sheerness', 'slight')
             ->assertJsonPath('item_draft.colors.0.custom_label', '31 BEIGE');
 
         $payload = $draftResponse->json('item_draft');
@@ -2259,6 +2269,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
             ->assertJsonPath('item.shape', 'coat')
             ->assertJsonPath('item.brand_name', $candidate->brand_name)
             ->assertJsonPath('item.memo', $candidate->memo)
+            ->assertJsonPath('item.sheerness', 'slight')
             ->assertJsonPath('item.colors.0.custom_label', '31 BEIGE');
 
         $this->assertDatabaseHas('items', [

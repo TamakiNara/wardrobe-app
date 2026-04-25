@@ -628,6 +628,7 @@ function createValidPurchaseCandidateItemDraft() {
       },
       spec: null,
       is_rain_ok: true,
+      sheerness: "slight",
       colors: [
         {
           role: "main",
@@ -1020,6 +1021,7 @@ describe("新規登録画面", () => {
             },
           },
           is_rain_ok: true,
+          sheerness: "slight",
           colors: [],
           seasons: ["春"],
           tpos: ["休日"],
@@ -1111,7 +1113,7 @@ describe("新規登録画面", () => {
     expect(topsSleeveSelect?.value).toBe("short");
     expect(topsNeckSelect?.value).toBe("boat");
     expect(careStatusSelect?.value).toBe("");
-    expect(sheernessSelect?.value).toBe("");
+    expect(sheernessSelect?.value).toBe("slight");
     const materialPartInputs = Array.from(
       container.querySelectorAll('input[list="item-material-part-options"]'),
     ) as HTMLInputElement[];

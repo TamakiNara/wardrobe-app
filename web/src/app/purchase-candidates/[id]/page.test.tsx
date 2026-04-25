@@ -113,6 +113,7 @@ describe("購入検討詳細画面", () => {
           wanted_reason: "理由",
           size_gender: "women",
           size_label: "M",
+          sheerness: "slight",
           size_note: "厚手対応",
           size_details: {
             structured: {
@@ -191,7 +192,7 @@ describe("購入検討詳細画面", () => {
       "基本情報",
       "分類",
       "購入情報",
-      "色 / 利用条件・状態",
+      "色 / 利用条件・特性",
       "サイズ・実寸",
       "素材・混率",
       "補足情報",
@@ -235,6 +236,8 @@ describe("購入検討詳細画面", () => {
     expect(markup).toContain("綿 80%、ポリエステル 20%");
     expect(markup).toContain("実寸");
     expect(markup).toContain("雨対応");
+    expect(markup).toContain("透け感");
+    expect(markup).toContain("ややあり");
     expect(markup).toContain("総丈");
     expect(markup).toContain("92cm");
     expect(markup).not.toContain("仕様・属性");

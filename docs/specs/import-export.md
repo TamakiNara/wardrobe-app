@@ -49,7 +49,7 @@ Web UI:
 }
 ```
 
-- `purchase_candidates` では `release_date` / `sale_ends_at` / `discount_ends_at` も export / import 対象に含める
+- `purchase_candidates` では `release_date` / `sale_ends_at` / `discount_ends_at` / `sheerness` も export / import 対象に含める
 - `items.colors[*].custom_label` も export / import 対象に含める
 - `items.sheerness` も export / import 対象に含める
 
