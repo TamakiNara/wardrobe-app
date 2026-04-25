@@ -462,8 +462,11 @@ export default function ItemsList({
   return (
     <div className="space-y-6">
       <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-6">
-          <div className="xl:col-span-2">
+        <div
+          className="grid gap-4 md:grid-cols-2 xl:grid-cols-4"
+          data-testid="item-list-filter-grid"
+        >
+          <div>
             <FilterFieldHeader
               label="キーワード"
               isActive={keyword !== ""}
@@ -602,7 +605,7 @@ export default function ItemsList({
 
           <div>
             <FilterFieldHeader
-              label="sort"
+              label="並び順"
               isActive={sort !== DEFAULT_SORT}
               onClear={() => updateQuery({ sort: DEFAULT_SORT })}
             />
@@ -620,9 +623,23 @@ export default function ItemsList({
               ))}
             </select>
           </div>
+
+          <div className="flex items-end xl:justify-end">
+            <button
+              type="button"
+              onClick={() => router.replace(pathname, { scroll: false })}
+              className="inline-flex h-10 items-center text-sm font-medium text-blue-600 hover:underline disabled:text-gray-400 disabled:no-underline"
+              disabled={!hasActiveFilters}
+            >
+              条件をクリア
+            </button>
+          </div>
         </div>
 
-        <div className="mt-4 flex items-center justify-between gap-4">
+        <div
+          className="mt-4 flex flex-col gap-4 border-t border-gray-100 pt-4 md:flex-row md:items-center md:justify-between"
+          data-testid="item-list-display-controls"
+        >
           <p className="text-sm text-gray-600">
             {viewMode === "closet"
               ? `表示中: ${closetSourceItems.length}件`
@@ -701,15 +718,6 @@ export default function ItemsList({
                 <span>クローゼット</span>
               </button>
             </div>
-
-            <button
-              type="button"
-              onClick={() => router.replace(pathname, { scroll: false })}
-              className="text-sm font-medium text-blue-600 hover:underline disabled:text-gray-400 disabled:no-underline"
-              disabled={!hasActiveFilters}
-            >
-              条件をクリア
-            </button>
           </div>
         </div>
       </section>

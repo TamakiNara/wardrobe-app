@@ -254,6 +254,40 @@ describe("ItemsList", () => {
     );
   });
 
+  it("PC幅では4列のフィルタグリッドと別行の表示操作エリアを表示する", async () => {
+    fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
+    fetchCategoryVisibilitySettingsMock.mockResolvedValue({
+      visibleCategoryIds: ["tops_tshirt_cutsew", "tops_shirt_blouse"],
+    });
+
+    const { default: ItemsList } = await import("./items-list");
+
+    await act(async () => {
+      root.render(React.createElement(ItemsList, defaultListProps));
+      await waitForEffects();
+    });
+
+    const filterGrid = container.querySelector<HTMLElement>(
+      '[data-testid="item-list-filter-grid"]',
+    );
+    const displayControls = container.querySelector<HTMLElement>(
+      '[data-testid="item-list-display-controls"]',
+    );
+    const clearButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent === "条件をクリア",
+    );
+
+    expect(filterGrid?.className).toContain("xl:grid-cols-4");
+    expect(container.textContent).toContain("並び順");
+    expect(container.textContent).not.toContain("sort");
+    expect(clearButton).toBeTruthy();
+    expect(filterGrid?.contains(clearButton ?? null)).toBe(true);
+    expect(displayControls).toBeTruthy();
+    expect(displayControls?.textContent).toContain("表示件数:");
+    expect(displayControls?.textContent).toContain("一覧");
+    expect(displayControls?.textContent).toContain("クローゼット");
+  });
+
   it("初期カテゴリ候補が渡されている場合は mount 後の追加 fetch を行わない", async () => {
     const { default: ItemsList } = await import("./items-list");
 
