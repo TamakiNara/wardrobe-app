@@ -5,7 +5,11 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import WearLogModalColorThumbnail from "@/components/wear-logs/wear-log-modal-color-thumbnail";
 import { ApiClientError, apiFetch } from "@/lib/api/client";
-import { getWearLogStatusLabel } from "@/lib/wear-logs/labels";
+import {
+  getWearLogStatusBadgeClassName,
+  getWearLogStatusDotClassName,
+  getWearLogStatusLabel,
+} from "@/lib/wear-logs/labels";
 import type { SkinTonePreset } from "@/types/settings";
 import type {
   WearLogByDateResponse,
@@ -19,9 +23,27 @@ type WearLogCalendarProps = {
   skinTonePreset?: SkinTonePreset;
 };
 
+type DayType = "weekday" | "saturday" | "sunday";
+
 const WEEKDAY_LABELS = {
-  sunday: ["日", "月", "火", "水", "木", "金", "土"],
-  monday: ["月", "火", "水", "木", "金", "土", "日"],
+  sunday: [
+    { label: "日", dayType: "sunday" as const },
+    { label: "月", dayType: "weekday" as const },
+    { label: "火", dayType: "weekday" as const },
+    { label: "水", dayType: "weekday" as const },
+    { label: "木", dayType: "weekday" as const },
+    { label: "金", dayType: "weekday" as const },
+    { label: "土", dayType: "saturday" as const },
+  ],
+  monday: [
+    { label: "月", dayType: "weekday" as const },
+    { label: "火", dayType: "weekday" as const },
+    { label: "水", dayType: "weekday" as const },
+    { label: "木", dayType: "weekday" as const },
+    { label: "金", dayType: "weekday" as const },
+    { label: "土", dayType: "saturday" as const },
+    { label: "日", dayType: "sunday" as const },
+  ],
 } as const;
 
 function parseMonth(month: string): { year: number; monthIndex: number } {
@@ -31,6 +53,77 @@ function parseMonth(month: string): { year: number; monthIndex: number } {
     year,
     monthIndex: monthNumber - 1,
   };
+}
+
+function parseDateString(date: string): {
+  year: number;
+  monthIndex: number;
+  day: number;
+} {
+  const [year, monthNumber, day] = date
+    .split("-")
+    .map((value) => Number(value));
+
+  return {
+    year,
+    monthIndex: monthNumber - 1,
+    day,
+  };
+}
+
+function getDayType(date: string): DayType {
+  const { year, monthIndex, day } = parseDateString(date);
+  const weekDay = new Date(year, monthIndex, day).getDay();
+
+  if (weekDay === 0) {
+    return "sunday";
+  }
+
+  if (weekDay === 6) {
+    return "saturday";
+  }
+
+  return "weekday";
+}
+
+function getDayTypeTextClassName(dayType: DayType): string {
+  switch (dayType) {
+    case "sunday":
+      return "text-rose-600";
+    case "saturday":
+      return "text-sky-600";
+    default:
+      return "text-gray-500";
+  }
+}
+
+function getDayTypeCellClassName(dayType: DayType): string {
+  switch (dayType) {
+    case "sunday":
+      return "border-rose-200 bg-rose-50/40 hover:border-rose-300 hover:bg-rose-50/60";
+    case "saturday":
+      return "border-sky-200 bg-sky-50/40 hover:border-sky-300 hover:bg-sky-50/60";
+    default:
+      return "border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-50/30";
+  }
+}
+
+function getDayTypeNumberClassName(
+  dayType: DayType,
+  isCurrentMonth: boolean,
+): string {
+  if (!isCurrentMonth) {
+    return "text-gray-400";
+  }
+
+  switch (dayType) {
+    case "sunday":
+      return "text-rose-700";
+    case "saturday":
+      return "text-sky-700";
+    default:
+      return "text-gray-900";
+  }
 }
 
 function formatMonthLabel(month: string): string {
@@ -167,12 +260,12 @@ export default function WearLogCalendar({
         }
 
         setDetailsError(
-          error.data?.message ?? "日別詳細の取得に失敗しました。",
+          error.data?.message ?? "日付詳細の取得に失敗しました。",
         );
         return;
       }
 
-      setDetailsError("日別詳細の取得に失敗しました。");
+      setDetailsError("日付詳細の取得に失敗しました。");
     } finally {
       setLoadingDetails(false);
     }
@@ -224,10 +317,33 @@ export default function WearLogCalendar({
           </div>
         </div>
 
+        <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-gray-600">
+          <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5">
+            <span className="h-2.5 w-2.5 rounded-full border border-blue-300 bg-white" />
+            <span>予定</span>
+          </div>
+          <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5">
+            <span className="h-2.5 w-2.5 rounded-full bg-blue-600" />
+            <span>着用済み</span>
+          </div>
+          <div className="inline-flex items-center gap-2 rounded-full border border-sky-200 bg-sky-50 px-3 py-1.5 text-sky-700">
+            <span className="text-sm font-semibold">土</span>
+            <span>土曜</span>
+          </div>
+          <div className="inline-flex items-center gap-2 rounded-full border border-rose-200 bg-rose-50 px-3 py-1.5 text-rose-700">
+            <span className="text-sm font-semibold">日</span>
+            <span>日曜</span>
+          </div>
+        </div>
+
         <div className="mx-auto mt-5 w-full max-w-[688px]">
-          <div className="grid grid-cols-7 gap-2 text-center text-xs font-medium text-gray-500">
-            {WEEKDAY_LABELS[weekStart].map((label) => (
-              <div key={label} className="py-2">
+          <div className="grid grid-cols-7 gap-2 text-center text-xs font-medium">
+            {WEEKDAY_LABELS[weekStart].map(({ label, dayType }) => (
+              <div
+                key={label}
+                className={`py-2 ${getDayTypeTextClassName(dayType)}`}
+                data-day-type={dayType}
+              >
                 {label}
               </div>
             ))}
@@ -239,15 +355,18 @@ export default function WearLogCalendar({
               const isSelected = selectedDate === cell.date;
               const isToday = cell.date === today;
               const isPastDate = cell.date < today;
+              const dayType = getDayType(cell.date);
               const cellClassName = [
                 "aspect-square w-full rounded-lg border p-1.5 text-left transition",
                 isSelected
-                  ? "border-blue-500 bg-blue-50/60 ring-2 ring-blue-100"
+                  ? "border-blue-500 bg-blue-50/70 ring-2 ring-blue-100"
                   : isPastDate
-                    ? "border-gray-200 bg-gray-100 hover:border-blue-300 hover:bg-gray-100"
-                    : "border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-50/30",
+                    ? "bg-gray-100 hover:border-gray-300"
+                    : getDayTypeCellClassName(dayType),
                 !cell.isCurrentMonth ? "text-gray-300" : "",
-                isPastDate && !isSelected ? "text-gray-600" : "",
+                isPastDate && !isSelected
+                  ? "border-gray-200 text-gray-600"
+                  : "",
               ]
                 .filter(Boolean)
                 .join(" ");
@@ -257,18 +376,17 @@ export default function WearLogCalendar({
                   ? "bg-blue-600 text-white"
                   : isToday
                     ? "border border-blue-200 bg-blue-50 text-blue-700"
-                    : cell.isCurrentMonth
-                      ? "text-gray-900"
-                      : "text-gray-400",
+                    : getDayTypeNumberClassName(dayType, cell.isCurrentMonth),
               ].join(" ");
 
               return (
                 <button
                   key={cell.key}
                   type="button"
-                  onClick={() => openDayDetails(cell.date!)}
+                  onClick={() => openDayDetails(cell.date)}
                   className={cellClassName}
                   data-date={cell.date}
+                  data-day-type={dayType}
                   data-current-month={cell.isCurrentMonth ? "true" : "false"}
                   data-selected={isSelected ? "true" : "false"}
                   data-today={isToday ? "true" : "false"}
@@ -284,11 +402,8 @@ export default function WearLogCalendar({
                         {summary.dots.map((dot, index) => (
                           <span
                             key={`${cell.date}-${dot.status}-${index}`}
-                            className={`h-2.5 w-2.5 rounded-full ${
-                              dot.status === "worn"
-                                ? "bg-blue-600"
-                                : "bg-blue-300"
-                            }`}
+                            className={`h-2.5 w-2.5 rounded-full ${getWearLogStatusDotClassName(dot.status)}`}
+                            data-status={dot.status}
                           />
                         ))}
                         {summary.overflowCount > 0 && (
@@ -312,7 +427,7 @@ export default function WearLogCalendar({
             <div className="flex items-start justify-between gap-4 border-b border-gray-200 px-5 py-4">
               <div>
                 <h3 className="text-lg font-semibold text-gray-900">
-                  日別詳細
+                  日付詳細
                 </h3>
                 <p className="mt-1 text-sm text-gray-600">{selectedDate}</p>
               </div>
@@ -351,10 +466,16 @@ export default function WearLogCalendar({
                           skinTonePreset={skinTonePreset}
                         />
                         <div className="min-w-0">
-                          <p className="text-sm font-medium text-gray-900">
-                            {wearLog.display_order}件目 /{" "}
-                            {getWearLogStatusLabel(wearLog.status)}
-                          </p>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span
+                              className={`rounded-full border px-2.5 py-1 text-xs font-medium ${getWearLogStatusBadgeClassName(wearLog.status)}`}
+                            >
+                              {getWearLogStatusLabel(wearLog.status)}
+                            </span>
+                            <p className="text-sm font-medium text-gray-900">
+                              {wearLog.display_order}件目
+                            </p>
+                          </div>
                           <p className="mt-1 text-sm text-gray-600">
                             {wearLog.source_outfit_name ??
                               `アイテム ${wearLog.items_count} 件`}
@@ -382,7 +503,7 @@ export default function WearLogCalendar({
                     {wearLog.status === "planned" &&
                       wearLog.event_date < today && (
                         <p className="mt-2 text-xs text-gray-500">
-                          過去の未完了予定です。
+                          過去日の未着用予定です。
                         </p>
                       )}
                   </article>
@@ -393,7 +514,7 @@ export default function WearLogCalendar({
                     この日の着用履歴はまだありません
                   </p>
                   <p className="text-sm text-gray-600">
-                    選択した日付で新しく着用履歴を登録できます。
+                    必要に応じて日付指定で新しく着用履歴を追加できます。
                   </p>
                   <Link
                     href={buildCreateHref(
@@ -402,7 +523,7 @@ export default function WearLogCalendar({
                     )}
                     className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
                   >
-                    この日で新規作成
+                    この日で新規追加
                   </Link>
                 </div>
               )}

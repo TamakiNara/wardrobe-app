@@ -7,6 +7,7 @@ import { DEFAULT_SKIN_TONE_PRESET } from "@/lib/master-data/skin-tone-presets";
 import { fetchLaravelWithCookie } from "@/lib/server/laravel";
 import {
   WEAR_LOG_STATUS_LABELS,
+  getWearLogStatusBadgeClassName,
   getWearLogStatusLabel,
 } from "@/lib/wear-logs/labels";
 import type { SkinTonePreset } from "@/types/settings";
@@ -438,11 +439,9 @@ export default async function WearLogsPage({
                 >
                   <div className="flex flex-wrap items-center gap-2">
                     <span
-                      className={`rounded-full border px-3 py-1 text-sm font-medium ${
-                        wearLog.status === "worn"
-                          ? "border-emerald-300 bg-emerald-50 text-emerald-700"
-                          : "border-blue-300 bg-blue-50 text-blue-700"
-                      }`}
+                      className={`rounded-full border px-3 py-1 text-sm font-medium ${getWearLogStatusBadgeClassName(
+                        wearLog.status,
+                      )}`}
                     >
                       {getWearLogStatusLabel(wearLog.status)}
                     </span>

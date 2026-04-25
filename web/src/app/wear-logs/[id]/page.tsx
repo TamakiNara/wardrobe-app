@@ -5,14 +5,11 @@ import WearLogStatusAction from "@/components/wear-logs/wear-log-status-action";
 import { EntityDetailHeader } from "@/components/shared/entity-detail-header";
 import { ITEM_CARE_STATUS_LABELS } from "@/lib/items/metadata";
 import { fetchLaravelWithCookie } from "@/lib/server/laravel";
-import { getWearLogStatusLabel } from "@/lib/wear-logs/labels";
+import {
+  getWearLogStatusBadgeClassName,
+  getWearLogStatusLabel,
+} from "@/lib/wear-logs/labels";
 import type { WearLogRecord } from "@/types/wear-logs";
-
-function getWearLogStatusBadgeClass(status: WearLogRecord["status"]): string {
-  return status === "worn"
-    ? "border-emerald-300 bg-emerald-50 text-emerald-700"
-    : "border-blue-300 bg-blue-50 text-blue-700";
-}
 
 function getItemSourceTypeLabel(itemSourceType: "outfit" | "manual"): string {
   return itemSourceType === "outfit" ? "参照コーディネート" : "手動追加";
@@ -79,7 +76,9 @@ export default async function WearLogDetailPage({
           details={
             <div className="flex flex-wrap items-center gap-2">
               <span
-                className={`rounded-full border px-3 py-1 text-sm font-medium ${getWearLogStatusBadgeClass(wearLog.status)}`}
+                className={`rounded-full border px-3 py-1 text-sm font-medium ${getWearLogStatusBadgeClassName(
+                  wearLog.status,
+                )}`}
               >
                 {getWearLogStatusLabel(wearLog.status)}
               </span>
