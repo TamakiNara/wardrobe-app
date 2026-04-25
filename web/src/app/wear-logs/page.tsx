@@ -16,6 +16,7 @@ import type {
 } from "@/types/wear-logs";
 
 type WearLogsPageSearchParams = Record<string, string | string[] | undefined>;
+type WearLogsView = "calendar" | "list";
 type PreferencesResponse = {
   preferences?: {
     calendarWeekStart?: "monday" | "sunday" | null;
@@ -32,6 +33,12 @@ function normalizeMonth(value: string | string[] | undefined): string {
 
   const today = new Date();
   return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function normalizeView(value: string | string[] | undefined): WearLogsView {
+  const rawValue = Array.isArray(value) ? value[0] : value;
+
+  return rawValue === "list" ? "list" : "calendar";
 }
 
 function buildQueryString(searchParams: WearLogsPageSearchParams): string {
@@ -56,22 +63,67 @@ function buildQueryString(searchParams: WearLogsPageSearchParams): string {
   return params.toString();
 }
 
+function buildWearLogsLink(
+  searchParams: WearLogsPageSearchParams,
+  overrides: Record<string, string | null | undefined> = {},
+): string {
+  const nextParams: WearLogsPageSearchParams = { ...searchParams };
+
+  for (const [key, value] of Object.entries(overrides)) {
+    if (!value) {
+      delete nextParams[key];
+      continue;
+    }
+
+    nextParams[key] = value;
+  }
+
+  if (nextParams.view === "calendar") {
+    delete nextParams.view;
+  }
+
+  const query = buildQueryString(nextParams);
+  return query ? `/wear-logs?${query}` : "/wear-logs";
+}
+
+function buildWearLogsApiSearchParams(
+  searchParams: WearLogsPageSearchParams,
+): WearLogsPageSearchParams {
+  const nextParams = { ...searchParams };
+
+  delete nextParams.view;
+  delete nextParams.month;
+  delete nextParams.message;
+
+  return nextParams;
+}
+
+function buildWearLogCalendarApiSearchParams(
+  searchParams: WearLogsPageSearchParams,
+): WearLogsPageSearchParams {
+  const nextParams = { ...searchParams };
+
+  delete nextParams.view;
+  delete nextParams.page;
+  delete nextParams.message;
+  delete nextParams.sort;
+
+  return nextParams;
+}
+
 function buildPageLink(
   searchParams: WearLogsPageSearchParams,
   nextPage: number,
 ): string {
-  const query = buildQueryString({
-    ...searchParams,
+  return buildWearLogsLink(searchParams, {
     page: String(nextPage),
   });
-
-  return query ? `/wear-logs?${query}` : "/wear-logs";
 }
 
 async function getWearLogs(
   searchParams: WearLogsPageSearchParams,
 ): Promise<WearLogsResponse> {
-  const query = buildQueryString(searchParams);
+  const query = buildQueryString(buildWearLogsApiSearchParams(searchParams));
   const path = query ? `/api/wear-logs?${query}` : "/api/wear-logs";
   const response = await fetchLaravelWithCookie(path);
 
@@ -105,10 +157,17 @@ async function getWearLogs(
 }
 
 async function getWearLogCalendar(
+  searchParams: WearLogsPageSearchParams,
   month: string,
 ): Promise<WearLogCalendarResponse> {
+  const query = buildQueryString(
+    buildWearLogCalendarApiSearchParams({
+      ...searchParams,
+      month,
+    }),
+  );
   const response = await fetchLaravelWithCookie(
-    `/api/wear-logs/calendar?month=${encodeURIComponent(month)}`,
+    query ? `/api/wear-logs/calendar?${query}` : "/api/wear-logs/calendar",
   );
 
   if (response.status === 401) {
@@ -164,11 +223,15 @@ export default async function WearLogsPage({
 }) {
   const resolvedSearchParams = await searchParams;
   const selectedMonth = normalizeMonth(resolvedSearchParams.month);
-  const [data, calendarData, preferences] = await Promise.all([
-    getWearLogs(resolvedSearchParams),
-    getWearLogCalendar(selectedMonth),
+  const currentView = normalizeView(resolvedSearchParams.view);
+  const [viewData, preferences] = await Promise.all([
+    currentView === "calendar"
+      ? getWearLogCalendar(resolvedSearchParams, selectedMonth)
+      : getWearLogs(resolvedSearchParams),
     getWearLogThumbnailPreferences(),
   ]);
+  const wearLogsData = currentView === "list" ? viewData : null;
+  const calendarData = currentView === "calendar" ? viewData : null;
   const flashMessage =
     resolvedSearchParams.message === "deleted"
       ? "着用履歴を削除しました。"
@@ -184,7 +247,7 @@ export default async function WearLogsPage({
           ]}
           eyebrow="着用履歴管理"
           title="着用履歴一覧"
-          description="予定 / 着用済み の履歴を日付順で確認します。"
+          description="予定日 / 着用済み の履歴を日付単位で確認します。"
           actions={
             <Link
               href="/wear-logs/new"
@@ -204,6 +267,8 @@ export default async function WearLogsPage({
         <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
           <form className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
             <input type="hidden" name="month" value={selectedMonth} />
+            <input type="hidden" name="view" value={currentView} />
+
             <div className="xl:col-span-2">
               <label className="mb-1 block text-sm font-medium text-gray-700">
                 キーワード
@@ -309,35 +374,64 @@ export default async function WearLogsPage({
           </form>
         </section>
 
-        <WearLogCalendar
-          month={calendarData.month}
-          days={calendarData.days}
-          weekStart={preferences.calendarWeekStart}
-          skinTonePreset={preferences.skinTonePreset}
-        />
+        <section className="rounded-2xl border border-gray-200 bg-white p-2 shadow-sm">
+          <div className="grid gap-2 sm:grid-cols-2">
+            <Link
+              href={buildWearLogsLink(resolvedSearchParams, {
+                view: "calendar",
+              })}
+              className={`inline-flex items-center justify-center rounded-xl px-4 py-3 text-sm font-medium transition ${
+                currentView === "calendar"
+                  ? "bg-blue-600 text-white shadow-sm"
+                  : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+              }`}
+              aria-current={currentView === "calendar" ? "page" : undefined}
+            >
+              カレンダー
+            </Link>
+            <Link
+              href={buildWearLogsLink(resolvedSearchParams, { view: "list" })}
+              className={`inline-flex items-center justify-center rounded-xl px-4 py-3 text-sm font-medium transition ${
+                currentView === "list"
+                  ? "bg-blue-600 text-white shadow-sm"
+                  : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+              }`}
+              aria-current={currentView === "list" ? "page" : undefined}
+            >
+              一覧
+            </Link>
+          </div>
+        </section>
 
-        {data.meta.totalAll === 0 ? (
+        {currentView === "calendar" && calendarData ? (
+          <WearLogCalendar
+            month={calendarData.month}
+            days={calendarData.days}
+            weekStart={preferences.calendarWeekStart}
+            skinTonePreset={preferences.skinTonePreset}
+          />
+        ) : wearLogsData && wearLogsData.meta.totalAll === 0 ? (
           <section className="rounded-2xl border border-dashed border-gray-300 bg-white p-10 text-center shadow-sm">
             <h2 className="text-lg font-semibold text-gray-900">
               着用履歴がまだありません
             </h2>
             <p className="mt-2 text-sm text-gray-600">
-              予定 / 着用済み を登録して、日々の記録を残していきましょう。
+              予定日 / 着用済み を登録して、日々の記録を残していきましょう。
             </p>
           </section>
-        ) : data.wearLogs.length === 0 ? (
+        ) : wearLogsData && wearLogsData.wearLogs.length === 0 ? (
           <section className="rounded-2xl border border-dashed border-gray-300 bg-white p-10 text-center shadow-sm">
             <h2 className="text-lg font-semibold text-gray-900">
               条件に一致する着用履歴はありません
             </h2>
             <p className="mt-2 text-sm text-gray-600">
-              条件を変えてお試しください。
+              条件を変えて試してください。
             </p>
           </section>
-        ) : (
+        ) : wearLogsData ? (
           <>
             <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-              {data.wearLogs.map((wearLog) => (
+              {wearLogsData.wearLogs.map((wearLog) => (
                 <article
                   key={wearLog.id}
                   className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm"
@@ -402,9 +496,12 @@ export default async function WearLogsPage({
             </section>
 
             <section className="flex items-center justify-between rounded-2xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
-              {data.meta.page > 1 ? (
+              {wearLogsData.meta.page > 1 ? (
                 <Link
-                  href={buildPageLink(resolvedSearchParams, data.meta.page - 1)}
+                  href={buildPageLink(
+                    resolvedSearchParams,
+                    wearLogsData.meta.page - 1,
+                  )}
                   className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
                 >
                   前へ
@@ -416,15 +513,18 @@ export default async function WearLogsPage({
               )}
 
               <p className="text-sm text-gray-600">
-                {data.meta.page} / {data.meta.lastPage}ページ
+                {wearLogsData.meta.page} / {wearLogsData.meta.lastPage}ページ
                 <span className="ml-2 text-gray-400">
-                  （全{data.meta.total}件）
+                  （全{wearLogsData.meta.total}件）
                 </span>
               </p>
 
-              {data.meta.page < data.meta.lastPage ? (
+              {wearLogsData.meta.page < wearLogsData.meta.lastPage ? (
                 <Link
-                  href={buildPageLink(resolvedSearchParams, data.meta.page + 1)}
+                  href={buildPageLink(
+                    resolvedSearchParams,
+                    wearLogsData.meta.page + 1,
+                  )}
                   className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
                 >
                   次へ
@@ -436,7 +536,7 @@ export default async function WearLogsPage({
               )}
             </section>
           </>
-        )}
+        ) : null}
       </div>
     </main>
   );

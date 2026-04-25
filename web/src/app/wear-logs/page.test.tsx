@@ -33,21 +33,8 @@ describe("WearLogsPage", () => {
     vi.stubGlobal("fetch", fetchMock);
   });
 
-  it("空状態を表示できる", async () => {
+  it("デフォルトではカレンダービューだけを表示する", async () => {
     fetchMock
-      .mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => ({
-          wearLogs: [],
-          meta: {
-            total: 0,
-            totalAll: 0,
-            page: 1,
-            lastPage: 1,
-          },
-        }),
-      })
       .mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -72,15 +59,19 @@ describe("WearLogsPage", () => {
       await WearLogsPage({ searchParams: Promise.resolve({}) }),
     );
 
-    expect(markup).toContain("着用履歴管理");
-    expect(markup).toContain("着用履歴一覧");
-    expect(markup).toContain("予定 / 着用済み の履歴を日付順で確認します。");
-    expect(markup).toContain("着用履歴がまだありません");
-    expect(markup).toContain("着用履歴を追加");
-    expect(markup).toContain("カレンダー");
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock.mock.calls[0]?.[0]).toContain("/api/wear-logs/calendar?");
+    expect(
+      fetchMock.mock.calls.some(([url]) =>
+        String(url).includes("/api/wear-logs?"),
+      ),
+    ).toBe(false);
+    expect(markup).toContain('href="/wear-logs?view=list"');
+    expect(markup).toContain('aria-current="page"');
+    expect(markup).not.toContain("wear-log-color-thumbnail");
   });
 
-  it("一覧に予定 / 着用済み と詳細導線を表示する", async () => {
+  it("一覧ビューでは一覧だけを表示してカレンダー API を呼ばない", async () => {
     fetchMock
       .mockResolvedValueOnce({
         ok: true,
@@ -93,10 +84,10 @@ describe("WearLogsPage", () => {
               event_date: "2026-03-24",
               display_order: 1,
               source_outfit_id: 5,
-              source_outfit_name: "通勤コーディネート",
+              source_outfit_name: "春コーデ",
               source_outfit_status: "active",
               has_disposed_items: false,
-              memo: "朝の予定",
+              memo: "メモあり",
               items_count: 2,
               thumbnail_items: [
                 {
@@ -104,111 +95,15 @@ describe("WearLogsPage", () => {
                   category: "tops",
                   colors: [{ role: "main", hex: "#eeeeee", label: "ホワイト" }],
                 },
-                {
-                  source_item_id: 32,
-                  category: "bottoms",
-                  colors: [{ role: "main", hex: "#223355", label: "ネイビー" }],
-                },
-              ],
-            },
-            {
-              id: 2,
-              status: "worn",
-              event_date: "2026-03-23",
-              display_order: 2,
-              source_outfit_id: null,
-              source_outfit_name: null,
-              source_outfit_status: null,
-              has_disposed_items: true,
-              memo: null,
-              items_count: 1,
-              thumbnail_items: [
-                {
-                  source_item_id: 33,
-                  category: "shoes",
-                  colors: [],
-                },
               ],
             },
           ],
           meta: {
-            total: 2,
-            totalAll: 2,
+            total: 1,
+            totalAll: 1,
             page: 1,
-            lastPage: 1,
+            lastPage: 2,
           },
-        }),
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => ({
-          month: "2026-03",
-          days: [
-            {
-              date: "2026-03-24",
-              plannedCount: 1,
-              wornCount: 0,
-              dots: [{ status: "planned" }],
-              overflowCount: 0,
-            },
-          ],
-        }),
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => ({
-          preferences: {
-            calendarWeekStart: "monday",
-            skinTonePreset: "neutral_medium",
-          },
-        }),
-      });
-
-    const { default: WearLogsPage } = await import("./page");
-    const markup = renderToStaticMarkup(
-      await WearLogsPage({ searchParams: Promise.resolve({}) }),
-    );
-
-    expect(markup).toContain("着用履歴管理");
-    expect(markup).toContain("着用履歴一覧");
-    expect(markup).toContain("予定 / 着用済み の履歴を日付順で確認します。");
-    expect(markup).toContain('href="/wear-logs/new"');
-    expect(markup).toContain("着用履歴を追加");
-    expect(markup).toContain("予定");
-    expect(markup).toContain("着用済み");
-    expect(markup).toContain("通勤コーディネート");
-    expect(markup).toContain("アイテム 1 件");
-    expect(markup).toContain("一部アイテムは現在利用不可です。");
-    expect(markup).toContain("wear-log-color-thumbnail");
-    expect(markup).toContain('href="/wear-logs/1"');
-    expect(markup).toContain("2026年3月");
-    expect(markup).not.toContain('href="/wear-logs/1/edit"');
-    expect(markup).not.toContain(">削除<");
-  });
-
-  it("削除完了メッセージを表示できる", async () => {
-    fetchMock
-      .mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => ({
-          wearLogs: [],
-          meta: {
-            total: 0,
-            totalAll: 0,
-            page: 1,
-            lastPage: 1,
-          },
-        }),
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => ({
-          month: "2026-03",
-          days: [],
         }),
       })
       .mockResolvedValueOnce({
@@ -225,12 +120,174 @@ describe("WearLogsPage", () => {
     const { default: WearLogsPage } = await import("./page");
     const markup = renderToStaticMarkup(
       await WearLogsPage({
-        searchParams: Promise.resolve({ message: "deleted" }),
+        searchParams: Promise.resolve({
+          view: "list",
+          keyword: "春",
+          status: "planned",
+          month: "2026-03",
+        }),
       }),
     );
 
-    expect(markup).toContain("着用履歴管理");
-    expect(markup).toContain("着用履歴一覧");
-    expect(markup).toContain("着用履歴を削除しました。");
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock.mock.calls[0]?.[0]).toContain(
+      "/api/wear-logs?keyword=%E6%98%A5&status=planned",
+    );
+    expect(
+      fetchMock.mock.calls.some(([url]) =>
+        String(url).includes("/api/wear-logs/calendar?"),
+      ),
+    ).toBe(false);
+    expect(markup).toContain("春コーデ");
+    expect(markup).toContain("wear-log-color-thumbnail");
+    expect(markup).toContain('href="/wear-logs/1"');
+  });
+
+  it("タブ切り替えリンクにフィルタ状態を引き継ぐ", async () => {
+    fetchMock
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          wearLogs: [],
+          meta: {
+            total: 0,
+            totalAll: 0,
+            page: 1,
+            lastPage: 1,
+          },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          preferences: {
+            calendarWeekStart: "monday",
+            skinTonePreset: "neutral_medium",
+          },
+        }),
+      });
+
+    const { default: WearLogsPage } = await import("./page");
+    const markup = renderToStaticMarkup(
+      await WearLogsPage({
+        searchParams: Promise.resolve({
+          view: "list",
+          keyword: "春",
+          status: "planned",
+          date_from: "2026-03-01",
+          date_to: "2026-03-31",
+          month: "2026-03",
+          sort: "date_asc",
+        }),
+      }),
+    );
+
+    expect(markup).toContain('name="view" value="list"');
+    expect(markup).toContain(
+      'href="/wear-logs?keyword=%E6%98%A5&amp;status=planned&amp;date_from=2026-03-01&amp;date_to=2026-03-31&amp;month=2026-03&amp;sort=date_asc"',
+    );
+    expect(markup).toContain(
+      'href="/wear-logs?view=list&amp;keyword=%E6%98%A5&amp;status=planned&amp;date_from=2026-03-01&amp;date_to=2026-03-31&amp;month=2026-03&amp;sort=date_asc"',
+    );
+  });
+
+  it("カレンダービューでも共通フィルタを維持したまま取得する", async () => {
+    fetchMock
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          month: "2026-03",
+          days: [],
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          preferences: {
+            calendarWeekStart: "monday",
+            skinTonePreset: "neutral_medium",
+          },
+        }),
+      });
+
+    const { default: WearLogsPage } = await import("./page");
+    await WearLogsPage({
+      searchParams: Promise.resolve({
+        keyword: "春",
+        status: "planned",
+        date_from: "2026-03-01",
+        date_to: "2026-03-31",
+        month: "2026-03",
+        sort: "date_asc",
+      }),
+    });
+
+    expect(fetchMock.mock.calls[0]?.[0]).toContain(
+      "/api/wear-logs/calendar?keyword=%E6%98%A5&status=planned&date_from=2026-03-01&date_to=2026-03-31&month=2026-03",
+    );
+    expect(fetchMock.mock.calls[0]?.[0]).not.toContain("sort=");
+  });
+
+  it("一覧ビューのページネーションでも view=list を維持する", async () => {
+    fetchMock
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          wearLogs: [
+            {
+              id: 1,
+              status: "planned",
+              event_date: "2026-03-24",
+              display_order: 1,
+              source_outfit_id: null,
+              source_outfit_name: null,
+              source_outfit_status: null,
+              has_disposed_items: false,
+              memo: null,
+              items_count: 1,
+              thumbnail_items: [],
+            },
+          ],
+          meta: {
+            total: 3,
+            totalAll: 3,
+            page: 2,
+            lastPage: 3,
+          },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          preferences: {
+            calendarWeekStart: "monday",
+            skinTonePreset: "neutral_medium",
+          },
+        }),
+      });
+
+    const { default: WearLogsPage } = await import("./page");
+    const markup = renderToStaticMarkup(
+      await WearLogsPage({
+        searchParams: Promise.resolve({
+          view: "list",
+          keyword: "春",
+          page: "2",
+        }),
+      }),
+    );
+
+    expect(markup).toContain(
+      'href="/wear-logs?view=list&amp;keyword=%E6%98%A5&amp;page=1"',
+    );
+    expect(markup).toContain(
+      'href="/wear-logs?view=list&amp;keyword=%E6%98%A5&amp;page=3"',
+    );
   });
 });
