@@ -246,8 +246,11 @@ export default function PurchaseCandidateListFilters({
 
   return (
     <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-6">
-        <div className="xl:col-span-2">
+      <div
+        className="grid gap-4 md:grid-cols-2 xl:grid-cols-4"
+        data-testid="purchase-candidate-filter-grid"
+      >
+        <div>
           <FilterFieldHeader
             htmlFor="purchase-candidate-keyword"
             label="キーワード"
@@ -397,25 +400,31 @@ export default function PurchaseCandidateListFilters({
             <option value="name_asc">名前順</option>
           </select>
         </div>
+
+        <div className="flex items-end xl:justify-end">
+          <button
+            type="button"
+            onClick={() => {
+              setDraftKeyword("");
+              setDraftBrand("");
+              router.replace(pathname, { scroll: false });
+            }}
+            className="inline-flex h-10 items-center text-sm font-medium text-blue-600 hover:underline disabled:text-gray-400 disabled:no-underline"
+            disabled={!hasActiveFilters}
+          >
+            条件をクリア
+          </button>
+        </div>
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+      <div
+        className="mt-4 flex flex-col gap-4 border-t border-gray-100 pt-4 md:flex-row md:items-center md:justify-between"
+        data-testid="purchase-candidate-display-controls"
+      >
         <p className="text-sm text-gray-600">
           表示件数: {itemCount} / {totalCount}
         </p>
-
-        <button
-          type="button"
-          onClick={() => {
-            setDraftKeyword("");
-            setDraftBrand("");
-            router.replace(pathname, { scroll: false });
-          }}
-          className="text-sm font-medium text-blue-600 hover:underline disabled:text-gray-400 disabled:no-underline"
-          disabled={!hasActiveFilters}
-        >
-          条件をクリア
-        </button>
+        <div />
       </div>
     </section>
   );

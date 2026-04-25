@@ -291,4 +291,34 @@ describe("PurchaseCandidateListFilters", () => {
       scroll: false,
     });
   });
+  it("PC幅では4列のフィルタグリッドと別行の表示件数エリアを表示する", async () => {
+    const { default: PurchaseCandidateListFilters } =
+      await import("./purchase-candidate-list-filters");
+
+    await act(async () => {
+      root.render(
+        React.createElement(PurchaseCandidateListFilters, defaultProps),
+      );
+      await waitForEffects();
+    });
+
+    const filterGrid = container.querySelector<HTMLElement>(
+      '[data-testid="purchase-candidate-filter-grid"]',
+    );
+    const displayControls = container.querySelector<HTMLElement>(
+      '[data-testid="purchase-candidate-display-controls"]',
+    );
+    const clearButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent === "条件をクリア",
+    );
+
+    expect(filterGrid?.className).toContain("xl:grid-cols-4");
+    expect(container.textContent).toContain("並び順");
+    expect(container.textContent).not.toContain("sort");
+    expect(clearButton).toBeTruthy();
+    expect(filterGrid?.contains(clearButton ?? null)).toBe(true);
+    expect(displayControls).toBeTruthy();
+    expect(displayControls?.textContent).toContain("表示件数:");
+    expect(displayControls?.contains(clearButton ?? null)).toBe(false);
+  });
 });
