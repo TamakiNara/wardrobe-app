@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import WearLogModalColorThumbnail from "@/components/wear-logs/wear-log-modal-color-thumbnail";
 import { ApiClientError, apiFetch } from "@/lib/api/client";
+import { getJapaneseHoliday } from "@/lib/wear-logs/japanese-holidays";
 import {
   getWearLogStatusBadgeClassName,
   getWearLogStatusDotClassName,
@@ -23,7 +24,7 @@ type WearLogCalendarProps = {
   skinTonePreset?: SkinTonePreset;
 };
 
-type DayType = "weekday" | "saturday" | "sunday";
+type DayType = "weekday" | "saturday" | "sunday" | "holiday";
 
 const WEEKDAY_LABELS = {
   sunday: [
@@ -72,6 +73,12 @@ function parseDateString(date: string): {
 }
 
 function getDayType(date: string): DayType {
+  const holiday = getJapaneseHoliday(date);
+
+  if (holiday.isHoliday) {
+    return "holiday";
+  }
+
   const { year, monthIndex, day } = parseDateString(date);
   const weekDay = new Date(year, monthIndex, day).getDay();
 
@@ -88,6 +95,8 @@ function getDayType(date: string): DayType {
 
 function getDayTypeTextClassName(dayType: DayType): string {
   switch (dayType) {
+    case "holiday":
+      return "text-rose-600";
     case "sunday":
       return "text-rose-600";
     case "saturday":
@@ -99,6 +108,8 @@ function getDayTypeTextClassName(dayType: DayType): string {
 
 function getDayTypeCellClassName(dayType: DayType): string {
   switch (dayType) {
+    case "holiday":
+      return "border-rose-200 bg-rose-50/40 hover:border-rose-300 hover:bg-rose-50/60";
     case "sunday":
       return "border-rose-200 bg-rose-50/40 hover:border-rose-300 hover:bg-rose-50/60";
     case "saturday":
@@ -117,6 +128,8 @@ function getDayTypeNumberClassName(
   }
 
   switch (dayType) {
+    case "holiday":
+      return "text-rose-700";
     case "sunday":
       return "text-rose-700";
     case "saturday":
@@ -319,20 +332,12 @@ export default function WearLogCalendar({
 
         <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-gray-600">
           <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5">
-            <span className="h-2.5 w-2.5 rounded-full border border-blue-300 bg-white" />
+            <span className="h-3.5 w-3.5 rounded-full border border-blue-300 bg-white" />
             <span>予定</span>
           </div>
           <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5">
-            <span className="h-2.5 w-2.5 rounded-full bg-blue-600" />
+            <span className="h-3.5 w-3.5 rounded-full bg-blue-600" />
             <span>着用済み</span>
-          </div>
-          <div className="inline-flex items-center gap-2 rounded-full border border-sky-200 bg-sky-50 px-3 py-1.5 text-sky-700">
-            <span className="text-sm font-semibold">土</span>
-            <span>土曜</span>
-          </div>
-          <div className="inline-flex items-center gap-2 rounded-full border border-rose-200 bg-rose-50 px-3 py-1.5 text-rose-700">
-            <span className="text-sm font-semibold">日</span>
-            <span>日曜</span>
           </div>
         </div>
 
@@ -352,6 +357,7 @@ export default function WearLogCalendar({
           <div className="mt-2 grid grid-cols-7 gap-2">
             {calendarCells.map((cell) => {
               const summary = summaryMap.get(cell.date);
+              const holiday = getJapaneseHoliday(cell.date);
               const isSelected = selectedDate === cell.date;
               const isToday = cell.date === today;
               const isPastDate = cell.date < today;
@@ -387,6 +393,7 @@ export default function WearLogCalendar({
                   className={cellClassName}
                   data-date={cell.date}
                   data-day-type={dayType}
+                  data-holiday-name={holiday.name ?? undefined}
                   data-current-month={cell.isCurrentMonth ? "true" : "false"}
                   data-selected={isSelected ? "true" : "false"}
                   data-today={isToday ? "true" : "false"}
@@ -402,7 +409,7 @@ export default function WearLogCalendar({
                         {summary.dots.map((dot, index) => (
                           <span
                             key={`${cell.date}-${dot.status}-${index}`}
-                            className={`h-2.5 w-2.5 rounded-full ${getWearLogStatusDotClassName(dot.status)}`}
+                            className={`h-3.5 w-3.5 rounded-full ${getWearLogStatusDotClassName(dot.status)}`}
                             data-status={dot.status}
                           />
                         ))}

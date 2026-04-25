@@ -126,8 +126,8 @@ describe("WearLogCalendar", () => {
     expect(container.textContent).toContain("カレンダー");
     expect(container.textContent).toContain("予定");
     expect(container.textContent).toContain("着用済み");
-    expect(container.textContent).toContain("土曜");
-    expect(container.textContent).toContain("日曜");
+    expect(container.textContent).not.toContain("土曜");
+    expect(container.textContent).not.toContain("日曜");
     expect(container.textContent).toContain("2026年3月");
     expect(container.textContent).toContain("+1");
 
@@ -183,6 +183,30 @@ describe("WearLogCalendar", () => {
     expect(saturdayButton?.className).toContain("border-sky-200");
   });
 
+  it("日本の祝日を日曜と同系統の控えめな赤で表示する", async () => {
+    vi.setSystemTime(new Date("2026-02-20T09:00:00+09:00"));
+
+    const { default: WearLogCalendar } = await import("./wear-log-calendar");
+
+    await act(async () => {
+      root.render(
+        React.createElement(WearLogCalendar, {
+          month: "2026-03",
+          weekStart: "monday",
+          days: [],
+        }),
+      );
+      await waitForEffects();
+    });
+
+    const holidayButton = findDayButton(container, "2026-03-20");
+
+    expect(holidayButton?.getAttribute("data-day-type")).toBe("holiday");
+    expect(holidayButton?.getAttribute("data-holiday-name")).toBe("春分の日");
+    expect(holidayButton?.className).toContain("border-rose-200");
+    expect(holidayButton?.textContent).toContain("20");
+  });
+
   it("予定と着用済みのドット色を凡例と同じトーンで表示する", async () => {
     const { default: WearLogCalendar } = await import("./wear-log-calendar");
 
@@ -214,7 +238,9 @@ describe("WearLogCalendar", () => {
 
     expect(plannedDot?.className).toContain("border-blue-300");
     expect(plannedDot?.className).toContain("bg-white");
+    expect(plannedDot?.className).toContain("h-3.5");
     expect(wornDot?.className).toContain("bg-blue-600");
+    expect(wornDot?.className).toContain("h-3.5");
   });
 
   it("今日と選択状態を表示できる", async () => {
