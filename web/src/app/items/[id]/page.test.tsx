@@ -31,7 +31,7 @@ vi.mock("@/components/items/item-preview-card", () => ({
   default: () => React.createElement("div", null, "preview-card"),
 }));
 
-describe("ItemPage", () => {
+describe("アイテム詳細画面", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     headersMock.mockResolvedValue({
@@ -472,7 +472,7 @@ describe("ItemPage", () => {
 
     expect(markup).toContain("ニーハイソックス");
   });
-  it("item detail で main color custom_label を表示する", async () => {
+  it("詳細画面でメインカラーの custom_label を表示する", async () => {
     fetchMock
       .mockResolvedValueOnce({
         ok: true,
@@ -534,5 +534,65 @@ describe("ItemPage", () => {
 
     expect(markup).toContain("色名");
     expect(markup).toContain("64 BLUE");
+  });
+
+  it("dress の固定実寸を詳細画面で表示する", async () => {
+    fetchMock
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          item: {
+            id: 7,
+            name: "Dress Item",
+            status: "active",
+            care_status: null,
+            brand_name: null,
+            price: null,
+            purchase_url: null,
+            memo: null,
+            purchased_at: null,
+            size_gender: null,
+            size_label: null,
+            size_note: null,
+            size_details: {
+              structured: {
+                shoulder_width: 39,
+                total_length: 118,
+              },
+            },
+            is_rain_ok: false,
+            category: "onepiece_dress",
+            subcategory: "dress",
+            shape: "dress",
+            colors: [],
+            seasons: [],
+            tpos: [],
+            spec: null,
+            images: [],
+            materials: [],
+          },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          preferences: {
+            skinTonePreset: "neutral_medium",
+          },
+        }),
+      });
+
+    const { default: ItemPage } = await import("./page");
+    const markup = renderToStaticMarkup(
+      await ItemPage({
+        params: Promise.resolve({ id: "7" }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+
+    expect(markup).toContain("39cm");
+    expect(markup).toContain("118cm");
   });
 });

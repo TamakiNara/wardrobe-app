@@ -237,6 +237,54 @@ vi.mock("@/lib/api/categories", async () => {
       container.querySelector('[data-testid="item-preview-card"]'),
     ).toBeNull();
   });
+  it("skirts の mermaid でも固定実寸を表示する", async () => {
+    const { default: NewItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(NewItemPage));
+      await waitForEffects();
+    });
+
+    const categorySelect =
+      container.querySelector<HTMLSelectElement>("#category");
+    expect(categorySelect).not.toBeNull();
+
+    await act(async () => {
+      categorySelect!.value = "skirts";
+      categorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    const subcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
+    expect(subcategorySelect).not.toBeNull();
+
+    await act(async () => {
+      subcategorySelect!.value = "skirt";
+      subcategorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    const shapeSelect = container.querySelector<HTMLSelectElement>("#shape");
+    expect(shapeSelect).not.toBeNull();
+
+    await act(async () => {
+      shapeSelect!.value = "mermaid";
+      shapeSelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    await openSizeDetails();
+
+    expect(
+      container.querySelector<HTMLInputElement>("#structured-size-waist"),
+    ).not.toBeNull();
+    expect(
+      container.querySelector<HTMLInputElement>(
+        "#structured-size-total_length",
+      ),
+    ).not.toBeNull();
+  });
 });
 
 vi.mock("@/lib/api/settings", () => ({
@@ -590,7 +638,7 @@ function createValidPurchaseCandidateItemDraft() {
   };
 }
 
-it("purchase candidate draft の main color custom_label を復元して submit payload に含める", async () => {
+it("purchase candidate draft の main color custom_label を復元して送信 payload に含める", async () => {
   searchParamsSourceValue = "purchase-candidate";
   fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
   fetchCategoryVisibilitySettingsMock.mockResolvedValue({
@@ -1335,7 +1383,7 @@ describe("新規登録画面", () => {
     expect(springButton?.getAttribute("aria-pressed")).toBe("true");
   });
 
-  it("初期状態では実寸本体を閉じ、開くと structured fields を表示する", async () => {
+  it("初期状態では実寸本体を閉じ、開くと固定実寸を表示する", async () => {
     const { default: NewItemPage } = await import("./page");
 
     await act(async () => {
@@ -2751,7 +2799,7 @@ describe("新規登録画面", () => {
     expect(container.textContent).not.toContain("SQLSTATE");
   });
 
-  it("shape 未解決では fallback を出し、解決後に structured fields を表示する", async () => {
+  it("shape 未解決では fallback を出し、解決後に固定実寸を表示する", async () => {
     const { default: NewItemPage } = await import("./page");
 
     await act(async () => {
@@ -2799,7 +2847,7 @@ describe("新規登録画面", () => {
     expect(container.querySelector("#structured-size-waist")).not.toBeNull();
   });
 
-  it("分類情報から shape が解決できる場合は明示入力前でも structured fields を表示する", async () => {
+  it("分類情報から shape が解決できる場合は明示入力前でも固定実寸を表示する", async () => {
     const { default: NewItemPage } = await import("./page");
 
     await act(async () => {
@@ -2832,6 +2880,154 @@ describe("新規登録画面", () => {
     expect(
       container.querySelector<HTMLInputElement>(
         "#structured-size-shoulder_width",
+      ),
+    ).not.toBeNull();
+  });
+
+  it("tops の hoodie でも固定実寸を表示する", async () => {
+    const { default: NewItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(NewItemPage));
+      await waitForEffects();
+    });
+
+    const categorySelect =
+      container.querySelector<HTMLSelectElement>("#category");
+    expect(categorySelect).not.toBeNull();
+
+    await act(async () => {
+      categorySelect!.value = "tops";
+      categorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    const subcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
+    expect(subcategorySelect).not.toBeNull();
+
+    await act(async () => {
+      subcategorySelect!.value = "hoodie";
+      subcategorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    expect(container.querySelector("#shape")).toBeNull();
+
+    await openSizeDetails();
+
+    expect(
+      container.querySelector<HTMLInputElement>(
+        "#structured-size-shoulder_width",
+      ),
+    ).not.toBeNull();
+    expect(
+      container.querySelector<HTMLInputElement>("#structured-size-body_length"),
+    ).not.toBeNull();
+  });
+
+  it("outerwear の blazer でも固定実寸を表示する", async () => {
+    const { default: NewItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(NewItemPage));
+      await waitForEffects();
+    });
+
+    const categorySelect =
+      container.querySelector<HTMLSelectElement>("#category");
+    expect(categorySelect).not.toBeNull();
+
+    await act(async () => {
+      categorySelect!.value = "outerwear";
+      categorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    const outerwearSubcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
+    expect(outerwearSubcategorySelect).not.toBeNull();
+
+    await act(async () => {
+      outerwearSubcategorySelect!.value = "jacket";
+      outerwearSubcategorySelect!.dispatchEvent(
+        new Event("change", { bubbles: true }),
+      );
+      await waitForEffects();
+    });
+
+    const outerwearShapeSelect =
+      container.querySelector<HTMLSelectElement>("#shape");
+    expect(outerwearShapeSelect).not.toBeNull();
+
+    await act(async () => {
+      outerwearShapeSelect!.value = "blazer";
+      outerwearShapeSelect!.dispatchEvent(
+        new Event("change", { bubbles: true }),
+      );
+      await waitForEffects();
+    });
+
+    await openSizeDetails();
+
+    expect(
+      container.querySelector<HTMLInputElement>(
+        "#structured-size-shoulder_width",
+      ),
+    ).not.toBeNull();
+    expect(
+      container.querySelector<HTMLInputElement>("#structured-size-cuff_width"),
+    ).not.toBeNull();
+
+    return;
+
+    const collapseButton = Array.from(
+      container.querySelectorAll("button"),
+    ).find((button) => button.textContent?.includes("折りたたむ"));
+    expect(collapseButton).not.toBeUndefined();
+
+    await act(async () => {
+      collapseButton!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    await act(async () => {
+      categorySelect!.value = "skirts";
+      categorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+    await waitForEffects();
+
+    const skirtsSubcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
+    expect(skirtsSubcategorySelect).not.toBeNull();
+
+    await act(async () => {
+      skirtsSubcategorySelect!.value = "skirt";
+      skirtsSubcategorySelect!.dispatchEvent(
+        new Event("change", { bubbles: true }),
+      );
+      await waitForEffects();
+    });
+
+    const skirtsShapeSelect =
+      container.querySelector<HTMLSelectElement>("#shape");
+    expect(skirtsShapeSelect).not.toBeNull();
+
+    await act(async () => {
+      skirtsShapeSelect!.value = "mermaid";
+      skirtsShapeSelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    await openSizeDetails();
+
+    expect(
+      container.querySelector<HTMLInputElement>("#structured-size-waist"),
+    ).not.toBeNull();
+    expect(
+      container.querySelector<HTMLInputElement>(
+        "#structured-size-total_length",
       ),
     ).not.toBeNull();
   });

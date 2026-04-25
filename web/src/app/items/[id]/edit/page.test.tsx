@@ -2525,7 +2525,7 @@ describe("編集画面", () => {
   });
 });
 
-it("main color custom_label を初期表示し、更新 payload に含める", async () => {
+it("メインカラーの custom_label を初期表示し、更新 payload に含める", async () => {
   fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
   fetchCategoryVisibilitySettingsMock.mockResolvedValue({
     visibleCategoryIds: [
@@ -2633,6 +2633,106 @@ it("main color custom_label を初期表示し、更新 payload に含める", a
   const payload = JSON.parse(putCall?.[1]?.body as string);
 
   expect(payload.colors[0].custom_label).toBe("12 GRAY");
+
+  await act(async () => {
+    localRoot.unmount();
+  });
+  localContainer.remove();
+});
+
+it("編集画面でも hoodie の固定実寸を復元する", async () => {
+  vi.clearAllMocks();
+  globalThis.IS_REACT_ACT_ENVIRONMENT = true;
+  window.HTMLElement.prototype.scrollIntoView = scrollIntoViewMock;
+
+  const localContainer = document.createElement("div");
+  document.body.appendChild(localContainer);
+  const localRoot = createRoot(localContainer);
+
+  fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
+  fetchCategoryVisibilitySettingsMock.mockResolvedValue({
+    visibleCategoryIds: [
+      "tops_tshirt_cutsew",
+      "outerwear_jacket",
+      "pants_pants",
+      "onepiece_dress_onepiece",
+      "allinone_allinone",
+      "roomwear_inner_roomwear",
+      "legwear_socks",
+      "shoes_sneakers",
+      "bags_tote",
+      "fashion_accessories_belt",
+      "fashion_accessories_eyewear",
+      "swimwear_swimwear",
+      "kimono_kimono",
+    ],
+  });
+  fetchUserPreferencesMock.mockResolvedValue({ preferences: {} });
+  fetchUserBrandsMock.mockResolvedValue({ brands: [] });
+  fetchUserTposMock.mockResolvedValue({ tpos: [] });
+
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        item: createEditableItemResponse({
+          category: "tops",
+          subcategory: "hoodie",
+          shape: "hoodie",
+          size_details: {
+            structured: {
+              shoulder_width: 48,
+              body_length: 66,
+            },
+          },
+        }),
+      }),
+    }),
+  );
+
+  const { default: EditItemPage } = await import("./page");
+
+  await act(async () => {
+    localRoot.render(
+      React.createElement(EditItemPage, {
+        params: Promise.resolve({ id: "1" }),
+      }),
+    );
+    await waitForEffects();
+  });
+
+  expect(
+    (localContainer.querySelector("#subcategory") as HTMLSelectElement | null)
+      ?.value,
+  ).toBe("hoodie");
+  expect(localContainer.querySelector("#shape")).toBeNull();
+
+  const toggleButton = Array.from(
+    localContainer.querySelectorAll("button"),
+  ).find((button) => button.textContent?.includes("実寸を入力"));
+  expect(toggleButton).not.toBeUndefined();
+
+  await act(async () => {
+    toggleButton!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    await waitForEffects();
+  });
+
+  expect(
+    (
+      localContainer.querySelector(
+        "#structured-size-shoulder_width",
+      ) as HTMLInputElement | null
+    )?.value,
+  ).toBe("48");
+  expect(
+    (
+      localContainer.querySelector(
+        "#structured-size-body_length",
+      ) as HTMLInputElement | null
+    )?.value,
+  ).toBe("66");
 
   localRoot.unmount();
   localContainer.remove();

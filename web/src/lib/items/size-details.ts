@@ -72,6 +72,14 @@ function resolveStructuredSizeFieldGroup(
     if (shape === "shirt") return "shirt";
     if (shape === "tshirt") return "tshirt";
     if (shape === "blouse") return "blouse";
+    if (
+      shape === "knit" ||
+      shape === "cardigan" ||
+      shape === "sweatshirt" ||
+      shape === "hoodie"
+    ) {
+      return "tshirt";
+    }
   }
 
   if (category === "bottoms") {
@@ -94,7 +102,10 @@ function resolveStructuredSizeFieldGroup(
       shape === "straight" ||
       shape === "tapered" ||
       shape === "wide" ||
-      shape === "culottes"
+      shape === "culottes" ||
+      shape === "jogger" ||
+      shape === "skinny" ||
+      shape === "gaucho"
     ) {
       return "pants";
     }
@@ -106,6 +117,7 @@ function resolveStructuredSizeFieldGroup(
       shape === "tight" ||
       shape === "flare" ||
       shape === "a_line" ||
+      shape === "mermaid" ||
       shape === "pleated"
     ) {
       return "skirt";
@@ -115,6 +127,9 @@ function resolveStructuredSizeFieldGroup(
   if (category === "outerwear") {
     if (
       shape === "jacket" ||
+      shape === "tailored" ||
+      shape === "no_collar" ||
+      shape === "blazer" ||
       shape === "blouson" ||
       shape === "down-padded" ||
       shape === "mountain-parka"
@@ -125,7 +140,7 @@ function resolveStructuredSizeFieldGroup(
 
   if (
     (category === "onepiece_allinone" || category === "onepiece_dress") &&
-    shape === "onepiece"
+    (shape === "onepiece" || shape === "dress")
   ) {
     return "onepiece";
   }

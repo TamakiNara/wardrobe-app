@@ -38,7 +38,7 @@ vi.mock("@/lib/api/settings", () => ({
   fetchUserBrands: (...args: unknown[]) => fetchUserBrandsMock(...args),
 }));
 
-describe("PurchaseCandidateForm", () => {
+describe("購入検討フォーム", () => {
   let container: HTMLDivElement;
   let root: ReturnType<typeof createRoot>;
 
@@ -108,6 +108,30 @@ describe("PurchaseCandidateForm", () => {
             sortOrder: 20,
           },
           {
+            id: "tops_knit_sweater",
+            groupId: "tops",
+            name: "ニット・セーター",
+            sortOrder: 25,
+          },
+          {
+            id: "tops_sweat_trainer",
+            groupId: "tops",
+            name: "スウェット・トレーナー",
+            sortOrder: 27,
+          },
+          {
+            id: "tops_hoodie",
+            groupId: "tops",
+            name: "パーカー・フーディー",
+            sortOrder: 28,
+          },
+          {
+            id: "tops_cardigan",
+            groupId: "tops",
+            name: "カーディガン",
+            sortOrder: 29,
+          },
+          {
             id: "tops_polo_shirt",
             groupId: "tops",
             name: "ポロシャツ",
@@ -172,6 +196,10 @@ describe("PurchaseCandidateForm", () => {
         "outerwear_coat",
         "tops_tshirt_cutsew",
         "tops_shirt_blouse",
+        "tops_knit_sweater",
+        "tops_sweat_trainer",
+        "tops_hoodie",
+        "tops_cardigan",
         "tops_polo_shirt",
         "pants_pants",
         "pants_short",
@@ -1762,7 +1790,7 @@ describe("PurchaseCandidateForm", () => {
     expect(container.textContent).not.toContain("SQLSTATE");
   });
 
-  it("shape 未解決では fallback を出し、分類解決後に structured fields を表示する", async () => {
+  it("shape 未解決では fallback を出し、分類解決後に固定実寸を表示する", async () => {
     await renderForm();
 
     await openSizeDetails();
@@ -2010,5 +2038,21 @@ describe("PurchaseCandidateForm", () => {
       container.querySelector<HTMLSelectElement>("#spec-skirt-design-type")
         ?.value,
     ).toBe("pleats");
+  });
+  it("hoodie の固定実寸を購入検討フォームでも表示する", async () => {
+    await renderForm();
+
+    await setCategorySelection("tops", "tops_hoodie");
+    await openSizeDetails();
+
+    expect(
+      container.querySelector<HTMLInputElement>(
+        "#structured-size-shoulder_width",
+      ),
+    ).not.toBeNull();
+    expect(
+      container.querySelector<HTMLInputElement>("#structured-size-body_length"),
+    ).not.toBeNull();
+    expect(container.querySelector("#shape")).toBeNull();
   });
 });
