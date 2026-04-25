@@ -3673,8 +3673,10 @@ components:
         - category_name
         - brand_name
         - price
+        - release_date
         - sale_price
         - sale_ends_at
+        - discount_ends_at
         - purchase_url
         - memo
         - wanted_reason
@@ -3866,7 +3868,7 @@ components:
         purchase_candidates の通常作成 / 更新 payload。
         比較結果の詳細は request に含めず、候補の基本情報と比較用属性を保存する。
         ただし `purchased` の candidate 更新では endpoint 側で許可項目を絞り、
-        `memo` / `wanted_reason` / `priority` / `sale_price` / `sale_ends_at` / `purchase_url` だけ受け付ける。
+        `memo` / `wanted_reason` / `priority` / `release_date` / `sale_price` / `sale_ends_at` / `discount_ends_at` / `purchase_url` だけ受け付ける。
       required:
         - name
         - category_id
@@ -3970,8 +3972,10 @@ components:
         - category_name
         - brand_name
         - price
+        - release_date
         - sale_price
         - sale_ends_at
+        - discount_ends_at
         - purchase_url
         - group_id
         - group_order

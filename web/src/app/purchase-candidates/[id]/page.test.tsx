@@ -104,8 +104,10 @@ describe("PurchaseCandidateDetailPage", () => {
           category_name: "コート",
           brand_name: "Brand",
           price: 14800,
+          release_date: "2026-03-01",
           sale_price: 12800,
           sale_ends_at: "2026-03-31T18:00:00+09:00",
+          discount_ends_at: "2026-03-25T18:00:00+09:00",
           purchase_url: "https://example.test",
           memo: "メモ",
           wanted_reason: "理由",
@@ -205,7 +207,25 @@ describe("PurchaseCandidateDetailPage", () => {
     );
     expect(markup).toContain("14,800円");
     expect(markup).toContain("12,800円");
-    expect(markup).toContain("セール終了予定");
+    expect(markup).toContain("発売日");
+    expect(markup).toContain("販売終了日");
+    expect(markup).toContain("セール終了日");
+    expect(markup.indexOf(">想定価格<")).toBeLessThan(
+      markup.indexOf(">セール価格<"),
+    );
+    expect(markup.indexOf(">セール価格<")).toBeLessThan(
+      markup.indexOf(">セール終了日<"),
+    );
+    expect(markup.indexOf(">セール終了日<")).toBeLessThan(
+      markup.indexOf(">発売日<"),
+    );
+    expect(markup.indexOf(">発売日<")).toBeLessThan(
+      markup.indexOf(">販売終了日<"),
+    );
+    expect(markup.indexOf(">販売終了日<")).toBeLessThan(
+      markup.indexOf(">購入 URL<"),
+    );
+    expect(markup).toContain('class="hidden md:block" aria-hidden="true"');
     expect(markup).toContain("コート");
     expect(markup).toContain("レディース");
     expect(markup).toContain("理由");

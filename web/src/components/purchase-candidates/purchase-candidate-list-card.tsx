@@ -336,16 +336,16 @@ export default function PurchaseCandidateListCard({
               ) : (
                 <div className="h-[18px]" aria-hidden="true" />
               )}
-              {selectedCandidate.sale_ends_at !== null ? (
+              {selectedCandidate.discount_ends_at ? (
                 <div className="flex items-center justify-between gap-3">
-                  <span>セール終了予定</span>
+                  <span>セール終了日</span>
                   <span className="font-medium text-rose-700">
                     {new Intl.DateTimeFormat("ja-JP", {
                       month: "2-digit",
                       day: "2-digit",
                       hour: "2-digit",
                       minute: "2-digit",
-                    }).format(new Date(selectedCandidate.sale_ends_at))}
+                    }).format(new Date(selectedCandidate.discount_ends_at))}
                   </span>
                 </div>
               ) : (

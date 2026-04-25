@@ -39,7 +39,10 @@ export type PurchaseCandidateGroupCandidate = {
   status: PurchaseCandidateStatus;
   name: string;
   price: number | null;
+  release_date?: string | null;
   sale_price: number | null;
+  sale_ends_at?: string | null;
+  discount_ends_at?: string | null;
   group_order: number | null;
   is_current: boolean;
   colors: PurchaseCandidateColor[];
@@ -54,8 +57,10 @@ export type PurchaseCandidateListItem = {
   category_name: string | null;
   brand_name: string | null;
   price: number | null;
+  release_date?: string | null;
   sale_price: number | null;
-  sale_ends_at: string | null;
+  sale_ends_at?: string | null;
+  discount_ends_at?: string | null;
   purchase_url: string | null;
   group_id: number | null;
   group_order: number | null;
@@ -76,8 +81,10 @@ export type PurchaseCandidateRecord = {
   category_name: string | null;
   brand_name: string | null;
   price: number | null;
+  release_date?: string | null;
   sale_price: number | null;
-  sale_ends_at: string | null;
+  sale_ends_at?: string | null;
+  discount_ends_at?: string | null;
   purchase_url: string | null;
   memo: string | null;
   wanted_reason: string | null;
@@ -140,8 +147,10 @@ export type PurchaseCandidateUpsertPayload = {
   brand_name: string | null;
   save_brand_as_candidate?: boolean;
   price: number | null;
+  release_date?: string | null;
   sale_price: number | null;
-  sale_ends_at: string | null;
+  sale_ends_at?: string | null;
+  discount_ends_at?: string | null;
   purchase_url: string | null;
   memo: string | null;
   wanted_reason: string | null;
@@ -195,6 +204,10 @@ export type PurchaseCandidateItemDraftPayload = {
   shape: string;
   brand_name: string | null;
   price: number | null;
+  release_date?: string | null;
+  sale_price?: number | null;
+  sale_ends_at?: string | null;
+  discount_ends_at?: string | null;
   purchase_url: string | null;
   memo: string | null;
   size_gender: "women" | "men" | "unisex" | null;

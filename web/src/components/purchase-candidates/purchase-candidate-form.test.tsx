@@ -294,6 +294,41 @@ describe("PurchaseCandidateForm", () => {
     expect(sectionCards).toHaveLength(9);
   });
 
+  it("購入情報を意味のまとまり順で表示する", async () => {
+    await renderForm();
+
+    const purchaseInfoSection = Array.from(
+      container.querySelectorAll(
+        "form > section.rounded-2xl.border.border-gray-200.bg-white",
+      ),
+    ).find((section) =>
+      section.querySelector("h2")?.textContent?.includes("購入情報"),
+    );
+
+    expect(purchaseInfoSection).toBeDefined();
+
+    const labels = Array.from(
+      purchaseInfoSection!.querySelectorAll("label, span.text-sm.font-medium"),
+    )
+      .map((element) => element.textContent?.trim() ?? "")
+      .filter(Boolean);
+
+    expect(labels).toEqual([
+      "想定価格",
+      "セール価格",
+      "セール終了日",
+      "発売日",
+      "販売終了日",
+      "購入 URL",
+      "欲しい理由",
+    ]);
+
+    const priceField = purchaseInfoSection!
+      .querySelector('label[for="price"]')
+      ?.closest("div");
+    expect(priceField?.className).not.toContain("md:col-span-2");
+  });
+
   it("カテゴリ未選択では種類を表示せず、カテゴリ選択後に表示する", async () => {
     await renderForm();
 
@@ -917,9 +952,9 @@ describe("PurchaseCandidateForm", () => {
     const customMainCheckbox = container.querySelector(
       'input[aria-label="\u30e1\u30a4\u30f3\u30ab\u30e9\u30fc\u3092\u30ab\u30e9\u30fc\u30b3\u30fc\u30c9\u3067\u5165\u529b"]',
     ) as HTMLInputElement;
-    const resetButton = Array.from(container.querySelectorAll("button")).find(
-      (button) => button.textContent?.trim() === "リセット",
-    ) as HTMLButtonElement;
+    const resetButton = saleEndsAtDateInput
+      .closest("div.grid")
+      ?.previousElementSibling?.querySelector("button") as HTMLButtonElement;
 
     expect(resetButton.disabled).toBe(true);
 
@@ -1468,7 +1503,7 @@ describe("PurchaseCandidateForm", () => {
     ) as HTMLTextAreaElement;
 
     expect(container.textContent).toContain(
-      "購入済みの購入検討では、メモ・欲しい理由・優先度・セール情報・購入 URL・画像のみ更新できます。",
+      "購入済みの購入検討では、メモ・欲しい理由・優先度・発売日・販売期間情報・購入 URL・画像のみ更新できます。",
     );
     expect(nameInput.disabled).toBe(true);
     expect(categorySelect.disabled).toBe(true);
@@ -1508,8 +1543,10 @@ describe("PurchaseCandidateForm", () => {
 
     expect(payload).toEqual({
       priority: "medium",
+      release_date: null,
       sale_price: 9900,
       sale_ends_at: "2026-04-30T12:00",
+      discount_ends_at: null,
       purchase_url: "https://example.test/purchased",
       memo: "更新メモ",
       wanted_reason: "更新理由",
@@ -1521,6 +1558,7 @@ describe("PurchaseCandidateForm", () => {
   });
 
   it("サーバーエラーの raw message を保存エラーとして表示しない", async () => {
+    fetchMock.mockReset();
     fetchMock.mockResolvedValue({
       ok: false,
       status: 500,

@@ -146,8 +146,10 @@ class PurchaseCandidateController extends Controller
             'brand_name' => ['nullable', 'string', 'max:255'],
             'save_brand_as_candidate' => ['nullable', 'boolean'],
             'price' => ['nullable', 'integer', 'min:0'],
+            'release_date' => ['nullable', 'date'],
             'sale_price' => ['nullable', 'integer', 'min:0'],
             'sale_ends_at' => ['nullable', 'date'],
+            'discount_ends_at' => ['nullable', 'date'],
             'purchase_url' => ['nullable', 'url'],
             'memo' => ['nullable', 'string'],
             'wanted_reason' => ['nullable', 'string'],
@@ -225,8 +227,10 @@ class PurchaseCandidateController extends Controller
 
             return $request->validate([
                 'priority' => ['nullable', 'string', 'in:high,medium,low'],
+                'release_date' => ['nullable', 'date'],
                 'sale_price' => ['nullable', 'integer', 'min:0'],
                 'sale_ends_at' => ['nullable', 'date'],
+                'discount_ends_at' => ['nullable', 'date'],
                 'purchase_url' => ['nullable', 'url'],
                 'memo' => ['nullable', 'string'],
                 'wanted_reason' => ['nullable', 'string'],

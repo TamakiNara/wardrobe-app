@@ -61,6 +61,18 @@ function formatDateTime(value: string | null): string {
   }).format(new Date(value));
 }
 
+function formatDate(value: string | null): string {
+  if (!value) {
+    return "未設定";
+  }
+
+  return new Intl.DateTimeFormat("ja-JP", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date(value));
+}
+
 function getStatusBadgeClass(status: PurchaseCandidateStatus): string {
   switch (status) {
     case "purchased":
@@ -484,6 +496,7 @@ export default async function PurchaseCandidateDetailPage({
                 {formatPrice(candidate.price)}
               </dd>
             </div>
+            <div className="hidden md:block" aria-hidden="true" />
             <div>
               <dt className="text-sm font-medium text-gray-700">セール価格</dt>
               <dd
@@ -494,8 +507,20 @@ export default async function PurchaseCandidateDetailPage({
             </div>
             <div>
               <dt className="text-sm font-medium text-gray-700">
-                セール終了予定
+                セール終了日
               </dt>
+              <dd className="mt-1 text-sm text-gray-600">
+                {formatDateTime(candidate.discount_ends_at)}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-sm font-medium text-gray-700">発売日</dt>
+              <dd className="mt-1 text-sm text-gray-600">
+                {formatDate(candidate.release_date)}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-sm font-medium text-gray-700">販売終了日</dt>
               <dd className="mt-1 text-sm text-gray-600">
                 {formatDateTime(candidate.sale_ends_at)}
               </dd>

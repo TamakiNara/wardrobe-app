@@ -220,6 +220,7 @@ describe("PurchaseCandidatesPage", () => {
             price: 19800,
             sale_price: 14800,
             sale_ends_at: "2026-03-31T18:00:00+09:00",
+            discount_ends_at: "2026-03-31T18:00:00+09:00",
             purchase_url: "https://example.test/products/coat",
             colors: [
               {
@@ -297,7 +298,7 @@ describe("PurchaseCandidatesPage", () => {
     expect(markup).toContain("19,800円");
     expect(markup).toContain("14,800");
     expect(markup).toContain("セール中");
-    expect(markup).toContain("セール終了予定");
+    expect(markup).toContain("セール終了日");
     expect(markup).toContain("購入検討管理");
     expect(markup).toContain("購入検討一覧");
     expect(markup).toContain(

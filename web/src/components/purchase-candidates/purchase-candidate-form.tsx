@@ -264,15 +264,15 @@ function toDateTimeLocalValue(value: string | null): string {
   return localDate.toISOString().slice(0, 16);
 }
 
-function getSaleEndsAtDateValue(value: string): string {
+function getDateInputValue(value: string): string {
   return value.match(/^(\d{4}-\d{2}-\d{2})T\d{2}:\d{2}$/)?.[1] ?? "";
 }
 
-function getSaleEndsAtTimeValue(value: string): string {
+function getTimeInputValue(value: string): string {
   return value.match(/^\d{4}-\d{2}-\d{2}T(\d{2}:\d{2})$/)?.[1] ?? "";
 }
 
-export function resolveSaleEndsAtFromDateInput(
+export function resolveDateTimeFromDateInput(
   dateValue: string,
   currentValue: string,
 ): string {
@@ -280,20 +280,23 @@ export function resolveSaleEndsAtFromDateInput(
     return "";
   }
 
-  return `${dateValue}T${getSaleEndsAtTimeValue(currentValue) || "00:00"}`;
+  return `${dateValue}T${getTimeInputValue(currentValue) || "00:00"}`;
 }
 
-export function resolveSaleEndsAtFromTimeInput(
+export function resolveDateTimeFromTimeInput(
   timeValue: string,
   currentValue: string,
 ): string {
-  const dateValue = getSaleEndsAtDateValue(currentValue);
+  const dateValue = getDateInputValue(currentValue);
   if (dateValue === "") {
     return currentValue;
   }
 
   return `${dateValue}T${timeValue || "00:00"}`;
 }
+
+export const resolveSaleEndsAtFromDateInput = resolveDateTimeFromDateInput;
+export const resolveSaleEndsAtFromTimeInput = resolveDateTimeFromTimeInput;
 
 function createEditableCustomSizeFieldId(index: number): string {
   const randomUuid = globalThis.crypto?.randomUUID?.();
@@ -329,8 +332,10 @@ export default function PurchaseCandidateForm({
   const [brandName, setBrandName] = useState("");
   const [saveBrandAsCandidate, setSaveBrandAsCandidate] = useState(false);
   const [price, setPrice] = useState("");
+  const [releaseDate, setReleaseDate] = useState("");
   const [salePrice, setSalePrice] = useState("");
   const [saleEndsAt, setSaleEndsAt] = useState("");
+  const [discountEndsAt, setDiscountEndsAt] = useState("");
   const [purchaseUrl, setPurchaseUrl] = useState("");
   const [wantedReason, setWantedReason] = useState("");
   const [memo, setMemo] = useState("");
@@ -665,10 +670,12 @@ export default function PurchaseCandidateForm({
           setBrandName(candidate.brand_name ?? "");
           setSaveBrandAsCandidate(false);
           setPrice(candidate.price === null ? "" : String(candidate.price));
+          setReleaseDate(candidate.release_date ?? "");
           setSalePrice(
             candidate.sale_price === null ? "" : String(candidate.sale_price),
           );
           setSaleEndsAt(toDateTimeLocalValue(candidate.sale_ends_at));
+          setDiscountEndsAt(toDateTimeLocalValue(candidate.discount_ends_at));
           setPurchaseUrl(candidate.purchase_url ?? "");
           setWantedReason(candidate.wanted_reason ?? "");
           setMemo(candidate.memo ?? "");
@@ -804,8 +811,10 @@ export default function PurchaseCandidateForm({
     setBrandName(payload.brand_name ?? "");
     setSaveBrandAsCandidate(false);
     setPrice(payload.price === null ? "" : String(payload.price));
+    setReleaseDate(payload.release_date ?? "");
     setSalePrice(payload.sale_price === null ? "" : String(payload.sale_price));
     setSaleEndsAt(toDateTimeLocalValue(payload.sale_ends_at));
+    setDiscountEndsAt(toDateTimeLocalValue(payload.discount_ends_at));
     setPurchaseUrl(payload.purchase_url ?? "");
     setWantedReason(payload.wanted_reason ?? "");
     setMemo(payload.memo ?? "");
@@ -976,8 +985,10 @@ export default function PurchaseCandidateForm({
     if (isPurchasedLocked) {
       return {
         priority,
+        release_date: releaseDate || null,
         sale_price: salePrice === "" ? null : Number(salePrice),
         sale_ends_at: saleEndsAt === "" ? null : saleEndsAt,
+        discount_ends_at: discountEndsAt === "" ? null : discountEndsAt,
         purchase_url: normalizeNullableString(purchaseUrl) || null,
         memo: memo.trim() || null,
         wanted_reason: wantedReason.trim() || null,
@@ -1091,8 +1102,10 @@ export default function PurchaseCandidateForm({
       brand_name: normalizeNullableString(brandName) || null,
       save_brand_as_candidate: saveBrandAsCandidate,
       price: price === "" ? null : Number(price),
+      release_date: releaseDate || null,
       sale_price: salePrice === "" ? null : Number(salePrice),
       sale_ends_at: saleEndsAt === "" ? null : saleEndsAt,
+      discount_ends_at: discountEndsAt === "" ? null : discountEndsAt,
       purchase_url: normalizeNullableString(purchaseUrl) || null,
       memo: memo.trim() || null,
       wanted_reason: wantedReason.trim() || null,
@@ -1338,7 +1351,7 @@ export default function PurchaseCandidateForm({
       <ItemFormSection title="基本情報" className="lg:col-span-1 lg:order-1">
         {isPurchasedLocked && (
           <p className="text-sm text-amber-700">
-            購入済みの購入検討では、メモ・欲しい理由・優先度・セール情報・購入
+            購入済みの購入検討では、メモ・欲しい理由・優先度・発売日・販売期間情報・購入
             URL・画像のみ更新できます。アイテムには反映されません。
           </p>
         )}
@@ -1783,6 +1796,8 @@ export default function PurchaseCandidateForm({
             </div>
           </div>
 
+          <div className="hidden md:block" aria-hidden="true" />
+
           <div>
             <label
               htmlFor="sale_price"
@@ -1806,7 +1821,75 @@ export default function PurchaseCandidateForm({
           <div>
             <div className="mb-1 flex items-center justify-between gap-3">
               <span className="block text-sm font-medium text-gray-700">
-                セール終了予定
+                セール終了日
+              </span>
+              <button
+                type="button"
+                onClick={() => setDiscountEndsAt("")}
+                disabled={discountEndsAt === ""}
+                className="text-xs font-medium text-gray-500 underline-offset-2 transition hover:text-gray-800 hover:underline disabled:cursor-not-allowed disabled:text-gray-300 disabled:no-underline"
+              >
+                リセット
+              </button>
+            </div>
+            <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_8rem]">
+              <input
+                id="discount_ends_at_date"
+                aria-label="セール終了日の日付"
+                type="date"
+                value={getDateInputValue(discountEndsAt)}
+                onChange={(event) =>
+                  setDiscountEndsAt(
+                    resolveDateTimeFromDateInput(
+                      event.target.value,
+                      discountEndsAt,
+                    ),
+                  )
+                }
+                style={{ colorScheme: "light", accentColor: "#2563eb" }}
+                className="h-[50px] w-full rounded-lg border border-gray-300 bg-white px-4 text-gray-950 shadow-sm outline-none transition [color-scheme:light] focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              />
+              <input
+                id="discount_ends_at_time"
+                aria-label="セール終了日の時刻"
+                type="time"
+                value={getTimeInputValue(discountEndsAt)}
+                onChange={(event) =>
+                  setDiscountEndsAt(
+                    resolveDateTimeFromTimeInput(
+                      event.target.value,
+                      discountEndsAt,
+                    ),
+                  )
+                }
+                disabled={getDateInputValue(discountEndsAt) === ""}
+                style={{ colorScheme: "light", accentColor: "#2563eb" }}
+                className="h-[50px] w-full rounded-lg border border-gray-300 bg-white px-4 text-gray-950 shadow-sm outline-none transition [color-scheme:light] focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label
+              htmlFor="release_date"
+              className="mb-1 block text-sm font-medium text-gray-700"
+            >
+              発売日
+            </label>
+            <input
+              id="release_date"
+              type="date"
+              value={releaseDate}
+              onChange={(event) => setReleaseDate(event.target.value)}
+              style={{ colorScheme: "light", accentColor: "#2563eb" }}
+              className="h-[50px] w-full rounded-lg border border-gray-300 bg-white px-4 text-gray-950 shadow-sm outline-none transition [color-scheme:light] focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            />
+          </div>
+
+          <div>
+            <div className="mb-1 flex items-center justify-between gap-3">
+              <span className="block text-sm font-medium text-gray-700">
+                販売終了日
               </span>
               <button
                 type="button"
@@ -1820,12 +1903,12 @@ export default function PurchaseCandidateForm({
             <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_8rem]">
               <input
                 id="sale_ends_at_date"
-                aria-label="セール終了予定の日付"
+                aria-label="販売終了日の日付"
                 type="date"
-                value={getSaleEndsAtDateValue(saleEndsAt)}
+                value={getDateInputValue(saleEndsAt)}
                 onChange={(event) =>
                   setSaleEndsAt(
-                    resolveSaleEndsAtFromDateInput(
+                    resolveDateTimeFromDateInput(
                       event.target.value,
                       saleEndsAt,
                     ),
@@ -1836,18 +1919,18 @@ export default function PurchaseCandidateForm({
               />
               <input
                 id="sale_ends_at_time"
-                aria-label="セール終了予定の時刻"
+                aria-label="販売終了日の時刻"
                 type="time"
-                value={getSaleEndsAtTimeValue(saleEndsAt)}
+                value={getTimeInputValue(saleEndsAt)}
                 onChange={(event) =>
                   setSaleEndsAt(
-                    resolveSaleEndsAtFromTimeInput(
+                    resolveDateTimeFromTimeInput(
                       event.target.value,
                       saleEndsAt,
                     ),
                   )
                 }
-                disabled={getSaleEndsAtDateValue(saleEndsAt) === ""}
+                disabled={getDateInputValue(saleEndsAt) === ""}
                 style={{ colorScheme: "light", accentColor: "#2563eb" }}
                 className="h-[50px] w-full rounded-lg border border-gray-300 bg-white px-4 text-gray-950 shadow-sm outline-none transition [color-scheme:light] focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400"
               />

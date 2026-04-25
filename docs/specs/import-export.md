@@ -49,6 +49,8 @@ Web UI:
 }
 ```
 
+- `purchase_candidates` では `release_date` / `sale_ends_at` / `discount_ends_at` も export / import 対象に含める
+
 注意:
 
 - 画像を Base64 で含むため、ファイルサイズが大きくなる場合があります

@@ -88,8 +88,10 @@ class PurchaseCandidateEndpointsTest extends TestCase
             'category_id' => $categoryId,
             'brand_name' => 'Sample Brand',
             'price' => 14800,
+            'release_date' => '2026-03-20',
             'sale_price' => 12800,
-            'sale_ends_at' => '2026-04-01 12:00:00',
+            'sale_ends_at' => '2026-04-30 12:00:00',
+            'discount_ends_at' => '2026-04-01 12:00:00',
             'purchase_url' => 'https://example.test/products/1',
             'memo' => 'メモ',
             'wanted_reason' => '欲しい理由',
@@ -527,8 +529,10 @@ class PurchaseCandidateEndpointsTest extends TestCase
             'category_id' => 'pants_pants',
             'brand_name' => 'Brand',
             'price' => 9800,
+            'release_date' => '2026-03-20',
             'sale_price' => 8800,
-            'sale_ends_at' => '2026-03-31T18:00:00+09:00',
+            'sale_ends_at' => '2026-04-30T18:00:00+09:00',
+            'discount_ends_at' => '2026-03-31T18:00:00+09:00',
             'purchase_url' => 'https://example.test/products/2',
             'memo' => '試着したい',
             'wanted_reason' => '仕事用を補充したい',
@@ -572,7 +576,10 @@ class PurchaseCandidateEndpointsTest extends TestCase
             ->assertJsonPath('message', 'created')
             ->assertJsonPath('purchaseCandidate.name', '白パンツ候補')
             ->assertJsonPath('purchaseCandidate.category_id', 'pants_pants')
+            ->assertJsonPath('purchaseCandidate.release_date', '2026-03-20')
             ->assertJsonPath('purchaseCandidate.sale_price', 8800)
+            ->assertJsonPath('purchaseCandidate.sale_ends_at', '2026-04-30T18:00:00.000000Z')
+            ->assertJsonPath('purchaseCandidate.discount_ends_at', '2026-03-31T18:00:00.000000Z')
             ->assertJsonPath('purchaseCandidate.size_details.structured.shoulder_width', 41.5)
             ->assertJsonPath('purchaseCandidate.size_details.custom_fields.0.label', '裄丈')
             ->assertJsonPath('purchaseCandidate.spec.bottoms.length_type', 'ankle')
@@ -862,8 +869,10 @@ class PurchaseCandidateEndpointsTest extends TestCase
             'category_id' => 'tops_knit_sweater',
             'brand_name' => null,
             'price' => 12000,
+            'release_date' => '2026-04-01',
             'sale_price' => 9800,
-            'sale_ends_at' => '2026-04-15T12:00:00+09:00',
+            'sale_ends_at' => '2026-04-30T12:00:00+09:00',
+            'discount_ends_at' => '2026-04-15T12:00:00+09:00',
             'purchase_url' => null,
             'memo' => '更新メモ',
             'wanted_reason' => null,
@@ -895,7 +904,10 @@ class PurchaseCandidateEndpointsTest extends TestCase
             ->assertJsonPath('message', 'updated')
             ->assertJsonPath('purchaseCandidate.status', 'on_hold')
             ->assertJsonPath('purchaseCandidate.category_id', 'tops_knit_sweater')
+            ->assertJsonPath('purchaseCandidate.release_date', '2026-04-01')
             ->assertJsonPath('purchaseCandidate.sale_price', 9800)
+            ->assertJsonPath('purchaseCandidate.sale_ends_at', '2026-04-30T12:00:00.000000Z')
+            ->assertJsonPath('purchaseCandidate.discount_ends_at', '2026-04-15T12:00:00.000000Z')
             ->assertJsonPath('purchaseCandidate.size_details.structured.body_length', 68)
             ->assertJsonPath('purchaseCandidate.colors.0.value', 'gray')
             ->assertJsonPath('purchaseCandidate.colors.0.custom_label', '12 GRAY');
