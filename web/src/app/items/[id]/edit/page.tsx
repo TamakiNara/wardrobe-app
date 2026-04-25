@@ -1415,7 +1415,7 @@ export default function EditItemPage({
 
   return (
     <main className="min-h-screen bg-gray-100 p-6 pb-28 md:p-10 md:pb-10">
-      <div className="mx-auto max-w-7xl space-y-6">
+      <div className="mx-auto max-w-6xl space-y-6">
         <FormPageHeader
           breadcrumbs={[
             { label: "ホーム", href: "/" },
@@ -1438,9 +1438,9 @@ export default function EditItemPage({
 
         <form
           onSubmit={handleSubmit}
-          className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start lg:gap-6"
+          className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_20rem] xl:items-start xl:gap-6"
         >
-          <div className="hidden lg:col-start-2 lg:row-start-1 lg:block lg:sticky lg:top-6 lg:self-start">
+          <div className="hidden xl:col-start-2 xl:row-start-1 xl:block xl:sticky xl:top-6 xl:self-start">
             <ItemFormPreviewPanel
               showHeader={false}
               summary={previewSummary}
@@ -1464,7 +1464,7 @@ export default function EditItemPage({
               }
             />
           </div>
-          <div className="space-y-5 lg:col-start-1">
+          <div className="space-y-5 xl:col-start-1">
             <ItemFormSection title="基本情報">
               <div>
                 <FieldLabel htmlFor="name" label="名前" />
@@ -2050,7 +2050,7 @@ export default function EditItemPage({
                 </div>
               </div>
 
-              <div className="lg:hidden">
+              <div className="xl:hidden">
                 <ItemFormPreviewPanel
                   compact
                   showHeader={false}

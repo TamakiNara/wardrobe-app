@@ -1193,7 +1193,7 @@ export default function NewItemPage() {
 
   return (
     <main className="min-h-screen bg-gray-100 p-6 pb-28 md:p-10 md:pb-10">
-      <div className="mx-auto max-w-7xl space-y-6">
+      <div className="mx-auto max-w-6xl space-y-6">
         <FormPageHeader
           breadcrumbs={[
             { label: "ホーム", href: "/" },
@@ -1227,7 +1227,7 @@ export default function NewItemPage() {
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-5 lg:grid lg:grid-cols-2 lg:items-start lg:gap-5 lg:space-y-0">
-            <ItemFormSection title="基本情報" className="lg:col-span-1">
+            <ItemFormSection title="基本情報" className="lg:col-span-2">
               <div>
                 <FieldLabel htmlFor="name" label="名前" />
                 <input
@@ -1250,7 +1250,7 @@ export default function NewItemPage() {
             </ItemFormSection>
 
             <ItemClassificationGroup
-              className="lg:col-span-1"
+              className="lg:col-span-2"
               attributeSection={
                 shouldShowDetailsSection ? (
                   <div className="space-y-4">
@@ -1721,7 +1721,7 @@ export default function NewItemPage() {
               ) : null}
             </ItemClassificationGroup>
 
-            <ItemFormSection title="色" className="lg:col-span-1">
+            <ItemFormSection title="色" className="lg:col-span-2">
               <div className="grid gap-6 md:grid-cols-2">
                 <div className="space-y-3" data-error-key="mainColor">
                   <FieldLabel
@@ -1828,7 +1828,7 @@ export default function NewItemPage() {
               </div>
             </ItemFormSection>
 
-            <ItemFormSection title="利用条件・状態" className="lg:col-span-1">
+            <ItemFormSection title="利用条件・状態" className="lg:col-span-2">
               <div>
                 <p className="mb-2 text-sm font-medium text-gray-700">季節</p>
                 <div className="flex flex-wrap gap-2">

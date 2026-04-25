@@ -738,6 +738,8 @@ describe("新規登録画面", () => {
     expect(container.textContent).toContain("補足情報");
 
     const formColumn = container.querySelector("form > div.space-y-5");
+    const pageShell = container.querySelector("main > div.mx-auto");
+    expect(pageShell?.className).toContain("max-w-6xl");
     const renderedSectionTitles = Array.from(
       formColumn?.querySelectorAll(
         "section.rounded-2xl.border.border-gray-200.bg-white h2",
@@ -754,6 +756,27 @@ describe("新規登録画面", () => {
       "補足情報",
       "画像",
     ]);
+    const sectionsByTitle = new Map(
+      Array.from(
+        formColumn?.querySelectorAll(
+          "section.rounded-2xl.border.border-gray-200.bg-white",
+        ) ?? [],
+      ).map((section) => [section.querySelector("h2")?.textContent, section]),
+    );
+    expect(sectionsByTitle.get("基本情報")?.className).toContain(
+      "lg:col-span-2",
+    );
+    expect(sectionsByTitle.get("分類")?.className).toContain("lg:col-span-2");
+    expect(sectionsByTitle.get("色")?.className).toContain("lg:col-span-2");
+    expect(sectionsByTitle.get("利用条件・状態")?.className).toContain(
+      "lg:col-span-2",
+    );
+    expect(sectionsByTitle.get("購入情報")?.className).toContain(
+      "lg:col-span-1",
+    );
+    expect(sectionsByTitle.get("補足情報")?.className).toContain(
+      "lg:col-span-1",
+    );
     expect(container.textContent).toContain("ケア状態");
     expect(container.textContent).toContain("メインカラー");
     expect(container.textContent).toContain("ブランド候補にも追加する");

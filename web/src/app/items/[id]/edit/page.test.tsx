@@ -578,6 +578,8 @@ describe("編集画面", () => {
     expect(container.textContent).toContain("サイズ");
     expect(container.textContent).toContain("購入・補足");
     expect(container.textContent).toContain("ケア状態");
+    const pageShell = container.querySelector("main > div.mx-auto");
+    expect(pageShell?.className).toContain("max-w-6xl");
     expect(container.textContent).toContain("メインカラー");
     expect(container.textContent).toContain("ブランド候補にも追加する");
     expect(container.textContent?.match(/必須/g)?.length).toBe(3);
@@ -592,6 +594,10 @@ describe("編集画面", () => {
     expect(
       (container.querySelector("#price") as HTMLInputElement | null)?.value,
     ).toBe("19800");
+    const form = container.querySelector("form");
+    expect(form?.className).toContain("xl:grid-cols-[minmax(0,1fr)_20rem]");
+    expect(form?.className).not.toContain("lg:grid-cols-[minmax(0,1fr)_20rem]");
+    expect(form?.firstElementChild?.className).toContain("xl:col-start-2");
 
     await openSizeDetails();
 
