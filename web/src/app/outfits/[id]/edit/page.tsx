@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import FieldLabel from "@/components/forms/field-label";
+import OutfitItemSelectionFilters from "@/components/outfits/outfit-item-selection-filters";
 import { FormPageHeader } from "@/components/shared/form-page-header";
 import {
   flattenValidationErrors,
@@ -11,12 +12,25 @@ import {
 } from "@/lib/api/error-message";
 import { isItemVisibleByCategorySettings } from "@/lib/api/categories";
 import {
+  buildOutfitItemBrandOptions,
+  buildOutfitItemCategoryOptions,
+  buildOutfitItemSeasonOptions,
+  buildOutfitItemTpoOptions,
+  filterOutfitCandidateItems,
+} from "@/lib/outfits/item-selection-filters";
+import {
+  findItemCategoryLabel,
+  findItemShapeLabel,
+} from "@/lib/master-data/item-shapes";
+import {
   fetchCategoryVisibilitySettings,
+  fetchUserPreferences,
   fetchUserTpos,
 } from "@/lib/api/settings";
 import type { CreateOutfitPayload } from "@/types/outfits";
 import type { ItemRecord } from "@/types/items";
 import { SEASON_OPTIONS } from "@/lib/master-data/item-attributes";
+import { mapPreferenceSeasonToFilterValue } from "@/lib/settings/preferences";
 import type { UserTpoRecord } from "@/types/settings";
 
 type Item = ItemRecord;
@@ -62,6 +76,12 @@ export default function EditOutfitPage({
 
   const [items, setItems] = useState<Item[]>([]);
   const [selectedItemIds, setSelectedItemIds] = useState<number[]>([]);
+  const [itemFilterKeyword, setItemFilterKeyword] = useState("");
+  const [itemFilterBrand, setItemFilterBrand] = useState("");
+  const [itemFilterCategory, setItemFilterCategory] = useState("");
+  const [itemFilterSubcategory, setItemFilterSubcategory] = useState("");
+  const [itemFilterSeason, setItemFilterSeason] = useState("");
+  const [itemFilterTpo, setItemFilterTpo] = useState("");
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
@@ -74,7 +94,13 @@ export default function EditOutfitPage({
       setOutfitId(Number(id));
 
       try {
-        const [outfitRes, itemsRes, settings, tpoResponse] = await Promise.all([
+        const [
+          outfitRes,
+          itemsRes,
+          settings,
+          tpoResponse,
+          preferencesResponse,
+        ] = await Promise.all([
           fetch(`/api/outfits/${id}`, {
             headers: { Accept: "application/json" },
           }),
@@ -83,6 +109,7 @@ export default function EditOutfitPage({
           }),
           fetchCategoryVisibilitySettings().catch(() => null),
           fetchUserTpos(true).catch(() => ({ tpos: [] as UserTpoRecord[] })),
+          fetchUserPreferences().catch(() => ({ preferences: {} })),
         ]);
 
         if (outfitRes.status === 401 || itemsRes.status === 401) {
@@ -153,6 +180,13 @@ export default function EditOutfitPage({
         }, []);
 
         setItems(nextItems);
+        setItemFilterSeason(
+          (current) =>
+            current ||
+            mapPreferenceSeasonToFilterValue(
+              preferencesResponse.preferences?.currentSeason ?? null,
+            ),
+        );
       } finally {
         setLoading(false);
         setLoadingItems(false);
@@ -212,9 +246,53 @@ export default function EditOutfitPage({
     );
   }, [items, selectedItemIds]);
 
+  const itemCategoryOptions = useMemo(
+    () => buildOutfitItemCategoryOptions(candidateItems),
+    [candidateItems],
+  );
+  const itemBrandOptions = useMemo(
+    () => buildOutfitItemBrandOptions(candidateItems),
+    [candidateItems],
+  );
+  const itemSeasonOptions = useMemo(
+    () => buildOutfitItemSeasonOptions(candidateItems),
+    [candidateItems],
+  );
+  const itemTpoFilterOptions = useMemo(
+    () => buildOutfitItemTpoOptions(candidateItems),
+    [candidateItems],
+  );
+  const filteredCandidateItems = useMemo(
+    () =>
+      filterOutfitCandidateItems(candidateItems, {
+        keyword: itemFilterKeyword,
+        brand: itemFilterBrand,
+        category: itemFilterCategory,
+        subcategory: itemFilterSubcategory,
+        season: itemFilterSeason,
+        tpo: itemFilterTpo,
+      }),
+    [
+      candidateItems,
+      itemFilterBrand,
+      itemFilterCategory,
+      itemFilterKeyword,
+      itemFilterSeason,
+      itemFilterSubcategory,
+      itemFilterTpo,
+    ],
+  );
+
   const hasDisposedSelectedItems = useMemo(() => {
     return selectedItems.some((item) => item.status === "disposed");
   }, [selectedItems]);
+
+  function formatItemClassification(item: Item) {
+    return `${findItemCategoryLabel(item.category)} / ${findItemShapeLabel(
+      item.category,
+      item.shape,
+    )}`;
+  }
 
   function buildPayload(): CreateOutfitPayload {
     return {
@@ -497,63 +575,95 @@ export default function EditOutfitPage({
                 登録済みアイテムがありません。先にアイテムを登録してください。
               </div>
             ) : (
-              <div className="grid gap-3 md:grid-cols-2">
-                {candidateItems.map((item) => {
-                  const checked = selectedItemIds.includes(item.id);
-                  const mainColor = item.colors.find((c) => c.role === "main");
+              <>
+                <OutfitItemSelectionFilters
+                  keyword={itemFilterKeyword}
+                  brand={itemFilterBrand}
+                  category={itemFilterCategory}
+                  subcategory={itemFilterSubcategory}
+                  season={itemFilterSeason}
+                  tpo={itemFilterTpo}
+                  categoryOptions={itemCategoryOptions}
+                  brandOptions={itemBrandOptions}
+                  seasonOptions={itemSeasonOptions}
+                  tpoOptions={itemTpoFilterOptions}
+                  onKeywordChange={setItemFilterKeyword}
+                  onBrandChange={setItemFilterBrand}
+                  onCategoryChange={(value) => {
+                    setItemFilterCategory(value);
+                    setItemFilterSubcategory("");
+                  }}
+                  onSubcategoryChange={setItemFilterSubcategory}
+                  onSeasonChange={setItemFilterSeason}
+                  onTpoChange={setItemFilterTpo}
+                />
 
-                  return (
-                    <label
-                      key={item.id}
-                      className={`rounded-xl border p-4 transition ${
-                        checked
-                          ? "border-blue-500 bg-blue-50"
-                          : "border-gray-300 bg-white"
-                      }`}
-                    >
-                      <div className="flex items-start gap-3">
-                        <input
-                          type="checkbox"
-                          className="mt-1 h-4 w-4"
-                          checked={checked}
-                          onChange={() => handleItemToggle(item.id)}
-                        />
+                {filteredCandidateItems.length === 0 ? (
+                  <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-6 text-sm text-gray-600">
+                    条件に合うアイテムがありません。絞り込み条件を見直してください。
+                  </div>
+                ) : (
+                  <div className="grid gap-3 md:grid-cols-2">
+                    {filteredCandidateItems.map((item) => {
+                      const checked = selectedItemIds.includes(item.id);
+                      const mainColor = item.colors.find(
+                        (c) => c.role === "main",
+                      );
 
-                        <div className="min-w-0 flex-1">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <p className="font-medium text-gray-900">
-                              {item.name || "名称未設定"}
-                            </p>
-                            {item.status === "disposed" && (
-                              <span className="rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800">
-                                手放し済み
-                              </span>
-                            )}
-                          </div>
-                          <p className="mt-1 text-sm text-gray-600">
-                            {item.category} / {item.shape}
-                          </p>
-                          {item.status === "disposed" && (
-                            <p className="mt-2 text-sm text-amber-800">
-                              このアイテムは現在の候補には使えません
-                            </p>
-                          )}
+                      return (
+                        <label
+                          key={item.id}
+                          className={`rounded-xl border p-4 transition ${
+                            checked
+                              ? "border-blue-500 bg-blue-50"
+                              : "border-gray-300 bg-white"
+                          }`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <input
+                              type="checkbox"
+                              className="mt-1 h-4 w-4"
+                              checked={checked}
+                              onChange={() => handleItemToggle(item.id)}
+                            />
 
-                          {mainColor && (
-                            <div className="mt-2 inline-flex items-center gap-2 rounded-full border border-gray-300 px-3 py-1 text-sm">
-                              <span
-                                className="h-4 w-4 rounded-full border border-gray-300"
-                                style={{ backgroundColor: mainColor.hex }}
-                              />
-                              {mainColor.label}
+                            <div className="min-w-0 flex-1">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <p className="font-medium text-gray-900">
+                                  {item.name || "名称未設定"}
+                                </p>
+                                {item.status === "disposed" && (
+                                  <span className="rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800">
+                                    手放し済み
+                                  </span>
+                                )}
+                              </div>
+                              <p className="mt-1 text-sm text-gray-600">
+                                {formatItemClassification(item)}
+                              </p>
+                              {item.status === "disposed" && (
+                                <p className="mt-2 text-sm text-amber-800">
+                                  このアイテムは現在の候補には使えません
+                                </p>
+                              )}
+
+                              {mainColor && (
+                                <div className="mt-2 inline-flex items-center gap-2 rounded-full border border-gray-300 px-3 py-1 text-sm">
+                                  <span
+                                    className="h-4 w-4 rounded-full border border-gray-300"
+                                    style={{ backgroundColor: mainColor.hex }}
+                                  />
+                                  {mainColor.label}
+                                </div>
+                              )}
                             </div>
-                          )}
-                        </div>
-                      </div>
-                    </label>
-                  );
-                })}
-              </div>
+                          </div>
+                        </label>
+                      );
+                    })}
+                  </div>
+                )}
+              </>
             )}
 
             {hasDisposedSelectedItems && (
@@ -574,8 +684,8 @@ export default function EditOutfitPage({
                 <ol className="space-y-2 text-sm text-gray-700">
                   {selectedItems.map((item, index) => (
                     <li key={item.id}>
-                      {index + 1}. {item.name || "名称未設定"} ({item.category}{" "}
-                      / {item.shape})
+                      {index + 1}. {item.name || "名称未設定"} (
+                      {formatItemClassification(item)})
                       {item.status === "disposed" ? " / 手放し済み" : ""}
                     </li>
                   ))}

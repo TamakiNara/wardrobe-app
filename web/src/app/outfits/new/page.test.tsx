@@ -10,6 +10,7 @@ const pushMock = vi.fn();
 const refreshMock = vi.fn();
 const replaceMock = vi.fn();
 const fetchCategoryVisibilitySettingsMock = vi.fn();
+const fetchUserPreferencesMock = vi.fn();
 const fetchUserTposMock = vi.fn();
 const routerMock = {
   push: pushMock,
@@ -30,6 +31,7 @@ vi.mock("next/navigation", () => ({
 
 vi.mock("@/lib/api/settings", () => ({
   fetchCategoryVisibilitySettings: fetchCategoryVisibilitySettingsMock,
+  fetchUserPreferences: fetchUserPreferencesMock,
   fetchUserTpos: fetchUserTposMock,
 }));
 
@@ -37,6 +39,25 @@ async function waitForEffects() {
   await Promise.resolve();
   await Promise.resolve();
   await new Promise((resolve) => setTimeout(resolve, 0));
+}
+
+function changeInputValue(
+  element: HTMLInputElement | HTMLSelectElement | null,
+  value: string,
+) {
+  if (!element) {
+    return;
+  }
+
+  const prototype =
+    element instanceof HTMLInputElement
+      ? HTMLInputElement.prototype
+      : HTMLSelectElement.prototype;
+  const valueSetter = Object.getOwnPropertyDescriptor(prototype, "value")?.set;
+
+  valueSetter?.call(element, value);
+  element.dispatchEvent(new Event("input", { bubbles: true }));
+  element.dispatchEvent(new Event("change", { bubbles: true }));
 }
 
 describe("NewOutfitPage", () => {
@@ -52,6 +73,11 @@ describe("NewOutfitPage", () => {
     document.body.appendChild(container);
     root = createRoot(container);
     fetchCategoryVisibilitySettingsMock.mockRejectedValue(new Error("network"));
+    fetchUserPreferencesMock.mockResolvedValue({
+      preferences: {
+        currentSeason: null,
+      },
+    });
     fetchUserTposMock.mockResolvedValue({
       tpos: [
         { id: 1, name: "仕事", sortOrder: 1, isActive: true, isPreset: true },
@@ -163,7 +189,9 @@ describe("NewOutfitPage", () => {
       "複製元の内容を初期値として読み込みました。",
     );
     expect(container.textContent).toContain("選択中 1 件");
-    expect(container.textContent).toContain("1. 白T (tops / tshirt)");
+    expect(container.textContent).toContain(
+      "1. 白T (トップス / Tシャツ/カットソー)",
+    );
     expect(replaceMock).toHaveBeenCalledWith("/outfits/new");
   });
 
@@ -209,7 +237,9 @@ describe("NewOutfitPage", () => {
     expect(container.textContent).toContain(
       "2番目のアイテム: 手放したアイテムのため初期選択から除外",
     );
-    expect(container.textContent).toContain("1. 白T (tops / tshirt)");
+    expect(container.textContent).toContain(
+      "1. 白T (トップス / Tシャツ/カットソー)",
+    );
   });
 
   it("duplicate 初期値が見つからない場合はエラーを表示し、通常新規作成として続けられる", async () => {
@@ -409,5 +439,179 @@ describe("NewOutfitPage", () => {
     );
     expect(container.textContent).not.toContain("SQLSTATE");
     expect(container.textContent).not.toContain("Unknown column debug");
+  });
+  it("アイテム候補の絞り込みを変更しても選択済みアイテムは順序一覧に残る", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          items: [
+            {
+              id: 1,
+              name: "Logo Tee",
+              brand_name: "Acme",
+              memo: "spring favorite",
+              category: "tops",
+              subcategory: "tshirt_cutsew",
+              shape: "tshirt",
+              colors: [],
+              seasons: ["春"],
+              tpos: ["仕事"],
+            },
+            {
+              id: 2,
+              name: "Office Shirt",
+              brand_name: "Acme",
+              memo: "weekday",
+              category: "tops",
+              subcategory: "shirt_blouse",
+              shape: "shirt",
+              colors: [],
+              seasons: ["夏"],
+              tpos: ["仕事"],
+            },
+            {
+              id: 3,
+              name: "Wide Pants",
+              brand_name: "Other",
+              memo: "weekend",
+              category: "pants",
+              subcategory: "pants",
+              shape: "wide",
+              colors: [],
+              seasons: ["冬"],
+              tpos: ["休日"],
+            },
+          ],
+        }),
+      }),
+    );
+
+    const { default: NewOutfitPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(NewOutfitPage));
+      await waitForEffects();
+    });
+
+    const categorySelect = container.querySelector<HTMLSelectElement>(
+      "#outfit-item-filter-category",
+    );
+    const subcategorySelect = container.querySelector<HTMLSelectElement>(
+      "#outfit-item-filter-subcategory",
+    );
+    const seasonSelect = container.querySelector<HTMLSelectElement>(
+      "#outfit-item-filter-season",
+    );
+
+    expect(subcategorySelect?.disabled).toBe(true);
+
+    await act(async () => {
+      changeInputValue(categorySelect, "tops");
+      await waitForEffects();
+    });
+
+    expect(subcategorySelect?.disabled).toBe(false);
+    expect(
+      Array.from(subcategorySelect?.options ?? []).map(
+        (option) => option.value,
+      ),
+    ).toContain("shirt_blouse");
+
+    await act(async () => {
+      changeInputValue(subcategorySelect, "shirt_blouse");
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain("Office Shirt");
+    expect(container.textContent).not.toContain("Wide Pants");
+
+    const officeShirtLabel = Array.from(
+      container.querySelectorAll("label"),
+    ).find((label) => label.textContent?.includes("Office Shirt"));
+    const officeShirtCheckbox =
+      officeShirtLabel?.querySelector<HTMLInputElement>(
+        'input[type="checkbox"]',
+      ) ?? null;
+
+    await act(async () => {
+      officeShirtCheckbox?.click();
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain("選択中の順序");
+    expect(container.textContent).toContain("1. Office Shirt");
+
+    await act(async () => {
+      changeInputValue(categorySelect, "pants");
+      await waitForEffects();
+    });
+
+    expect(subcategorySelect?.value).toBe("");
+
+    await act(async () => {
+      changeInputValue(seasonSelect, "冬");
+      await waitForEffects();
+    });
+
+    const candidateLabels = Array.from(
+      container.querySelectorAll("label"),
+    ).filter((label) => label.querySelector('input[type="checkbox"]'));
+
+    expect(
+      candidateLabels.some((label) =>
+        label.textContent?.includes("Wide Pants"),
+      ),
+    ).toBe(true);
+    expect(
+      candidateLabels.some((label) =>
+        label.textContent?.includes("Office Shirt"),
+      ),
+    ).toBe(false);
+    expect(container.textContent).toContain("1. Office Shirt");
+  });
+
+  it("現在の季節設定がある場合はアイテム絞り込みの季節初期値に反映する", async () => {
+    fetchUserPreferencesMock.mockResolvedValue({
+      preferences: {
+        currentSeason: "spring",
+      },
+    });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          items: [
+            {
+              id: 1,
+              name: "Spring Knit",
+              category: "tops",
+              subcategory: "knit_sweater",
+              shape: "knit",
+              colors: [],
+              seasons: ["春"],
+              tpos: [],
+            },
+          ],
+        }),
+      }),
+    );
+
+    const { default: NewOutfitPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(NewOutfitPage));
+      await waitForEffects();
+    });
+
+    const seasonSelect = container.querySelector<HTMLSelectElement>(
+      "#outfit-item-filter-season",
+    );
+
+    expect(seasonSelect?.value).toBe("春");
   });
 });

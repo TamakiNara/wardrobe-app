@@ -8,6 +8,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const pushMock = vi.fn();
 const refreshMock = vi.fn();
 const fetchCategoryVisibilitySettingsMock = vi.fn();
+const fetchUserPreferencesMock = vi.fn();
 const fetchUserTposMock = vi.fn();
 const routerMock = { push: pushMock, refresh: refreshMock };
 
@@ -22,6 +23,7 @@ vi.mock("next/navigation", () => ({
 
 vi.mock("@/lib/api/settings", () => ({
   fetchCategoryVisibilitySettings: fetchCategoryVisibilitySettingsMock,
+  fetchUserPreferences: fetchUserPreferencesMock,
   fetchUserTpos: fetchUserTposMock,
 }));
 
@@ -29,6 +31,25 @@ async function waitForEffects() {
   await Promise.resolve();
   await Promise.resolve();
   await new Promise((resolve) => setTimeout(resolve, 0));
+}
+
+function changeInputValue(
+  element: HTMLInputElement | HTMLSelectElement | null,
+  value: string,
+) {
+  if (!element) {
+    return;
+  }
+
+  const prototype =
+    element instanceof HTMLInputElement
+      ? HTMLInputElement.prototype
+      : HTMLSelectElement.prototype;
+  const valueSetter = Object.getOwnPropertyDescriptor(prototype, "value")?.set;
+
+  valueSetter?.call(element, value);
+  element.dispatchEvent(new Event("input", { bubbles: true }));
+  element.dispatchEvent(new Event("change", { bubbles: true }));
 }
 
 describe("EditOutfitPage", () => {
@@ -42,6 +63,11 @@ describe("EditOutfitPage", () => {
     document.body.appendChild(container);
     root = createRoot(container);
     fetchCategoryVisibilitySettingsMock.mockRejectedValue(new Error("network"));
+    fetchUserPreferencesMock.mockResolvedValue({
+      preferences: {
+        currentSeason: null,
+      },
+    });
     fetchUserTposMock.mockResolvedValue({
       tpos: [
         { id: 1, name: "仕事", sortOrder: 1, isActive: true, isPreset: true },
@@ -428,5 +454,226 @@ describe("EditOutfitPage", () => {
     );
     expect(container.textContent).not.toContain("SQLSTATE");
     expect(container.textContent).not.toContain("Unknown column debug");
+  });
+  it("候補の絞り込みを変えても選択済みアイテムは編集中の順序一覧に残る", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn()
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => ({
+            outfit: {
+              id: 10,
+              name: "Office Outfit",
+              memo: null,
+              seasons: [],
+              tpos: [],
+              tpo_ids: [],
+              outfitItems: [
+                {
+                  id: 201,
+                  item_id: 2,
+                  sort_order: 1,
+                  item: {
+                    id: 2,
+                    name: "Office Shirt",
+                    status: "active",
+                    brand_name: "Acme",
+                    memo: "weekday",
+                    category: "tops",
+                    subcategory: "shirt_blouse",
+                    shape: "shirt",
+                    colors: [],
+                    seasons: ["夏"],
+                    tpos: ["仕事"],
+                    tpo_ids: [],
+                  },
+                },
+              ],
+            },
+          }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => ({
+            items: [
+              {
+                id: 1,
+                name: "Logo Tee",
+                status: "active",
+                brand_name: "Acme",
+                memo: "spring favorite",
+                category: "tops",
+                subcategory: "tshirt_cutsew",
+                shape: "tshirt",
+                colors: [],
+                seasons: ["春"],
+                tpos: ["休日"],
+                tpo_ids: [],
+              },
+              {
+                id: 2,
+                name: "Office Shirt",
+                status: "active",
+                brand_name: "Acme",
+                memo: "weekday",
+                category: "tops",
+                subcategory: "shirt_blouse",
+                shape: "shirt",
+                colors: [],
+                seasons: ["夏"],
+                tpos: ["仕事"],
+                tpo_ids: [],
+              },
+              {
+                id: 3,
+                name: "Wide Pants",
+                status: "active",
+                brand_name: "Other",
+                memo: "weekend",
+                category: "pants",
+                subcategory: "pants",
+                shape: "wide",
+                colors: [],
+                seasons: ["冬"],
+                tpos: ["休日"],
+                tpo_ids: [],
+              },
+            ],
+          }),
+        }),
+    );
+
+    const { default: EditOutfitPage } = await import("./page");
+
+    await act(async () => {
+      root.render(
+        React.createElement(EditOutfitPage, {
+          params: Promise.resolve({ id: "10" }),
+        }),
+      );
+      await waitForEffects();
+    });
+
+    const keywordInput = container.querySelector<HTMLInputElement>(
+      "#outfit-item-filter-keyword",
+    );
+    const categorySelect = container.querySelector<HTMLSelectElement>(
+      "#outfit-item-filter-category",
+    );
+    const subcategorySelect = container.querySelector<HTMLSelectElement>(
+      "#outfit-item-filter-subcategory",
+    );
+
+    expect(container.textContent).toContain("1. Office Shirt");
+
+    await act(async () => {
+      changeInputValue(keywordInput, "Wide");
+      await waitForEffects();
+    });
+
+    const filteredLabels = Array.from(
+      container.querySelectorAll("label"),
+    ).filter((label) => label.querySelector('input[type="checkbox"]'));
+
+    expect(
+      filteredLabels.some((label) => label.textContent?.includes("Wide Pants")),
+    ).toBe(true);
+    expect(
+      filteredLabels.some((label) => label.textContent?.includes("Logo Tee")),
+    ).toBe(false);
+    expect(container.textContent).toContain("1. Office Shirt");
+
+    await act(async () => {
+      changeInputValue(categorySelect, "tops");
+      await waitForEffects();
+    });
+
+    expect(subcategorySelect?.disabled).toBe(false);
+
+    await act(async () => {
+      changeInputValue(subcategorySelect, "shirt_blouse");
+      await waitForEffects();
+    });
+
+    expect(container.textContent).not.toContain("Wide Pants");
+    expect(container.textContent).toContain("Office Shirt");
+
+    await act(async () => {
+      changeInputValue(categorySelect, "pants");
+      await waitForEffects();
+    });
+
+    expect(subcategorySelect?.value).toBe("");
+    expect(container.textContent).toContain("Wide Pants");
+    expect(container.textContent).toContain("1. Office Shirt");
+  });
+
+  it("編集画面でも現在の季節設定をアイテム絞り込み初期値に反映する", async () => {
+    fetchUserPreferencesMock.mockResolvedValue({
+      preferences: {
+        currentSeason: "spring",
+      },
+    });
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn()
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => ({
+            outfit: {
+              id: 10,
+              name: "Spring Outfit",
+              memo: null,
+              seasons: [],
+              tpos: [],
+              tpo_ids: [],
+              outfitItems: [],
+            },
+          }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => ({
+            items: [
+              {
+                id: 1,
+                name: "Spring Knit",
+                status: "active",
+                category: "tops",
+                subcategory: "knit_sweater",
+                shape: "knit",
+                colors: [],
+                seasons: ["春"],
+                tpos: [],
+                tpo_ids: [],
+              },
+            ],
+          }),
+        }),
+    );
+
+    const { default: EditOutfitPage } = await import("./page");
+
+    await act(async () => {
+      root.render(
+        React.createElement(EditOutfitPage, {
+          params: Promise.resolve({ id: "10" }),
+        }),
+      );
+      await waitForEffects();
+    });
+
+    const seasonSelect = container.querySelector<HTMLSelectElement>(
+      "#outfit-item-filter-season",
+    );
+
+    expect(seasonSelect?.value).toBe("春");
   });
 });
