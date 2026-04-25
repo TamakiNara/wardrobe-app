@@ -41,6 +41,7 @@ class ItemUpdateService
 
                 $item->update([
                     'care_status' => $validated['care_status'] ?? null,
+                    'sheerness' => $validated['sheerness'] ?? null,
                     'name' => $validated['name'] ?? null,
                     'brand_name' => $validated['brand_name'] ?? null,
                     'price' => $validated['price'] ?? null,

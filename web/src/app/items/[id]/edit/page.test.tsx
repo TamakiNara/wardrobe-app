@@ -331,6 +331,7 @@ function createEditableItemResponse(overrides: Record<string, unknown> = {}) {
     name: "Sample Item",
     status: "active",
     care_status: "good",
+    sheerness: "slight",
     brand_name: "Sample Brand",
     price: 19800,
     purchase_url: "https://example.test/items/1",
@@ -448,6 +449,7 @@ describe("編集画面", () => {
             name: "サンプル",
             status: "active",
             care_status: "in_cleaning",
+            sheerness: "slight",
             brand_name: "Sample Brand",
             price: 19800,
             purchase_url: "https://example.test/items/1",
@@ -574,10 +576,11 @@ describe("編集画面", () => {
     expect(materialInput?.value).toBe("綿");
     expect(container.textContent).toContain("分類");
     expect(container.textContent).toContain("色とプレビュー");
-    expect(container.textContent).toContain("利用条件・状態");
+    expect(container.textContent).toContain("利用条件・特性");
     expect(container.textContent).toContain("サイズ");
     expect(container.textContent).toContain("購入・補足");
     expect(container.textContent).toContain("ケア状態");
+    expect(container.textContent).toContain("透け感");
     const pageShell = container.querySelector("main > div.mx-auto");
     expect(pageShell?.className).toContain("max-w-6xl");
     expect(container.textContent).toContain("メインカラー");
@@ -627,6 +630,10 @@ describe("編集画面", () => {
       (container.querySelector("#care-status") as HTMLSelectElement | null)
         ?.value,
     ).toBe("in_cleaning");
+    expect(
+      (container.querySelector("#sheerness") as HTMLSelectElement | null)
+        ?.value,
+    ).toBe("slight");
   }, 20000);
 
   it("編集画面でボトムス丈とレッグウェア設定を表示できる", async () => {
@@ -1958,6 +1965,10 @@ describe("編集画面", () => {
     expect(form).not.toBeNull();
 
     await act(async () => {
+      const sheernessSelect =
+        container.querySelector<HTMLSelectElement>("#sheerness");
+      setNativeInputValue(sheernessSelect!, "high");
+      sheernessSelect!.dispatchEvent(new Event("change", { bubbles: true }));
       form!.dispatchEvent(
         new Event("submit", { bubbles: true, cancelable: true }),
       );
@@ -1966,6 +1977,7 @@ describe("編集画面", () => {
 
     expect(putPayload).not.toBeNull();
     expect(putPayload?.shape).toBe("shirt");
+    expect(putPayload?.sheerness).toBe("high");
     expect(
       (putPayload?.spec as { tops?: { shape?: string } })?.tops?.shape,
     ).toBeUndefined();

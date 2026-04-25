@@ -29,6 +29,7 @@ abstract class ItemUpsertRequest extends FormRequest
         return [
             'name' => ['nullable', 'string', 'max:255'],
             'care_status' => ['nullable', 'string', 'in:in_cleaning'],
+            'sheerness' => ['nullable', 'string', 'in:none,slight,high'],
             'brand_name' => ['nullable', 'string', 'max:255'],
             'save_brand_as_candidate' => ['nullable', 'boolean'],
             'price' => ['nullable', 'integer', 'min:0'],

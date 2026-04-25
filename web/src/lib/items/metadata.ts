@@ -1,4 +1,8 @@
-import type { ItemCareStatus, ItemImageRecord } from "@/types/items";
+import type {
+  ItemCareStatus,
+  ItemImageRecord,
+  ItemSheerness,
+} from "@/types/items";
 import type { PurchaseCandidateImageRecord } from "@/types/purchase-candidates";
 
 export const ITEM_SIZE_GENDER_LABELS = {
@@ -9,6 +13,12 @@ export const ITEM_SIZE_GENDER_LABELS = {
 
 export const ITEM_CARE_STATUS_LABELS: Record<ItemCareStatus, string> = {
   in_cleaning: "クリーニング中",
+};
+
+export const ITEM_SHEERNESS_LABELS: Record<ItemSheerness, string> = {
+  none: "なし",
+  slight: "ややあり",
+  high: "あり",
 };
 
 export function formatItemPrice(price: number | null): string {

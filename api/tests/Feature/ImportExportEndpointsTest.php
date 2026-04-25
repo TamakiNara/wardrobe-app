@@ -76,6 +76,7 @@ class ImportExportEndpointsTest extends TestCase
             'user_id' => $user->id,
             'status' => 'active',
             'care_status' => 'in_cleaning',
+            'sheerness' => 'slight',
             'name' => '白シャツ',
             'brand_name' => 'Sample Brand',
             'price' => 9800,
@@ -276,6 +277,7 @@ class ImportExportEndpointsTest extends TestCase
             ->assertJsonCount(1, 'outfits')
             ->assertJsonCount(1, 'wear_logs')
             ->assertJsonPath('items.0.name', '白シャツ')
+            ->assertJsonPath('items.0.sheerness', 'slight')
             ->assertJsonPath('purchase_candidates.0.name', '購入候補シャツ')
             ->assertJsonPath('outfits.0.name', '通勤コーデ')
             ->assertJsonPath('items.0.colors.0.custom_label', '00 WHITE')
@@ -373,6 +375,7 @@ class ImportExportEndpointsTest extends TestCase
 
         $this->assertSame('shirt', $importedItem->shape);
         $this->assertSame('in_cleaning', $importedItem->care_status);
+        $this->assertSame('slight', $importedItem->sheerness);
         $this->assertSame('long', data_get($importedItem->spec, 'tops.sleeve'));
         $this->assertSame('00 WHITE', data_get($importedItem->colors, '0.custom_label'));
         $this->assertSame('麻', $importedCandidate->materials->first()?->material_name);

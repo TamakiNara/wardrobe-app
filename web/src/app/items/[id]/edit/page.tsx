@@ -62,6 +62,7 @@ import type {
   ItemFormColor,
   ItemImageRecord,
   ItemRecord,
+  ItemSheerness,
 } from "@/types/items";
 import {
   buildTopsSpecLabels,
@@ -113,6 +114,7 @@ import {
 import {
   formatItemPrice,
   ITEM_CARE_STATUS_LABELS,
+  ITEM_SHEERNESS_LABELS,
   ITEM_SIZE_GENDER_LABELS,
   normalizeItemImages,
 } from "@/lib/items/metadata";
@@ -156,6 +158,7 @@ export default function EditItemPage({
   const [purchaseUrl, setPurchaseUrl] = useState("");
   const [memo, setMemo] = useState("");
   const [careStatus, setCareStatus] = useState<ItemCareStatus | "">("");
+  const [sheerness, setSheerness] = useState<ItemSheerness | "">("");
   const [purchasedAt, setPurchasedAt] = useState("");
   const [sizeGender, setSizeGender] = useState<"women" | "men" | "unisex" | "">(
     "",
@@ -474,6 +477,7 @@ export default function EditItemPage({
         setPurchaseUrl(item.purchase_url ?? "");
         setMemo(item.memo ?? "");
         setCareStatus(item.care_status ?? "");
+        setSheerness(item.sheerness ?? "");
         setPurchasedAt(item.purchased_at ? item.purchased_at.slice(0, 10) : "");
         setSizeGender(item.size_gender ?? "");
         setSizeLabel(item.size_label ?? "");
@@ -1044,6 +1048,7 @@ export default function EditItemPage({
       purchase_url: purchaseUrl.trim() || null,
       memo: memo.trim() || null,
       care_status: careStatus || null,
+      sheerness: sheerness || null,
       purchased_at: purchasedAt || null,
       size_gender: sizeGender || null,
       size_label: sizeLabel.trim() || null,
@@ -2140,7 +2145,7 @@ export default function EditItemPage({
               )}
             </ItemFormSection>
 
-            <ItemFormSection title="利用条件・状態">
+            <ItemFormSection title="利用条件・特性">
               <div>
                 <p className="mb-2 text-sm font-medium">季節</p>
                 <div className="flex flex-wrap gap-3">
@@ -2206,7 +2211,7 @@ export default function EditItemPage({
                 </div>
               </div>
 
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-4 md:grid-cols-3">
                 <div>
                   <div
                     className="mb-1 block text-sm font-medium text-gray-700"
@@ -2252,6 +2257,32 @@ export default function EditItemPage({
                   <p className="mt-1 text-xs text-gray-500">
                     クリーニング中でもコーデ候補や着用履歴候補からは除外されません。
                   </p>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="sheerness"
+                    className="mb-1 block text-sm font-medium text-gray-700"
+                  >
+                    透け感
+                  </label>
+                  <select
+                    id="sheerness"
+                    value={sheerness}
+                    onChange={(e) =>
+                      setSheerness(e.target.value as ItemSheerness | "")
+                    }
+                    className={getFormControlClassName()}
+                  >
+                    <option value=""></option>
+                    {Object.entries(ITEM_SHEERNESS_LABELS).map(
+                      ([value, label]) => (
+                        <option key={value} value={value}>
+                          {label}
+                        </option>
+                      ),
+                    )}
+                  </select>
                 </div>
               </div>
             </ItemFormSection>

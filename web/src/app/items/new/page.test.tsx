@@ -120,6 +120,8 @@ vi.mock("@/lib/api/categories", async () => {
       container.querySelector<HTMLSelectElement>("#category");
     const sizeGenderSelect =
       container.querySelector<HTMLSelectElement>("#size-gender");
+    const sheernessSelect =
+      container.querySelector<HTMLSelectElement>("#sheerness");
     const springButton = Array.from(container.querySelectorAll("button")).find(
       (button) => button.textContent?.includes("春"),
     );
@@ -170,6 +172,8 @@ vi.mock("@/lib/api/categories", async () => {
       categorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
       setNativeInputValue(sizeGenderSelect!, "women");
       sizeGenderSelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      setNativeInputValue(sheernessSelect!, "slight");
+      sheernessSelect!.dispatchEvent(new Event("change", { bubbles: true }));
       springButton!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
       mainColorButton!.dispatchEvent(
         new MouseEvent("click", { bubbles: true }),
@@ -192,6 +196,7 @@ vi.mock("@/lib/api/categories", async () => {
     const payload = JSON.parse(requestInit.body as string);
 
     expect(payload.size_details).toBeNull();
+    expect(payload.sheerness).toBe("slight");
 
     await act(async () => {
       categorySelect!.value = "tops";
@@ -887,7 +892,7 @@ describe("新規登録画面", () => {
     expect(container.innerHTML).toContain('href="/items"');
     expect(container.textContent).toContain("一覧に戻る");
     expect(container.textContent).toContain("色");
-    expect(container.textContent).toContain("利用条件・状態");
+    expect(container.textContent).toContain("利用条件・特性");
     expect(container.textContent).toContain("サイズ・実寸");
     expect(container.textContent).toContain("素材・混率");
     expect(container.textContent).toContain("購入情報");
@@ -905,7 +910,7 @@ describe("新規登録画面", () => {
       "基本情報",
       "分類",
       "色",
-      "利用条件・状態",
+      "利用条件・特性",
       "サイズ・実寸",
       "素材・混率",
       "購入情報",
@@ -924,7 +929,7 @@ describe("新規登録画面", () => {
     );
     expect(sectionsByTitle.get("分類")?.className).toContain("lg:col-span-2");
     expect(sectionsByTitle.get("色")?.className).toContain("lg:col-span-2");
-    expect(sectionsByTitle.get("利用条件・状態")?.className).toContain(
+    expect(sectionsByTitle.get("利用条件・特性")?.className).toContain(
       "lg:col-span-2",
     );
     expect(sectionsByTitle.get("購入情報")?.className).toContain(
@@ -934,6 +939,7 @@ describe("新規登録画面", () => {
       "lg:col-span-1",
     );
     expect(container.textContent).toContain("ケア状態");
+    expect(container.textContent).toContain("透け感");
     expect(container.textContent).toContain("メインカラー");
     expect(container.textContent).toContain("ブランド候補にも追加する");
     expect(container.textContent).toContain("クリックして画像を選択");
@@ -1082,6 +1088,8 @@ describe("新規登録画面", () => {
       container.querySelector<HTMLSelectElement>("#subcategory");
     const careStatusSelect =
       container.querySelector<HTMLSelectElement>("#care-status");
+    const sheernessSelect =
+      container.querySelector<HTMLSelectElement>("#sheerness");
     const topsSleeveSelect =
       container.querySelector<HTMLSelectElement>("#tops-sleeve");
     const topsNeckSelect =
@@ -1103,6 +1111,7 @@ describe("新規登録画面", () => {
     expect(topsSleeveSelect?.value).toBe("short");
     expect(topsNeckSelect?.value).toBe("boat");
     expect(careStatusSelect?.value).toBe("");
+    expect(sheernessSelect?.value).toBe("");
     const materialPartInputs = Array.from(
       container.querySelectorAll('input[list="item-material-part-options"]'),
     ) as HTMLInputElement[];

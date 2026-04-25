@@ -53,6 +53,7 @@ import type {
   ItemCareStatus,
   ItemFormColor,
   ItemImageRecord,
+  ItemSheerness,
 } from "@/types/items";
 import { SEASON_OPTIONS } from "@/lib/master-data/item-attributes";
 import {
@@ -104,6 +105,7 @@ import {
 import {
   formatItemPrice,
   ITEM_CARE_STATUS_LABELS,
+  ITEM_SHEERNESS_LABELS,
   ITEM_SIZE_GENDER_LABELS,
   mapPurchaseCandidateImagesToItemImages,
   normalizeItemImages,
@@ -159,6 +161,7 @@ export default function NewItemPage() {
   const [purchaseUrl, setPurchaseUrl] = useState("");
   const [memo, setMemo] = useState("");
   const [careStatus, setCareStatus] = useState<ItemCareStatus | "">("");
+  const [sheerness, setSheerness] = useState<ItemSheerness | "">("");
   const [purchasedAt, setPurchasedAt] = useState("");
   const [sizeGender, setSizeGender] = useState<"women" | "men" | "unisex" | "">(
     "",
@@ -972,6 +975,7 @@ export default function NewItemPage() {
       purchase_url: purchaseUrl.trim() || null,
       memo: memo.trim() || null,
       care_status: careStatus || null,
+      sheerness: sheerness || null,
       purchased_at: purchasedAt || null,
       size_gender: sizeGender || null,
       size_label: sizeLabel.trim() || null,
@@ -1887,7 +1891,7 @@ export default function NewItemPage() {
               )}
             </ItemFormSection>
 
-            <ItemFormSection title="利用条件・状態" className="lg:col-span-2">
+            <ItemFormSection title="利用条件・特性" className="lg:col-span-2">
               <div>
                 <p className="mb-2 text-sm font-medium text-gray-700">季節</p>
                 <div className="flex flex-wrap gap-2">
@@ -1945,7 +1949,7 @@ export default function NewItemPage() {
                 </div>
               </div>
 
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-4 md:grid-cols-3">
                 <div>
                   <div className="mb-1 h-5" aria-hidden="true" />
                   <label className="inline-flex h-[50px] w-full items-center gap-3 rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700">
@@ -1987,6 +1991,32 @@ export default function NewItemPage() {
                   <p className="mt-1 text-xs text-gray-500">
                     クリーニング中でもコーデ候補や着用履歴候補からは除外されません。
                   </p>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="sheerness"
+                    className="mb-1 block text-sm font-medium text-gray-700"
+                  >
+                    透け感
+                  </label>
+                  <select
+                    id="sheerness"
+                    value={sheerness}
+                    onChange={(e) =>
+                      setSheerness(e.target.value as ItemSheerness | "")
+                    }
+                    className={getFormControlClassName()}
+                  >
+                    <option value=""></option>
+                    {Object.entries(ITEM_SHEERNESS_LABELS).map(
+                      ([value, label]) => (
+                        <option key={value} value={value}>
+                          {label}
+                        </option>
+                      ),
+                    )}
+                  </select>
                 </div>
               </div>
             </ItemFormSection>

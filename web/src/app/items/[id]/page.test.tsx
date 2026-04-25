@@ -51,6 +51,7 @@ describe("アイテム詳細画面", () => {
             name: "レインコート",
             status: "active",
             care_status: "in_cleaning",
+            sheerness: "slight",
             brand_name: "Sample Brand",
             price: 19800,
             purchase_url: "https://example.test/items/1",
@@ -148,13 +149,15 @@ describe("アイテム詳細画面", () => {
     expect(markup).toContain("画像 / プレビュー");
     expect(markup).toContain("基本情報");
     expect(markup).toContain("分類");
-    expect(markup).toContain("色 / 利用条件・状態");
+    expect(markup).toContain("色 / 利用条件・特性");
     expect(markup).toContain("サイズ・実寸");
     expect(markup).toContain("購入情報");
     expect(markup).toContain("補足情報");
     expect(markup).toContain("状態操作");
     expect(markup).toContain("所持状態");
     expect(markup).toContain("ケア状態");
+    expect(markup).toContain("透け感");
+    expect(markup).toContain("ややあり");
     expect(markup).toContain("status-action");
     expect(markup).toContain("care-status-action");
     expect(markup).toContain(

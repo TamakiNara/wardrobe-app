@@ -8,6 +8,7 @@ import { DEFAULT_SKIN_TONE_PRESET } from "@/lib/master-data/skin-tone-presets";
 import {
   formatItemPrice,
   ITEM_CARE_STATUS_LABELS,
+  ITEM_SHEERNESS_LABELS,
   ITEM_SIZE_GENDER_LABELS,
 } from "@/lib/items/metadata";
 import {
@@ -174,6 +175,10 @@ export default async function ItemPage({
     {
       label: "ケア状態",
       value: item.care_status ? ITEM_CARE_STATUS_LABELS[item.care_status] : "",
+    },
+    {
+      label: "透け感",
+      value: item.sheerness ? ITEM_SHEERNESS_LABELS[item.sheerness] : "",
     },
   ].filter((detail): detail is { label: string; value: string } =>
     Boolean(detail.value),
@@ -387,7 +392,7 @@ export default async function ItemPage({
 
         <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-gray-900">
-            色 / 利用条件・状態
+            色 / 利用条件・特性
           </h2>
           <dl className="mt-4 grid gap-4 md:grid-cols-2">
             {colorDetails.map((detail) => (

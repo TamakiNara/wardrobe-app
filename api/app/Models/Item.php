@@ -15,6 +15,7 @@ class Item extends Model
         'user_id',
         'status',
         'care_status',
+        'sheerness',
         'name',
         'brand_name',
         'price',

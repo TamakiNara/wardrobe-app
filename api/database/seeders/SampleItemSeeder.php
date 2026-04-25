@@ -115,6 +115,7 @@ class SampleItemSeeder extends Seeder
                 'brand_name' => 'BEAMS',
                 'category' => 'tops',
                 'shape' => 'knit',
+                'sheerness' => 'slight',
                 'colors' => [
                     ['role' => 'main', 'mode' => 'preset', 'value' => 'ivory', 'hex' => '#F2EEE4', 'label' => 'アイボリー'],
                 ],
@@ -382,6 +383,7 @@ class SampleItemSeeder extends Seeder
                 'brand_name' => 'NATURAL BEAUTY BASIC',
                 'category' => 'onepiece_allinone',
                 'shape' => 'onepiece',
+                'sheerness' => 'high',
                 'colors' => [
                     ['role' => 'main', 'mode' => 'preset', 'value' => 'navy', 'hex' => '#44516A', 'label' => 'ネイビー'],
                     ['role' => 'sub', 'mode' => 'preset', 'value' => 'beige', 'hex' => '#D8CBB4', 'label' => 'ベージュ'],

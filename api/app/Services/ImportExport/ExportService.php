@@ -67,6 +67,7 @@ class ExportService
             'id' => $item->id,
             'status' => $item->status,
             'care_status' => $item->care_status,
+            'sheerness' => $item->sheerness,
             'name' => $item->name,
             'brand_name' => $item->brand_name,
             'price' => $item->price,

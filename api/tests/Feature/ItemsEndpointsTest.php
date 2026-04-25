@@ -99,6 +99,7 @@ class ItemsEndpointsTest extends TestCase
             'name' => 'テストアイテム',
             'status' => 'active',
             'care_status' => null,
+            'sheerness' => null,
             'brand_name' => null,
             'price' => null,
             'purchase_url' => null,
@@ -493,6 +494,7 @@ class ItemsEndpointsTest extends TestCase
             'purchase_url' => 'https://example.test/products/coat',
             'memo' => '購入検討メモ',
             'purchased_at' => '2026-03-24',
+            'sheerness' => 'slight',
             'size_gender' => 'women',
             'size_label' => 'M',
             'size_note' => '厚手ニット込み',
@@ -550,6 +552,7 @@ class ItemsEndpointsTest extends TestCase
             ->assertJsonPath('item.size_details.structured.shoulder_width', 42)
             ->assertJsonPath('item.size_details.custom_fields.0.label', '裄丈')
             ->assertJsonPath('item.size_details.custom_fields.0.value', 78)
+            ->assertJsonPath('item.sheerness', 'slight')
             ->assertJsonPath('item.is_rain_ok', true)
             ->assertJsonPath('item.materials.0.part_label', '本体')
             ->assertJsonPath('item.materials.2.part_label', '裏地')
@@ -2275,6 +2278,7 @@ class ItemsEndpointsTest extends TestCase
             'purchase_url' => 'https://example.test/detail',
             'memo' => 'detail memo',
             'purchased_at' => '2026-03-20',
+            'sheerness' => 'high',
             'size_gender' => 'unisex',
             'size_label' => 'FREE',
             'size_note' => '袖丈長め',
@@ -2315,6 +2319,7 @@ class ItemsEndpointsTest extends TestCase
         $response->assertOk()
             ->assertJsonPath('item.brand_name', 'Detail Brand')
             ->assertJsonPath('item.care_status', 'in_cleaning')
+            ->assertJsonPath('item.sheerness', 'high')
             ->assertJsonPath('item.price', 22000)
             ->assertJsonPath('item.purchase_url', 'https://example.test/detail')
             ->assertJsonPath('item.memo', 'detail memo')
@@ -2383,6 +2388,7 @@ class ItemsEndpointsTest extends TestCase
             'name' => '更新後アイテム',
             'brand_name' => 'Updated Brand',
             'care_status' => 'in_cleaning',
+            'sheerness' => 'none',
             'price' => 19800,
             'purchase_url' => 'https://example.test/updated',
             'memo' => '更新メモ',
@@ -2447,6 +2453,7 @@ class ItemsEndpointsTest extends TestCase
             ->assertJsonPath('item.shape', 'coat')
             ->assertJsonPath('item.brand_name', 'Updated Brand')
             ->assertJsonPath('item.care_status', 'in_cleaning')
+            ->assertJsonPath('item.sheerness', 'none')
             ->assertJsonPath('item.memo', '更新メモ')
             ->assertJsonPath('item.materials.0.ratio', 80)
             ->assertJsonPath('item.images.0.sort_order', 1)

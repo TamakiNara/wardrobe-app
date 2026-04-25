@@ -8,6 +8,7 @@ export type ItemFormColor = {
 };
 
 export type ItemCareStatus = "in_cleaning";
+export type ItemSheerness = "none" | "slight" | "high";
 
 export type TopsSpec = {
   sleeve?: string | null;
@@ -93,6 +94,7 @@ export type CreateItemPayload = {
   name: string;
   purchase_candidate_id?: number | null;
   care_status?: ItemCareStatus | null;
+  sheerness?: ItemSheerness | null;
   brand_name: string | null;
   save_brand_as_candidate?: boolean;
   price: number | null;
@@ -123,6 +125,7 @@ export type ItemRecord = {
   name: string | null;
   status: ItemStatus;
   care_status?: ItemCareStatus | null;
+  sheerness?: ItemSheerness | null;
   brand_name?: string | null;
   price?: number | null;
   purchase_url?: string | null;
