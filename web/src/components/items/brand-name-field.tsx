@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import FieldLabel from "@/components/forms/field-label";
+import { getFormControlClassName } from "@/components/forms/control-styles";
 import { fetchUserBrands } from "@/lib/api/settings";
 import type { UserBrandRecord } from "@/types/settings";
 
@@ -145,11 +146,13 @@ export default function BrandNameField({
         autoComplete="off"
         aria-autocomplete="list"
         aria-controls={`${inputId}-suggestions`}
-        className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:ring-2 ${
-          fieldError
-            ? "border-red-400 focus:border-red-500 focus:ring-red-100"
-            : "border-gray-300 focus:border-blue-500 focus:ring-blue-100"
-        }`}
+        className={getFormControlClassName({
+          invalid: Boolean(fieldError),
+          disabled,
+          className: fieldError
+            ? "focus:border-red-500 focus:ring-red-100"
+            : undefined,
+        })}
         disabled={disabled}
       />
       {fieldError ? (

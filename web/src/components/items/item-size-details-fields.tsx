@@ -1,4 +1,9 @@
 import { useState } from "react";
+import {
+  FORM_CONTROL_INNER_INPUT_CLASS,
+  getFormControlClassName,
+  getFormControlWrapperClassName,
+} from "@/components/forms/control-styles";
 import type {
   EditableCustomSizeField,
   StructuredSizeFieldDefinition,
@@ -86,7 +91,7 @@ export default function ItemSizeDetailsFields({
                   >
                     {field.label}
                   </label>
-                  <div className="flex items-center rounded-lg border border-gray-300 bg-white pr-4 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100">
+                  <div className={getFormControlWrapperClassName()}>
                     <input
                       id={`structured-size-${field.name}`}
                       type="number"
@@ -98,7 +103,7 @@ export default function ItemSizeDetailsFields({
                       onChange={(e) =>
                         onUpdateStructuredSizeValue(field.name, e.target.value)
                       }
-                      className="w-full rounded-lg bg-transparent px-4 py-3 text-gray-900 outline-none"
+                      className={FORM_CONTROL_INNER_INPUT_CLASS}
                     />
                     <span className="text-sm text-gray-500">cm</span>
                   </div>
@@ -127,9 +132,9 @@ export default function ItemSizeDetailsFields({
                     onChange={(e) =>
                       onUpdateCustomSizeField(field.id, "label", e.target.value)
                     }
-                    className="w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                    className={getFormControlClassName()}
                   />
-                  <div className="flex items-center rounded-lg border border-gray-300 pr-4 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100">
+                  <div className={getFormControlWrapperClassName()}>
                     <input
                       type="number"
                       inputMode="decimal"
@@ -145,7 +150,7 @@ export default function ItemSizeDetailsFields({
                           e.target.value,
                         )
                       }
-                      className="w-full rounded-lg bg-transparent px-4 py-3 text-gray-900 outline-none"
+                      className={FORM_CONTROL_INNER_INPUT_CLASS}
                     />
                     <span className="text-sm text-gray-500">cm</span>
                   </div>

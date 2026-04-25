@@ -285,8 +285,10 @@ export default async function ItemPage({
               shape={item.shape}
               mainColorHex={mainColor?.hex}
               mainColorLabel={mainColor?.label}
+              mainColorCustomLabel={mainColor?.custom_label}
               subColorHex={subColor?.hex}
               subColorLabel={subColor?.label}
+              subColorCustomLabel={subColor?.custom_label}
               topsSpec={topsSpec}
               topsSpecRaw={topsSpecRaw}
               spec={item.spec}

@@ -2753,3 +2753,46 @@ function setNativeInputValue(
   );
   descriptor?.set?.call(element, value);
 }
+
+it("編集フォームでも select と input と date 入力の高さを揃える", async () => {
+  const localContainer = document.createElement("div");
+  document.body.appendChild(localContainer);
+  const localRoot = createRoot(localContainer);
+  const localFetchMock = vi.fn().mockResolvedValue({
+    ok: true,
+    status: 200,
+    json: async () => ({
+      item: createEditableItemResponse(),
+    }),
+  });
+
+  vi.stubGlobal("fetch", localFetchMock);
+
+  const { default: EditItemPage } = await import("./page");
+
+  await act(async () => {
+    localRoot.render(
+      React.createElement(EditItemPage, {
+        params: Promise.resolve({ id: "1" }),
+      }),
+    );
+    await waitForEffects();
+  });
+
+  const categorySelect =
+    localContainer.querySelector<HTMLSelectElement>("#category");
+  const sizeLabelInput =
+    localContainer.querySelector<HTMLInputElement>("#size-label");
+  const purchasedAtInput =
+    localContainer.querySelector<HTMLInputElement>("#purchased-at");
+  const priceInput = localContainer.querySelector<HTMLInputElement>("#price");
+
+  expect(categorySelect?.className).toContain("h-[50px]");
+  expect(sizeLabelInput?.className).toContain("h-[50px]");
+  expect(purchasedAtInput?.className).toContain("h-[50px]");
+  expect(priceInput?.className).toContain("h-full");
+  expect(priceInput?.parentElement?.className).toContain("h-[50px]");
+
+  localRoot.unmount();
+  localContainer.remove();
+});

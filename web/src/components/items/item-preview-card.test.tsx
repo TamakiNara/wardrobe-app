@@ -154,4 +154,25 @@ describe("ItemPreviewCard", () => {
       "ジャケット・アウター / コート / トレンチコート",
     );
   });
+  it("custom color 名があるときは色名を優先して表示できる", async () => {
+    vi.stubEnv("NEXT_PUBLIC_ENABLE_ITEM_PREVIEW_DEBUG", "true");
+
+    await act(async () => {
+      root.render(
+        <ItemPreviewCard
+          name="ハイネックニット"
+          category="tops"
+          subcategory="knit_sweater"
+          shape="knit"
+          mainColorHex="#D7E5D7"
+          mainColorLabel="カスタムカラー"
+          mainColorCustomLabel="グリーン系"
+        />,
+      );
+    });
+
+    expect(container.textContent).toContain("グリーン系");
+    expect(container.textContent).not.toContain("メインカラー: カスタムカラー");
+    expect(container.textContent).toContain("#D7E5D7");
+  });
 });

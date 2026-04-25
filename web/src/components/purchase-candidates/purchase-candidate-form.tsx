@@ -11,6 +11,12 @@ import {
 } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import FieldLabel from "@/components/forms/field-label";
+import {
+  FORM_CONTROL_COLOR_SCHEME_CLASS,
+  FORM_CONTROL_INNER_INPUT_CLASS,
+  getFormControlClassName,
+  getFormControlWrapperClassName,
+} from "@/components/forms/control-styles";
 import ColorSelect from "@/components/items/color-select";
 import BrandNameField from "@/components/items/brand-name-field";
 import ItemFormSection from "@/components/items/item-form-section";
@@ -1366,7 +1372,9 @@ export default function PurchaseCandidateForm({
                 setStatus(event.target.value as PurchaseCandidateStatus)
               }
               disabled={isPurchasedLocked}
-              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              className={getFormControlClassName({
+                disabled: isPurchasedLocked,
+              })}
             >
               <option value="considering">
                 {PURCHASE_CANDIDATE_STATUS_LABELS.considering}
@@ -1391,7 +1399,7 @@ export default function PurchaseCandidateForm({
               onChange={(event) =>
                 setPriority(event.target.value as PurchaseCandidatePriority)
               }
-              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              className={getFormControlClassName()}
             >
               <option value="high">
                 {PURCHASE_CANDIDATE_PRIORITY_LABELS.high}
@@ -1414,7 +1422,10 @@ export default function PurchaseCandidateForm({
             value={name}
             onChange={(event) => setName(event.target.value)}
             disabled={isPurchasedLocked}
-            className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors.name ? "border-red-400" : "border-gray-300"}`}
+            className={getFormControlClassName({
+              invalid: Boolean(errors.name),
+              disabled: isPurchasedLocked,
+            })}
           />
           {errors.name && (
             <p className="mt-2 text-sm text-red-600">{errors.name}</p>
@@ -1447,7 +1458,9 @@ export default function PurchaseCandidateForm({
                 resetSpecFormState();
               }}
               disabled={isPurchasedLocked}
-              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              className={getFormControlClassName({
+                disabled: isPurchasedLocked,
+              })}
             >
               <option value="">選択してください</option>
               {categoryGroupOptions.map((option) => (
@@ -1469,7 +1482,10 @@ export default function PurchaseCandidateForm({
                   resetSpecFormState();
                 }}
                 disabled={isPurchasedLocked}
-                className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors.category_id ? "border-red-400" : "border-gray-300"}`}
+                className={getFormControlClassName({
+                  invalid: Boolean(errors.category_id),
+                  disabled: isPurchasedLocked,
+                })}
               >
                 <option value="">選択してください</option>
                 {filteredCategoryOptions.map((option) => (
@@ -1782,7 +1798,7 @@ export default function PurchaseCandidateForm({
             >
               想定価格
             </label>
-            <div className="flex items-center rounded-lg border border-gray-300 bg-white pr-4 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100">
+            <div className={getFormControlWrapperClassName()}>
               <input
                 id="price"
                 type="number"
@@ -1790,7 +1806,7 @@ export default function PurchaseCandidateForm({
                 value={price}
                 onChange={(event) => setPrice(event.target.value)}
                 disabled={isPurchasedLocked}
-                className="w-full rounded-lg bg-transparent px-4 py-3 text-gray-900 outline-none"
+                className={FORM_CONTROL_INNER_INPUT_CLASS}
               />
               <span className="text-sm text-gray-500">円</span>
             </div>
@@ -1805,14 +1821,14 @@ export default function PurchaseCandidateForm({
             >
               セール価格
             </label>
-            <div className="flex items-center rounded-lg border border-gray-300 bg-white pr-4 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100">
+            <div className={getFormControlWrapperClassName()}>
               <input
                 id="sale_price"
                 type="number"
                 min="0"
                 value={salePrice}
                 onChange={(event) => setSalePrice(event.target.value)}
-                className="w-full rounded-lg bg-transparent px-4 py-3 text-gray-900 outline-none"
+                className={FORM_CONTROL_INNER_INPUT_CLASS}
               />
               <span className="text-sm text-gray-500">円</span>
             </div>
@@ -1847,7 +1863,10 @@ export default function PurchaseCandidateForm({
                   )
                 }
                 style={{ colorScheme: "light", accentColor: "#2563eb" }}
-                className="h-[50px] w-full rounded-lg border border-gray-300 bg-white px-4 text-gray-950 shadow-sm outline-none transition [color-scheme:light] focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                className={getFormControlClassName({
+                  shadow: true,
+                  className: FORM_CONTROL_COLOR_SCHEME_CLASS,
+                })}
               />
               <input
                 id="discount_ends_at_time"
@@ -1864,7 +1883,11 @@ export default function PurchaseCandidateForm({
                 }
                 disabled={getDateInputValue(discountEndsAt) === ""}
                 style={{ colorScheme: "light", accentColor: "#2563eb" }}
-                className="h-[50px] w-full rounded-lg border border-gray-300 bg-white px-4 text-gray-950 shadow-sm outline-none transition [color-scheme:light] focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400"
+                className={getFormControlClassName({
+                  disabled: true,
+                  shadow: true,
+                  className: FORM_CONTROL_COLOR_SCHEME_CLASS,
+                })}
               />
             </div>
           </div>
@@ -1882,7 +1905,10 @@ export default function PurchaseCandidateForm({
               value={releaseDate}
               onChange={(event) => setReleaseDate(event.target.value)}
               style={{ colorScheme: "light", accentColor: "#2563eb" }}
-              className="h-[50px] w-full rounded-lg border border-gray-300 bg-white px-4 text-gray-950 shadow-sm outline-none transition [color-scheme:light] focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              className={getFormControlClassName({
+                shadow: true,
+                className: FORM_CONTROL_COLOR_SCHEME_CLASS,
+              })}
             />
           </div>
 
@@ -1915,7 +1941,10 @@ export default function PurchaseCandidateForm({
                   )
                 }
                 style={{ colorScheme: "light", accentColor: "#2563eb" }}
-                className="h-[50px] w-full rounded-lg border border-gray-300 bg-white px-4 text-gray-950 shadow-sm outline-none transition [color-scheme:light] focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                className={getFormControlClassName({
+                  shadow: true,
+                  className: FORM_CONTROL_COLOR_SCHEME_CLASS,
+                })}
               />
               <input
                 id="sale_ends_at_time"
@@ -1932,7 +1961,11 @@ export default function PurchaseCandidateForm({
                 }
                 disabled={getDateInputValue(saleEndsAt) === ""}
                 style={{ colorScheme: "light", accentColor: "#2563eb" }}
-                className="h-[50px] w-full rounded-lg border border-gray-300 bg-white px-4 text-gray-950 shadow-sm outline-none transition [color-scheme:light] focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400"
+                className={getFormControlClassName({
+                  disabled: true,
+                  shadow: true,
+                  className: FORM_CONTROL_COLOR_SCHEME_CLASS,
+                })}
               />
             </div>
           </div>
@@ -1950,7 +1983,7 @@ export default function PurchaseCandidateForm({
             type="url"
             value={purchaseUrl}
             onChange={(event) => setPurchaseUrl(event.target.value)}
-            className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            className={getFormControlClassName()}
           />
         </div>
 
@@ -1966,7 +1999,7 @@ export default function PurchaseCandidateForm({
             value={wantedReason}
             onChange={(event) => setWantedReason(event.target.value)}
             rows={3}
-            className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            className={getFormControlClassName()}
           />
         </div>
       </ItemFormSection>
@@ -1998,7 +2031,12 @@ export default function PurchaseCandidateForm({
               </label>
 
               {useCustomMainColor ? (
-                <div className="flex gap-3">
+                <div
+                  className={getFormControlWrapperClassName(
+                    Boolean(errors.colors),
+                    "gap-3 rounded-lg px-3 pr-3",
+                  )}
+                >
                   <input
                     type="color"
                     aria-label="メインカラーコードカラーピッカー"
@@ -2013,7 +2051,7 @@ export default function PurchaseCandidateForm({
                     value={customMainHex}
                     onChange={(event) => setCustomMainHex(event.target.value)}
                     disabled={isPurchasedLocked}
-                    className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors.colors ? "border-red-400" : "border-gray-300"}`}
+                    className="w-full border-0 bg-transparent px-2 text-gray-900 outline-none"
                   />
                 </div>
               ) : (
@@ -2041,7 +2079,10 @@ export default function PurchaseCandidateForm({
                   placeholder="例: 00 WHITE / 31 BEIGE / 64 BLUE"
                   maxLength={50}
                   disabled={isPurchasedLocked || !selectedMainColor}
-                  className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400 ${errors.main_color_custom_label ? "border-red-400" : "border-gray-300"}`}
+                  className={getFormControlClassName({
+                    invalid: Boolean(errors.main_color_custom_label),
+                    disabled: true,
+                  })}
                 />
               </div>
             </div>
@@ -2071,7 +2112,12 @@ export default function PurchaseCandidateForm({
               </label>
 
               {useCustomSubColor ? (
-                <div className="flex gap-3">
+                <div
+                  className={getFormControlWrapperClassName(
+                    Boolean(errors.sub_color),
+                    "gap-3 rounded-lg px-3 pr-3",
+                  )}
+                >
                   <input
                     type="color"
                     aria-label="サブカラーコードカラーピッカー"
@@ -2086,7 +2132,7 @@ export default function PurchaseCandidateForm({
                     value={customSubHex}
                     onChange={(event) => setCustomSubHex(event.target.value)}
                     disabled={isPurchasedLocked}
-                    className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors.sub_color ? "border-red-400" : "border-gray-300"}`}
+                    className="w-full border-0 bg-transparent px-2 text-gray-900 outline-none"
                   />
                 </div>
               ) : (
@@ -2199,7 +2245,9 @@ export default function PurchaseCandidateForm({
                 setSizeGender(event.target.value as typeof sizeGender)
               }
               disabled={isPurchasedLocked}
-              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              className={getFormControlClassName({
+                disabled: isPurchasedLocked,
+              })}
             >
               <option value=""></option>
               <option value="women">
@@ -2228,7 +2276,9 @@ export default function PurchaseCandidateForm({
               value={sizeLabel}
               onChange={(event) => setSizeLabel(event.target.value)}
               disabled={isPurchasedLocked}
-              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              className={getFormControlClassName({
+                disabled: isPurchasedLocked,
+              })}
             />
           </div>
         </div>

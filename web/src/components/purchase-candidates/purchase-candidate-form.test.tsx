@@ -2055,4 +2055,20 @@ describe("購入検討フォーム", () => {
     ).not.toBeNull();
     expect(container.querySelector("#shape")).toBeNull();
   });
+
+  it("select と input と date 入力の高さを共通 class で揃える", async () => {
+    await renderForm();
+
+    const statusSelect = container.querySelector<HTMLSelectElement>("#status");
+    const nameInput = container.querySelector<HTMLInputElement>("#name");
+    const releaseDateInput =
+      container.querySelector<HTMLInputElement>("#release_date");
+    const priceInput = container.querySelector<HTMLInputElement>("#price");
+
+    expect(statusSelect?.className).toContain("h-[50px]");
+    expect(nameInput?.className).toContain("h-[50px]");
+    expect(releaseDateInput?.className).toContain("h-[50px]");
+    expect(priceInput?.className).toContain("h-full");
+    expect(priceInput?.parentElement?.className).toContain("h-[50px]");
+  });
 });

@@ -25,8 +25,10 @@ type ItemPreviewCardProps = {
   shape: string;
   mainColorHex?: string;
   mainColorLabel?: string;
+  mainColorCustomLabel?: string | null;
   subColorHex?: string;
   subColorLabel?: string;
+  subColorCustomLabel?: string | null;
   topsSpec?: {
     sleeve?: string;
     length?: string;
@@ -49,30 +51,48 @@ type ItemPreviewCardProps = {
   showSummary?: boolean;
 };
 
+function resolveDisplayedColorLabel(
+  label?: string,
+  customLabel?: string | null,
+) {
+  const trimmedCustomLabel = customLabel?.trim();
+
+  return trimmedCustomLabel || label || "";
+}
+
 function ColorDot({
   hex,
   label,
+  customLabel,
   tone,
 }: {
   hex?: string;
   label?: string;
+  customLabel?: string | null;
   tone: "main" | "sub";
 }) {
   if (!hex || !label) return null;
 
+  const displayedLabel = resolveDisplayedColorLabel(label, customLabel);
+
   return (
-    <div
-      className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm ${
-        tone === "main"
-          ? "border border-gray-300 bg-white"
-          : "border border-gray-200 bg-gray-50"
-      }`}
-    >
-      <span
-        className="h-4 w-4 rounded-full border border-gray-300"
-        style={{ backgroundColor: hex }}
-      />
-      {label}
+    <div className="min-w-0">
+      <div
+        className={`inline-flex min-w-0 items-center gap-2 rounded-full px-3 py-1 text-sm ${
+          tone === "main"
+            ? "border border-gray-300 bg-white"
+            : "border border-gray-200 bg-gray-50"
+        }`}
+      >
+        <span
+          className="h-4 w-4 shrink-0 rounded-full border border-gray-300"
+          style={{ backgroundColor: hex }}
+        />
+        <span className="truncate">{displayedLabel}</span>
+      </div>
+      <p className="mt-1 text-xs text-gray-500">
+        <span className="font-mono text-gray-400">{hex.toUpperCase()}</span>
+      </p>
     </div>
   );
 }
@@ -84,8 +104,10 @@ export default function ItemPreviewCard({
   shape,
   mainColorHex,
   mainColorLabel,
+  mainColorCustomLabel,
   subColorHex,
   subColorLabel,
+  subColorCustomLabel,
   topsSpec,
   topsSpecRaw,
   spec,
@@ -123,20 +145,28 @@ export default function ItemPreviewCard({
     spec?.legwear?.coverage_type,
   );
   const selectedSkinTone = findSkinTonePresetOption(skinTonePreset);
+  const displayedMainColorLabel = resolveDisplayedColorLabel(
+    mainColorLabel,
+    mainColorCustomLabel,
+  );
+  const displayedSubColorLabel = resolveDisplayedColorLabel(
+    subColorLabel,
+    subColorCustomLabel,
+  );
 
   const previewMeta = [
     {
       label: "メインカラー",
       value:
         mainColorLabel && mainColorHex
-          ? `${mainColorLabel} (${mainColorHex})`
+          ? `${displayedMainColorLabel} (${mainColorHex})`
           : "未設定",
     },
     {
       label: "サブカラー",
       value:
         subColorLabel && subColorHex
-          ? `${subColorLabel} (${subColorHex})`
+          ? `${displayedSubColorLabel} (${subColorHex})`
           : "未設定",
     },
     {
@@ -146,17 +176,17 @@ export default function ItemPreviewCard({
   ];
 
   return (
-    <section className={`rounded-2xl border border-gray-200 bg-gray-50 p-4`}>
+    <section className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
       {showSummary ? (
         <div className="flex items-center justify-between gap-4">
-          <div>
+          <div className="min-w-0">
             <p className="text-sm text-gray-500">プレビュー</p>
             <h2
-              className={`mt-1 font-semibold text-gray-900 ${compact ? "text-base" : "text-lg"}`}
+              className={`mt-1 break-words font-semibold leading-snug text-gray-900 [overflow-wrap:anywhere] ${compact ? "text-base" : "text-lg"}`}
             >
-              {name || "名称未設定"}
+              {name || "商品名未設定"}
             </h2>
-            <p className="mt-1 text-sm text-gray-600">
+            <p className="mt-1 break-words text-sm leading-6 text-gray-600 [overflow-wrap:anywhere]">
               {classificationLabels.join(" / ")}
             </p>
           </div>
@@ -186,9 +216,19 @@ export default function ItemPreviewCard({
           <div
             className={compact ? "space-y-2 self-start pt-0.5" : "space-y-3"}
           >
-            <div className={`flex flex-wrap gap-2 ${compact ? "text-xs" : ""}`}>
-              <ColorDot hex={mainColorHex} label={mainColorLabel} tone="main" />
-              <ColorDot hex={subColorHex} label={subColorLabel} tone="sub" />
+            <div className={`grid gap-2 ${compact ? "text-xs" : ""}`}>
+              <ColorDot
+                hex={mainColorHex}
+                label={mainColorLabel}
+                customLabel={mainColorCustomLabel}
+                tone="main"
+              />
+              <ColorDot
+                hex={subColorHex}
+                label={subColorLabel}
+                customLabel={subColorCustomLabel}
+                tone="sub"
+              />
             </div>
 
             <div
@@ -197,7 +237,7 @@ export default function ItemPreviewCard({
               <p
                 className={`font-medium text-gray-700 ${compact ? "mb-2 text-xs" : "mb-2 text-sm"}`}
               >
-                {compact ? "確認中の設定" : "プレビュー詳細"}
+                {compact ? "プレビュー中の設定" : "プレビュー詳細"}
               </p>
 
               <dl
@@ -206,7 +246,9 @@ export default function ItemPreviewCard({
                 {previewMeta.map((item) => (
                   <div key={item.label}>
                     <dt className="font-medium text-gray-700">{item.label}</dt>
-                    <dd>{item.value}</dd>
+                    <dd className="break-words [overflow-wrap:anywhere]">
+                      {item.value}
+                    </dd>
                   </div>
                 ))}
               </dl>

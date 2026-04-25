@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { getFormControlClassName } from "@/components/forms/control-styles";
 import {
   ITEM_COLORS,
   ITEM_COLORS_BY_GROUP,
@@ -58,7 +59,7 @@ export default function ColorSelect({
         type="button"
         disabled={disabled}
         onClick={() => setOpen((current) => !current)}
-        className="flex w-full items-center justify-between gap-3 rounded-lg border border-gray-300 bg-white px-4 py-3 text-left text-gray-900 outline-none transition hover:border-gray-400 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+        className={`${getFormControlClassName({ disabled: true })} flex items-center justify-between gap-3 text-left hover:border-gray-400`}
         aria-haspopup="listbox"
         aria-expanded={open}
       >

@@ -6,6 +6,11 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormPageHeader } from "@/components/shared/form-page-header";
 import {
+  FORM_CONTROL_INNER_INPUT_CLASS,
+  getFormControlClassName,
+  getFormControlWrapperClassName,
+} from "@/components/forms/control-styles";
+import {
   findItemShapeLabel,
   ITEM_CATEGORIES,
   getItemShapeOptions,
@@ -1608,7 +1613,9 @@ export default function NewItemPage() {
                   id="category"
                   value={category}
                   onChange={(e) => handleCategoryChange(e.target.value)}
-                  className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors.category ? "border-red-400" : "border-gray-300"}`}
+                  className={getFormControlClassName({
+                    invalid: Boolean(errors.category),
+                  })}
                 >
                   <option value="">選択してください</option>
                   {categoryOptions.map((item) => (
@@ -1669,7 +1676,10 @@ export default function NewItemPage() {
                       value={subcategory}
                       onChange={(e) => handleSubcategoryChange(e.target.value)}
                       disabled={!category}
-                      className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors.subcategory ? "border-red-400" : "border-gray-300"}`}
+                      className={getFormControlClassName({
+                        invalid: Boolean(errors.subcategory),
+                        disabled: true,
+                      })}
                     >
                       <option value="">選択してください</option>
                       {subcategoryOptions.map((item) => (
@@ -1707,7 +1717,10 @@ export default function NewItemPage() {
                       currentShapeOptions.length === 0 ||
                       isShapeAutoSelected
                     }
-                    className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors.shape ? "border-red-400" : "border-gray-300"}`}
+                    className={getFormControlClassName({
+                      invalid: Boolean(errors.shape),
+                      disabled: true,
+                    })}
                   >
                     <option value="">選択してください</option>
                     {currentShapeOptions.map((item) => (
@@ -1757,7 +1770,12 @@ export default function NewItemPage() {
                   </label>
 
                   {useCustomMainColor ? (
-                    <div className="flex items-center gap-3 rounded-xl border border-gray-300 bg-white px-4 py-3">
+                    <div
+                      className={getFormControlWrapperClassName(
+                        Boolean(errors.mainColor),
+                        "gap-3 rounded-lg px-3 pr-3",
+                      )}
+                    >
                       <input
                         type="color"
                         value={customMainHex}
@@ -1768,7 +1786,7 @@ export default function NewItemPage() {
                         type="text"
                         value={customMainHex}
                         onChange={(e) => setCustomMainHex(e.target.value)}
-                        className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${errors.mainColor ? "border-red-400" : "border-gray-300"}`}
+                        className="w-full border-0 bg-transparent px-2 text-gray-900 outline-none"
                       />
                     </div>
                   ) : (
@@ -1801,7 +1819,10 @@ export default function NewItemPage() {
                       placeholder="例: 00 WHITE / 31 BEIGE / 64 BLUE"
                       maxLength={50}
                       disabled={!selectedMainColor}
-                      className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400 ${errors.main_color_custom_label ? "border-red-400" : "border-gray-300"}`}
+                      className={getFormControlClassName({
+                        invalid: Boolean(errors.main_color_custom_label),
+                        disabled: true,
+                      })}
                     />
                   </div>
                 </div>
@@ -1830,7 +1851,12 @@ export default function NewItemPage() {
                   </label>
 
                   {useCustomSubColor ? (
-                    <div className="flex items-center gap-3 rounded-xl border border-gray-300 bg-white px-4 py-3">
+                    <div
+                      className={getFormControlWrapperClassName(
+                        false,
+                        "gap-3 rounded-lg px-3 pr-3",
+                      )}
+                    >
                       <input
                         type="color"
                         value={customSubHex}
@@ -1841,7 +1867,7 @@ export default function NewItemPage() {
                         type="text"
                         value={customSubHex}
                         onChange={(e) => setCustomSubHex(e.target.value)}
-                        className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                        className="w-full border-0 bg-transparent px-2 text-gray-900 outline-none"
                       />
                     </div>
                   ) : (
@@ -1947,7 +1973,7 @@ export default function NewItemPage() {
                     onChange={(e) =>
                       setCareStatus(e.target.value as ItemCareStatus | "")
                     }
-                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                    className={getFormControlClassName()}
                   >
                     <option value=""></option>
                     {Object.entries(ITEM_CARE_STATUS_LABELS).map(
@@ -1982,7 +2008,7 @@ export default function NewItemPage() {
                         e.target.value as "women" | "men" | "unisex" | "",
                       )
                     }
-                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                    className={getFormControlClassName()}
                   >
                     <option value=""></option>
                     {Object.entries(ITEM_SIZE_GENDER_LABELS).map(
@@ -2008,7 +2034,7 @@ export default function NewItemPage() {
                     placeholder="例: M / 23.5cm"
                     value={sizeLabel}
                     onChange={(e) => setSizeLabel(e.target.value)}
-                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                    className={getFormControlClassName()}
                   />
                 </div>
               </div>
@@ -2026,7 +2052,7 @@ export default function NewItemPage() {
                   value={sizeNote}
                   onChange={(e) => setSizeNote(e.target.value)}
                   placeholder="例: 普段Mだが小さめ"
-                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  className={getFormControlClassName()}
                 />
               </div>
 
@@ -2069,7 +2095,7 @@ export default function NewItemPage() {
                   >
                     実購入価格
                   </label>
-                  <div className="flex items-center rounded-lg border border-gray-300 bg-white pr-4 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100">
+                  <div className={getFormControlWrapperClassName()}>
                     <input
                       id="price"
                       type="number"
@@ -2077,7 +2103,7 @@ export default function NewItemPage() {
                       inputMode="numeric"
                       value={price}
                       onChange={(e) => setPrice(e.target.value)}
-                      className="w-full rounded-lg bg-transparent px-4 py-3 text-gray-900 outline-none"
+                      className={FORM_CONTROL_INNER_INPUT_CLASS}
                     />
                     <span className="text-sm text-gray-500">円</span>
                   </div>
@@ -2100,7 +2126,7 @@ export default function NewItemPage() {
                     type="date"
                     value={purchasedAt}
                     onChange={(e) => setPurchasedAt(e.target.value)}
-                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                    className={getFormControlClassName()}
                   />
                 </div>
               </div>
@@ -2117,7 +2143,7 @@ export default function NewItemPage() {
                   type="url"
                   value={purchaseUrl}
                   onChange={(e) => setPurchaseUrl(e.target.value)}
-                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  className={getFormControlClassName()}
                 />
               </div>
             </ItemFormSection>
@@ -2135,7 +2161,7 @@ export default function NewItemPage() {
                   value={memo}
                   onChange={(e) => setMemo(e.target.value)}
                   rows={4}
-                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  className={getFormControlClassName()}
                 />
               </div>
             </ItemFormSection>

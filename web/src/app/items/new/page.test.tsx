@@ -285,6 +285,28 @@ vi.mock("@/lib/api/categories", async () => {
       ),
     ).not.toBeNull();
   });
+  it("select と input と date 入力の高さを共通 class で揃える", async () => {
+    const { default: NewItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(NewItemPage));
+      await waitForEffects();
+    });
+
+    const categorySelect =
+      container.querySelector<HTMLSelectElement>("#category");
+    const sizeLabelInput =
+      container.querySelector<HTMLInputElement>("#size-label");
+    const purchasedAtInput =
+      container.querySelector<HTMLInputElement>("#purchased-at");
+    const priceInput = container.querySelector<HTMLInputElement>("#price");
+
+    expect(categorySelect?.className).toContain("h-[50px]");
+    expect(sizeLabelInput?.className).toContain("h-[50px]");
+    expect(purchasedAtInput?.className).toContain("h-[50px]");
+    expect(priceInput?.className).toContain("h-full");
+    expect(priceInput?.parentElement?.className).toContain("h-[50px]");
+  });
 });
 
 vi.mock("@/lib/api/settings", () => ({
