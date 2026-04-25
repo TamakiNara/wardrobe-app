@@ -43,7 +43,7 @@ paths:
         XSRF-TOKEN とセッションCookie を Cookie に設定する。
       operationId: getCsrfCookie
       responses:
-        '204':
+        "204":
           description: レスポンスボディなし
           headers:
             Set-Cookie:
@@ -61,26 +61,26 @@ paths:
         Cookie ベース認証のため、事前に /csrf-cookie を呼び出し X-CSRF-TOKEN を付与する。
       operationId: register
       parameters:
-        - $ref: '#/components/parameters/XCsrfTokenHeader'
+        - $ref: "#/components/parameters/XCsrfTokenHeader"
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RegisterRequest'
+              $ref: "#/components/schemas/RegisterRequest"
       responses:
-        '201':
+        "201":
           description: ユーザー登録成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RegisterResponse'
-        '422':
+                $ref: "#/components/schemas/RegisterResponse"
+        "422":
           description: バリデーションエラー
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ValidationErrorResponse'
+                $ref: "#/components/schemas/ValidationErrorResponse"
 
   /api/settings/brands:
     get:
@@ -103,13 +103,13 @@ paths:
             maxLength: 255
           description: ブランド名または読み仮名で候補を絞り込む
       responses:
-        '200':
+        "200":
           description: 取得成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserBrandsResponse'
-        '401':
+                $ref: "#/components/schemas/UserBrandsResponse"
+        "401":
           description: 未認証
     post:
       tags:
@@ -119,28 +119,28 @@ paths:
       security:
         - SessionCookieAuth: []
       parameters:
-        - $ref: '#/components/parameters/XCsrfTokenHeader'
+        - $ref: "#/components/parameters/XCsrfTokenHeader"
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UserBrandUpsertRequest'
+              $ref: "#/components/schemas/UserBrandUpsertRequest"
       responses:
-        '201':
+        "201":
           description: 作成成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserBrandResponseWithMessage'
-        '401':
+                $ref: "#/components/schemas/UserBrandResponseWithMessage"
+        "401":
           description: 未認証
-        '422':
+        "422":
           description: バリデーションエラー
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ValidationErrorResponse'
+                $ref: "#/components/schemas/ValidationErrorResponse"
 
   /api/settings/brands/{id}:
     patch:
@@ -151,7 +151,7 @@ paths:
       security:
         - SessionCookieAuth: []
       parameters:
-        - $ref: '#/components/parameters/XCsrfTokenHeader'
+        - $ref: "#/components/parameters/XCsrfTokenHeader"
         - name: id
           in: path
           required: true
@@ -162,24 +162,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UserBrandUpdateRequest'
+              $ref: "#/components/schemas/UserBrandUpdateRequest"
       responses:
-        '200':
+        "200":
           description: 更新成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserBrandResponseWithMessage'
-        '401':
+                $ref: "#/components/schemas/UserBrandResponseWithMessage"
+        "401":
           description: 未認証
-        '404':
+        "404":
           description: 未検出（対象なし・他人データ秘匿を含む）
-        '422':
+        "422":
           description: バリデーションエラー
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ValidationErrorResponse'
+                $ref: "#/components/schemas/ValidationErrorResponse"
 
   /api/login:
     post:
@@ -191,28 +191,28 @@ paths:
         Cookie ベース認証のため、事前に /csrf-cookie を呼び出し X-CSRF-TOKEN を付与する。
       operationId: login
       parameters:
-        - $ref: '#/components/parameters/XCsrfTokenHeader'
+        - $ref: "#/components/parameters/XCsrfTokenHeader"
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/LoginRequest'
+              $ref: "#/components/schemas/LoginRequest"
       responses:
-        '200':
+        "200":
           description: ログイン成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/LoginResponse'
-        '422':
+                $ref: "#/components/schemas/LoginResponse"
+        "422":
           description: 認証失敗またはバリデーションエラー。認証失敗は message only、入力不備は errors を含む
           content:
             application/json:
               schema:
                 oneOf:
-                  - $ref: '#/components/schemas/UnprocessableEntityMessageResponse'
-                  - $ref: '#/components/schemas/ValidationErrorResponse'
+                  - $ref: "#/components/schemas/UnprocessableEntityMessageResponse"
+                  - $ref: "#/components/schemas/ValidationErrorResponse"
 
   /api/me:
     get:
@@ -223,13 +223,13 @@ paths:
       security:
         - SessionCookieAuth: []
       responses:
-        '200':
+        "200":
           description: 取得成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
-        '401':
+                $ref: "#/components/schemas/User"
+        "401":
           description: 未認証
 
   /api/logout:
@@ -242,14 +242,14 @@ paths:
         POST のため X-CSRF-TOKEN ヘッダが必要。
       operationId: logout
       parameters:
-        - $ref: '#/components/parameters/XCsrfTokenHeader'
+        - $ref: "#/components/parameters/XCsrfTokenHeader"
       responses:
-        '200':
+        "200":
           description: "ログアウト成功。message は `logged_out`、認証状態の正本は Cookie と後続の `/api/me` で確認する"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MessageOnlyResponse'
+                $ref: "#/components/schemas/MessageOnlyResponse"
 
   /api/categories:
     get:
@@ -258,12 +258,12 @@ paths:
       summary: カテゴリ一覧取得
       description: 参照マスタとしてカテゴリ一覧を返す。実装は api/routes/api.php 側に定義されている。
       responses:
-        '200':
+        "200":
           description: 取得成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CategoriesResponse'
+                $ref: "#/components/schemas/CategoriesResponse"
 
   /api/settings/categories:
     get:
@@ -273,13 +273,13 @@ paths:
       security:
         - SessionCookieAuth: []
       responses:
-        '200':
+        "200":
           description: 取得成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CategoryVisibilitySettingsResponse'
-        '401':
+                $ref: "#/components/schemas/CategoryVisibilitySettingsResponse"
+        "401":
           description: 未認証
     put:
       tags:
@@ -288,30 +288,30 @@ paths:
       security:
         - SessionCookieAuth: []
       parameters:
-        - $ref: '#/components/parameters/XCsrfTokenHeader'
+        - $ref: "#/components/parameters/XCsrfTokenHeader"
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateCategoryVisibilitySettingsRequest'
+              $ref: "#/components/schemas/UpdateCategoryVisibilitySettingsRequest"
       responses:
-        '200':
+        "200":
           description: 更新成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CategoryVisibilitySettingsUpdatedResponse'
-        '401':
+                $ref: "#/components/schemas/CategoryVisibilitySettingsUpdatedResponse"
+        "401":
           description: 未認証
-        '422':
+        "422":
           description: バリデーションエラーまたは業務ルール違反。field error がある場合は errors を含み、無効カテゴリなどの業務ルール違反は message only を返す
           content:
             application/json:
               schema:
                 oneOf:
-                  - $ref: '#/components/schemas/ValidationErrorResponse'
-                  - $ref: '#/components/schemas/UnprocessableEntityMessageResponse'
+                  - $ref: "#/components/schemas/ValidationErrorResponse"
+                  - $ref: "#/components/schemas/UnprocessableEntityMessageResponse"
 
   /api/settings/preferences:
     get:
@@ -322,13 +322,13 @@ paths:
       security:
         - SessionCookieAuth: []
       responses:
-        '200':
+        "200":
           description: 取得成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserPreferencesResponse'
-        '401':
+                $ref: "#/components/schemas/UserPreferencesResponse"
+        "401":
           description: 未認証
     put:
       tags:
@@ -340,28 +340,28 @@ paths:
       security:
         - SessionCookieAuth: []
       parameters:
-        - $ref: '#/components/parameters/XCsrfTokenHeader'
+        - $ref: "#/components/parameters/XCsrfTokenHeader"
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateUserPreferencesRequest'
+              $ref: "#/components/schemas/UpdateUserPreferencesRequest"
       responses:
-        '200':
+        "200":
           description: "更新成功。message は `updated`、正本は同時に返す preferences と後続の設定取得結果で読む"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserPreferencesUpdatedResponse'
-        '401':
+                $ref: "#/components/schemas/UserPreferencesUpdatedResponse"
+        "401":
           description: 未認証
-        '422':
+        "422":
           description: バリデーションエラー
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ValidationErrorResponse'
+                $ref: "#/components/schemas/ValidationErrorResponse"
 
   /api/settings/tpos:
     get:
@@ -381,13 +381,13 @@ paths:
           schema:
             type: boolean
       responses:
-        '200':
+        "200":
           description: 取得成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserTposResponse'
-        '401':
+                $ref: "#/components/schemas/UserTposResponse"
+        "401":
           description: 未認証
     post:
       tags:
@@ -399,28 +399,28 @@ paths:
       security:
         - SessionCookieAuth: []
       parameters:
-        - $ref: '#/components/parameters/XCsrfTokenHeader'
+        - $ref: "#/components/parameters/XCsrfTokenHeader"
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateUserTpoRequest'
+              $ref: "#/components/schemas/CreateUserTpoRequest"
       responses:
-        '201':
+        "201":
           description: 作成成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserTpoResponseWithMessage'
-        '401':
+                $ref: "#/components/schemas/UserTpoResponseWithMessage"
+        "401":
           description: 未認証
-        '422':
+        "422":
           description: バリデーションエラー
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ValidationErrorResponse'
+                $ref: "#/components/schemas/ValidationErrorResponse"
 
   /api/settings/tpos/{id}:
     patch:
@@ -433,7 +433,7 @@ paths:
       security:
         - SessionCookieAuth: []
       parameters:
-        - $ref: '#/components/parameters/XCsrfTokenHeader'
+        - $ref: "#/components/parameters/XCsrfTokenHeader"
         - name: id
           in: path
           required: true
@@ -444,24 +444,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateUserTpoRequest'
+              $ref: "#/components/schemas/UpdateUserTpoRequest"
       responses:
-        '200':
+        "200":
           description: 更新成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserTpoResponseWithMessage'
-        '401':
+                $ref: "#/components/schemas/UserTpoResponseWithMessage"
+        "401":
           description: 未認証
-        '404':
+        "404":
           description: 対象なし
-        '422':
+        "422":
           description: バリデーションエラーまたは業務ルール違反
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ValidationErrorResponse'
+                $ref: "#/components/schemas/ValidationErrorResponse"
 
   /api/export:
     get:
@@ -475,13 +475,13 @@ paths:
       security:
         - SessionCookieAuth: []
       responses:
-        '200':
+        "200":
           description: 取得成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ImportExportBackupPayload'
-        '401':
+                $ref: "#/components/schemas/ImportExportBackupPayload"
+        "401":
           description: 未認証
 
   /api/import:
@@ -497,28 +497,28 @@ paths:
       security:
         - SessionCookieAuth: []
       parameters:
-        - $ref: '#/components/parameters/XCsrfTokenHeader'
+        - $ref: "#/components/parameters/XCsrfTokenHeader"
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ImportExportBackupPayload'
+              $ref: "#/components/schemas/ImportExportBackupPayload"
       responses:
-        '200':
+        "200":
           description: 復元成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ImportExecutionResponse'
-        '401':
+                $ref: "#/components/schemas/ImportExecutionResponse"
+        "401":
           description: 未認証
-        '422':
+        "422":
           description: バリデーションエラーまたは復元失敗
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ValidationErrorResponse'
+                $ref: "#/components/schemas/ValidationErrorResponse"
 
   /api/items:
     get:
@@ -532,13 +532,13 @@ paths:
       security:
         - SessionCookieAuth: []
       responses:
-        '200':
+        "200":
           description: 取得成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ItemsResponse'
-        '401':
+                $ref: "#/components/schemas/ItemsResponse"
+        "401":
           description: 未認証
     post:
       tags:
@@ -552,30 +552,30 @@ paths:
       security:
         - SessionCookieAuth: []
       parameters:
-        - $ref: '#/components/parameters/XCsrfTokenHeader'
+        - $ref: "#/components/parameters/XCsrfTokenHeader"
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ItemCreateRequest'
+              $ref: "#/components/schemas/ItemCreateRequest"
       responses:
-        '201':
+        "201":
           description: "作成成功。message は `created`、item には作成後 record を含む"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ItemResponseWithMessage'
-        '401':
+                $ref: "#/components/schemas/ItemResponseWithMessage"
+        "401":
           description: 未認証
-        '422':
+        "422":
           description: バリデーションエラーまたは業務ルール違反。更新項目なしは message only、field 単位の不備は errors を含む
           content:
             application/json:
               schema:
                 oneOf:
-                  - $ref: '#/components/schemas/ValidationErrorResponse'
-                  - $ref: '#/components/schemas/UnprocessableEntityMessageResponse'
+                  - $ref: "#/components/schemas/ValidationErrorResponse"
+                  - $ref: "#/components/schemas/UnprocessableEntityMessageResponse"
 
   /api/items/disposed:
     get:
@@ -589,13 +589,13 @@ paths:
       security:
         - SessionCookieAuth: []
       responses:
-        '200':
+        "200":
           description: 取得成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ItemsResponse'
-        '401':
+                $ref: "#/components/schemas/ItemsResponse"
+        "401":
           description: 未認証
 
   /api/home/summary:
@@ -610,13 +610,13 @@ paths:
       security:
         - SessionCookieAuth: []
       responses:
-        '200':
+        "200":
           description: 取得成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/HomeSummaryResponse'
-        '401':
+                $ref: "#/components/schemas/HomeSummaryResponse"
+        "401":
           description: 未認証
 
   /api/items/{id}:
@@ -627,17 +627,17 @@ paths:
       security:
         - SessionCookieAuth: []
       parameters:
-        - $ref: '#/components/parameters/ItemIdPath'
+        - $ref: "#/components/parameters/ItemIdPath"
       responses:
-        '200':
+        "200":
           description: 取得成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ItemResponse'
-        '401':
+                $ref: "#/components/schemas/ItemResponse"
+        "401":
           description: 未認証
-        '404':
+        "404":
           description: 未検出（対象なし・他人データ秘匿を含む）
     put:
       tags:
@@ -646,33 +646,33 @@ paths:
       security:
         - SessionCookieAuth: []
       parameters:
-        - $ref: '#/components/parameters/ItemIdPath'
-        - $ref: '#/components/parameters/XCsrfTokenHeader'
+        - $ref: "#/components/parameters/ItemIdPath"
+        - $ref: "#/components/parameters/XCsrfTokenHeader"
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ItemUpsertRequest'
+              $ref: "#/components/schemas/ItemUpsertRequest"
       responses:
-        '200':
+        "200":
           description: "更新成功。message は `updated`、item には更新後 record を含む"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ItemResponseWithMessage'
-        '401':
+                $ref: "#/components/schemas/ItemResponseWithMessage"
+        "401":
           description: 未認証
-        '404':
+        "404":
           description: 未検出（対象なし・他人データ秘匿を含む）
-        '422':
+        "422":
           description: バリデーションエラーまたは業務ルール違反。field 単位の不備は errors を含み、選択 item 不正などは message only を返す
           content:
             application/json:
               schema:
                 oneOf:
-                  - $ref: '#/components/schemas/ValidationErrorResponse'
-                  - $ref: '#/components/schemas/UnprocessableEntityMessageResponse'
+                  - $ref: "#/components/schemas/ValidationErrorResponse"
+                  - $ref: "#/components/schemas/UnprocessableEntityMessageResponse"
     delete:
       tags:
         - Items
@@ -685,20 +685,20 @@ paths:
       security:
         - SessionCookieAuth: []
       parameters:
-        - $ref: '#/components/parameters/ItemIdPath'
-        - $ref: '#/components/parameters/XCsrfTokenHeader'
+        - $ref: "#/components/parameters/ItemIdPath"
+        - $ref: "#/components/parameters/XCsrfTokenHeader"
       responses:
-        '200':
+        "200":
           description: "削除成功。message は `deleted`"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MessageOnlyResponse'
-        '401':
+                $ref: "#/components/schemas/MessageOnlyResponse"
+        "401":
           description: 未認証
-        '404':
+        "404":
           description: 未検出（対象なし・他人データ秘匿を含む）
-        '422':
+        "422":
           description: 参照中 item のため物理削除できない。通常は `disposed` を使う
 
   /api/items/{id}/images:
@@ -714,8 +714,8 @@ paths:
       security:
         - SessionCookieAuth: []
       parameters:
-        - $ref: '#/components/parameters/ItemIdPath'
-        - $ref: '#/components/parameters/XCsrfTokenHeader'
+        - $ref: "#/components/parameters/ItemIdPath"
+        - $ref: "#/components/parameters/XCsrfTokenHeader"
       requestBody:
         required: true
         content:
@@ -734,7 +734,7 @@ paths:
                 is_primary:
                   type: boolean
       responses:
-        '201':
+        "201":
           description: 追加成功
           content:
             application/json:
@@ -748,19 +748,19 @@ paths:
                     type: string
                     example: created
                   image:
-                    $ref: '#/components/schemas/ItemImageRecord'
-        '401':
+                    $ref: "#/components/schemas/ItemImageRecord"
+        "401":
           description: 未認証
-        '404':
+        "404":
           description: 未検出（対象なし・他人データ秘匿を含む）
-        '422':
+        "422":
           description: バリデーションエラーまたは業務ルール違反。field 単位の不備は errors を含み、選択 item 不正などは message only を返す
           content:
             application/json:
               schema:
                 oneOf:
-                  - $ref: '#/components/schemas/ValidationErrorResponse'
-                  - $ref: '#/components/schemas/UnprocessableEntityMessageResponse'
+                  - $ref: "#/components/schemas/ValidationErrorResponse"
+                  - $ref: "#/components/schemas/UnprocessableEntityMessageResponse"
 
   /api/items/{id}/images/{imageId}:
     delete:
@@ -773,23 +773,23 @@ paths:
       security:
         - SessionCookieAuth: []
       parameters:
-        - $ref: '#/components/parameters/ItemIdPath'
+        - $ref: "#/components/parameters/ItemIdPath"
         - name: imageId
           in: path
           required: true
           schema:
             type: integer
-        - $ref: '#/components/parameters/XCsrfTokenHeader'
+        - $ref: "#/components/parameters/XCsrfTokenHeader"
       responses:
-        '200':
+        "200":
           description: "削除成功。message は `deleted`。画像一覧の正本は後続の item 詳細取得結果で確認する"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MessageOnlyResponse'
-        '401':
+                $ref: "#/components/schemas/MessageOnlyResponse"
+        "401":
           description: 未認証
-        '404':
+        "404":
           description: 未検出（対象なし・他人データ秘匿を含む）
 
   /api/items/{id}/dispose:
@@ -805,25 +805,25 @@ paths:
       security:
         - SessionCookieAuth: []
       parameters:
-        - $ref: '#/components/parameters/ItemIdPath'
-        - $ref: '#/components/parameters/XCsrfTokenHeader'
+        - $ref: "#/components/parameters/ItemIdPath"
+        - $ref: "#/components/parameters/XCsrfTokenHeader"
       responses:
-        '200':
+        "200":
           description: "変更成功。message は `disposed`、item には状態変更後 record を含む"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ItemResponseWithMessage'
-        '401':
+                $ref: "#/components/schemas/ItemResponseWithMessage"
+        "401":
           description: 未認証
-        '404':
+        "404":
           description: 未検出（対象なし・他人データ秘匿を含む）
-        '422':
+        "422":
           description: 変更不可またはバリデーションエラー
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ValidationErrorResponse'
+                $ref: "#/components/schemas/ValidationErrorResponse"
 
   /api/items/{id}/reactivate:
     post:
@@ -837,25 +837,25 @@ paths:
       security:
         - SessionCookieAuth: []
       parameters:
-        - $ref: '#/components/parameters/ItemIdPath'
-        - $ref: '#/components/parameters/XCsrfTokenHeader'
+        - $ref: "#/components/parameters/ItemIdPath"
+        - $ref: "#/components/parameters/XCsrfTokenHeader"
       responses:
-        '200':
+        "200":
           description: "変更成功。message は `reactivated`、item には状態変更後 record を含む"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ItemResponseWithMessage'
-        '401':
+                $ref: "#/components/schemas/ItemResponseWithMessage"
+        "401":
           description: 未認証
-        '404':
+        "404":
           description: 未検出（対象なし・他人データ秘匿を含む）
-        '422':
+        "422":
           description: 変更不可またはバリデーションエラー
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ValidationErrorResponse'
+                $ref: "#/components/schemas/ValidationErrorResponse"
 
   /api/items/{id}/care-status:
     post:
@@ -870,8 +870,8 @@ paths:
       security:
         - SessionCookieAuth: []
       parameters:
-        - $ref: '#/components/parameters/ItemIdPath'
-        - $ref: '#/components/parameters/XCsrfTokenHeader'
+        - $ref: "#/components/parameters/ItemIdPath"
+        - $ref: "#/components/parameters/XCsrfTokenHeader"
       requestBody:
         required: true
         content:
@@ -887,22 +887,22 @@ paths:
                   enum:
                     - in_cleaning
       responses:
-        '200':
+        "200":
           description: "更新成功。message は `updated`、item には更新後 record を含む"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ItemResponseWithMessage'
-        '401':
+                $ref: "#/components/schemas/ItemResponseWithMessage"
+        "401":
           description: 未認証
-        '404':
+        "404":
           description: 未検出（対象なし・他人データ秘匿を含む）
-        '422':
+        "422":
           description: バリデーションエラー
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ValidationErrorResponse'
+                $ref: "#/components/schemas/ValidationErrorResponse"
 
   /api/outfits:
     get:
@@ -916,13 +916,13 @@ paths:
       security:
         - SessionCookieAuth: []
       responses:
-        '200':
+        "200":
           description: 取得成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OutfitsResponse'
-        '401':
+                $ref: "#/components/schemas/OutfitsResponse"
+        "401":
           description: 未認証
     post:
       tags:
@@ -931,28 +931,28 @@ paths:
       security:
         - SessionCookieAuth: []
       parameters:
-        - $ref: '#/components/parameters/XCsrfTokenHeader'
+        - $ref: "#/components/parameters/XCsrfTokenHeader"
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OutfitUpsertRequest'
+              $ref: "#/components/schemas/OutfitUpsertRequest"
       responses:
-        '201':
+        "201":
           description: "作成成功。message は `created`、outfit には作成後 record を含む"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OutfitResponseWithMessage'
-        '401':
+                $ref: "#/components/schemas/OutfitResponseWithMessage"
+        "401":
           description: 未認証
-        '422':
+        "422":
           description: バリデーションエラー
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ValidationErrorResponse'
+                $ref: "#/components/schemas/ValidationErrorResponse"
 
   /api/outfits/{id}:
     get:
@@ -962,17 +962,17 @@ paths:
       security:
         - SessionCookieAuth: []
       parameters:
-        - $ref: '#/components/parameters/OutfitIdPath'
+        - $ref: "#/components/parameters/OutfitIdPath"
       responses:
-        '200':
+        "200":
           description: 取得成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OutfitResponse'
-        '401':
+                $ref: "#/components/schemas/OutfitResponse"
+        "401":
           description: 未認証
-        '404':
+        "404":
           description: 未検出（対象なし・他人データ秘匿を含む）
     put:
       tags:
@@ -981,31 +981,31 @@ paths:
       security:
         - SessionCookieAuth: []
       parameters:
-        - $ref: '#/components/parameters/OutfitIdPath'
-        - $ref: '#/components/parameters/XCsrfTokenHeader'
+        - $ref: "#/components/parameters/OutfitIdPath"
+        - $ref: "#/components/parameters/XCsrfTokenHeader"
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OutfitUpsertRequest'
+              $ref: "#/components/schemas/OutfitUpsertRequest"
       responses:
-        '200':
+        "200":
           description: "更新成功。message は `updated`、outfit には更新後 record を含む"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OutfitResponseWithMessage'
-        '401':
+                $ref: "#/components/schemas/OutfitResponseWithMessage"
+        "401":
           description: 未認証
-        '404':
+        "404":
           description: 未検出（対象なし・他人データ秘匿を含む）
-        '422':
+        "422":
           description: バリデーションエラー
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ValidationErrorResponse'
+                $ref: "#/components/schemas/ValidationErrorResponse"
     delete:
       tags:
         - Outfits
@@ -1016,18 +1016,18 @@ paths:
       security:
         - SessionCookieAuth: []
       parameters:
-        - $ref: '#/components/parameters/OutfitIdPath'
-        - $ref: '#/components/parameters/XCsrfTokenHeader'
+        - $ref: "#/components/parameters/OutfitIdPath"
+        - $ref: "#/components/parameters/XCsrfTokenHeader"
       responses:
-        '200':
+        "200":
           description: "削除成功。message は `deleted`"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MessageOnlyResponse'
-        '401':
+                $ref: "#/components/schemas/MessageOnlyResponse"
+        "401":
           description: 未認証
-        '404':
+        "404":
           description: 未検出（対象なし・他人データ秘匿を含む）
 
   /api/outfits/invalid:
@@ -1042,13 +1042,13 @@ paths:
       security:
         - SessionCookieAuth: []
       responses:
-        '200':
+        "200":
           description: 取得成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OutfitsResponse'
-        '401':
+                $ref: "#/components/schemas/OutfitsResponse"
+        "401":
           description: 未認証
 
   /api/outfits/{id}/restore:
@@ -1065,27 +1065,27 @@ paths:
       security:
         - SessionCookieAuth: []
       parameters:
-        - $ref: '#/components/parameters/OutfitIdPath'
-        - $ref: '#/components/parameters/XCsrfTokenHeader'
+        - $ref: "#/components/parameters/OutfitIdPath"
+        - $ref: "#/components/parameters/XCsrfTokenHeader"
       responses:
-        '200':
+        "200":
           description: "復帰成功。message は `restored`、outfit には復帰後 record を含む"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OutfitResponseWithMessage'
-        '401':
+                $ref: "#/components/schemas/OutfitResponseWithMessage"
+        "401":
           description: 未認証
-        '404':
+        "404":
           description: 未検出（対象なし・他人データ秘匿を含む）
-        '422':
+        "422":
           description: 復帰不可またはバリデーションエラー。復帰不可は message only、field 単位の不備がある場合は errors を含む
           content:
             application/json:
               schema:
                 oneOf:
-                  - $ref: '#/components/schemas/UnprocessableEntityMessageResponse'
-                  - $ref: '#/components/schemas/ValidationErrorResponse'
+                  - $ref: "#/components/schemas/UnprocessableEntityMessageResponse"
+                  - $ref: "#/components/schemas/ValidationErrorResponse"
 
   /api/outfits/{id}/duplicate:
     post:
@@ -1103,18 +1103,18 @@ paths:
       security:
         - SessionCookieAuth: []
       parameters:
-        - $ref: '#/components/parameters/OutfitIdPath'
-        - $ref: '#/components/parameters/XCsrfTokenHeader'
+        - $ref: "#/components/parameters/OutfitIdPath"
+        - $ref: "#/components/parameters/XCsrfTokenHeader"
       responses:
-        '200':
+        "200":
           description: 複製用初期値取得成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OutfitDuplicateResponse'
-        '401':
+                $ref: "#/components/schemas/OutfitDuplicateResponse"
+        "401":
           description: 未認証
-        '404':
+        "404":
           description: 未検出（対象なし・他人データ秘匿を含む）
 
   /api/wear-logs:
@@ -1167,13 +1167,13 @@ paths:
             type: string
             format: date
       responses:
-        '200':
+        "200":
           description: wear logs 一覧
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/WearLogsResponse'
-        '401':
+                $ref: "#/components/schemas/WearLogsResponse"
+        "401":
           description: 未認証
 
     post:
@@ -1188,22 +1188,22 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/WearLogUpsertRequest'
+              $ref: "#/components/schemas/WearLogUpsertRequest"
       responses:
-        '201':
+        "201":
           description: wear log 作成成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/WearLogMutationResponse'
-        '401':
+                $ref: "#/components/schemas/WearLogMutationResponse"
+        "401":
           description: 未認証
-        '422':
+        "422":
           description: バリデーションエラー
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ValidationErrorResponse'
+                $ref: "#/components/schemas/ValidationErrorResponse"
   /api/wear-logs/calendar:
     get:
       tags:
@@ -1222,20 +1222,20 @@ paths:
             format: year-month
             example: 2026-03
       responses:
-        '200':
+        "200":
           description: wear log 月カレンダー集約
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/WearLogCalendarResponse'
-        '401':
+                $ref: "#/components/schemas/WearLogCalendarResponse"
+        "401":
           description: 未認証
-        '422':
+        "422":
           description: バリデーションエラー
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ValidationErrorResponse'
+                $ref: "#/components/schemas/ValidationErrorResponse"
   /api/wear-logs/by-date:
     get:
       tags:
@@ -1254,20 +1254,20 @@ paths:
             type: string
             format: date
       responses:
-        '200':
+        "200":
           description: wear log 日別詳細
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/WearLogByDateResponse'
-        '401':
+                $ref: "#/components/schemas/WearLogByDateResponse"
+        "401":
           description: 未認証
-        '422':
+        "422":
           description: バリデーションエラー
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ValidationErrorResponse'
+                $ref: "#/components/schemas/ValidationErrorResponse"
   /api/wear-logs/{wearLogId}:
     get:
       tags:
@@ -1281,15 +1281,15 @@ paths:
           schema:
             type: integer
       responses:
-        '200':
+        "200":
           description: wear log 詳細
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/WearLogResponse'
-        '401':
+                $ref: "#/components/schemas/WearLogResponse"
+        "401":
           description: 未認証
-        '404':
+        "404":
           description: 未検出（対象なし・他人データ秘匿を含む）
 
     put:
@@ -1310,24 +1310,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/WearLogUpsertRequest'
+              $ref: "#/components/schemas/WearLogUpsertRequest"
       responses:
-        '200':
+        "200":
           description: wear log 更新成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/WearLogMutationResponse'
-        '401':
+                $ref: "#/components/schemas/WearLogMutationResponse"
+        "401":
           description: 未認証
-        '404':
+        "404":
           description: 未検出（対象なし・他人データ秘匿を含む）
-        '422':
+        "422":
           description: バリデーションエラー
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ValidationErrorResponse'
+                $ref: "#/components/schemas/ValidationErrorResponse"
 
     delete:
       tags:
@@ -1344,15 +1344,15 @@ paths:
           schema:
             type: integer
       responses:
-        '200':
+        "200":
           description: "wear log 削除成功。message は `deleted`"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MessageOnlyResponse'
-        '401':
+                $ref: "#/components/schemas/MessageOnlyResponse"
+        "401":
           description: 未認証
-        '404':
+        "404":
           description: 未検出（対象なし・他人データ秘匿を含む）
 
   /api/purchase-candidates:
@@ -1383,12 +1383,12 @@ paths:
           in: query
           required: false
           schema:
-            $ref: '#/components/schemas/PurchaseCandidateStatus'
+            $ref: "#/components/schemas/PurchaseCandidateStatus"
         - name: priority
           in: query
           required: false
           schema:
-            $ref: '#/components/schemas/PurchaseCandidatePriority'
+            $ref: "#/components/schemas/PurchaseCandidatePriority"
         - name: category
           in: query
           required: false
@@ -1413,13 +1413,13 @@ paths:
             type: string
           description: 並び順の詳細は後続検討。
       responses:
-        '200':
+        "200":
           description: 取得成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PurchaseCandidateListResponse'
-        '401':
+                $ref: "#/components/schemas/PurchaseCandidateListResponse"
+        "401":
           description: 未認証
     post:
       tags:
@@ -1431,28 +1431,28 @@ paths:
       security:
         - SessionCookieAuth: []
       parameters:
-        - $ref: '#/components/parameters/XCsrfTokenHeader'
+        - $ref: "#/components/parameters/XCsrfTokenHeader"
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PurchaseCandidateUpsertRequest'
+              $ref: "#/components/schemas/PurchaseCandidateUpsertRequest"
       responses:
-        '201':
+        "201":
           description: 作成成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PurchaseCandidateResponseWithMessage'
-        '401':
+                $ref: "#/components/schemas/PurchaseCandidateResponseWithMessage"
+        "401":
           description: 未認証
-        '422':
+        "422":
           description: バリデーションエラー
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ValidationErrorResponse'
+                $ref: "#/components/schemas/ValidationErrorResponse"
 
   /api/purchase-candidates/{id}:
     get:
@@ -1465,17 +1465,17 @@ paths:
       security:
         - SessionCookieAuth: []
       parameters:
-        - $ref: '#/components/parameters/PurchaseCandidateIdPath'
+        - $ref: "#/components/parameters/PurchaseCandidateIdPath"
       responses:
-        '200':
+        "200":
           description: 取得成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PurchaseCandidateResponse'
-        '401':
+                $ref: "#/components/schemas/PurchaseCandidateResponse"
+        "401":
           description: 未認証
-        '404':
+        "404":
           description: 未検出（対象なし・他人データ秘匿を含む）
     put:
       tags:
@@ -1490,31 +1490,31 @@ paths:
       security:
         - SessionCookieAuth: []
       parameters:
-        - $ref: '#/components/parameters/PurchaseCandidateIdPath'
-        - $ref: '#/components/parameters/XCsrfTokenHeader'
+        - $ref: "#/components/parameters/PurchaseCandidateIdPath"
+        - $ref: "#/components/parameters/XCsrfTokenHeader"
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PurchaseCandidateUpsertRequest'
+              $ref: "#/components/schemas/PurchaseCandidateUpsertRequest"
       responses:
-        '200':
+        "200":
           description: 更新成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PurchaseCandidateResponseWithMessage'
-        '401':
+                $ref: "#/components/schemas/PurchaseCandidateResponseWithMessage"
+        "401":
           description: 未認証
-        '404':
+        "404":
           description: 未検出（対象なし・他人データ秘匿を含む）
-        '422':
+        "422":
           description: "バリデーションエラー。`purchased` の candidate に更新不可項目を含めた場合もこの response を返す"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ValidationErrorResponse'
+                $ref: "#/components/schemas/ValidationErrorResponse"
     delete:
       tags:
         - Purchase Candidates
@@ -1525,18 +1525,18 @@ paths:
       security:
         - SessionCookieAuth: []
       parameters:
-        - $ref: '#/components/parameters/PurchaseCandidateIdPath'
-        - $ref: '#/components/parameters/XCsrfTokenHeader'
+        - $ref: "#/components/parameters/PurchaseCandidateIdPath"
+        - $ref: "#/components/parameters/XCsrfTokenHeader"
       responses:
-        '200':
+        "200":
           description: "削除成功。message は `deleted`"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MessageOnlyResponse'
-        '401':
+                $ref: "#/components/schemas/MessageOnlyResponse"
+        "401":
           description: 未認証
-        '404':
+        "404":
           description: 未検出（対象なし・他人データ秘匿を含む）
 
   /api/purchase-candidates/{id}/images:
@@ -1551,31 +1551,31 @@ paths:
       security:
         - SessionCookieAuth: []
       parameters:
-        - $ref: '#/components/parameters/PurchaseCandidateIdPath'
-        - $ref: '#/components/parameters/XCsrfTokenHeader'
+        - $ref: "#/components/parameters/PurchaseCandidateIdPath"
+        - $ref: "#/components/parameters/XCsrfTokenHeader"
       requestBody:
         required: true
         content:
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PurchaseCandidateImageUploadRequest'
+              $ref: "#/components/schemas/PurchaseCandidateImageUploadRequest"
       responses:
-        '201':
+        "201":
           description: 追加成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PurchaseCandidateImageResponseWithMessage'
-        '401':
+                $ref: "#/components/schemas/PurchaseCandidateImageResponseWithMessage"
+        "401":
           description: 未認証
-        '404':
+        "404":
           description: 未検出（対象なし・他人データ秘匿を含む）
-        '422':
+        "422":
           description: バリデーションエラー
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ValidationErrorResponse'
+                $ref: "#/components/schemas/ValidationErrorResponse"
 
   /api/purchase-candidates/{id}/images/{imageId}:
     delete:
@@ -1588,19 +1588,19 @@ paths:
       security:
         - SessionCookieAuth: []
       parameters:
-        - $ref: '#/components/parameters/PurchaseCandidateIdPath'
-        - $ref: '#/components/parameters/PurchaseCandidateImageIdPath'
-        - $ref: '#/components/parameters/XCsrfTokenHeader'
+        - $ref: "#/components/parameters/PurchaseCandidateIdPath"
+        - $ref: "#/components/parameters/PurchaseCandidateImageIdPath"
+        - $ref: "#/components/parameters/XCsrfTokenHeader"
       responses:
-        '200':
+        "200":
           description: "削除成功。message は `deleted`。画像一覧の正本は後続の購入候補詳細取得結果で確認する"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MessageOnlyResponse'
-        '401':
+                $ref: "#/components/schemas/MessageOnlyResponse"
+        "401":
           description: 未認証
-        '404':
+        "404":
           description: 未検出（対象なし・他人データ秘匿を含む）
 
   /api/purchase-candidates/{id}/duplicate:
@@ -1616,18 +1616,18 @@ paths:
       security:
         - SessionCookieAuth: []
       parameters:
-        - $ref: '#/components/parameters/PurchaseCandidateIdPath'
-        - $ref: '#/components/parameters/XCsrfTokenHeader'
+        - $ref: "#/components/parameters/PurchaseCandidateIdPath"
+        - $ref: "#/components/parameters/XCsrfTokenHeader"
       responses:
-        '200':
+        "200":
           description: "draft 作成成功。message は `duplicated_payload_ready`。purchaseCandidate には新規作成画面用 draft を返す"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PurchaseCandidateDuplicateResponse'
-        '401':
+                $ref: "#/components/schemas/PurchaseCandidateDuplicateResponse"
+        "401":
           description: 未認証
-        '404':
+        "404":
           description: 未検出（対象なし・他人データ秘匿を含む）
 
   /api/purchase-candidates/{id}/color-variant:
@@ -1643,18 +1643,18 @@ paths:
       security:
         - SessionCookieAuth: []
       parameters:
-        - $ref: '#/components/parameters/PurchaseCandidateIdPath'
-        - $ref: '#/components/parameters/XCsrfTokenHeader'
+        - $ref: "#/components/parameters/PurchaseCandidateIdPath"
+        - $ref: "#/components/parameters/XCsrfTokenHeader"
       responses:
-        '200':
+        "200":
           description: "draft 作成成功。message は `color_variant_payload_ready`。purchaseCandidate には色違い追加用 draft を返す"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PurchaseCandidateDuplicateResponse'
-        '401':
+                $ref: "#/components/schemas/PurchaseCandidateDuplicateResponse"
+        "401":
           description: 未認証
-        '404':
+        "404":
           description: 未検出（対象なし・他人データ秘匿を含む）
 
   /api/purchase-candidates/{id}/item-draft:
@@ -1673,26 +1673,25 @@ paths:
       security:
         - SessionCookieAuth: []
       parameters:
-        - $ref: '#/components/parameters/PurchaseCandidateIdPath'
-        - $ref: '#/components/parameters/XCsrfTokenHeader'
+        - $ref: "#/components/parameters/PurchaseCandidateIdPath"
+        - $ref: "#/components/parameters/XCsrfTokenHeader"
       responses:
-        '200':
+        "200":
           description: 取得成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PurchaseCandidateItemDraftResponse'
-        '401':
+                $ref: "#/components/schemas/PurchaseCandidateItemDraftResponse"
+        "401":
           description: 未認証
-        '404':
+        "404":
           description: 未検出（対象なし・他人データ秘匿を含む）
-        '422':
+        "422":
           description: "item-draft を生成できないカテゴリ、または `purchased` candidate に対する生成要求"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ValidationErrorResponse'
-
+                $ref: "#/components/schemas/ValidationErrorResponse"
 
 components:
   parameters:
@@ -1807,7 +1806,7 @@ components:
           type: string
           example: registered
         user:
-          $ref: '#/components/schemas/User'
+          $ref: "#/components/schemas/User"
 
     LoginResponse:
       type: object
@@ -1870,7 +1869,7 @@ components:
         groups:
           type: array
           items:
-            $ref: '#/components/schemas/CategoryGroup'
+            $ref: "#/components/schemas/CategoryGroup"
 
     HomeSummaryResponse:
       type: object
@@ -1878,7 +1877,7 @@ components:
         - summary
       properties:
         summary:
-          $ref: '#/components/schemas/HomeSummary'
+          $ref: "#/components/schemas/HomeSummary"
 
     HomeSummary:
       type: object
@@ -1972,7 +1971,7 @@ components:
         items:
           type: array
           items:
-            $ref: '#/components/schemas/WearLogBackupItem'
+            $ref: "#/components/schemas/WearLogBackupItem"
 
     ImportExportBackupPayload:
       type: object
@@ -1992,25 +1991,25 @@ components:
         exported_at:
           type: string
           format: date-time
-          example: '2026-04-25T06:51:38+09:00'
+          example: "2026-04-25T06:51:38+09:00"
         owner:
-          $ref: '#/components/schemas/ImportExportOwner'
+          $ref: "#/components/schemas/ImportExportOwner"
         items:
           type: array
           items:
-            $ref: '#/components/schemas/ImportExportOpaqueEntity'
+            $ref: "#/components/schemas/ImportExportOpaqueEntity"
         purchase_candidates:
           type: array
           items:
-            $ref: '#/components/schemas/ImportExportOpaqueEntity'
+            $ref: "#/components/schemas/ImportExportOpaqueEntity"
         outfits:
           type: array
           items:
-            $ref: '#/components/schemas/ImportExportOpaqueEntity'
+            $ref: "#/components/schemas/ImportExportOpaqueEntity"
         wear_logs:
           type: array
           items:
-            $ref: '#/components/schemas/WearLogBackupPayload'
+            $ref: "#/components/schemas/WearLogBackupPayload"
 
     ImportExecutionCountSummary:
       type: object
@@ -2034,13 +2033,13 @@ components:
         - wear_logs
       properties:
         items:
-          $ref: '#/components/schemas/ImportExecutionCountSummary'
+          $ref: "#/components/schemas/ImportExecutionCountSummary"
         purchase_candidates:
-          $ref: '#/components/schemas/ImportExecutionCountSummary'
+          $ref: "#/components/schemas/ImportExecutionCountSummary"
         outfits:
-          $ref: '#/components/schemas/ImportExecutionCountSummary'
+          $ref: "#/components/schemas/ImportExecutionCountSummary"
         wear_logs:
-          $ref: '#/components/schemas/ImportExecutionCountSummary'
+          $ref: "#/components/schemas/ImportExecutionCountSummary"
 
     ImportExecutionResponse:
       type: object
@@ -2052,7 +2051,7 @@ components:
           type: string
           example: imported
         counts:
-          $ref: '#/components/schemas/ImportExecutionCounts'
+          $ref: "#/components/schemas/ImportExecutionCounts"
 
     CategoryGroup:
       type: object
@@ -2070,7 +2069,7 @@ components:
         categories:
           type: array
           items:
-            $ref: '#/components/schemas/Category'
+            $ref: "#/components/schemas/Category"
 
     Category:
       type: object
@@ -2120,7 +2119,7 @@ components:
         action keyword の `message` と更新後の visibleCategoryIds を返す response。
         `message` は `updated`、正本は同時に返す設定値と後続の設定取得結果で読む。
       allOf:
-        - $ref: '#/components/schemas/MessageOnlyResponse'
+        - $ref: "#/components/schemas/MessageOnlyResponse"
         - type: object
           required:
             - visibleCategoryIds
@@ -2152,7 +2151,18 @@ components:
           enum: [monday, sunday]
         skinTonePreset:
           type: string
-          enum: [pink_light, pink_medium, pink_deep, neutral_light, neutral_medium, neutral_deep, yellow_light, yellow_medium, yellow_deep]
+          enum:
+            [
+              pink_light,
+              pink_medium,
+              pink_deep,
+              neutral_light,
+              neutral_medium,
+              neutral_deep,
+              yellow_light,
+              yellow_medium,
+              yellow_deep,
+            ]
 
     UserPreferencesResponse:
       type: object
@@ -2160,7 +2170,7 @@ components:
         - preferences
       properties:
         preferences:
-          $ref: '#/components/schemas/UserPreferencesRecord'
+          $ref: "#/components/schemas/UserPreferencesRecord"
 
     UpdateUserPreferencesRequest:
       type: object
@@ -2180,20 +2190,31 @@ components:
         skinTonePreset:
           type: string
           nullable: true
-          enum: [pink_light, pink_medium, pink_deep, neutral_light, neutral_medium, neutral_deep, yellow_light, yellow_medium, yellow_deep]
+          enum:
+            [
+              pink_light,
+              pink_medium,
+              pink_deep,
+              neutral_light,
+              neutral_medium,
+              neutral_deep,
+              yellow_light,
+              yellow_medium,
+              yellow_deep,
+            ]
 
     UserPreferencesUpdatedResponse:
       description: |
         action keyword の `message` と更新後の preferences を返す response。
         `message` は `updated`、正本は同時に返す preferences と後続の設定取得結果で読む。
       allOf:
-        - $ref: '#/components/schemas/MessageOnlyResponse'
+        - $ref: "#/components/schemas/MessageOnlyResponse"
         - type: object
           required:
             - preferences
           properties:
             preferences:
-              $ref: '#/components/schemas/UserPreferencesRecord'
+              $ref: "#/components/schemas/UserPreferencesRecord"
 
     UserTpoRecord:
       type: object
@@ -2224,7 +2245,7 @@ components:
         tpos:
           type: array
           items:
-            $ref: '#/components/schemas/UserTpoRecord'
+            $ref: "#/components/schemas/UserTpoRecord"
 
     CreateUserTpoRequest:
       type: object
@@ -2249,13 +2270,13 @@ components:
 
     UserTpoResponseWithMessage:
       allOf:
-        - $ref: '#/components/schemas/MessageOnlyResponse'
+        - $ref: "#/components/schemas/MessageOnlyResponse"
         - type: object
           required:
             - tpo
           properties:
             tpo:
-              $ref: '#/components/schemas/UserTpoRecord'
+              $ref: "#/components/schemas/UserTpoRecord"
 
     UserBrandRecord:
       type: object
@@ -2286,7 +2307,7 @@ components:
         brands:
           type: array
           items:
-            $ref: '#/components/schemas/UserBrandRecord'
+            $ref: "#/components/schemas/UserBrandRecord"
 
     UserBrandUpsertRequest:
       type: object
@@ -2321,13 +2342,13 @@ components:
         action keyword の `message` と brand record をまとめて返す response。
         create / update のいずれでも `message` は `created` または `updated` を返す。
       allOf:
-        - $ref: '#/components/schemas/MessageOnlyResponse'
+        - $ref: "#/components/schemas/MessageOnlyResponse"
         - type: object
           required:
             - brand
           properties:
             brand:
-              $ref: '#/components/schemas/UserBrandRecord'
+              $ref: "#/components/schemas/UserBrandRecord"
 
     ItemColor:
       type: object
@@ -2349,7 +2370,7 @@ components:
           example: navy
         hex:
           type: string
-          example: '#1f3a5f'
+          example: "#1f3a5f"
         label:
           type: string
           example: ネイビー
@@ -2362,7 +2383,7 @@ components:
 
     PurchaseCandidateColor:
       allOf:
-        - $ref: '#/components/schemas/ItemColor'
+        - $ref: "#/components/schemas/ItemColor"
         - type: object
           properties:
             custom_label:
@@ -2418,11 +2439,11 @@ components:
       type: object
       properties:
         tops:
-          $ref: '#/components/schemas/TopsSpec'
+          $ref: "#/components/schemas/TopsSpec"
         bottoms:
-          $ref: '#/components/schemas/BottomsSpec'
+          $ref: "#/components/schemas/BottomsSpec"
         legwear:
-          $ref: '#/components/schemas/LegwearSpec'
+          $ref: "#/components/schemas/LegwearSpec"
       additionalProperties: true
 
     ItemSizeStructuredDetails:
@@ -2514,12 +2535,12 @@ components:
         `size_details` には実寸だけを保存する。旧 `size_details.note` は 現時点では廃止。
       properties:
         structured:
-          $ref: '#/components/schemas/ItemSizeStructuredDetails'
+          $ref: "#/components/schemas/ItemSizeStructuredDetails"
         custom_fields:
           type: array
           maxItems: 10
           items:
-            $ref: '#/components/schemas/ItemSizeCustomField'
+            $ref: "#/components/schemas/ItemSizeCustomField"
 
     ItemRecord:
       type: object
@@ -2585,7 +2606,7 @@ components:
           description: サイズ感・着用感の補足メモ。
         size_details:
           allOf:
-            - $ref: '#/components/schemas/ItemSizeDetails'
+            - $ref: "#/components/schemas/ItemSizeDetails"
           nullable: true
         is_rain_ok:
           type: boolean
@@ -2598,7 +2619,7 @@ components:
         colors:
           type: array
           items:
-            $ref: '#/components/schemas/ItemColor'
+            $ref: "#/components/schemas/ItemColor"
         seasons:
           type: array
           items:
@@ -2615,16 +2636,16 @@ components:
             type: integer
         spec:
           allOf:
-            - $ref: '#/components/schemas/ItemSpec'
+            - $ref: "#/components/schemas/ItemSpec"
           nullable: true
         materials:
           type: array
           items:
-            $ref: '#/components/schemas/ItemMaterialRecord'
+            $ref: "#/components/schemas/ItemMaterialRecord"
         images:
           type: array
           items:
-            $ref: '#/components/schemas/ItemImageRecord'
+            $ref: "#/components/schemas/ItemImageRecord"
 
     ItemUpsertRequest:
       type: object
@@ -2686,7 +2707,7 @@ components:
           description: サイズ感・着用感の補足メモ。
         size_details:
           allOf:
-            - $ref: '#/components/schemas/ItemSizeDetails'
+            - $ref: "#/components/schemas/ItemSizeDetails"
           nullable: true
           description: |
             構造化された実寸情報。`structured` は category / shape ごとの固定実寸、
@@ -2703,7 +2724,7 @@ components:
           type: array
           minItems: 1
           items:
-            $ref: '#/components/schemas/ItemColor'
+            $ref: "#/components/schemas/ItemColor"
         seasons:
           type: array
           items:
@@ -2721,7 +2742,7 @@ components:
           items:
             type: integer
         spec:
-          $ref: '#/components/schemas/ItemSpec'
+          $ref: "#/components/schemas/ItemSpec"
         materials:
           type: array
           nullable: true
@@ -2729,16 +2750,16 @@ components:
             item の素材・混率明細。未入力なら未指定または空配列を許可する。
             区分ごとの合計100%、同一区分内の同素材重複不可を 現在のルールとする。
           items:
-            $ref: '#/components/schemas/ItemMaterialRecord'
+            $ref: "#/components/schemas/ItemMaterialRecord"
         images:
           type: array
           maxItems: 5
           items:
-            $ref: '#/components/schemas/ItemImageUpsertPayload'
+            $ref: "#/components/schemas/ItemImageUpsertPayload"
 
     ItemCreateRequest:
       allOf:
-        - $ref: '#/components/schemas/ItemUpsertRequest'
+        - $ref: "#/components/schemas/ItemUpsertRequest"
         - type: object
           properties:
             purchase_candidate_id:
@@ -2849,7 +2870,7 @@ components:
         items:
           type: array
           items:
-            $ref: '#/components/schemas/ItemRecord'
+            $ref: "#/components/schemas/ItemRecord"
         meta:
           type: object
           required:
@@ -2881,7 +2902,7 @@ components:
         - item
       properties:
         item:
-          $ref: '#/components/schemas/ItemRecord'
+          $ref: "#/components/schemas/ItemRecord"
 
     ItemResponseWithMessage:
       description: |
@@ -2889,13 +2910,13 @@ components:
         create / update では作成後または更新後 record、
         `dispose` / `reactivate` では状態変更後の item を含む。
       allOf:
-        - $ref: '#/components/schemas/MessageOnlyResponse'
+        - $ref: "#/components/schemas/MessageOnlyResponse"
         - type: object
           required:
             - item
           properties:
             item:
-              $ref: '#/components/schemas/ItemRecord'
+              $ref: "#/components/schemas/ItemRecord"
 
     OutfitItemPivotRecord:
       type: object
@@ -2919,7 +2940,7 @@ components:
           minimum: 1
           example: 1
         item:
-          $ref: '#/components/schemas/ItemRecord'
+          $ref: "#/components/schemas/ItemRecord"
 
     OutfitRecord:
       type: object
@@ -2968,7 +2989,7 @@ components:
         outfit_items:
           type: array
           items:
-            $ref: '#/components/schemas/OutfitItemPivotRecord'
+            $ref: "#/components/schemas/OutfitItemPivotRecord"
         created_at:
           type: string
           format: date-time
@@ -3030,7 +3051,7 @@ components:
           type: array
           minItems: 1
           items:
-            $ref: '#/components/schemas/OutfitItemInput'
+            $ref: "#/components/schemas/OutfitItemInput"
 
     OutfitsResponse:
       type: object
@@ -3045,7 +3066,7 @@ components:
         outfits:
           type: array
           items:
-            $ref: '#/components/schemas/OutfitRecord'
+            $ref: "#/components/schemas/OutfitRecord"
         meta:
           type: object
           required:
@@ -3077,7 +3098,7 @@ components:
         - outfit
       properties:
         outfit:
-          $ref: '#/components/schemas/OutfitRecord'
+          $ref: "#/components/schemas/OutfitRecord"
 
     OutfitResponseWithMessage:
       description: |
@@ -3085,13 +3106,13 @@ components:
         create / update では作成後または更新後 record、
         `restore` では復帰後の outfit を含む。
       allOf:
-        - $ref: '#/components/schemas/MessageOnlyResponse'
+        - $ref: "#/components/schemas/MessageOnlyResponse"
         - type: object
           required:
             - outfit
           properties:
             outfit:
-              $ref: '#/components/schemas/OutfitRecord'
+              $ref: "#/components/schemas/OutfitRecord"
 
     OutfitDuplicateItem:
       type: object
@@ -3144,7 +3165,7 @@ components:
         items:
           type: array
           items:
-            $ref: '#/components/schemas/OutfitDuplicateItem'
+            $ref: "#/components/schemas/OutfitDuplicateItem"
 
     OutfitDuplicateResponse:
       type: object
@@ -3160,7 +3181,7 @@ components:
           type: string
           example: duplicated_payload_ready
         outfit:
-          $ref: '#/components/schemas/OutfitDuplicatePayload'
+          $ref: "#/components/schemas/OutfitDuplicatePayload"
 
     WearLogStatus:
       type: string
@@ -3189,7 +3210,7 @@ components:
           minimum: 1
           example: 1
         item_source_type:
-          $ref: '#/components/schemas/WearLogItemSourceType'
+          $ref: "#/components/schemas/WearLogItemSourceType"
 
     WearLogUpsertRequest:
       type: object
@@ -3200,11 +3221,11 @@ components:
         - items
       properties:
         status:
-          $ref: '#/components/schemas/WearLogStatus'
+          $ref: "#/components/schemas/WearLogStatus"
         event_date:
           type: string
           format: date
-          example: '2026-03-21'
+          example: "2026-03-21"
         display_order:
           type: integer
           minimum: 1
@@ -3226,7 +3247,7 @@ components:
             空配列を含めて必ず指定する。
             保存時は UI 上の最終順序に従って sort_order を連番で扱う。
           items:
-            $ref: '#/components/schemas/WearLogItemUpsert'
+            $ref: "#/components/schemas/WearLogItemUpsert"
 
     WearLogListItem:
       type: object
@@ -3242,11 +3263,11 @@ components:
           type: integer
           example: 1
         status:
-          $ref: '#/components/schemas/WearLogStatus'
+          $ref: "#/components/schemas/WearLogStatus"
         event_date:
           type: string
           format: date
-          example: '2026-03-21'
+          example: "2026-03-21"
         display_order:
           type: integer
           example: 1
@@ -3280,7 +3301,7 @@ components:
             wear log 一覧の補助配色サムネイル描画用の最小 item 情報。
             正本は `source_outfit_id` ではなく `wear_log_items`。
           items:
-            $ref: '#/components/schemas/WearLogThumbnailItem'
+            $ref: "#/components/schemas/WearLogThumbnailItem"
 
     WearLogThumbnailItem:
       type: object
@@ -3308,12 +3329,12 @@ components:
           example: tshirt
         spec:
           allOf:
-            - $ref: '#/components/schemas/ItemSpec'
+            - $ref: "#/components/schemas/ItemSpec"
           nullable: true
         colors:
           type: array
           items:
-            $ref: '#/components/schemas/WearLogThumbnailItemColor'
+            $ref: "#/components/schemas/WearLogThumbnailItemColor"
 
     WearLogThumbnailItemColor:
       type: object
@@ -3328,7 +3349,7 @@ components:
             - sub
         hex:
           type: string
-          example: '#E5E7EB'
+          example: "#E5E7EB"
         label:
           type: string
           nullable: true
@@ -3369,7 +3390,7 @@ components:
           type: integer
           example: 1
         item_source_type:
-          $ref: '#/components/schemas/WearLogItemSourceType'
+          $ref: "#/components/schemas/WearLogItemSourceType"
 
     WearLogDetail:
       type: object
@@ -3384,11 +3405,11 @@ components:
           type: integer
           example: 1
         status:
-          $ref: '#/components/schemas/WearLogStatus'
+          $ref: "#/components/schemas/WearLogStatus"
         event_date:
           type: string
           format: date
-          example: '2026-03-21'
+          example: "2026-03-21"
         display_order:
           type: integer
           example: 1
@@ -3413,7 +3434,7 @@ components:
         items:
           type: array
           items:
-            $ref: '#/components/schemas/WearLogItemDetail'
+            $ref: "#/components/schemas/WearLogItemDetail"
         created_at:
           type: string
           format: date-time
@@ -3427,7 +3448,7 @@ components:
         - wearLog
       properties:
         wearLog:
-          $ref: '#/components/schemas/WearLogDetail'
+          $ref: "#/components/schemas/WearLogDetail"
 
     WearLogCalendarDot:
       type: object
@@ -3435,7 +3456,7 @@ components:
         - status
       properties:
         status:
-          $ref: '#/components/schemas/WearLogStatus'
+          $ref: "#/components/schemas/WearLogStatus"
 
     WearLogCalendarDaySummary:
       description: |
@@ -3462,7 +3483,7 @@ components:
           type: array
           maxItems: 3
           items:
-            $ref: '#/components/schemas/WearLogCalendarDot'
+            $ref: "#/components/schemas/WearLogCalendarDot"
         overflowCount:
           type: integer
           example: 1
@@ -3480,7 +3501,7 @@ components:
         days:
           type: array
           items:
-            $ref: '#/components/schemas/WearLogCalendarDaySummary'
+            $ref: "#/components/schemas/WearLogCalendarDaySummary"
 
     WearLogByDateItem:
       type: object
@@ -3496,7 +3517,7 @@ components:
           type: integer
           example: 1
         status:
-          $ref: '#/components/schemas/WearLogStatus'
+          $ref: "#/components/schemas/WearLogStatus"
         event_date:
           type: string
           format: date
@@ -3518,7 +3539,7 @@ components:
             wear log 日詳細モーダルの簡略版配色サムネイル描画用の最小 item 情報。
             正本は `source_outfit_id` ではなく `wear_log_items`。
           items:
-            $ref: '#/components/schemas/WearLogThumbnailItem'
+            $ref: "#/components/schemas/WearLogThumbnailItem"
 
     WearLogByDateResponse:
       description: |
@@ -3535,7 +3556,7 @@ components:
         wearLogs:
           type: array
           items:
-            $ref: '#/components/schemas/WearLogByDateItem'
+            $ref: "#/components/schemas/WearLogByDateItem"
 
     WearLogMutationResponse:
       description: |
@@ -3550,7 +3571,7 @@ components:
           type: string
           example: created
         wearLog:
-          $ref: '#/components/schemas/WearLogDetail'
+          $ref: "#/components/schemas/WearLogDetail"
 
     WearLogsResponse:
       type: object
@@ -3561,7 +3582,7 @@ components:
         wearLogs:
           type: array
           items:
-            $ref: '#/components/schemas/WearLogListItem'
+            $ref: "#/components/schemas/WearLogListItem"
         meta:
           type: object
           required:
@@ -3704,9 +3725,9 @@ components:
           type: integer
           example: 10
         status:
-          $ref: '#/components/schemas/PurchaseCandidateStatus'
+          $ref: "#/components/schemas/PurchaseCandidateStatus"
         priority:
-          $ref: '#/components/schemas/PurchaseCandidatePriority'
+          $ref: "#/components/schemas/PurchaseCandidatePriority"
         name:
           type: string
           example: ネイビーのレインコート
@@ -3754,7 +3775,7 @@ components:
           example: 雨の日用の上着が不足しているため
         size_gender:
           allOf:
-            - $ref: '#/components/schemas/PurchaseCandidateSizeGender'
+            - $ref: "#/components/schemas/PurchaseCandidateSizeGender"
           nullable: true
         size_label:
           type: string
@@ -3767,7 +3788,7 @@ components:
           description: サイズ感・着用感の補足メモ。
         size_details:
           allOf:
-            - $ref: '#/components/schemas/ItemSizeDetails'
+            - $ref: "#/components/schemas/ItemSizeDetails"
           nullable: true
           description: 構造化実寸。`structured` と `custom_fields` を持ち、item draft と同じ意味で扱う。
         is_rain_ok:
@@ -3787,11 +3808,11 @@ components:
           type: array
           description: 同じ group に属する候補の詳細画面用要約。未所属または単独 group の場合は空配列。
           items:
-            $ref: '#/components/schemas/PurchaseCandidateGroupCandidateRecord'
+            $ref: "#/components/schemas/PurchaseCandidateGroupCandidateRecord"
         colors:
           type: array
           items:
-            $ref: '#/components/schemas/PurchaseCandidateColor'
+            $ref: "#/components/schemas/PurchaseCandidateColor"
         seasons:
           type: array
           items:
@@ -3803,7 +3824,7 @@ components:
         materials:
           type: array
           items:
-            $ref: '#/components/schemas/ItemMaterialRecord'
+            $ref: "#/components/schemas/ItemMaterialRecord"
         converted_item_id:
           type: integer
           nullable: true
@@ -3815,14 +3836,13 @@ components:
         images:
           type: array
           items:
-            $ref: '#/components/schemas/PurchaseCandidateImageRecord'
+            $ref: "#/components/schemas/PurchaseCandidateImageRecord"
         created_at:
           type: string
           format: date-time
         updated_at:
           type: string
           format: date-time
-
 
     PurchaseCandidateGroupCandidateRecord:
       type: object
@@ -3840,7 +3860,7 @@ components:
           type: integer
           example: 11
         status:
-          $ref: '#/components/schemas/PurchaseCandidateStatus'
+          $ref: "#/components/schemas/PurchaseCandidateStatus"
         name:
           type: string
           example: 赤の候補
@@ -3862,7 +3882,7 @@ components:
         colors:
           type: array
           items:
-            $ref: '#/components/schemas/PurchaseCandidateColor'
+            $ref: "#/components/schemas/PurchaseCandidateColor"
 
     PurchaseCandidateUpsertRequest:
       type: object
@@ -3877,9 +3897,9 @@ components:
         - colors
       properties:
         status:
-          $ref: '#/components/schemas/PurchaseCandidateStatus'
+          $ref: "#/components/schemas/PurchaseCandidateStatus"
         priority:
-          $ref: '#/components/schemas/PurchaseCandidatePriority'
+          $ref: "#/components/schemas/PurchaseCandidatePriority"
         name:
           type: string
           maxLength: 255
@@ -3918,7 +3938,7 @@ components:
           nullable: true
         size_gender:
           allOf:
-            - $ref: '#/components/schemas/PurchaseCandidateSizeGender'
+            - $ref: "#/components/schemas/PurchaseCandidateSizeGender"
           nullable: true
         size_label:
           type: string
@@ -3930,7 +3950,7 @@ components:
           description: サイズ感・着用感の補足メモ。
         size_details:
           allOf:
-            - $ref: '#/components/schemas/ItemSizeDetails'
+            - $ref: "#/components/schemas/ItemSizeDetails"
           nullable: true
           description: 構造化実寸。`structured` と `custom_fields` を持ち、item 化時も同じ意味で引き継ぐ。
         is_rain_ok:
@@ -3938,7 +3958,7 @@ components:
         colors:
           type: array
           items:
-            $ref: '#/components/schemas/PurchaseCandidateColor'
+            $ref: "#/components/schemas/PurchaseCandidateColor"
         seasons:
           type: array
           items:
@@ -3951,7 +3971,7 @@ components:
           type: array
           description: item 側と同じ shape を使う素材・混率明細。未入力時は空配列または未指定を許可する。
           items:
-            $ref: '#/components/schemas/ItemMaterialRecord'
+            $ref: "#/components/schemas/ItemMaterialRecord"
         duplicate_images:
           type: array
           description: duplicate / color-variant draft 保存時にコピーする元画像。通常作成では未指定。
@@ -3992,9 +4012,9 @@ components:
           type: integer
           example: 10
         status:
-          $ref: '#/components/schemas/PurchaseCandidateStatus'
+          $ref: "#/components/schemas/PurchaseCandidateStatus"
         priority:
-          $ref: '#/components/schemas/PurchaseCandidatePriority'
+          $ref: "#/components/schemas/PurchaseCandidatePriority"
         name:
           type: string
           example: Navy rain coat
@@ -4036,7 +4056,7 @@ components:
         colors:
           type: array
           items:
-            $ref: '#/components/schemas/PurchaseCandidateColor'
+            $ref: "#/components/schemas/PurchaseCandidateColor"
         converted_item_id:
           type: integer
           nullable: true
@@ -4047,13 +4067,13 @@ components:
           nullable: true
         primary_image:
           allOf:
-            - $ref: '#/components/schemas/PurchaseCandidateImageRecord'
+            - $ref: "#/components/schemas/PurchaseCandidateImageRecord"
           nullable: true
         images:
           type: array
           description: 一覧カードの画像切替に使う要約配列。UI は選択中 candidate の images を使い、0〜1 枚の場合は矢印を出さない。
           items:
-            $ref: '#/components/schemas/PurchaseCandidateImageRecord'
+            $ref: "#/components/schemas/PurchaseCandidateImageRecord"
         updated_at:
           type: string
           format: date-time
@@ -4069,7 +4089,7 @@ components:
           type: string
           enum: [single]
         candidate:
-          $ref: '#/components/schemas/PurchaseCandidateListItem'
+          $ref: "#/components/schemas/PurchaseCandidateListItem"
 
     PurchaseCandidateGroupListEntry:
       type: object
@@ -4094,17 +4114,17 @@ components:
           type: array
           description: 現在の filter に一致した同一 group 内 candidates。group 内は group_order asc, id asc で返す。
           items:
-            $ref: '#/components/schemas/PurchaseCandidateListItem'
+            $ref: "#/components/schemas/PurchaseCandidateListItem"
 
     PurchaseCandidateListEntry:
       oneOf:
-        - $ref: '#/components/schemas/PurchaseCandidateSingleListEntry'
-        - $ref: '#/components/schemas/PurchaseCandidateGroupListEntry'
+        - $ref: "#/components/schemas/PurchaseCandidateSingleListEntry"
+        - $ref: "#/components/schemas/PurchaseCandidateGroupListEntry"
       discriminator:
         propertyName: type
         mapping:
-          single: '#/components/schemas/PurchaseCandidateSingleListEntry'
-          group: '#/components/schemas/PurchaseCandidateGroupListEntry'
+          single: "#/components/schemas/PurchaseCandidateSingleListEntry"
+          group: "#/components/schemas/PurchaseCandidateGroupListEntry"
 
     PurchaseCandidateListResponse:
       type: object
@@ -4116,7 +4136,7 @@ components:
           type: array
           description: 一覧表示の正本 payload。単独 candidate は single、同じ group_id を持つ candidates は group として返す。
           items:
-            $ref: '#/components/schemas/PurchaseCandidateListEntry'
+            $ref: "#/components/schemas/PurchaseCandidateListEntry"
         availableBrands:
           type: array
           description: 実装が返す場合に filter UI で使うブランド候補。
@@ -4163,25 +4183,24 @@ components:
         - purchaseCandidate
       properties:
         purchaseCandidate:
-          $ref: '#/components/schemas/PurchaseCandidateRecord'
+          $ref: "#/components/schemas/PurchaseCandidateRecord"
 
     PurchaseCandidateResponseWithMessage:
       description: |
         action keyword の `message` と purchase candidate record をまとめて返す response。
         create / update で `created` または `updated` を返す。
       allOf:
-        - $ref: '#/components/schemas/MessageOnlyResponse'
+        - $ref: "#/components/schemas/MessageOnlyResponse"
         - type: object
           required:
             - purchaseCandidate
           properties:
             purchaseCandidate:
-              $ref: '#/components/schemas/PurchaseCandidateRecord'
-
+              $ref: "#/components/schemas/PurchaseCandidateRecord"
 
     PurchaseCandidateDuplicateImageRecord:
       allOf:
-        - $ref: '#/components/schemas/PurchaseCandidateImageRecord'
+        - $ref: "#/components/schemas/PurchaseCandidateImageRecord"
         - type: object
           required:
             - source_image_id
@@ -4192,7 +4211,7 @@ components:
 
     PurchaseCandidateDuplicatePayload:
       allOf:
-        - $ref: '#/components/schemas/PurchaseCandidateUpsertRequest'
+        - $ref: "#/components/schemas/PurchaseCandidateUpsertRequest"
         - type: object
           required:
             - images
@@ -4201,20 +4220,20 @@ components:
               type: array
               description: 新規作成画面へ引き継ぐ画像 draft。保存時は duplicate_images に変換して送る。
               items:
-                $ref: '#/components/schemas/PurchaseCandidateDuplicateImageRecord'
+                $ref: "#/components/schemas/PurchaseCandidateDuplicateImageRecord"
 
     PurchaseCandidateDuplicateResponse:
       description: |
         duplicate / color-variant draft 用 response。
         `color-variant` の場合、purchaseCandidate には `variant_source_candidate_id` を含める。
       allOf:
-        - $ref: '#/components/schemas/MessageOnlyResponse'
+        - $ref: "#/components/schemas/MessageOnlyResponse"
         - type: object
           required:
             - purchaseCandidate
           properties:
             purchaseCandidate:
-              $ref: '#/components/schemas/PurchaseCandidateDuplicatePayload'
+              $ref: "#/components/schemas/PurchaseCandidateDuplicatePayload"
 
     PurchaseCandidateImageUploadRequest:
       type: object
@@ -4237,13 +4256,13 @@ components:
         action keyword の `message` と purchase candidate image record をまとめて返す response。
         現在の実装では画像追加時に `created` を返す。
       allOf:
-        - $ref: '#/components/schemas/MessageOnlyResponse'
+        - $ref: "#/components/schemas/MessageOnlyResponse"
         - type: object
           required:
             - image
           properties:
             image:
-              $ref: '#/components/schemas/PurchaseCandidateImageRecord'
+              $ref: "#/components/schemas/PurchaseCandidateImageRecord"
 
     PurchaseCandidateItemDraftPayload:
       type: object
@@ -4297,7 +4316,7 @@ components:
           example: 色違いも比較したい
         size_gender:
           allOf:
-            - $ref: '#/components/schemas/PurchaseCandidateSizeGender'
+            - $ref: "#/components/schemas/PurchaseCandidateSizeGender"
           nullable: true
         size_label:
           type: string
@@ -4315,13 +4334,13 @@ components:
           example: null
         size_details:
           allOf:
-            - $ref: '#/components/schemas/ItemSizeDetails'
+            - $ref: "#/components/schemas/ItemSizeDetails"
           nullable: true
           description: |
             item 作成初期値として渡す実寸情報。candidate 側で十分な情報がない場合は `null` を許容する。
         spec:
           allOf:
-            - $ref: '#/components/schemas/ItemSpec'
+            - $ref: "#/components/schemas/ItemSpec"
           nullable: true
         is_rain_ok:
           type: boolean
@@ -4330,7 +4349,7 @@ components:
           type: array
           description: candidate 側の保存構造に関わらず、item 作成用の配列として正規化して返す。
           items:
-            $ref: '#/components/schemas/PurchaseCandidateColor'
+            $ref: "#/components/schemas/PurchaseCandidateColor"
         seasons:
           type: array
           description: candidate 側の保存構造に関わらず、item 作成用の配列として正規化して返す。
@@ -4345,7 +4364,7 @@ components:
           type: array
           description: item 側と同じ shape の素材・混率明細を、そのまま item 作成初期値へ引き継ぐ。
           items:
-            $ref: '#/components/schemas/ItemMaterialRecord'
+            $ref: "#/components/schemas/ItemMaterialRecord"
 
     PurchaseCandidateItemDraftSummary:
       type: object
@@ -4359,9 +4378,9 @@ components:
           type: integer
           example: 10
         status:
-          $ref: '#/components/schemas/PurchaseCandidateStatus'
+          $ref: "#/components/schemas/PurchaseCandidateStatus"
         priority:
-          $ref: '#/components/schemas/PurchaseCandidatePriority'
+          $ref: "#/components/schemas/PurchaseCandidatePriority"
         name:
           type: string
           example: ネイビーのレインコート
@@ -4386,14 +4405,14 @@ components:
           type: string
           example: item_draft_ready
         item_draft:
-          $ref: '#/components/schemas/PurchaseCandidateItemDraftPayload'
+          $ref: "#/components/schemas/PurchaseCandidateItemDraftPayload"
         candidate_summary:
-          $ref: '#/components/schemas/PurchaseCandidateItemDraftSummary'
+          $ref: "#/components/schemas/PurchaseCandidateItemDraftSummary"
         images:
           type: array
           description: item 作成画面へ引き継ぐ candidate 画像一覧。
           items:
-            $ref: '#/components/schemas/PurchaseCandidateImageRecord'
+            $ref: "#/components/schemas/PurchaseCandidateImageRecord"
 
   securitySchemes:
     SessionCookieAuth:
