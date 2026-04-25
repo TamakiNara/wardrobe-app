@@ -229,7 +229,6 @@ class PurchaseCandidateEndpointsTest extends TestCase
             'priority' => 'high',
             'category_id' => 'outerwear_coat',
         ]);
-
         $this->actingAs($user, 'web');
 
         $response = $this->getJson('/api/purchase-candidates?keyword=%E5%9C%A8%E5%AE%85&status=considering&priority=high&category=outerwear&subcategory=coat&brand=%E5%9C%A8%E5%AE%85%E3%83%96%E3%83%A9%E3%83%B3%E3%83%89&sort=name_asc&page=2', [
@@ -988,6 +987,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
     {
         $user = User::factory()->create();
         $candidate = $this->createCandidate($user, ['category_id' => 'outerwear_coat']);
+        $candidate->colors()->where('role', 'main')->update(['custom_label' => '31 BEIGE']);
 
         $this->actingAs($user, 'web');
         $token = $this->issueCsrfToken();
@@ -1006,6 +1006,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
             ->assertJsonPath('item_draft.size_details.structured.shoulder_width', 42)
             ->assertJsonPath('item_draft.size_details.custom_fields.0.label', '裄丈')
             ->assertJsonPath('item_draft.colors.0.value', 'navy')
+            ->assertJsonPath('item_draft.colors.0.custom_label', '31 BEIGE')
             ->assertJsonPath('item_draft.materials', [])
             ->assertJsonMissingPath('item_draft.wanted_reason')
             ->assertJsonPath('candidate_summary.id', $candidate->id);
@@ -1133,6 +1134,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
             ],
         ]);
 
+        $candidate->colors()->where('role', 'main')->update(['custom_label' => '31 BEIGE']);
         $this->actingAs($user, 'web');
         $token = $this->issueCsrfToken();
 
@@ -2228,6 +2230,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
             'category_id' => 'outerwear_coat',
             'name' => 'トレンチ候補',
         ]);
+        $candidate->colors()->where('role', 'main')->update(['custom_label' => '31 BEIGE']);
 
         $this->actingAs($user, 'web');
         $token = $this->issueCsrfToken();
@@ -2239,7 +2242,8 @@ class PurchaseCandidateEndpointsTest extends TestCase
 
         $draftResponse->assertOk()
             ->assertJsonPath('item_draft.category', 'outerwear')
-            ->assertJsonPath('item_draft.shape', 'coat');
+            ->assertJsonPath('item_draft.shape', 'coat')
+            ->assertJsonPath('item_draft.colors.0.custom_label', '31 BEIGE');
 
         $payload = $draftResponse->json('item_draft');
         $payload['purchase_candidate_id'] = $candidate->id;
@@ -2254,7 +2258,8 @@ class PurchaseCandidateEndpointsTest extends TestCase
             ->assertJsonPath('item.category', 'outerwear')
             ->assertJsonPath('item.shape', 'coat')
             ->assertJsonPath('item.brand_name', $candidate->brand_name)
-            ->assertJsonPath('item.memo', $candidate->memo);
+            ->assertJsonPath('item.memo', $candidate->memo)
+            ->assertJsonPath('item.colors.0.custom_label', '31 BEIGE');
 
         $this->assertDatabaseHas('items', [
             'user_id' => $user->id,

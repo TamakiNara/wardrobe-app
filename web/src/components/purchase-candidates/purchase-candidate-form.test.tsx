@@ -275,7 +275,7 @@ describe("PurchaseCandidateForm", () => {
     expect(container.textContent).toContain("必須");
     expect(container.textContent).not.toContain("size_gender");
     expect(container.textContent).not.toContain("priority");
-    expect(container.textContent).toContain("色名（任意）");
+    expect(container.textContent).toContain("色名");
     expect(container.textContent).not.toContain("選択中の色");
     expect(container.textContent).toContain("欲しい理由");
     expect(container.textContent).toContain("補足情報");

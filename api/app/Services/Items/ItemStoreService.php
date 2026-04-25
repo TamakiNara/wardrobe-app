@@ -7,6 +7,7 @@ use App\Models\PurchaseCandidate;
 use App\Models\User;
 use App\Services\Brands\UserBrandService;
 use App\Services\Settings\UserTpoService;
+use App\Support\ItemColorSupport;
 use App\Support\ItemImageSync;
 use App\Support\ItemInputRequirementSupport;
 use App\Support\ItemMaterialSync;
@@ -58,7 +59,7 @@ class ItemStoreService
                     'category' => $validated['category'],
                     'subcategory' => $normalizedSubcategory,
                     'shape' => $resolvedShape,
-                    'colors' => $validated['colors'],
+                    'colors' => ItemColorSupport::normalize($validated['colors']),
                     'seasons' => $validated['seasons'] ?? [],
                     'tpo_ids' => TpoSelectionResolver::resolve($this->userTpoService, $user, $validated),
                     'spec' => ItemSpecNormalizer::normalize(

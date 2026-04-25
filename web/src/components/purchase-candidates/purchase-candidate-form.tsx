@@ -1151,7 +1151,7 @@ export default function PurchaseCandidateForm({
       normalizeNullableString(mainColorCustomLabel).length > 50
     ) {
       nextErrors.main_color_custom_label =
-        "色名（任意）は50文字以内で入力してください。";
+        "色名は50文字以内で入力してください。";
     }
 
     if (
@@ -2029,7 +2029,7 @@ export default function PurchaseCandidateForm({
                   htmlFor="main_color_custom_label"
                   className="mb-1 block text-sm font-medium text-gray-700"
                 >
-                  色名（任意）
+                  色名
                 </label>
                 <input
                   id="main_color_custom_label"

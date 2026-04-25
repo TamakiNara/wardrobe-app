@@ -2353,6 +2353,12 @@ components:
         label:
           type: string
           example: ネイビー
+        custom_label:
+          type: string
+          nullable: true
+          maxLength: 50
+          example: 64 BLUE
+          description: item / purchase candidate の main color だけで使うユーザー任意の色名ラベル。sub color では null または未指定にする。
 
     PurchaseCandidateColor:
       allOf:
@@ -2360,11 +2366,7 @@ components:
         - type: object
           properties:
             custom_label:
-              type: string
-              nullable: true
-              maxLength: 50
-              example: 64 BLUE
-              description: purchase candidate の main color だけで使うユーザー任意の色名ラベル。既存の label は preset / custom 由来のシステム表示名として扱い、custom_label とは責務を分ける。sub color では null または未指定にする。
+              description: purchase candidate では duplicate / color-variant / item-draft / item 化まで main color の custom_label を引き継ぐ。
 
     TopsSpec:
       type: object

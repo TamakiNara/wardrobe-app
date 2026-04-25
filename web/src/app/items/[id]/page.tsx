@@ -161,6 +161,7 @@ export default async function ItemPage({
   const colorDetails = [
     { label: "メインカラー", value: mainColor?.label ?? "" },
     { label: "サブカラー", value: subColor?.label ?? "" },
+    { label: "色名", value: mainColor?.custom_label ?? "" },
     {
       label: "季節",
       value: item.seasons?.length ? item.seasons.join(" / ") : "",

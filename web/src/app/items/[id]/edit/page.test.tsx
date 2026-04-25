@@ -2524,3 +2524,132 @@ describe("編集画面", () => {
     expect(container.textContent).not.toContain("SQLSTATE");
   });
 });
+
+it("main color custom_label を初期表示し、更新 payload に含める", async () => {
+  fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
+  fetchCategoryVisibilitySettingsMock.mockResolvedValue({
+    visibleCategoryIds: [
+      "tops_tshirt_cutsew",
+      "outerwear_jacket",
+      "pants_pants",
+      "onepiece_dress_onepiece",
+      "allinone_allinone",
+      "roomwear_inner_roomwear",
+      "legwear_socks",
+      "shoes_sneakers",
+      "bags_tote",
+      "fashion_accessories_belt",
+      "fashion_accessories_eyewear",
+      "swimwear_swimwear",
+      "kimono_kimono",
+    ],
+  });
+  fetchUserPreferencesMock.mockResolvedValue({
+    preferences: {
+      currentSeason: null,
+      defaultWearLogStatus: null,
+      calendarWeekStart: null,
+      skinTonePreset: "neutral_medium",
+    },
+  });
+  fetchUserBrandsMock.mockResolvedValue({ brands: [] });
+  fetchUserTposMock.mockResolvedValue({ tpos: [] });
+  const fetchMock = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+    const url = String(input);
+
+    if (url === "/api/items/1" && (!init || init.method === undefined)) {
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          item: createEditableItemResponse({
+            colors: [
+              {
+                role: "main",
+                mode: "preset",
+                value: "blue",
+                hex: "#3B82F6",
+                label: "ブルー",
+                custom_label: "64 BLUE",
+              },
+            ],
+          }),
+        }),
+      });
+    }
+
+    if (url === "/api/items/1" && init?.method === "PUT") {
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        json: async () => ({ item: createEditableItemResponse() }),
+      });
+    }
+
+    return Promise.resolve({
+      ok: true,
+      status: 200,
+      json: async () => ({ item: createEditableItemResponse() }),
+    });
+  });
+  vi.stubGlobal("fetch", fetchMock);
+
+  const { default: EditItemPage } = await import("./page");
+  const localContainer = document.createElement("div");
+  document.body.appendChild(localContainer);
+  const localRoot = createRoot(localContainer);
+
+  await act(async () => {
+    localRoot.render(
+      React.createElement(EditItemPage, {
+        params: Promise.resolve({ id: "1" }),
+      }),
+    );
+    await waitForEffects();
+  });
+
+  const colorNameInput = localContainer.querySelector<HTMLInputElement>(
+    "#main_color_custom_label",
+  );
+  const form = localContainer.querySelector("form");
+
+  expect(colorNameInput?.value).toBe("64 BLUE");
+  expect(form).not.toBeNull();
+
+  await act(async () => {
+    setNativeInputValue(colorNameInput!, "12 GRAY");
+    colorNameInput!.dispatchEvent(new Event("input", { bubbles: true }));
+    colorNameInput!.dispatchEvent(new Event("change", { bubbles: true }));
+    form!.dispatchEvent(
+      new Event("submit", { bubbles: true, cancelable: true }),
+    );
+    await waitForEffects();
+  });
+
+  const putCall = fetchMock.mock.calls.find(
+    ([input, init]) =>
+      String(input) === "/api/items/1" && init?.method === "PUT",
+  );
+  const payload = JSON.parse(putCall?.[1]?.body as string);
+
+  expect(payload.colors[0].custom_label).toBe("12 GRAY");
+
+  localRoot.unmount();
+  localContainer.remove();
+});
+
+function setNativeInputValue(
+  element: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement,
+  value: string,
+) {
+  const prototype = Object.getPrototypeOf(element) as {
+    constructor: {
+      prototype: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
+    };
+  };
+  const descriptor = Object.getOwnPropertyDescriptor(
+    prototype.constructor.prototype,
+    "value",
+  );
+  descriptor?.set?.call(element, value);
+}

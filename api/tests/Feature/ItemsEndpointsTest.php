@@ -621,6 +621,51 @@ class ItemsEndpointsTest extends TestCase
             ->assertJsonValidationErrors(['size_gender']);
     }
 
+    public function test_post_items_stores_main_color_custom_label_only(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/items', [
+            'name' => '色名付きアイテム',
+            'category' => 'tops',
+            'subcategory' => 'tshirt_cutsew',
+            'shape' => 'tshirt',
+            'colors' => [
+                [
+                    'role' => 'main',
+                    'mode' => 'preset',
+                    'value' => 'navy',
+                    'hex' => '#1F3A5F',
+                    'label' => 'ネイビー',
+                    'custom_label' => '64 BLUE',
+                ],
+                [
+                    'role' => 'sub',
+                    'mode' => 'preset',
+                    'value' => 'gray',
+                    'hex' => '#6B7280',
+                    'label' => 'グレー',
+                    'custom_label' => 'sub label should not persist',
+                ],
+            ],
+            'seasons' => [],
+            'tpos' => [],
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('item.colors.0.custom_label', '64 BLUE')
+            ->assertJsonPath('item.colors.1.custom_label', null);
+
+        $storedItem = Item::query()->findOrFail($response->json('item.id'));
+
+        $this->assertSame('64 BLUE', data_get($storedItem->colors, '0.custom_label'));
+        $this->assertNull(data_get($storedItem->colors, '1.custom_label'));
+    }
+
     public function test_post_items_allows_empty_materials(): void
     {
         $user = User::factory()->create();
@@ -2446,6 +2491,50 @@ class ItemsEndpointsTest extends TestCase
             'sort_order' => 2,
             'is_primary' => 0,
         ]);
+    }
+
+    public function test_put_item_updates_main_color_custom_label(): void
+    {
+        $user = User::factory()->create();
+        $item = $this->createItem($user, [
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'navy',
+                'hex' => '#1F3A5F',
+                'label' => 'ネイビー',
+                'custom_label' => '64 BLUE',
+            ]],
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->putJson("/api/items/{$item->id}", [
+            'name' => $item->name,
+            'category' => 'tops',
+            'subcategory' => 'tshirt_cutsew',
+            'shape' => 'tshirt',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'gray',
+                'hex' => '#6B7280',
+                'label' => 'グレー',
+                'custom_label' => '12 GRAY',
+            ]],
+            'seasons' => [],
+            'tpos' => [],
+            'materials' => [],
+            'images' => [],
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('item.colors.0.custom_label', '12 GRAY');
+
+        $item->refresh();
+        $this->assertSame('12 GRAY', data_get($item->colors, '0.custom_label'));
     }
 
     public function test_put_item_can_save_tops_with_shape_when_spec_is_null(): void

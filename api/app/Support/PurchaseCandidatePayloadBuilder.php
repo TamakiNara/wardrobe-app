@@ -286,6 +286,7 @@ class PurchaseCandidatePayloadBuilder
             'value' => $color->value,
             'hex' => $color->hex,
             'label' => $color->label,
+            'custom_label' => $color->custom_label,
         ];
     }
 

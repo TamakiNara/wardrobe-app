@@ -178,6 +178,7 @@ export default function NewItemPage() {
   const [shape, setShape] = useState("");
 
   const [mainColor, setMainColor] = useState<ItemColorValue | "">("");
+  const [mainColorCustomLabel, setMainColorCustomLabel] = useState("");
   const [subColor, setSubColor] = useState<ItemColorValue | "">("");
   const [useCustomMainColor, setUseCustomMainColor] = useState(false);
   const [useCustomSubColor, setUseCustomSubColor] = useState(false);
@@ -516,6 +517,7 @@ export default function NewItemPage() {
       ) ?? "",
     );
     setShape(draft.shape);
+    setMainColorCustomLabel(mainDraftColor?.custom_label ?? "");
     // `shape` を分類軸の正本として復元する。
     setTopsShape((draft.shape as TopsShapeValue | undefined) || "");
     setTopsSleeve(
@@ -894,6 +896,7 @@ export default function NewItemPage() {
         value: useCustomMainColor ? customMainHex : mainColor,
         hex: selectedMainColor.hex,
         label: selectedMainColor.label,
+        custom_label: mainColorCustomLabel.trim() || null,
       });
     }
 
@@ -1027,6 +1030,10 @@ export default function NewItemPage() {
     }
     if (!selectedMainColor)
       nextErrors.mainColor = "メインカラーを選択してください。";
+    if (selectedMainColor && mainColorCustomLabel.trim().length > 50) {
+      nextErrors.main_color_custom_label =
+        "色名は50文字以内で入力してください。";
+    }
     if (isBottomsLengthTypeRequired(category) && !bottomsLengthType) {
       nextErrors["spec.bottoms.length_type"] = "丈を選択してください。";
     }
@@ -1776,6 +1783,27 @@ export default function NewItemPage() {
                       {errors.mainColor}
                     </p>
                   )}
+                  <div>
+                    <label
+                      htmlFor="main_color_custom_label"
+                      className="mb-1 block text-sm font-medium text-gray-700"
+                    >
+                      色名
+                    </label>
+                    <input
+                      id="main_color_custom_label"
+                      type="text"
+                      value={mainColorCustomLabel}
+                      onChange={(event) => {
+                        setMainColorCustomLabel(event.target.value);
+                        clearErrorsFor(["main_color_custom_label"]);
+                      }}
+                      placeholder="例: 00 WHITE / 31 BEIGE / 64 BLUE"
+                      maxLength={50}
+                      disabled={!selectedMainColor}
+                      className={`w-full rounded-lg border bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400 ${errors.main_color_custom_label ? "border-red-400" : "border-gray-300"}`}
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-3">
@@ -1826,6 +1854,11 @@ export default function NewItemPage() {
                   )}
                 </div>
               </div>
+              {errors.main_color_custom_label && (
+                <p className="text-sm text-red-600">
+                  {errors.main_color_custom_label}
+                </p>
+              )}
             </ItemFormSection>
 
             <ItemFormSection title="利用条件・状態" className="lg:col-span-2">

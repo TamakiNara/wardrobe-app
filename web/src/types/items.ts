@@ -4,6 +4,7 @@ export type ItemFormColor = {
   value: string;
   hex: string;
   label: string;
+  custom_label?: string | null;
 };
 
 export type ItemCareStatus = "in_cleaning";

@@ -771,7 +771,10 @@ export default function ItemsList({
                             (color) => color.role === "sub",
                           );
                           const itemName = item.name || "名称未設定";
-                          const mainColorLabel = mainColor?.label ?? "未設定";
+                          const mainColorLabel =
+                            mainColor?.custom_label?.trim() ||
+                            mainColor?.label ||
+                            "未設定";
 
                           return (
                             <Link
@@ -878,7 +881,7 @@ export default function ItemsList({
                               className="h-4 w-4 rounded-full border border-gray-300"
                               style={{ backgroundColor: mainColor.hex }}
                             />
-                            {mainColor.label}
+                            {mainColor.custom_label?.trim() || mainColor.label}
                           </span>
                         )}
                         {subColor && (

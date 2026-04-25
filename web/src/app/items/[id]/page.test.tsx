@@ -472,4 +472,67 @@ describe("ItemPage", () => {
 
     expect(markup).toContain("ニーハイソックス");
   });
+  it("item detail で main color custom_label を表示する", async () => {
+    fetchMock
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          item: {
+            id: 6,
+            name: "繝阪う繝薙・繝九ャ繝・",
+            status: "active",
+            care_status: null,
+            brand_name: null,
+            price: null,
+            purchase_url: null,
+            memo: null,
+            purchased_at: null,
+            size_gender: null,
+            size_label: null,
+            size_note: null,
+            size_details: null,
+            is_rain_ok: false,
+            category: "tops",
+            subcategory: "tshirt_cutsew",
+            shape: "tshirt",
+            colors: [
+              {
+                role: "main",
+                mode: "preset",
+                value: "navy",
+                hex: "#1F3A5F",
+                label: "繝阪う繝薙・",
+                custom_label: "64 BLUE",
+              },
+            ],
+            seasons: [],
+            tpos: [],
+            spec: null,
+            images: [],
+            materials: [],
+          },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          preferences: {
+            skinTonePreset: "neutral_medium",
+          },
+        }),
+      });
+
+    const { default: ItemPage } = await import("./page");
+    const markup = renderToStaticMarkup(
+      await ItemPage({
+        params: Promise.resolve({ id: "6" }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+
+    expect(markup).toContain("色名");
+    expect(markup).toContain("64 BLUE");
+  });
 });

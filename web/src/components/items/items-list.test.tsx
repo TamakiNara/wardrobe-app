@@ -37,6 +37,35 @@ vi.mock("@/lib/api/categories", async () => {
     ...actual,
     fetchCategoryGroups: fetchCategoryGroupsMock,
   };
+  it("item list で main color custom_label を優先表示する", async () => {
+    const { default: ItemsList } = await import("./items-list");
+
+    const itemsWithCustomLabel: ItemRecord[] = [
+      {
+        ...sampleItems[0],
+        colors: [
+          {
+            ...sampleItems[0].colors[0],
+            custom_label: "64 BLUE",
+          },
+        ],
+      },
+    ];
+
+    await act(async () => {
+      root.render(
+        React.createElement(ItemsList, {
+          ...defaultListProps,
+          items: itemsWithCustomLabel,
+          totalCount: 1,
+          totalAllCount: 1,
+        }),
+      );
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain("64 BLUE");
+  });
 });
 
 vi.mock("@/lib/api/settings", () => ({

@@ -236,7 +236,7 @@
 表示例:
 
 ```text
-色名（任意）
+色名
 例: 00 WHITE / 31 BEIGE / 64 BLUE
 ```
 
@@ -293,12 +293,12 @@ Phase 1:
 - candidate 側に `custom_label` を追加済み
 - purchase candidate form / list / detail / duplicate / color-variant に対応済み
 - 色違い追加では main color / sub color / custom_label を空にする
-- item 側への完全引き継ぎはまだ行わない
+- item 側 colors の main color `custom_label` まで引き継ぎ済み
 
 Phase 2:
 
-- item 側 colors の構造と API shape を整理する
-- `custom_label` を item 化時に落とさず引き継ぐ
+- item 側 colors の構造整理と validation 共通化を検討する
+- `custom_label` の検索・表示強化が必要なら detail / list 以外へ広げる
 
 Phase 3:
 

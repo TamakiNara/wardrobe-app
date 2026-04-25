@@ -119,6 +119,16 @@ class ImportExportEndpointsTest extends TestCase
                 ],
             ],
         ]);
+        $item->forceFill([
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'white',
+                'hex' => '#FFFFFF',
+                'label' => 'ホワイト',
+                'custom_label' => '00 WHITE',
+            ]],
+        ])->save();
         $item->materials()->create([
             'part_label' => '本体',
             'material_name' => '綿',
@@ -268,6 +278,7 @@ class ImportExportEndpointsTest extends TestCase
             ->assertJsonPath('items.0.name', '白シャツ')
             ->assertJsonPath('purchase_candidates.0.name', '購入候補シャツ')
             ->assertJsonPath('outfits.0.name', '通勤コーデ')
+            ->assertJsonPath('items.0.colors.0.custom_label', '00 WHITE')
             ->assertJsonPath('items.0.images.0.content_base64', self::PNG_BASE64)
             ->assertJsonPath('purchase_candidates.0.images.0.content_base64', self::PNG_BASE64);
     }
@@ -363,6 +374,7 @@ class ImportExportEndpointsTest extends TestCase
         $this->assertSame('shirt', $importedItem->shape);
         $this->assertSame('in_cleaning', $importedItem->care_status);
         $this->assertSame('long', data_get($importedItem->spec, 'tops.sleeve'));
+        $this->assertSame('00 WHITE', data_get($importedItem->colors, '0.custom_label'));
         $this->assertSame('麻', $importedCandidate->materials->first()?->material_name);
         $this->assertSame($importedItem->id, $importedCandidate->converted_item_id);
         $this->assertSame($importedItem->id, $importedOutfit->outfitItems->first()?->item_id);
@@ -385,6 +397,7 @@ class ImportExportEndpointsTest extends TestCase
         ])->assertOk()
             ->assertJsonPath('item.name', '白シャツ')
             ->assertJsonPath('item.images.0.original_filename', 'source-item.png')
+            ->assertJsonPath('item.colors.0.custom_label', '00 WHITE')
             ->assertJsonPath('item.spec.tops.sleeve', 'long');
 
         $this->getJson("/api/purchase-candidates/{$importedCandidate->id}", [

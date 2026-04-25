@@ -559,6 +559,7 @@ function createValidPurchaseCandidateItemDraft() {
           mode: "preset",
           value: "blue",
           hex: "#3B82F6",
+          custom_label: null,
           label: "ブルー",
         },
       ],
@@ -588,6 +589,91 @@ function createValidPurchaseCandidateItemDraft() {
     images: [],
   };
 }
+
+it("purchase candidate draft の main color custom_label を復元して submit payload に含める", async () => {
+  searchParamsSourceValue = "purchase-candidate";
+  fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
+  fetchCategoryVisibilitySettingsMock.mockResolvedValue({
+    visibleCategoryIds: [
+      "tops_tshirt_cutsew",
+      "outerwear_jacket",
+      "pants_pants",
+      "onepiece_dress_onepiece",
+      "allinone_allinone",
+      "roomwear_inner_roomwear",
+      "legwear_socks",
+      "shoes_sneakers",
+      "bags_tote",
+      "fashion_accessories_belt",
+      "fashion_accessories_eyewear",
+      "swimwear_swimwear",
+      "kimono_kimono",
+    ],
+  });
+  fetchUserPreferencesMock.mockResolvedValue({
+    preferences: {
+      currentSeason: null,
+      defaultWearLogStatus: null,
+      calendarWeekStart: null,
+      skinTonePreset: "neutral_medium",
+    },
+  });
+  fetchUserBrandsMock.mockResolvedValue({ brands: [] });
+  fetchUserTposMock.mockResolvedValue({ tpos: [] });
+  const draft = createValidPurchaseCandidateItemDraft();
+  draft.item_draft.colors[0] = {
+    ...draft.item_draft.colors[0],
+    custom_label: "64 BLUE",
+  };
+  window.sessionStorage.setItem(
+    "purchase-candidate-item-draft",
+    JSON.stringify(draft),
+  );
+
+  const fetchMock = vi.fn().mockResolvedValue({
+    ok: true,
+    status: 201,
+    json: async () => ({ id: 1 }),
+  });
+  vi.stubGlobal("fetch", fetchMock);
+
+  const { default: NewItemPage } = await import("./page");
+  const localContainer = document.createElement("div");
+  document.body.appendChild(localContainer);
+  const localRoot = createRoot(localContainer);
+
+  await act(async () => {
+    localRoot.render(React.createElement(NewItemPage));
+    await waitForEffects();
+  });
+
+  const colorNameInput = localContainer.querySelector<HTMLInputElement>(
+    "#main_color_custom_label",
+  );
+  const form = localContainer.querySelector("form");
+
+  expect(colorNameInput?.value).toBe("64 BLUE");
+  expect(colorNameInput?.disabled).toBe(false);
+  expect(form).not.toBeNull();
+
+  await act(async () => {
+    setNativeInputValue(colorNameInput!, "12 GRAY");
+    colorNameInput!.dispatchEvent(new Event("input", { bubbles: true }));
+    colorNameInput!.dispatchEvent(new Event("change", { bubbles: true }));
+    form!.dispatchEvent(
+      new Event("submit", { bubbles: true, cancelable: true }),
+    );
+    await waitForEffects();
+  });
+
+  const [, requestInit] = fetchMock.mock.calls[0];
+  const payload = JSON.parse(requestInit.body as string);
+
+  expect(payload.colors[0].custom_label).toBe("12 GRAY");
+
+  localRoot.unmount();
+  localContainer.remove();
+});
 
 function setInputFiles(input: HTMLInputElement, files: File[]) {
   Object.defineProperty(input, "files", {
