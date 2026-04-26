@@ -1409,7 +1409,7 @@ export default function PurchaseCandidateForm({
         </section>
       )}
 
-      <ItemFormSection title="基本情報" className="lg:col-span-1 lg:order-1">
+      <ItemFormSection title="基本情報" className="lg:col-span-1">
         {isPurchasedLocked && (
           <p className="text-sm text-amber-700">
             購入済みの購入検討では、メモ・欲しい理由・優先度・発売日・販売期間情報・購入
@@ -1499,7 +1499,221 @@ export default function PurchaseCandidateForm({
           />
         </div>
       </ItemFormSection>
-      <ItemFormSection title="分類" className="lg:col-span-1 lg:order-2">
+      <ItemFormSection title="購入情報" className="lg:col-span-1">
+        <div className="grid gap-4 md:grid-cols-2">
+          <div>
+            <label
+              htmlFor="price"
+              className="mb-1 block text-sm font-medium text-gray-700"
+            >
+              想定価格
+            </label>
+            <div className={getFormControlWrapperClassName()}>
+              <input
+                id="price"
+                type="number"
+                min="0"
+                value={price}
+                onChange={(event) => setPrice(event.target.value)}
+                disabled={isPurchasedLocked}
+                className={FORM_CONTROL_INNER_INPUT_CLASS}
+              />
+              <span className="text-sm text-gray-500">円</span>
+            </div>
+          </div>
+
+          <div className="hidden md:block" aria-hidden="true" />
+
+          <div>
+            <label
+              htmlFor="sale_price"
+              className="mb-1 block text-sm font-medium text-gray-700"
+            >
+              セール価格
+            </label>
+            <div className={getFormControlWrapperClassName()}>
+              <input
+                id="sale_price"
+                type="number"
+                min="0"
+                value={salePrice}
+                onChange={(event) => setSalePrice(event.target.value)}
+                className={FORM_CONTROL_INNER_INPUT_CLASS}
+              />
+              <span className="text-sm text-gray-500">円</span>
+            </div>
+          </div>
+
+          <div>
+            <div className="mb-1 flex items-center justify-between gap-3">
+              <span className="block text-sm font-medium text-gray-700">
+                セール終了日
+              </span>
+              <button
+                type="button"
+                onClick={() => setDiscountEndsAt("")}
+                disabled={discountEndsAt === ""}
+                className="text-xs font-medium text-gray-500 underline-offset-2 transition hover:text-gray-800 hover:underline disabled:cursor-not-allowed disabled:text-gray-300 disabled:no-underline"
+              >
+                リセット
+              </button>
+            </div>
+            <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_8rem]">
+              <input
+                id="discount_ends_at_date"
+                aria-label="セール終了日の日付"
+                type="date"
+                value={getDateInputValue(discountEndsAt)}
+                onChange={(event) =>
+                  setDiscountEndsAt(
+                    resolveDateTimeFromDateInput(
+                      event.target.value,
+                      discountEndsAt,
+                    ),
+                  )
+                }
+                style={{ colorScheme: "light", accentColor: "#2563eb" }}
+                className={getFormControlClassName({
+                  shadow: true,
+                  className: FORM_CONTROL_COLOR_SCHEME_CLASS,
+                })}
+              />
+              <input
+                id="discount_ends_at_time"
+                aria-label="セール終了日の時刻"
+                type="time"
+                value={getTimeInputValue(discountEndsAt)}
+                onChange={(event) =>
+                  setDiscountEndsAt(
+                    resolveDateTimeFromTimeInput(
+                      event.target.value,
+                      discountEndsAt,
+                    ),
+                  )
+                }
+                disabled={getDateInputValue(discountEndsAt) === ""}
+                style={{ colorScheme: "light", accentColor: "#2563eb" }}
+                className={getFormControlClassName({
+                  disabled: true,
+                  shadow: true,
+                  className: FORM_CONTROL_COLOR_SCHEME_CLASS,
+                })}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label
+              htmlFor="release_date"
+              className="mb-1 block text-sm font-medium text-gray-700"
+            >
+              発売日
+            </label>
+            <input
+              id="release_date"
+              type="date"
+              value={releaseDate}
+              onChange={(event) => setReleaseDate(event.target.value)}
+              style={{ colorScheme: "light", accentColor: "#2563eb" }}
+              className={getFormControlClassName({
+                shadow: true,
+                className: FORM_CONTROL_COLOR_SCHEME_CLASS,
+              })}
+            />
+          </div>
+
+          <div>
+            <div className="mb-1 flex items-center justify-between gap-3">
+              <span className="block text-sm font-medium text-gray-700">
+                販売終了日
+              </span>
+              <button
+                type="button"
+                onClick={() => setSaleEndsAt("")}
+                disabled={saleEndsAt === ""}
+                className="text-xs font-medium text-gray-500 underline-offset-2 transition hover:text-gray-800 hover:underline disabled:cursor-not-allowed disabled:text-gray-300 disabled:no-underline"
+              >
+                リセット
+              </button>
+            </div>
+            <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_8rem]">
+              <input
+                id="sale_ends_at_date"
+                aria-label="販売終了日の日付"
+                type="date"
+                value={getDateInputValue(saleEndsAt)}
+                onChange={(event) =>
+                  setSaleEndsAt(
+                    resolveDateTimeFromDateInput(
+                      event.target.value,
+                      saleEndsAt,
+                    ),
+                  )
+                }
+                style={{ colorScheme: "light", accentColor: "#2563eb" }}
+                className={getFormControlClassName({
+                  shadow: true,
+                  className: FORM_CONTROL_COLOR_SCHEME_CLASS,
+                })}
+              />
+              <input
+                id="sale_ends_at_time"
+                aria-label="販売終了日の時刻"
+                type="time"
+                value={getTimeInputValue(saleEndsAt)}
+                onChange={(event) =>
+                  setSaleEndsAt(
+                    resolveDateTimeFromTimeInput(
+                      event.target.value,
+                      saleEndsAt,
+                    ),
+                  )
+                }
+                disabled={getDateInputValue(saleEndsAt) === ""}
+                style={{ colorScheme: "light", accentColor: "#2563eb" }}
+                className={getFormControlClassName({
+                  disabled: true,
+                  shadow: true,
+                  className: FORM_CONTROL_COLOR_SCHEME_CLASS,
+                })}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label
+            htmlFor="purchase_url"
+            className="mb-1 block text-sm font-medium text-gray-700"
+          >
+            購入 URL
+          </label>
+          <input
+            id="purchase_url"
+            type="url"
+            value={purchaseUrl}
+            onChange={(event) => setPurchaseUrl(event.target.value)}
+            className={getFormControlClassName()}
+          />
+        </div>
+
+        <div>
+          <label
+            htmlFor="wanted_reason"
+            className="mb-1 block text-sm font-medium text-gray-700"
+          >
+            欲しい理由
+          </label>
+          <textarea
+            id="wanted_reason"
+            value={wantedReason}
+            onChange={(event) => setWantedReason(event.target.value)}
+            rows={3}
+            className={getFormControlClassName()}
+          />
+        </div>
+      </ItemFormSection>
+      <ItemFormSection title="分類" className="lg:col-span-2">
         <div className="grid gap-4 md:grid-cols-2">
           <div>
             <FieldLabel htmlFor="category_group_id" label="カテゴリ" required />
@@ -1872,221 +2086,6 @@ export default function PurchaseCandidateForm({
         )}
       </ItemFormSection>
 
-      <ItemFormSection title="購入情報" className="lg:col-span-1 lg:order-3">
-        <div className="grid gap-4 md:grid-cols-2">
-          <div>
-            <label
-              htmlFor="price"
-              className="mb-1 block text-sm font-medium text-gray-700"
-            >
-              想定価格
-            </label>
-            <div className={getFormControlWrapperClassName()}>
-              <input
-                id="price"
-                type="number"
-                min="0"
-                value={price}
-                onChange={(event) => setPrice(event.target.value)}
-                disabled={isPurchasedLocked}
-                className={FORM_CONTROL_INNER_INPUT_CLASS}
-              />
-              <span className="text-sm text-gray-500">円</span>
-            </div>
-          </div>
-
-          <div className="hidden md:block" aria-hidden="true" />
-
-          <div>
-            <label
-              htmlFor="sale_price"
-              className="mb-1 block text-sm font-medium text-gray-700"
-            >
-              セール価格
-            </label>
-            <div className={getFormControlWrapperClassName()}>
-              <input
-                id="sale_price"
-                type="number"
-                min="0"
-                value={salePrice}
-                onChange={(event) => setSalePrice(event.target.value)}
-                className={FORM_CONTROL_INNER_INPUT_CLASS}
-              />
-              <span className="text-sm text-gray-500">円</span>
-            </div>
-          </div>
-
-          <div>
-            <div className="mb-1 flex items-center justify-between gap-3">
-              <span className="block text-sm font-medium text-gray-700">
-                セール終了日
-              </span>
-              <button
-                type="button"
-                onClick={() => setDiscountEndsAt("")}
-                disabled={discountEndsAt === ""}
-                className="text-xs font-medium text-gray-500 underline-offset-2 transition hover:text-gray-800 hover:underline disabled:cursor-not-allowed disabled:text-gray-300 disabled:no-underline"
-              >
-                リセット
-              </button>
-            </div>
-            <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_8rem]">
-              <input
-                id="discount_ends_at_date"
-                aria-label="セール終了日の日付"
-                type="date"
-                value={getDateInputValue(discountEndsAt)}
-                onChange={(event) =>
-                  setDiscountEndsAt(
-                    resolveDateTimeFromDateInput(
-                      event.target.value,
-                      discountEndsAt,
-                    ),
-                  )
-                }
-                style={{ colorScheme: "light", accentColor: "#2563eb" }}
-                className={getFormControlClassName({
-                  shadow: true,
-                  className: FORM_CONTROL_COLOR_SCHEME_CLASS,
-                })}
-              />
-              <input
-                id="discount_ends_at_time"
-                aria-label="セール終了日の時刻"
-                type="time"
-                value={getTimeInputValue(discountEndsAt)}
-                onChange={(event) =>
-                  setDiscountEndsAt(
-                    resolveDateTimeFromTimeInput(
-                      event.target.value,
-                      discountEndsAt,
-                    ),
-                  )
-                }
-                disabled={getDateInputValue(discountEndsAt) === ""}
-                style={{ colorScheme: "light", accentColor: "#2563eb" }}
-                className={getFormControlClassName({
-                  disabled: true,
-                  shadow: true,
-                  className: FORM_CONTROL_COLOR_SCHEME_CLASS,
-                })}
-              />
-            </div>
-          </div>
-
-          <div>
-            <label
-              htmlFor="release_date"
-              className="mb-1 block text-sm font-medium text-gray-700"
-            >
-              発売日
-            </label>
-            <input
-              id="release_date"
-              type="date"
-              value={releaseDate}
-              onChange={(event) => setReleaseDate(event.target.value)}
-              style={{ colorScheme: "light", accentColor: "#2563eb" }}
-              className={getFormControlClassName({
-                shadow: true,
-                className: FORM_CONTROL_COLOR_SCHEME_CLASS,
-              })}
-            />
-          </div>
-
-          <div>
-            <div className="mb-1 flex items-center justify-between gap-3">
-              <span className="block text-sm font-medium text-gray-700">
-                販売終了日
-              </span>
-              <button
-                type="button"
-                onClick={() => setSaleEndsAt("")}
-                disabled={saleEndsAt === ""}
-                className="text-xs font-medium text-gray-500 underline-offset-2 transition hover:text-gray-800 hover:underline disabled:cursor-not-allowed disabled:text-gray-300 disabled:no-underline"
-              >
-                リセット
-              </button>
-            </div>
-            <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_8rem]">
-              <input
-                id="sale_ends_at_date"
-                aria-label="販売終了日の日付"
-                type="date"
-                value={getDateInputValue(saleEndsAt)}
-                onChange={(event) =>
-                  setSaleEndsAt(
-                    resolveDateTimeFromDateInput(
-                      event.target.value,
-                      saleEndsAt,
-                    ),
-                  )
-                }
-                style={{ colorScheme: "light", accentColor: "#2563eb" }}
-                className={getFormControlClassName({
-                  shadow: true,
-                  className: FORM_CONTROL_COLOR_SCHEME_CLASS,
-                })}
-              />
-              <input
-                id="sale_ends_at_time"
-                aria-label="販売終了日の時刻"
-                type="time"
-                value={getTimeInputValue(saleEndsAt)}
-                onChange={(event) =>
-                  setSaleEndsAt(
-                    resolveDateTimeFromTimeInput(
-                      event.target.value,
-                      saleEndsAt,
-                    ),
-                  )
-                }
-                disabled={getDateInputValue(saleEndsAt) === ""}
-                style={{ colorScheme: "light", accentColor: "#2563eb" }}
-                className={getFormControlClassName({
-                  disabled: true,
-                  shadow: true,
-                  className: FORM_CONTROL_COLOR_SCHEME_CLASS,
-                })}
-              />
-            </div>
-          </div>
-        </div>
-
-        <div>
-          <label
-            htmlFor="purchase_url"
-            className="mb-1 block text-sm font-medium text-gray-700"
-          >
-            購入 URL
-          </label>
-          <input
-            id="purchase_url"
-            type="url"
-            value={purchaseUrl}
-            onChange={(event) => setPurchaseUrl(event.target.value)}
-            className={getFormControlClassName()}
-          />
-        </div>
-
-        <div>
-          <label
-            htmlFor="wanted_reason"
-            className="mb-1 block text-sm font-medium text-gray-700"
-          >
-            欲しい理由
-          </label>
-          <textarea
-            id="wanted_reason"
-            value={wantedReason}
-            onChange={(event) => setWantedReason(event.target.value)}
-            rows={3}
-            className={getFormControlClassName()}
-          />
-        </div>
-      </ItemFormSection>
-
       <ItemFormSection title="色" className="lg:col-span-1 lg:order-4">
         <div className="grid gap-4 md:grid-cols-2">
           <div>
@@ -2441,7 +2440,7 @@ export default function PurchaseCandidateForm({
         />
       </ItemFormSection>
 
-      <ItemFormSection title="補足情報" className="lg:col-span-1 lg:order-6">
+      <ItemFormSection title="補足情報" className="lg:col-span-2 lg:order-9">
         <div>
           <div className="mb-1 flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
             <label
@@ -2463,7 +2462,7 @@ export default function PurchaseCandidateForm({
           />
         </div>
       </ItemFormSection>
-      <ItemFormSection title="画像" className="lg:col-span-2 lg:order-9">
+      <ItemFormSection title="画像" className="lg:col-span-2 lg:order-10">
         <PurchaseCandidateImageUploader
           existingImages={existingImages}
           pendingImages={pendingImages}
@@ -2480,7 +2479,7 @@ export default function PurchaseCandidateForm({
 
       {submitMessage && (
         <section
-          className={`rounded-xl border px-4 py-3 text-sm lg:col-span-2 lg:order-10 ${
+          className={`rounded-xl border px-4 py-3 text-sm lg:col-span-2 lg:order-11 ${
             submitError
               ? "border-red-200 bg-red-50 text-red-700"
               : "border-green-200 bg-green-50 text-green-700"
@@ -2490,7 +2489,7 @@ export default function PurchaseCandidateForm({
         </section>
       )}
 
-      <div className="flex flex-col gap-3 border-t border-gray-200 pt-6 md:flex-row md:items-center md:justify-between lg:col-span-2 lg:order-11">
+      <div className="flex flex-col gap-3 border-t border-gray-200 pt-6 md:flex-row md:items-center md:justify-between lg:col-span-2 lg:order-12">
         <div>{footerAction}</div>
         <div className="flex items-center gap-3">
           <Link

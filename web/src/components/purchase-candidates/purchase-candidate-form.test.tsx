@@ -291,8 +291,8 @@ describe("購入検討フォーム", () => {
 
     const sectionTitles = [
       "基本情報",
-      "分類",
       "購入情報",
+      "分類",
       "色",
       "利用条件・特性",
       "サイズ・実寸",
@@ -366,6 +366,39 @@ describe("購入検討フォーム", () => {
       .querySelector('label[for="price"]')
       ?.closest("div");
     expect(priceField?.className).not.toContain("md:col-span-2");
+  });
+
+  it("PC幅では購入情報を基本情報の次に置き、分類をフル幅のまま表示する", async () => {
+    await renderForm();
+
+    const sectionCards = Array.from(
+      container.querySelectorAll(
+        "form > section.rounded-2xl.border.border-gray-200.bg-white",
+      ),
+    );
+    const classificationSection = sectionCards.find(
+      (section) => section.querySelector("h2")?.textContent === "分類",
+    );
+    const purchaseInfoSection = sectionCards.find(
+      (section) => section.querySelector("h2")?.textContent === "購入情報",
+    );
+    const conditionsSection = sectionCards.find(
+      (section) =>
+        section.querySelector("h2")?.textContent === "利用条件・特性",
+    );
+    const supplementalSection = sectionCards.find(
+      (section) => section.querySelector("h2")?.textContent === "補足情報",
+    );
+    const imageSection = sectionCards.find(
+      (section) => section.querySelector("h2")?.textContent === "画像",
+    );
+
+    expect(classificationSection?.className).toContain("lg:col-span-2");
+    expect(purchaseInfoSection?.className).toContain("lg:col-span-1");
+    expect(conditionsSection?.className).toContain("lg:col-span-1");
+    expect(supplementalSection?.className).toContain("lg:col-span-2");
+    expect(supplementalSection?.className).toContain("lg:order-9");
+    expect(imageSection?.className).toContain("lg:order-10");
   });
 
   it("カテゴリ未選択では種類を表示せず、カテゴリ選択後に表示する", async () => {
@@ -588,7 +621,7 @@ describe("購入検討フォーム", () => {
     expect(sizeSection).not.toBeNull();
     expect(specField?.closest("section")).toBe(classificationSection);
     expect(
-      classificationSection!.compareDocumentPosition(purchaseSection!),
+      purchaseSection!.compareDocumentPosition(classificationSection!),
     ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
     expect(classificationSection!.compareDocumentPosition(sizeSection!)).toBe(
       Node.DOCUMENT_POSITION_FOLLOWING,

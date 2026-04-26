@@ -454,42 +454,6 @@ export default async function PurchaseCandidateDetailPage({
         </section>
 
         <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-gray-900">分類</h2>
-          <dl className="mt-4 grid gap-4 md:grid-cols-2">
-            {classificationDetails.map((detail) => (
-              <div key={detail.label}>
-                <dt className="text-sm font-medium text-gray-700">
-                  {detail.label}
-                </dt>
-                <dd className="mt-1 text-sm text-gray-600">{detail.value}</dd>
-              </div>
-            ))}
-            {specDetails.length > 0 ? (
-              <div className="md:col-span-2">
-                <dt className="text-sm font-medium text-gray-700">
-                  仕様・属性
-                </dt>
-                <dd className="mt-2 grid gap-2 md:grid-cols-2">
-                  {specDetails.map((detail) => (
-                    <div
-                      key={`${detail.label}-${detail.value}`}
-                      className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2"
-                    >
-                      <p className="text-xs font-medium text-gray-500">
-                        {detail.label}
-                      </p>
-                      <p className="mt-1 text-sm text-gray-700">
-                        {detail.value}
-                      </p>
-                    </div>
-                  ))}
-                </dd>
-              </div>
-            ) : null}
-          </dl>
-        </section>
-
-        <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-gray-900">購入情報</h2>
           <dl className="mt-4 grid gap-4 md:grid-cols-2">
             <div>
@@ -544,6 +508,42 @@ export default async function PurchaseCandidateDetailPage({
                 )}
               </dd>
             </div>
+          </dl>
+        </section>
+
+        <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <h2 className="text-lg font-semibold text-gray-900">分類</h2>
+          <dl className="mt-4 grid gap-4 md:grid-cols-2">
+            {classificationDetails.map((detail) => (
+              <div key={detail.label}>
+                <dt className="text-sm font-medium text-gray-700">
+                  {detail.label}
+                </dt>
+                <dd className="mt-1 text-sm text-gray-600">{detail.value}</dd>
+              </div>
+            ))}
+            {specDetails.length > 0 ? (
+              <div className="md:col-span-2">
+                <dt className="text-sm font-medium text-gray-700">
+                  仕様・属性
+                </dt>
+                <dd className="mt-2 grid gap-2 md:grid-cols-2">
+                  {specDetails.map((detail) => (
+                    <div
+                      key={`${detail.label}-${detail.value}`}
+                      className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2"
+                    >
+                      <p className="text-xs font-medium text-gray-500">
+                        {detail.label}
+                      </p>
+                      <p className="mt-1 text-sm text-gray-700">
+                        {detail.value}
+                      </p>
+                    </div>
+                  ))}
+                </dd>
+              </div>
+            ) : null}
           </dl>
         </section>
 
