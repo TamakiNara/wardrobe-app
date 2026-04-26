@@ -53,7 +53,9 @@ import type {
   ItemCareStatus,
   ItemFormColor,
   ItemImageRecord,
+  ItemSizeDetailValue,
   ItemSheerness,
+  StructuredSizeFieldName,
 } from "@/types/items";
 import { SEASON_OPTIONS } from "@/lib/master-data/item-attributes";
 import {
@@ -113,9 +115,11 @@ import {
 import {
   buildItemSizeDetailsPayload,
   buildSizeDetailDuplicateWarnings,
-  formatSizeDetailValue,
+  buildEditableSizeDetailValue,
+  createEmptyEditableSizeDetailValue,
   getStructuredSizeFieldDefinitionsFromContext,
   normalizeItemSizeDetails,
+  type EditableSizeDetailValue,
   type EditableCustomSizeField,
 } from "@/lib/items/size-details";
 import {
@@ -132,7 +136,6 @@ import {
   shouldShowItemShapeField,
 } from "@/lib/items/input-requirements";
 import type { UserTpoRecord } from "@/types/settings";
-import type { StructuredSizeFieldName } from "@/types/items";
 
 export default function NewItemPage() {
   const router = useRouter();
@@ -169,7 +172,7 @@ export default function NewItemPage() {
   const [sizeLabel, setSizeLabel] = useState("");
   const [sizeNote, setSizeNote] = useState("");
   const [structuredSizeValues, setStructuredSizeValues] = useState<
-    Partial<Record<StructuredSizeFieldName, string>>
+    Partial<Record<StructuredSizeFieldName, EditableSizeDetailValue>>
   >({});
   const [customSizeFields, setCustomSizeFields] = useState<
     EditableCustomSizeField[]
@@ -503,16 +506,16 @@ export default function NewItemPage() {
         Object.entries(normalizedSizeDetails?.structured ?? {}).map(
           ([fieldName, fieldValue]) => [
             fieldName,
-            formatSizeDetailValue(fieldValue),
+            buildEditableSizeDetailValue(fieldValue),
           ],
         ),
-      ) as Partial<Record<StructuredSizeFieldName, string>>,
+      ) as Partial<Record<StructuredSizeFieldName, EditableSizeDetailValue>>,
     );
     setCustomSizeFields(
       (normalizedSizeDetails?.custom_fields ?? []).map((field, index) => ({
         id: `draft-size-field-${index}`,
         label: field.label,
-        value: formatSizeDetailValue(field.value),
+        ...buildEditableSizeDetailValue(field),
       })),
     );
     setIsRainOk(draft.isRainOk);
@@ -859,28 +862,33 @@ export default function NewItemPage() {
     return {
       id: `size-field-${Date.now()}-${Math.random().toString(16).slice(2)}`,
       label: "",
-      value: "",
+      ...createEmptyEditableSizeDetailValue(),
     };
   }
 
   function updateStructuredSizeValue(
     fieldName: StructuredSizeFieldName,
+    key: keyof ItemSizeDetailValue,
     value: string,
   ) {
     setStructuredSizeValues((current) => ({
       ...current,
-      [fieldName]: value,
+      [fieldName]: normalizeEditableSizeValue(current[fieldName], key, value),
     }));
   }
 
   function updateCustomSizeField(
     fieldId: string,
-    key: "label" | "value",
+    key: "label" | keyof ItemSizeDetailValue,
     value: string,
   ) {
     setCustomSizeFields((current) =>
       current.map((field) =>
-        field.id === fieldId ? { ...field, [key]: value } : field,
+        field.id === fieldId
+          ? key === "label"
+            ? { ...field, label: value }
+            : { ...field, ...normalizeEditableSizeValue(field, key, value) }
+          : field,
       ),
     );
   }
@@ -2273,4 +2281,27 @@ export default function NewItemPage() {
       </div>
     </main>
   );
+}
+
+function normalizeEditableSizeValue(
+  currentValue: EditableSizeDetailValue | undefined,
+  key: keyof ItemSizeDetailValue,
+  nextValue: string,
+): EditableSizeDetailValue {
+  const baseValue = currentValue ?? createEmptyEditableSizeDetailValue();
+  const normalizedValue = {
+    ...baseValue,
+    [key]: nextValue,
+  };
+
+  if (key === "value" && nextValue.trim()) {
+    normalizedValue.min = "";
+    normalizedValue.max = "";
+  }
+
+  if ((key === "min" || key === "max") && nextValue.trim()) {
+    normalizedValue.value = "";
+  }
+
+  return normalizedValue;
 }

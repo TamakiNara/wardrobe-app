@@ -1,5 +1,6 @@
 import type {
   ItemCustomSizeField,
+  ItemSizeDetailValue,
   ItemSizeDetails,
   ItemStructuredSizeDetails,
   StructuredSizeFieldName,
@@ -15,11 +16,46 @@ export type StructuredSizeFieldDefinition = {
   label: string;
 };
 
+export type EditableSizeDetailValue = {
+  value: string;
+  min: string;
+  max: string;
+  note: string;
+};
+
 export type EditableCustomSizeField = {
   id: string;
   label: string;
-  value: string;
-};
+} & EditableSizeDetailValue;
+
+export function createEmptyEditableSizeDetailValue(): EditableSizeDetailValue {
+  return {
+    value: "",
+    min: "",
+    max: "",
+    note: "",
+  };
+}
+
+export function buildEditableSizeDetailValue(
+  value?: ItemSizeDetailValue | null,
+): EditableSizeDetailValue {
+  return {
+    value:
+      value?.value !== null && value?.value !== undefined
+        ? formatSizeDetailNumber(value.value)
+        : "",
+    min:
+      value?.min !== null && value?.min !== undefined
+        ? formatSizeDetailNumber(value.min)
+        : "",
+    max:
+      value?.max !== null && value?.max !== undefined
+        ? formatSizeDetailNumber(value.max)
+        : "",
+    note: value?.note ?? "",
+  };
+}
 
 const STRUCTURED_SIZE_FIELD_LABELS: Record<StructuredSizeFieldName, string> = {
   shoulder_width: "肩幅",
@@ -160,7 +196,7 @@ export function getStructuredSizeFieldDefinitions(
 
   return STRUCTURED_SIZE_FIELD_GROUPS[group].map((name) => ({
     name,
-    label: STRUCTURED_SIZE_FIELD_LABELS[name],
+    label: resolveStructuredSizeFieldLabel(name, category, shape),
   }));
 }
 
@@ -193,11 +229,12 @@ export function normalizeItemSizeDetails(
             return carry;
           }
 
-          if (typeof fieldValue !== "number" || Number.isNaN(fieldValue)) {
+          const normalizedFieldValue = normalizeSizeDetailValue(fieldValue);
+          if (!normalizedFieldValue) {
             return carry;
           }
 
-          carry[name as StructuredSizeFieldName] = fieldValue;
+          carry[name as StructuredSizeFieldName] = normalizedFieldValue;
           return carry;
         },
         {},
@@ -213,15 +250,25 @@ export function normalizeItemSizeDetails(
       const recordField = field as Record<string, unknown>;
       if (
         typeof recordField.label !== "string" ||
-        typeof recordField.value !== "number" ||
         typeof recordField.sort_order !== "number"
       ) {
         return carry;
       }
 
+      const normalizedFieldValue = normalizeSizeDetailValue({
+        value: recordField.value,
+        min: recordField.min,
+        max: recordField.max,
+        note: recordField.note,
+      });
+
+      if (!normalizedFieldValue) {
+        return carry;
+      }
+
       carry.push({
         label: recordField.label,
-        value: recordField.value,
+        ...normalizedFieldValue,
         sort_order: recordField.sort_order,
       });
       return carry;
@@ -239,8 +286,42 @@ export function normalizeItemSizeDetails(
   };
 }
 
-export function formatSizeDetailValue(value: number) {
+export function resolveStructuredSizeFieldLabel(
+  fieldName: StructuredSizeFieldName,
+  category?: string | null,
+  shape?: string | null,
+) {
+  void category;
+  void shape;
+
+  return STRUCTURED_SIZE_FIELD_LABELS[fieldName];
+}
+
+export function formatSizeDetailNumber(value: number) {
   return Number.isInteger(value) ? String(value) : value.toFixed(1);
+}
+
+export function formatSizeDetailValue(value: ItemSizeDetailValue | number) {
+  const normalizedValue = normalizeSizeDetailValue(value);
+
+  if (!normalizedValue) {
+    return "";
+  }
+
+  const valueText =
+    normalizedValue.min !== null || normalizedValue.max !== null
+      ? buildRangeText(normalizedValue.min, normalizedValue.max)
+      : normalizedValue.value !== null
+        ? `${formatSizeDetailNumber(normalizedValue.value)}cm`
+        : "";
+
+  if (!valueText) {
+    return "";
+  }
+
+  return normalizedValue.note
+    ? `${normalizedValue.note} ${valueText}`
+    : valueText;
 }
 
 export function buildSizeDetailDuplicateWarnings(
@@ -270,23 +351,22 @@ export function buildSizeDetailDuplicateWarnings(
 
 export function buildItemSizeDetailsPayload(
   definitions: StructuredSizeFieldDefinition[],
-  structuredValues: Partial<Record<StructuredSizeFieldName, string>>,
+  structuredValues: Partial<
+    Record<StructuredSizeFieldName, EditableSizeDetailValue>
+  >,
   customFields: EditableCustomSizeField[],
 ): ItemSizeDetails | null {
   const structured = definitions.reduce<ItemStructuredSizeDetails>(
     (carry, definition) => {
-      const rawValue = structuredValues[definition.name]?.trim();
+      const normalizedFieldValue = normalizeEditableSizeDetailValue(
+        structuredValues[definition.name],
+      );
 
-      if (!rawValue) {
+      if (!normalizedFieldValue) {
         return carry;
       }
 
-      const parsedValue = Number(rawValue);
-      if (Number.isNaN(parsedValue)) {
-        return carry;
-      }
-
-      carry[definition.name] = parsedValue;
+      carry[definition.name] = normalizedFieldValue;
       return carry;
     },
     {},
@@ -295,20 +375,15 @@ export function buildItemSizeDetailsPayload(
   const nextCustomFields = customFields.reduce<ItemCustomSizeField[]>(
     (carry, field, index) => {
       const label = field.label.trim();
-      const rawValue = field.value.trim();
+      const normalizedFieldValue = normalizeEditableSizeDetailValue(field);
 
-      if (!label || !rawValue) {
-        return carry;
-      }
-
-      const parsedValue = Number(rawValue);
-      if (Number.isNaN(parsedValue)) {
+      if (!label || !normalizedFieldValue) {
         return carry;
       }
 
       carry.push({
         label,
-        value: parsedValue,
+        ...normalizedFieldValue,
         sort_order: index + 1,
       });
       return carry;
@@ -324,4 +399,87 @@ export function buildItemSizeDetailsPayload(
     ...(Object.keys(structured).length > 0 ? { structured } : {}),
     ...(nextCustomFields.length > 0 ? { custom_fields: nextCustomFields } : {}),
   };
+}
+
+function buildRangeText(min: number | null, max: number | null) {
+  if (min !== null && max !== null) {
+    return `${formatSizeDetailNumber(min)}〜${formatSizeDetailNumber(max)}cm`;
+  }
+
+  if (min !== null) {
+    return `${formatSizeDetailNumber(min)}cm〜`;
+  }
+
+  if (max !== null) {
+    return `〜${formatSizeDetailNumber(max)}cm`;
+  }
+
+  return "";
+}
+
+function parseNullableSizeNumber(value: unknown): number | null {
+  if (typeof value === "number") {
+    return Number.isNaN(value) ? null : value;
+  }
+
+  if (typeof value === "string") {
+    const trimmedValue = value.trim();
+
+    if (!trimmedValue) {
+      return null;
+    }
+
+    const parsedValue = Number(trimmedValue);
+    return Number.isNaN(parsedValue) ? null : parsedValue;
+  }
+
+  return null;
+}
+
+function normalizeSizeDetailValue(value: unknown): ItemSizeDetailValue | null {
+  if (typeof value === "number") {
+    return {
+      value,
+      min: null,
+      max: null,
+      note: null,
+    };
+  }
+
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return null;
+  }
+
+  const record = value as Record<string, unknown>;
+  const min = parseNullableSizeNumber(record.min);
+  const max = parseNullableSizeNumber(record.max);
+  const rangeIsSet = min !== null || max !== null;
+  const normalizedValue = rangeIsSet
+    ? null
+    : parseNullableSizeNumber(record.value);
+  const note =
+    typeof record.note === "string" && record.note.trim()
+      ? record.note.trim()
+      : null;
+
+  if (normalizedValue === null && !rangeIsSet) {
+    return null;
+  }
+
+  return {
+    value: normalizedValue,
+    min,
+    max,
+    note,
+  };
+}
+
+function normalizeEditableSizeDetailValue(
+  value?: EditableSizeDetailValue | null,
+): ItemSizeDetailValue | null {
+  if (!value) {
+    return null;
+  }
+
+  return normalizeSizeDetailValue(value);
 }

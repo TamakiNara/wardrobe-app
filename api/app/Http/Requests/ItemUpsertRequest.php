@@ -7,6 +7,7 @@ use App\Support\ItemLegwearSpecValidator;
 use App\Support\ItemMaterialSupport;
 use App\Support\ItemMaterialValidator;
 use App\Support\ItemSubcategorySupport;
+use App\Support\SizeDetailSupport;
 use Illuminate\Foundation\Http\FormRequest;
 
 abstract class ItemUpsertRequest extends FormRequest
@@ -39,27 +40,6 @@ abstract class ItemUpsertRequest extends FormRequest
             'size_gender' => ['nullable', 'string', 'in:women,men,unisex'],
             'size_label' => ['nullable', 'string', 'max:50'],
             'size_note' => ['nullable', 'string'],
-            'size_details' => ['nullable', 'array:structured,custom_fields'],
-            'size_details.structured' => ['nullable', 'array:shoulder_width,body_width,body_length,sleeve_length,sleeve_width,cuff_width,neck_circumference,waist,hip,rise,inseam,hem_width,thigh_width,total_length'],
-            'size_details.structured.shoulder_width' => ['nullable', 'numeric'],
-            'size_details.structured.body_width' => ['nullable', 'numeric'],
-            'size_details.structured.body_length' => ['nullable', 'numeric'],
-            'size_details.structured.sleeve_length' => ['nullable', 'numeric'],
-            'size_details.structured.sleeve_width' => ['nullable', 'numeric'],
-            'size_details.structured.cuff_width' => ['nullable', 'numeric'],
-            'size_details.structured.neck_circumference' => ['nullable', 'numeric'],
-            'size_details.structured.waist' => ['nullable', 'numeric'],
-            'size_details.structured.hip' => ['nullable', 'numeric'],
-            'size_details.structured.rise' => ['nullable', 'numeric'],
-            'size_details.structured.inseam' => ['nullable', 'numeric'],
-            'size_details.structured.hem_width' => ['nullable', 'numeric'],
-            'size_details.structured.thigh_width' => ['nullable', 'numeric'],
-            'size_details.structured.total_length' => ['nullable', 'numeric'],
-            'size_details.custom_fields' => ['nullable', 'array', 'max:10'],
-            'size_details.custom_fields.*' => ['array:label,value,sort_order'],
-            'size_details.custom_fields.*.label' => ['required_with:size_details.custom_fields.*.value', 'string', 'max:50'],
-            'size_details.custom_fields.*.value' => ['required_with:size_details.custom_fields.*.label', 'numeric'],
-            'size_details.custom_fields.*.sort_order' => ['required', 'integer', 'min:1'],
             'is_rain_ok' => ['nullable', 'boolean'],
             'category' => ['required', 'string', 'max:100'],
             'subcategory' => ['nullable', 'string', 'max:100'],
@@ -106,7 +86,7 @@ abstract class ItemUpsertRequest extends FormRequest
             'images.*.file_size' => ['nullable', 'integer', 'min:0'],
             'images.*.sort_order' => ['required', 'integer', 'min:1'],
             'images.*.is_primary' => ['nullable', 'boolean'],
-        ];
+        ] + SizeDetailSupport::validationRules();
     }
 
     protected function commonRules(): array
@@ -117,25 +97,27 @@ abstract class ItemUpsertRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $materials = $this->input('materials');
+        $normalizedMaterials = $materials;
 
-        if (! is_array($materials)) {
-            return;
+        if (is_array($materials)) {
+            $normalizedMaterials = array_map(function ($material) {
+                if (! is_array($material)) {
+                    return $material;
+                }
+
+                return [
+                    'part_label' => ItemMaterialSupport::normalizeText($material['part_label'] ?? null),
+                    'material_name' => ItemMaterialSupport::normalizeText($material['material_name'] ?? null),
+                    'ratio' => $material['ratio'] ?? null,
+                ];
+            }, $materials);
         }
 
-        $normalized = array_map(function ($material) {
-            if (! is_array($material)) {
-                return $material;
-            }
-
-            return [
-                'part_label' => ItemMaterialSupport::normalizeText($material['part_label'] ?? null),
-                'material_name' => ItemMaterialSupport::normalizeText($material['material_name'] ?? null),
-                'ratio' => $material['ratio'] ?? null,
-            ];
-        }, $materials);
-
         $this->merge([
-            'materials' => $normalized,
+            'materials' => $normalizedMaterials,
+            'size_details' => SizeDetailSupport::normalizeForValidation(
+                $this->input('size_details'),
+            ),
         ]);
     }
 

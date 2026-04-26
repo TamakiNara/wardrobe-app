@@ -49,13 +49,23 @@ export type StructuredSizeFieldName =
   | "thigh_width"
   | "total_length";
 
+export type ItemSizeDetailValue = {
+  value?: number | null;
+  min?: number | null;
+  max?: number | null;
+  note?: string | null;
+};
+
 export type ItemStructuredSizeDetails = Partial<
-  Record<StructuredSizeFieldName, number>
+  Record<StructuredSizeFieldName, ItemSizeDetailValue>
 >;
 
 export type ItemCustomSizeField = {
   label: string;
-  value: number;
+  value?: number | null;
+  min?: number | null;
+  max?: number | null;
+  note?: string | null;
   sort_order: number;
 };
 

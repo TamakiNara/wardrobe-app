@@ -587,6 +587,15 @@ class ItemsEndpointsTest extends TestCase
             $sourceImagePath,
             base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wn9nS8AAAAASUVORK5CYII=')
         );
+        $candidate->images()->create([
+            'disk' => 'public',
+            'path' => $sourceImagePath,
+            'original_filename' => 'coat.png',
+            'mime_type' => 'image/png',
+            'file_size' => 2048,
+            'sort_order' => 1,
+            'is_primary' => true,
+        ]);
 
         $this->actingAs($user, 'web');
 
@@ -604,12 +613,20 @@ class ItemsEndpointsTest extends TestCase
             'size_note' => '厚手ニット込み',
             'size_details' => [
                 'structured' => [
-                    'shoulder_width' => 42.0,
+                    'shoulder_width' => [
+                        'value' => 42.0,
+                        'min' => null,
+                        'max' => null,
+                        'note' => null,
+                    ],
                 ],
                 'custom_fields' => [
                     [
                         'label' => '裄丈',
                         'value' => 78.0,
+                        'min' => null,
+                        'max' => null,
+                        'note' => null,
                         'sort_order' => 1,
                     ],
                 ],
@@ -653,7 +670,7 @@ class ItemsEndpointsTest extends TestCase
             ->assertJsonPath('item.size_gender', 'women')
             ->assertJsonPath('item.size_label', 'M')
             ->assertJsonPath('item.size_note', '厚手ニット込み')
-            ->assertJsonPath('item.size_details.structured.shoulder_width', 42)
+            ->assertJsonPath('item.size_details.structured.shoulder_width.value', 42)
             ->assertJsonPath('item.size_details.custom_fields.0.label', '裄丈')
             ->assertJsonPath('item.size_details.custom_fields.0.value', 78)
             ->assertJsonPath('item.sheerness', 'slight')
@@ -2388,12 +2405,20 @@ class ItemsEndpointsTest extends TestCase
             'size_note' => '袖丈長め',
             'size_details' => [
                 'structured' => [
-                    'body_length' => 120.0,
+                    'body_length' => [
+                        'value' => 120.0,
+                        'min' => null,
+                        'max' => null,
+                        'note' => null,
+                    ],
                 ],
                 'custom_fields' => [
                     [
                         'label' => '裄丈',
                         'value' => 84.0,
+                        'min' => null,
+                        'max' => null,
+                        'note' => null,
                         'sort_order' => 1,
                     ],
                 ],
@@ -2427,7 +2452,7 @@ class ItemsEndpointsTest extends TestCase
             ->assertJsonPath('item.price', 22000)
             ->assertJsonPath('item.purchase_url', 'https://example.test/detail')
             ->assertJsonPath('item.memo', 'detail memo')
-            ->assertJsonPath('item.size_details.structured.body_length', 120)
+            ->assertJsonPath('item.size_details.structured.body_length.value', 120)
             ->assertJsonPath('item.size_details.custom_fields.0.label', '裄丈')
             ->assertJsonPath('item.is_rain_ok', true)
             ->assertJsonPath('item.images.0.path', 'items/1/coat.png')

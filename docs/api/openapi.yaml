@@ -2446,74 +2446,101 @@ components:
           $ref: "#/components/schemas/LegwearSpec"
       additionalProperties: true
 
+    ItemSizeDetailValue:
+      type: object
+      description: |
+        実寸 1 項目の保存形式。単一値は `value` を使い、範囲値は `min` / `max` を使う。
+        `note` は `ヌード寸` / `約` / `後ろ約` などの補足注記で、表示時は値の前に付与する。
+        単位は cm 固定で、保存値には単位を含めない。
+      properties:
+        value:
+          type: number
+          format: float
+          nullable: true
+          description: 単一値。`min` / `max` を使う範囲入力時は `null`。
+        min:
+          type: number
+          format: float
+          nullable: true
+          description: 範囲入力の下限。単一値入力時は `null`。
+        max:
+          type: number
+          format: float
+          nullable: true
+          description: 範囲入力の上限。単一値入力時は `null`。
+        note:
+          type: string
+          nullable: true
+          maxLength: 50
+          description: 表示時に値の前へ付ける補足注記。
+
     ItemSizeStructuredDetails:
       type: object
       description: |
-        category / shape に応じた固定実寸項目。単位は cm 固定で、保存値には単位を含めない。
-        小数を許容し、未入力キーは保存しない。
+        category / shape に応じた固定実寸項目。
+        各キーは `value / min / max / note` を持ち、未入力キーは保存しない。
       properties:
         shoulder_width:
-          type: number
-          format: float
+          allOf:
+            - $ref: "#/components/schemas/ItemSizeDetailValue"
           description: 肩幅
         body_width:
-          type: number
-          format: float
+          allOf:
+            - $ref: "#/components/schemas/ItemSizeDetailValue"
           description: 身幅
         body_length:
-          type: number
-          format: float
+          allOf:
+            - $ref: "#/components/schemas/ItemSizeDetailValue"
           description: 着丈
         sleeve_length:
-          type: number
-          format: float
+          allOf:
+            - $ref: "#/components/schemas/ItemSizeDetailValue"
           description: 袖丈
         sleeve_width:
-          type: number
-          format: float
+          allOf:
+            - $ref: "#/components/schemas/ItemSizeDetailValue"
           description: 袖幅
         cuff_width:
-          type: number
-          format: float
+          allOf:
+            - $ref: "#/components/schemas/ItemSizeDetailValue"
           description: 袖口幅
         neck_circumference:
-          type: number
-          format: float
+          allOf:
+            - $ref: "#/components/schemas/ItemSizeDetailValue"
           description: 襟周り
         waist:
-          type: number
-          format: float
+          allOf:
+            - $ref: "#/components/schemas/ItemSizeDetailValue"
           description: ウエスト
         hip:
-          type: number
-          format: float
+          allOf:
+            - $ref: "#/components/schemas/ItemSizeDetailValue"
           description: ヒップ
         rise:
-          type: number
-          format: float
+          allOf:
+            - $ref: "#/components/schemas/ItemSizeDetailValue"
           description: 股上
         inseam:
-          type: number
-          format: float
+          allOf:
+            - $ref: "#/components/schemas/ItemSizeDetailValue"
           description: 股下
         hem_width:
-          type: number
-          format: float
+          allOf:
+            - $ref: "#/components/schemas/ItemSizeDetailValue"
           description: 裾幅
         thigh_width:
-          type: number
-          format: float
+          allOf:
+            - $ref: "#/components/schemas/ItemSizeDetailValue"
           description: わたり幅
         total_length:
-          type: number
-          format: float
-          description: 総丈
+          allOf:
+            - $ref: "#/components/schemas/ItemSizeDetailValue"
+          description: 総丈。
 
     ItemSizeCustomField:
       type: object
       required:
         - label
-        - value
         - sort_order
       properties:
         label:
@@ -2522,7 +2549,23 @@ components:
         value:
           type: number
           format: float
-          description: cm 単位の数値
+          nullable: true
+          description: 単一値。範囲入力時は `null`。
+        min:
+          type: number
+          format: float
+          nullable: true
+          description: 範囲入力の下限。
+        max:
+          type: number
+          format: float
+          nullable: true
+          description: 範囲入力の上限。
+        note:
+          type: string
+          nullable: true
+          maxLength: 50
+          description: 表示時に値の前へ付ける補足注記。
         sort_order:
           type: integer
           minimum: 1
@@ -2533,6 +2576,7 @@ components:
       description: |
         構造化された実寸情報。`size_note` はサイズ感・着用感の補足メモとして別に持ち、
         `size_details` には実寸だけを保存する。旧 `size_details.note` は 現時点では廃止。
+        固定実寸・自由実寸ともに `value / min / max / note` を使う。
       properties:
         structured:
           $ref: "#/components/schemas/ItemSizeStructuredDetails"
@@ -2718,7 +2762,8 @@ components:
           nullable: true
           description: |
             構造化された実寸情報。`structured` は category / shape ごとの固定実寸、
-            `custom_fields` は自由項目。値は cm 固定の数値で、未入力キーは保存しない。
+            `custom_fields` は自由項目。各項目は `value / min / max / note` を持ち、
+            単一値・範囲値・注記を同じ構造で扱う。
         sheerness:
           type: string
           nullable: true

@@ -642,9 +642,8 @@ export default async function PurchaseCandidateDetailPage({
                           <span>
                             {formatSizeDetailValue(
                               normalizedSizeDetails?.structured?.[field.name] ??
-                                0,
+                                {},
                             )}
-                            cm
                           </span>
                         </div>
                       ))}
@@ -663,7 +662,7 @@ export default async function PurchaseCandidateDetailPage({
                             className="flex items-center justify-between rounded-lg border border-gray-200 bg-white px-3 py-2"
                           >
                             <span className="text-gray-700">{field.label}</span>
-                            <span>{formatSizeDetailValue(field.value)}cm</span>
+                            <span>{formatSizeDetailValue(field)}</span>
                           </div>
                         ))}
                     </div>

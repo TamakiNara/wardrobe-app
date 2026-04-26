@@ -100,12 +100,20 @@ class PurchaseCandidateEndpointsTest extends TestCase
             'size_note' => '厚手インナー込み',
             'size_details' => [
                 'structured' => [
-                    'shoulder_width' => 42,
+                    'shoulder_width' => [
+                        'value' => 42,
+                        'min' => null,
+                        'max' => null,
+                        'note' => null,
+                    ],
                 ],
                 'custom_fields' => [
                     [
                         'label' => '裄丈',
                         'value' => 78,
+                        'min' => null,
+                        'max' => null,
+                        'note' => null,
                         'sort_order' => 1,
                     ],
                 ],
@@ -543,12 +551,20 @@ class PurchaseCandidateEndpointsTest extends TestCase
             'size_note' => '肩幅確認',
             'size_details' => [
                 'structured' => [
-                    'shoulder_width' => 41.5,
+                    'shoulder_width' => [
+                        'value' => 41.5,
+                        'min' => null,
+                        'max' => null,
+                        'note' => null,
+                    ],
                 ],
                 'custom_fields' => [
                     [
                         'label' => '裄丈',
                         'value' => 79,
+                        'min' => null,
+                        'max' => null,
+                        'note' => null,
                         'sort_order' => 1,
                     ],
                 ],
@@ -583,7 +599,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
             ->assertJsonPath('purchaseCandidate.sale_ends_at', '2026-04-30T18:00:00.000000Z')
             ->assertJsonPath('purchaseCandidate.discount_ends_at', '2026-03-31T18:00:00.000000Z')
             ->assertJsonPath('purchaseCandidate.sheerness', 'slight')
-            ->assertJsonPath('purchaseCandidate.size_details.structured.shoulder_width', 41.5)
+            ->assertJsonPath('purchaseCandidate.size_details.structured.shoulder_width.value', 41.5)
             ->assertJsonPath('purchaseCandidate.size_details.custom_fields.0.label', '裄丈')
             ->assertJsonPath('purchaseCandidate.spec.bottoms.length_type', 'ankle')
             ->assertJsonPath('purchaseCandidate.spec.bottoms.rise_type', 'high_waist')
@@ -886,7 +902,12 @@ class PurchaseCandidateEndpointsTest extends TestCase
             'sheerness' => 'high',
             'size_details' => [
                 'structured' => [
-                    'body_length' => 68,
+                    'body_length' => [
+                        'value' => 68,
+                        'min' => null,
+                        'max' => null,
+                        'note' => null,
+                    ],
                 ],
             ],
             'is_rain_ok' => true,
@@ -914,7 +935,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
             ->assertJsonPath('purchaseCandidate.sale_ends_at', '2026-04-30T12:00:00.000000Z')
             ->assertJsonPath('purchaseCandidate.discount_ends_at', '2026-04-15T12:00:00.000000Z')
             ->assertJsonPath('purchaseCandidate.sheerness', 'high')
-            ->assertJsonPath('purchaseCandidate.size_details.structured.body_length', 68)
+            ->assertJsonPath('purchaseCandidate.size_details.structured.body_length.value', 68)
             ->assertJsonPath('purchaseCandidate.colors.0.value', 'gray')
             ->assertJsonPath('purchaseCandidate.colors.0.custom_label', '12 GRAY');
 
@@ -1011,7 +1032,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
             ->assertJsonPath('item_draft.category', 'outerwear')
             ->assertJsonPath('item_draft.shape', 'coat')
             ->assertJsonPath('item_draft.memo', 'メモ')
-            ->assertJsonPath('item_draft.size_details.structured.shoulder_width', 42)
+            ->assertJsonPath('item_draft.size_details.structured.shoulder_width.value', 42)
             ->assertJsonPath('item_draft.size_details.custom_fields.0.label', '裄丈')
             ->assertJsonPath('item_draft.colors.0.value', 'navy')
             ->assertJsonPath('item_draft.colors.0.custom_label', '31 BEIGE')

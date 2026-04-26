@@ -924,12 +924,20 @@ describe("購入検討フォーム", () => {
     expect(payload.size_note).toBe("厚手対応");
     expect(payload.size_details).toEqual({
       structured: {
-        shoulder_width: 42.5,
+        shoulder_width: {
+          value: 42.5,
+          min: null,
+          max: null,
+          note: null,
+        },
       },
       custom_fields: [
         {
           label: "裄丈",
           value: 78,
+          min: null,
+          max: null,
+          note: null,
           sort_order: 1,
         },
       ],

@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
   buildItemSizeDetailsPayload,
+  formatSizeDetailValue,
   getStructuredSizeFieldDefinitions,
   getStructuredSizeFieldDefinitionsFromContext,
+  resolveStructuredSizeFieldLabel,
 } from "@/lib/items/size-details";
 
 describe("size-details payload の組み立て", () => {
@@ -15,15 +17,30 @@ describe("size-details payload の組み立て", () => {
     const payload = buildItemSizeDetailsPayload(
       topsDefinitions,
       {
-        shoulder_width: "42.5",
-        waist: "68",
+        shoulder_width: {
+          value: "42.5",
+          min: "",
+          max: "",
+          note: "",
+        },
+        waist: {
+          value: "68",
+          min: "",
+          max: "",
+          note: "",
+        },
       },
       [],
     );
 
     expect(payload).toEqual({
       structured: {
-        shoulder_width: 42.5,
+        shoulder_width: {
+          value: 42.5,
+          min: null,
+          max: null,
+          note: null,
+        },
       },
     });
   });
@@ -38,7 +55,12 @@ describe("size-details payload の組み立て", () => {
       shape: "tshirt",
     });
     const structuredValues = {
-      shoulder_width: "42.5",
+      shoulder_width: {
+        value: "42.5",
+        min: "",
+        max: "",
+        note: "",
+      },
     };
 
     expect(
@@ -48,9 +70,38 @@ describe("size-details payload の組み立て", () => {
       buildItemSizeDetailsPayload(restoredDefinitions, structuredValues, []),
     ).toEqual({
       structured: {
-        shoulder_width: 42.5,
+        shoulder_width: {
+          value: 42.5,
+          min: null,
+          max: null,
+          note: null,
+        },
       },
     });
+  });
+});
+
+describe("サイズ詳細の表示整形", () => {
+  it("注記は値より前に表示する", () => {
+    expect(
+      formatSizeDetailValue({
+        value: 26,
+        min: null,
+        max: null,
+        note: "後ろ約",
+      }),
+    ).toBe("後ろ約 26cm");
+  });
+
+  it("範囲値は min〜max の形式で表示する", () => {
+    expect(
+      formatSizeDetailValue({
+        value: null,
+        min: 63,
+        max: 67,
+        note: "ヌード寸",
+      }),
+    ).toBe("ヌード寸 63〜67cm");
   });
 });
 
@@ -143,5 +194,18 @@ describe("固定実寸 resolver", () => {
         (definition) => definition.name,
       ),
     ).toEqual(["waist", "hip", "total_length"]);
+  });
+
+  it("total_length はカテゴリにかかわらず総丈として表示する", () => {
+    expect(
+      resolveStructuredSizeFieldLabel("total_length", "skirts", "flare"),
+    ).toBe("総丈");
+    expect(
+      resolveStructuredSizeFieldLabel(
+        "total_length",
+        "onepiece_dress",
+        "onepiece",
+      ),
+    ).toBe("総丈");
   });
 });

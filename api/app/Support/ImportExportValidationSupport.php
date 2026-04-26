@@ -14,6 +14,9 @@ class ImportExportValidationSupport
     public static function validateItemPayload(array $payload): array
     {
         $payload = self::normalizeLegacyItemPayload($payload);
+        $payload['size_details'] = SizeDetailSupport::normalizeForValidation(
+            $payload['size_details'] ?? null,
+        );
         $rules = ItemUpsertRequest::commonRulesForPayload();
 
         unset(
@@ -56,6 +59,9 @@ class ImportExportValidationSupport
     public static function validatePurchaseCandidatePayload(array $payload): array
     {
         $normalizedPayload = self::normalizeMaterials($payload);
+        $normalizedPayload['size_details'] = SizeDetailSupport::normalizeForValidation(
+            $normalizedPayload['size_details'] ?? null,
+        );
 
         $validated = Validator::make($normalizedPayload, [
             'id' => ['nullable', 'integer'],
@@ -79,27 +85,6 @@ class ImportExportValidationSupport
             'size_gender' => ['nullable', 'string', 'in:women,men,unisex'],
             'size_label' => ['nullable', 'string', 'max:50'],
             'size_note' => ['nullable', 'string'],
-            'size_details' => ['nullable', 'array:structured,custom_fields'],
-            'size_details.structured' => ['nullable', 'array:shoulder_width,body_width,body_length,sleeve_length,sleeve_width,cuff_width,neck_circumference,waist,hip,rise,inseam,hem_width,thigh_width,total_length'],
-            'size_details.structured.shoulder_width' => ['nullable', 'numeric'],
-            'size_details.structured.body_width' => ['nullable', 'numeric'],
-            'size_details.structured.body_length' => ['nullable', 'numeric'],
-            'size_details.structured.sleeve_length' => ['nullable', 'numeric'],
-            'size_details.structured.sleeve_width' => ['nullable', 'numeric'],
-            'size_details.structured.cuff_width' => ['nullable', 'numeric'],
-            'size_details.structured.neck_circumference' => ['nullable', 'numeric'],
-            'size_details.structured.waist' => ['nullable', 'numeric'],
-            'size_details.structured.hip' => ['nullable', 'numeric'],
-            'size_details.structured.rise' => ['nullable', 'numeric'],
-            'size_details.structured.inseam' => ['nullable', 'numeric'],
-            'size_details.structured.hem_width' => ['nullable', 'numeric'],
-            'size_details.structured.thigh_width' => ['nullable', 'numeric'],
-            'size_details.structured.total_length' => ['nullable', 'numeric'],
-            'size_details.custom_fields' => ['nullable', 'array', 'max:10'],
-            'size_details.custom_fields.*' => ['array:label,value,sort_order'],
-            'size_details.custom_fields.*.label' => ['required_with:size_details.custom_fields.*.value', 'string', 'max:50'],
-            'size_details.custom_fields.*.value' => ['required_with:size_details.custom_fields.*.label', 'numeric'],
-            'size_details.custom_fields.*.sort_order' => ['required', 'integer', 'min:1'],
             'spec' => ['nullable', 'array:tops,bottoms,skirt,legwear'],
             'spec.tops' => ['nullable', 'array:sleeve,length,neck,design,fit'],
             'spec.tops.sleeve' => ['nullable', 'string', 'max:100'],
@@ -143,7 +128,7 @@ class ImportExportValidationSupport
             'images.*.sort_order' => ['required', 'integer', 'min:1'],
             'images.*.is_primary' => ['nullable', 'boolean'],
             'images.*.content_base64' => ['nullable', 'string'],
-        ])->validate();
+        ] + SizeDetailSupport::validationRules())->validate();
 
         ItemMaterialValidator::validate($validated);
 

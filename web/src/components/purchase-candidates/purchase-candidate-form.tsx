@@ -80,8 +80,11 @@ import { ITEM_SHEERNESS_LABELS } from "@/lib/items/metadata";
 import {
   buildItemSizeDetailsPayload,
   buildSizeDetailDuplicateWarnings,
+  buildEditableSizeDetailValue,
+  createEmptyEditableSizeDetailValue,
   getStructuredSizeFieldDefinitionsFromContext,
   normalizeItemSizeDetails,
+  type EditableSizeDetailValue,
   type EditableCustomSizeField,
 } from "@/lib/items/size-details";
 import { resolvePurchaseCandidateItemClassification } from "@/lib/items/classification";
@@ -106,6 +109,7 @@ import type {
   PurchaseCandidateUpsertPayload,
 } from "@/types/purchase-candidates";
 import type {
+  ItemSizeDetailValue,
   ItemSheerness,
   ItemSpec,
   StructuredSizeFieldName,
@@ -356,7 +360,7 @@ export default function PurchaseCandidateForm({
   const [sizeLabel, setSizeLabel] = useState("");
   const [sizeNote, setSizeNote] = useState("");
   const [structuredSizeValues, setStructuredSizeValues] = useState<
-    Partial<Record<StructuredSizeFieldName, string>>
+    Partial<Record<StructuredSizeFieldName, EditableSizeDetailValue>>
   >({});
   const [customSizeFields, setCustomSizeFields] = useState<
     EditableCustomSizeField[]
@@ -703,7 +707,7 @@ export default function PurchaseCandidateForm({
                   Object.entries(normalizedSizeDetails.structured).map(
                     ([fieldName, fieldValue]) => [
                       fieldName,
-                      String(fieldValue),
+                      buildEditableSizeDetailValue(fieldValue),
                     ],
                   ),
                 )
@@ -713,7 +717,7 @@ export default function PurchaseCandidateForm({
             normalizedSizeDetails?.custom_fields?.map((field, index) => ({
               id: `existing-${index}`,
               label: field.label,
-              value: String(field.value),
+              ...buildEditableSizeDetailValue(field),
             })) ?? [],
           );
           setIsRainOk(candidate.is_rain_ok);
@@ -842,7 +846,10 @@ export default function PurchaseCandidateForm({
       normalizedSizeDetails?.structured
         ? Object.fromEntries(
             Object.entries(normalizedSizeDetails.structured).map(
-              ([fieldName, fieldValue]) => [fieldName, String(fieldValue)],
+              ([fieldName, fieldValue]) => [
+                fieldName,
+                buildEditableSizeDetailValue(fieldValue),
+              ],
             ),
           )
         : {},
@@ -851,7 +858,7 @@ export default function PurchaseCandidateForm({
       normalizedSizeDetails?.custom_fields?.map((field, index) => ({
         id: `duplicate-${index}`,
         label: field.label,
-        value: String(field.value),
+        ...buildEditableSizeDetailValue(field),
       })) ?? [],
     );
     setIsRainOk(payload.is_rain_ok);
@@ -935,22 +942,27 @@ export default function PurchaseCandidateForm({
 
   function updateStructuredSizeValue(
     fieldName: StructuredSizeFieldName,
+    key: keyof ItemSizeDetailValue,
     value: string,
   ) {
     setStructuredSizeValues((current) => ({
       ...current,
-      [fieldName]: value,
+      [fieldName]: normalizeEditableSizeValue(current[fieldName], key, value),
     }));
   }
 
   function updateCustomSizeField(
     fieldId: string,
-    field: "label" | "value",
+    field: "label" | keyof ItemSizeDetailValue,
     value: string,
   ) {
     setCustomSizeFields((current) =>
       current.map((item) =>
-        item.id === fieldId ? { ...item, [field]: value } : item,
+        item.id === fieldId
+          ? field === "label"
+            ? { ...item, label: value }
+            : { ...item, ...normalizeEditableSizeValue(item, field, value) }
+          : item,
       ),
     );
   }
@@ -961,7 +973,7 @@ export default function PurchaseCandidateForm({
       {
         id: createEditableCustomSizeFieldId(current.length),
         label: "",
-        value: "",
+        ...createEmptyEditableSizeDetailValue(),
       },
     ]);
   }
@@ -2436,4 +2448,27 @@ export default function PurchaseCandidateForm({
       </div>
     </form>
   );
+}
+
+function normalizeEditableSizeValue(
+  currentValue: EditableSizeDetailValue | undefined,
+  key: keyof ItemSizeDetailValue,
+  nextValue: string,
+): EditableSizeDetailValue {
+  const baseValue = currentValue ?? createEmptyEditableSizeDetailValue();
+  const normalizedValue = {
+    ...baseValue,
+    [key]: nextValue,
+  };
+
+  if (key === "value" && nextValue.trim()) {
+    normalizedValue.min = "";
+    normalizedValue.max = "";
+  }
+
+  if ((key === "min" || key === "max") && nextValue.trim()) {
+    normalizedValue.value = "";
+  }
+
+  return normalizedValue;
 }
