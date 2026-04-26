@@ -1,25 +1,26 @@
 # Specs Index
 
-主要 spec の入口です。
+主な spec の入口です。
 
 - [items: tops 詳細仕様](./items/tops.md)
 - [items: status 管理](./items/status-management.md)
 - [items: detail status UI](./items/detail-status-ui.md)
-- [items: 素材・混率管理](./items/material-composition.md)
+- [items: 素材・混率仕様](./items/material-composition.md)
 - [items: クローゼットビュー](./items/closet-view.md)
 - [outfits: 作成・編集・invalid/duplicate](./outfits/create-edit.md)
-- [配色サムネイル](./color-thumbnails.md)
+- [カラーサムネイル](./color-thumbnails.md)
 - [outfits: item 候補ルール](./outfits/item-candidate-rules.md)
-- [wear logs: 一覧・詳細・登録・更新・削除](./wears/wear-logs.md)
-- [購入検討（内部: `purchase_candidates`）: 画像・item 昇格](./purchase-candidates.md)
+- [wear logs: 一覧・詳細・追加・復元](./wears/wear-logs.md)
+- [購入検討: `purchase_candidates` 仕様と item 化](./purchase-candidates.md)
 - [settings: ブランド候補](./settings/brand-candidates.md)
-- [ui: 画面ヘッダー周辺ガイドライン](./ui/page-header-guidelines.md)
-- [planning: 次期機能検討メモ](./planning/next-features.md)
+- [ui: 画面ヘッダー表示ガイドライン](./ui/page-header-guidelines.md)
+- [planning: 次機能の検討メモ](./planning/next-features.md)
+- [タグ機能・セットアップリンク仕様メモ](./tags.md)
 
 使い分けの目安:
 
-- 機能の正本仕様を見たいときは各 spec を参照する
+- 仕様の正本を見たいときは各 spec を参照する
 - API の request / response を見たいときは `../api/openapi.yaml` を参照する
-- DB 保存方針を見たいときは `../data/database.md` を参照する
-- 実装メモや未対応事項を見たいときは `../project/implementation-notes.md` を参照する
-- docs の表現ルールを確認したいときは `../project/docs-writing-guidelines.md` を参照する
+- DB 構造や保存形式を見たいときは `../data/database.md` を参照する
+- 実装メモや暫定判断を見たいときは `../project/implementation-notes.md` を参照する
+- docs の書き方ルールを確認したいときは `../project/docs-writing-guidelines.md` を参照する
