@@ -6,6 +6,22 @@ use Illuminate\Validation\ValidationException;
 
 class ItemSubcategorySupport
 {
+    private const CURRENT_GROUP_ID_BY_CATEGORY = [
+        'tops' => 'tops',
+        'pants' => 'pants',
+        'skirts' => 'skirts',
+        'outerwear' => 'outerwear',
+        'onepiece_dress' => 'onepiece_dress',
+        'allinone' => 'allinone',
+        'inner' => 'roomwear_inner',
+        'bags' => 'bags',
+        'fashion_accessories' => 'fashion_accessories',
+        'shoes' => 'shoes',
+        'legwear' => 'legwear',
+        'kimono' => 'kimono',
+        'swimwear' => 'swimwear',
+    ];
+
     private const LEGACY_INFERRED_SUBCATEGORY_BY_SHAPE = [
         'tops' => [
             'tshirt' => 'tshirt_cutsew',
@@ -407,7 +423,10 @@ class ItemSubcategorySupport
      */
     public static function currentGroupIds(): array
     {
-        return array_keys(self::VISIBLE_CATEGORY_ID_BY_SUBCATEGORY);
+        return array_values(array_unique(array_map(
+            static fn (string $category): string => self::CURRENT_GROUP_ID_BY_CATEGORY[$category] ?? $category,
+            array_keys(self::VISIBLE_CATEGORY_ID_BY_SUBCATEGORY),
+        )));
     }
 
     /**

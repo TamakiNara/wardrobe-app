@@ -106,6 +106,31 @@ class CategoriesEndpointTest extends TestCase
         $this->assertArrayNotHasKey('group_id', $firstCategory);
     }
 
+    public function test_categories_endpoint_includes_roomwear_inner_group_in_current_groups(): void
+    {
+        $response = $this->getJson('/api/categories', [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk();
+
+        $groups = $response->json('groups');
+        $this->assertContains('roomwear_inner', array_column($groups, 'id'));
+
+        $innerGroup = collect($groups)->firstWhere('id', 'roomwear_inner');
+
+        $this->assertNotNull($innerGroup);
+        $this->assertSame('ルームウェア・インナー', $innerGroup['name']);
+        $this->assertContains(
+            'roomwear_inner_roomwear',
+            array_column($innerGroup['categories'], 'id'),
+        );
+        $this->assertContains(
+            'roomwear_inner_underwear',
+            array_column($innerGroup['categories'], 'id'),
+        );
+    }
+
     public function test_categories_endpoint_returns_groups_and_categories_in_sort_order(): void
     {
         CategoryGroup::query()->where('id', 'fashion_accessories')->update(['sort_order' => 0]);

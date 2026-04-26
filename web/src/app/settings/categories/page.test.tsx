@@ -65,12 +65,31 @@ const sampleGroups: CategoryGroupRecord[] = [
       },
     ],
   },
+  {
+    id: "roomwear_inner",
+    name: "ルームウェア・インナー",
+    sortOrder: 70,
+    categories: [
+      {
+        id: "roomwear_inner_roomwear",
+        groupId: "roomwear_inner",
+        name: "ルームウェア",
+        sortOrder: 10,
+      },
+      {
+        id: "roomwear_inner_underwear",
+        groupId: "roomwear_inner",
+        name: "インナー",
+        sortOrder: 20,
+      },
+    ],
+  },
 ];
 
 const sampleItems: ItemRecord[] = [
   {
     id: 1,
-    name: "白T",
+    name: "薄T",
     status: "active",
     category: "tops",
     shape: "tshirt",
@@ -116,7 +135,7 @@ describe("SettingsCategoriesPage", () => {
     root = createRoot(container);
     fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
     fetchCategoryVisibilitySettingsMock.mockResolvedValue({
-      visibleCategoryIds: ["tops_tshirt_cutsew"],
+      visibleCategoryIds: ["tops_tshirt_cutsew", "roomwear_inner_roomwear"],
     });
     fetchItemsMock.mockResolvedValue(sampleItems);
     searchParamsValue = "";
@@ -142,18 +161,26 @@ describe("SettingsCategoriesPage", () => {
     expect(container.textContent).toContain(
       "ON にしたカテゴリのみ、登録や選択時に表示されます。",
     );
-    expect(container.textContent).toContain("1 / 2");
+    expect(container.textContent).toContain("ルームウェア・インナー");
+    expect(container.textContent).toContain("トップス");
+    expect(container.textContent).toContain("表示中：1 / 2件");
     expect(container.innerHTML).toContain('href="/settings"');
 
     const checkboxes = getCategoryCheckboxes(container);
-    expect(checkboxes).toHaveLength(2);
+    expect(checkboxes).toHaveLength(4);
     expect(checkboxes[0]?.checked).toBe(true);
     expect(checkboxes[1]?.checked).toBe(false);
+    expect(checkboxes[2]?.checked).toBe(true);
+    expect(checkboxes[3]?.checked).toBe(false);
   });
 
   it("未保存変更があると保存ボタンが有効になり、保存後に戻る", async () => {
     updateCategoryVisibilitySettingsMock.mockResolvedValue({
-      visibleCategoryIds: ["tops_tshirt_cutsew", "tops_shirt_blouse"],
+      visibleCategoryIds: [
+        "roomwear_inner_roomwear",
+        "tops_shirt_blouse",
+        "tops_tshirt_cutsew",
+      ],
     });
 
     const { default: SettingsCategoriesPage } = await import("./page");
@@ -186,17 +213,26 @@ describe("SettingsCategoriesPage", () => {
     });
 
     expect(updateCategoryVisibilitySettingsMock).toHaveBeenCalledWith({
-      visibleCategoryIds: ["tops_shirt_blouse", "tops_tshirt_cutsew"],
+      visibleCategoryIds: [
+        "roomwear_inner_roomwear",
+        "tops_shirt_blouse",
+        "tops_tshirt_cutsew",
+      ],
     });
     expect(getSaveButtons(container).every((button) => button.disabled)).toBe(
       true,
     );
   });
 
-  it("custom onboarding では初期状態で保存でき、保存後にホームへ進む", async () => {
+  it("custom onboarding では初期状態ですべて選択され、保存後にホームへ戻る", async () => {
     searchParamsValue = "mode=onboarding&preset=custom";
     updateCategoryVisibilitySettingsMock.mockResolvedValue({
-      visibleCategoryIds: ["tops_shirt_blouse", "tops_tshirt_cutsew"],
+      visibleCategoryIds: [
+        "roomwear_inner_roomwear",
+        "roomwear_inner_underwear",
+        "tops_shirt_blouse",
+        "tops_tshirt_cutsew",
+      ],
     });
 
     const { default: SettingsCategoriesPage } = await import("./page");
@@ -208,9 +244,11 @@ describe("SettingsCategoriesPage", () => {
 
     expect(container.textContent).toContain("カテゴリ表示設定");
     const checkboxes = getCategoryCheckboxes(container);
-    expect(checkboxes).toHaveLength(2);
+    expect(checkboxes).toHaveLength(4);
     expect(checkboxes[0]?.checked).toBe(true);
     expect(checkboxes[1]?.checked).toBe(true);
+    expect(checkboxes[2]?.checked).toBe(true);
+    expect(checkboxes[3]?.checked).toBe(true);
 
     const saveButtons = getSaveButtons(container);
     expect(saveButtons).toHaveLength(2);
@@ -223,7 +261,12 @@ describe("SettingsCategoriesPage", () => {
     });
 
     expect(updateCategoryVisibilitySettingsMock).toHaveBeenCalledWith({
-      visibleCategoryIds: ["tops_shirt_blouse", "tops_tshirt_cutsew"],
+      visibleCategoryIds: [
+        "roomwear_inner_roomwear",
+        "roomwear_inner_underwear",
+        "tops_shirt_blouse",
+        "tops_tshirt_cutsew",
+      ],
     });
     expect(pushMock).toHaveBeenCalledWith("/");
   });
