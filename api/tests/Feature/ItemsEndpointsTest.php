@@ -308,6 +308,110 @@ class ItemsEndpointsTest extends TestCase
         ]);
     }
 
+    public function test_get_items_season_filter_includes_all_and_unspecified_items(): void
+    {
+        $user = User::factory()->create();
+
+        $springItem = $this->createItem($user, [
+            'name' => '春ニット',
+            'seasons' => ['春'],
+        ]);
+
+        $allSeasonItem = $this->createItem($user, [
+            'name' => 'オールシーズンT',
+            'seasons' => ['オール'],
+        ]);
+
+        $unspecifiedSeasonItem = $this->createItem($user, [
+            'name' => '季節未設定シャツ',
+            'seasons' => [],
+        ]);
+
+        $winterItem = $this->createItem($user, [
+            'name' => '冬コート',
+            'seasons' => ['冬'],
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->getJson('/api/items?season=%E6%98%A5', [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('meta.total', 3)
+            ->assertJsonPath('meta.totalAll', 4);
+
+        $response->assertJsonFragment([
+            'id' => $springItem->id,
+            'name' => '春ニット',
+        ]);
+        $response->assertJsonFragment([
+            'id' => $allSeasonItem->id,
+            'name' => 'オールシーズンT',
+        ]);
+        $response->assertJsonFragment([
+            'id' => $unspecifiedSeasonItem->id,
+            'name' => '季節未設定シャツ',
+        ]);
+        $response->assertJsonMissing([
+            'id' => $winterItem->id,
+            'name' => '冬コート',
+        ]);
+    }
+
+    public function test_get_items_uses_current_season_when_explicit_season_is_missing(): void
+    {
+        $user = User::factory()->create();
+
+        $springItem = $this->createItem($user, [
+            'name' => '春ニット',
+            'seasons' => ['春'],
+        ]);
+
+        $allSeasonItem = $this->createItem($user, [
+            'name' => 'オールシーズンT',
+            'seasons' => ['オール'],
+        ]);
+
+        $unspecifiedSeasonItem = $this->createItem($user, [
+            'name' => '季節未設定シャツ',
+            'seasons' => [],
+        ]);
+
+        $winterItem = $this->createItem($user, [
+            'name' => '冬コート',
+            'seasons' => ['冬'],
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->getJson('/api/items?currentSeason=%E6%98%A5', [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('meta.total', 3)
+            ->assertJsonPath('meta.totalAll', 4);
+
+        $response->assertJsonFragment([
+            'id' => $springItem->id,
+            'name' => '春ニット',
+        ]);
+        $response->assertJsonFragment([
+            'id' => $allSeasonItem->id,
+            'name' => 'オールシーズンT',
+        ]);
+        $response->assertJsonFragment([
+            'id' => $unspecifiedSeasonItem->id,
+            'name' => '季節未設定シャツ',
+        ]);
+        $response->assertJsonMissing([
+            'id' => $winterItem->id,
+            'name' => '冬コート',
+        ]);
+    }
+
     public function test_get_items_with_all_flag_returns_all_filtered_items_without_pagination(): void
     {
         $user = User::factory()->create();

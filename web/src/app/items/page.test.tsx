@@ -20,17 +20,10 @@ vi.mock("next/link", () => ({
 }));
 
 vi.mock("@/components/items/items-list", () => ({
-  default: ({
-    initialSeasonFilter,
-    skinTonePreset,
-  }: {
-    initialSeasonFilter?: string;
-    skinTonePreset?: string;
-  }) =>
+  default: ({ skinTonePreset }: { skinTonePreset?: string }) =>
     React.createElement(
       "div",
       {
-        "data-initial-season": initialSeasonFilter ?? "",
         "data-skin-tone-preset": skinTonePreset ?? "",
       },
       "items-list",
@@ -40,13 +33,14 @@ vi.mock("@/components/items/items-list", () => ({
 describe("ItemsPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    redirectMock.mockImplementation(() => undefined);
     headersMock.mockResolvedValue({
       get: (name: string) => (name === "cookie" ? "session=test" : null),
     });
     vi.stubGlobal("fetch", fetchMock);
   });
 
-  it("未登録時は docs に合わせた空状態を表示する", async () => {
+  it("アイテムが未登録なら空状態を表示する", async () => {
     fetchMock
       .mockResolvedValueOnce({
         ok: true,
@@ -102,7 +96,45 @@ describe("ItemsPage", () => {
     expect(markup).toContain("アイテムを追加する");
   });
 
-  it("URL に season がない場合は preference を初期季節として使う", async () => {
+  it("URL に season と currentSeason がない場合は設定の currentSeason を currentSeason クエリへ反映する", async () => {
+    redirectMock.mockImplementation(() => {
+      throw new Error("NEXT_REDIRECT");
+    });
+
+    fetchMock
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          preferences: {
+            currentSeason: "spring",
+            defaultWearLogStatus: null,
+            skinTonePreset: "yellow_light",
+          },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          groups: [],
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          visibleCategoryIds: [],
+        }),
+      });
+
+    const { default: ItemsPage } = await import("./page");
+    await expect(
+      ItemsPage({ searchParams: Promise.resolve({}) }),
+    ).rejects.toThrow("NEXT_REDIRECT");
+
+    expect(redirectMock).toHaveBeenCalledWith("/items?currentSeason=%E6%98%A5");
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
+
+  it("URL に currentSeason がある場合はその値で一覧を取得する", async () => {
     fetchMock
       .mockResolvedValueOnce({
         ok: true,
@@ -136,6 +168,7 @@ describe("ItemsPage", () => {
             page: 1,
             lastPage: 1,
             availableCategories: ["tops"],
+            availableBrands: [],
             availableSeasons: ["春"],
             availableTpos: [],
           },
@@ -144,24 +177,23 @@ describe("ItemsPage", () => {
 
     const { default: ItemsPage } = await import("./page");
     const markup = renderToStaticMarkup(
-      await ItemsPage({ searchParams: Promise.resolve({}) }),
+      await ItemsPage({
+        searchParams: Promise.resolve({ currentSeason: "春" }),
+      }),
     );
 
-    expect(markup).toContain("アイテム管理");
-    expect(markup).toContain("アイテム一覧");
-    expect(markup).toContain('href="/items/disposed"');
-    expect(markup).toContain("手放したアイテム一覧を見る");
-    expect(markup).toContain("rounded-lg border border-gray-300");
+    expect(redirectMock).not.toHaveBeenCalledWith(
+      "/items?currentSeason=%E6%98%A5",
+    );
     expect(fetchMock).toHaveBeenNthCalledWith(
       4,
-      "http://localhost:8000/api/items?season=%E6%98%A5",
+      "http://localhost:8000/api/items?currentSeason=%E6%98%A5",
       expect.any(Object),
     );
-    expect(markup).toContain('data-initial-season="春"');
-    expect(markup).toContain('data-skin-tone-preset="yellow_light"');
+    expect(markup).toContain("アイテム一覧");
   });
 
-  it("URL に season がある場合は preference より URL を優先する", async () => {
+  it("URL に season がある場合は currentSeason より優先して一覧取得に使う", async () => {
     fetchMock
       .mockResolvedValueOnce({
         ok: true,
@@ -195,6 +227,7 @@ describe("ItemsPage", () => {
             page: 1,
             lastPage: 1,
             availableCategories: ["tops"],
+            availableBrands: [],
             availableSeasons: ["夏"],
             availableTpos: [],
           },
@@ -210,13 +243,13 @@ describe("ItemsPage", () => {
     expect(markup).toContain("アイテム管理");
     expect(markup).toContain('href="/items/disposed"');
     expect(markup).toContain("手放したアイテム一覧を見る");
-    expect(markup).toContain("rounded-lg border border-gray-300");
     expect(fetchMock).toHaveBeenNthCalledWith(
       4,
       "http://localhost:8000/api/items?season=%E5%A4%8F",
       expect.any(Object),
     );
-    expect(markup).toContain('data-initial-season=""');
-    expect(markup).toContain('data-skin-tone-preset="pink_medium"');
+    expect(redirectMock).not.toHaveBeenCalledWith(
+      "/items?currentSeason=%E6%98%A5",
+    );
   });
 });

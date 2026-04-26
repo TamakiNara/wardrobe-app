@@ -61,8 +61,20 @@ function buildQueryString(searchParams: ItemsPageSearchParams): string {
   return params.toString();
 }
 
-function resolveCurrentSeason(searchParams: ItemsPageSearchParams): string {
+function resolveSeason(searchParams: ItemsPageSearchParams): string {
   const value = searchParams.season;
+
+  if (Array.isArray(value)) {
+    return value[0] ?? "";
+  }
+
+  return value ?? "";
+}
+
+function resolveCurrentSeasonQuery(
+  searchParams: ItemsPageSearchParams,
+): string {
+  const value = searchParams.currentSeason;
 
   if (Array.isArray(value)) {
     return value[0] ?? "";
@@ -121,7 +133,8 @@ export default async function ItemsPage({
   searchParams: Promise<ItemsPageSearchParams>;
 }) {
   const resolvedSearchParams = await searchParams;
-  const currentSeason = resolveCurrentSeason(resolvedSearchParams);
+  const season = resolveSeason(resolvedSearchParams);
+  const currentSeasonQuery = resolveCurrentSeasonQuery(resolvedSearchParams);
   const [preferencesRes, categoryGroupsRes, categoryVisibilityRes] =
     await Promise.all([
       fetchLaravelWithCookie("/api/settings/preferences"),
@@ -133,21 +146,26 @@ export default async function ItemsPage({
     redirect("/login");
   }
 
-  let initialSeasonFilter = "";
   let skinTonePreset: SkinTonePreset = DEFAULT_SKIN_TONE_PRESET;
   let initialCategoryOptions: CategoryOption[] | undefined;
+  let preferredSeasonFilter = "";
 
   if (preferencesRes.ok) {
     const preferencesData =
       (await preferencesRes.json()) as PreferencesResponse;
     skinTonePreset =
       preferencesData.preferences?.skinTonePreset ?? DEFAULT_SKIN_TONE_PRESET;
+    preferredSeasonFilter = mapPreferenceSeasonToFilterValue(
+      preferencesData.preferences?.currentSeason ?? null,
+    );
+  }
 
-    if (!currentSeason) {
-      initialSeasonFilter = mapPreferenceSeasonToFilterValue(
-        preferencesData.preferences?.currentSeason ?? null,
-      );
-    }
+  if (!season && !currentSeasonQuery && preferredSeasonFilter) {
+    const nextQuery = buildQueryString({
+      ...resolvedSearchParams,
+      currentSeason: preferredSeasonFilter,
+    });
+    redirect(nextQuery ? `/items?${nextQuery}` : "/items");
   }
 
   if (categoryGroupsRes.ok && categoryVisibilityRes.ok) {
@@ -161,14 +179,7 @@ export default async function ItemsPage({
     );
   }
 
-  const effectiveSearchParams =
-    !currentSeason && initialSeasonFilter
-      ? {
-          ...resolvedSearchParams,
-          season: initialSeasonFilter,
-        }
-      : resolvedSearchParams;
-  const data = await getItems(effectiveSearchParams);
+  const data = await getItems(resolvedSearchParams);
   const items = data.items;
 
   return (
@@ -236,7 +247,6 @@ export default async function ItemsPage({
             availableBrands={data.meta.availableBrands}
             availableSeasons={data.meta.availableSeasons}
             availableTpos={data.meta.availableTpos}
-            initialSeasonFilter={currentSeason ? "" : initialSeasonFilter}
             skinTonePreset={skinTonePreset}
             initialCategoryOptions={initialCategoryOptions}
           />

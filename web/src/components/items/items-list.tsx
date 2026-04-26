@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import ItemThumbnailPreview from "@/components/items/item-thumbnail-preview";
 import PurchaseCandidateBrandFilterField from "@/components/purchase-candidates/purchase-candidate-brand-filter-field";
 import { fetchItemsIndex } from "@/lib/api/items";
@@ -40,7 +40,6 @@ type ItemsListProps = {
   availableBrands: string[];
   availableSeasons: string[];
   availableTpos: string[];
-  initialSeasonFilter?: string;
   skinTonePreset?: SkinTonePreset;
   initialCategoryOptions?: CategoryOption[];
 };
@@ -83,6 +82,7 @@ function buildQueryString({
   category,
   subcategory,
   season,
+  currentSeason,
   tpo,
   sort,
   page,
@@ -92,6 +92,7 @@ function buildQueryString({
   category: string;
   subcategory: string;
   season: string;
+  currentSeason: string;
   tpo: string;
   sort: ItemSortValue;
   page: number;
@@ -116,6 +117,8 @@ function buildQueryString({
 
   if (season) {
     params.set("season", season);
+  } else if (currentSeason) {
+    params.set("currentSeason", currentSeason);
   }
 
   if (tpo) {
@@ -200,7 +203,6 @@ export default function ItemsList({
   availableBrands,
   availableSeasons,
   availableTpos,
-  initialSeasonFilter = "",
   skinTonePreset,
   initialCategoryOptions,
 }: ItemsListProps) {
@@ -215,6 +217,8 @@ export default function ItemsList({
     normalizeItemSubcategory(categoryFilter, searchParams.get("subcategory")) ??
     "";
   const seasonFilter = searchParams.get("season") ?? "";
+  const currentSeasonFilter = searchParams.get("currentSeason") ?? "";
+  const effectiveSeasonFilter = seasonFilter || currentSeasonFilter;
   const tpoFilter = searchParams.get("tpo") ?? "";
   const sort = normalizeSort(searchParams.get("sort"));
   const page = normalizePage(searchParams.get("page"));
@@ -227,7 +231,6 @@ export default function ItemsList({
   const [viewMode, setViewMode] = useState<ItemListViewMode>(DEFAULT_VIEW_MODE);
   const [closetItems, setClosetItems] = useState<ItemRecord[]>(items);
   const [isClosetLoading, setIsClosetLoading] = useState(false);
-  const initialSeasonAppliedRef = useRef(false);
 
   useEffect(() => {
     setDraftKeyword(keyword);
@@ -241,6 +244,7 @@ export default function ItemsList({
         category: string;
         subcategory: string;
         season: string;
+        currentSeason: string;
         tpo: string;
         sort: ItemSortValue;
         page: number;
@@ -254,12 +258,15 @@ export default function ItemsList({
       const nextSubcategory =
         nextValues.subcategory ??
         (nextCategory === categoryFilter ? subcategoryFilter : "");
+      const nextSeason = nextValues.season ?? seasonFilter;
+      const nextCurrentSeason = nextValues.currentSeason ?? currentSeasonFilter;
       const nextQuery = buildQueryString({
         keyword: nextValues.keyword ?? keyword,
         brand: nextValues.brand ?? brandFilter,
         category: nextCategory,
         subcategory: nextCategory ? nextSubcategory : "",
-        season: nextValues.season ?? seasonFilter,
+        season: nextSeason,
+        currentSeason: nextSeason === "" ? nextCurrentSeason : "",
         tpo: nextValues.tpo ?? tpoFilter,
         sort: nextValues.sort ?? sort,
         page: nextValues.page ?? (shouldResetPage ? 1 : page),
@@ -277,24 +284,12 @@ export default function ItemsList({
       page,
       pathname,
       router,
+      currentSeasonFilter,
       seasonFilter,
       sort,
       tpoFilter,
     ],
   );
-
-  useEffect(() => {
-    if (initialSeasonAppliedRef.current) {
-      return;
-    }
-
-    if (!initialSeasonFilter || seasonFilter) {
-      return;
-    }
-
-    initialSeasonAppliedRef.current = true;
-    updateQuery({ season: initialSeasonFilter, page: 1 });
-  }, [initialSeasonFilter, seasonFilter, updateQuery]);
 
   useEffect(() => {
     if (initialCategoryOptions) {
@@ -354,7 +349,7 @@ export default function ItemsList({
       brand: brandFilter,
       category: categoryFilter,
       subcategory: subcategoryFilter,
-      season: seasonFilter,
+      season: effectiveSeasonFilter,
       tpo: tpoFilter,
       sort,
       all: true,
@@ -390,7 +385,7 @@ export default function ItemsList({
     subcategoryFilter,
     items,
     keyword,
-    seasonFilter,
+    effectiveSeasonFilter,
     sort,
     tpoFilter,
     totalCount,
@@ -448,7 +443,7 @@ export default function ItemsList({
     brandFilter ||
     categoryFilter ||
     subcategoryFilter ||
-    seasonFilter ||
+    effectiveSeasonFilter ||
     tpoFilter ||
     sort !== DEFAULT_SORT ||
     currentPage > 1,
@@ -566,12 +561,18 @@ export default function ItemsList({
           <div>
             <FilterFieldHeader
               label="季節"
-              isActive={seasonFilter !== ""}
-              onClear={() => updateQuery({ season: "" })}
+              isActive={effectiveSeasonFilter !== ""}
+              onClear={() => updateQuery({ season: "", currentSeason: "" })}
             />
             <select
-              value={seasonFilter}
-              onChange={(e) => updateQuery({ season: e.target.value, page: 1 })}
+              value={effectiveSeasonFilter}
+              onChange={(e) =>
+                updateQuery({
+                  season: e.target.value,
+                  currentSeason: "",
+                  page: 1,
+                })
+              }
               className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             >
               <option value="">すべて</option>
@@ -627,7 +628,19 @@ export default function ItemsList({
           <div className="flex items-end xl:justify-end">
             <button
               type="button"
-              onClick={() => router.replace(pathname, { scroll: false })}
+              onClick={() =>
+                updateQuery({
+                  keyword: "",
+                  brand: "",
+                  category: "",
+                  subcategory: "",
+                  season: "",
+                  currentSeason: "",
+                  tpo: "",
+                  sort: DEFAULT_SORT,
+                  page: 1,
+                })
+              }
               className="inline-flex h-10 items-center text-sm font-medium text-blue-600 hover:underline disabled:text-gray-400 disabled:no-underline"
               disabled={!hasActiveFilters}
             >

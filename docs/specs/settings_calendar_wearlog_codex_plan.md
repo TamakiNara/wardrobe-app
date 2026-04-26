@@ -86,21 +86,28 @@
 
 ## 2. `currentSeason` の適用優先順位
 
+2026-04-26 時点の current:
+
+- item 一覧では、URL に `season` と `currentSeason` のどちらもない初回表示で、設定由来の `currentSeason` を URL クエリへ反映してから表示する
+- `currentSeason` は設定由来の自動適用、`season` はユーザーが明示的に選んだ季節絞り込みとして使い分ける
+- item 一覧で季節フィルタを明示的に解除した場合は `season` と `currentSeason` の両方を外し、一覧は季節絞り込みなしに戻す
+
 ### 結論
 
 `currentSeason` は item 一覧 / outfit 一覧に対する強制条件ではなく、初期表示用の user preference として扱う。
 
 ### 適用優先順位
 
-1. URL または画面上でユーザーが現在選択している季節フィルタ
-2. URL に季節指定がない状態で一覧を開いたときの `currentSeason`
+1. URL の `season` として指定された明示的な季節絞り込み
+2. URL に `season` がなく、`currentSeason` がある状態で一覧を開いたときの設定由来の季節絞り込み
 3. `currentSeason = null` の場合は季節絞り込みなし
 
 ### 補足
 
-- `currentSeason` は一覧画面の初回表示時にのみ適用する
-- 一覧表示中にユーザーが季節フィルタを変更または解除した場合、その画面では UI / URL 上の現在値を優先する
-- 画面を再訪問した場合も、URL に季節条件がなければ再度 `currentSeason` を初期値として適用する
+- `currentSeason` は一覧画面の初回表示用クエリであり、明示的な季節絞り込みは `season` で表現する
+- 一覧表示中にユーザーが季節フィルタを変更した場合は `season` を使い、`currentSeason` は外す
+- 一覧表示中にユーザーが季節フィルタを解除した場合は `season` と `currentSeason` の両方を外す
+- 画面を再訪問した場合は、URL に `season` と `currentSeason` のどちらもなければ再度 `currentSeason` を初期値として適用する
 - 既存の一覧画面が URL クエリ正本なら、その方針を崩さない
 
 ### 対象画面

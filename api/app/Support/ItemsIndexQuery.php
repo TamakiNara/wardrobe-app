@@ -16,6 +16,8 @@ class ItemsIndexQuery
         $category = trim((string) $request->query('category', ''));
         $subcategory = ItemSubcategorySupport::normalize($category !== '' ? $category : null, $request->query('subcategory'));
         $season = trim((string) $request->query('season', ''));
+        $currentSeason = trim((string) $request->query('currentSeason', ''));
+        $resolvedSeason = $season !== '' ? $season : $currentSeason;
         $tpo = trim((string) $request->query('tpo', ''));
         $sort = $request->query('sort') === 'name_asc' ? 'name_asc' : 'updated_at_desc';
         $page = ListQuerySupport::normalizePage($request->query('page', 1));
@@ -40,7 +42,7 @@ class ItemsIndexQuery
             $brand,
             $category,
             $subcategory,
-            $season,
+            $resolvedSeason,
             $tpo,
             $sort,
             $tpoNameById->all()
@@ -171,7 +173,16 @@ class ItemsIndexQuery
         }
 
         if ($season !== '') {
-            $query->whereJsonContains('seasons', $season);
+            $query->where(function (Builder $builder) use ($season) {
+                $builder
+                    ->whereNull('seasons')
+                    ->orWhereJsonLength('seasons', 0)
+                    ->orWhereJsonContains('seasons', 'オール');
+
+                if ($season !== 'オール') {
+                    $builder->orWhereJsonContains('seasons', $season);
+                }
+            });
         }
 
         if ($tpo !== '') {
