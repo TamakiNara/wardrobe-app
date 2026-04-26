@@ -172,6 +172,8 @@ export type PurchaseCandidateUpsertPayload = {
   materials?: ItemMaterialRecord[];
   duplicate_images?: {
     source_image_id: number;
+    sort_order?: number;
+    is_primary?: boolean;
   }[];
 };
 

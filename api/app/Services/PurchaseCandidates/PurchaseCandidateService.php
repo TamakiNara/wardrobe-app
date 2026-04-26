@@ -444,8 +444,21 @@ class PurchaseCandidateService
             return;
         }
 
-        $sourceImageIds = collect($duplicateImages)
-            ->map(fn ($image) => is_array($image) ? (int) ($image['source_image_id'] ?? 0) : 0)
+        $normalizedDuplicateImages = collect($duplicateImages)
+            ->filter(fn ($image) => is_array($image))
+            ->map(function (array $image, int $index) {
+                return [
+                    'source_image_id' => (int) ($image['source_image_id'] ?? 0),
+                    'sort_order' => (int) ($image['sort_order'] ?? ($index + 1)),
+                    'is_primary' => (bool) ($image['is_primary'] ?? false),
+                ];
+            })
+            ->filter(fn (array $image) => $image['source_image_id'] > 0)
+            ->sortBy('sort_order')
+            ->values();
+
+        $sourceImageIds = $normalizedDuplicateImages
+            ->pluck('source_image_id')
             ->filter(fn (int $imageId) => $imageId > 0)
             ->values();
 
@@ -467,9 +480,10 @@ class PurchaseCandidateService
             ]);
         }
 
-        $copiedImages = $sourceImageIds
+        $copiedImages = $normalizedDuplicateImages
             ->values()
-            ->map(function (int $sourceImageId, int $index) use ($candidate, $sourceImages, &$copiedFiles) {
+            ->map(function (array $duplicateImage, int $index) use ($candidate, $sourceImages, &$copiedFiles) {
+                $sourceImageId = $duplicateImage['source_image_id'];
                 /** @var PurchaseCandidateImage $sourceImage */
                 $sourceImage = $sourceImages->get($sourceImageId);
 
@@ -479,8 +493,10 @@ class PurchaseCandidateService
                     'original_filename' => $sourceImage->original_filename,
                     'mime_type' => $sourceImage->mime_type,
                     'file_size' => $sourceImage->file_size,
-                    'sort_order' => $index + 1,
-                    'is_primary' => $sourceImage->is_primary,
+                    'sort_order' => $duplicateImage['sort_order'] > 0
+                        ? $duplicateImage['sort_order']
+                        : ($index + 1),
+                    'is_primary' => $duplicateImage['is_primary'],
                 ];
             })
             ->all();

@@ -72,7 +72,7 @@ export default function EntityImageUploader({
   helperText,
   inputId = "images",
   existingHeading,
-  pendingHeading = "保存時に追加される画像",
+  pendingHeading = "追加時に保存される画像",
 }: EntityImageUploaderProps) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [dragActive, setDragActive] = useState(false);
@@ -107,7 +107,7 @@ export default function EntityImageUploader({
     );
     if (remaining <= 0) {
       setLocalError(
-        "画像は5枚まで登録できます。不要な画像を削除してから追加してください。",
+        "画像は5枚まで追加できます。既存の画像を削除してから追加してください。",
       );
       return;
     }
@@ -173,17 +173,37 @@ export default function EntityImageUploader({
 
   return (
     <div className="space-y-4">
+      <div className="space-y-2">
+        <p className="text-sm font-medium text-gray-900">画像を追加</p>
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            onClick={() => inputRef.current?.click()}
+            disabled={disabled}
+            className="inline-flex h-11 items-center justify-center rounded-xl border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700 transition hover:border-blue-300 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            ファイルを選択
+          </button>
+          <p className="text-xs text-gray-500">
+            JPEG / PNG / WebP、5MB以下、最大5枚
+          </p>
+        </div>
+      </div>
+
+      <input
+        ref={inputRef}
+        id={inputId}
+        type="file"
+        accept="image/png,image/jpeg,image/webp"
+        multiple
+        disabled={disabled}
+        onChange={handleFileInputChange}
+        className="sr-only"
+      />
+
       <div
-        role="button"
-        tabIndex={0}
-        aria-label="画像追加エリア"
-        onClick={() => inputRef.current?.click()}
-        onKeyDown={(event) => {
-          if (event.key === "Enter" || event.key === " ") {
-            event.preventDefault();
-            inputRef.current?.click();
-          }
-        }}
+        tabIndex={disabled ? -1 : 0}
+        aria-label="画像の貼り付けとドロップエリア"
         onPaste={handlePaste}
         onDragEnter={(event) => {
           event.preventDefault();
@@ -205,28 +225,14 @@ export default function EntityImageUploader({
           dragActive
             ? "border-blue-400 bg-blue-50"
             : "border-gray-300 bg-gray-50 hover:border-blue-300 hover:bg-blue-50/40"
-        } ${disabled ? "cursor-not-allowed opacity-60" : "cursor-pointer"}`}
+        } ${disabled ? "cursor-not-allowed opacity-60" : "cursor-default"}`}
       >
-        <input
-          ref={inputRef}
-          id={inputId}
-          type="file"
-          accept="image/png,image/jpeg,image/webp"
-          multiple
-          disabled={disabled}
-          onChange={handleFileInputChange}
-          className="sr-only"
-        />
-
         <div className="space-y-2">
           <p className="text-sm font-medium text-gray-900">
-            クリックして画像を選択
+            画像を貼り付け、またはドラッグ＆ドロップ
           </p>
           <p className="text-sm text-gray-600">
-            ドラッグ＆ドロップ、または貼り付けでも追加できます。
-          </p>
-          <p className="text-xs text-gray-500">
-            JPEG / PNG / WebP、5MB以下、最大5枚
+            この枠内で貼り付けできます。画像ファイルをドラッグ＆ドロップして追加することもできます。
           </p>
           {helperText ? (
             <p className="text-xs text-gray-500">{helperText}</p>
@@ -342,7 +348,7 @@ export default function EntityImageUploader({
                     <p className="text-xs text-gray-500">
                       {existingImages.length + index + 1}枚目
                       {existingImages.length === 0 && index === 0
-                        ? " / 代表画像予定"
+                        ? " / 代表画像候補"
                         : ""}
                       {preview.file.size
                         ? ` / ${formatBytes(preview.file.size)}`

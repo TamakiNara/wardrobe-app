@@ -31,6 +31,10 @@ describe("PurchaseCandidateImageUploader", () => {
     >,
   ) {
     const onPendingImagesChange = props?.onPendingImagesChange ?? vi.fn();
+    const onDeleteExistingImage = props?.onDeleteExistingImage ?? vi.fn();
+    const onMoveExistingImage = props?.onMoveExistingImage ?? vi.fn();
+    const onMakePrimaryExistingImage =
+      props?.onMakePrimaryExistingImage ?? vi.fn();
 
     act(() => {
       root.render(
@@ -38,7 +42,9 @@ describe("PurchaseCandidateImageUploader", () => {
           existingImages={props?.existingImages ?? []}
           pendingImages={props?.pendingImages ?? []}
           onPendingImagesChange={onPendingImagesChange}
-          onDeleteExistingImage={props?.onDeleteExistingImage}
+          onDeleteExistingImage={onDeleteExistingImage}
+          onMoveExistingImage={onMoveExistingImage}
+          onMakePrimaryExistingImage={onMakePrimaryExistingImage}
           disabled={props?.disabled ?? false}
           error={props?.error}
           helperText={props?.helperText}
@@ -46,10 +52,15 @@ describe("PurchaseCandidateImageUploader", () => {
       );
     });
 
-    return { onPendingImagesChange };
+    return {
+      onPendingImagesChange,
+      onDeleteExistingImage,
+      onMoveExistingImage,
+      onMakePrimaryExistingImage,
+    };
   }
 
-  it("file select で画像を追加できる", async () => {
+  it("ファイル選択で画像を追加できる", async () => {
     const { onPendingImagesChange } = renderUploader();
     const input = container.querySelector("#images") as HTMLInputElement;
     const file = new File(["image"], "front.png", { type: "image/png" });
@@ -66,10 +77,10 @@ describe("PurchaseCandidateImageUploader", () => {
     expect(onPendingImagesChange).toHaveBeenCalledWith([file]);
   });
 
-  it("drag & drop と paste で画像を追加できる", async () => {
+  it("貼り付けとドラッグ&ドロップで画像を追加できる", async () => {
     const { onPendingImagesChange } = renderUploader();
-    const dropzone = container.querySelector(
-      '[aria-label="画像追加エリア"]',
+    const pasteArea = container.querySelector(
+      '[aria-label="画像の貼り付けとドロップエリア"]',
     ) as HTMLDivElement;
     const droppedFile = new File(["drop"], "drop.png", { type: "image/png" });
     const pastedFile = new File(["paste"], "paste.webp", {
@@ -82,7 +93,7 @@ describe("PurchaseCandidateImageUploader", () => {
         configurable: true,
         value: { files: [droppedFile] },
       });
-      dropzone.dispatchEvent(dropEvent);
+      pasteArea.dispatchEvent(dropEvent);
     });
 
     await act(async () => {
@@ -94,14 +105,30 @@ describe("PurchaseCandidateImageUploader", () => {
         configurable: true,
         value: { files: [pastedFile] },
       });
-      dropzone.dispatchEvent(pasteEvent);
+      pasteArea.dispatchEvent(pasteEvent);
     });
 
     expect(onPendingImagesChange).toHaveBeenNthCalledWith(1, [droppedFile]);
     expect(onPendingImagesChange).toHaveBeenNthCalledWith(2, [pastedFile]);
   });
 
-  it("上限超過時に日本語エラーを表示する", async () => {
+  it("貼り付けエリアのクリックではファイル選択ダイアログを開かない", async () => {
+    const clickSpy = vi.spyOn(HTMLInputElement.prototype, "click");
+    renderUploader();
+
+    const pasteArea = container.querySelector(
+      '[aria-label="画像の貼り付けとドロップエリア"]',
+    ) as HTMLDivElement;
+    expect(pasteArea).not.toBeNull();
+
+    await act(async () => {
+      pasteArea.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+
+    expect(clickSpy).not.toHaveBeenCalled();
+  });
+
+  it("ファイル上限超過時に日本語エラーを表示する", async () => {
     renderUploader({
       existingImages: [
         {
@@ -170,12 +197,15 @@ describe("PurchaseCandidateImageUploader", () => {
     });
 
     expect(container.textContent).toContain(
-      "画像は5枚まで登録できます。不要な画像を削除してから追加してください。",
+      "画像は5枚まで追加できます。既存の画像を削除してから追加してください。",
     );
   });
 
-  it("既存画像の読み込み失敗時に fallback と削除導線を残す", async () => {
+  it("既存画像で fallback と削除・並び替え・代表画像変更を渡せる", async () => {
     const onDeleteExistingImage = vi.fn();
+    const onMoveExistingImage = vi.fn();
+    const onMakePrimaryExistingImage = vi.fn();
+
     renderUploader({
       existingImages: [
         {
@@ -190,8 +220,22 @@ describe("PurchaseCandidateImageUploader", () => {
           sort_order: 1,
           is_primary: true,
         },
+        {
+          id: 11,
+          purchase_candidate_id: 1,
+          disk: "public",
+          path: "purchase-candidates/1/second.png",
+          url: "http://localhost:8000/storage/purchase-candidates/1/second.png",
+          original_filename: "second.png",
+          mime_type: "image/png",
+          file_size: 1000,
+          sort_order: 2,
+          is_primary: false,
+        },
       ],
       onDeleteExistingImage,
+      onMoveExistingImage,
+      onMakePrimaryExistingImage,
     });
 
     const image = container.querySelector<HTMLImageElement>(
@@ -204,15 +248,34 @@ describe("PurchaseCandidateImageUploader", () => {
     });
 
     expect(container.textContent).toContain("画像を表示できません");
+
+    const upButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent === "上へ",
+    );
+    const downButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent === "下へ",
+    );
+    const primaryButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent === "代表にする",
+    );
     const deleteButton = Array.from(container.querySelectorAll("button")).find(
       (button) => button.textContent === "削除",
-    ) as HTMLButtonElement | undefined;
-    expect(deleteButton).toBeDefined();
+    );
 
     await act(async () => {
-      deleteButton!.click();
+      downButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      primaryButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      deleteButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     });
 
+    expect(upButton?.hasAttribute("disabled")).toBe(true);
+    expect(onMoveExistingImage).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 10 }),
+      "down",
+    );
+    expect(onMakePrimaryExistingImage).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 11 }),
+    );
     expect(onDeleteExistingImage).toHaveBeenCalledWith(10);
   });
 });

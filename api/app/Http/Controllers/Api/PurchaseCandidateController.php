@@ -194,8 +194,10 @@ class PurchaseCandidateController extends Controller
             'materials.*.material_name' => ['required', 'string', 'max:100'],
             'materials.*.ratio' => ['required', 'integer', 'between:1,100'],
             'duplicate_images' => ['nullable', 'array'],
-            'duplicate_images.*' => ['array:source_image_id'],
+            'duplicate_images.*' => ['array:source_image_id,sort_order,is_primary'],
             'duplicate_images.*.source_image_id' => ['required', 'integer', 'distinct'],
+            'duplicate_images.*.sort_order' => ['nullable', 'integer', 'min:1'],
+            'duplicate_images.*.is_primary' => ['nullable', 'boolean'],
         ] + SizeDetailSupport::validationRules());
 
         ItemMaterialValidator::validate($validated);

@@ -327,6 +327,26 @@ function createEditableCustomSizeFieldId(index: number): string {
   return `custom-${Date.now()}-${index}`;
 }
 
+function normalizeDraftDuplicateImages(
+  images: PurchaseCandidateDuplicateImageRecord[],
+): PurchaseCandidateDuplicateImageRecord[] {
+  const sortedImages = [...images].sort((left, right) => {
+    if (left.sort_order !== right.sort_order) {
+      return left.sort_order - right.sort_order;
+    }
+
+    return left.source_image_id - right.source_image_id;
+  });
+
+  const hasPrimary = sortedImages.some((image) => image.is_primary);
+
+  return sortedImages.map((image, index) => ({
+    ...image,
+    sort_order: index + 1,
+    is_primary: hasPrimary ? image.is_primary : index === 0,
+  }));
+}
+
 export default function PurchaseCandidateForm({
   mode,
   candidateId,
@@ -601,14 +621,18 @@ export default function PurchaseCandidateForm({
   );
   const imageHelperText =
     duplicateImages.length > 0
-      ? [
-          "購入検討から引き継ぐ画像です。",
-          "保存すると新しい購入検討へ画像をコピーします。",
-        ].join("")
+      ? "引き継いだ画像は、保存時に新しい購入検討へコピーされます。"
       : [
           "一覧では代表画像を表示し、",
           "詳細や編集では画像全体を見やすく表示します。",
         ].join("");
+  const displayedImages = useMemo(
+    () =>
+      mode === "create" && duplicateImages.length > 0
+        ? duplicateImages
+        : existingImages,
+    [duplicateImages, existingImages, mode],
+  );
   const initializationMessage = initializationError ?? initializationSuccess;
   const submitMessage = submitError ?? submitSuccess;
 
@@ -767,7 +791,11 @@ export default function PurchaseCandidateForm({
           setSelectedSeasons(candidate.seasons);
           setSelectedTpos(candidate.tpos);
           setMaterialRows(buildEditableItemMaterials(candidate.materials));
-          setExistingImages(candidate.images);
+          setExistingImages(
+            [...candidate.images].sort(
+              (left, right) => left.sort_order - right.sort_order,
+            ),
+          );
           setDuplicateImages([]);
           applySpecFormState(
             candidate.category_id,
@@ -910,8 +938,9 @@ export default function PurchaseCandidateForm({
     setSelectedSeasons(payload.seasons);
     setSelectedTpos(payload.tpos);
     setMaterialRows(buildEditableItemMaterials(payload.materials));
-    setExistingImages(payload.images);
-    setDuplicateImages(payload.images);
+    const normalizedDraftImages = normalizeDraftDuplicateImages(payload.images);
+    setExistingImages(normalizedDraftImages);
+    setDuplicateImages(normalizedDraftImages);
     setPendingImages([]);
     applySpecFormState(payload.category_id, payload.shape, payload.spec);
     setErrors({});
@@ -1179,6 +1208,8 @@ export default function PurchaseCandidateForm({
         mode === "create" && duplicateImages.length > 0
           ? duplicateImages.map((image) => ({
               source_image_id: image.source_image_id,
+              sort_order: image.sort_order,
+              is_primary: image.is_primary,
             }))
           : undefined,
     };
@@ -1242,12 +1273,17 @@ export default function PurchaseCandidateForm({
   }
 
   async function uploadPendingImages(targetCandidateId: number) {
+    const baseImageCount =
+      mode === "create" && duplicateImages.length > 0
+        ? duplicateImages.length
+        : existingImages.length;
+
     for (let index = 0; index < pendingImages.length; index += 1) {
       const image = pendingImages[index];
       const formData = new FormData();
       formData.set("image", image);
-      formData.set("sort_order", String(existingImages.length + index + 1));
-      if (existingImages.length === 0 && index === 0) {
+      formData.set("sort_order", String(baseImageCount + index + 1));
+      if (baseImageCount === 0 && index === 0) {
         formData.set("is_primary", "1");
       }
 
@@ -1373,6 +1409,52 @@ export default function PurchaseCandidateForm({
 
     setExistingImages((current) =>
       current.filter((image) => image.id !== imageId),
+    );
+  }
+
+  function handleDeleteDraftImage(imageId: number) {
+    setDuplicateImages((current) =>
+      normalizeDraftDuplicateImages(
+        current.filter((image) => image.id !== imageId),
+      ),
+    );
+  }
+
+  function handleMoveDraftImage(imageId: number, direction: "up" | "down") {
+    setDuplicateImages((current) => {
+      const nextImages = [...current];
+      const currentIndex = nextImages.findIndex(
+        (image) => image.id === imageId,
+      );
+
+      if (currentIndex < 0) {
+        return current;
+      }
+
+      const targetIndex =
+        direction === "up" ? currentIndex - 1 : currentIndex + 1;
+
+      if (targetIndex < 0 || targetIndex >= nextImages.length) {
+        return current;
+      }
+
+      [nextImages[currentIndex], nextImages[targetIndex]] = [
+        nextImages[targetIndex],
+        nextImages[currentIndex],
+      ];
+
+      return normalizeDraftDuplicateImages(nextImages);
+    });
+  }
+
+  function handleMakePrimaryDraftImage(imageId: number) {
+    setDuplicateImages((current) =>
+      normalizeDraftDuplicateImages(
+        current.map((image) => ({
+          ...image,
+          is_primary: image.id === imageId,
+        })),
+      ),
     );
   }
 
@@ -2464,12 +2546,24 @@ export default function PurchaseCandidateForm({
       </ItemFormSection>
       <ItemFormSection title="画像" className="lg:col-span-2 lg:order-10">
         <PurchaseCandidateImageUploader
-          existingImages={existingImages}
+          existingImages={displayedImages}
           pendingImages={pendingImages}
           onPendingImagesChange={setPendingImages}
           onDeleteExistingImage={
             mode === "edit"
               ? (imageId) => void handleDeleteImage(imageId)
+              : duplicateImages.length > 0
+                ? (imageId) => handleDeleteDraftImage(imageId)
+                : undefined
+          }
+          onMoveExistingImage={
+            mode === "create" && duplicateImages.length > 0
+              ? (image, direction) => handleMoveDraftImage(image.id, direction)
+              : undefined
+          }
+          onMakePrimaryExistingImage={
+            mode === "create" && duplicateImages.length > 0
+              ? (image) => handleMakePrimaryDraftImage(image.id)
               : undefined
           }
           disabled={submitting}

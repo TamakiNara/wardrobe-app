@@ -8,6 +8,11 @@ type PurchaseCandidateImageUploaderProps = {
   pendingImages: File[];
   onPendingImagesChange: (files: File[]) => void;
   onDeleteExistingImage?: (imageId: number) => void;
+  onMoveExistingImage?: (
+    image: PurchaseCandidateImageRecord,
+    direction: "up" | "down",
+  ) => void;
+  onMakePrimaryExistingImage?: (image: PurchaseCandidateImageRecord) => void;
   disabled?: boolean;
   error?: string | null;
   helperText?: string;
@@ -18,6 +23,8 @@ export default function PurchaseCandidateImageUploader({
   pendingImages,
   onPendingImagesChange,
   onDeleteExistingImage,
+  onMoveExistingImage,
+  onMakePrimaryExistingImage,
   disabled = false,
   error,
   helperText,
@@ -30,6 +37,21 @@ export default function PurchaseCandidateImageUploader({
       onDeleteExistingImage={
         onDeleteExistingImage
           ? (image) => image.id && onDeleteExistingImage(image.id)
+          : undefined
+      }
+      onMoveExistingImage={
+        onMoveExistingImage
+          ? (image, direction) =>
+              onMoveExistingImage(
+                image as PurchaseCandidateImageRecord,
+                direction,
+              )
+          : undefined
+      }
+      onMakePrimaryExistingImage={
+        onMakePrimaryExistingImage
+          ? (image) =>
+              onMakePrimaryExistingImage(image as PurchaseCandidateImageRecord)
           : undefined
       }
       disabled={disabled}

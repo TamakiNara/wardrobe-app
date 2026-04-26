@@ -2179,6 +2179,7 @@ class PurchaseCandidateEndpointsTest extends TestCase
             'category_id' => 'tops_shirt_blouse',
         ]);
         $sourcePath = "purchase-candidates/{$sourceCandidate->id}/source.png";
+        $secondSourcePath = "purchase-candidates/{$sourceCandidate->id}/second.png";
 
         $sourceImage = $sourceCandidate->images()->create([
             'disk' => 'public',
@@ -2189,8 +2190,21 @@ class PurchaseCandidateEndpointsTest extends TestCase
             'sort_order' => 1,
             'is_primary' => true,
         ]);
+        $secondSourceImage = $sourceCandidate->images()->create([
+            'disk' => 'public',
+            'path' => $secondSourcePath,
+            'original_filename' => 'second.png',
+            'mime_type' => 'image/png',
+            'file_size' => 2345,
+            'sort_order' => 2,
+            'is_primary' => false,
+        ]);
         Storage::disk('public')->put(
             $sourcePath,
+            base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wn9nS8AAAAASUVORK5CYII=')
+        );
+        Storage::disk('public')->put(
+            $secondSourcePath,
             base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wn9nS8AAAAASUVORK5CYII=')
         );
 
@@ -2227,7 +2241,14 @@ class PurchaseCandidateEndpointsTest extends TestCase
             'materials' => [],
             'duplicate_images' => [
                 [
+                    'source_image_id' => $secondSourceImage->id,
+                    'sort_order' => 1,
+                    'is_primary' => true,
+                ],
+                [
                     'source_image_id' => $sourceImage->id,
+                    'sort_order' => 2,
+                    'is_primary' => false,
                 ],
             ],
         ], [
@@ -2236,10 +2257,16 @@ class PurchaseCandidateEndpointsTest extends TestCase
         ]);
 
         $response->assertCreated()
-            ->assertJsonPath('purchaseCandidate.images.0.original_filename', 'source.png');
+            ->assertJsonPath('purchaseCandidate.images.0.original_filename', 'second.png')
+            ->assertJsonPath('purchaseCandidate.images.0.is_primary', true)
+            ->assertJsonPath('purchaseCandidate.images.0.sort_order', 1)
+            ->assertJsonPath('purchaseCandidate.images.1.original_filename', 'source.png')
+            ->assertJsonPath('purchaseCandidate.images.1.is_primary', false)
+            ->assertJsonPath('purchaseCandidate.images.1.sort_order', 2);
 
         $newCandidateId = $response->json('purchaseCandidate.id');
         $newPath = $response->json('purchaseCandidate.images.0.path');
+        $secondNewPath = $response->json('purchaseCandidate.images.1.path');
 
         $this->assertDatabaseHas('purchase_candidates', [
             'id' => $newCandidateId,
@@ -2247,8 +2274,11 @@ class PurchaseCandidateEndpointsTest extends TestCase
         ]);
         $this->assertSame(2, PurchaseCandidate::query()->count());
         $this->assertStringStartsWith("purchase-candidates/{$newCandidateId}/", $newPath);
+        $this->assertStringStartsWith("purchase-candidates/{$newCandidateId}/", $secondNewPath);
         Storage::disk('public')->assertExists($sourcePath);
+        Storage::disk('public')->assertExists($secondSourcePath);
         Storage::disk('public')->assertExists($newPath);
+        Storage::disk('public')->assertExists($secondNewPath);
     }
 
     public function test_post_purchase_candidate_duplicate_is_not_available_for_other_users_candidate(): void

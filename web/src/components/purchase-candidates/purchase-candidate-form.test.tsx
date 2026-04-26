@@ -1338,7 +1338,7 @@ describe("購入検討フォーム", () => {
     expect(allSeasonButton.getAttribute("aria-pressed")).toBe("false");
   });
 
-  it("duplicate 初期値を読み込み、保存時に duplicate_images を送る", async () => {
+  it("duplicate 初期値で引き継いだ画像を削除・代表変更して保存 payload に反映できる", async () => {
     searchParamsValue = "source=duplicate";
     window.sessionStorage.setItem(
       "purchase-candidate-duplicate-payload",
@@ -1394,6 +1394,19 @@ describe("購入検討フォーム", () => {
             sort_order: 1,
             is_primary: true,
           },
+          {
+            id: 8,
+            source_image_id: 8,
+            purchase_candidate_id: 10,
+            disk: "public",
+            path: "purchase-candidates/10/second.png",
+            url: "/storage/purchase-candidates/10/second.png",
+            original_filename: "second.png",
+            mime_type: "image/png",
+            file_size: 2345,
+            sort_order: 2,
+            is_primary: false,
+          },
         ],
       }),
     );
@@ -1429,10 +1442,45 @@ describe("購入検討フォーム", () => {
       "複製元の内容を初期値として読み込みました。",
     );
     expect(container.textContent).toContain("source.png");
+    expect(container.textContent).toContain("second.png");
     expect(container.textContent).toContain(
-      "購入検討から引き継ぐ画像です。保存すると新しい購入検討へ画像をコピーします。",
+      "引き継いだ画像は、保存時に新しい購入検討へコピーされます。",
     );
     expect(replaceMock).toHaveBeenCalledWith("/purchase-candidates/new");
+
+    const imageCards = Array.from(container.querySelectorAll("article"));
+    const secondImageCard = imageCards.find((card) =>
+      card.textContent?.includes("second.png"),
+    );
+    const primaryButton = Array.from(
+      secondImageCard?.querySelectorAll("button") ?? [],
+    ).find((button) => button.textContent === "代表にする");
+
+    expect(secondImageCard).toBeDefined();
+    expect(primaryButton).toBeDefined();
+
+    await act(async () => {
+      primaryButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      await Promise.resolve();
+    });
+
+    const refreshedImageCards = Array.from(
+      container.querySelectorAll("article"),
+    );
+    const sourceImageCard = refreshedImageCards.find((card) =>
+      card.textContent?.includes("source.png"),
+    );
+    const deleteButton = Array.from(
+      sourceImageCard?.querySelectorAll("button") ?? [],
+    ).find((button) => button.textContent === "削除");
+
+    expect(sourceImageCard).toBeDefined();
+    expect(deleteButton).toBeDefined();
+
+    await act(async () => {
+      deleteButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      await Promise.resolve();
+    });
 
     const form = container.querySelector("form") as HTMLFormElement;
 
@@ -1454,7 +1502,13 @@ describe("購入検討フォーム", () => {
         fit: "oversized",
       },
     });
-    expect(payload.duplicate_images).toEqual([{ source_image_id: 7 }]);
+    expect(payload.duplicate_images).toEqual([
+      {
+        source_image_id: 8,
+        sort_order: 1,
+        is_primary: true,
+      },
+    ]);
   });
 
   it("tops の色違い追加ドラフトで tops spec を読み込める", async () => {
