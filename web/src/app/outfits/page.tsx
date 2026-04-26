@@ -88,16 +88,6 @@ function buildQueryString(searchParams: OutfitsPageSearchParams): string {
   return params.toString();
 }
 
-function resolveCurrentSeason(searchParams: OutfitsPageSearchParams): string {
-  const value = searchParams.season;
-
-  if (Array.isArray(value)) {
-    return value[0] ?? "";
-  }
-
-  return value ?? "";
-}
-
 async function getOutfits(
   searchParams: OutfitsPageSearchParams,
 ): Promise<OutfitsResponse> {
@@ -152,7 +142,6 @@ export default async function OutfitsPage({
   searchParams: Promise<OutfitsPageSearchParams>;
 }) {
   const resolvedSearchParams = await searchParams;
-  const currentSeason = resolveCurrentSeason(resolvedSearchParams);
   let initialSeasonFilter = "";
   let skinTonePreset: SkinTonePreset = DEFAULT_SKIN_TONE_PRESET;
   let initialVisibleCategoryIds: string[] | null | undefined = undefined;
@@ -171,12 +160,9 @@ export default async function OutfitsPage({
       (await preferencesRes.json()) as PreferencesResponse;
     skinTonePreset =
       preferencesData.preferences?.skinTonePreset ?? DEFAULT_SKIN_TONE_PRESET;
-
-    if (!currentSeason) {
-      initialSeasonFilter = mapPreferenceSeasonToFilterValue(
-        preferencesData.preferences?.currentSeason ?? null,
-      );
-    }
+    initialSeasonFilter = mapPreferenceSeasonToFilterValue(
+      preferencesData.preferences?.currentSeason ?? null,
+    );
   }
 
   if (categoryVisibilityRes.ok) {
@@ -185,14 +171,7 @@ export default async function OutfitsPage({
     initialVisibleCategoryIds = categoryVisibilityData.visibleCategoryIds ?? [];
   }
 
-  const effectiveSearchParams =
-    !currentSeason && initialSeasonFilter
-      ? {
-          ...resolvedSearchParams,
-          season: initialSeasonFilter,
-        }
-      : resolvedSearchParams;
-  const data = await getOutfits(effectiveSearchParams);
+  const data = await getOutfits(resolvedSearchParams);
   const itemCount = data.meta.totalAll === 0 ? await getItemCount() : 0;
   const outfits = data.outfits;
 
@@ -256,7 +235,7 @@ export default async function OutfitsPage({
             currentPage={data.meta.page}
             lastPage={data.meta.lastPage}
             availableTpos={data.meta.availableTpos ?? []}
-            initialSeasonFilter={currentSeason ? "" : initialSeasonFilter}
+            initialSeasonFilter={initialSeasonFilter}
             skinTonePreset={skinTonePreset}
             initialVisibleCategoryIds={initialVisibleCategoryIds}
           />

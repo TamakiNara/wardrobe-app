@@ -676,4 +676,73 @@ describe("EditOutfitPage", () => {
 
     expect(seasonSelect?.value).toBe("春");
   });
+
+  it("現在の季節の候補 item がなくても編集画面の item フィルタ季節初期値は表示される", async () => {
+    fetchUserPreferencesMock.mockResolvedValue({
+      preferences: {
+        currentSeason: "spring",
+      },
+    });
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn()
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => ({
+            outfit: {
+              id: 10,
+              name: "Spring Outfit",
+              memo: null,
+              seasons: [],
+              tpos: [],
+              tpo_ids: [],
+              outfitItems: [],
+            },
+          }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => ({
+            items: [
+              {
+                id: 1,
+                name: "Summer Dress",
+                status: "active",
+                category: "onepiece_dress",
+                subcategory: "onepiece_dress",
+                shape: "onepiece",
+                colors: [],
+                seasons: ["夏"],
+                tpos: [],
+                tpo_ids: [],
+              },
+            ],
+          }),
+        }),
+    );
+
+    const { default: EditOutfitPage } = await import("./page");
+
+    await act(async () => {
+      root.render(
+        React.createElement(EditOutfitPage, {
+          params: Promise.resolve({ id: "10" }),
+        }),
+      );
+      await waitForEffects();
+    });
+
+    const seasonSelect = container.querySelector<HTMLSelectElement>(
+      "#outfit-item-filter-season",
+    );
+    const seasonOptionValues = Array.from(seasonSelect?.options ?? []).map(
+      (option) => option.value,
+    );
+
+    expect(seasonSelect?.value).toBe("春");
+    expect(seasonOptionValues).toContain("春");
+  });
 });

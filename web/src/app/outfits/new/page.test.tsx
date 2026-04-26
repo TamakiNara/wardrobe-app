@@ -614,4 +614,50 @@ describe("NewOutfitPage", () => {
 
     expect(seasonSelect?.value).toBe("春");
   });
+
+  it("現在の季節の候補 item がなくても item フィルタの季節初期値は表示される", async () => {
+    fetchUserPreferencesMock.mockResolvedValue({
+      preferences: {
+        currentSeason: "spring",
+      },
+    });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          items: [
+            {
+              id: 1,
+              name: "Summer Dress",
+              category: "onepiece_dress",
+              subcategory: "onepiece_dress",
+              shape: "onepiece",
+              colors: [],
+              seasons: ["夏"],
+              tpos: [],
+            },
+          ],
+        }),
+      }),
+    );
+
+    const { default: NewOutfitPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(NewOutfitPage));
+      await waitForEffects();
+    });
+
+    const seasonSelect = container.querySelector<HTMLSelectElement>(
+      "#outfit-item-filter-season",
+    );
+    const seasonOptionValues = Array.from(seasonSelect?.options ?? []).map(
+      (option) => option.value,
+    );
+
+    expect(seasonSelect?.value).toBe("春");
+    expect(seasonOptionValues).toContain("春");
+  });
 });

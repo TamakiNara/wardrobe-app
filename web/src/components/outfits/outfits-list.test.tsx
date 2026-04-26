@@ -34,7 +34,7 @@ vi.mock("@/components/outfits/outfit-duplicate-action", () => ({
 const sampleOutfits: Outfit[] = [
   {
     id: 1,
-    name: "春コーディネート",
+    name: "春コーデ",
     memo: null,
     seasons: ["春"],
     tpos: ["休日"],
@@ -129,7 +129,7 @@ describe("OutfitsList", () => {
     globalThis.IS_REACT_ACT_ENVIRONMENT = false;
   });
 
-  it("カテゴリ表示設定に応じて表示アイテム数と案内を切り替える", async () => {
+  it("カテゴリ表示設定に応じて表示アイテム数と注記を切り替える", async () => {
     fetchCategoryVisibilitySettingsMock.mockResolvedValue({
       visibleCategoryIds: ["tops_tshirt_cutsew"],
     });
@@ -142,16 +142,14 @@ describe("OutfitsList", () => {
     });
 
     expect(container.textContent).toContain("表示アイテム数: 1");
-    expect(container.textContent).toContain(
-      "現在の表示設定により 1 件を非表示にしています。",
-    );
+    expect(container.textContent).toContain("1 件を非表示にしています");
     expect(container.textContent).toContain("duplicate-1");
     expect(
       container.querySelector('[data-testid="outfit-color-thumbnail"]'),
     ).not.toBeNull();
   });
 
-  it("初期表示設定が渡されている場合は mount 後の追加 fetch を行わない", async () => {
+  it("初期の表示設定がある場合は追加 fetch をしない", async () => {
     const { default: OutfitsList } = await import("./outfits-list");
 
     await act(async () => {
@@ -197,7 +195,7 @@ describe("OutfitsList", () => {
       await waitForEffects();
     });
 
-    expect(container.textContent).toContain("2 / 4ページ（全30件）");
+    expect(container.textContent).toContain("2 / 4ページ");
     expect(replaceMock).toHaveBeenCalledWith("/outfits?page=3", {
       scroll: false,
     });
@@ -228,14 +226,14 @@ describe("OutfitsList", () => {
     );
     const selects = Array.from(container.querySelectorAll("select"));
     const clearButton = Array.from(container.querySelectorAll("button")).find(
-      (button) => button.textContent?.includes("クリア"),
+      (button) => button.textContent?.includes("条件をクリア"),
     );
 
     expect(input?.value).toBe("夏");
     expect((selects[0] as HTMLSelectElement).value).toBe("夏");
     expect((selects[2] as HTMLSelectElement).value).toBe("name_asc");
     expect(container.textContent).toContain("夏の散歩");
-    expect(container.textContent).not.toContain("春コーディネート");
+    expect(container.textContent).not.toContain("春コーデ");
     expect(replaceMock).not.toHaveBeenCalled();
 
     await act(async () => {
@@ -246,7 +244,7 @@ describe("OutfitsList", () => {
     expect(replaceMock).toHaveBeenCalledWith("/outfits", { scroll: false });
   });
 
-  it("検索結果が 0 件のときは空状態文言を表示する", async () => {
+  it("絞り込み結果が 0 件のときは空状態メッセージを表示する", async () => {
     searchParamsValue = "keyword=%E5%86%AC";
     fetchCategoryVisibilitySettingsMock.mockResolvedValue({
       visibleCategoryIds: ["tops_tshirt_cutsew", "tops_shirt_blouse"],
@@ -269,11 +267,10 @@ describe("OutfitsList", () => {
     expect(container.textContent).toContain(
       "条件に一致するコーディネートがありません",
     );
-    expect(container.textContent).toContain("条件を変えてお試しください。");
-    expect(container.textContent).toContain("条件をクリア");
+    expect(container.textContent).toContain("条件を変えてお試しください");
   });
 
-  it("キーワード削除中は debounce 後に URL を更新する", async () => {
+  it("キーワード編集中は debounce 後に URL を更新する", async () => {
     searchParamsValue = "keyword=%E5%A4%8F%E3%82%B3%E3%83%BC%E3%83%87";
     fetchCategoryVisibilitySettingsMock.mockResolvedValue({
       visibleCategoryIds: ["tops_tshirt_cutsew", "tops_shirt_blouse"],
@@ -315,7 +312,7 @@ describe("OutfitsList", () => {
     );
   });
 
-  it("URL に season がない場合は初期季節を 1 回だけ query に反映する", async () => {
+  it("OutfitsList 単体では initialSeasonFilter を currentSeason クエリへ反映する", async () => {
     fetchCategoryVisibilitySettingsMock.mockResolvedValue({
       visibleCategoryIds: ["tops_tshirt_cutsew", "tops_shirt_blouse"],
     });
@@ -332,9 +329,12 @@ describe("OutfitsList", () => {
       await waitForEffects();
     });
 
-    expect(replaceMock).toHaveBeenCalledWith("/outfits?season=%E7%A7%8B", {
-      scroll: false,
-    });
+    expect(replaceMock).toHaveBeenCalledWith(
+      "/outfits?currentSeason=%E7%A7%8B",
+      {
+        scroll: false,
+      },
+    );
   });
 
   it("URL に season がある場合は初期季節を上書きしない", async () => {
@@ -355,8 +355,112 @@ describe("OutfitsList", () => {
       await waitForEffects();
     });
 
-    expect(replaceMock).not.toHaveBeenCalledWith("/outfits?season=%E7%A7%8B", {
+    expect(replaceMock).not.toHaveBeenCalledWith(
+      "/outfits?currentSeason=%E7%A7%8B",
+      {
+        scroll: false,
+      },
+    );
+  });
+
+  it("currentSeason で開いた後に季節解除すると同じ表示中には再自動適用しない", async () => {
+    searchParamsValue = "currentSeason=%E6%98%A5";
+    fetchCategoryVisibilitySettingsMock.mockResolvedValue({
+      visibleCategoryIds: ["tops_tshirt_cutsew", "tops_shirt_blouse"],
+    });
+
+    const { default: OutfitsList } = await import("./outfits-list");
+
+    await act(async () => {
+      root.render(
+        React.createElement(OutfitsList, {
+          ...defaultListProps,
+          initialSeasonFilter: "春",
+        }),
+      );
+      await waitForEffects();
+    });
+
+    const seasonSelect = container.querySelectorAll("select")[0] as
+      | HTMLSelectElement
+      | undefined;
+
+    await act(async () => {
+      const valueSetter = Object.getOwnPropertyDescriptor(
+        window.HTMLSelectElement.prototype,
+        "value",
+      )?.set;
+      valueSetter?.call(seasonSelect, "");
+      seasonSelect?.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    expect(replaceMock).toHaveBeenLastCalledWith("/outfits", {
       scroll: false,
     });
+
+    replaceMock.mockClear();
+    searchParamsValue = "";
+
+    await act(async () => {
+      root.render(
+        React.createElement(OutfitsList, {
+          ...defaultListProps,
+          initialSeasonFilter: "春",
+        }),
+      );
+      await waitForEffects();
+    });
+
+    expect(replaceMock).not.toHaveBeenCalledWith(
+      "/outfits?currentSeason=%E6%98%A5",
+      {
+        scroll: false,
+      },
+    );
+  });
+
+  it("季節解除後に一覧を開き直すと currentSeason を再提案する", async () => {
+    fetchCategoryVisibilitySettingsMock.mockResolvedValue({
+      visibleCategoryIds: ["tops_tshirt_cutsew", "tops_shirt_blouse"],
+    });
+
+    const { default: OutfitsList } = await import("./outfits-list");
+
+    await act(async () => {
+      root.render(
+        React.createElement(OutfitsList, {
+          ...defaultListProps,
+          initialSeasonFilter: "春",
+        }),
+      );
+      await waitForEffects();
+    });
+
+    await act(async () => {
+      root.unmount();
+      container.innerHTML = "";
+      root = createRoot(container);
+      replaceMock.mockClear();
+      searchParamsValue = "";
+      await waitForEffects();
+    });
+
+    await act(async () => {
+      root.render(
+        React.createElement(OutfitsList, {
+          ...defaultListProps,
+          initialSeasonFilter: "春",
+        }),
+      );
+      await waitForEffects();
+    });
+
+    expect(replaceMock).toHaveBeenCalledWith(
+      "/outfits?currentSeason=%E6%98%A5",
+      {
+        scroll: false,
+      },
+    );
   });
 });

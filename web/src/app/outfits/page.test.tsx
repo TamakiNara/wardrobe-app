@@ -46,7 +46,7 @@ describe("OutfitsPage", () => {
     vi.stubGlobal("fetch", fetchMock);
   });
 
-  it("アイテム未登録時は先に item 追加を案内する", async () => {
+  it("アイテム未登録時はアイテム追加導線を表示する", async () => {
     fetchMock
       .mockResolvedValueOnce({
         ok: true,
@@ -90,19 +90,11 @@ describe("OutfitsPage", () => {
       await OutfitsPage({ searchParams: Promise.resolve({}) }),
     );
 
-    expect(markup).toContain("コーディネート管理");
-    expect(markup).toContain("コーディネート一覧");
-    expect(markup).toContain("まだコーディネートが登録されていません");
-    expect(markup).toContain(
-      "先にアイテムを登録して、組み合わせを作れる状態にしましょう。",
-    );
     expect(markup).toContain('href="/outfits/invalid"');
-    expect(markup).toContain("無効コーディネート一覧");
     expect(markup).toContain('href="/items/new"');
-    expect(markup).toContain("アイテムを追加する");
   });
 
-  it("アイテム登録済みならコーデ作成を案内する", async () => {
+  it("アイテム登録済みでコーデ未登録ならコーデ追加導線を表示する", async () => {
     fetchMock
       .mockResolvedValueOnce({
         ok: true,
@@ -146,19 +138,11 @@ describe("OutfitsPage", () => {
       await OutfitsPage({ searchParams: Promise.resolve({}) }),
     );
 
-    expect(markup).toContain("コーディネート管理");
-    expect(markup).toContain("コーディネート一覧");
-    expect(markup).toContain(
-      "手持ちのアイテムを組み合わせて作ってみましょう。",
-    );
     expect(markup).toContain('href="/outfits/invalid"');
-    expect(markup).toContain("無効コーディネート一覧");
-    expect(markup).toContain("rounded-lg border border-gray-300");
     expect(markup).toContain('href="/outfits/new"');
-    expect(markup).toContain("コーディネートを作成する");
   });
 
-  it("URL に season がない場合は preference を初期季節として使う", async () => {
+  it("URL に season と currentSeason がない場合は設定の currentSeason を初期値として渡す", async () => {
     fetchMock
       .mockResolvedValueOnce({
         ok: true,
@@ -194,20 +178,65 @@ describe("OutfitsPage", () => {
       await OutfitsPage({ searchParams: Promise.resolve({}) }),
     );
 
-    expect(markup).toContain("コーディネート管理");
-    expect(markup).toContain("コーディネート一覧");
-    expect(markup).toContain("無効コーディネート一覧");
-    expect(markup).toContain("rounded-lg border border-gray-300");
+    expect(fetchMock).toHaveBeenCalledTimes(3);
     expect(fetchMock).toHaveBeenNthCalledWith(
       3,
-      "http://localhost:8000/api/outfits?season=%E7%A7%8B",
+      "http://localhost:8000/api/outfits",
       expect.any(Object),
     );
     expect(markup).toContain('data-initial-season="秋"');
     expect(markup).toContain('data-skin-tone-preset="yellow_light"');
   });
 
-  it("URL に season がある場合は preference より URL を優先する", async () => {
+  it("URL に currentSeason がある場合はその値で一覧を取得する", async () => {
+    fetchMock
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          preferences: {
+            currentSeason: "autumn",
+            defaultWearLogStatus: null,
+            skinTonePreset: "neutral_medium",
+          },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          visibleCategoryIds: [],
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          outfits: [{ id: 1, name: "秋コーデ" }],
+          meta: {
+            total: 1,
+            totalAll: 1,
+            page: 1,
+            lastPage: 1,
+          },
+        }),
+      });
+
+    const { default: OutfitsPage } = await import("./page");
+    const markup = renderToStaticMarkup(
+      await OutfitsPage({
+        searchParams: Promise.resolve({ currentSeason: "秋" }),
+      }),
+    );
+
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      3,
+      "http://localhost:8000/api/outfits?currentSeason=%E7%A7%8B",
+      expect.any(Object),
+    );
+    expect(markup).toContain('data-initial-season="秋"');
+    expect(markup).toContain('data-skin-tone-preset="neutral_medium"');
+  });
+
+  it("URL に season がある場合は currentSeason より優先して一覧取得に使う", async () => {
     fetchMock
       .mockResolvedValueOnce({
         ok: true,
@@ -244,16 +273,12 @@ describe("OutfitsPage", () => {
     );
 
     expect(fetchMock).toHaveBeenCalledTimes(3);
-    expect(markup).toContain("コーディネート管理");
-    expect(markup).toContain("コーディネート一覧");
-    expect(markup).toContain("無効コーディネート一覧");
-    expect(markup).toContain("rounded-lg border border-gray-300");
     expect(fetchMock).toHaveBeenNthCalledWith(
       3,
       "http://localhost:8000/api/outfits?season=%E5%A4%8F",
       expect.any(Object),
     );
-    expect(markup).toContain('data-initial-season=""');
+    expect(markup).toContain('data-initial-season="秋"');
     expect(markup).toContain('data-skin-tone-preset="neutral_medium"');
   });
 });

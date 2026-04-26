@@ -3,6 +3,9 @@
 Outfit の作成・編集・状態管理に関する仕様を定義する。  
 この資料では、Outfit の保存条件、item 構成ルール、invalid の扱い、複製仕様、一覧表示方針を整理する。
 
+- 一覧フィルタ / `currentSeason`: `./list-filters.md`
+- item 候補絞り込み: `./item-candidate-rules.md`
+
 ---
 
 ## 概要

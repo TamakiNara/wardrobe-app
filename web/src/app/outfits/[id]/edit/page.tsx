@@ -14,7 +14,6 @@ import { isItemVisibleByCategorySettings } from "@/lib/api/categories";
 import {
   buildOutfitItemBrandOptions,
   buildOutfitItemCategoryOptions,
-  buildOutfitItemSeasonOptions,
   buildOutfitItemTpoOptions,
   filterOutfitCandidateItems,
 } from "@/lib/outfits/item-selection-filters";
@@ -252,10 +251,6 @@ export default function EditOutfitPage({
   );
   const itemBrandOptions = useMemo(
     () => buildOutfitItemBrandOptions(candidateItems),
-    [candidateItems],
-  );
-  const itemSeasonOptions = useMemo(
-    () => buildOutfitItemSeasonOptions(candidateItems),
     [candidateItems],
   );
   const itemTpoFilterOptions = useMemo(
@@ -585,7 +580,7 @@ export default function EditOutfitPage({
                   tpo={itemFilterTpo}
                   categoryOptions={itemCategoryOptions}
                   brandOptions={itemBrandOptions}
-                  seasonOptions={itemSeasonOptions}
+                  seasonOptions={SEASON_OPTIONS}
                   tpoOptions={itemTpoFilterOptions}
                   onKeywordChange={setItemFilterKeyword}
                   onBrandChange={setItemFilterBrand}

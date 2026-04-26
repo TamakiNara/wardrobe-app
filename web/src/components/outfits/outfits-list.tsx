@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import OutfitColorThumbnail from "@/components/outfits/outfit-color-thumbnail";
 import OutfitDuplicateAction from "@/components/outfits/outfit-duplicate-action";
 import { isItemVisibleByCategorySettings } from "@/lib/api/categories";
@@ -85,12 +85,14 @@ function normalizePage(value: string | null): number {
 function buildQueryString({
   keyword,
   season,
+  currentSeason,
   tpo,
   sort,
   page,
 }: {
   keyword: string;
   season: string;
+  currentSeason: string;
   tpo: string;
   sort: OutfitSortValue;
   page: number;
@@ -103,6 +105,8 @@ function buildQueryString({
 
   if (season) {
     params.set("season", season);
+  } else if (currentSeason) {
+    params.set("currentSeason", currentSeason);
   }
 
   if (tpo) {
@@ -136,6 +140,8 @@ export default function OutfitsList({
 
   const keyword = normalizeKeyword(searchParams.get("keyword"));
   const seasonFilter = searchParams.get("season") ?? "";
+  const currentSeasonFilter = searchParams.get("currentSeason") ?? "";
+  const effectiveSeasonFilter = seasonFilter || currentSeasonFilter;
   const tpoFilter = searchParams.get("tpo") ?? "";
   const sort = normalizeSort(searchParams.get("sort"));
   const page = normalizePage(searchParams.get("page"));
@@ -145,7 +151,7 @@ export default function OutfitsList({
   const [visibleCategoryIds, setVisibleCategoryIds] = useState<string[] | null>(
     initialVisibleCategoryIds ?? null,
   );
-  const initialSeasonAppliedRef = useRef(false);
+  const [hasClearedInitialSeason, setHasClearedInitialSeason] = useState(false);
 
   useEffect(() => {
     setDraftKeyword(keyword);
@@ -156,14 +162,18 @@ export default function OutfitsList({
       nextValues: Partial<{
         keyword: string;
         season: string;
+        currentSeason: string;
         tpo: string;
         sort: OutfitSortValue;
         page: number;
       }>,
     ) => {
+      const nextSeason = nextValues.season ?? seasonFilter;
+      const nextCurrentSeason = nextValues.currentSeason ?? currentSeasonFilter;
       const nextQuery = buildQueryString({
         keyword: nextValues.keyword ?? keyword,
-        season: nextValues.season ?? seasonFilter,
+        season: nextSeason,
+        currentSeason: nextSeason === "" ? nextCurrentSeason : "",
         tpo: nextValues.tpo ?? tpoFilter,
         sort: nextValues.sort ?? sort,
         page: nextValues.page ?? page,
@@ -173,21 +183,38 @@ export default function OutfitsList({
         scroll: false,
       });
     },
-    [keyword, page, pathname, router, seasonFilter, sort, tpoFilter],
+    [
+      currentSeasonFilter,
+      keyword,
+      page,
+      pathname,
+      router,
+      seasonFilter,
+      sort,
+      tpoFilter,
+    ],
   );
 
   useEffect(() => {
-    if (initialSeasonAppliedRef.current) {
+    if (seasonFilter || currentSeasonFilter || !initialSeasonFilter) {
       return;
     }
 
-    if (!initialSeasonFilter || seasonFilter) {
+    if (hasClearedInitialSeason) {
       return;
     }
 
-    initialSeasonAppliedRef.current = true;
-    updateQuery({ season: initialSeasonFilter, page: 1 });
-  }, [initialSeasonFilter, seasonFilter, updateQuery]);
+    updateQuery({
+      currentSeason: initialSeasonFilter,
+      page: 1,
+    });
+  }, [
+    currentSeasonFilter,
+    hasClearedInitialSeason,
+    initialSeasonFilter,
+    seasonFilter,
+    updateQuery,
+  ]);
 
   useEffect(() => {
     if (initialVisibleCategoryIds !== undefined) {
@@ -226,7 +253,7 @@ export default function OutfitsList({
 
   const hasActiveFilters = Boolean(
     keyword ||
-    seasonFilter ||
+    effectiveSeasonFilter ||
     tpoFilter ||
     sort !== DEFAULT_SORT ||
     currentPage > 1,
@@ -261,8 +288,15 @@ export default function OutfitsList({
               季節
             </label>
             <select
-              value={seasonFilter}
-              onChange={(e) => updateQuery({ season: e.target.value, page: 1 })}
+              value={effectiveSeasonFilter}
+              onChange={(e) => {
+                setHasClearedInitialSeason(e.target.value === "");
+                updateQuery({
+                  season: e.target.value,
+                  currentSeason: "",
+                  page: 1,
+                });
+              }}
               className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             >
               <option value="">すべて</option>
@@ -319,7 +353,19 @@ export default function OutfitsList({
 
           <button
             type="button"
-            onClick={() => router.replace(pathname, { scroll: false })}
+            onClick={() => {
+              if (effectiveSeasonFilter) {
+                setHasClearedInitialSeason(true);
+              }
+              updateQuery({
+                keyword: "",
+                season: "",
+                currentSeason: "",
+                tpo: "",
+                sort: DEFAULT_SORT,
+                page: 1,
+              });
+            }}
             className="text-sm font-medium text-blue-600 hover:underline disabled:text-gray-400 disabled:no-underline"
             disabled={!hasActiveFilters}
           >

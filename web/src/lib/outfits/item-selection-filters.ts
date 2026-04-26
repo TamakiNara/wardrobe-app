@@ -77,14 +77,6 @@ export function buildOutfitItemBrandOptions(
   );
 }
 
-export function buildOutfitItemSeasonOptions(items: ItemRecord[]) {
-  return Array.from(
-    new Set(
-      items.flatMap((item) => item.seasons.filter((season) => season !== "")),
-    ),
-  ).sort((left, right) => left.localeCompare(right, "ja-JP"));
-}
-
 export function buildOutfitItemTpoOptions(items: ItemRecord[]) {
   return Array.from(
     new Set(items.flatMap((item) => item.tpos.filter((tpo) => tpo !== ""))),
