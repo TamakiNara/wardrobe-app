@@ -103,6 +103,7 @@
 | `tight`   | ウエスト / ヒップ / 総丈 / スカート丈 |
 | `flare`   | ウエスト / ヒップ / 総丈 / スカート丈 |
 | `a_line`  | ウエスト / ヒップ / 総丈 / スカート丈 |
+| `narrow`  | ウエスト / ヒップ / 総丈 / スカート丈 |
 | `mermaid` | ウエスト / ヒップ / 総丈 / スカート丈 |
 | `pleated` | ウエスト / ヒップ / 総丈 / スカート丈 |
 
@@ -156,6 +157,7 @@
 - tops: `knit` / `cardigan` / `sweatshirt` / `hoodie`
 - outerwear: `tailored` / `no_collar` / `blazer`
 - pants: `jogger` / `skinny` / `gaucho`
+- skirts: `narrow`
 - skirts: `mermaid`
 - onepiece_dress: `dress`
 

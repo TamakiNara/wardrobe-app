@@ -727,7 +727,7 @@ class ItemsEndpointsTest extends TestCase
             'name' => 'スカート実寸テスト',
             'category' => 'skirts',
             'subcategory' => 'skirt',
-            'shape' => 'flare',
+            'shape' => 'narrow',
             'colors' => [[
                 'role' => 'main',
                 'mode' => 'preset',
@@ -763,6 +763,7 @@ class ItemsEndpointsTest extends TestCase
         ]);
 
         $response->assertCreated()
+            ->assertJsonPath('item.shape', 'narrow')
             ->assertJsonPath('item.size_details.structured.total_length.value', 89)
             ->assertJsonPath('item.size_details.structured.total_length.note', '総丈')
             ->assertJsonPath('item.size_details.structured.skirt_length.value', 83.5);

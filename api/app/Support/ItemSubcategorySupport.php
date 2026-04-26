@@ -41,6 +41,7 @@ class ItemSubcategorySupport
             'tight' => 'skirt',
             'flare' => 'skirt',
             'a_line' => 'skirt',
+            'narrow' => 'skirt',
             'mermaid' => 'skirt',
             'other' => 'other',
         ],

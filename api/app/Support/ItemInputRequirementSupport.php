@@ -17,7 +17,7 @@ class ItemInputRequirementSupport
             'other' => [],
         ],
         'skirts' => [
-            'skirt' => ['tight', 'flare', 'a_line', 'mermaid'],
+            'skirt' => ['tight', 'flare', 'a_line', 'narrow', 'mermaid'],
             'other' => [],
         ],
         'outerwear' => [

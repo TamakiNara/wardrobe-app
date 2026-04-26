@@ -242,7 +242,7 @@ vi.mock("@/lib/api/categories", async () => {
       container.querySelector('[data-testid="item-preview-card"]'),
     ).toBeNull();
   });
-  it("skirts の mermaid でも固定実寸を表示する", async () => {
+  it("skirts の narrow でも固定実寸を表示する", async () => {
     const { default: NewItemPage } = await import("./page");
 
     await act(async () => {
@@ -274,7 +274,7 @@ vi.mock("@/lib/api/categories", async () => {
     expect(shapeSelect).not.toBeNull();
 
     await act(async () => {
-      shapeSelect!.value = "mermaid";
+      shapeSelect!.value = "narrow";
       shapeSelect!.dispatchEvent(new Event("change", { bubbles: true }));
       await waitForEffects();
     });
@@ -2098,7 +2098,7 @@ describe("新規登録画面", () => {
 
     expect(
       Array.from(shapeSelect!.options).map((option) => option.value),
-    ).toEqual(["", "tight", "flare", "a_line", "mermaid"]);
+    ).toEqual(["", "tight", "flare", "a_line", "narrow", "mermaid"]);
     expect(
       Array.from(lengthTypeSelect!.options).map((option) => option.value),
     ).toEqual(["", "mini", "knee", "midi", "mid_calf", "long", "maxi"]);

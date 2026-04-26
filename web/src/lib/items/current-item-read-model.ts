@@ -44,6 +44,7 @@ const LEGACY_INFERRED_SUBCATEGORY_BY_CATEGORY: Record<
     tight: "skirt",
     flare: "skirt",
     a_line: "skirt",
+    narrow: "skirt",
     mermaid: "skirt",
     other: "other",
   },
@@ -362,6 +363,7 @@ const VISIBLE_CATEGORY_ID_BY_SHAPE: Record<string, Record<string, string>> = {
     tight: "skirts_skirt",
     flare: "skirts_skirt",
     a_line: "skirts_skirt",
+    narrow: "skirts_skirt",
     mermaid: "skirts_skirt",
   },
   bottoms: {
@@ -637,6 +639,7 @@ export function resolveCurrentItemShapeValue(
         tight: "tight",
         flare: "flare",
         a_line: "a_line",
+        narrow: "narrow",
         mermaid: "mermaid",
       }[normalizedShape] ?? normalizedShape
     );

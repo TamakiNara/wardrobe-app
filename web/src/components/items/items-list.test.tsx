@@ -686,7 +686,7 @@ describe("ItemsList", () => {
         name: "ベージュミニスカート",
         status: "active",
         category: "skirts",
-        shape: "skirt",
+        shape: "narrow",
         colors: [
           {
             role: "main",
@@ -799,6 +799,7 @@ describe("ItemsList", () => {
     expect(container.textContent).toContain("カーディガン");
     expect(container.textContent).toContain("スカート");
     expect(container.textContent).toContain("スカート");
+    expect(container.textContent).toContain("ナロー");
 
     const categoryHeading = Array.from(container.querySelectorAll("h2")).find(
       (heading) => heading.textContent === "トップス",
@@ -838,7 +839,7 @@ describe("ItemsList", () => {
     ).not.toBeNull();
     expect(
       container.querySelector(
-        'a[aria-label="ベージュミニスカート / スカート / ベージュ"]',
+        'a[aria-label="ベージュミニスカート / ナロー / ベージュ"]',
       ),
     ).not.toBeNull();
     const otherSkirtLink = Array.from(

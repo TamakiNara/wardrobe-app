@@ -4,7 +4,7 @@
 
 ### 形
 
-- shape は `tight` / `flare` / `a_line` / `mermaid` を第一候補として扱う
+- shape は `tight` / `flare` / `a_line` / `narrow` / `mermaid` を第一候補として扱う
 - `skirts.other` は画面上で shape を非表示
 - ドメイン上は shape 未指定寄りとして扱う
 - 保存表現は今回 `tops + other` のような空文字保存に広げず、既存の backend fallback を維持
@@ -15,6 +15,7 @@
 - `tight`: タイト `Tight`
 - `flare`: フレア `Flare`
 - `a_line`: Aライン / 台形 `A-line / Trapeze`
+- `narrow`: ナロー `Narrow`
 - `mermaid`: マーメイド `Mermaid`
 - 台形寄りの見え方は `a_line` に含めて扱う `A-line / Trapeze`
 - 上記はいずれもシルエットとして意味を持つ値候補を第一候補とする

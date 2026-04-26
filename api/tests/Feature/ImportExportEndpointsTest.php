@@ -513,7 +513,7 @@ class ImportExportEndpointsTest extends TestCase
             'name' => '旧形式スカート',
             'category' => 'skirts',
             'subcategory' => 'skirt',
-            'shape' => 'flare',
+            'shape' => 'narrow',
             'colors' => [[
                 'role' => 'main',
                 'mode' => 'preset',
@@ -553,6 +553,7 @@ class ImportExportEndpointsTest extends TestCase
 
         $this->assertSame('midi', data_get($exportPayload, 'items.0.spec.skirt.length_type'));
         $this->assertNull(data_get($exportPayload, 'items.0.spec.bottoms.length_type'));
+        $this->assertSame('narrow', data_get($exportPayload, 'items.0.shape'));
         $this->assertSame(89, data_get($exportPayload, 'items.0.size_details.structured.total_length.value'));
         $this->assertSame(83.5, data_get($exportPayload, 'items.0.size_details.structured.skirt_length.value'));
 
@@ -582,6 +583,7 @@ class ImportExportEndpointsTest extends TestCase
 
         $this->assertSame('midi', data_get($importedItem->spec, 'skirt.length_type'));
         $this->assertNull(data_get($importedItem->spec, 'bottoms.length_type'));
+        $this->assertSame('narrow', $importedItem->shape);
         $this->assertSame(89, data_get($importedItem->size_details, 'structured.total_length.value'));
         $this->assertSame(83.5, data_get($importedItem->size_details, 'structured.skirt_length.value'));
     }

@@ -27,6 +27,7 @@ describe("current item read model", () => {
       "flare",
     );
     expect(resolveCurrentItemShapeValue("skirts", "mermaid")).toBe("mermaid");
+    expect(resolveCurrentItemShapeValue("skirts", "narrow")).toBe("narrow");
     expect(resolveCurrentItemShapeValue("skirts", "other")).toBeNull();
     expect(resolveCurrentItemShapeValue("skirts", "pleated")).toBe("pleated");
     expect(resolveCurrentItemShapeValue("pants", "slacks")).toBe("pants");
@@ -85,6 +86,9 @@ describe("current item read model", () => {
       resolveCurrentItemSubcategoryValue("legwear", "leggings", null),
     ).toBe("leggings");
     expect(resolveCurrentItemSubcategoryValue("skirts", "mermaid", null)).toBe(
+      "skirt",
+    );
+    expect(resolveCurrentItemSubcategoryValue("skirts", "narrow", null)).toBe(
       "skirt",
     );
     expect(
@@ -169,6 +173,9 @@ describe("current item read model", () => {
       "skirts_other",
     );
     expect(resolveVisibleCategoryIdForItem("skirts", "mermaid")).toBe(
+      "skirts_skirt",
+    );
+    expect(resolveVisibleCategoryIdForItem("skirts", "narrow")).toBe(
       "skirts_skirt",
     );
     expect(resolveVisibleCategoryIdForItem("skirts", "pleated")).toBeNull();

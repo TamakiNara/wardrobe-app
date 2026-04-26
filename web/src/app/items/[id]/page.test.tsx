@@ -265,7 +265,7 @@ describe("アイテム詳細画面", () => {
             is_rain_ok: false,
             category: "skirts",
             subcategory: "skirt",
-            shape: "a_line",
+            shape: "narrow",
             colors: [
               {
                 role: "main",
@@ -659,5 +659,59 @@ describe("アイテム詳細画面", () => {
     expect(markup).toContain("ミディ");
     expect(markup).toContain("レース");
     expect(markup).not.toContain(">形<");
+  });
+
+  it("skirts の narrow は詳細でナローとして表示する", async () => {
+    fetchMock
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          item: {
+            id: 23,
+            name: "ナロースカート詳細",
+            status: "active",
+            care_status: null,
+            brand_name: null,
+            price: null,
+            purchase_url: null,
+            memo: null,
+            purchased_at: null,
+            size_gender: null,
+            size_label: null,
+            size_note: null,
+            size_details: null,
+            is_rain_ok: false,
+            category: "skirts",
+            subcategory: "skirt",
+            shape: "narrow",
+            colors: [],
+            seasons: [],
+            tpos: [],
+            spec: null,
+            images: [],
+            materials: [],
+          },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          preferences: {
+            skinTonePreset: "neutral_medium",
+          },
+        }),
+      });
+
+    const { default: ItemPage } = await import("./page");
+    const markup = renderToStaticMarkup(
+      await ItemPage({
+        params: Promise.resolve({ id: "23" }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+
+    expect(markup).toContain("ナロー");
   });
 });

@@ -33,6 +33,7 @@ export const ITEM_SHAPES = {
     { value: "tight", label: "タイト" },
     { value: "flare", label: "フレア" },
     { value: "a_line", label: "Aライン" },
+    { value: "narrow", label: "ナロー" },
     { value: "mermaid", label: "マーメイド" },
   ],
   bottoms: [
@@ -229,7 +230,7 @@ const SHAPE_VALUES_BY_SUBCATEGORY: Partial<
     other: [],
   },
   skirts: {
-    skirt: ["tight", "flare", "a_line", "mermaid"],
+    skirt: ["tight", "flare", "a_line", "narrow", "mermaid"],
     other: [],
   },
   outerwear: {

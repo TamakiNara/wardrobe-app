@@ -154,6 +154,7 @@ function resolveStructuredSizeFieldGroup(
       shape === "tight" ||
       shape === "flare" ||
       shape === "a_line" ||
+      shape === "narrow" ||
       shape === "mermaid" ||
       shape === "pleated"
     ) {

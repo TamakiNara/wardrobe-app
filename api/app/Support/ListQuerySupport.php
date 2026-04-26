@@ -108,6 +108,7 @@ class ListQuerySupport
                 'tight' => 'skirts_skirt',
                 'flare' => 'skirts_skirt',
                 'a_line' => 'skirts_skirt',
+                'narrow' => 'skirts_skirt',
                 'pleated' => 'skirts_skirt',
             ],
             'outerwear' => [

@@ -35,7 +35,7 @@ describe("getItemShapeOptions", () => {
   it("skirts の代表カテゴリでは shape 候補を厚めに絞り込む", () => {
     expect(
       getItemShapeOptions("skirts", "skirt").map((item) => item.value),
-    ).toEqual(["tight", "flare", "a_line", "mermaid"]);
+    ).toEqual(["tight", "flare", "a_line", "narrow", "mermaid"]);
     expect(
       getItemShapeOptions("skirts", "other").map((item) => item.value),
     ).toEqual([]);

@@ -177,6 +177,11 @@ describe("固定実寸 resolver", () => {
       ),
     ).toEqual(["waist", "hip", "total_length", "skirt_length"]);
     expect(
+      getStructuredSizeFieldDefinitions("skirts", "narrow").map(
+        (definition) => definition.name,
+      ),
+    ).toEqual(["waist", "hip", "total_length", "skirt_length"]);
+    expect(
       getStructuredSizeFieldDefinitions("onepiece_dress", "dress").map(
         (definition) => definition.name,
       ),

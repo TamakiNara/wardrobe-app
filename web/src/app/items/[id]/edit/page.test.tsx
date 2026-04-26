@@ -1124,7 +1124,7 @@ describe("編集画面", () => {
             is_rain_ok: false,
             category: "skirts",
             subcategory: "skirt",
-            shape: "a_line",
+            shape: "narrow",
             colors: [],
             seasons: [],
             tpos: [],
@@ -1170,7 +1170,7 @@ describe("編集画面", () => {
 
     expect(categorySelect?.value).toBe("skirts");
     expect(subcategorySelect?.value).toBe("skirt");
-    expect(shapeSelect?.value).toBe("a_line");
+    expect(shapeSelect?.value).toBe("narrow");
     expect(lengthTypeSelect?.value).toBe("mid_calf");
     expect(materialTypeSelect?.value).toBe("lace");
     expect(designTypeSelect?.value).toBe("tiered");
