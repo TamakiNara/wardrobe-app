@@ -175,7 +175,7 @@ describe("固定実寸 resolver", () => {
       getStructuredSizeFieldDefinitions("skirts", "mermaid").map(
         (definition) => definition.name,
       ),
-    ).toEqual(["waist", "hip", "total_length"]);
+    ).toEqual(["waist", "hip", "total_length", "skirt_length"]);
     expect(
       getStructuredSizeFieldDefinitions("onepiece_dress", "dress").map(
         (definition) => definition.name,
@@ -193,10 +193,10 @@ describe("固定実寸 resolver", () => {
       getStructuredSizeFieldDefinitions("skirts", "pleated").map(
         (definition) => definition.name,
       ),
-    ).toEqual(["waist", "hip", "total_length"]);
+    ).toEqual(["waist", "hip", "total_length", "skirt_length"]);
   });
 
-  it("total_length はカテゴリにかかわらず総丈として表示する", () => {
+  it("total_length と skirt_length は別ラベルで表示する", () => {
     expect(
       resolveStructuredSizeFieldLabel("total_length", "skirts", "flare"),
     ).toBe("総丈");
@@ -207,5 +207,8 @@ describe("固定実寸 resolver", () => {
         "onepiece",
       ),
     ).toBe("総丈");
+    expect(
+      resolveStructuredSizeFieldLabel("skirt_length", "skirts", "flare"),
+    ).toBe("スカート丈");
   });
 });

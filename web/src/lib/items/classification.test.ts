@@ -5,7 +5,7 @@ import {
 } from "@/lib/items/classification";
 
 describe("item classification", () => {
-  it("shape が一意なカテゴリでは item と purchase candidate で同じ分類結果を返す", () => {
+  it("shape が一意なカテゴリでは item と purchase candidate で同じ分類モデルを返す", () => {
     const itemClassification = resolveItemClassification({
       category: "tops",
       subcategory: "hoodie",
@@ -43,6 +43,34 @@ describe("item classification", () => {
     });
     expect(purchaseCandidateClassification).toMatchObject({
       category: "tops",
+      subcategory: "other",
+      shape: "",
+      shapeCandidates: [],
+      shouldShowShapeField: false,
+      isShapeRequired: false,
+      isShapeResolved: false,
+    });
+  });
+
+  it("skirts / other は item と purchase candidate の両方で shape なしとして扱う", () => {
+    const itemClassification = resolveItemClassification({
+      category: "skirts",
+      subcategory: "other",
+    });
+    const purchaseCandidateClassification =
+      resolvePurchaseCandidateItemClassification("skirts_other");
+
+    expect(itemClassification).toMatchObject({
+      category: "skirts",
+      subcategory: "other",
+      shape: "",
+      shapeCandidates: [],
+      shouldShowShapeField: false,
+      isShapeRequired: false,
+      isShapeResolved: false,
+    });
+    expect(purchaseCandidateClassification).toMatchObject({
+      category: "skirts",
       subcategory: "other",
       shape: "",
       shapeCandidates: [],

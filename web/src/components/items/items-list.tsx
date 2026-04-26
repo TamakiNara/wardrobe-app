@@ -19,13 +19,16 @@ import {
   findItemSubcategoryLabel,
   getItemSubcategoryOptions,
   normalizeItemSubcategory,
-  resolveCurrentItemSubcategoryValue,
 } from "@/lib/master-data/item-subcategories";
 import {
   ITEM_CATEGORIES as ITEM_CATEGORY_OPTIONS,
   findItemCategoryLabel,
   findItemShapeLabel,
 } from "@/lib/master-data/item-shapes";
+import {
+  resolveCurrentItemShapeValue,
+  resolveCurrentItemSubcategoryValue,
+} from "@/lib/items/current-item-read-model";
 import type { CategoryOption } from "@/types/categories";
 import type { ItemRecord } from "@/types/items";
 import type { SkinTonePreset, UserBrandRecord } from "@/types/settings";
@@ -853,12 +856,16 @@ export default function ItemsList({
                 item.shape,
                 item.subcategory,
               ) ?? null;
+            const currentShape =
+              resolveCurrentItemShapeValue(item.category, item.shape) ?? "";
             const categoryLabel = findItemCategoryLabel(currentCategory);
             const subcategoryLabel = findItemSubcategoryLabel(
               currentCategory,
               currentSubcategory,
             );
-            const shapeLabel = findItemShapeLabel(item.category, item.shape);
+            const shapeLabel = currentShape
+              ? findItemShapeLabel(currentCategory, currentShape)
+              : "";
             const classificationLabels = [
               categoryLabel,
               subcategoryLabel,

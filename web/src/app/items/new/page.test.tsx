@@ -289,6 +289,11 @@ vi.mock("@/lib/api/categories", async () => {
         "#structured-size-total_length",
       ),
     ).not.toBeNull();
+    expect(
+      container.querySelector<HTMLInputElement>(
+        "#structured-size-skirt_length",
+      ),
+    ).not.toBeNull();
   });
   it("select と input と date 入力の高さを共通 class で揃える", async () => {
     const { default: NewItemPage } = await import("./page");
@@ -777,6 +782,13 @@ describe("新規登録画面", () => {
   let root: ReturnType<typeof createRoot>;
 
   async function openSizeDetails() {
+    const expandedToggleButton = Array.from(
+      container.querySelectorAll("button"),
+    ).find((button) => button.textContent?.includes("折りたたむ"));
+    if (expandedToggleButton) {
+      return;
+    }
+
     const toggleButton = Array.from(container.querySelectorAll("button")).find(
       (button) => button.textContent?.includes("実寸を入力"),
     );
@@ -3063,5 +3075,207 @@ describe("新規登録画面", () => {
         "#structured-size-total_length",
       ),
     ).not.toBeNull();
+    expect(
+      container.querySelector<HTMLInputElement>(
+        "#structured-size-skirt_length",
+      ),
+    ).not.toBeNull();
+  });
+
+  it("skirts / other では shape なしで spec を表示し、固定実寸は出さない", async () => {
+    fetchCategoryGroupsMock.mockResolvedValueOnce([
+      ...sampleGroups,
+      {
+        id: "skirts",
+        name: "スカート",
+        sortOrder: 16,
+        categories: [
+          {
+            id: "skirts_skirt",
+            groupId: "skirts",
+            name: "スカート",
+            sortOrder: 10,
+          },
+          {
+            id: "skirts_other",
+            groupId: "skirts",
+            name: "その他スカート",
+            sortOrder: 20,
+          },
+        ],
+      },
+    ]);
+    fetchCategoryVisibilitySettingsMock.mockResolvedValueOnce({
+      visibleCategoryIds: [
+        "tops_tshirt_cutsew",
+        "outerwear_jacket",
+        "pants_pants",
+        "skirts_skirt",
+        "skirts_other",
+        "onepiece_dress_onepiece",
+        "allinone_allinone",
+        "roomwear_inner_roomwear",
+        "legwear_socks",
+      ],
+    });
+
+    const { default: NewItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(NewItemPage));
+      await waitForEffects();
+    });
+
+    const categorySelect =
+      container.querySelector<HTMLSelectElement>("#category");
+    expect(categorySelect).not.toBeNull();
+
+    await act(async () => {
+      categorySelect!.value = "skirts";
+      categorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    const subcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
+    expect(subcategorySelect).not.toBeNull();
+
+    await act(async () => {
+      subcategorySelect!.value = "other";
+      subcategorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    expect(container.querySelector("#shape")).toBeNull();
+    expect(
+      container.querySelector<HTMLSelectElement>("#bottoms-length-type"),
+    ).not.toBeNull();
+    expect(
+      container.querySelector<HTMLSelectElement>("#skirt-material-type"),
+    ).not.toBeNull();
+    expect(
+      container.querySelector<HTMLSelectElement>("#skirt-design-type"),
+    ).not.toBeNull();
+
+    await openSizeDetails();
+
+    expect(container.querySelector("#structured-size-waist")).toBeNull();
+    expect(container.textContent).toContain("自由項目を追加");
+    expect(container.textContent).toContain(
+      "現在のカテゴリと形に対応する固定実寸はありません。必要なら自由項目を追加してください。",
+    );
+  });
+
+  it("skirts / other の submit payload では shape を補完しない", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 201,
+      json: async () => ({ id: 1 }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    fetchCategoryGroupsMock.mockResolvedValueOnce([
+      ...sampleGroups,
+      {
+        id: "skirts",
+        name: "スカート",
+        sortOrder: 16,
+        categories: [
+          {
+            id: "skirts_skirt",
+            groupId: "skirts",
+            name: "スカート",
+            sortOrder: 10,
+          },
+          {
+            id: "skirts_other",
+            groupId: "skirts",
+            name: "その他スカート",
+            sortOrder: 20,
+          },
+        ],
+      },
+    ]);
+    fetchCategoryVisibilitySettingsMock.mockResolvedValueOnce({
+      visibleCategoryIds: [
+        "tops_tshirt_cutsew",
+        "outerwear_jacket",
+        "pants_pants",
+        "skirts_skirt",
+        "skirts_other",
+        "onepiece_dress_onepiece",
+        "allinone_allinone",
+        "roomwear_inner_roomwear",
+        "legwear_socks",
+      ],
+    });
+
+    const { default: NewItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(NewItemPage));
+      await waitForEffects();
+    });
+
+    const nameInput = container.querySelector<HTMLInputElement>("#name");
+    const categorySelect =
+      container.querySelector<HTMLSelectElement>("#category");
+    const customMainColorToggle = Array.from(
+      container.querySelectorAll("label"),
+    )
+      .find((label) => label.textContent?.includes("カスタムカラーを使う"))
+      ?.querySelector<HTMLInputElement>('input[type="checkbox"]');
+    expect(nameInput).not.toBeNull();
+    expect(categorySelect).not.toBeNull();
+    expect(customMainColorToggle).not.toBeUndefined();
+
+    await act(async () => {
+      setNativeInputValue(nameInput!, "その他スカート");
+      nameInput!.dispatchEvent(new Event("input", { bubbles: true }));
+      nameInput!.dispatchEvent(new Event("change", { bubbles: true }));
+      categorySelect!.value = "skirts";
+      categorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    const subcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
+    expect(subcategorySelect).not.toBeNull();
+
+    await act(async () => {
+      subcategorySelect!.value = "other";
+      subcategorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    const lengthTypeSelect = container.querySelector<HTMLSelectElement>(
+      "#bottoms-length-type",
+    );
+    expect(lengthTypeSelect).not.toBeNull();
+
+    await act(async () => {
+      lengthTypeSelect!.value = "midi";
+      lengthTypeSelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      customMainColorToggle!.click();
+      await waitForEffects();
+    });
+
+    const form = container.querySelector("form");
+    expect(form).not.toBeNull();
+
+    await act(async () => {
+      form!.dispatchEvent(
+        new Event("submit", { bubbles: true, cancelable: true }),
+      );
+      await waitForEffects();
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [, requestInit] = fetchMock.mock.calls[0];
+    const payload = JSON.parse(requestInit.body as string);
+
+    expect(payload.category).toBe("skirts");
+    expect(payload.subcategory).toBe("other");
+    expect(payload.shape).toBe("");
+    expect(payload.spec.skirt.length_type).toBe("midi");
   });
 });

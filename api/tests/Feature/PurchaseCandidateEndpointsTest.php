@@ -628,6 +628,66 @@ class PurchaseCandidateEndpointsTest extends TestCase
         ]);
     }
 
+    public function test_post_purchase_candidate_accepts_skirt_length_in_size_details(): void
+    {
+        $user = User::factory()->create();
+        $this->createCategory('skirts_skirt', 'skirts', 'スカート');
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $response = $this->postJson('/api/purchase-candidates', [
+            'status' => 'considering',
+            'priority' => 'medium',
+            'name' => 'スカート候補',
+            'category_id' => 'skirts_skirt',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'navy',
+                'hex' => '#123456',
+                'label' => 'ネイビー',
+            ]],
+            'seasons' => ['春'],
+            'tpos' => ['休日'],
+            'size_details' => [
+                'structured' => [
+                    'total_length' => [
+                        'value' => 89,
+                        'min' => null,
+                        'max' => null,
+                        'note' => '総丈',
+                    ],
+                    'skirt_length' => [
+                        'value' => 83.5,
+                        'min' => null,
+                        'max' => null,
+                        'note' => null,
+                    ],
+                ],
+            ],
+            'spec' => [
+                'skirt' => [
+                    'length_type' => 'midi',
+                ],
+            ],
+        ], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('purchaseCandidate.size_details.structured.total_length.value', 89)
+            ->assertJsonPath('purchaseCandidate.size_details.structured.total_length.note', '総丈')
+            ->assertJsonPath('purchaseCandidate.size_details.structured.skirt_length.value', 83.5);
+
+        $candidate = PurchaseCandidate::query()->findOrFail($response->json('purchaseCandidate.id'));
+
+        $this->assertSame(89, data_get($candidate->size_details, 'structured.total_length.value'));
+        $this->assertSame('総丈', data_get($candidate->size_details, 'structured.total_length.note'));
+        $this->assertSame(83.5, data_get($candidate->size_details, 'structured.skirt_length.value'));
+    }
+
     public function test_post_purchase_candidate_stores_main_color_custom_label_only(): void
     {
         $user = User::factory()->create();
@@ -1298,6 +1358,64 @@ class PurchaseCandidateEndpointsTest extends TestCase
             ->assertJsonPath('item_draft.spec.skirt.length_type', 'midi')
             ->assertJsonPath('item_draft.spec.skirt.material_type', 'lace')
             ->assertJsonPath('item_draft.spec.skirt.design_type', 'pleats');
+    }
+
+    public function test_post_purchase_candidate_item_draft_keeps_skirts_other_shape_empty(): void
+    {
+        $user = User::factory()->create();
+        $candidate = $this->createCandidate($user, [
+            'category_id' => 'skirts_other',
+            'size_details' => [
+                'custom_fields' => [
+                    [
+                        'label' => '裾幅',
+                        'value' => [
+                            'value' => 58,
+                            'min' => null,
+                            'max' => null,
+                            'note' => null,
+                        ],
+                        'sort_order' => 1,
+                    ],
+                ],
+            ],
+            'spec' => [
+                'skirt' => [
+                    'length_type' => 'midi',
+                    'material_type' => 'lace',
+                ],
+            ],
+        ]);
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $response = $this->postJson("/api/purchase-candidates/{$candidate->id}/item-draft", [], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('item_draft.source_category_id', 'skirts_other')
+            ->assertJsonPath('item_draft.category', 'skirts')
+            ->assertJsonPath('item_draft.subcategory', 'other')
+            ->assertJsonPath('item_draft.shape', '')
+            ->assertJsonPath('item_draft.spec.skirt.length_type', 'midi')
+            ->assertJsonPath('item_draft.size_details.custom_fields.0.label', '裾幅');
+
+        $payload = $response->json('item_draft');
+        $payload['purchase_candidate_id'] = $candidate->id;
+
+        $itemCreateResponse = $this->postJson('/api/items', $payload, [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $itemCreateResponse->assertCreated()
+            ->assertJsonPath('item.category', 'skirts')
+            ->assertJsonPath('item.subcategory', 'other')
+            ->assertJsonPath('item.shape', '')
+            ->assertJsonPath('item.spec.skirt.length_type', 'midi');
     }
 
     public function test_get_purchase_candidate_detail_returns_skirt_spec(): void

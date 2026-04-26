@@ -778,8 +778,15 @@ export default function NewItemPage() {
   }
 
   function handleSubcategoryChange(nextSubcategory: string) {
-    if (category === "tops" && nextSubcategory === "other") {
-      resetTopsState();
+    if (nextSubcategory === "other") {
+      if (category === "tops") {
+        resetTopsState();
+      }
+
+      if (category === "skirts") {
+        setShape("");
+      }
+
       setShape("");
     }
 

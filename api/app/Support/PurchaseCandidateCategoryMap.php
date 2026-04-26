@@ -30,7 +30,7 @@ class PurchaseCandidateCategoryMap
         'pants_sweat_jersey' => ['category' => 'pants', 'subcategory' => 'sweat_jersey'],
         'pants_other' => ['category' => 'pants', 'subcategory' => 'other'],
         'skirts_skirt' => ['category' => 'skirts', 'subcategory' => 'skirt'],
-        'skirts_other' => ['category' => 'skirts', 'subcategory' => 'other', 'shape' => 'other'],
+        'skirts_other' => ['category' => 'skirts', 'subcategory' => 'other', 'shape' => ''],
         'onepiece_dress_onepiece' => ['category' => 'onepiece_dress', 'subcategory' => 'onepiece'],
         'onepiece_dress_dress' => ['category' => 'onepiece_dress', 'subcategory' => 'dress'],
         'onepiece_dress_other' => ['category' => 'onepiece_dress', 'subcategory' => 'other', 'shape' => 'other'],
@@ -125,7 +125,10 @@ class PurchaseCandidateCategoryMap
         $category = is_string($resolved['category'] ?? null) ? $resolved['category'] : null;
         $subcategory = ItemSubcategorySupport::normalize($category, $resolved['subcategory'] ?? null);
         $explicitShape = ItemInputRequirementSupport::normalizeShape($resolved['shape'] ?? null);
-        $shape = $category === 'tops' && $subcategory === 'other' && $explicitShape === null
+        $shape = (
+            ($category === 'tops' && $subcategory === 'other') ||
+            ($category === 'skirts' && $subcategory === 'other')
+        ) && $explicitShape === null
             ? ''
             : ($explicitShape
                 ?? ItemInputRequirementSupport::defaultShapeFor($category, $subcategory)

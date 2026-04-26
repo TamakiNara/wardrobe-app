@@ -160,7 +160,6 @@ class ItemInputRequirementSupport
         ],
         'skirts' => [
             'skirt' => 'skirt',
-            'other' => 'skirt',
         ],
         'outerwear' => [
             'jacket' => 'jacket',
@@ -340,8 +339,11 @@ class ItemInputRequirementSupport
             return null;
         }
 
-        // 一時対応: tops + other の未指定 shape は、null 許容化まで空文字で保存する。
-        if ($category === 'tops' && $subcategory === 'other') {
+        // 一時対応: shape なし許容カテゴリの other は、null ではなく空文字で保存する。
+        if (
+            ($category === 'tops' && $subcategory === 'other') ||
+            ($category === 'skirts' && $subcategory === 'other')
+        ) {
             return '';
         }
 

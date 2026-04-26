@@ -513,7 +513,7 @@ export default function EditItemPage({
           resolveCurrentItemCategoryValue(item.category, item.shape) ??
           item.category;
         const currentShape =
-          resolveCurrentItemShapeValue(item.category, item.shape) ?? item.shape;
+          resolveCurrentItemShapeValue(item.category, item.shape) ?? "";
         const currentSubcategory =
           resolveCurrentItemSubcategoryValue(
             currentCategory,
@@ -867,8 +867,15 @@ export default function EditItemPage({
   }
 
   function handleSubcategoryChange(nextSubcategory: string) {
-    if (category === "tops" && nextSubcategory === "other") {
-      resetTopsState();
+    if (nextSubcategory === "other") {
+      if (category === "tops") {
+        resetTopsState();
+      }
+
+      if (category === "skirts") {
+        setShape("");
+      }
+
       setShape("");
     }
 

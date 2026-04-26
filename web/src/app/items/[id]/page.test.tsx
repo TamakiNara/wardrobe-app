@@ -598,4 +598,66 @@ describe("アイテム詳細画面", () => {
     expect(markup).toContain("39cm");
     expect(markup).toContain("118cm");
   });
+
+  it("skirts / other の詳細では shape を表示せず、spec は表示できる", async () => {
+    fetchMock
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          item: {
+            id: 22,
+            name: "その他スカート詳細",
+            status: "active",
+            care_status: null,
+            brand_name: null,
+            price: null,
+            purchase_url: null,
+            memo: null,
+            purchased_at: null,
+            size_gender: null,
+            size_label: null,
+            size_note: null,
+            size_details: null,
+            is_rain_ok: false,
+            category: "skirts",
+            subcategory: "other",
+            shape: "other",
+            colors: [],
+            seasons: [],
+            tpos: [],
+            spec: {
+              skirt: {
+                length_type: "midi",
+                material_type: "lace",
+              },
+            },
+            images: [],
+            materials: [],
+          },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          preferences: {
+            skinTonePreset: "neutral_medium",
+          },
+        }),
+      });
+
+    const { default: ItemPage } = await import("./page");
+    const markup = renderToStaticMarkup(
+      await ItemPage({
+        params: Promise.resolve({ id: "22" }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+
+    expect(markup).toContain("その他スカート");
+    expect(markup).toContain("ミディ");
+    expect(markup).toContain("レース");
+    expect(markup).not.toContain(">形<");
+  });
 });

@@ -31,7 +31,7 @@ export function buildClosetViewGroups(
       resolveCurrentItemCategoryValue(item.category, item.shape) ??
       item.category;
     const currentShape =
-      resolveCurrentItemShapeValue(item.category, item.shape) ?? item.shape;
+      resolveCurrentItemShapeValue(item.category, item.shape) ?? "";
     const categoryMap =
       grouped.get(currentCategory) ?? new Map<string, ItemRecord[]>();
     const shapeKey = currentShape || "";

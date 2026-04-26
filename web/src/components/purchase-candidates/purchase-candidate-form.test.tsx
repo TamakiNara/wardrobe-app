@@ -2069,6 +2069,27 @@ describe("購入検討フォーム", () => {
     expect(container.querySelector("#shape")).toBeNull();
   });
 
+  it("skirts の固定実寸で総丈とスカート丈を両方表示する", async () => {
+    await renderForm();
+
+    await setCategorySelection("skirts", "skirts_skirt");
+    await openSizeDetails();
+
+    expect(
+      container.querySelector<HTMLInputElement>("#structured-size-waist"),
+    ).not.toBeNull();
+    expect(
+      container.querySelector<HTMLInputElement>(
+        "#structured-size-total_length",
+      ),
+    ).not.toBeNull();
+    expect(
+      container.querySelector<HTMLInputElement>(
+        "#structured-size-skirt_length",
+      ),
+    ).not.toBeNull();
+  });
+
   it("select と input と date 入力の高さを共通 class で揃える", async () => {
     await renderForm();
 
@@ -2083,5 +2104,24 @@ describe("購入検討フォーム", () => {
     expect(releaseDateInput?.className).toContain("h-[50px]");
     expect(priceInput?.className).toContain("h-full");
     expect(priceInput?.parentElement?.className).toContain("h-[50px]");
+  });
+
+  it("skirts / other では shape なしで spec を表示し、固定実寸は出さない", async () => {
+    await renderForm();
+
+    await setCategorySelection("skirts", "skirts_other");
+
+    expect(container.querySelector("#shape")).toBeNull();
+    expect(container.querySelector("#spec-skirt-length-type")).not.toBeNull();
+    expect(container.querySelector("#spec-skirt-material-type")).not.toBeNull();
+    expect(container.querySelector("#spec-skirt-design-type")).not.toBeNull();
+
+    await openSizeDetails();
+
+    expect(container.querySelector("#structured-size-waist")).toBeNull();
+    expect(container.textContent).toContain(
+      "現在のカテゴリと形に対応する固定実寸はありません。必要なら自由項目を追加してください。",
+    );
+    expect(container.textContent).toContain("自由項目を追加");
   });
 });

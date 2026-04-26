@@ -2536,6 +2536,10 @@ components:
           allOf:
             - $ref: "#/components/schemas/ItemSizeDetailValue"
           description: 総丈。
+        skirt_length:
+          allOf:
+            - $ref: "#/components/schemas/ItemSizeDetailValue"
+          description: スカート丈。
 
     ItemSizeCustomField:
       type: object

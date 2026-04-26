@@ -163,7 +163,6 @@ const DEFAULT_SHAPE_BY_SUBCATEGORY: Record<string, Record<string, string>> = {
   },
   skirts: {
     skirt: "skirt",
-    other: "skirt",
   },
   outerwear: {
     jacket: "jacket",
@@ -504,6 +503,10 @@ const KNOWN_SUBCATEGORY_VALUES_BY_CATEGORY: Record<string, Set<string>> = {
     ...Object.keys(DEFAULT_SHAPE_BY_SUBCATEGORY.tops ?? {}),
     "other",
   ]),
+  skirts: new Set([
+    ...Object.keys(DEFAULT_SHAPE_BY_SUBCATEGORY.skirts ?? {}),
+    "other",
+  ]),
   swimwear: new Set(["swimwear", "rashguard", "other"]),
   kimono: new Set(["kimono", "yukata", "japanese_accessory", "other"]),
 };
@@ -624,10 +627,13 @@ export function resolveCurrentItemShapeValue(
   }
 
   if (currentCategory === "skirts") {
+    if (normalizedShape === "other") {
+      return null;
+    }
+
     return (
       {
         skirt: "skirt",
-        other: "skirt",
         tight: "tight",
         flare: "flare",
         a_line: "a_line",

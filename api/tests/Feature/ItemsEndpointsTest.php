@@ -717,6 +717,63 @@ class ItemsEndpointsTest extends TestCase
         );
     }
 
+    public function test_post_items_accepts_skirt_length_in_size_details(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/items', [
+            'name' => 'スカート実寸テスト',
+            'category' => 'skirts',
+            'subcategory' => 'skirt',
+            'shape' => 'flare',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'navy',
+                'hex' => '#123456',
+                'label' => 'ネイビー',
+            ]],
+            'seasons' => ['春'],
+            'tpos' => ['休日'],
+            'size_details' => [
+                'structured' => [
+                    'total_length' => [
+                        'value' => 89,
+                        'min' => null,
+                        'max' => null,
+                        'note' => '総丈',
+                    ],
+                    'skirt_length' => [
+                        'value' => 83.5,
+                        'min' => null,
+                        'max' => null,
+                        'note' => null,
+                    ],
+                ],
+            ],
+            'spec' => [
+                'skirt' => [
+                    'length_type' => 'midi',
+                ],
+            ],
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('item.size_details.structured.total_length.value', 89)
+            ->assertJsonPath('item.size_details.structured.total_length.note', '総丈')
+            ->assertJsonPath('item.size_details.structured.skirt_length.value', 83.5);
+
+        $item = Item::query()->findOrFail($response->json('item.id'));
+
+        $this->assertSame(89, data_get($item->size_details, 'structured.total_length.value'));
+        $this->assertSame('総丈', data_get($item->size_details, 'structured.total_length.note'));
+        $this->assertSame(83.5, data_get($item->size_details, 'structured.skirt_length.value'));
+    }
+
     public function test_post_items_rejects_unknown_size_gender(): void
     {
         $user = User::factory()->create();
@@ -1148,6 +1205,54 @@ class ItemsEndpointsTest extends TestCase
         $response->assertCreated()
             ->assertJsonPath('item.subcategory', 'other')
             ->assertJsonPath('item.shape', '');
+    }
+
+    public function test_post_items_can_save_skirts_other_without_shape_and_keep_skirt_spec(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/items', [
+            'name' => 'その他スカート',
+            'category' => 'skirts',
+            'subcategory' => 'other',
+            'shape' => '',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'gray',
+                'hex' => '#888888',
+                'label' => 'グレー',
+            ]],
+            'size_details' => [
+                'custom_fields' => [[
+                    'label' => '裾幅',
+                    'value' => [
+                        'value' => 58,
+                        'min' => null,
+                        'max' => null,
+                        'note' => null,
+                    ],
+                    'sort_order' => 1,
+                ]],
+            ],
+            'spec' => [
+                'skirt' => [
+                    'length_type' => 'midi',
+                    'material_type' => 'lace',
+                ],
+            ],
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('item.category', 'skirts')
+            ->assertJsonPath('item.subcategory', 'other')
+            ->assertJsonPath('item.shape', '')
+            ->assertJsonPath('item.spec.skirt.length_type', 'midi')
+            ->assertJsonPath('item.spec.skirt.material_type', 'lace');
     }
 
     public function test_post_items_can_save_tops_with_shape_without_spec_tops_shape(): void

@@ -1317,6 +1317,129 @@ describe("編集画面", () => {
     expect(container.querySelector("#shape")).toBeNull();
   });
 
+  it("編集画面では skirts / other を shape なしで復元し、固定実寸を出さない", async () => {
+    fetchCategoryGroupsMock.mockResolvedValueOnce([
+      ...sampleGroups,
+      {
+        id: "skirts",
+        name: "スカート",
+        sortOrder: 16,
+        categories: [
+          {
+            id: "skirts_skirt",
+            groupId: "skirts",
+            name: "スカート",
+            sortOrder: 10,
+          },
+          {
+            id: "skirts_other",
+            groupId: "skirts",
+            name: "その他スカート",
+            sortOrder: 20,
+          },
+        ],
+      },
+    ]);
+    fetchCategoryVisibilitySettingsMock.mockResolvedValueOnce({
+      visibleCategoryIds: [
+        "tops_tshirt_cutsew",
+        "outerwear_jacket",
+        "pants_pants",
+        "skirts_skirt",
+        "skirts_other",
+        "onepiece_dress_onepiece",
+        "allinone_allinone",
+        "roomwear_inner_roomwear",
+        "legwear_socks",
+      ],
+    });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          item: {
+            id: 1,
+            name: "その他スカート編集",
+            status: "active",
+            care_status: null,
+            category: "skirts",
+            subcategory: "other",
+            shape: "other",
+            colors: [],
+            seasons: [],
+            tpos: [],
+            spec: {
+              skirt: {
+                length_type: "midi",
+                material_type: "lace",
+              },
+            },
+            size_gender: null,
+            size_label: null,
+            size_note: null,
+            size_details: {
+              custom_fields: [
+                {
+                  label: "裾幅",
+                  value: { value: 58, min: null, max: null, note: null },
+                  sort_order: 1,
+                },
+              ],
+            },
+            is_rain_ok: false,
+            images: [],
+            materials: [],
+          },
+        }),
+      }),
+    );
+
+    const { default: EditItemPage } = await import("./page");
+
+    act(() => {
+      root.render(
+        React.createElement(EditItemPage, {
+          params: Promise.resolve({ id: "1" }),
+        }),
+      );
+    });
+
+    await act(async () => {
+      await waitForEffects();
+    });
+
+    expect(container.querySelector<HTMLSelectElement>("#category")?.value).toBe(
+      "skirts",
+    );
+    expect(
+      container.querySelector<HTMLSelectElement>("#subcategory")?.value,
+    ).toBe("other");
+    expect(container.querySelector("#shape")).toBeNull();
+    expect(
+      container.querySelector<HTMLSelectElement>("#bottoms-length-type")?.value,
+    ).toBe("midi");
+    expect(
+      container.querySelector<HTMLSelectElement>("#skirt-material-type")?.value,
+    ).toBe("lace");
+
+    const sizeToggle = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent?.includes("実寸を入力"),
+    );
+    expect(sizeToggle).not.toBeUndefined();
+
+    await act(async () => {
+      sizeToggle?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    expect(container.querySelector("#structured-size-waist")).toBeNull();
+    expect(container.textContent).toContain(
+      "現在のカテゴリと形に対応する固定実寸はありません。必要なら自由項目を追加してください。",
+    );
+  });
+
   it("編集画面でも outerwear の種類に応じて shape 候補を絞り込める", async () => {
     const { default: EditItemPage } = await import("./page");
 

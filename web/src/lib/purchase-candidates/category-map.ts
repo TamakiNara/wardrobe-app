@@ -97,7 +97,7 @@ export const PURCHASE_CANDIDATE_ITEM_CATEGORY_MAP = {
   pants_short: { category: "pants", subcategory: "pants", shape: "pants" },
   pants_other: { category: "pants", subcategory: "other", shape: "pants" },
   skirts_skirt: { category: "skirts", subcategory: "skirt", shape: "skirt" },
-  skirts_other: { category: "skirts", subcategory: "other", shape: "other" },
+  skirts_other: { category: "skirts", subcategory: "other", shape: "" },
   onepiece_dress_onepiece: {
     category: "onepiece_dress",
     subcategory: "onepiece",

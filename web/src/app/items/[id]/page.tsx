@@ -118,13 +118,15 @@ export default async function ItemPage({
       item.subcategory,
     ) ?? null;
   const currentShape =
-    resolveCurrentItemShapeValue(item.category, item.shape) ?? item.shape;
+    resolveCurrentItemShapeValue(item.category, item.shape) ?? "";
   const categoryLabel = findItemCategoryLabel(currentCategory);
   const subcategoryLabel = findItemSubcategoryLabel(
     currentCategory,
     currentSubcategory,
   );
-  const shapeLabel = findItemShapeLabel(item.category, item.shape);
+  const shapeLabel = currentShape
+    ? findItemShapeLabel(currentCategory, currentShape)
+    : "";
   const itemImages = item.images ?? [];
   const normalizedSizeDetails = normalizeItemSizeDetails(item.size_details);
   const structuredSizeFieldDefinitions = getStructuredSizeFieldDefinitions(

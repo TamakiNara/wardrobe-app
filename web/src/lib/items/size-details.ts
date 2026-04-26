@@ -72,6 +72,7 @@ const STRUCTURED_SIZE_FIELD_LABELS: Record<StructuredSizeFieldName, string> = {
   hem_width: "裾幅",
   thigh_width: "わたり幅",
   total_length: "総丈",
+  skirt_length: "スカート丈",
 };
 
 const STRUCTURED_SIZE_FIELD_GROUPS = {
@@ -93,7 +94,7 @@ const STRUCTURED_SIZE_FIELD_GROUPS = {
   tshirt: ["shoulder_width", "body_width", "body_length", "sleeve_length"],
   blouse: ["shoulder_width", "body_width", "body_length", "sleeve_length"],
   pants: ["waist", "hip", "rise", "inseam", "hem_width", "thigh_width"],
-  skirt: ["waist", "hip", "total_length"],
+  skirt: ["waist", "hip", "total_length", "skirt_length"],
   onepiece: ["shoulder_width", "body_width", "sleeve_length", "total_length"],
 } satisfies Record<string, StructuredSizeFieldName[]>;
 

@@ -47,7 +47,8 @@ export type StructuredSizeFieldName =
   | "inseam"
   | "hem_width"
   | "thigh_width"
-  | "total_length";
+  | "total_length"
+  | "skirt_length";
 
 export type ItemSizeDetailValue = {
   value?: number | null;

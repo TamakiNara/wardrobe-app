@@ -27,6 +27,7 @@ describe("current item read model", () => {
       "flare",
     );
     expect(resolveCurrentItemShapeValue("skirts", "mermaid")).toBe("mermaid");
+    expect(resolveCurrentItemShapeValue("skirts", "other")).toBeNull();
     expect(resolveCurrentItemShapeValue("skirts", "pleated")).toBe("pleated");
     expect(resolveCurrentItemShapeValue("pants", "slacks")).toBe("pants");
     expect(resolveCurrentItemShapeValue("outer", "down")).toBe("down-padded");
@@ -160,6 +161,9 @@ describe("current item read model", () => {
     );
     expect(resolveVisibleCategoryIdForItem("pants", "", "other")).toBe(
       "pants_other",
+    );
+    expect(resolveVisibleCategoryIdForItem("skirts", "other")).toBe(
+      "skirts_other",
     );
     expect(resolveVisibleCategoryIdForItem("skirts", "", "other")).toBe(
       "skirts_other",

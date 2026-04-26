@@ -66,6 +66,28 @@ vi.mock("@/lib/api/categories", async () => {
 
     expect(container.textContent).toContain("64 BLUE");
   });
+
+  it("items list では skirts / other の raw shape を分類表示に出さない", async () => {
+    const { default: ItemsList } = await import("./items-list");
+
+    await act(async () => {
+      root.render(
+        React.createElement(ItemsList, {
+          ...defaultListProps,
+          items: sampleItems,
+          totalCount: sampleItems.length,
+          totalAllCount: sampleItems.length,
+        }),
+      );
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain("ブラウンフレアスカート");
+    expect(container.textContent).toContain("その他スカート");
+    expect(container.textContent).not.toContain(
+      "スカート / その他スカート / その他",
+    );
+  });
 });
 
 vi.mock("@/lib/api/settings", () => ({
@@ -518,7 +540,7 @@ describe("ItemsList", () => {
     });
   });
 
-  it("URL に season がない場合は初期季節を 1 回だけ query に反映する", async () => {
+  it("ItemsList 単体では initialSeasonFilter だけで query を更新しない", async () => {
     fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
     fetchCategoryVisibilitySettingsMock.mockResolvedValue({
       visibleCategoryIds: ["tops_tshirt_cutsew", "tops_shirt_blouse"],
@@ -536,9 +558,7 @@ describe("ItemsList", () => {
       await waitForEffects();
     });
 
-    expect(replaceMock).toHaveBeenCalledWith("/items?season=%E6%98%A5", {
-      scroll: false,
-    });
+    expect(replaceMock).not.toHaveBeenCalled();
   });
 
   it("URL に season がある場合は初期季節を上書きしない", async () => {
@@ -776,11 +796,18 @@ describe("ItemsList", () => {
         'a[aria-label="ベージュミニスカート / スカート / ベージュ"]',
       ),
     ).not.toBeNull();
-    expect(
-      container.querySelector(
-        'a[aria-label="ブラウンフレアスカート / スカート / ブラウン"]',
-      ),
-    ).not.toBeNull();
+    const otherSkirtLink = Array.from(
+      container.querySelectorAll<HTMLAnchorElement>("a"),
+    ).find((link) => {
+      const ariaLabel = link.getAttribute("aria-label") ?? "";
+      return (
+        ariaLabel.includes("ブラウンフレアスカート") &&
+        ariaLabel.includes("その他スカート") &&
+        ariaLabel.includes("ブラウン") &&
+        !ariaLabel.includes("/ その他 /")
+      );
+    });
+    expect(otherSkirtLink).not.toBeNull();
     expect(topsLink?.className).toContain("focus-visible:ring-2");
     expect(
       container.querySelector('a[aria-label*="処分済みコート"]'),

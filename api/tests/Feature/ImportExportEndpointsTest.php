@@ -527,6 +527,22 @@ class ImportExportEndpointsTest extends TestCase
                     'length_type' => 'midi',
                 ],
             ],
+            'size_details' => [
+                'structured' => [
+                    'total_length' => [
+                        'value' => 89,
+                        'min' => null,
+                        'max' => null,
+                        'note' => '総丈',
+                    ],
+                    'skirt_length' => [
+                        'value' => 83.5,
+                        'min' => null,
+                        'max' => null,
+                        'note' => null,
+                    ],
+                ],
+            ],
         ]);
 
         $this->actingAs($user, 'web');
@@ -537,6 +553,8 @@ class ImportExportEndpointsTest extends TestCase
 
         $this->assertSame('midi', data_get($exportPayload, 'items.0.spec.skirt.length_type'));
         $this->assertNull(data_get($exportPayload, 'items.0.spec.bottoms.length_type'));
+        $this->assertSame(89, data_get($exportPayload, 'items.0.size_details.structured.total_length.value'));
+        $this->assertSame(83.5, data_get($exportPayload, 'items.0.size_details.structured.skirt_length.value'));
 
         $importPayload = [
             'version' => $exportPayload['version'],
@@ -564,6 +582,8 @@ class ImportExportEndpointsTest extends TestCase
 
         $this->assertSame('midi', data_get($importedItem->spec, 'skirt.length_type'));
         $this->assertNull(data_get($importedItem->spec, 'bottoms.length_type'));
+        $this->assertSame(89, data_get($importedItem->size_details, 'structured.total_length.value'));
+        $this->assertSame(83.5, data_get($importedItem->size_details, 'structured.skirt_length.value'));
     }
 
     public function test_export_import_roundtrip_allows_legacy_bottoms_without_length_spec(): void

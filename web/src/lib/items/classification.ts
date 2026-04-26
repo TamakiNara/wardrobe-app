@@ -113,7 +113,10 @@ export function resolveItemClassification(
       return inputShape;
     }
 
-    if (category === "tops" && subcategory === "other") {
+    if (
+      (category === "tops" && subcategory === "other") ||
+      (category === "skirts" && subcategory === "other")
+    ) {
       return "";
     }
 
