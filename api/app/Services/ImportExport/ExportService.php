@@ -117,6 +117,7 @@ class ExportService
             'priority' => $candidate->priority,
             'name' => $candidate->name,
             'category_id' => $candidate->category_id,
+            'shape' => $candidate->shape,
             'brand_name' => $candidate->brand_name,
             'price' => $candidate->price,
             'release_date' => $candidate->release_date?->toDateString(),

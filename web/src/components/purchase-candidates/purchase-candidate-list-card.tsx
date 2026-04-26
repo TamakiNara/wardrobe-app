@@ -4,6 +4,9 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 import SafeImage from "@/components/images/safe-image";
+import { resolvePurchaseCandidateItemClassification } from "@/lib/items/classification";
+import { findItemShapeLabel } from "@/lib/master-data/item-shapes";
+import { findItemSubcategoryLabel } from "@/lib/master-data/item-subcategories";
 import {
   PURCHASE_CANDIDATE_PRIORITY_LABELS,
   PURCHASE_CANDIDATE_STATUS_LABELS,
@@ -54,6 +57,26 @@ function resolveVariantHex(candidate: PurchaseCandidateListItem): string {
   const mainColor = candidate.colors.find((color) => color.role === "main");
 
   return mainColor?.hex ?? "#E5E7EB";
+}
+
+function resolveCandidateClassificationLabel(
+  candidate: PurchaseCandidateListItem,
+): string {
+  const resolved = resolvePurchaseCandidateItemClassification(
+    candidate.category_id,
+    candidate.shape,
+  );
+  const subcategoryLabel = findItemSubcategoryLabel(
+    resolved?.category,
+    resolved?.subcategory,
+  );
+  const shapeLabel = findItemShapeLabel(resolved?.category, resolved?.shape);
+
+  if (subcategoryLabel && shapeLabel && shapeLabel !== subcategoryLabel) {
+    return `${subcategoryLabel} / ${shapeLabel}`;
+  }
+
+  return subcategoryLabel || candidate.category_name || candidate.category_id;
 }
 
 function resolveCandidateImages(
@@ -113,6 +136,8 @@ export default function PurchaseCandidateListCard({
     (color) => color.role === "main",
   );
   const selectedMainColorCustomLabel = selectedMainColor?.custom_label?.trim();
+  const classificationLabel =
+    resolveCandidateClassificationLabel(selectedCandidate);
   const showPreviousImage = () => {
     setSelectedImageState({
       candidateId: selectedCandidate.id,
@@ -281,9 +306,7 @@ export default function PurchaseCandidateListCard({
             <h2 className="text-[15px] font-semibold leading-6 text-gray-900">
               {selectedCandidate.name}
             </h2>
-            <p className="mt-1 text-sm text-gray-500">
-              {selectedCandidate.category_name ?? selectedCandidate.category_id}
-            </p>
+            <p className="mt-1 text-sm text-gray-500">{classificationLabel}</p>
             <p className="mt-0.5 text-sm text-gray-500">
               {selectedCandidate.brand_name || "ブランド未設定"}
             </p>

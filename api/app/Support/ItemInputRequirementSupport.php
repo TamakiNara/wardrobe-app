@@ -7,6 +7,19 @@ use Illuminate\Validation\ValidationException;
 class ItemInputRequirementSupport
 {
     private const SHAPE_OPTIONS_BY_SUBCATEGORY = [
+        'tops' => [
+            'tshirt_cutsew' => ['tshirt'],
+            'shirt_blouse' => ['shirt', 'blouse'],
+            'knit_sweater' => ['knit'],
+            'cardigan' => ['cardigan'],
+            'polo_shirt' => ['polo'],
+            'sweat_trainer' => ['sweatshirt'],
+            'hoodie' => ['hoodie'],
+            'vest_gilet' => ['vest'],
+            'camisole' => ['camisole'],
+            'tanktop' => ['tanktop'],
+            'other' => [],
+        ],
         'pants' => [
             'pants' => ['straight', 'tapered', 'wide', 'culottes', 'jogger', 'skinny', 'gaucho'],
             'denim' => ['straight', 'tapered', 'wide', 'culottes', 'jogger', 'skinny', 'gaucho'],

@@ -549,4 +549,27 @@ describe("PurchaseCandidateListCard", () => {
       container.querySelector('img[src="https://example.test/blue-front.png"]'),
     ).not.toBeNull();
   });
+
+  it("複数 shape があるカテゴリでは分類表示に shape を含める", async () => {
+    const { default: PurchaseCandidateListCard } =
+      await import("./purchase-candidate-list-card");
+
+    await act(async () => {
+      root.render(
+        React.createElement(PurchaseCandidateListCard, {
+          candidates: [
+            buildCandidate({
+              id: 50,
+              category_id: "skirts_skirt",
+              category_name: "スカート",
+              shape: "narrow",
+              name: "ナロースカート候補",
+            }),
+          ],
+        }),
+      );
+    });
+
+    expect(container.textContent).toContain("スカート / ナロー");
+  });
 });

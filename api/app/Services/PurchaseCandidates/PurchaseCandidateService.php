@@ -8,6 +8,7 @@ use App\Models\PurchaseCandidateGroup;
 use App\Models\PurchaseCandidateImage;
 use App\Models\User;
 use App\Services\Brands\UserBrandService;
+use App\Support\ItemInputRequirementSupport;
 use App\Support\ItemSpecNormalizer;
 use App\Support\PurchaseCandidateCategoryMap;
 use App\Support\PurchaseCandidateGroupSupport;
@@ -41,6 +42,10 @@ class PurchaseCandidateService
                     'priority' => $validated['priority'] ?? 'medium',
                     'name' => $validated['name'],
                     'category_id' => $validated['category_id'],
+                    'shape' => PurchaseCandidateCategoryMap::normalizeSavedShape(
+                        $validated['category_id'],
+                        $validated['shape'] ?? null,
+                    ),
                     'brand_name' => $validated['brand_name'] ?? null,
                     'price' => $validated['price'] ?? null,
                     'release_date' => $validated['release_date'] ?? null,
@@ -109,6 +114,10 @@ class PurchaseCandidateService
                 'priority' => $validated['priority'] ?? 'medium',
                 'name' => $validated['name'],
                 'category_id' => $validated['category_id'],
+                'shape' => PurchaseCandidateCategoryMap::normalizeSavedShape(
+                    $validated['category_id'],
+                    $validated['shape'] ?? null,
+                ),
                 'brand_name' => $validated['brand_name'] ?? null,
                 'price' => $validated['price'] ?? null,
                 'release_date' => $validated['release_date'] ?? null,
@@ -323,9 +332,28 @@ class PurchaseCandidateService
             ]);
         }
 
-        if (PurchaseCandidateCategoryMap::resolveItemDraftCategory($validated['category_id']) === null) {
+        $resolvedCategory = PurchaseCandidateCategoryMap::resolveItemDraftCategory(
+            $validated['category_id'],
+            $validated['shape'] ?? null,
+        );
+
+        if ($resolvedCategory === null) {
             throw ValidationException::withMessages([
                 'category_id' => 'このカテゴリはまだ購入候補に対応していません。',
+            ]);
+        }
+
+        $requestedShape = ItemInputRequirementSupport::normalizeShape(
+            $validated['shape'] ?? null,
+        );
+        $normalizedShape = PurchaseCandidateCategoryMap::normalizeSavedShape(
+            $validated['category_id'],
+            $validated['shape'] ?? null,
+        );
+
+        if ($requestedShape !== null && $normalizedShape === null) {
+            throw ValidationException::withMessages([
+                'shape' => '形の選択がカテゴリと一致していません。',
             ]);
         }
     }
@@ -336,7 +364,10 @@ class PurchaseCandidateService
             return null;
         }
 
-        $resolvedCategory = PurchaseCandidateCategoryMap::resolveItemDraftCategory($validated['category_id']);
+        $resolvedCategory = PurchaseCandidateCategoryMap::resolveItemDraftCategory(
+            $validated['category_id'],
+            $validated['shape'] ?? null,
+        );
         $itemCategory = $resolvedCategory['category'] ?? null;
 
         if (! in_array($itemCategory, ['tops', 'pants', 'skirts', 'legwear'], true)) {

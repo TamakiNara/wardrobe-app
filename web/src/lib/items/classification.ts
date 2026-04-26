@@ -144,6 +144,7 @@ export function resolveItemClassification(
 
 export function resolvePurchaseCandidateItemClassification(
   categoryId?: string | null,
+  shapeOverride?: string | null,
 ) {
   if (!categoryId) {
     return null;
@@ -158,5 +159,11 @@ export function resolvePurchaseCandidateItemClassification(
     return null;
   }
 
-  return resolveItemClassification(resolvedCategory);
+  return resolveItemClassification({
+    ...resolvedCategory,
+    shape:
+      typeof shapeOverride === "string"
+        ? shapeOverride
+        : resolvedCategory.shape,
+  });
 }

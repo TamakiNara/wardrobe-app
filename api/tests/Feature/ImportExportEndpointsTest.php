@@ -159,6 +159,7 @@ class ImportExportEndpointsTest extends TestCase
             'priority' => 'high',
             'name' => '購入候補シャツ',
             'category_id' => 'tops_shirt_blouse',
+            'shape' => 'blouse',
             'brand_name' => 'Candidate Brand',
             'price' => 12800,
             'release_date' => '2026-04-20',
@@ -280,6 +281,7 @@ class ImportExportEndpointsTest extends TestCase
             ->assertJsonPath('items.0.name', '白シャツ')
             ->assertJsonPath('items.0.sheerness', 'slight')
             ->assertJsonPath('purchase_candidates.0.sheerness', 'slight')
+            ->assertJsonPath('purchase_candidates.0.shape', 'blouse')
             ->assertJsonPath('purchase_candidates.0.name', '購入候補シャツ')
             ->assertJsonPath('outfits.0.name', '通勤コーデ')
             ->assertJsonPath('items.0.colors.0.custom_label', '00 WHITE')
@@ -381,6 +383,7 @@ class ImportExportEndpointsTest extends TestCase
         $this->assertSame('long', data_get($importedItem->spec, 'tops.sleeve'));
         $this->assertSame('00 WHITE', data_get($importedItem->colors, '0.custom_label'));
         $this->assertSame('slight', $importedCandidate->sheerness);
+        $this->assertSame('blouse', $importedCandidate->shape);
         $this->assertSame('麻', $importedCandidate->materials->first()?->material_name);
         $this->assertSame($importedItem->id, $importedCandidate->converted_item_id);
         $this->assertSame($importedItem->id, $importedOutfit->outfitItems->first()?->item_id);

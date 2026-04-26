@@ -101,6 +101,7 @@ describe("購入検討詳細画面", () => {
           priority: "medium",
           name: "ネイビーコート",
           category_id: "outerwear_coat",
+          shape: "trench",
           category_name: "コート",
           brand_name: "Brand",
           price: 14800,
@@ -228,6 +229,8 @@ describe("購入検討詳細画面", () => {
     );
     expect(markup).toContain('class="hidden md:block" aria-hidden="true"');
     expect(markup).toContain("コート");
+    expect(markup).toContain("形");
+    expect(markup).toContain("トレンチ");
     expect(markup).toContain("レディース");
     expect(markup).toContain("理由");
     expect(markup).toContain("厚手対応");

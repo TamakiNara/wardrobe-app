@@ -114,7 +114,7 @@ class PurchaseCandidateCategoryMap
         'accessories_other' => ['category' => 'fashion_accessories', 'subcategory' => 'other'],
     ];
 
-    public static function resolveItemDraftCategory(string $categoryId): ?array
+    public static function normalizeSavedShape(string $categoryId, mixed $shapeOverride): ?string
     {
         $resolved = self::MAP[$categoryId] ?? null;
 
@@ -124,7 +124,34 @@ class PurchaseCandidateCategoryMap
 
         $category = is_string($resolved['category'] ?? null) ? $resolved['category'] : null;
         $subcategory = ItemSubcategorySupport::normalize($category, $resolved['subcategory'] ?? null);
-        $explicitShape = ItemInputRequirementSupport::normalizeShape($resolved['shape'] ?? null);
+        $normalizedShape = ItemInputRequirementSupport::normalizeShape($shapeOverride);
+
+        if ($normalizedShape === null) {
+            return null;
+        }
+
+        $shapeOptions = ItemInputRequirementSupport::shapeOptionsFor($category, $subcategory);
+
+        if (count($shapeOptions) <= 1) {
+            return null;
+        }
+
+        return in_array($normalizedShape, $shapeOptions, true) ? $normalizedShape : null;
+    }
+
+    public static function resolveItemDraftCategory(string $categoryId, mixed $shapeOverride = null): ?array
+    {
+        $resolved = self::MAP[$categoryId] ?? null;
+
+        if (! is_array($resolved)) {
+            return null;
+        }
+
+        $category = is_string($resolved['category'] ?? null) ? $resolved['category'] : null;
+        $subcategory = ItemSubcategorySupport::normalize($category, $resolved['subcategory'] ?? null);
+        $shapeOverride = self::normalizeSavedShape($categoryId, $shapeOverride);
+        $explicitShape = $shapeOverride
+            ?? ItemInputRequirementSupport::normalizeShape($resolved['shape'] ?? null);
         $shape = (
             ($category === 'tops' && $subcategory === 'other') ||
             ($category === 'skirts' && $subcategory === 'other')

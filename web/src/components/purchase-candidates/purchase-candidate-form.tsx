@@ -70,6 +70,7 @@ import {
   resolveCustomColorHex,
   type ItemColorValue,
 } from "@/lib/master-data/item-colors";
+import { findItemShapeLabel } from "@/lib/master-data/item-shapes";
 import {
   buildEditableItemMaterials,
   createEmptyItemMaterialRow,
@@ -166,10 +167,13 @@ type PurchaseCandidateSpecFormState = {
 
 function resolvePurchaseCandidateSpecFormState(
   categoryId: string,
+  shapeOverride?: string | null,
   spec?: ItemSpec | null,
 ): PurchaseCandidateSpecFormState {
-  const resolvedCategory =
-    resolvePurchaseCandidateItemClassification(categoryId);
+  const resolvedCategory = resolvePurchaseCandidateItemClassification(
+    categoryId,
+    shapeOverride,
+  );
 
   return {
     topsSleeve: (spec?.tops?.sleeve as TopsSleeveValue | undefined) ?? "",
@@ -341,6 +345,7 @@ export default function PurchaseCandidateForm({
   const [name, setName] = useState("");
   const [categoryGroupId, setCategoryGroupId] = useState("");
   const [categoryId, setCategoryId] = useState("");
+  const [shape, setShape] = useState("");
   const [variantSourceCandidateId, setVariantSourceCandidateId] = useState<
     number | null
   >(null);
@@ -459,8 +464,17 @@ export default function PurchaseCandidateForm({
     [categoryGroupId, categoryOptions],
   );
   const resolvedItemCategory = useMemo(
-    () => resolvePurchaseCandidateItemClassification(categoryId),
-    [categoryId],
+    () => resolvePurchaseCandidateItemClassification(categoryId, shape),
+    [categoryId, shape],
+  );
+  const availableShapeOptions = useMemo(
+    () =>
+      resolvedItemCategory?.shapeCandidates.map((value) => ({
+        value,
+        label:
+          findItemShapeLabel(resolvedItemCategory.category, value) || value,
+      })) ?? [],
+    [resolvedItemCategory],
   );
   const resolvedTopsShape = useMemo(() => {
     return resolvedItemCategory?.category === "tops"
@@ -612,9 +626,14 @@ export default function PurchaseCandidateForm({
     setLegwearCoverageType("");
   }
 
-  function applySpecFormState(categoryIdValue: string, spec?: ItemSpec | null) {
+  function applySpecFormState(
+    categoryIdValue: string,
+    shapeValue?: string | null,
+    spec?: ItemSpec | null,
+  ) {
     const nextState = resolvePurchaseCandidateSpecFormState(
       categoryIdValue,
+      shapeValue,
       spec,
     );
     setTopsSleeve(nextState.topsSleeve);
@@ -682,6 +701,7 @@ export default function PurchaseCandidateForm({
             resolveCategoryGroupId(candidate.category_id, nextCategoryOptions),
           );
           setCategoryId(candidate.category_id);
+          setShape(candidate.shape ?? "");
           setVariantSourceCandidateId(null);
           setBrandName(candidate.brand_name ?? "");
           setSaveBrandAsCandidate(false);
@@ -749,7 +769,11 @@ export default function PurchaseCandidateForm({
           setMaterialRows(buildEditableItemMaterials(candidate.materials));
           setExistingImages(candidate.images);
           setDuplicateImages([]);
-          applySpecFormState(candidate.category_id, candidate.spec);
+          applySpecFormState(
+            candidate.category_id,
+            candidate.shape,
+            candidate.spec,
+          );
         }
       } catch {
         setLoadError("購入検討フォームの初期化に失敗しました。");
@@ -820,6 +844,7 @@ export default function PurchaseCandidateForm({
       resolveCategoryGroupId(payload.category_id, categoryOptions),
     );
     setCategoryId(payload.category_id);
+    setShape(payload.shape ?? "");
     setVariantSourceCandidateId(
       isColorVariantSource
         ? (payload.variant_source_candidate_id ?? null)
@@ -888,7 +913,7 @@ export default function PurchaseCandidateForm({
     setExistingImages(payload.images);
     setDuplicateImages(payload.images);
     setPendingImages([]);
-    applySpecFormState(payload.category_id, payload.spec);
+    applySpecFormState(payload.category_id, payload.shape, payload.spec);
     setErrors({});
     setInitializationSuccess(
       isColorVariantSource
@@ -1049,6 +1074,7 @@ export default function PurchaseCandidateForm({
       priority,
       name: name.trim(),
       category_id: categoryId,
+      shape: resolvedItemCategory?.shouldShowShapeField ? shape || null : null,
       variant_source_candidate_id:
         mode === "create" ? variantSourceCandidateId : undefined,
       spec: (() => {
@@ -1167,6 +1193,14 @@ export default function PurchaseCandidateForm({
 
     if (!isPurchasedLocked && !categoryId) {
       nextErrors.category_id = "種類を選択してください。";
+    }
+
+    if (
+      !isPurchasedLocked &&
+      resolvedItemCategory?.shouldShowShapeField &&
+      !shape
+    ) {
+      nextErrors.shape = "形を選択してください。";
     }
 
     if (!isPurchasedLocked && !selectedMainColor) {
@@ -1476,6 +1510,7 @@ export default function PurchaseCandidateForm({
                 const nextGroupId = event.target.value;
                 setCategoryGroupId(nextGroupId);
                 setCategoryId("");
+                setShape("");
                 resetSpecFormState();
               }}
               disabled={isPurchasedLocked}
@@ -1500,6 +1535,7 @@ export default function PurchaseCandidateForm({
                 value={categoryId}
                 onChange={(event) => {
                   setCategoryId(event.target.value);
+                  setShape("");
                   resetSpecFormState();
                 }}
                 disabled={isPurchasedLocked}
@@ -1519,6 +1555,32 @@ export default function PurchaseCandidateForm({
                 <p className="mt-2 text-sm text-red-600">
                   {errors.category_id}
                 </p>
+              )}
+            </div>
+          ) : null}
+
+          {resolvedItemCategory?.shouldShowShapeField ? (
+            <div>
+              <FieldLabel htmlFor="shape" label="形" required />
+              <select
+                id="shape"
+                value={shape}
+                onChange={(event) => setShape(event.target.value)}
+                disabled={isPurchasedLocked}
+                className={getFormControlClassName({
+                  invalid: Boolean(errors.shape),
+                  disabled: isPurchasedLocked,
+                })}
+              >
+                <option value="">選択してください</option>
+                {availableShapeOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              {errors.shape && (
+                <p className="mt-2 text-sm text-red-600">{errors.shape}</p>
               )}
             </div>
           ) : null}

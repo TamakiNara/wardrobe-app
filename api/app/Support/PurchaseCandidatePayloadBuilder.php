@@ -9,6 +9,14 @@ use Illuminate\Support\Facades\Storage;
 
 class PurchaseCandidatePayloadBuilder
 {
+    private static function resolveItemClassification(PurchaseCandidate $candidate): ?array
+    {
+        return PurchaseCandidateCategoryMap::resolveItemDraftCategory(
+            $candidate->category_id,
+            $candidate->shape,
+        );
+    }
+
     public static function buildListItem(PurchaseCandidate $candidate): array
     {
         $candidate->loadMissing(['category', 'images', 'colors']);
@@ -21,6 +29,7 @@ class PurchaseCandidatePayloadBuilder
             'priority' => $candidate->priority,
             'name' => $candidate->name,
             'category_id' => $candidate->category_id,
+            'shape' => $candidate->shape,
             'category_name' => $candidate->category?->name,
             'brand_name' => $candidate->brand_name,
             'price' => $candidate->price,
@@ -59,6 +68,7 @@ class PurchaseCandidatePayloadBuilder
             'priority' => $candidate->priority,
             'name' => $candidate->name,
             'category_id' => $candidate->category_id,
+            'shape' => $candidate->shape,
             'category_name' => $candidate->category?->name,
             'brand_name' => $candidate->brand_name,
             'price' => $candidate->price,
@@ -119,7 +129,7 @@ class PurchaseCandidatePayloadBuilder
     {
         $candidate->loadMissing(['colors', 'seasons', 'tpos', 'images', 'materials']);
 
-        $resolvedCategory = PurchaseCandidateCategoryMap::resolveItemDraftCategory($candidate->category_id);
+        $resolvedCategory = self::resolveItemClassification($candidate);
 
         if ($resolvedCategory === null) {
             return [];
@@ -185,6 +195,7 @@ class PurchaseCandidatePayloadBuilder
             'priority' => $candidate->priority,
             'name' => $duplicatedName,
             'category_id' => $candidate->category_id,
+            'shape' => $candidate->shape,
             'brand_name' => $candidate->brand_name,
             'price' => $candidate->price,
             'release_date' => $candidate->release_date?->toDateString(),
@@ -269,7 +280,7 @@ class PurchaseCandidatePayloadBuilder
 
     private static function buildScopedSpec(PurchaseCandidate $candidate): ?array
     {
-        $resolvedCategory = PurchaseCandidateCategoryMap::resolveItemDraftCategory($candidate->category_id);
+        $resolvedCategory = self::resolveItemClassification($candidate);
         $itemCategory = $resolvedCategory['category'] ?? null;
 
         if (! in_array($itemCategory, ['tops', 'pants', 'skirts', 'legwear'], true)) {

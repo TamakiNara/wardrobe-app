@@ -254,6 +254,7 @@ export default async function PurchaseCandidateDetailPage({
   const candidate = await getPurchaseCandidate(id);
   const resolvedItemCategory = resolvePurchaseCandidateItemClassification(
     candidate.category_id,
+    candidate.shape,
   );
   const topsSpec = buildTopsSpecLabels(candidate.spec?.tops);
   const categoryLabel = findItemCategoryLabel(resolvedItemCategory?.category);

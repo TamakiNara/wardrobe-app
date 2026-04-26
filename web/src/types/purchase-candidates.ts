@@ -55,6 +55,7 @@ export type PurchaseCandidateListItem = {
   priority: PurchaseCandidatePriority;
   name: string;
   category_id: string;
+  shape?: string | null;
   category_name: string | null;
   brand_name: string | null;
   price: number | null;
@@ -79,6 +80,7 @@ export type PurchaseCandidateRecord = {
   priority: PurchaseCandidatePriority;
   name: string;
   category_id: string;
+  shape?: string | null;
   category_name: string | null;
   brand_name: string | null;
   price: number | null;
@@ -145,6 +147,7 @@ export type PurchaseCandidateUpsertPayload = {
   priority: PurchaseCandidatePriority;
   name: string;
   category_id: string;
+  shape?: string | null;
   variant_source_candidate_id?: number | null;
   brand_name: string | null;
   save_brand_as_candidate?: boolean;

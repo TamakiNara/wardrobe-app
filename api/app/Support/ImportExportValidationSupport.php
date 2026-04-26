@@ -73,6 +73,7 @@ class ImportExportValidationSupport
             'priority' => ['nullable', 'string', 'in:high,medium,low'],
             'name' => ['required', 'string', 'max:255'],
             'category_id' => ['required', 'string', 'exists:category_master,id'],
+            'shape' => ['nullable', 'string', 'max:100'],
             'brand_name' => ['nullable', 'string', 'max:255'],
             'price' => ['nullable', 'integer', 'min:0'],
             'release_date' => ['nullable', 'date'],
@@ -131,6 +132,31 @@ class ImportExportValidationSupport
         ] + SizeDetailSupport::validationRules())->validate();
 
         ItemMaterialValidator::validate($validated);
+
+        $resolvedCategory = PurchaseCandidateCategoryMap::resolveItemDraftCategory(
+            $validated['category_id'],
+            $validated['shape'] ?? null,
+        );
+
+        if ($resolvedCategory === null) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'category_id' => 'このカテゴリはまだ購入候補に対応していません。',
+            ]);
+        }
+
+        $requestedShape = ItemInputRequirementSupport::normalizeShape(
+            $validated['shape'] ?? null,
+        );
+        $normalizedShape = PurchaseCandidateCategoryMap::normalizeSavedShape(
+            $validated['category_id'],
+            $validated['shape'] ?? null,
+        );
+
+        if ($requestedShape !== null && $normalizedShape === null) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'shape' => '形の選択がカテゴリと一致していません。',
+            ]);
+        }
 
         return $validated;
     }

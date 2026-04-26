@@ -66,6 +66,10 @@ describe("購入検討フォーム", () => {
     });
   }
 
+  function getShapeSelect() {
+    return container.querySelector<HTMLSelectElement>("#shape");
+  }
+
   beforeEach(() => {
     vi.clearAllMocks();
     globalThis.IS_REACT_ACT_ENVIRONMENT = true;
@@ -82,6 +86,12 @@ describe("購入検討フォーム", () => {
         name: "ジャケット・アウター",
         sortOrder: 10,
         categories: [
+          {
+            id: "outerwear_jacket",
+            groupId: "outerwear",
+            name: "ジャケット",
+            sortOrder: 5,
+          },
           {
             id: "outerwear_coat",
             groupId: "outerwear",
@@ -193,6 +203,7 @@ describe("購入検討フォーム", () => {
     ]);
     fetchCategoryVisibilitySettingsMock.mockResolvedValue({
       visibleCategoryIds: [
+        "outerwear_jacket",
         "outerwear_coat",
         "tops_tshirt_cutsew",
         "tops_shirt_blouse",
@@ -437,12 +448,118 @@ describe("購入検討フォーム", () => {
 
     await setCategorySelection("skirts", "skirts_skirt");
 
+    expect(getShapeSelect()).not.toBeNull();
     expect(container.querySelector("#spec-skirt-length-type")).not.toBeNull();
     expect(container.querySelector("#spec-skirt-material-type")).not.toBeNull();
     expect(container.querySelector("#spec-skirt-design-type")).not.toBeNull();
     expect(container.querySelector("#spec-tops-shape")).toBeNull();
     expect(container.querySelector("#spec-bottoms-length-type")).toBeNull();
     expect(container.querySelector("#spec-legwear-coverage-type")).toBeNull();
+  });
+
+  it("skirts / skirt では narrow を選べる", async () => {
+    await renderForm();
+
+    await setCategorySelection("skirts", "skirts_skirt");
+
+    const shapeSelect = getShapeSelect();
+    expect(shapeSelect).not.toBeNull();
+    expect(
+      Array.from(shapeSelect!.options).map((option) => option.value),
+    ).toEqual(
+      expect.arrayContaining(["tight", "flare", "a_line", "narrow", "mermaid"]),
+    );
+
+    await act(async () => {
+      shapeSelect!.value = "narrow";
+      shapeSelect!.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+
+    expect(shapeSelect?.value).toBe("narrow");
+  });
+
+  it("outerwear / jacket では blazer を選べる", async () => {
+    await renderForm();
+
+    await setCategorySelection("outerwear", "outerwear_jacket");
+
+    const shapeSelect = getShapeSelect();
+    expect(shapeSelect).not.toBeNull();
+    expect(
+      Array.from(shapeSelect!.options).map((option) => option.value),
+    ).toEqual(
+      expect.arrayContaining(["jacket", "tailored", "no_collar", "blazer"]),
+    );
+  });
+
+  it("outerwear / coat では trench と chester を選べる", async () => {
+    await renderForm();
+
+    await setCategorySelection("outerwear", "outerwear_coat");
+
+    const shapeSelect = getShapeSelect();
+    expect(shapeSelect).not.toBeNull();
+    expect(
+      Array.from(shapeSelect!.options).map((option) => option.value),
+    ).toEqual(
+      expect.arrayContaining(["coat", "trench", "chester", "stainless"]),
+    );
+  });
+
+  it("pants では tapered と wide を選べる", async () => {
+    await renderForm();
+
+    await setCategorySelection("pants", "pants_pants");
+
+    const shapeSelect = getShapeSelect();
+    expect(shapeSelect).not.toBeNull();
+    expect(
+      Array.from(shapeSelect!.options).map((option) => option.value),
+    ).toEqual(
+      expect.arrayContaining([
+        "straight",
+        "tapered",
+        "wide",
+        "culottes",
+        "jogger",
+        "skinny",
+        "gaucho",
+      ]),
+    );
+  });
+
+  it("tops / shirt_blouse では shirt と blouse を選べる", async () => {
+    await renderForm();
+
+    await setCategorySelection("tops", "tops_shirt_blouse");
+
+    const shapeSelect = getShapeSelect();
+    expect(shapeSelect).not.toBeNull();
+    expect(
+      Array.from(shapeSelect!.options).map((option) => option.value),
+    ).toEqual(expect.arrayContaining(["shirt", "blouse"]));
+  });
+
+  it("カテゴリ変更時に shape をリセットする", async () => {
+    await renderForm();
+
+    await setCategorySelection("skirts", "skirts_skirt");
+
+    const initialShapeSelect = getShapeSelect();
+    expect(initialShapeSelect).not.toBeNull();
+
+    await act(async () => {
+      initialShapeSelect!.value = "narrow";
+      initialShapeSelect!.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+
+    expect(initialShapeSelect?.value).toBe("narrow");
+
+    await setCategorySelection("tops", "tops_shirt_blouse");
+
+    const updatedShapeSelect = getShapeSelect();
+    expect(updatedShapeSelect).not.toBeNull();
+    expect(updatedShapeSelect?.value).toBe("");
   });
 
   it("spec セクションをカテゴリ選択の直後に表示する", async () => {
@@ -733,6 +850,7 @@ describe("購入検討フォーム", () => {
     await act(async () => {
       setNativeValue(nameInput, "ブランド候補追加テスト");
       await setCategorySelection("outerwear", "outerwear_coat");
+      setNativeValue(getShapeSelect() as HTMLSelectElement, "trench");
       setNativeValue(brandNameInput, "UNIQLO");
       setNativeValue(sheernessSelect, "slight");
       saveBrandCheckbox!.click();
@@ -1196,6 +1314,7 @@ describe("購入検討フォーム", () => {
         priority: "high",
         name: "春ブラウス",
         category_id: "tops_shirt_blouse",
+        shape: "blouse",
         spec: {
           tops: {
             sleeve: "short",
@@ -1262,6 +1381,7 @@ describe("購入検討フォーム", () => {
     );
     expect(getCategoryGroupSelect().value).toBe("tops");
     expect(getCategorySelect().value).toBe("tops_shirt_blouse");
+    expect(getShapeSelect()?.value).toBe("blouse");
     expect(container.querySelector("#spec-tops-shape")).toBeNull();
     expect(
       container.querySelector<HTMLSelectElement>("#spec-tops-sleeve")?.value,
@@ -1313,6 +1433,7 @@ describe("購入検討フォーム", () => {
         priority: "high",
         name: "春ブラウス",
         category_id: "tops_shirt_blouse",
+        shape: "blouse",
         variant_source_candidate_id: 10,
         spec: {
           tops: {
@@ -1345,6 +1466,7 @@ describe("購入検討フォーム", () => {
 
     expect(getCategoryGroupSelect().value).toBe("tops");
     expect(getCategorySelect().value).toBe("tops_shirt_blouse");
+    expect(getShapeSelect()?.value).toBe("blouse");
     expect(container.querySelector("#spec-tops-shape")).toBeNull();
     expect(
       container.querySelector<HTMLSelectElement>("#spec-tops-sleeve")?.value,
@@ -1620,6 +1742,7 @@ describe("購入検討フォーム", () => {
     await act(async () => {
       setNativeValue(nameInput, "Sample Candidate");
       await setCategorySelection("outerwear", "outerwear_coat");
+      setNativeValue(getShapeSelect() as HTMLSelectElement, "trench");
       checkboxes[1]?.click();
     });
 
@@ -1657,6 +1780,7 @@ describe("購入検討フォーム", () => {
     await act(async () => {
       setNativeValue(nameInput, "Sample Candidate");
       await setCategorySelection("outerwear", "outerwear_coat");
+      setNativeValue(getShapeSelect() as HTMLSelectElement, "trench");
       checkboxes[1]?.click();
     });
 
@@ -1704,6 +1828,7 @@ describe("購入検討フォーム", () => {
     await act(async () => {
       setNativeValue(nameInput, "Image Candidate");
       await setCategorySelection("outerwear", "outerwear_coat");
+      setNativeValue(getShapeSelect() as HTMLSelectElement, "trench");
       checkboxes[1]?.click();
       Object.defineProperty(fileInput, "files", {
         value: [new File(["image"], "sample.png", { type: "image/png" })],
@@ -1873,6 +1998,7 @@ describe("購入検討フォーム", () => {
     await act(async () => {
       setNativeValue(nameInput, "プリーツスカート候補");
       await setCategorySelection("skirts", "skirts_skirt");
+      setNativeValue(getShapeSelect() as HTMLSelectElement, "narrow");
       customMainCheckbox.click();
       form.dispatchEvent(
         new Event("submit", { bubbles: true, cancelable: true }),
@@ -1909,6 +2035,7 @@ describe("購入検討フォーム", () => {
     await act(async () => {
       setNativeValue(nameInput, "プリーツスカート候補");
       await setCategorySelection("skirts", "skirts_skirt");
+      setNativeValue(getShapeSelect() as HTMLSelectElement, "narrow");
       customMainCheckbox.click();
       setNativeValue(
         container.querySelector("#spec-skirt-length-type") as HTMLSelectElement,
@@ -1951,6 +2078,7 @@ describe("購入検討フォーム", () => {
         priority: "high",
         name: "プリーツスカート",
         category_id: "skirts_skirt",
+        shape: "narrow",
         spec: {
           skirt: {
             length_type: "midi",
@@ -1982,6 +2110,7 @@ describe("購入検討フォーム", () => {
 
     expect(getCategoryGroupSelect().value).toBe("skirts");
     expect(getCategorySelect().value).toBe("skirts_skirt");
+    expect(getShapeSelect()?.value).toBe("narrow");
     expect(container.querySelector("#spec-tops-shape")).toBeNull();
     expect(
       container.querySelector<HTMLSelectElement>("#spec-skirt-length-type")
@@ -2006,6 +2135,7 @@ describe("購入検討フォーム", () => {
         priority: "high",
         name: "プリーツスカート",
         category_id: "skirts_skirt",
+        shape: "narrow",
         variant_source_candidate_id: 10,
         spec: {
           skirt: {
@@ -2038,6 +2168,7 @@ describe("購入検討フォーム", () => {
 
     expect(getCategoryGroupSelect().value).toBe("skirts");
     expect(getCategorySelect().value).toBe("skirts_skirt");
+    expect(getShapeSelect()?.value).toBe("narrow");
     expect(container.querySelector("#spec-tops-shape")).toBeNull();
     expect(
       container.querySelector<HTMLSelectElement>("#spec-skirt-length-type")
@@ -2073,6 +2204,7 @@ describe("購入検討フォーム", () => {
     await renderForm();
 
     await setCategorySelection("skirts", "skirts_skirt");
+    setNativeValue(getShapeSelect() as HTMLSelectElement, "narrow");
     await openSizeDetails();
 
     expect(

@@ -3797,6 +3797,11 @@ components:
         category_id:
           type: string
           example: outer_coat
+        shape:
+          type: string
+          nullable: true
+          example: trench
+          description: 複数 shape がある分類だけ明示保存する purchase candidate 側の shape override。未指定時は category_id から内部解決する。
         category_name:
           type: string
           nullable: true
@@ -3976,6 +3981,11 @@ components:
         category_id:
           type: string
           maxLength: 100
+        shape:
+          type: string
+          nullable: true
+          maxLength: 100
+          description: 複数 shape がある分類だけ明示保存する purchase candidate 側の shape override。未指定時は category_id から内部解決する。
         variant_source_candidate_id:
           type: integer
           nullable: true
@@ -4098,6 +4108,11 @@ components:
         category_id:
           type: string
           example: outer_coat
+        shape:
+          type: string
+          nullable: true
+          example: trench
+          description: 複数 shape がある分類だけ明示保存する purchase candidate 側の shape override。未指定時は category_id から内部解決する。
         category_name:
           type: string
           nullable: true
