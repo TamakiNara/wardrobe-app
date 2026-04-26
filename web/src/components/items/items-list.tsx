@@ -45,6 +45,7 @@ type ItemsListProps = {
   availableTpos: string[];
   skinTonePreset?: SkinTonePreset;
   initialCategoryOptions?: CategoryOption[];
+  initialSeasonFilter?: string;
 };
 
 type ItemSortValue = "updated_at_desc" | "name_asc";
@@ -57,7 +58,6 @@ const SORT_OPTIONS: Array<{ value: ItemSortValue; label: string }> = [
 ];
 
 const DEFAULT_VIEW_MODE: ItemListViewMode = "list";
-
 function normalizeSort(value: string | null): ItemSortValue {
   if (value === "name_asc") {
     return value;
@@ -208,6 +208,7 @@ export default function ItemsList({
   availableTpos,
   skinTonePreset,
   initialCategoryOptions,
+  initialSeasonFilter,
 }: ItemsListProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -234,6 +235,7 @@ export default function ItemsList({
   const [viewMode, setViewMode] = useState<ItemListViewMode>(DEFAULT_VIEW_MODE);
   const [closetItems, setClosetItems] = useState<ItemRecord[]>(items);
   const [isClosetLoading, setIsClosetLoading] = useState(false);
+  const [hasClearedInitialSeason, setHasClearedInitialSeason] = useState(false);
 
   useEffect(() => {
     setDraftKeyword(keyword);
@@ -293,6 +295,27 @@ export default function ItemsList({
       tpoFilter,
     ],
   );
+
+  useEffect(() => {
+    if (seasonFilter || currentSeasonFilter || !initialSeasonFilter) {
+      return;
+    }
+
+    if (hasClearedInitialSeason) {
+      return;
+    }
+
+    updateQuery({
+      currentSeason: initialSeasonFilter,
+      page: 1,
+    });
+  }, [
+    currentSeasonFilter,
+    hasClearedInitialSeason,
+    initialSeasonFilter,
+    seasonFilter,
+    updateQuery,
+  ]);
 
   useEffect(() => {
     if (initialCategoryOptions) {
@@ -565,17 +588,21 @@ export default function ItemsList({
             <FilterFieldHeader
               label="季節"
               isActive={effectiveSeasonFilter !== ""}
-              onClear={() => updateQuery({ season: "", currentSeason: "" })}
+              onClear={() => {
+                setHasClearedInitialSeason(true);
+                updateQuery({ season: "", currentSeason: "" });
+              }}
             />
             <select
               value={effectiveSeasonFilter}
-              onChange={(e) =>
+              onChange={(e) => {
+                setHasClearedInitialSeason(e.target.value === "");
                 updateQuery({
                   season: e.target.value,
                   currentSeason: "",
                   page: 1,
-                })
-              }
+                });
+              }}
               className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             >
               <option value="">すべて</option>
@@ -631,7 +658,10 @@ export default function ItemsList({
           <div className="flex items-end xl:justify-end">
             <button
               type="button"
-              onClick={() =>
+              onClick={() => {
+                if (effectiveSeasonFilter) {
+                  setHasClearedInitialSeason(true);
+                }
                 updateQuery({
                   keyword: "",
                   brand: "",
@@ -642,8 +672,8 @@ export default function ItemsList({
                   tpo: "",
                   sort: DEFAULT_SORT,
                   page: 1,
-                })
-              }
+                });
+              }}
               className="inline-flex h-10 items-center text-sm font-medium text-blue-600 hover:underline disabled:text-gray-400 disabled:no-underline"
               disabled={!hasActiveFilters}
             >

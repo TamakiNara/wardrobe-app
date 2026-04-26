@@ -5,6 +5,7 @@ item 一覧の表示バリエーションとして使う「クローゼットビ
 関連資料:
 
 - 一覧共通方針: `docs/specs/discovery/search-filter-sort.md`
+- item 一覧フィルタ / `currentSeason`: `docs/specs/items/list-filters.md`
 - item status / `care_status`: `docs/specs/items/status-management.md`
 - 実装メモ: `docs/project/implementation-notes.md`
 

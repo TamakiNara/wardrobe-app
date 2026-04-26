@@ -61,28 +61,6 @@ function buildQueryString(searchParams: ItemsPageSearchParams): string {
   return params.toString();
 }
 
-function resolveSeason(searchParams: ItemsPageSearchParams): string {
-  const value = searchParams.season;
-
-  if (Array.isArray(value)) {
-    return value[0] ?? "";
-  }
-
-  return value ?? "";
-}
-
-function resolveCurrentSeasonQuery(
-  searchParams: ItemsPageSearchParams,
-): string {
-  const value = searchParams.currentSeason;
-
-  if (Array.isArray(value)) {
-    return value[0] ?? "";
-  }
-
-  return value ?? "";
-}
-
 async function getItems(
   searchParams: ItemsPageSearchParams,
 ): Promise<ItemsResponse> {
@@ -133,8 +111,6 @@ export default async function ItemsPage({
   searchParams: Promise<ItemsPageSearchParams>;
 }) {
   const resolvedSearchParams = await searchParams;
-  const season = resolveSeason(resolvedSearchParams);
-  const currentSeasonQuery = resolveCurrentSeasonQuery(resolvedSearchParams);
   const [preferencesRes, categoryGroupsRes, categoryVisibilityRes] =
     await Promise.all([
       fetchLaravelWithCookie("/api/settings/preferences"),
@@ -158,14 +134,6 @@ export default async function ItemsPage({
     preferredSeasonFilter = mapPreferenceSeasonToFilterValue(
       preferencesData.preferences?.currentSeason ?? null,
     );
-  }
-
-  if (!season && !currentSeasonQuery && preferredSeasonFilter) {
-    const nextQuery = buildQueryString({
-      ...resolvedSearchParams,
-      currentSeason: preferredSeasonFilter,
-    });
-    redirect(nextQuery ? `/items?${nextQuery}` : "/items");
   }
 
   if (categoryGroupsRes.ok && categoryVisibilityRes.ok) {
@@ -249,6 +217,7 @@ export default async function ItemsPage({
             availableTpos={data.meta.availableTpos}
             skinTonePreset={skinTonePreset}
             initialCategoryOptions={initialCategoryOptions}
+            initialSeasonFilter={preferredSeasonFilter}
           />
         )}
       </div>

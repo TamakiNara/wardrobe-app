@@ -7,6 +7,7 @@
 - [items: detail status UI](./items/detail-status-ui.md)
 - [items: 素材・混率仕様](./items/material-composition.md)
 - [items: クローゼットビュー](./items/closet-view.md)
+- [items: 一覧フィルタ / currentSeason](./items/list-filters.md)
 - [outfits: 作成・編集・invalid/duplicate](./outfits/create-edit.md)
 - [カラーサムネイル](./color-thumbnails.md)
 - [outfits: item 候補ルール](./outfits/item-candidate-rules.md)

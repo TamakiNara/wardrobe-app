@@ -20,11 +20,18 @@ vi.mock("next/link", () => ({
 }));
 
 vi.mock("@/components/items/items-list", () => ({
-  default: ({ skinTonePreset }: { skinTonePreset?: string }) =>
+  default: ({
+    skinTonePreset,
+    initialSeasonFilter,
+  }: {
+    skinTonePreset?: string;
+    initialSeasonFilter?: string;
+  }) =>
     React.createElement(
       "div",
       {
         "data-skin-tone-preset": skinTonePreset ?? "",
+        "data-initial-season-filter": initialSeasonFilter ?? "",
       },
       "items-list",
     ),
@@ -97,10 +104,6 @@ describe("ItemsPage", () => {
   });
 
   it("URL に season と currentSeason がない場合は設定の currentSeason を currentSeason クエリへ反映する", async () => {
-    redirectMock.mockImplementation(() => {
-      throw new Error("NEXT_REDIRECT");
-    });
-
     fetchMock
       .mockResolvedValueOnce({
         ok: true,
@@ -123,15 +126,40 @@ describe("ItemsPage", () => {
         json: async () => ({
           visibleCategoryIds: [],
         }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          items: [],
+          meta: {
+            total: 0,
+            totalAll: 1,
+            page: 1,
+            lastPage: 1,
+            availableCategories: [],
+            availableBrands: [],
+            availableSeasons: [],
+            availableTpos: [],
+          },
+        }),
       });
 
     const { default: ItemsPage } = await import("./page");
-    await expect(
-      ItemsPage({ searchParams: Promise.resolve({}) }),
-    ).rejects.toThrow("NEXT_REDIRECT");
+    const markup = renderToStaticMarkup(
+      await ItemsPage({ searchParams: Promise.resolve({}) }),
+    );
 
-    expect(redirectMock).toHaveBeenCalledWith("/items?currentSeason=%E6%98%A5");
-    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(redirectMock).not.toHaveBeenCalledWith(
+      "/items?currentSeason=%E6%98%A5",
+    );
+    expect(fetchMock).toHaveBeenCalledTimes(4);
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      4,
+      "http://localhost:8000/api/items",
+      expect.any(Object),
+    );
+    expect(markup).toContain('data-initial-season-filter="春"');
   });
 
   it("URL に currentSeason がある場合はその値で一覧を取得する", async () => {

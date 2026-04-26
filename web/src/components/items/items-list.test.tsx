@@ -37,59 +37,7 @@ vi.mock("@/lib/api/categories", async () => {
     ...actual,
     fetchCategoryGroups: fetchCategoryGroupsMock,
   };
-  it("item list で main color custom_label を優先表示する", async () => {
-    const { default: ItemsList } = await import("./items-list");
-
-    const itemsWithCustomLabel: ItemRecord[] = [
-      {
-        ...sampleItems[0],
-        colors: [
-          {
-            ...sampleItems[0].colors[0],
-            custom_label: "64 BLUE",
-          },
-        ],
-      },
-    ];
-
-    await act(async () => {
-      root.render(
-        React.createElement(ItemsList, {
-          ...defaultListProps,
-          items: itemsWithCustomLabel,
-          totalCount: 1,
-          totalAllCount: 1,
-        }),
-      );
-      await waitForEffects();
-    });
-
-    expect(container.textContent).toContain("64 BLUE");
-  });
-
-  it("items list では skirts / other の raw shape を分類表示に出さない", async () => {
-    const { default: ItemsList } = await import("./items-list");
-
-    await act(async () => {
-      root.render(
-        React.createElement(ItemsList, {
-          ...defaultListProps,
-          items: sampleItems,
-          totalCount: sampleItems.length,
-          totalAllCount: sampleItems.length,
-        }),
-      );
-      await waitForEffects();
-    });
-
-    expect(container.textContent).toContain("ブラウンフレアスカート");
-    expect(container.textContent).toContain("その他スカート");
-    expect(container.textContent).not.toContain(
-      "スカート / その他スカート / その他",
-    );
-  });
 });
-
 vi.mock("@/lib/api/settings", () => ({
   fetchCategoryVisibilitySettings: fetchCategoryVisibilitySettingsMock,
 }));
@@ -540,7 +488,7 @@ describe("ItemsList", () => {
     });
   });
 
-  it("ItemsList 単体では initialSeasonFilter だけで query を更新しない", async () => {
+  it("ItemsList 単体では initialSeasonFilter を currentSeason クエリへ反映する", async () => {
     fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
     fetchCategoryVisibilitySettingsMock.mockResolvedValue({
       visibleCategoryIds: ["tops_tshirt_cutsew", "tops_shirt_blouse"],
@@ -558,7 +506,9 @@ describe("ItemsList", () => {
       await waitForEffects();
     });
 
-    expect(replaceMock).not.toHaveBeenCalled();
+    expect(replaceMock).toHaveBeenCalledWith("/items?currentSeason=%E6%98%A5", {
+      scroll: false,
+    });
   });
 
   it("URL に season がある場合は初期季節を上書きしない", async () => {
@@ -581,6 +531,101 @@ describe("ItemsList", () => {
     });
 
     expect(replaceMock).not.toHaveBeenCalledWith("/items?season=%E6%98%A5", {
+      scroll: false,
+    });
+  });
+
+  it("currentSeason で開いた後に季節解除すると同じ表示中には再自動適用しない", async () => {
+    searchParamsValue = "currentSeason=%E6%98%A5";
+    fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
+    fetchCategoryVisibilitySettingsMock.mockResolvedValue({
+      visibleCategoryIds: ["tops_tshirt_cutsew", "tops_shirt_blouse"],
+    });
+
+    const { default: ItemsList } = await import("./items-list");
+
+    await act(async () => {
+      root.render(
+        React.createElement(ItemsList, {
+          ...defaultListProps,
+          initialSeasonFilter: "春",
+        }),
+      );
+      await waitForEffects();
+    });
+
+    const seasonClearButton = Array.from(
+      container.querySelectorAll("button"),
+    ).find((button) => button.textContent === "解除");
+
+    await act(async () => {
+      seasonClearButton?.click();
+      await waitForEffects();
+    });
+
+    expect(replaceMock).toHaveBeenLastCalledWith("/items", {
+      scroll: false,
+    });
+
+    replaceMock.mockClear();
+    searchParamsValue = "";
+
+    await act(async () => {
+      root.render(
+        React.createElement(ItemsList, {
+          ...defaultListProps,
+          initialSeasonFilter: "春",
+        }),
+      );
+      await waitForEffects();
+    });
+
+    expect(replaceMock).not.toHaveBeenCalledWith(
+      "/items?currentSeason=%E6%98%A5",
+      {
+        scroll: false,
+      },
+    );
+  });
+
+  it("季節解除後に一覧を開き直すと currentSeason を再提案する", async () => {
+    fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
+    fetchCategoryVisibilitySettingsMock.mockResolvedValue({
+      visibleCategoryIds: ["tops_tshirt_cutsew", "tops_shirt_blouse"],
+    });
+
+    const { default: ItemsList } = await import("./items-list");
+
+    await act(async () => {
+      root.render(
+        React.createElement(ItemsList, {
+          ...defaultListProps,
+          initialSeasonFilter: "春",
+        }),
+      );
+      await waitForEffects();
+    });
+
+    await act(async () => {
+      root.unmount();
+      container.innerHTML = "";
+      root = createRoot(container);
+      replaceMock.mockClear();
+      searchParamsValue = "";
+      await waitForEffects();
+    });
+
+    await act(async () => {
+      root.render(
+        React.createElement(ItemsList, {
+          ...defaultListProps,
+          initialSeasonFilter: "春",
+        }),
+      );
+      await waitForEffects();
+    });
+
+    expect(replaceMock).toHaveBeenCalledWith("/items?currentSeason=%E6%98%A5", {
       scroll: false,
     });
   });
@@ -1241,6 +1286,85 @@ describe("ItemsList", () => {
     expect(replaceMock).toHaveBeenCalledWith(
       "/items?category=fashion_accessories",
       { scroll: false },
+    );
+  });
+  it("item list で main color custom_label を優先表示できる", async () => {
+    const { default: ItemsList } = await import("./items-list");
+
+    const itemsWithCustomLabel: ItemRecord[] = [
+      {
+        ...sampleItems[0],
+        colors: [
+          {
+            ...sampleItems[0].colors[0],
+            custom_label: "64 BLUE",
+          },
+        ],
+      },
+    ];
+
+    await act(async () => {
+      root.render(
+        React.createElement(ItemsList, {
+          ...defaultListProps,
+          items: itemsWithCustomLabel,
+          totalCount: 1,
+          totalAllCount: 1,
+        }),
+      );
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain("64 BLUE");
+  });
+
+  it("items list では skirts / other の raw shape を冗長表示しない", async () => {
+    const { default: ItemsList } = await import("./items-list");
+    const skirtOtherItems: ItemRecord[] = [
+      {
+        ...sampleItems[0],
+        id: 99,
+        name: "その他スカートサンプル",
+        category: "skirts",
+        subcategory: "other",
+        shape: "",
+        colors: [
+          {
+            id: 991,
+            item_id: 99,
+            role: "main",
+            color_code: "gray",
+            custom_label: "グレー",
+            display_order: 0,
+          },
+        ],
+        seasons: ["春"],
+        tpos: ["休日"],
+        spec: {
+          skirt: {
+            length_type: "midi",
+          },
+        },
+        images: [],
+      },
+    ];
+
+    await act(async () => {
+      root.render(
+        React.createElement(ItemsList, {
+          ...defaultListProps,
+          items: skirtOtherItems,
+          totalCount: skirtOtherItems.length,
+          totalAllCount: skirtOtherItems.length,
+        }),
+      );
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain("その他スカートサンプル");
+    expect(container.textContent).toContain("スカート / その他スカート");
+    expect(container.textContent).not.toContain(
+      "スカート / その他スカート / スカート",
     );
   });
 });
