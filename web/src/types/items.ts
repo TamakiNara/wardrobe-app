@@ -48,7 +48,10 @@ export type StructuredSizeFieldName =
   | "hem_width"
   | "thigh_width"
   | "total_length"
-  | "skirt_length";
+  | "skirt_length"
+  | "height"
+  | "width"
+  | "depth";
 
 export type ItemSizeDetailValue = {
   value?: number | null;

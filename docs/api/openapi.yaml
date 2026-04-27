@@ -2540,6 +2540,18 @@ components:
           allOf:
             - $ref: "#/components/schemas/ItemSizeDetailValue"
           description: スカート丈。
+        height:
+          allOf:
+            - $ref: "#/components/schemas/ItemSizeDetailValue"
+          description: 高さ（H）。
+        width:
+          allOf:
+            - $ref: "#/components/schemas/ItemSizeDetailValue"
+          description: 幅（W）。
+        depth:
+          allOf:
+            - $ref: "#/components/schemas/ItemSizeDetailValue"
+          description: マチ（D）。
 
     ItemSizeCustomField:
       type: object

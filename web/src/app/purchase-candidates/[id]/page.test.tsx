@@ -753,4 +753,66 @@ describe("購入検討詳細画面", () => {
     expect(markup).toContain("48cm");
     expect(markup).toContain("66cm");
   });
+  it("bags の固定実寸を詳細画面で表示する", async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        purchaseCandidate: {
+          id: 26,
+          status: "considering",
+          priority: "medium",
+          name: "Bag Candidate",
+          category_id: "bags_tote",
+          category_name: "トートバッグ",
+          brand_name: null,
+          price: null,
+          release_date: null,
+          sale_price: null,
+          sale_ends_at: null,
+          discount_ends_at: null,
+          purchase_url: null,
+          memo: null,
+          wanted_reason: null,
+          size_gender: null,
+          size_label: null,
+          size_note: null,
+          size_details: {
+            structured: {
+              height: 21,
+              width: 28.5,
+              depth: 12,
+            },
+          },
+          is_rain_ok: false,
+          group_id: null,
+          group_order: null,
+          group_candidates: [],
+          converted_item_id: null,
+          converted_at: null,
+          colors: [],
+          seasons: [],
+          tpos: [],
+          materials: [],
+          images: [],
+          created_at: "2026-03-24T10:00:00+09:00",
+          updated_at: "2026-03-24T10:00:00+09:00",
+        },
+      }),
+    });
+
+    const { default: PurchaseCandidateDetailPage } = await import("./page");
+    const markup = renderToStaticMarkup(
+      await PurchaseCandidateDetailPage({
+        params: Promise.resolve({ id: "26" }),
+      }),
+    );
+
+    expect(markup).toContain("高さ（H）");
+    expect(markup).toContain("幅（W）");
+    expect(markup).toContain("マチ（D）");
+    expect(markup).toContain("21cm");
+    expect(markup).toContain("28.5cm");
+    expect(markup).toContain("12cm");
+  });
 });

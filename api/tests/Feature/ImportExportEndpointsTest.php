@@ -591,6 +591,92 @@ class ImportExportEndpointsTest extends TestCase
         $this->assertSame(83.5, data_get($importedItem->size_details, 'structured.skirt_length.value'));
     }
 
+    public function test_export_import_roundtrip_preserves_bag_size_details(): void
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->create();
+
+        $bag = Item::query()->create([
+            'user_id' => $user->id,
+            'status' => 'active',
+            'name' => 'レザートート',
+            'category' => 'bags',
+            'subcategory' => 'tote',
+            'shape' => 'tote',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'black',
+                'hex' => '#111111',
+                'label' => 'ブラック',
+            ]],
+            'tpos' => [],
+            'size_details' => [
+                'structured' => [
+                    'height' => [
+                        'value' => 21,
+                        'min' => null,
+                        'max' => null,
+                        'note' => null,
+                    ],
+                    'width' => [
+                        'value' => 28.5,
+                        'min' => null,
+                        'max' => null,
+                        'note' => null,
+                    ],
+                    'depth' => [
+                        'value' => 12,
+                        'min' => null,
+                        'max' => null,
+                        'note' => null,
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $exportPayload = $this->getJson('/api/export', [
+            'Accept' => 'application/json',
+        ])->assertOk()->json();
+
+        $this->assertSame('tote', data_get($exportPayload, 'items.0.shape'));
+        $this->assertSame(21, data_get($exportPayload, 'items.0.size_details.structured.height.value'));
+        $this->assertSame(28.5, data_get($exportPayload, 'items.0.size_details.structured.width.value'));
+        $this->assertSame(12, data_get($exportPayload, 'items.0.size_details.structured.depth.value'));
+
+        $importPayload = [
+            'version' => $exportPayload['version'],
+            'exported_at' => $exportPayload['exported_at'],
+            'owner' => $exportPayload['owner'],
+            'items' => $exportPayload['items'] ?? [],
+            'purchase_candidates' => [],
+            'outfits' => [],
+            'wear_logs' => [],
+        ];
+
+        Item::query()->where('user_id', $user->id)->delete();
+
+        $token = $this->issueCsrfToken();
+
+        $this->postJson('/api/import', $importPayload, [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ])->assertOk();
+
+        $importedItem = Item::query()
+            ->where('user_id', $user->id)
+            ->where('name', $bag->name)
+            ->firstOrFail();
+
+        $this->assertSame('tote', $importedItem->shape);
+        $this->assertSame(21, data_get($importedItem->size_details, 'structured.height.value'));
+        $this->assertSame(28.5, data_get($importedItem->size_details, 'structured.width.value'));
+        $this->assertSame(12, data_get($importedItem->size_details, 'structured.depth.value'));
+    }
+
     public function test_export_import_roundtrip_allows_legacy_bottoms_without_length_spec(): void
     {
         Storage::fake('public');

@@ -1,4 +1,4 @@
-import type {
+﻿import type {
   ItemCustomSizeField,
   ItemSizeDetailValue,
   ItemSizeDetails,
@@ -73,6 +73,9 @@ const STRUCTURED_SIZE_FIELD_LABELS: Record<StructuredSizeFieldName, string> = {
   thigh_width: "わたり幅",
   total_length: "総丈",
   skirt_length: "スカート丈",
+  height: "高さ（H）",
+  width: "幅（W）",
+  depth: "マチ（D）",
 };
 
 const STRUCTURED_SIZE_FIELD_GROUPS = {
@@ -96,6 +99,7 @@ const STRUCTURED_SIZE_FIELD_GROUPS = {
   pants: ["waist", "hip", "rise", "inseam", "hem_width", "thigh_width"],
   skirt: ["waist", "hip", "total_length", "skirt_length"],
   onepiece: ["shoulder_width", "body_width", "sleeve_length", "total_length"],
+  bag: ["height", "width", "depth"],
 } satisfies Record<string, StructuredSizeFieldName[]>;
 
 type StructuredSizeFieldGroupName = keyof typeof STRUCTURED_SIZE_FIELD_GROUPS;
@@ -181,6 +185,30 @@ function resolveStructuredSizeFieldGroup(
     (shape === "onepiece" || shape === "dress")
   ) {
     return "onepiece";
+  }
+
+  if (category === "bags") {
+    if (
+      shape === "bag" ||
+      shape === "tote" ||
+      shape === "shoulder" ||
+      shape === "boston" ||
+      shape === "rucksack" ||
+      shape === "hand" ||
+      shape === "body" ||
+      shape === "waist-pouch" ||
+      shape === "messenger" ||
+      shape === "clutch" ||
+      shape === "sacoche" ||
+      shape === "pochette" ||
+      shape === "drawstring" ||
+      shape === "basket-bag" ||
+      shape === "briefcase" ||
+      shape === "marche-bag" ||
+      shape === "other"
+    ) {
+      return "bag";
+    }
   }
 
   return null;

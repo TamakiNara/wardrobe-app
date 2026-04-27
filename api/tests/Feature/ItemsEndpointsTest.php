@@ -775,6 +775,64 @@ class ItemsEndpointsTest extends TestCase
         $this->assertSame(83.5, data_get($item->size_details, 'structured.skirt_length.value'));
     }
 
+    public function test_post_items_accepts_bag_size_details(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/items', [
+            'name' => 'レザートート',
+            'category' => 'bags',
+            'subcategory' => 'tote',
+            'shape' => 'tote',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'black',
+                'hex' => '#111111',
+                'label' => 'ブラック',
+            ]],
+            'size_details' => [
+                'structured' => [
+                    'height' => [
+                        'value' => 21,
+                        'min' => null,
+                        'max' => null,
+                        'note' => null,
+                    ],
+                    'width' => [
+                        'value' => 28.5,
+                        'min' => null,
+                        'max' => null,
+                        'note' => null,
+                    ],
+                    'depth' => [
+                        'value' => 12,
+                        'min' => null,
+                        'max' => null,
+                        'note' => null,
+                    ],
+                ],
+            ],
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('item.category', 'bags')
+            ->assertJsonPath('item.shape', 'tote')
+            ->assertJsonPath('item.size_details.structured.height.value', 21)
+            ->assertJsonPath('item.size_details.structured.width.value', 28.5)
+            ->assertJsonPath('item.size_details.structured.depth.value', 12);
+
+        $item = Item::query()->findOrFail($response->json('item.id'));
+
+        $this->assertSame(21, data_get($item->size_details, 'structured.height.value'));
+        $this->assertSame(28.5, data_get($item->size_details, 'structured.width.value'));
+        $this->assertSame(12, data_get($item->size_details, 'structured.depth.value'));
+    }
+
     public function test_post_items_rejects_unknown_size_gender(): void
     {
         $user = User::factory()->create();

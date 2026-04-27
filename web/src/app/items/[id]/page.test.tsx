@@ -714,4 +714,69 @@ describe("アイテム詳細画面", () => {
 
     expect(markup).toContain("ナロー");
   });
+  it("bags の固定実寸を詳細画面で表示する", async () => {
+    fetchMock
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          item: {
+            id: 24,
+            name: "トートバッグ詳細",
+            status: "active",
+            care_status: null,
+            sheerness: null,
+            brand_name: null,
+            price: null,
+            purchase_url: null,
+            memo: null,
+            purchased_at: null,
+            size_gender: null,
+            size_label: null,
+            size_note: null,
+            size_details: {
+              structured: {
+                height: 21,
+                width: 28.5,
+                depth: 12,
+              },
+            },
+            is_rain_ok: false,
+            category: "bags",
+            subcategory: "tote",
+            shape: "tote",
+            colors: [],
+            seasons: [],
+            tpos: [],
+            spec: null,
+            images: [],
+            materials: [],
+          },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          preferences: {
+            skinTonePreset: "neutral_medium",
+          },
+        }),
+      });
+
+    const { default: ItemPage } = await import("./page");
+    const markup = renderToStaticMarkup(
+      await ItemPage({
+        params: Promise.resolve({ id: "24" }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+
+    expect(markup).toContain("高さ（H）");
+    expect(markup).toContain("幅（W）");
+    expect(markup).toContain("マチ（D）");
+    expect(markup).toContain("21cm");
+    expect(markup).toContain("28.5cm");
+    expect(markup).toContain("12cm");
+  });
 });

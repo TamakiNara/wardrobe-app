@@ -200,6 +200,25 @@ describe("購入検討フォーム", () => {
           },
         ],
       },
+      {
+        id: "bags",
+        name: "バッグ",
+        sortOrder: 45,
+        categories: [
+          {
+            id: "bags_tote",
+            groupId: "bags",
+            name: "トートバッグ",
+            sortOrder: 10,
+          },
+          {
+            id: "bags_other",
+            groupId: "bags",
+            name: "その他バッグ",
+            sortOrder: 20,
+          },
+        ],
+      },
     ]);
     fetchCategoryVisibilitySettingsMock.mockResolvedValue({
       visibleCategoryIds: [
@@ -217,6 +236,8 @@ describe("購入検討フォーム", () => {
         "skirts_skirt",
         "skirts_other",
         "legwear_socks",
+        "bags_tote",
+        "bags_other",
       ],
     });
     fetchUserBrandsMock.mockResolvedValue({ brands: [] });
@@ -2342,5 +2363,24 @@ describe("購入検討フォーム", () => {
       "現在のカテゴリと形に対応する固定実寸はありません。必要なら自由項目を追加してください。",
     );
     expect(container.textContent).toContain("自由項目を追加");
+  });
+  it("bags の固定実寸を購入検討フォームでも表示する", async () => {
+    await renderForm();
+
+    await setCategorySelection("bags", "bags_tote");
+    await openSizeDetails();
+
+    expect(container.textContent).toContain("高さ（H）");
+    expect(container.textContent).toContain("幅（W）");
+    expect(container.textContent).toContain("マチ（D）");
+    expect(
+      container.querySelector<HTMLInputElement>("#structured-size-height"),
+    ).not.toBeNull();
+    expect(
+      container.querySelector<HTMLInputElement>("#structured-size-width"),
+    ).not.toBeNull();
+    expect(
+      container.querySelector<HTMLInputElement>("#structured-size-depth"),
+    ).not.toBeNull();
   });
 });

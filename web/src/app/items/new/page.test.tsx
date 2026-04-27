@@ -1,4 +1,4 @@
-// @vitest-environment jsdom
+﻿// @vitest-environment jsdom
 
 import React from "react";
 import { act } from "react";
@@ -316,6 +316,50 @@ vi.mock("@/lib/api/categories", async () => {
     expect(purchasedAtInput?.className).toContain("h-[50px]");
     expect(priceInput?.className).toContain("h-full");
     expect(priceInput?.parentElement?.className).toContain("h-[50px]");
+  });
+
+  it("bags を選ぶと 高さ（H） / 幅（W） / マチ（D） の固定実寸を表示する", async () => {
+    const { default: NewItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(NewItemPage));
+      await waitForEffects();
+    });
+
+    const categorySelect =
+      container.querySelector<HTMLSelectElement>("#category");
+    expect(categorySelect).not.toBeNull();
+
+    await act(async () => {
+      categorySelect!.value = "bags";
+      categorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    const subcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
+    expect(subcategorySelect).not.toBeNull();
+
+    await act(async () => {
+      subcategorySelect!.value = "tote";
+      subcategorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    await openSizeDetails();
+
+    expect(container.textContent).toContain("高さ（H）");
+    expect(container.textContent).toContain("幅（W）");
+    expect(container.textContent).toContain("マチ（D）");
+    expect(
+      container.querySelector<HTMLInputElement>("#structured-size-height"),
+    ).not.toBeNull();
+    expect(
+      container.querySelector<HTMLInputElement>("#structured-size-width"),
+    ).not.toBeNull();
+    expect(
+      container.querySelector<HTMLInputElement>("#structured-size-depth"),
+    ).not.toBeNull();
   });
 });
 
@@ -955,7 +999,9 @@ describe("新規登録画面", () => {
     expect(container.textContent).toContain("透け感");
     expect(container.textContent).toContain("メインカラー");
     expect(container.textContent).toContain("ブランド候補にも追加する");
-    expect(container.textContent).toContain("クリックして画像を選択");
+    expect(container.textContent).toContain(
+      "画像を貼り付け、またはドラッグ＆ドロップ",
+    );
     expect(container.textContent).toContain("購入情報");
     expect(container.textContent).toContain("補足情報");
     expect(container.textContent).toContain("雨対応");

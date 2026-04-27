@@ -25,6 +25,9 @@ class SizeDetailSupport
             'thigh_width',
             'total_length',
             'skirt_length',
+            'height',
+            'width',
+            'depth',
         ];
     }
 

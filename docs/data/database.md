@@ -514,6 +514,7 @@ wear logs も本資料の対象とし、その保存方針を定義します。
   - パンツ: `waist`(ウエスト) / `hip`(ヒップ) / `rise`(股上) / `inseam`(股下) / `hem_width`(裾幅) / `thigh_width`(わたり幅)
   - スカート: `waist`(ウエスト) / `hip`(ヒップ) / `total_length`(総丈) / `skirt_length`(スカート丈)
   - ワンピース: `shoulder_width`(肩幅) / `body_width`(身幅) / `sleeve_length`(袖丈) / `total_length`(総丈)
+  - バッグ: `height`(高さ（H）) / `width`(幅（W）) / `depth`(マチ（D）)
 
 ### item_images
 

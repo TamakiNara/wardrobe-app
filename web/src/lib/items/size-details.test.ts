@@ -191,6 +191,16 @@ describe("固定実寸 resolver", () => {
       "sleeve_length",
       "total_length",
     ]);
+    expect(
+      getStructuredSizeFieldDefinitions("bags", "tote").map(
+        (definition) => definition.name,
+      ),
+    ).toEqual(["height", "width", "depth"]);
+    expect(
+      getStructuredSizeFieldDefinitions("bags", "other").map(
+        (definition) => definition.name,
+      ),
+    ).toEqual(["height", "width", "depth"]);
   });
 
   it("旧データ互換のため pleated skirt の対応を維持する", () => {
