@@ -396,6 +396,18 @@ Phase 3:
 - 他 candidate へ移動できる導線を持つ
 - `group_id = null`、または同 group 候補が 1 件だけの場合は表示しない
 
+### 手持ち item とのサイズ比較
+
+- 詳細画面では、同じカテゴリの active な手持ち item から比較対象を選べる
+- 比較候補は `size_details.structured` または `size_details.custom_fields` を持つ item のみに限定する
+- 候補順は `同一 category` を前提に、`同一 subcategory` を優先し、さらに `同一 shape` を優先する
+- 初期実装では比較対象 item_id は保存しない
+- 比較表は `項目 / 購入検討 / 手持ち` の 3 列とする
+- fixed size key を先に表示し、その後に `custom_fields` を表示する
+- 同名の自由実寸が両方にある場合は 1 行にまとめ、片方だけにある項目はもう片方を `未設定` とする
+- 購入検討側に fixed / free のどちらの実寸もない場合は、比較表の代わりに実寸入力を促す empty state を表示する
+- 比較できる手持ち item がない場合は、その旨の empty state を表示する
+
 ---
 
 ## 色違い追加

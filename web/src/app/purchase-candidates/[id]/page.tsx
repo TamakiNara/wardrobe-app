@@ -4,6 +4,7 @@ import PurchaseCandidateColorVariantAction from "@/components/purchase-candidate
 import PurchaseCandidateDetailImages from "@/components/purchase-candidates/purchase-candidate-detail-images";
 import PurchaseCandidateDuplicateAction from "@/components/purchase-candidates/purchase-candidate-duplicate-action";
 import PurchaseCandidateItemDraftAction from "@/components/purchase-candidates/purchase-candidate-item-draft-action";
+import PurchaseCandidateSizeComparison from "@/components/purchase-candidates/purchase-candidate-size-comparison";
 import { PurchaseUrlLink } from "@/components/shared/purchase-url-link";
 import { EntityDetailHeader } from "@/components/shared/entity-detail-header";
 import { resolvePurchaseCandidateItemClassification } from "@/lib/items/classification";
@@ -34,6 +35,7 @@ import {
   normalizeItemSizeDetails,
 } from "@/lib/items/size-details";
 import { fetchLaravelWithCookie } from "@/lib/server/laravel";
+import type { ItemRecord } from "@/types/items";
 import type {
   PurchaseCandidateColor,
   PurchaseCandidateDetailResponse,
@@ -246,6 +248,30 @@ async function getPurchaseCandidate(id: string) {
   return data.purchaseCandidate;
 }
 
+async function getComparableItems(category?: string | null) {
+  if (!category) {
+    return [] as ItemRecord[];
+  }
+
+  const searchParams = new URLSearchParams({
+    category,
+    all: "1",
+  });
+  const response = await fetchLaravelWithCookie(
+    `/api/items?${searchParams.toString()}`,
+  );
+
+  if (!response.ok) {
+    return [] as ItemRecord[];
+  }
+
+  const data = (await response.json()) as {
+    items?: ItemRecord[];
+  };
+
+  return data.items ?? [];
+}
+
 export default async function PurchaseCandidateDetailPage({
   params,
 }: {
@@ -256,6 +282,9 @@ export default async function PurchaseCandidateDetailPage({
   const resolvedItemCategory = resolvePurchaseCandidateItemClassification(
     candidate.category_id,
     candidate.shape,
+  );
+  const comparableItems = await getComparableItems(
+    resolvedItemCategory?.category,
   );
   const topsSpec = buildTopsSpecLabels(candidate.spec?.tops);
   const categoryLabel = findItemCategoryLabel(resolvedItemCategory?.category);
@@ -669,6 +698,13 @@ export default async function PurchaseCandidateDetailPage({
             </div>
           </dl>
         </section>
+        <PurchaseCandidateSizeComparison
+          candidate={candidate}
+          resolvedCategory={resolvedItemCategory?.category}
+          resolvedSubcategory={resolvedItemCategory?.subcategory}
+          resolvedShape={resolvedItemCategory?.shape}
+          items={comparableItems}
+        />
 
         <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-gray-900">素材・混率</h2>

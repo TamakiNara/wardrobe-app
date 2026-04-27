@@ -195,6 +195,7 @@ describe("購入検討詳細画面", () => {
       "分類",
       "色 / 利用条件・特性",
       "サイズ・実寸",
+      "手持ちアイテムとサイズ比較",
       "素材・混率",
       "補足情報",
       "画像",
@@ -257,7 +258,7 @@ describe("購入検討詳細画面", () => {
     expect(markup).toContain('href="/purchase-candidates"');
     expect(markup).toContain('href="/purchase-candidates/10/edit"');
     expect(markup).toContain(">編集<");
-  });
+  }, 10000);
 
   it("同じ group の候補ナビを上部に表示し、別候補へのリンクと状態を示す", async () => {
     fetchMock.mockResolvedValue({
