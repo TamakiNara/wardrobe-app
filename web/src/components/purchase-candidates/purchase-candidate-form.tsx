@@ -209,6 +209,28 @@ function resolvePurchaseCandidateSpecFormState(
   };
 }
 
+function resolveInitialPurchaseCandidateShape(
+  categoryId: string,
+  savedShape?: string | null,
+) {
+  const normalizedSavedShape =
+    typeof savedShape === "string" ? savedShape.trim() : "";
+  if (normalizedSavedShape !== "") {
+    return normalizedSavedShape;
+  }
+
+  const resolved = resolvePurchaseCandidateItemClassification(
+    categoryId,
+    savedShape,
+  );
+
+  if (!resolved?.shouldShowShapeField) {
+    return normalizedSavedShape;
+  }
+
+  return resolved.defaultShape || normalizedSavedShape;
+}
+
 function buildCategoryOptions(
   groups: CategoryGroupRecord[],
   visibleCategoryIds?: string[],
@@ -725,7 +747,12 @@ export default function PurchaseCandidateForm({
             resolveCategoryGroupId(candidate.category_id, nextCategoryOptions),
           );
           setCategoryId(candidate.category_id);
-          setShape(candidate.shape ?? "");
+          setShape(
+            resolveInitialPurchaseCandidateShape(
+              candidate.category_id,
+              candidate.shape,
+            ),
+          );
           setVariantSourceCandidateId(null);
           setBrandName(candidate.brand_name ?? "");
           setSaveBrandAsCandidate(false);
@@ -872,7 +899,9 @@ export default function PurchaseCandidateForm({
       resolveCategoryGroupId(payload.category_id, categoryOptions),
     );
     setCategoryId(payload.category_id);
-    setShape(payload.shape ?? "");
+    setShape(
+      resolveInitialPurchaseCandidateShape(payload.category_id, payload.shape),
+    );
     setVariantSourceCandidateId(
       isColorVariantSource
         ? (payload.variant_source_candidate_id ?? null)

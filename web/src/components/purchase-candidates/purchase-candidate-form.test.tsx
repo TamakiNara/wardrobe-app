@@ -594,6 +594,50 @@ describe("購入検討フォーム", () => {
     ).toEqual(expect.arrayContaining(["shirt", "blouse"]));
   });
 
+  it("編集時に tops / shirt_blouse の shape 保存値が空でも既定 shape を復元する", async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        purchaseCandidate: {
+          id: 12,
+          status: "considering",
+          priority: "medium",
+          name: "春ブラウス",
+          category_id: "tops_shirt_blouse",
+          shape: null,
+          category_name: "シャツ・ブラウス",
+          brand_name: null,
+          price: null,
+          release_date: null,
+          sale_price: null,
+          sale_ends_at: null,
+          discount_ends_at: null,
+          purchase_url: null,
+          memo: null,
+          wanted_reason: null,
+          size_gender: null,
+          size_label: null,
+          size_note: null,
+          size_details: null,
+          spec: null,
+          is_rain_ok: false,
+          colors: [],
+          seasons: [],
+          tpos: [],
+          materials: [],
+          images: [],
+        },
+      }),
+    });
+
+    await renderForm({ mode: "edit", candidateId: "12" });
+
+    expect(getCategoryGroupSelect().value).toBe("tops");
+    expect(getCategorySelect().value).toBe("tops_shirt_blouse");
+    expect(getShapeSelect()?.value).toBe("shirt");
+  });
+
   it("カテゴリ変更時に shape をリセットする", async () => {
     await renderForm();
 
