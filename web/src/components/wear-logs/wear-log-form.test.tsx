@@ -869,6 +869,86 @@ describe("WearLogForm", () => {
     );
   });
 
+  it("作成時の現在の季節絞り込みでもオール指定の候補はコーデ・アイテムともに表示される", async () => {
+    fetchAllPaginatedCandidatesMock
+      .mockResolvedValueOnce({
+        status: 200,
+        entries: [
+          {
+            id: 1,
+            name: "通年カーディガン",
+            status: "active",
+            category: "tops",
+            shape: "cardigan",
+            colors: [],
+            seasons: ["オール"],
+            tpos: ["仕事"],
+          },
+          {
+            id: 2,
+            name: "夏パンツ",
+            status: "active",
+            category: "pants",
+            shape: "wide",
+            colors: [],
+            seasons: ["夏"],
+            tpos: ["仕事"],
+          },
+        ],
+      })
+      .mockResolvedValueOnce({
+        status: 200,
+        entries: [
+          {
+            id: 5,
+            name: "通年コーデ",
+            status: "active",
+            seasons: ["オール"],
+            tpos: ["仕事"],
+            outfit_items: [{}],
+          },
+          {
+            id: 6,
+            name: "夏コーデ",
+            status: "active",
+            seasons: ["夏"],
+            tpos: ["仕事"],
+            outfit_items: [{}],
+          },
+        ],
+      });
+
+    vi.stubGlobal("fetch", vi.fn());
+
+    const { default: WearLogForm } = await import("./wear-log-form");
+
+    await act(async () => {
+      root.render(
+        React.createElement(WearLogForm, {
+          mode: "create",
+          initialCurrentSeason: "春",
+        }),
+      );
+    });
+    await act(async () => {
+      await waitForEffects();
+    });
+
+    const outfitSeasonSelect = container.querySelector<HTMLSelectElement>(
+      '[data-testid="wear-log-outfit-season-filter"]',
+    );
+    const itemSeasonSelect = container.querySelector<HTMLSelectElement>(
+      '[data-testid="wear-log-item-season-filter"]',
+    );
+
+    expect(outfitSeasonSelect?.value).toBe("春");
+    expect(itemSeasonSelect?.value).toBe("春");
+    expect(container.textContent).toContain("通年コーデ");
+    expect(container.textContent).not.toContain("夏コーデ");
+    expect(container.textContent).toContain("通年カーディガン");
+    expect(container.textContent).not.toContain("夏パンツ");
+  });
+
   it("422 の field error を項目近くに表示し、items error は選択エラーとして見せる", async () => {
     fetchAllPaginatedCandidatesMock
       .mockResolvedValueOnce({

@@ -60,7 +60,7 @@ const sampleItems: ItemRecord[] = [
   },
 ];
 
-describe("outfit item selection filters", () => {
+describe("コーディネート用アイテム候補の絞り込み", () => {
   it("キーワードで候補 item を絞れる", () => {
     const items = filterOutfitCandidateItems(sampleItems, {
       keyword: "通勤",

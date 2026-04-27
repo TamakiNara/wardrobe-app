@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 
 type PreferencesResponse = {
   preferences?: {
+    currentSeason?: "spring" | "summer" | "autumn" | "winter" | null;
     defaultWearLogStatus?: "planned" | "worn" | null;
   };
 };
@@ -25,6 +26,23 @@ function getSearchParam(
   return value ?? null;
 }
 
+function mapPreferenceSeasonToFilterValue(
+  currentSeason: "spring" | "summer" | "autumn" | "winter" | null | undefined,
+): string | undefined {
+  switch (currentSeason) {
+    case "spring":
+      return "春";
+    case "summer":
+      return "夏";
+    case "autumn":
+      return "秋";
+    case "winter":
+      return "冬";
+    default:
+      return undefined;
+  }
+}
+
 export default async function NewWearLogPage({
   searchParams,
 }: {
@@ -32,6 +50,7 @@ export default async function NewWearLogPage({
 }) {
   const resolvedSearchParams = (await searchParams) ?? {};
   let initialStatus: "planned" | "worn" = "planned";
+  let initialCurrentSeason: string | undefined;
   const initialEventDate = (() => {
     const value = getSearchParam(resolvedSearchParams, "event_date");
     return value && /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : undefined;
@@ -56,6 +75,9 @@ export default async function NewWearLogPage({
     if (data.preferences?.defaultWearLogStatus === "worn") {
       initialStatus = "worn";
     }
+    initialCurrentSeason = mapPreferenceSeasonToFilterValue(
+      data.preferences?.currentSeason,
+    );
   }
 
   return (
@@ -85,6 +107,7 @@ export default async function NewWearLogPage({
           initialStatus={initialStatus}
           initialEventDate={initialEventDate}
           initialDisplayOrder={initialDisplayOrder}
+          initialCurrentSeason={initialCurrentSeason}
         />
       </div>
     </main>

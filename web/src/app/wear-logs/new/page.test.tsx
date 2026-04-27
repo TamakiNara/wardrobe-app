@@ -24,10 +24,12 @@ vi.mock("@/components/wear-logs/wear-log-form", () => ({
     initialStatus,
     initialEventDate,
     initialDisplayOrder,
+    initialCurrentSeason,
   }: {
     initialStatus?: string;
     initialEventDate?: string;
     initialDisplayOrder?: number;
+    initialCurrentSeason?: string;
   }) =>
     React.createElement(
       "div",
@@ -35,6 +37,7 @@ vi.mock("@/components/wear-logs/wear-log-form", () => ({
         "data-initial-status": initialStatus ?? "",
         "data-initial-event-date": initialEventDate ?? "",
         "data-initial-display-order": String(initialDisplayOrder ?? ""),
+        "data-initial-current-season": initialCurrentSeason ?? "",
       },
       "wear-log-form",
     ),
@@ -96,6 +99,25 @@ describe("NewWearLogPage", () => {
     );
 
     expect(markup).toContain('data-initial-status="planned"');
+  });
+
+  it("現在の季節設定がある場合は作成時の候補絞り込み初期値に反映する", async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        preferences: {
+          currentSeason: "spring",
+          defaultWearLogStatus: "planned",
+        },
+      }),
+    });
+
+    const { default: NewWearLogPage } = await import("./page");
+    const markup = renderToStaticMarkup(
+      await NewWearLogPage({ searchParams: Promise.resolve({}) }),
+    );
+
+    expect(markup).toContain('data-initial-current-season="春"');
   });
 
   it("query の event_date / display_order を新規作成初期値に使う", async () => {

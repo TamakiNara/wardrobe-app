@@ -43,6 +43,7 @@ type WearLogFormProps = {
   initialStatus?: WearLogStatus;
   initialEventDate?: string;
   initialDisplayOrder?: number;
+  initialCurrentSeason?: string;
 };
 
 type OutfitCandidate = {
@@ -110,6 +111,18 @@ function scrollToFirstError(nextErrors: Record<string, string>) {
   });
 }
 
+function matchesSeasonFilter(seasons: string[], filterSeason: string) {
+  if (filterSeason === "") {
+    return true;
+  }
+
+  if (seasons.length === 0) {
+    return true;
+  }
+
+  return seasons.includes(filterSeason) || seasons.includes("オール");
+}
+
 export default function WearLogForm({
   mode,
   wearLogId,
@@ -118,6 +131,7 @@ export default function WearLogForm({
   initialStatus = "planned",
   initialEventDate,
   initialDisplayOrder = 1,
+  initialCurrentSeason = "",
 }: WearLogFormProps) {
   const router = useRouter();
   const returnToPath =
@@ -134,11 +148,13 @@ export default function WearLogForm({
   const [sourceOutfitId, setSourceOutfitId] = useState<number | null>(null);
   const [memo, setMemo] = useState("");
   const [outfitKeyword, setOutfitKeyword] = useState("");
-  const [outfitSeasonFilter, setOutfitSeasonFilter] = useState("");
+  const [outfitSeasonFilter, setOutfitSeasonFilter] =
+    useState(initialCurrentSeason);
   const [outfitTpoFilter, setOutfitTpoFilter] = useState("");
   const [itemKeyword, setItemKeyword] = useState("");
   const [itemCategoryFilter, setItemCategoryFilter] = useState("");
-  const [itemSeasonFilter, setItemSeasonFilter] = useState("");
+  const [itemSeasonFilter, setItemSeasonFilter] =
+    useState(initialCurrentSeason);
   const [itemTpoFilter, setItemTpoFilter] = useState("");
 
   const [candidateItems, setCandidateItems] = useState<WearLogSelectableItem[]>(
@@ -346,12 +362,7 @@ export default function WearLogForm({
         (outfit.name ?? "名称未設定").toLowerCase().includes(keyword);
       const seasons = outfit.seasons ?? [];
       const tpos = outfit.tpos ?? [];
-      const isAllSeason = seasons.length === 0 || seasons.includes("オール");
-      const matchSeason =
-        outfitSeasonFilter === "" ||
-        (outfitSeasonFilter === "オール"
-          ? isAllSeason
-          : seasons.includes(outfitSeasonFilter) || isAllSeason);
+      const matchSeason = matchesSeasonFilter(seasons, outfitSeasonFilter);
       const matchTpo = outfitTpoFilter === "" || tpos.includes(outfitTpoFilter);
 
       return matchKeyword && matchSeason && matchTpo;
@@ -379,8 +390,7 @@ export default function WearLogForm({
           shape.includes(keyword);
         const matchCategory =
           itemCategoryFilter === "" || item.category === itemCategoryFilter;
-        const matchSeason =
-          itemSeasonFilter === "" || seasons.includes(itemSeasonFilter);
+        const matchSeason = matchesSeasonFilter(seasons, itemSeasonFilter);
         const matchTpo = itemTpoFilter === "" || tpos.includes(itemTpoFilter);
 
         return matchKeyword && matchCategory && matchSeason && matchTpo;
