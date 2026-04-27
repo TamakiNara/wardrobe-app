@@ -366,7 +366,7 @@ describe("WearLogColorThumbnail", () => {
       root.render(
         React.createElement(WearLogColorThumbnail, {
           items: [
-            renderThumbnailItem(1, "outer", [
+            renderThumbnailItem(1, "outerwear", [
               { role: "main", hex: "#888888", label: "グレー" },
             ]),
             renderThumbnailItem(2, "shoes", [
@@ -378,17 +378,11 @@ describe("WearLogColorThumbnail", () => {
     });
 
     expect(
-      container.querySelector('[data-testid="wear-log-thumbnail-others-full"]'),
+      container.querySelector('[data-testid="wear-log-thumbnail-tops"]'),
     ).not.toBeNull();
     expect(
-      container.querySelector('[data-testid="wear-log-thumbnail-tops"]'),
-    ).toBeNull();
-    expect(
-      container.querySelector('[data-testid="wear-log-thumbnail-bottoms"]'),
-    ).toBeNull();
-    expect(
-      container.querySelector('[data-testid="wear-log-thumbnail-others"]'),
-    ).toBeNull();
+      container.querySelector('[data-testid="wear-log-thumbnail-others-bar"]'),
+    ).not.toBeNull();
   });
 
   it("bottoms がない legwear は others に戻さない", async () => {
@@ -480,5 +474,56 @@ describe("WearLogColorThumbnail", () => {
       '[data-testid="wear-log-thumbnail-others-full-segment"] span > span',
     );
     expect(main?.getAttribute("style")).toContain("rgb(229, 231, 235)");
+  });
+  it("wear log では outerwear を support バーへ出さない", async () => {
+    await act(async () => {
+      root.render(
+        React.createElement(WearLogColorThumbnail, {
+          items: [
+            renderThumbnailItem(1, "tops", [
+              { role: "main", hex: "#ffffff", label: "white" },
+            ]),
+            renderThumbnailItem(2, "outerwear", [
+              { role: "main", hex: "#111111", label: "black" },
+            ]),
+          ],
+        }),
+      );
+    });
+
+    expect(
+      container.querySelectorAll(
+        '[data-testid="wear-log-thumbnail-tops-segment"]',
+      ),
+    ).toHaveLength(2);
+    expect(
+      container.querySelector('[data-testid="wear-log-thumbnail-others-bar"]'),
+    ).toBeNull();
+  });
+
+  it("inner は wear log サムネイルで描画しない", async () => {
+    await act(async () => {
+      root.render(
+        React.createElement(WearLogColorThumbnail, {
+          items: [
+            renderThumbnailItem(1, "tops", [
+              { role: "main", hex: "#ffffff", label: "white" },
+            ]),
+            renderThumbnailItem(2, "inner", [
+              { role: "main", hex: "#111111", label: "black" },
+            ]),
+          ],
+        }),
+      );
+    });
+
+    expect(
+      container.querySelector('[data-testid="wear-log-thumbnail-others-bar"]'),
+    ).toBeNull();
+    expect(
+      container.querySelectorAll(
+        '[data-testid="wear-log-thumbnail-tops-segment"]',
+      ),
+    ).toHaveLength(1);
   });
 });

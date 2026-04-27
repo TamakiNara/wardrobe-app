@@ -1,4 +1,9 @@
-export type ColorThumbnailGroupKey = "tops" | "bottoms" | "others";
+export type ColorThumbnailRoleKey =
+  | "main_upper"
+  | "main_lower"
+  | "main_full"
+  | "support"
+  | "hidden";
 
 type ColorThumbnailColor = {
   role: "main" | "sub";
@@ -17,6 +22,14 @@ export type ColorThumbnailSegment = {
   subColorHex: string | null;
 };
 
+export type ColorThumbnailRoleLayout = {
+  mainUpper: ColorThumbnailSegment[];
+  mainLower: ColorThumbnailSegment[];
+  mainFull: ColorThumbnailSegment[];
+  support: ColorThumbnailSegment[];
+  hidden: ColorThumbnailSegment[];
+};
+
 export type ColorThumbnailLayout = {
   tops: ColorThumbnailSegment[];
   bottoms: ColorThumbnailSegment[];
@@ -31,16 +44,46 @@ export const COLOR_THUMBNAIL_OTHERS_BAR_CLASS =
 
 export function resolveColorThumbnailGroup(
   category: string | null | undefined,
-): ColorThumbnailGroupKey {
-  if (category === "tops") {
-    return "tops";
+): ColorThumbnailRoleKey {
+  if (category === "tops" || category === "outerwear" || category === "outer") {
+    return "main_upper";
   }
 
-  if (category === "bottoms" || category === "pants" || category === "skirts") {
-    return "bottoms";
+  if (
+    category === "bottoms" ||
+    category === "pants" ||
+    category === "skirts" ||
+    category === "legwear"
+  ) {
+    return "main_lower";
   }
 
-  return "others";
+  if (
+    category === "onepiece_allinone" ||
+    category === "onepiece_dress" ||
+    category === "allinone" ||
+    category === "swimwear" ||
+    category === "kimono"
+  ) {
+    return "main_full";
+  }
+
+  if (
+    category === "bags" ||
+    category === "bag" ||
+    category === "shoes" ||
+    category === "fashion_accessories" ||
+    category === "accessories" ||
+    category === "accessory"
+  ) {
+    return "support";
+  }
+
+  if (category === "inner" || category === "roomwear_inner") {
+    return "hidden";
+  }
+
+  return "support";
 }
 
 export function buildColorThumbnailSegment(
@@ -56,38 +99,38 @@ export function buildColorThumbnailSegment(
   };
 }
 
-export function buildColorThumbnailLayout(
+export function buildColorThumbnailRoleLayout(
   sources: ColorThumbnailSource[],
   options?: {
     fallbackWhenEmpty?: boolean;
     emptyFallbackId?: number;
     excludedCategories?: string[];
   },
-): ColorThumbnailLayout {
+): ColorThumbnailRoleLayout {
   const excludedCategories = new Set(options?.excludedCategories ?? []);
 
   if (sources.length === 0 && options?.fallbackWhenEmpty) {
     return {
-      tops: [],
-      bottoms: [],
-      others: [
+      mainUpper: [],
+      mainLower: [],
+      mainFull: [],
+      support: [
         {
           id: options.emptyFallbackId ?? -1,
           mainColorHex: COLOR_THUMBNAIL_FALLBACK_COLOR,
           subColorHex: null,
         },
       ],
-      hasOthersBar: false,
-      usesFullHeightForOthers: true,
+      hidden: [],
     };
   }
 
-  const layout: ColorThumbnailLayout = {
-    tops: [],
-    bottoms: [],
-    others: [],
-    hasOthersBar: false,
-    usesFullHeightForOthers: false,
+  const layout: ColorThumbnailRoleLayout = {
+    mainUpper: [],
+    mainLower: [],
+    mainFull: [],
+    support: [],
+    hidden: [],
   };
 
   sources.forEach((source) => {
@@ -100,8 +143,46 @@ export function buildColorThumbnailLayout(
     }
 
     const group = resolveColorThumbnailGroup(source.category);
-    layout[group].push(buildColorThumbnailSegment(source));
+    switch (group) {
+      case "main_upper":
+        layout.mainUpper.push(buildColorThumbnailSegment(source));
+        break;
+      case "main_lower":
+        layout.mainLower.push(buildColorThumbnailSegment(source));
+        break;
+      case "main_full":
+        layout.mainFull.push(buildColorThumbnailSegment(source));
+        break;
+      case "support":
+        layout.support.push(buildColorThumbnailSegment(source));
+        break;
+      case "hidden":
+        layout.hidden.push(buildColorThumbnailSegment(source));
+        break;
+    }
   });
+
+  return layout;
+}
+
+export function buildColorThumbnailLayout(
+  sources: ColorThumbnailSource[],
+  options?: {
+    fallbackWhenEmpty?: boolean;
+    emptyFallbackId?: number;
+    excludedCategories?: string[];
+  },
+): ColorThumbnailLayout {
+  const roleLayout = buildColorThumbnailRoleLayout(sources, options);
+  const others = [...roleLayout.mainFull, ...roleLayout.support];
+
+  const layout: ColorThumbnailLayout = {
+    tops: roleLayout.mainUpper,
+    bottoms: roleLayout.mainLower,
+    others,
+    hasOthersBar: false,
+    usesFullHeightForOthers: false,
+  };
 
   layout.hasOthersBar =
     layout.others.length > 0 &&

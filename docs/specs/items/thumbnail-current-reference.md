@@ -312,6 +312,8 @@ tops + bottoms + legwear
 - outfit で `allinone + bottoms` が standard のまま
 - outfit で `tops` と `onepiece_allinone` の前後が `sort_order` どおり
 - wear log standard で `tops / bottoms / others` が期待どおり出る
+- 共通 grouping の current は `main_upper / main_lower / main_full / support / hidden` で、wear log / outfit の `others` 相当は renderer 側で `support` と `main_full` を束ねている
+- `outerwear` は `main_upper`、`bags / shoes / fashion_accessories` は `support`、`inner` は `hidden` として扱う
 - wear log で `legwear` が `others` に戻らない
 - wear log で `onepiece + bottoms` が dedicated mode に入る
 - wear log で `allinone + bottoms` が standard のまま

@@ -194,7 +194,7 @@ describe("OutfitColorThumbnail current 統合表示", () => {
       root.render(
         React.createElement(OutfitColorThumbnail, {
           outfitItems: [
-            renderOutfitItem(1, "outer", [
+            renderOutfitItem(1, "outerwear", [
               { role: "main", hex: "#888888", label: "グレー" },
             ]),
             renderOutfitItem(2, "shoes", [
@@ -206,17 +206,11 @@ describe("OutfitColorThumbnail current 統合表示", () => {
     });
 
     expect(
-      container.querySelector('[data-testid="thumbnail-others-full"]'),
+      container.querySelector('[data-testid="thumbnail-tops"]'),
     ).not.toBeNull();
     expect(
-      container.querySelector('[data-testid="thumbnail-tops"]'),
-    ).toBeNull();
-    expect(
-      container.querySelector('[data-testid="thumbnail-bottoms"]'),
-    ).toBeNull();
-    expect(
-      container.querySelector('[data-testid="thumbnail-others"]'),
-    ).toBeNull();
+      container.querySelector('[data-testid="thumbnail-others-bar"]'),
+    ).not.toBeNull();
   });
 
   it("main / sub color を 90 / 10 で描画し、sub なしでも表示できる", async () => {
@@ -882,5 +876,28 @@ describe("OutfitColorThumbnail current 統合表示", () => {
     expect(children.indexOf("legwear-overlay")).toBeLessThan(
       children.indexOf("bottoms-garment"),
     );
+  });
+  it("inner は outfit サムネイルで描画しない", async () => {
+    await act(async () => {
+      root.render(
+        React.createElement(OutfitColorThumbnail, {
+          outfitItems: [
+            renderOutfitItem(1, "tops", [
+              { role: "main", hex: "#ffffff", label: "white" },
+            ]),
+            renderOutfitItem(2, "inner", [
+              { role: "main", hex: "#111111", label: "black" },
+            ]),
+          ],
+        }),
+      );
+    });
+
+    expect(
+      container.querySelector('[data-testid="thumbnail-others-bar"]'),
+    ).toBeNull();
+    expect(
+      container.querySelectorAll('[data-testid="thumbnail-tops-segment"]'),
+    ).toHaveLength(1);
   });
 });

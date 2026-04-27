@@ -79,6 +79,9 @@ shape 固有の切替位置や構造を表すものではなく、lower-body pre
 - item 単体では `onepiece_allinone`（shape は `onepiece` / `allinone`）も non-lower-body 系の共通四角文法で扱い、outfit 側は `onepiece_allinone` 専用 mode で最小限の合成を持つ
 - 現状の outfit サムネイルでは、`onepiece + bottoms` のみ `onepiece_allinone` 専用 mode へ寄せて主レイヤー + 裾見せ補助レイヤーで簡略表示し、`allinone + bottoms` は通常レイアウトを維持する
 - outfit サムネイルでは、従来 `legwear` を色帯レイアウトの `others` へも流していたが、現時点では lower-body 専用責務へ寄せている
+- 共通の色サムネイル grouping は、`tops / bottoms / others` の単純三分割ではなく、カテゴリ役割として `main_upper / main_lower / main_full / support / hidden` を持つ
+- `outerwear` は `main_upper`、`bags / shoes / fashion_accessories` は `support`、`inner` は `hidden` として扱う
+- outfit / wear log の見た目差は renderer 側で吸収し、`support` は小サムネイルでは下バー表現に寄せる
 
 ### 今後対応
 
