@@ -54,7 +54,7 @@ export default function ColorSelect({
   }, []);
 
   return (
-    <div ref={rootRef} className="relative">
+    <div ref={rootRef} className="relative min-w-0">
       <button
         type="button"
         disabled={disabled}
@@ -63,16 +63,20 @@ export default function ColorSelect({
         aria-haspopup="listbox"
         aria-expanded={open}
       >
-        <span className="flex min-w-0 items-center gap-3">
+        <span className="flex min-w-0 flex-1 items-center gap-3">
           {selectedColor ? (
             <>
               <span
                 className="h-5 w-5 shrink-0 rounded-full border border-gray-300"
                 style={{ backgroundColor: selectedColor.hex }}
               />
-              <span className="truncate">{selectedColor.label}</span>
-              <span className="shrink-0 text-xs text-gray-400">
-                {selectedColor.hex.toUpperCase()}
+              <span className="min-w-0">
+                <span className="block truncate text-sm font-medium text-gray-900">
+                  {selectedColor.label}
+                </span>
+                <span className="block text-xs text-gray-400">
+                  {selectedColor.hex.toUpperCase()}
+                </span>
               </span>
             </>
           ) : (
@@ -85,7 +89,7 @@ export default function ColorSelect({
       </button>
 
       {open && !disabled && (
-        <div className="absolute z-20 mt-2 max-h-96 w-full overflow-y-auto rounded-xl border border-gray-200 bg-white p-2 shadow-lg">
+        <div className="absolute left-0 z-20 mt-2 max-h-96 w-[min(22rem,calc(100vw-2rem))] min-w-full max-w-[calc(100vw-2rem)] overflow-y-auto rounded-xl border border-gray-200 bg-white p-2 shadow-lg">
           {emptyOptionLabel && (
             <button
               type="button"
@@ -117,22 +121,24 @@ export default function ColorSelect({
                         onChange(color.value);
                         setOpen(false);
                       }}
-                      className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left transition ${
+                      className={`flex w-full items-start justify-between gap-3 rounded-lg px-3 py-2 text-left transition ${
                         isSelected
                           ? "bg-blue-50 text-blue-900"
                           : "hover:bg-gray-50"
                       }`}
                     >
-                      <span className="flex min-w-0 items-center gap-3">
+                      <span className="flex min-w-0 flex-1 items-start gap-3">
                         <span
                           className="h-5 w-5 shrink-0 rounded-full border border-gray-300"
                           style={{ backgroundColor: color.hex }}
                         />
-                        <span className="truncate text-sm font-medium">
-                          {color.label}
-                        </span>
-                        <span className="shrink-0 text-xs text-gray-400">
-                          {color.hex.toUpperCase()}
+                        <span className="min-w-0">
+                          <span className="block text-sm font-medium text-gray-900">
+                            {color.label}
+                          </span>
+                          <span className="block text-xs text-gray-400">
+                            {color.hex.toUpperCase()}
+                          </span>
                         </span>
                       </span>
                       {isSelected && (
