@@ -939,7 +939,7 @@ export default function PurchaseCandidateForm({
     setSelectedTpos(payload.tpos);
     setMaterialRows(buildEditableItemMaterials(payload.materials));
     const normalizedDraftImages = normalizeDraftDuplicateImages(payload.images);
-    setExistingImages(normalizedDraftImages);
+    setExistingImages([]);
     setDuplicateImages(normalizedDraftImages);
     setPendingImages([]);
     applySpecFormState(payload.category_id, payload.shape, payload.spec);

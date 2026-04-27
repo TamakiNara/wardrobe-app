@@ -1532,6 +1532,96 @@ describe("購入検討フォーム", () => {
     ]);
   });
 
+  it("色違い初期値で最後の引き継ぎ画像を削除すると表示から消える", async () => {
+    searchParamsValue = "source=color-variant";
+    window.sessionStorage.setItem(
+      "purchase-candidate-duplicate-payload",
+      JSON.stringify({
+        status: "considering",
+        priority: "medium",
+        name: "色違いノースリーブ",
+        category_id: "tops_tshirt_cutsew",
+        shape: "tshirt",
+        variant_source_candidate_id: 10,
+        brand_name: "Sample Brand",
+        price: 9800,
+        sale_price: null,
+        sale_ends_at: null,
+        purchase_url: "https://example.test/products/variant",
+        memo: "メモ",
+        wanted_reason: "色違いが欲しい",
+        size_gender: "women",
+        size_label: "M",
+        size_note: "",
+        size_details: null,
+        is_rain_ok: false,
+        colors: [
+          {
+            role: "main",
+            mode: "preset",
+            value: "white",
+            hex: "#F9FAFB",
+            label: "ホワイト",
+            custom_label: null,
+          },
+        ],
+        seasons: ["夏"],
+        tpos: ["休日"],
+        materials: [],
+        images: [
+          {
+            id: 7,
+            source_image_id: 7,
+            purchase_candidate_id: 10,
+            disk: "public",
+            path: "purchase-candidates/10/source.png",
+            url: "/storage/purchase-candidates/10/source.png",
+            original_filename: "source.png",
+            mime_type: "image/png",
+            file_size: 1234,
+            sort_order: 1,
+            is_primary: true,
+          },
+        ],
+      }),
+    );
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 201,
+      json: async () => ({
+        purchaseCandidate: {
+          id: 13,
+        },
+      }),
+    });
+
+    await renderForm();
+
+    expect(container.textContent).toContain("source.png");
+
+    const sourceImageCard = Array.from(
+      container.querySelectorAll("article"),
+    ).find((card) => card.textContent?.includes("source.png"));
+    const deleteButton = Array.from(
+      sourceImageCard?.querySelectorAll("button") ?? [],
+    ).find((button) => button.textContent === "削除");
+
+    expect(sourceImageCard).toBeDefined();
+    expect(deleteButton).toBeDefined();
+
+    await act(async () => {
+      deleteButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      await Promise.resolve();
+    });
+
+    expect(container.textContent).not.toContain("source.png");
+    expect(
+      Array.from(container.querySelectorAll("article")).some((card) =>
+        card.textContent?.includes("代表画像"),
+      ),
+    ).toBe(false);
+  });
+
   it("tops の色違い追加ドラフトで tops spec を読み込める", async () => {
     searchParamsValue = "source=color-variant";
     window.sessionStorage.setItem(
