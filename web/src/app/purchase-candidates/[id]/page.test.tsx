@@ -819,4 +819,86 @@ describe("購入検討詳細画面", () => {
     expect(markup).toContain("28.5cm");
     expect(markup).toContain("12cm");
   });
+  it("複数サイズ候補がある場合は両方のサイズ候補を表示する", async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        purchaseCandidate: {
+          id: 20,
+          status: "considering",
+          priority: "medium",
+          name: "サイズ比較用スカート",
+          category_id: "skirts_skirt",
+          shape: "narrow",
+          category_name: "スカート",
+          brand_name: "Brand",
+          price: null,
+          release_date: null,
+          sale_price: null,
+          sale_ends_at: null,
+          discount_ends_at: null,
+          purchase_url: null,
+          memo: null,
+          wanted_reason: null,
+          size_gender: "women",
+          size_label: "M",
+          size_note: "ジャスト寄り",
+          size_details: {
+            structured: {
+              waist: { value: 66 },
+              skirt_length: { value: 83.5 },
+            },
+          },
+          alternate_size_label: "L",
+          alternate_size_note: "ゆったり寄り",
+          alternate_size_details: {
+            structured: {
+              waist: { value: 70 },
+              skirt_length: { value: 85.5 },
+            },
+            custom_fields: [
+              {
+                label: "裾スリット",
+                value: 24,
+                sort_order: 1,
+              },
+            ],
+          },
+          spec: null,
+          is_rain_ok: false,
+          sheerness: null,
+          group_id: null,
+          group_order: null,
+          group_candidates: [],
+          converted_item_id: null,
+          converted_at: null,
+          colors: [],
+          seasons: [],
+          tpos: [],
+          materials: [],
+          images: [],
+          created_at: "2026-04-27T10:00:00+09:00",
+          updated_at: "2026-04-27T10:00:00+09:00",
+        },
+      }),
+    });
+
+    const { default: PurchaseCandidateDetailPage } = await import("./page");
+    const markup = renderToStaticMarkup(
+      await PurchaseCandidateDetailPage({
+        params: Promise.resolve({ id: "20" }),
+      }),
+    );
+
+    expect(markup).toContain("サイズ候補1（M）");
+    expect(markup).toContain("サイズ候補2（L）");
+    expect(markup).toContain('role="tablist"');
+    expect(markup).toContain("ジャスト寄り");
+    expect(markup).toContain("ゆったり寄り");
+    expect(markup).toContain("66cm");
+    expect(markup).toContain("70cm");
+    expect(markup).toContain("裾スリット");
+    expect(markup).toContain("24cm");
+  });
 });

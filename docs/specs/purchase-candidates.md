@@ -1765,3 +1765,31 @@ candidate 側でも、編集画面と duplicate / color-variant draft で `sort_
 - `透け感` は item 側と同じ `none / slight / high` を内部値として保存する任意項目とする
 - detail では `透け感` に値がある場合のみ表示し、未設定時は項目自体を表示しない
 - item-draft / item 化でも `透け感` をそのまま引き継ぐ
+
+---
+
+## 複数サイズ候補
+
+current:
+
+- purchase candidate は最大 2 つのサイズ候補を持てる
+- 第1候補は `size_label` / `size_note` / `size_details` を使う
+- 第2候補は `alternate_size_label` / `alternate_size_note` / `alternate_size_details` を使う
+- `size_gender` は 2 候補で共通とする
+- 2 候補が入っている場合だけ、フォーム上で候補全体を入れ替える swap UI を出す
+- フォームの `サイズ・実寸` では `サイズ候補1` / `サイズ候補2` をタブで切り替えて編集する
+- タブにはサイズ表記と `入力あり` / `未入力` を表示し、候補の入力状態が分かるようにする
+- detail の `サイズ・実寸` も同じ候補単位でタブ表示し、選択中候補だけを表示する
+- detail のサイズ比較では、購入検討側サイズ候補は select を出さず、各候補を列で並べて item と比較する
+- detail のサイズ比較表では、購入検討側の列ラベルはサイズ表記のみを使い、手持ち側は `手持ち（サイズ表記）` で表示する
+
+planned:
+
+item-draft / item 化:
+
+- 現状の item-draft では第1候補だけを返す
+- item 側は単一サイズ前提のままなので、第2候補は item へは引き継がない
+
+import / export:
+
+- backup / restore では `alternate_size_label` / `alternate_size_note` / `alternate_size_details` も対象に含める

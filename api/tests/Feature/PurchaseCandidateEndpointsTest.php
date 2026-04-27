@@ -2700,6 +2700,216 @@ class PurchaseCandidateEndpointsTest extends TestCase
             ->assertJsonPath('item.spec.skirt.design_type', 'pleats');
     }
 
+    public function test_post_purchase_candidate_stores_alternate_size_fields(): void
+    {
+        $user = User::factory()->create();
+        $this->createCategory('tops_tshirt_cutsew', 'tops', 'Tシャツ・カットソー');
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $response = $this->postJson('/api/purchase-candidates', [
+            'status' => 'considering',
+            'priority' => 'medium',
+            'name' => 'サイズ候補比較テスト',
+            'category_id' => 'tops_tshirt_cutsew',
+            'brand_name' => null,
+            'price' => null,
+            'sale_price' => null,
+            'sale_ends_at' => null,
+            'discount_ends_at' => null,
+            'purchase_url' => null,
+            'memo' => null,
+            'wanted_reason' => null,
+            'size_gender' => 'women',
+            'size_label' => 'M',
+            'size_note' => 'ジャスト寄り',
+            'size_details' => [
+                'structured' => [
+                    'shoulder_width' => [
+                        'value' => 42.5,
+                    ],
+                ],
+                'custom_fields' => [
+                    [
+                        'label' => '袖幅',
+                        'value' => 19,
+                        'sort_order' => 1,
+                    ],
+                ],
+            ],
+            'alternate_size_label' => 'L',
+            'alternate_size_note' => 'ゆったり寄り',
+            'alternate_size_details' => [
+                'structured' => [
+                    'shoulder_width' => [
+                        'value' => 45,
+                    ],
+                ],
+                'custom_fields' => [
+                    [
+                        'label' => '袖幅',
+                        'value' => 21,
+                        'sort_order' => 1,
+                    ],
+                ],
+            ],
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'white',
+                'hex' => '#F9FAFB',
+                'label' => 'ホワイト',
+            ]],
+            'seasons' => [],
+            'tpos' => [],
+            'is_rain_ok' => false,
+        ], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('purchaseCandidate.size_label', 'M')
+            ->assertJsonPath('purchaseCandidate.alternate_size_label', 'L')
+            ->assertJsonPath('purchaseCandidate.alternate_size_note', 'ゆったり寄り')
+            ->assertJsonPath('purchaseCandidate.alternate_size_details.structured.shoulder_width.value', 45)
+            ->assertJsonPath('purchaseCandidate.alternate_size_details.custom_fields.0.label', '袖幅');
+
+        $candidate = PurchaseCandidate::query()->findOrFail($response->json('purchaseCandidate.id'));
+
+        $this->assertSame('L', $candidate->alternate_size_label);
+        $this->assertSame('ゆったり寄り', $candidate->alternate_size_note);
+        $this->assertSame(45, data_get($candidate->alternate_size_details, 'structured.shoulder_width.value'));
+        $this->assertSame('袖幅', data_get($candidate->alternate_size_details, 'custom_fields.0.label'));
+    }
+
+    public function test_patch_purchase_candidate_updates_alternate_size_fields(): void
+    {
+        $user = User::factory()->create();
+        $this->createCategory('tops_tshirt_cutsew', 'tops', 'Tシャツ・カットソー');
+        $candidate = $this->createCandidate($user, [
+            'status' => 'considering',
+            'category_id' => 'tops_tshirt_cutsew',
+            'size_label' => 'M',
+            'size_note' => 'ジャスト寄り',
+            'alternate_size_label' => null,
+            'alternate_size_note' => null,
+            'alternate_size_details' => null,
+        ]);
+
+        $candidate->colors()->create([
+            'role' => 'main',
+            'mode' => 'preset',
+            'value' => 'white',
+            'hex' => '#F9FAFB',
+            'label' => 'ホワイト',
+            'sort_order' => 1,
+        ]);
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $response = $this->putJson("/api/purchase-candidates/{$candidate->id}", [
+            'status' => 'considering',
+            'priority' => 'medium',
+            'name' => $candidate->name,
+            'category_id' => 'tops_tshirt_cutsew',
+            'brand_name' => $candidate->brand_name,
+            'price' => $candidate->price,
+            'sale_price' => $candidate->sale_price,
+            'sale_ends_at' => $candidate->sale_ends_at,
+            'discount_ends_at' => $candidate->discount_ends_at,
+            'purchase_url' => $candidate->purchase_url,
+            'memo' => $candidate->memo,
+            'wanted_reason' => $candidate->wanted_reason,
+            'size_gender' => 'women',
+            'size_label' => 'M',
+            'size_note' => 'ジャスト寄り',
+            'size_details' => [
+                'structured' => [
+                    'shoulder_width' => [
+                        'value' => 42.5,
+                    ],
+                ],
+            ],
+            'alternate_size_label' => 'L',
+            'alternate_size_note' => 'ゆったり寄り',
+            'alternate_size_details' => [
+                'structured' => [
+                    'shoulder_width' => [
+                        'value' => 45,
+                    ],
+                ],
+            ],
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'white',
+                'hex' => '#F9FAFB',
+                'label' => 'ホワイト',
+            ]],
+            'seasons' => [],
+            'tpos' => [],
+            'is_rain_ok' => false,
+        ], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('purchaseCandidate.alternate_size_label', 'L')
+            ->assertJsonPath('purchaseCandidate.alternate_size_details.structured.shoulder_width.value', 45);
+
+        $candidate->refresh();
+
+        $this->assertSame('L', $candidate->alternate_size_label);
+        $this->assertSame(45, data_get($candidate->alternate_size_details, 'structured.shoulder_width.value'));
+    }
+
+    public function test_post_purchase_candidate_item_draft_uses_primary_size_when_alternate_size_exists(): void
+    {
+        $user = User::factory()->create();
+        $candidate = $this->createCandidate($user, [
+            'status' => 'considering',
+            'category_id' => 'tops_tshirt_cutsew',
+            'size_gender' => 'women',
+            'size_label' => 'M',
+            'size_note' => 'ジャスト寄り',
+            'size_details' => [
+                'structured' => [
+                    'shoulder_width' => [
+                        'value' => 42.5,
+                    ],
+                ],
+            ],
+            'alternate_size_label' => 'L',
+            'alternate_size_note' => 'ゆったり寄り',
+            'alternate_size_details' => [
+                'structured' => [
+                    'shoulder_width' => [
+                        'value' => 45,
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $response = $this->postJson("/api/purchase-candidates/{$candidate->id}/item-draft", [], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('item_draft.size_label', 'M')
+            ->assertJsonPath('item_draft.size_note', 'ジャスト寄り')
+            ->assertJsonPath('item_draft.size_details.structured.shoulder_width.value', 42.5);
+
+        $this->assertNull(data_get($response->json(), 'item_draft.alternate_size_label'));
+    }
+
     public function test_post_purchase_candidate_image_upload_and_delete_work_with_limit(): void
     {
         Storage::fake('public');

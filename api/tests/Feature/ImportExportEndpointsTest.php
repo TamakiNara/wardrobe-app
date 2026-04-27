@@ -177,6 +177,20 @@ class ImportExportEndpointsTest extends TestCase
                     'body_length' => 66,
                 ],
             ],
+            'alternate_size_label' => 'M',
+            'alternate_size_note' => 'ジャスト',
+            'alternate_size_details' => [
+                'structured' => [
+                    'body_length' => 64,
+                ],
+                'custom_fields' => [
+                    [
+                        'label' => '裄丈',
+                        'value' => 78,
+                        'sort_order' => 1,
+                    ],
+                ],
+            ],
             'spec' => [
                 'tops' => [
                     'sleeve' => 'long',
@@ -880,5 +894,50 @@ class ImportExportEndpointsTest extends TestCase
             'user_id' => $user->id,
             'name' => '現在ユーザーのアイテム',
         ]);
+    }
+
+    public function test_export_import_roundtrip_preserves_purchase_candidate_alternate_size_fields(): void
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->create();
+        $this->createCategory('tops_shirt_blouse', 'tops', '繧ｷ繝｣繝・・繝悶Λ繧ｦ繧ｹ');
+
+        $source = $this->seedExportSourceData($user);
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $exportResponse = $this->getJson('/api/export', [
+            'Accept' => 'application/json',
+        ]);
+
+        $exportResponse->assertOk();
+
+        $exportPayload = $exportResponse->json();
+
+        $this->assertSame('M', data_get($exportPayload, 'purchase_candidates.0.alternate_size_label'));
+        $this->assertSame('ジャスト', data_get($exportPayload, 'purchase_candidates.0.alternate_size_note'));
+        $this->assertSame(64, data_get($exportPayload, 'purchase_candidates.0.alternate_size_details.structured.body_length'));
+        $this->assertSame('裄丈', data_get($exportPayload, 'purchase_candidates.0.alternate_size_details.custom_fields.0.label'));
+
+        PurchaseCandidate::query()->delete();
+
+        $importResponse = $this->postJson('/api/import', $exportPayload, [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $importResponse->assertOk();
+
+        $importedCandidate = PurchaseCandidate::query()
+            ->where('user_id', $user->id)
+            ->where('name', $source['candidate']->name)
+            ->sole();
+
+        $this->assertSame('M', $importedCandidate->alternate_size_label);
+        $this->assertSame('ジャスト', $importedCandidate->alternate_size_note);
+        $this->assertSame(64, data_get($importedCandidate->alternate_size_details, 'structured.body_length.value'));
+        $this->assertSame('裄丈', data_get($importedCandidate->alternate_size_details, 'custom_fields.0.label'));
     }
 }

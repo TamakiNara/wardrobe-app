@@ -62,6 +62,9 @@ class ImportExportValidationSupport
         $normalizedPayload['size_details'] = SizeDetailSupport::normalizeForValidation(
             $normalizedPayload['size_details'] ?? null,
         );
+        $normalizedPayload['alternate_size_details'] = SizeDetailSupport::normalizeForValidation(
+            $normalizedPayload['alternate_size_details'] ?? null,
+        );
 
         $validated = Validator::make($normalizedPayload, [
             'id' => ['nullable', 'integer'],
@@ -86,6 +89,8 @@ class ImportExportValidationSupport
             'size_gender' => ['nullable', 'string', 'in:women,men,unisex'],
             'size_label' => ['nullable', 'string', 'max:50'],
             'size_note' => ['nullable', 'string'],
+            'alternate_size_label' => ['nullable', 'string', 'max:50'],
+            'alternate_size_note' => ['nullable', 'string'],
             'spec' => ['nullable', 'array:tops,bottoms,skirt,legwear'],
             'spec.tops' => ['nullable', 'array:sleeve,length,neck,design,fit'],
             'spec.tops.sleeve' => ['nullable', 'string', 'max:100'],
@@ -129,7 +134,7 @@ class ImportExportValidationSupport
             'images.*.sort_order' => ['required', 'integer', 'min:1'],
             'images.*.is_primary' => ['nullable', 'boolean'],
             'images.*.content_base64' => ['nullable', 'string'],
-        ] + SizeDetailSupport::validationRules())->validate();
+        ] + SizeDetailSupport::validationRules() + SizeDetailSupport::validationRules('alternate_size_details'))->validate();
 
         ItemMaterialValidator::validate($validated);
 

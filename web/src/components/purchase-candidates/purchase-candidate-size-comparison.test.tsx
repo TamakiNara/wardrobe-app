@@ -1,19 +1,21 @@
 // @vitest-environment jsdom
+
 import React, { act } from "react";
 import ReactDOM from "react-dom/client";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import PurchaseCandidateSizeComparison from "@/components/purchase-candidates/purchase-candidate-size-comparison";
 import type { ItemRecord } from "@/types/items";
 import type { PurchaseCandidateRecord } from "@/types/purchase-candidates";
 
-function createItem(overrides: Partial<ItemRecord>): ItemRecord {
+function createItem(overrides: Partial<ItemRecord> = {}): ItemRecord {
   return {
     id: 1,
-    name: "比較アイテム",
+    name: "比較用アイテム",
     status: "active",
     category: "skirts",
     subcategory: "skirt",
     shape: "narrow",
+    size_label: "M",
     size_details: {
       structured: {
         waist: { value: 64 },
@@ -28,23 +30,14 @@ function createItem(overrides: Partial<ItemRecord>): ItemRecord {
   };
 }
 
-function createCustomOnlyItem(overrides: Partial<ItemRecord>): ItemRecord {
-  return createItem({
-    size_details: {
-      custom_fields: [{ label: "裾スリット", value: 24, sort_order: 1 }],
-    },
-    ...overrides,
-  });
-}
-
 function createCandidate(
-  overrides: Partial<PurchaseCandidateRecord>,
+  overrides: Partial<PurchaseCandidateRecord> = {},
 ): PurchaseCandidateRecord {
   return {
     id: 10,
     status: "considering",
     priority: "medium",
-    name: "候補アイテム",
+    name: "購入検討アイテム",
     category_id: "skirts_skirt",
     shape: "narrow",
     category_name: "スカート",
@@ -58,7 +51,7 @@ function createCandidate(
     memo: null,
     wanted_reason: null,
     size_gender: null,
-    size_label: null,
+    size_label: "M",
     size_note: null,
     size_details: {
       structured: {
@@ -67,8 +60,12 @@ function createCandidate(
         skirt_length: { value: 84.5 },
       },
     },
+    alternate_size_label: null,
+    alternate_size_note: null,
+    alternate_size_details: null,
     spec: null,
     is_rain_ok: false,
+    sheerness: null,
     group_id: null,
     group_order: null,
     group_candidates: [],
@@ -89,6 +86,10 @@ describe("PurchaseCandidateSizeComparison", () => {
   let container: HTMLDivElement;
   let root: ReactDOM.Root;
 
+  beforeEach(() => {
+    globalThis.IS_REACT_ACT_ENVIRONMENT = true;
+  });
+
   afterEach(() => {
     if (root) {
       act(() => root.unmount());
@@ -105,14 +106,14 @@ describe("PurchaseCandidateSizeComparison", () => {
     });
   }
 
-  it("購入検討に固定・自由どちらの実寸もない場合は empty state を出す", () => {
+  it("購入検討に実寸がない場合は empty state を表示する", () => {
     setup(
       <PurchaseCandidateSizeComparison
         candidate={createCandidate({ size_details: null })}
         resolvedCategory="skirts"
         resolvedSubcategory="skirt"
         resolvedShape="narrow"
-        items={[createItem({})]}
+        items={[createItem()]}
       />,
     );
 
@@ -121,10 +122,10 @@ describe("PurchaseCandidateSizeComparison", () => {
     );
   });
 
-  it("比較候補がない場合は empty state を出す", () => {
+  it("比較候補がない場合は empty state を表示する", () => {
     setup(
       <PurchaseCandidateSizeComparison
-        candidate={createCandidate({})}
+        candidate={createCandidate()}
         resolvedCategory="skirts"
         resolvedSubcategory="skirt"
         resolvedShape="narrow"
@@ -137,7 +138,7 @@ describe("PurchaseCandidateSizeComparison", () => {
     );
   });
 
-  it("差分列を出さず、固定実寸と自由実寸を表示する", () => {
+  it("固定実寸と自由実寸を表に表示し、候補 item を切り替えられる", () => {
     setup(
       <PurchaseCandidateSizeComparison
         candidate={createCandidate({
@@ -159,6 +160,7 @@ describe("PurchaseCandidateSizeComparison", () => {
           createItem({
             id: 1,
             name: "手持ちA",
+            size_label: "M",
             size_details: {
               structured: {
                 waist: { value: 64 },
@@ -167,11 +169,17 @@ describe("PurchaseCandidateSizeComparison", () => {
               },
             },
           }),
-          createCustomOnlyItem({
+          createItem({
             id: 2,
             name: "手持ちB",
+            size_label: "L",
             subcategory: "other",
             shape: "",
+            size_details: {
+              custom_fields: [
+                { label: "裾スリット", value: 24, sort_order: 1 },
+              ],
+            },
           }),
         ]}
       />,
@@ -184,8 +192,11 @@ describe("PurchaseCandidateSizeComparison", () => {
     expect(container.textContent).toContain("後ろ約 26cm");
     expect(container.textContent).toContain("未設定");
     expect(container.textContent).not.toContain("差分");
+    expect(container.textContent).toContain("手持ち（M）");
 
-    const select = container.querySelector("select");
+    const select = container.querySelector<HTMLSelectElement>(
+      "#purchase-candidate-size-comparison-item",
+    );
     expect(select).not.toBeNull();
     expect(select?.textContent).toContain("手持ちA");
     expect(select?.textContent).toContain("手持ちB");
@@ -199,6 +210,38 @@ describe("PurchaseCandidateSizeComparison", () => {
       select.dispatchEvent(new Event("change", { bubbles: true }));
     });
 
+    expect(container.textContent).toContain("手持ち（L）");
     expect(container.textContent).toContain("24cm");
+  });
+
+  it("複数サイズ候補がある場合は両方のサイズ列を並べて表示する", () => {
+    setup(
+      <PurchaseCandidateSizeComparison
+        candidate={createCandidate({
+          size_label: "M",
+          size_details: {
+            structured: {
+              waist: { value: 66 },
+            },
+          },
+          alternate_size_label: "L",
+          alternate_size_details: {
+            structured: {
+              waist: { value: 70 },
+            },
+          },
+        })}
+        resolvedCategory="skirts"
+        resolvedSubcategory="skirt"
+        resolvedShape="narrow"
+        items={[createItem()]}
+      />,
+    );
+
+    expect(container.textContent).toContain("M");
+    expect(container.textContent).toContain("L");
+    expect(container.textContent).toContain("手持ち（M）");
+    expect(container.textContent).toContain("66cm");
+    expect(container.textContent).toContain("70cm");
   });
 });

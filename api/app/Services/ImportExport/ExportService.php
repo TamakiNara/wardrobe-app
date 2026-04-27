@@ -131,6 +131,9 @@ class ExportService
             'size_label' => $candidate->size_label,
             'size_note' => $candidate->size_note,
             'size_details' => $candidate->size_details,
+            'alternate_size_label' => $candidate->alternate_size_label,
+            'alternate_size_note' => $candidate->alternate_size_note,
+            'alternate_size_details' => $candidate->alternate_size_details,
             'spec' => ItemSpecPayloadSupport::buildResponseSpec(
                 is_array($candidate->spec) ? $candidate->spec : null,
             ),

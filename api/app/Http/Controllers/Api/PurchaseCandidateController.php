@@ -159,6 +159,8 @@ class PurchaseCandidateController extends Controller
             'size_gender' => ['nullable', 'string', 'in:women,men,unisex'],
             'size_label' => ['nullable', 'string', 'max:50'],
             'size_note' => ['nullable', 'string'],
+            'alternate_size_label' => ['nullable', 'string', 'max:50'],
+            'alternate_size_note' => ['nullable', 'string'],
             'spec' => ['nullable', 'array:tops,bottoms,skirt,legwear'],
             'spec.tops' => ['nullable', 'array:sleeve,length,neck,design,fit'],
             'spec.tops.sleeve' => ['nullable', 'string', 'max:100'],
@@ -198,7 +200,7 @@ class PurchaseCandidateController extends Controller
             'duplicate_images.*.source_image_id' => ['required', 'integer', 'distinct'],
             'duplicate_images.*.sort_order' => ['nullable', 'integer', 'min:1'],
             'duplicate_images.*.is_primary' => ['nullable', 'boolean'],
-        ] + SizeDetailSupport::validationRules());
+        ] + SizeDetailSupport::validationRules() + SizeDetailSupport::validationRules('alternate_size_details'));
 
         ItemMaterialValidator::validate($validated);
 
@@ -240,6 +242,9 @@ class PurchaseCandidateController extends Controller
             'size_label',
             'size_note',
             'size_details',
+            'alternate_size_label',
+            'alternate_size_note',
+            'alternate_size_details',
             'spec',
             'is_rain_ok',
             'sheerness',
@@ -291,6 +296,9 @@ class PurchaseCandidateController extends Controller
         $request->merge([
             'size_details' => SizeDetailSupport::normalizeForValidation(
                 $request->input('size_details'),
+            ),
+            'alternate_size_details' => SizeDetailSupport::normalizeForValidation(
+                $request->input('alternate_size_details'),
             ),
         ]);
     }

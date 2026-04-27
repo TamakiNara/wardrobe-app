@@ -1,25 +1,14 @@
 import { describe, expect, it } from "vitest";
-import type { ItemRecord, ItemSizeDetails } from "@/types/items";
+import type { ItemRecord } from "@/types/items";
 import type { PurchaseCandidateRecord } from "@/types/purchase-candidates";
 import {
-  buildPurchaseCandidateSizeComparisonRows,
+  buildPurchaseCandidateMultiSizeComparisonRows,
   getPurchaseCandidateComparisonOptions,
+  getPurchaseCandidateSizeOptions,
   hasStructuredSizeComparisonBase,
-} from "@/lib/purchase-candidates/size-comparison";
+} from "./size-comparison";
 
-function createSizeDetails(
-  structured: NonNullable<ItemSizeDetails["structured"]>,
-) {
-  return { structured };
-}
-
-function createCustomOnlySizeDetails(
-  customFields: NonNullable<ItemSizeDetails["custom_fields"]>,
-) {
-  return { custom_fields: customFields };
-}
-
-function createItem(overrides: Partial<ItemRecord>): ItemRecord {
+function createItem(overrides: Partial<ItemRecord> = {}): ItemRecord {
   return {
     id: 1,
     name: "比較用アイテム",
@@ -27,6 +16,14 @@ function createItem(overrides: Partial<ItemRecord>): ItemRecord {
     category: "skirts",
     subcategory: "skirt",
     shape: "narrow",
+    size_label: "M",
+    size_details: {
+      structured: {
+        waist: { value: 64 },
+        hip: { value: 103 },
+        skirt_length: { value: 83.5 },
+      },
+    },
     colors: [],
     seasons: [],
     tpos: [],
@@ -35,14 +32,15 @@ function createItem(overrides: Partial<ItemRecord>): ItemRecord {
 }
 
 function createCandidate(
-  overrides: Partial<PurchaseCandidateRecord>,
+  overrides: Partial<PurchaseCandidateRecord> = {},
 ): PurchaseCandidateRecord {
   return {
     id: 10,
     status: "considering",
     priority: "medium",
-    name: "候補スカート",
+    name: "購入検討アイテム",
     category_id: "skirts_skirt",
+    shape: "narrow",
     category_name: "スカート",
     brand_name: null,
     price: null,
@@ -54,11 +52,21 @@ function createCandidate(
     memo: null,
     wanted_reason: null,
     size_gender: null,
-    size_label: null,
+    size_label: "M",
     size_note: null,
-    size_details: null,
+    size_details: {
+      structured: {
+        waist: { value: 66 },
+        hip: { value: 107 },
+        skirt_length: { value: 84.5 },
+      },
+    },
+    alternate_size_label: null,
+    alternate_size_note: null,
+    alternate_size_details: null,
     spec: null,
     is_rain_ok: false,
+    sheerness: null,
     group_id: null,
     group_order: null,
     group_candidates: [],
@@ -75,191 +83,152 @@ function createCandidate(
   };
 }
 
-describe("getPurchaseCandidateComparisonOptions", () => {
-  it("同カテゴリで structured または自由実寸のある active item だけを候補にする", () => {
-    const candidate = {
-      ...createCandidate({}),
-      resolvedCategory: "skirts",
-      resolvedSubcategory: "skirt",
-      resolvedShape: "narrow",
-    };
-    const options = getPurchaseCandidateComparisonOptions(candidate, [
-      createItem({
-        id: 1,
-        category: "skirts",
-        size_details: createSizeDetails({ waist: { value: 64 } }),
-      }),
-      createItem({
-        id: 2,
-        category: "tops",
-        size_details: createSizeDetails({ body_width: { value: 48 } }),
-      }),
-      createItem({
-        id: 3,
-        category: "skirts",
-        status: "disposed",
-        size_details: createSizeDetails({ waist: { value: 65 } }),
-      }),
-      createItem({
-        id: 4,
-        category: "skirts",
-        size_details: null,
-      }),
-      createItem({
-        id: 5,
-        category: "skirts",
-        size_details: createCustomOnlySizeDetails([
-          { label: "裾スリット", value: 12, sort_order: 1 },
-        ]),
-      }),
-    ]);
-
-    expect(options.map((option) => option.id)).toEqual([1, 5]);
-  });
-
-  it("subcategory 一致を優先し、その中で shape 一致を優先する", () => {
-    const candidate = {
-      ...createCandidate({}),
-      resolvedCategory: "skirts",
-      resolvedSubcategory: "skirt",
-      resolvedShape: "narrow",
-    };
-    const options = getPurchaseCandidateComparisonOptions(candidate, [
-      createItem({
-        id: 3,
-        name: "別種類",
-        subcategory: "other",
-        shape: "",
-        size_details: createSizeDetails({ waist: { value: 64 } }),
-      }),
-      createItem({
-        id: 1,
-        name: "ナロー",
-        shape: "narrow",
-        size_details: createSizeDetails({ waist: { value: 65 } }),
-      }),
-      createItem({
-        id: 2,
-        name: "Aライン",
-        shape: "a_line",
-        size_details: createSizeDetails({ waist: { value: 64 } }),
-      }),
-    ]);
-
-    expect(options.map((option) => option.id)).toEqual([1, 2, 3]);
-  });
-});
-
-describe("buildPurchaseCandidateSizeComparisonRows", () => {
-  it("固定実寸は購入検討と手持ちを横並びで表示する", () => {
-    const candidate = {
-      ...createCandidate({
-        size_details: createSizeDetails({
-          waist: { value: 66 },
-          hip: { value: 103 },
-          skirt_length: { value: 83.5 },
-        }),
-      }),
-      resolvedCategory: "skirts",
-      resolvedSubcategory: "skirt",
-      resolvedShape: "narrow",
-    };
-    const item = createItem({
-      size_details: createSizeDetails({
-        waist: { value: 64 },
-        hip: { value: 103 },
-        skirt_length: { value: 84.5 },
-      }),
-    });
-
-    const rows = buildPurchaseCandidateSizeComparisonRows(candidate, item);
-
-    expect(rows.find((row) => row.key === "waist")).toMatchObject({
-      candidateValue: "66cm",
-      itemValue: "64cm",
-    });
-    expect(rows.find((row) => row.key === "hip")).toMatchObject({
-      candidateValue: "103cm",
-      itemValue: "103cm",
-    });
-  });
-
-  it("自由実寸も含め、片方だけにある項目は未設定で表示する", () => {
-    const candidate = {
-      ...createCandidate({
-        size_details: {
-          structured: {
-            waist: { min: 63, max: 67, note: "ヌード寸" },
-            hip: { value: 91 },
-          },
-          custom_fields: [
-            { label: "裾スリット", value: 26, note: "後ろ約", sort_order: 1 },
-            { label: "ベント", value: 18, sort_order: 2 },
-          ],
-        },
-      }),
-      resolvedCategory: "skirts",
-      resolvedSubcategory: "skirt",
-      resolvedShape: "narrow",
-    };
-    const item = createItem({
-      size_details: {
+describe("size-comparison", () => {
+  it("購入検討のサイズ候補を primary / alternate で返す", () => {
+    const candidate = createCandidate({
+      size_label: "M",
+      alternate_size_label: "L",
+      alternate_size_note: "ゆったり候補",
+      alternate_size_details: {
         structured: {
-          waist: { value: 64 },
+          waist: { value: 70 },
         },
-        custom_fields: [
-          { label: "裾スリット", value: 24, sort_order: 1 },
-          { label: "ポケット口", value: 14, sort_order: 2 },
-        ],
       },
     });
 
-    const rows = buildPurchaseCandidateSizeComparisonRows(candidate, item);
-
-    expect(rows.find((row) => row.key === "waist")).toMatchObject({
-      candidateValue: "ヌード寸 63〜67cm",
-      itemValue: "64cm",
-    });
-    expect(rows.find((row) => row.key === "hip")).toMatchObject({
-      candidateValue: "91cm",
-      itemValue: "未設定",
-    });
-    expect(rows.find((row) => row.key === "custom:裾スリット")).toMatchObject({
-      candidateValue: "後ろ約 26cm",
-      itemValue: "24cm",
-    });
-    expect(rows.find((row) => row.key === "custom:ベント")).toMatchObject({
-      candidateValue: "18cm",
-      itemValue: "未設定",
-    });
-    expect(rows.find((row) => row.key === "custom:ポケット口")).toMatchObject({
-      candidateValue: "未設定",
-      itemValue: "14cm",
-    });
+    expect(getPurchaseCandidateSizeOptions(candidate)).toEqual([
+      expect.objectContaining({
+        key: "primary",
+        label: "M",
+        optionLabel: "サイズ候補1（M）",
+      }),
+      expect.objectContaining({
+        key: "alternate",
+        label: "L",
+        note: "ゆったり候補",
+        optionLabel: "サイズ候補2（L）",
+      }),
+    ]);
   });
-});
 
-describe("hasStructuredSizeComparisonBase", () => {
-  it("structured 実寸があると true を返す", () => {
+  it("自由実寸だけある item も候補に含め、subcategory / shape 一致を優先する", () => {
+    const candidate = {
+      ...createCandidate(),
+      resolvedCategory: "skirts",
+      resolvedSubcategory: "skirt",
+      resolvedShape: "narrow",
+    };
+    const options = getPurchaseCandidateComparisonOptions(candidate, [
+      createItem({
+        id: 3,
+        name: "同一subcategory・同一shape",
+      }),
+      createItem({
+        id: 2,
+        name: "同一subcategory・別shape",
+        shape: "flare",
+      }),
+      createItem({
+        id: 4,
+        name: "自由実寸のみ",
+        size_details: {
+          custom_fields: [{ label: "裾スリット", value: 24, sort_order: 1 }],
+        },
+      }),
+      createItem({
+        id: 5,
+        name: "別subcategory",
+        subcategory: "other",
+        shape: "",
+      }),
+      createItem({
+        id: 6,
+        name: "inactive",
+        status: "archived",
+      }),
+      createItem({
+        id: 7,
+        name: "別カテゴリ",
+        category: "tops",
+        subcategory: "tshirt_cutsew",
+        shape: "tshirt",
+      }),
+    ]);
+
+    expect(options.map((option) => option.item.id)).toEqual([4, 3, 2, 5]);
+  });
+
+  it("複数サイズ候補ぶんの比較行をまとめて組み立てる", () => {
+    const candidate = createCandidate({
+      size_details: {
+        structured: {
+          waist: { value: 66 },
+          hip: { value: 107 },
+          skirt_length: { value: 84.5 },
+        },
+        custom_fields: [
+          { label: "裾スリット", value: 26, note: "後ろ約", sort_order: 1 },
+        ],
+      },
+      alternate_size_label: "L",
+      alternate_size_details: {
+        structured: {
+          waist: { value: 68 },
+        },
+      },
+    });
+
+    const rows = buildPurchaseCandidateMultiSizeComparisonRows(
+      getPurchaseCandidateSizeOptions(candidate),
+      {
+        category: "skirts",
+        shape: "narrow",
+      },
+      createItem({
+        size_details: {
+          structured: {
+            waist: { value: 64 },
+          },
+          custom_fields: [{ label: "裾スリット", value: 24, sort_order: 1 }],
+        },
+      }),
+    );
+
+    expect(rows[0]).toEqual(
+      expect.objectContaining({
+        key: "waist",
+        label: "ウエスト",
+        candidateValues: expect.objectContaining({
+          primary: "66cm",
+          alternate: "68cm",
+        }),
+        itemValue: "64cm",
+      }),
+    );
+    expect(rows.at(-1)).toEqual(
+      expect.objectContaining({
+        key: "custom:裾スリット",
+        label: "裾スリット",
+        candidateValues: expect.objectContaining({
+          primary: "後ろ約 26cm",
+          alternate: "未設定",
+        }),
+        itemValue: "24cm",
+      }),
+    );
+  });
+
+  it("どちらかのサイズ候補に実寸があれば比較可能とみなす", () => {
     expect(
       hasStructuredSizeComparisonBase(
         createCandidate({
-          size_details: createSizeDetails({ waist: { value: 64 } }),
+          size_details: null,
+          alternate_size_label: "L",
+          alternate_size_details: {
+            custom_fields: [{ label: "裄丈", value: 58, sort_order: 1 }],
+          },
         }),
       ),
     ).toBe(true);
-  });
-
-  it("自由実寸だけでも true、未設定なら false を返す", () => {
-    expect(
-      hasStructuredSizeComparisonBase(
-        createCandidate({
-          size_details: createCustomOnlySizeDetails([
-            { label: "裾スリット", value: 12, sort_order: 1 },
-          ]),
-        }),
-      ),
-    ).toBe(true);
-    expect(hasStructuredSizeComparisonBase(createCandidate({}))).toBe(false);
   });
 });

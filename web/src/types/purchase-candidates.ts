@@ -95,6 +95,9 @@ export type PurchaseCandidateRecord = {
   size_label: string | null;
   size_note: string | null;
   size_details: ItemSizeDetails | null;
+  alternate_size_label: string | null;
+  alternate_size_note: string | null;
+  alternate_size_details: ItemSizeDetails | null;
   spec: ItemSpec | null;
   is_rain_ok: boolean;
   sheerness?: ItemSheerness | null;
@@ -163,6 +166,9 @@ export type PurchaseCandidateUpsertPayload = {
   size_label: string | null;
   size_note: string | null;
   size_details: ItemSizeDetails | null;
+  alternate_size_label: string | null;
+  alternate_size_note: string | null;
+  alternate_size_details: ItemSizeDetails | null;
   spec: ItemSpec | null;
   is_rain_ok: boolean;
   sheerness?: ItemSheerness | null;

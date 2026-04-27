@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { ArrowLeftRight } from "lucide-react";
 import FieldLabel from "@/components/forms/field-label";
 import {
   FORM_CONTROL_COLOR_SCHEME_CLASS,
@@ -78,6 +79,7 @@ import {
   type EditableItemMaterial,
 } from "@/lib/items/materials";
 import { ITEM_SHEERNESS_LABELS } from "@/lib/items/metadata";
+import { swapPurchaseCandidateSizeCandidates } from "@/lib/purchase-candidates/size-options";
 import {
   buildItemSizeDetailsPayload,
   buildSizeDetailDuplicateWarnings,
@@ -122,6 +124,8 @@ type PurchaseCandidateFormProps = {
   cancelHref?: string;
   footerAction?: ReactNode;
 };
+
+type SizeCandidateTabKey = "primary" | "alternate";
 
 const PURCHASE_CANDIDATE_SAVE_ERROR_MESSAGE =
   "保存に失敗しました。時間をおいて再度お試しください。";
@@ -286,6 +290,57 @@ function normalizeNullableString(value: string): string {
   return value.trim();
 }
 
+function hasEditableSizeDetailValueInput(
+  field?: EditableSizeDetailValue | null,
+): boolean {
+  return Boolean(
+    field?.value?.trim() ||
+    field?.min?.trim() ||
+    field?.max?.trim() ||
+    field?.note?.trim(),
+  );
+}
+
+function hasPurchaseCandidateSizeDetailsInput(
+  structuredSizeValues: Partial<
+    Record<StructuredSizeFieldName, EditableSizeDetailValue>
+  >,
+  customSizeFields: EditableCustomSizeField[],
+): boolean {
+  const hasStructuredValues = Object.values(structuredSizeValues).some(
+    hasEditableSizeDetailValueInput,
+  );
+  const hasCustomValues = customSizeFields.some((field) =>
+    Boolean(
+      field.label.trim() ||
+      field.value.trim() ||
+      field.min.trim() ||
+      field.max.trim() ||
+      field.note.trim(),
+    ),
+  );
+
+  return hasStructuredValues || hasCustomValues;
+}
+
+function hasPurchaseCandidateSizeCandidateInput(params: {
+  label: string;
+  note: string;
+  structuredSizeValues: Partial<
+    Record<StructuredSizeFieldName, EditableSizeDetailValue>
+  >;
+  customSizeFields: EditableCustomSizeField[];
+}): boolean {
+  return (
+    normalizeNullableString(params.label) !== "" ||
+    params.note.trim() !== "" ||
+    hasPurchaseCandidateSizeDetailsInput(
+      params.structuredSizeValues,
+      params.customSizeFields,
+    )
+  );
+}
+
 function isValidHexColor(value: string): boolean {
   return /^#[0-9A-Fa-f]{6}$/.test(value.trim());
 }
@@ -412,6 +467,17 @@ export default function PurchaseCandidateForm({
   const [customSizeFields, setCustomSizeFields] = useState<
     EditableCustomSizeField[]
   >([]);
+  const [alternateSizeLabel, setAlternateSizeLabel] = useState("");
+  const [alternateSizeNote, setAlternateSizeNote] = useState("");
+  const [alternateStructuredSizeValues, setAlternateStructuredSizeValues] =
+    useState<Partial<Record<StructuredSizeFieldName, EditableSizeDetailValue>>>(
+      {},
+    );
+  const [alternateCustomSizeFields, setAlternateCustomSizeFields] = useState<
+    EditableCustomSizeField[]
+  >([]);
+  const [activeSizeCandidateTab, setActiveSizeCandidateTab] =
+    useState<SizeCandidateTabKey>("primary");
   const [topsSleeve, setTopsSleeve] = useState<TopsSleeveValue | "">("");
   const [topsLength, setTopsLength] = useState<TopsLengthValue | "">("");
   const [topsNeck, setTopsNeck] = useState<TopsNeckValue | "">("");
@@ -637,6 +703,105 @@ export default function PurchaseCandidateForm({
       ),
     [customSizeFields, structuredSizeFieldDefinitions],
   );
+  const alternateSizeDetailDuplicateWarnings = useMemo(
+    () =>
+      buildSizeDetailDuplicateWarnings(
+        structuredSizeFieldDefinitions,
+        alternateCustomSizeFields.map((field) => field.label),
+      ),
+    [alternateCustomSizeFields, structuredSizeFieldDefinitions],
+  );
+  const primarySizeCandidateHasInput = useMemo(
+    () =>
+      hasPurchaseCandidateSizeCandidateInput({
+        label: sizeLabel,
+        note: sizeNote,
+        structuredSizeValues,
+        customSizeFields,
+      }),
+    [customSizeFields, sizeLabel, sizeNote, structuredSizeValues],
+  );
+  const alternateSizeCandidateHasInput = useMemo(
+    () =>
+      hasPurchaseCandidateSizeCandidateInput({
+        label: alternateSizeLabel,
+        note: alternateSizeNote,
+        structuredSizeValues: alternateStructuredSizeValues,
+        customSizeFields: alternateCustomSizeFields,
+      }),
+    [
+      alternateCustomSizeFields,
+      alternateSizeLabel,
+      alternateSizeNote,
+      alternateStructuredSizeValues,
+    ],
+  );
+  const canSwapSizeCandidates = useMemo(
+    () => primarySizeCandidateHasInput && alternateSizeCandidateHasInput,
+    [alternateSizeCandidateHasInput, primarySizeCandidateHasInput],
+  );
+  const sizeCandidateTabs = useMemo(
+    () => [
+      {
+        key: "primary" as const,
+        title: "サイズ候補1",
+        label: normalizeNullableString(sizeLabel),
+        hasInput: primarySizeCandidateHasInput,
+      },
+      {
+        key: "alternate" as const,
+        title: "サイズ候補2",
+        label: normalizeNullableString(alternateSizeLabel),
+        hasInput: alternateSizeCandidateHasInput,
+      },
+    ],
+    [
+      alternateSizeCandidateHasInput,
+      alternateSizeLabel,
+      primarySizeCandidateHasInput,
+      sizeLabel,
+    ],
+  );
+  const activeSizeCandidate =
+    activeSizeCandidateTab === "primary"
+      ? {
+          key: "primary" as const,
+          title: "サイズ候補1",
+          labelInputId: "size_label",
+          noteInputId: "size_note",
+          label: sizeLabel,
+          note: sizeNote,
+          structuredSizeValues,
+          customSizeFields,
+          hasDuplicateWarnings:
+            sizeDetailDuplicateWarnings.hasStructuredDuplicates ||
+            sizeDetailDuplicateWarnings.hasCustomDuplicates,
+          setLabel: setSizeLabel,
+          setNote: setSizeNote,
+          onAddCustomSizeField: addCustomSizeField,
+          onUpdateStructuredSizeValue: updateStructuredSizeValue,
+          onUpdateCustomSizeField: updateCustomSizeField,
+          onRemoveCustomSizeField: removeCustomSizeField,
+        }
+      : {
+          key: "alternate" as const,
+          title: "サイズ候補2",
+          labelInputId: "alternate_size_label",
+          noteInputId: "alternate_size_note",
+          label: alternateSizeLabel,
+          note: alternateSizeNote,
+          structuredSizeValues: alternateStructuredSizeValues,
+          customSizeFields: alternateCustomSizeFields,
+          hasDuplicateWarnings:
+            alternateSizeDetailDuplicateWarnings.hasStructuredDuplicates ||
+            alternateSizeDetailDuplicateWarnings.hasCustomDuplicates,
+          setLabel: setAlternateSizeLabel,
+          setNote: setAlternateSizeNote,
+          onAddCustomSizeField: addAlternateCustomSizeField,
+          onUpdateStructuredSizeValue: updateAlternateStructuredSizeValue,
+          onUpdateCustomSizeField: updateAlternateCustomSizeField,
+          onRemoveCustomSizeField: removeAlternateCustomSizeField,
+        };
   const materialValidation = useMemo(
     () => validateItemMaterials(materialRows),
     [materialRows],
@@ -769,28 +934,24 @@ export default function PurchaseCandidateForm({
           setSizeGender(candidate.size_gender ?? "");
           setSizeLabel(candidate.size_label ?? "");
           setSizeNote(candidate.size_note ?? "");
-          const normalizedSizeDetails = normalizeItemSizeDetails(
-            candidate.size_details,
-          );
           setStructuredSizeValues(
-            normalizedSizeDetails?.structured
-              ? Object.fromEntries(
-                  Object.entries(normalizedSizeDetails.structured).map(
-                    ([fieldName, fieldValue]) => [
-                      fieldName,
-                      buildEditableSizeDetailValue(fieldValue),
-                    ],
-                  ),
-                )
-              : {},
+            toEditableStructuredSizeValues(candidate.size_details),
           );
           setCustomSizeFields(
-            normalizedSizeDetails?.custom_fields?.map((field, index) => ({
-              id: `existing-${index}`,
-              label: field.label,
-              ...buildEditableSizeDetailValue(field),
-            })) ?? [],
+            toEditableCustomSizeFields(candidate.size_details, "existing"),
           );
+          setAlternateSizeLabel(candidate.alternate_size_label ?? "");
+          setAlternateSizeNote(candidate.alternate_size_note ?? "");
+          setAlternateStructuredSizeValues(
+            toEditableStructuredSizeValues(candidate.alternate_size_details),
+          );
+          setAlternateCustomSizeFields(
+            toEditableCustomSizeFields(
+              candidate.alternate_size_details,
+              "existing-alternate",
+            ),
+          );
+          setActiveSizeCandidateTab("primary");
           setIsRainOk(candidate.is_rain_ok);
           setSheerness(candidate.sheerness ?? "");
           const main = candidate.colors.find((color) => color.role === "main");
@@ -920,29 +1081,24 @@ export default function PurchaseCandidateForm({
     setSizeGender(payload.size_gender ?? "");
     setSizeLabel(payload.size_label ?? "");
     setSizeNote(payload.size_note ?? "");
-
-    const normalizedSizeDetails = normalizeItemSizeDetails(
-      payload.size_details,
-    );
     setStructuredSizeValues(
-      normalizedSizeDetails?.structured
-        ? Object.fromEntries(
-            Object.entries(normalizedSizeDetails.structured).map(
-              ([fieldName, fieldValue]) => [
-                fieldName,
-                buildEditableSizeDetailValue(fieldValue),
-              ],
-            ),
-          )
-        : {},
+      toEditableStructuredSizeValues(payload.size_details),
     );
     setCustomSizeFields(
-      normalizedSizeDetails?.custom_fields?.map((field, index) => ({
-        id: `duplicate-${index}`,
-        label: field.label,
-        ...buildEditableSizeDetailValue(field),
-      })) ?? [],
+      toEditableCustomSizeFields(payload.size_details, "duplicate"),
     );
+    setAlternateSizeLabel(payload.alternate_size_label ?? "");
+    setAlternateSizeNote(payload.alternate_size_note ?? "");
+    setAlternateStructuredSizeValues(
+      toEditableStructuredSizeValues(payload.alternate_size_details),
+    );
+    setAlternateCustomSizeFields(
+      toEditableCustomSizeFields(
+        payload.alternate_size_details,
+        "duplicate-alternate",
+      ),
+    );
+    setActiveSizeCandidateTab("primary");
     setIsRainOk(payload.is_rain_ok);
     setSheerness(payload.sheerness ?? "");
 
@@ -1023,12 +1179,50 @@ export default function PurchaseCandidateForm({
     });
   }
 
+  function toEditableStructuredSizeValues(sizeDetails: unknown) {
+    const normalizedSizeDetails = normalizeItemSizeDetails(sizeDetails);
+
+    return normalizedSizeDetails?.structured
+      ? Object.fromEntries(
+          Object.entries(normalizedSizeDetails.structured).map(
+            ([fieldName, fieldValue]) => [
+              fieldName,
+              buildEditableSizeDetailValue(fieldValue),
+            ],
+          ),
+        )
+      : {};
+  }
+
+  function toEditableCustomSizeFields(sizeDetails: unknown, prefix: string) {
+    const normalizedSizeDetails = normalizeItemSizeDetails(sizeDetails);
+
+    return (
+      normalizedSizeDetails?.custom_fields?.map((field, index) => ({
+        id: `${prefix}-${index}`,
+        label: field.label,
+        ...buildEditableSizeDetailValue(field),
+      })) ?? []
+    );
+  }
+
   function updateStructuredSizeValue(
     fieldName: StructuredSizeFieldName,
     key: keyof ItemSizeDetailValue,
     value: string,
   ) {
     setStructuredSizeValues((current) => ({
+      ...current,
+      [fieldName]: normalizeEditableSizeValue(current[fieldName], key, value),
+    }));
+  }
+
+  function updateAlternateStructuredSizeValue(
+    fieldName: StructuredSizeFieldName,
+    key: keyof ItemSizeDetailValue,
+    value: string,
+  ) {
+    setAlternateStructuredSizeValues((current) => ({
       ...current,
       [fieldName]: normalizeEditableSizeValue(current[fieldName], key, value),
     }));
@@ -1050,8 +1244,35 @@ export default function PurchaseCandidateForm({
     );
   }
 
+  function updateAlternateCustomSizeField(
+    fieldId: string,
+    field: "label" | keyof ItemSizeDetailValue,
+    value: string,
+  ) {
+    setAlternateCustomSizeFields((current) =>
+      current.map((item) =>
+        item.id === fieldId
+          ? field === "label"
+            ? { ...item, label: value }
+            : { ...item, ...normalizeEditableSizeValue(item, field, value) }
+          : item,
+      ),
+    );
+  }
+
   function addCustomSizeField() {
     setCustomSizeFields((current) => [
+      ...current,
+      {
+        id: createEditableCustomSizeFieldId(current.length),
+        label: "",
+        ...createEmptyEditableSizeDetailValue(),
+      },
+    ]);
+  }
+
+  function addAlternateCustomSizeField() {
+    setAlternateCustomSizeFields((current) => [
       ...current,
       {
         id: createEditableCustomSizeFieldId(current.length),
@@ -1065,6 +1286,43 @@ export default function PurchaseCandidateForm({
     setCustomSizeFields((current) =>
       current.filter((field) => field.id !== fieldId),
     );
+  }
+
+  function removeAlternateCustomSizeField(fieldId: string) {
+    setAlternateCustomSizeFields((current) =>
+      current.filter((field) => field.id !== fieldId),
+    );
+  }
+
+  function swapSizeCandidates() {
+    const swapped = swapPurchaseCandidateSizeCandidates(
+      {
+        label: sizeLabel,
+        note: sizeNote,
+        details: {
+          structured: structuredSizeValues,
+          custom: customSizeFields,
+        },
+      },
+      {
+        label: alternateSizeLabel,
+        note: alternateSizeNote,
+        details: {
+          structured: alternateStructuredSizeValues,
+          custom: alternateCustomSizeFields,
+        },
+      },
+    );
+
+    setSizeLabel(swapped.primary.label);
+    setSizeNote(swapped.primary.note);
+    setStructuredSizeValues(swapped.primary.details.structured);
+    setCustomSizeFields(swapped.primary.details.custom);
+
+    setAlternateSizeLabel(swapped.alternate.label);
+    setAlternateSizeNote(swapped.alternate.note);
+    setAlternateStructuredSizeValues(swapped.alternate.details.structured);
+    setAlternateCustomSizeFields(swapped.alternate.details.custom);
   }
 
   function updateMaterialRow(
@@ -1226,6 +1484,13 @@ export default function PurchaseCandidateForm({
         structuredSizeFieldDefinitions,
         structuredSizeValues,
         customSizeFields,
+      ),
+      alternate_size_label: normalizeNullableString(alternateSizeLabel) || null,
+      alternate_size_note: alternateSizeNote.trim() || null,
+      alternate_size_details: buildItemSizeDetailsPayload(
+        structuredSizeFieldDefinitions,
+        alternateStructuredSizeValues,
+        alternateCustomSizeFields,
       ),
       is_rain_ok: isRainOk,
       sheerness: sheerness || null,
@@ -1528,7 +1793,7 @@ export default function PurchaseCandidateForm({
           </p>
         )}
 
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-[minmax(0,28rem)_auto] md:items-end">
           <div>
             <FieldLabel htmlFor="status" label="ステータス" />
             <select
@@ -2453,86 +2718,180 @@ export default function PurchaseCandidateForm({
         title="サイズ・実寸"
         className="lg:col-span-2 lg:order-7"
       >
-        <div className="grid gap-4 md:grid-cols-2">
-          <div>
-            <FieldLabel htmlFor="size_gender" label="サイズ区分" />
-            <select
-              id="size_gender"
-              value={sizeGender}
-              onChange={(event) =>
-                setSizeGender(event.target.value as typeof sizeGender)
-              }
-              disabled={isPurchasedLocked}
-              className={getFormControlClassName({
-                disabled: isPurchasedLocked,
-              })}
-            >
-              <option value=""></option>
-              <option value="women">
-                {PURCHASE_CANDIDATE_SIZE_GENDER_LABELS.women}
-              </option>
-              <option value="men">
-                {PURCHASE_CANDIDATE_SIZE_GENDER_LABELS.men}
-              </option>
-              <option value="unisex">
-                {PURCHASE_CANDIDATE_SIZE_GENDER_LABELS.unisex}
-              </option>
-            </select>
+        <div className="max-w-md">
+          <FieldLabel htmlFor="size_gender" label="サイズ区分" />
+          <select
+            id="size_gender"
+            value={sizeGender}
+            onChange={(event) =>
+              setSizeGender(event.target.value as typeof sizeGender)
+            }
+            disabled={isPurchasedLocked}
+            className={getFormControlClassName({
+              disabled: isPurchasedLocked,
+            })}
+          >
+            <option value=""></option>
+            <option value="women">
+              {PURCHASE_CANDIDATE_SIZE_GENDER_LABELS.women}
+            </option>
+            <option value="men">
+              {PURCHASE_CANDIDATE_SIZE_GENDER_LABELS.men}
+            </option>
+            <option value="unisex">
+              {PURCHASE_CANDIDATE_SIZE_GENDER_LABELS.unisex}
+            </option>
+          </select>
+        </div>
+
+        <div className="mt-4 overflow-hidden rounded-xl border border-gray-200 bg-white">
+          <div className="border-b border-gray-200 px-4 pt-4">
+            <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+              <div
+                className="-mb-px flex min-w-0 flex-1 flex-wrap items-end gap-2"
+                role="tablist"
+                aria-label="サイズ候補"
+              >
+                {sizeCandidateTabs.map((tab) => {
+                  const isActive = activeSizeCandidateTab === tab.key;
+                  const displayLabel =
+                    tab.label !== "" ? tab.label : "サイズ未入力";
+
+                  return (
+                    <button
+                      key={tab.key}
+                      id={`size-candidate-tab-${tab.key}`}
+                      type="button"
+                      role="tab"
+                      aria-selected={isActive}
+                      aria-controls={`size-candidate-panel-${tab.key}`}
+                      onClick={() => setActiveSizeCandidateTab(tab.key)}
+                      className={[
+                        "flex min-w-[11rem] items-center gap-3 rounded-t-xl border px-4 py-2.5 text-left transition",
+                        isActive
+                          ? "relative -mb-px border-gray-200 border-b-white bg-white text-gray-900 after:absolute after:inset-x-0 after:-bottom-px after:h-px after:bg-white"
+                          : "border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100",
+                      ].join(" ")}
+                    >
+                      <div className="min-w-0 flex-1">
+                        <div className="text-xs font-medium">{tab.title}</div>
+                        <div className="truncate text-sm font-semibold">
+                          {displayLabel}
+                        </div>
+                      </div>
+                      <span
+                        className={[
+                          "rounded-full px-2 py-0.5 text-xs font-medium",
+                          tab.hasInput
+                            ? isActive
+                              ? "bg-blue-50 text-blue-700"
+                              : "bg-emerald-50 text-emerald-700"
+                            : "bg-white/80 text-gray-500",
+                        ].join(" ")}
+                      >
+                        {tab.hasInput ? "入力あり" : "未入力"}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {canSwapSizeCandidates ? (
+                <div className="shrink-0 pb-3 md:text-right">
+                  <button
+                    type="button"
+                    onClick={swapSizeCandidates}
+                    disabled={isPurchasedLocked}
+                    aria-label="サイズ候補を入れ替え"
+                    className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-gray-300 text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <ArrowLeftRight className="h-4 w-4" aria-hidden="true" />
+                  </button>
+                  <p className="mt-1 text-xs text-gray-500">
+                    候補1と候補2を入れ替えます
+                  </p>
+                </div>
+              ) : null}
+            </div>
           </div>
 
-          <div>
-            <label
-              htmlFor="size_label"
-              className="mb-1 block text-sm font-medium text-gray-700"
-            >
-              サイズ表記
-            </label>
-            <input
-              id="size_label"
-              type="text"
-              placeholder="例: M / 23.5cm"
-              value={sizeLabel}
-              onChange={(event) => setSizeLabel(event.target.value)}
+          <div
+            id={`size-candidate-panel-${activeSizeCandidate.key}`}
+            role="tabpanel"
+            aria-labelledby={`size-candidate-tab-${activeSizeCandidate.key}`}
+            className="space-y-4 p-4"
+          >
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <label
+                  htmlFor={activeSizeCandidate.labelInputId}
+                  className="mb-1 block text-sm font-medium text-gray-700"
+                >
+                  サイズ表記
+                </label>
+                <input
+                  id={activeSizeCandidate.labelInputId}
+                  type="text"
+                  placeholder={
+                    activeSizeCandidate.key === "primary"
+                      ? "例: M / 23.5cm"
+                      : "例: L / 24.0cm"
+                  }
+                  value={activeSizeCandidate.label}
+                  onChange={(event) =>
+                    activeSizeCandidate.setLabel(event.target.value)
+                  }
+                  disabled={isPurchasedLocked}
+                  className={getFormControlClassName({
+                    disabled: isPurchasedLocked,
+                  })}
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor={activeSizeCandidate.noteInputId}
+                  className="mb-1 block text-sm font-medium text-gray-700"
+                >
+                  サイズ感メモ
+                </label>
+                <textarea
+                  id={activeSizeCandidate.noteInputId}
+                  value={activeSizeCandidate.note}
+                  onChange={(event) =>
+                    activeSizeCandidate.setNote(event.target.value)
+                  }
+                  disabled={isPurchasedLocked}
+                  rows={4}
+                  placeholder={
+                    activeSizeCandidate.key === "primary"
+                      ? "例: 普段Mだが少し小さめ"
+                      : "例: 普段Mだがゆったり着るならL"
+                  }
+                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                />
+              </div>
+            </div>
+
+            <ItemSizeDetailsFields
+              structuredSizeFieldDefinitions={structuredSizeFieldDefinitions}
+              structuredSizeValues={activeSizeCandidate.structuredSizeValues}
+              customSizeFields={activeSizeCandidate.customSizeFields}
+              hasDuplicateWarnings={activeSizeCandidate.hasDuplicateWarnings}
               disabled={isPurchasedLocked}
-              className={getFormControlClassName({
-                disabled: isPurchasedLocked,
-              })}
+              compact
+              onAddCustomSizeField={activeSizeCandidate.onAddCustomSizeField}
+              onUpdateStructuredSizeValue={
+                activeSizeCandidate.onUpdateStructuredSizeValue
+              }
+              onUpdateCustomSizeField={
+                activeSizeCandidate.onUpdateCustomSizeField
+              }
+              onRemoveCustomSizeField={
+                activeSizeCandidate.onRemoveCustomSizeField
+              }
             />
           </div>
         </div>
-
-        <div>
-          <label
-            htmlFor="size_note"
-            className="mb-1 block text-sm font-medium text-gray-700"
-          >
-            サイズ感メモ
-          </label>
-          <textarea
-            id="size_note"
-            value={sizeNote}
-            onChange={(event) => setSizeNote(event.target.value)}
-            disabled={isPurchasedLocked}
-            rows={3}
-            placeholder="例: 普段Mだが小さめ"
-            className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-          />
-        </div>
-
-        <ItemSizeDetailsFields
-          structuredSizeFieldDefinitions={structuredSizeFieldDefinitions}
-          structuredSizeValues={structuredSizeValues}
-          customSizeFields={customSizeFields}
-          hasDuplicateWarnings={
-            sizeDetailDuplicateWarnings.hasStructuredDuplicates ||
-            sizeDetailDuplicateWarnings.hasCustomDuplicates
-          }
-          disabled={isPurchasedLocked}
-          onAddCustomSizeField={addCustomSizeField}
-          onUpdateStructuredSizeValue={updateStructuredSizeValue}
-          onUpdateCustomSizeField={updateCustomSizeField}
-          onRemoveCustomSizeField={removeCustomSizeField}
-        />
       </ItemFormSection>
       <ItemFormSection title="素材・混率" className="lg:col-span-2 lg:order-8">
         {isPurchasedLocked && (

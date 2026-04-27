@@ -43,10 +43,10 @@ describe("購入検討フォーム", () => {
   let root: ReturnType<typeof createRoot>;
 
   async function openSizeDetails() {
-    const toggleButton = Array.from(container.querySelectorAll("button")).find(
-      (button) => button.textContent?.includes("実寸を入力"),
+    const toggleButton = container.querySelector<HTMLButtonElement>(
+      'button[aria-label="実寸を編集"]',
     );
-    expect(toggleButton).not.toBeUndefined();
+    expect(toggleButton).not.toBeNull();
 
     await act(async () => {
       toggleButton!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
@@ -55,13 +55,25 @@ describe("購入検討フォーム", () => {
   }
 
   async function collapseSizeDetails() {
-    const toggleButton = Array.from(container.querySelectorAll("button")).find(
-      (button) => button.textContent?.includes("折りたたむ"),
+    const toggleButton = container.querySelector<HTMLButtonElement>(
+      'button[aria-label="実寸を閉じる"]',
     );
-    expect(toggleButton).not.toBeUndefined();
+    expect(toggleButton).not.toBeNull();
 
     await act(async () => {
       toggleButton!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      await Promise.resolve();
+    });
+  }
+
+  async function selectSizeCandidateTab(label: "サイズ候補1" | "サイズ候補2") {
+    const tabButton = Array.from(
+      container.querySelectorAll<HTMLButtonElement>('[role="tab"]'),
+    ).find((button) => button.textContent?.includes(label));
+    expect(tabButton).not.toBeUndefined();
+
+    await act(async () => {
+      tabButton!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
       await Promise.resolve();
     });
   }
@@ -749,7 +761,10 @@ describe("購入検討フォーム", () => {
     await renderForm();
 
     expect(container.textContent).toContain("実寸");
-    expect(container.textContent).toContain("実寸を入力");
+    expect(
+      container.querySelector('button[aria-label="実寸を編集"]'),
+    ).not.toBeNull();
+    expect(container.textContent).toContain("実寸は未入力です");
     expect(container.textContent).not.toContain("自由項目を追加");
     expect(container.textContent).not.toContain(
       "現在のカテゴリと形に対応する固定実寸はありません。必要なら自由項目を追加してください。",
@@ -2206,8 +2221,11 @@ describe("購入検討フォーム", () => {
     });
 
     await collapseSizeDetails();
-    expect(container.textContent).toContain("実寸を入力");
-    expect(container.textContent).not.toContain("閉じる");
+    expect(
+      container.querySelector('button[aria-label="実寸を編集"]'),
+    ).not.toBeNull();
+    expect(container.textContent).toContain("肩幅 42.5cm");
+    expect(container.textContent).not.toContain("自由項目を追加");
 
     await openSizeDetails();
 
@@ -2516,5 +2534,468 @@ describe("購入検討フォーム", () => {
     expect(
       container.querySelector<HTMLInputElement>("#structured-size-depth"),
     ).not.toBeNull();
+  });
+
+  it("入れ替えで第1・第2候補の値を丸ごと入れ替えて送信する", async () => {
+    searchParamsValue = "source=duplicate";
+    window.sessionStorage.setItem(
+      "purchase-candidate-duplicate-payload",
+      JSON.stringify({
+        status: "considering",
+        priority: "medium",
+        name: "サイズ候補比較テスト",
+        category_id: "tops_tshirt_cutsew",
+        shape: "tshirt",
+        brand_name: "Sample Brand",
+        price: 9800,
+        sale_price: null,
+        sale_ends_at: null,
+        purchase_url: "https://example.test/products/size-swap",
+        memo: "",
+        wanted_reason: "",
+        size_gender: "women",
+        size_label: "L",
+        size_note: "ゆったり寄り",
+        size_details: {
+          structured: {
+            shoulder_width: {
+              value: 45,
+              min: null,
+              max: null,
+              note: null,
+            },
+          },
+          custom_fields: [
+            {
+              label: "袖幅",
+              value: 21,
+              min: null,
+              max: null,
+              note: null,
+              sort_order: 1,
+            },
+          ],
+        },
+        alternate_size_label: "M",
+        alternate_size_note: "ジャスト寄り",
+        alternate_size_details: {
+          structured: {
+            shoulder_width: {
+              value: 42.5,
+              min: null,
+              max: null,
+              note: null,
+            },
+          },
+          custom_fields: [
+            {
+              label: "袖幅",
+              value: 19,
+              min: null,
+              max: null,
+              note: null,
+              sort_order: 1,
+            },
+          ],
+        },
+        is_rain_ok: false,
+        colors: [
+          {
+            role: "main",
+            mode: "custom",
+            value: "custom",
+            hex: "#112233",
+            label: null,
+            custom_label: "31 BEIGE",
+          },
+        ],
+        seasons: ["春"],
+        tpos: ["休日"],
+        materials: [],
+        images: [],
+        duplicate_images: [],
+      }),
+    );
+
+    await renderForm();
+
+    const swapButton = container.querySelector<HTMLButtonElement>(
+      'button[aria-label="サイズ候補を入れ替え"]',
+    );
+    expect(swapButton).not.toBeUndefined();
+
+    await act(async () => {
+      swapButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+
+    const form = container.querySelector("form") as HTMLFormElement;
+
+    await act(async () => {
+      form.dispatchEvent(
+        new Event("submit", { bubbles: true, cancelable: true }),
+      );
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [, requestInit] = fetchMock.mock.calls[0];
+    const payload = JSON.parse(requestInit.body as string);
+
+    expect(payload.size_label).toBe("M");
+    expect(payload.size_note).toBe("ジャスト寄り");
+    expect(payload.size_details).toEqual({
+      structured: {
+        shoulder_width: {
+          value: 42.5,
+          min: null,
+          max: null,
+          note: null,
+        },
+      },
+      custom_fields: [
+        {
+          label: "袖幅",
+          value: 19,
+          min: null,
+          max: null,
+          note: null,
+          sort_order: 1,
+        },
+      ],
+    });
+    expect(payload.alternate_size_label).toBe("L");
+    expect(payload.alternate_size_note).toBe("ゆったり寄り");
+    expect(payload.alternate_size_details).toEqual({
+      structured: {
+        shoulder_width: {
+          value: 45,
+          min: null,
+          max: null,
+          note: null,
+        },
+      },
+      custom_fields: [
+        {
+          label: "袖幅",
+          value: 21,
+          min: null,
+          max: null,
+          note: null,
+          sort_order: 1,
+        },
+      ],
+    });
+  });
+
+  it("サイズ候補タブと入れ替え操作を同じ行で表示する", async () => {
+    searchParamsValue = "source=duplicate";
+    window.sessionStorage.setItem(
+      "purchase-candidate-duplicate-payload",
+      JSON.stringify({
+        status: "considering",
+        priority: "medium",
+        name: "サイズ候補配置テスト",
+        category_id: "tops_tshirt_cutsew",
+        shape: "tshirt",
+        size_gender: "men",
+        size_label: "L",
+        size_note: "",
+        size_details: null,
+        alternate_size_label: "M",
+        alternate_size_note: "",
+        alternate_size_details: null,
+        colors: [
+          {
+            role: "main",
+            mode: "custom",
+            value: "custom",
+            hex: "#112233",
+            label: null,
+            custom_label: "31 BEIGE",
+          },
+        ],
+        seasons: [],
+        tpos: [],
+        materials: [],
+        images: [],
+        duplicate_images: [],
+      }),
+    );
+
+    await renderForm();
+
+    const sizeGenderSelect = container.querySelector(
+      "#size_gender",
+    ) as HTMLSelectElement;
+    const tabList = container.querySelector('[role="tablist"]');
+    const swapButton = container.querySelector<HTMLButtonElement>(
+      'button[aria-label="サイズ候補を入れ替え"]',
+    );
+
+    expect(sizeGenderSelect).not.toBeNull();
+    expect(tabList).not.toBeNull();
+    expect(swapButton).not.toBeUndefined();
+    expect(container.textContent).toContain("候補1と候補2を入れ替えます");
+
+    const tabActionRow = Array.from(
+      container.querySelectorAll<HTMLDivElement>("div.flex"),
+    ).find(
+      (element) => element.contains(tabList!) && element.contains(swapButton!),
+    );
+
+    expect(tabActionRow).not.toBeUndefined();
+    expect(tabActionRow?.className).toContain("md:flex-row");
+  });
+
+  it("初期表示ではサイズ候補1タブが選択される", async () => {
+    await renderForm();
+
+    const tabs = Array.from(
+      container.querySelectorAll<HTMLButtonElement>('[role="tab"]'),
+    );
+    const primaryTab = tabs.find((tab) =>
+      tab.textContent?.includes("サイズ候補1"),
+    );
+    const alternateTab = tabs.find((tab) =>
+      tab.textContent?.includes("サイズ候補2"),
+    );
+
+    expect(primaryTab?.getAttribute("aria-selected")).toBe("true");
+    expect(alternateTab?.getAttribute("aria-selected")).toBe("false");
+    expect(container.querySelector("#size_label")).not.toBeNull();
+    expect(container.querySelector("#alternate_size_label")).toBeNull();
+    expect(alternateTab?.textContent).toContain("未入力");
+  });
+
+  it("サイズ候補2タブへ切り替えると候補2の入力欄を編集できる", async () => {
+    await renderForm();
+
+    await selectSizeCandidateTab("サイズ候補2");
+
+    const tabs = Array.from(
+      container.querySelectorAll<HTMLButtonElement>('[role="tab"]'),
+    );
+    const alternateTab = tabs.find((tab) =>
+      tab.textContent?.includes("サイズ候補2"),
+    );
+
+    expect(alternateTab?.getAttribute("aria-selected")).toBe("true");
+    expect(container.querySelector("#size_label")).toBeNull();
+    expect(container.querySelector("#alternate_size_label")).not.toBeNull();
+  });
+
+  it("サイズ表記を入力するとタブ表示に反映され、タブ切り替えでも値が消えない", async () => {
+    await renderForm();
+
+    await selectSizeCandidateTab("サイズ候補2");
+
+    const alternateSizeLabelInput = container.querySelector<HTMLInputElement>(
+      "#alternate_size_label",
+    );
+    const alternateSizeNoteInput = container.querySelector<HTMLTextAreaElement>(
+      "#alternate_size_note",
+    );
+    expect(alternateSizeLabelInput).not.toBeNull();
+    expect(alternateSizeNoteInput).not.toBeNull();
+
+    await act(async () => {
+      setNativeValue(alternateSizeLabelInput!, "XS");
+      setNativeValue(alternateSizeNoteInput!, "細め");
+    });
+
+    const alternateTab = Array.from(
+      container.querySelectorAll<HTMLButtonElement>('[role="tab"]'),
+    ).find((tab) => tab.textContent?.includes("サイズ候補2"));
+
+    expect(alternateTab?.textContent).toContain("XS");
+    expect(alternateTab?.textContent).toContain("入力あり");
+
+    await selectSizeCandidateTab("サイズ候補1");
+    await selectSizeCandidateTab("サイズ候補2");
+
+    expect(
+      container.querySelector<HTMLInputElement>("#alternate_size_label")?.value,
+    ).toBe("XS");
+    expect(
+      container.querySelector<HTMLTextAreaElement>("#alternate_size_note")
+        ?.value,
+    ).toBe("細め");
+  });
+
+  it("候補2に入力した内容を保存 payload に含める", async () => {
+    searchParamsValue = "source=duplicate";
+    window.sessionStorage.setItem(
+      "purchase-candidate-duplicate-payload",
+      JSON.stringify({
+        status: "considering",
+        priority: "medium",
+        name: "サイズ候補保存テスト",
+        category_id: "tops_tshirt_cutsew",
+        shape: "tshirt",
+        brand_name: "Sample Brand",
+        price: 7800,
+        sale_price: null,
+        sale_ends_at: null,
+        purchase_url: "https://example.test/products/size-tab",
+        memo: "",
+        wanted_reason: "",
+        size_gender: "women",
+        size_label: "S",
+        size_note: "ジャスト",
+        size_details: null,
+        alternate_size_label: null,
+        alternate_size_note: null,
+        alternate_size_details: null,
+        is_rain_ok: false,
+        colors: [
+          {
+            role: "main",
+            mode: "custom",
+            value: "custom",
+            hex: "#112233",
+            label: null,
+            custom_label: "31 BEIGE",
+          },
+        ],
+        seasons: [],
+        tpos: [],
+        materials: [],
+        images: [],
+        duplicate_images: [],
+      }),
+    );
+
+    await renderForm();
+    await setCategorySelection("tops", "tops_tshirt_cutsew");
+    await selectSizeCandidateTab("サイズ候補2");
+
+    const alternateSizeLabelInput = container.querySelector<HTMLInputElement>(
+      "#alternate_size_label",
+    );
+    const alternateSizeNoteInput = container.querySelector<HTMLTextAreaElement>(
+      "#alternate_size_note",
+    );
+    expect(alternateSizeLabelInput).not.toBeNull();
+    expect(alternateSizeNoteInput).not.toBeNull();
+
+    await act(async () => {
+      setNativeValue(alternateSizeLabelInput!, "M");
+      setNativeValue(alternateSizeNoteInput!, "少しゆったり");
+    });
+
+    await openSizeDetails();
+
+    const alternateShoulderWidthInput =
+      container.querySelector<HTMLInputElement>(
+        "#structured-size-shoulder_width",
+      );
+    expect(alternateShoulderWidthInput).not.toBeNull();
+
+    await act(async () => {
+      setNativeValue(alternateShoulderWidthInput!, "41.5");
+    });
+
+    const form = container.querySelector("form") as HTMLFormElement;
+    await act(async () => {
+      form.dispatchEvent(
+        new Event("submit", { bubbles: true, cancelable: true }),
+      );
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [, requestInit] = fetchMock.mock.calls[0];
+    const payload = JSON.parse(requestInit.body as string);
+
+    expect(payload.alternate_size_label).toBe("M");
+    expect(payload.alternate_size_note).toBe("少しゆったり");
+    expect(payload.alternate_size_details).toEqual({
+      structured: {
+        shoulder_width: {
+          value: 41.5,
+          min: null,
+          max: null,
+          note: null,
+        },
+      },
+    });
+  });
+
+  it("入れ替え後にタブ表示と中身が一致して入れ替わる", async () => {
+    searchParamsValue = "source=duplicate";
+    window.sessionStorage.setItem(
+      "purchase-candidate-duplicate-payload",
+      JSON.stringify({
+        status: "considering",
+        priority: "medium",
+        name: "サイズ候補タブ入れ替えテスト",
+        category_id: "tops_tshirt_cutsew",
+        shape: "tshirt",
+        size_gender: "women",
+        size_label: "L",
+        size_note: "ゆったり寄り",
+        size_details: null,
+        alternate_size_label: "M",
+        alternate_size_note: "ジャスト寄り",
+        alternate_size_details: null,
+        colors: [
+          {
+            role: "main",
+            mode: "custom",
+            value: "custom",
+            hex: "#112233",
+            label: null,
+            custom_label: "31 BEIGE",
+          },
+        ],
+        seasons: [],
+        tpos: [],
+        materials: [],
+        images: [],
+        duplicate_images: [],
+      }),
+    );
+
+    await renderForm();
+
+    const beforeTabs = Array.from(
+      container.querySelectorAll<HTMLButtonElement>('[role="tab"]'),
+    );
+    expect(
+      beforeTabs.find((tab) => tab.textContent?.includes("サイズ候補1"))
+        ?.textContent,
+    ).toContain("L");
+    expect(
+      beforeTabs.find((tab) => tab.textContent?.includes("サイズ候補2"))
+        ?.textContent,
+    ).toContain("M");
+
+    const swapButton = container.querySelector<HTMLButtonElement>(
+      'button[aria-label="サイズ候補を入れ替え"]',
+    );
+    expect(swapButton).not.toBeUndefined();
+
+    await act(async () => {
+      swapButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+
+    const afterTabs = Array.from(
+      container.querySelectorAll<HTMLButtonElement>('[role="tab"]'),
+    );
+    expect(
+      afterTabs.find((tab) => tab.textContent?.includes("サイズ候補1"))
+        ?.textContent,
+    ).toContain("M");
+    expect(
+      afterTabs.find((tab) => tab.textContent?.includes("サイズ候補2"))
+        ?.textContent,
+    ).toContain("L");
+    expect(
+      container.querySelector<HTMLInputElement>("#size_label")?.value,
+    ).toBe("M");
+
+    await selectSizeCandidateTab("サイズ候補2");
+
+    expect(
+      container.querySelector<HTMLInputElement>("#alternate_size_label")?.value,
+    ).toBe("L");
   });
 });

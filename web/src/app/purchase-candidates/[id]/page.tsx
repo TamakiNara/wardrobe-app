@@ -5,6 +5,7 @@ import PurchaseCandidateDetailImages from "@/components/purchase-candidates/purc
 import PurchaseCandidateDuplicateAction from "@/components/purchase-candidates/purchase-candidate-duplicate-action";
 import PurchaseCandidateItemDraftAction from "@/components/purchase-candidates/purchase-candidate-item-draft-action";
 import PurchaseCandidateSizeComparison from "@/components/purchase-candidates/purchase-candidate-size-comparison";
+import PurchaseCandidateSizeDetails from "@/components/purchase-candidates/purchase-candidate-size-details";
 import { PurchaseUrlLink } from "@/components/shared/purchase-url-link";
 import { EntityDetailHeader } from "@/components/shared/entity-detail-header";
 import { resolvePurchaseCandidateItemClassification } from "@/lib/items/classification";
@@ -26,14 +27,9 @@ import {
 import {
   PURCHASE_CANDIDATE_COLOR_ROLE_LABELS,
   PURCHASE_CANDIDATE_PRIORITY_LABELS,
-  PURCHASE_CANDIDATE_SIZE_GENDER_LABELS,
   PURCHASE_CANDIDATE_STATUS_LABELS,
 } from "@/lib/purchase-candidates/labels";
-import {
-  formatSizeDetailValue,
-  getStructuredSizeFieldDefinitions,
-  normalizeItemSizeDetails,
-} from "@/lib/items/size-details";
+import { getPurchaseCandidateSizeOptions } from "@/lib/purchase-candidates/size-comparison";
 import { fetchLaravelWithCookie } from "@/lib/server/laravel";
 import type { ItemRecord } from "@/types/items";
 import type {
@@ -345,17 +341,12 @@ export default async function PurchaseCandidateDetailPage({
   ].filter((detail): detail is { label: string; value: string } =>
     Boolean(detail.value),
   );
-  const normalizedSizeDetails = normalizeItemSizeDetails(
-    candidate.size_details,
-  );
-  const structuredSizeFieldDefinitions = getStructuredSizeFieldDefinitions(
-    resolvedItemCategory?.category,
-    resolvedItemCategory?.shape,
-  );
-  const visibleStructuredSizeFields = structuredSizeFieldDefinitions.filter(
-    (field) => normalizedSizeDetails?.structured?.[field.name] !== undefined,
-  );
-  const visibleCustomSizeFields = normalizedSizeDetails?.custom_fields ?? [];
+  const sizeOptions = getPurchaseCandidateSizeOptions({
+    ...candidate,
+    resolvedCategory: resolvedItemCategory?.category,
+    resolvedSubcategory: resolvedItemCategory?.subcategory,
+    resolvedShape: resolvedItemCategory?.shape,
+  });
   const materialGroups = groupItemMaterialsForDisplay(candidate.materials);
 
   return (
@@ -625,78 +616,12 @@ export default async function PurchaseCandidateDetailPage({
 
         <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-gray-900">サイズ・実寸</h2>
-          <dl className="mt-4 grid gap-4 md:grid-cols-2">
-            <div>
-              <dt className="text-sm font-medium text-gray-700">サイズ区分</dt>
-              <dd className="mt-1 text-sm text-gray-600">
-                {candidate.size_gender
-                  ? (PURCHASE_CANDIDATE_SIZE_GENDER_LABELS[
-                      candidate.size_gender
-                    ] ?? "未設定")
-                  : "未設定"}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-700">サイズ表記</dt>
-              <dd className="mt-1 text-sm text-gray-600">
-                {candidate.size_label ?? "未設定"}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-700">
-                サイズ感メモ
-              </dt>
-              <dd className="mt-1 text-sm text-gray-600">
-                {candidate.size_note ?? "未設定"}
-              </dd>
-            </div>
-            <div className="md:col-span-2">
-              <dt className="text-sm font-medium text-gray-700">実寸</dt>
-              {visibleStructuredSizeFields.length > 0 ||
-              visibleCustomSizeFields.length > 0 ? (
-                <dd className="mt-2 space-y-3 text-sm text-gray-600">
-                  {visibleStructuredSizeFields.length > 0 ? (
-                    <div className="grid gap-2 md:grid-cols-2">
-                      {visibleStructuredSizeFields.map((field) => (
-                        <div
-                          key={field.name}
-                          className="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 px-3 py-2"
-                        >
-                          <span className="text-gray-700">{field.label}</span>
-                          <span>
-                            {formatSizeDetailValue(
-                              normalizedSizeDetails?.structured?.[field.name] ??
-                                {},
-                            )}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  ) : null}
-                  {visibleCustomSizeFields.length > 0 ? (
-                    <div className="space-y-2">
-                      {visibleCustomSizeFields
-                        .slice()
-                        .sort(
-                          (left, right) => left.sort_order - right.sort_order,
-                        )
-                        .map((field) => (
-                          <div
-                            key={`${field.label}-${field.sort_order}`}
-                            className="flex items-center justify-between rounded-lg border border-gray-200 bg-white px-3 py-2"
-                          >
-                            <span className="text-gray-700">{field.label}</span>
-                            <span>{formatSizeDetailValue(field)}</span>
-                          </div>
-                        ))}
-                    </div>
-                  ) : null}
-                </dd>
-              ) : (
-                <dd className="mt-1 text-sm text-gray-600">未設定</dd>
-              )}
-            </div>
-          </dl>
+          <PurchaseCandidateSizeDetails
+            sizeGender={candidate.size_gender}
+            sizeOptions={sizeOptions}
+            resolvedCategory={resolvedItemCategory?.category}
+            resolvedShape={resolvedItemCategory?.shape}
+          />
         </section>
         <PurchaseCandidateSizeComparison
           candidate={candidate}

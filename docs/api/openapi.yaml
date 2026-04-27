@@ -3871,6 +3871,21 @@ components:
             - $ref: "#/components/schemas/ItemSizeDetails"
           nullable: true
           description: 構造化実寸。`structured` と `custom_fields` を持ち、item draft と同じ意味で扱う。
+        alternate_size_label:
+          type: string
+          nullable: true
+          example: L
+          description: 第2候補のサイズ表記。未入力なら `null`。
+        alternate_size_note:
+          type: string
+          nullable: true
+          example: 少しゆとりあり
+          description: 第2候補のサイズ感・着用感の補足メモ。
+        alternate_size_details:
+          allOf:
+            - $ref: "#/components/schemas/ItemSizeDetails"
+          nullable: true
+          description: 第2候補の構造化実寸。`structured` と `custom_fields` を持つ。
         is_rain_ok:
           type: boolean
           example: true
@@ -4045,6 +4060,20 @@ components:
             - $ref: "#/components/schemas/ItemSizeDetails"
           nullable: true
           description: 構造化実寸。`structured` と `custom_fields` を持ち、item 化時も同じ意味で引き継ぐ。
+        alternate_size_label:
+          type: string
+          nullable: true
+          maxLength: 50
+          description: 第2候補のサイズ表記。未入力なら `null`。
+        alternate_size_note:
+          type: string
+          nullable: true
+          description: 第2候補のサイズ感・着用感の補足メモ。
+        alternate_size_details:
+          allOf:
+            - $ref: "#/components/schemas/ItemSizeDetails"
+          nullable: true
+          description: 第2候補の構造化実寸。`structured` と `custom_fields` を持つ。
         is_rain_ok:
           type: boolean
         sheerness:

@@ -4,8 +4,9 @@ import { useMemo, useState } from "react";
 import type { ItemRecord } from "@/types/items";
 import type { PurchaseCandidateRecord } from "@/types/purchase-candidates";
 import {
-  buildPurchaseCandidateSizeComparisonRows,
+  buildPurchaseCandidateMultiSizeComparisonRows,
   getPurchaseCandidateComparisonOptions,
+  getPurchaseCandidateSizeOptions,
   hasStructuredSizeComparisonBase,
 } from "@/lib/purchase-candidates/size-comparison";
 
@@ -24,57 +25,50 @@ export default function PurchaseCandidateSizeComparison({
   resolvedShape,
   items,
 }: Props) {
-  const comparisonReady = hasStructuredSizeComparisonBase({
-    ...candidate,
-    resolvedCategory,
-    resolvedSubcategory,
-    resolvedShape,
-  });
-
-  const options = useMemo(
-    () =>
-      getPurchaseCandidateComparisonOptions(
-        {
-          ...candidate,
-          resolvedCategory,
-          resolvedSubcategory,
-          resolvedShape,
-        },
-        items,
-      ),
-    [candidate, items, resolvedCategory, resolvedShape, resolvedSubcategory],
+  const candidateContext = useMemo(
+    () => ({
+      ...candidate,
+      resolvedCategory,
+      resolvedSubcategory,
+      resolvedShape,
+    }),
+    [candidate, resolvedCategory, resolvedShape, resolvedSubcategory],
   );
 
-  const [selectedItemId, setSelectedItemId] = useState<number | null>(
-    options[0]?.id ?? null,
+  const comparisonReady = hasStructuredSizeComparisonBase(candidateContext);
+  const comparisonOptions = useMemo(
+    () => getPurchaseCandidateComparisonOptions(candidateContext, items),
+    [candidateContext, items],
+  );
+  const sizeOptions = useMemo(
+    () => getPurchaseCandidateSizeOptions(candidateContext),
+    [candidateContext],
   );
 
-  const selectedOption =
-    options.find((option) => option.id === selectedItemId) ??
-    options[0] ??
+  const [selectedItemId, setSelectedItemId] = useState<number | null>(null);
+
+  const selectedComparisonOption =
+    comparisonOptions.find((option) => option.id === selectedItemId) ??
+    comparisonOptions[0] ??
     null;
 
   const rows = useMemo(() => {
-    if (!selectedOption) {
+    if (!selectedComparisonOption || sizeOptions.length === 0) {
       return [];
     }
 
-    return buildPurchaseCandidateSizeComparisonRows(
+    return buildPurchaseCandidateMultiSizeComparisonRows(
+      sizeOptions,
       {
-        ...candidate,
-        resolvedCategory,
-        resolvedSubcategory,
-        resolvedShape,
+        category: resolvedCategory ?? null,
+        shape: resolvedShape ?? null,
       },
-      selectedOption.item,
+      selectedComparisonOption.item,
     );
-  }, [
-    candidate,
-    resolvedCategory,
-    resolvedShape,
-    resolvedSubcategory,
-    selectedOption,
-  ]);
+  }, [resolvedCategory, resolvedShape, selectedComparisonOption, sizeOptions]);
+
+  const itemSizeLabel =
+    selectedComparisonOption?.item.size_label?.trim() || "未設定";
 
   return (
     <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
@@ -85,7 +79,7 @@ export default function PurchaseCandidateSizeComparison({
         <p className="mt-4 text-sm text-gray-600">
           購入検討に実寸を入力すると、手持ちアイテムと比較できます。
         </p>
-      ) : options.length === 0 ? (
+      ) : comparisonOptions.length === 0 ? (
         <p className="mt-4 text-sm text-gray-600">
           比較できる手持ちアイテムがまだありません。
         </p>
@@ -100,13 +94,13 @@ export default function PurchaseCandidateSizeComparison({
             </label>
             <select
               id="purchase-candidate-size-comparison-item"
-              value={selectedOption?.id ?? ""}
+              value={selectedComparisonOption?.id ?? ""}
               onChange={(event) =>
                 setSelectedItemId(Number(event.target.value))
               }
               className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             >
-              {options.map((option) => (
+              {comparisonOptions.map((option) => (
                 <option key={option.id} value={option.id}>
                   {option.label}
                 </option>
@@ -121,11 +115,16 @@ export default function PurchaseCandidateSizeComparison({
                   <th className="px-4 py-3 text-left font-medium text-gray-700">
                     項目
                   </th>
+                  {sizeOptions.map((option) => (
+                    <th
+                      key={option.key}
+                      className="px-4 py-3 text-left font-medium text-gray-700"
+                    >
+                      {option.label || "未設定"}
+                    </th>
+                  ))}
                   <th className="px-4 py-3 text-left font-medium text-gray-700">
-                    購入検討
-                  </th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-700">
-                    手持ち
+                    手持ち（{itemSizeLabel}）
                   </th>
                 </tr>
               </thead>
@@ -135,9 +134,14 @@ export default function PurchaseCandidateSizeComparison({
                     <th className="px-4 py-3 text-left font-medium text-gray-700">
                       {row.label}
                     </th>
-                    <td className="px-4 py-3 text-gray-600">
-                      {row.candidateValue}
-                    </td>
+                    {sizeOptions.map((option) => (
+                      <td
+                        key={`${row.key}-${option.key}`}
+                        className="px-4 py-3 text-gray-600"
+                      >
+                        {row.candidateValues[option.key] ?? "未設定"}
+                      </td>
+                    ))}
                     <td className="px-4 py-3 text-gray-600">{row.itemValue}</td>
                   </tr>
                 ))}

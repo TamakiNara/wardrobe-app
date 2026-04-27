@@ -101,3 +101,8 @@ Web UI:
 
 - 差分更新はできません
 - ZIP 形式ではなく JSON のみです
+
+### purchase candidate の複数サイズ候補
+
+- `purchase_candidates` では `alternate_size_label` / `alternate_size_note` / `alternate_size_details` も export / import 対象に含める
+- item-draft は引き続き第1候補だけを item 側へ渡す
