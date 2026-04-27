@@ -124,6 +124,10 @@ describe("PurchaseCandidateListCard", () => {
     expect(
       container.querySelector('a[href="/purchase-candidates/1"]'),
     ).not.toBeNull();
+    expect(
+      container.querySelector('a[href="https://example.test/red"]')
+        ?.textContent,
+    ).toContain("商品ページ");
 
     const blueButton = container.querySelector<HTMLButtonElement>(
       'button[aria-label="64 BLUEを表示"]',

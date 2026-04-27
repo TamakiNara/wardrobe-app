@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import ItemCareStatusAction from "@/components/items/item-care-status-action";
 import ItemStatusAction from "@/components/items/item-status-action";
 import ItemPreviewCard from "@/components/items/item-preview-card";
+import { PurchaseUrlLink } from "@/components/shared/purchase-url-link";
 import { EntityDetailHeader } from "@/components/shared/entity-detail-header";
 import { DEFAULT_SKIN_TONE_PRESET } from "@/lib/master-data/skin-tone-presets";
 import {
@@ -516,14 +517,7 @@ export default async function ItemPage({
               <dt className="text-sm font-medium text-gray-700">購入 URL</dt>
               <dd className="mt-1 text-sm text-gray-600">
                 {item.purchase_url ? (
-                  <a
-                    href={item.purchase_url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-blue-600 hover:underline"
-                  >
-                    開く
-                  </a>
+                  <PurchaseUrlLink url={item.purchase_url} />
                 ) : (
                   "未設定"
                 )}

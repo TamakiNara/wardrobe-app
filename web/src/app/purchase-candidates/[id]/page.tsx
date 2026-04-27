@@ -4,6 +4,7 @@ import PurchaseCandidateColorVariantAction from "@/components/purchase-candidate
 import PurchaseCandidateDetailImages from "@/components/purchase-candidates/purchase-candidate-detail-images";
 import PurchaseCandidateDuplicateAction from "@/components/purchase-candidates/purchase-candidate-duplicate-action";
 import PurchaseCandidateItemDraftAction from "@/components/purchase-candidates/purchase-candidate-item-draft-action";
+import { PurchaseUrlLink } from "@/components/shared/purchase-url-link";
 import { EntityDetailHeader } from "@/components/shared/entity-detail-header";
 import { resolvePurchaseCandidateItemClassification } from "@/lib/items/classification";
 import { groupItemMaterialsForDisplay } from "@/lib/items/materials";
@@ -495,14 +496,7 @@ export default async function PurchaseCandidateDetailPage({
               <dt className="text-sm font-medium text-gray-700">購入 URL</dt>
               <dd className="mt-1 text-sm text-gray-600">
                 {candidate.purchase_url ? (
-                  <a
-                    href={candidate.purchase_url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-blue-600 hover:underline"
-                  >
-                    開く
-                  </a>
+                  <PurchaseUrlLink url={candidate.purchase_url} />
                 ) : (
                   "未設定"
                 )}

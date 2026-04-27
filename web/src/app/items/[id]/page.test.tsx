@@ -158,6 +158,9 @@ describe("アイテム詳細画面", () => {
     expect(markup).toContain("ケア状態");
     expect(markup).toContain("透け感");
     expect(markup).toContain("ややあり");
+    expect(markup).toContain("example.test");
+    expect(markup).toContain('target="_blank"');
+    expect(markup).toContain('rel="noreferrer"');
     expect(markup).toContain("status-action");
     expect(markup).toContain("care-status-action");
     expect(markup).toContain(

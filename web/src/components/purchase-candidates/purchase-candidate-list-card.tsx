@@ -2,8 +2,9 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import SafeImage from "@/components/images/safe-image";
+import { PurchaseUrlLink } from "@/components/shared/purchase-url-link";
 import { resolvePurchaseCandidateItemClassification } from "@/lib/items/classification";
 import { findItemShapeLabel } from "@/lib/master-data/item-shapes";
 import { findItemSubcategoryLabel } from "@/lib/master-data/item-subcategories";
@@ -379,15 +380,11 @@ export default function PurchaseCandidateListCard({
 
           <div className="mt-auto flex items-center justify-end gap-3 pt-1.5">
             {selectedCandidate.purchase_url ? (
-              <a
-                href={selectedCandidate.purchase_url}
-                target="_blank"
-                rel="noreferrer"
-                className="mr-auto inline-flex items-center gap-1 text-xs font-medium text-gray-500 hover:text-blue-600 hover:underline"
-              >
-                商品ページ
-                <ExternalLink className="h-3.5 w-3.5" />
-              </a>
+              <PurchaseUrlLink
+                url={selectedCandidate.purchase_url}
+                variant="list"
+                className="mr-auto"
+              />
             ) : null}
             <Link
               href={`/purchase-candidates/${selectedCandidate.id}`}

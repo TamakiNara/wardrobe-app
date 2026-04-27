@@ -227,6 +227,9 @@ describe("購入検討詳細画面", () => {
     expect(markup.indexOf(">販売終了日<")).toBeLessThan(
       markup.indexOf(">購入 URL<"),
     );
+    expect(markup).toContain("example.test");
+    expect(markup).toContain('target="_blank"');
+    expect(markup).toContain('rel="noreferrer"');
     expect(markup).toContain('class="hidden md:block" aria-hidden="true"');
     expect(markup).toContain("コート");
     expect(markup).toContain("形");
