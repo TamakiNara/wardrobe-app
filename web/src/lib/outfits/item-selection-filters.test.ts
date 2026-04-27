@@ -45,6 +45,19 @@ const sampleItems: ItemRecord[] = [
     seasons: ["春"],
     tpos: ["仕事"],
   },
+  {
+    id: 4,
+    name: "通年カーディガン",
+    status: "active",
+    brand_name: "GLOBAL",
+    memo: "通年向け",
+    category: "tops",
+    subcategory: "cardigan",
+    shape: "cardigan",
+    colors: [],
+    seasons: ["オール"],
+    tpos: ["仕事"],
+  },
 ];
 
 describe("outfit item selection filters", () => {
@@ -97,7 +110,20 @@ describe("outfit item selection filters", () => {
       tpo: "",
     });
 
-    expect(items.map((item) => item.id)).toEqual([1]);
+    expect(items.map((item) => item.id)).toEqual([1, 4]);
+  });
+
+  it("季節絞り込みでもオールの item は候補に含める", () => {
+    const items = filterOutfitCandidateItems(sampleItems, {
+      keyword: "",
+      brand: "",
+      category: "",
+      subcategory: "",
+      season: "春",
+      tpo: "",
+    });
+
+    expect(items.map((item) => item.id)).toEqual([2, 3, 4]);
   });
 
   it("TPOで候補 item を絞れる", () => {
@@ -110,7 +136,7 @@ describe("outfit item selection filters", () => {
       tpo: "仕事",
     });
 
-    expect(items.map((item) => item.id)).toEqual([2, 3]);
+    expect(items.map((item) => item.id)).toEqual([2, 3, 4]);
   });
 
   it("カテゴリ選択後に種類候補が変わる", () => {

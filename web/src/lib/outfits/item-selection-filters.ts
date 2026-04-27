@@ -19,6 +19,18 @@ export type OutfitItemSelectionFilters = {
   tpo: string;
 };
 
+function matchesSeasonFilter(seasons: string[], filterSeason: string) {
+  if (filterSeason === "") {
+    return true;
+  }
+
+  if (seasons.length === 0) {
+    return true;
+  }
+
+  return seasons.includes(filterSeason) || seasons.includes("オール");
+}
+
 function normalizeText(value?: string | null) {
   return value?.trim().toLocaleLowerCase("ja-JP") ?? "";
 }
@@ -122,8 +134,7 @@ export function filterOutfitCandidateItems(
     const matchesSubcategory =
       normalizedSubcategory === "" ||
       currentSubcategory === normalizedSubcategory;
-    const matchesSeason =
-      filters.season === "" || item.seasons.includes(filters.season);
+    const matchesSeason = matchesSeasonFilter(item.seasons, filters.season);
     const matchesTpo = filters.tpo === "" || item.tpos.includes(filters.tpo);
 
     return (

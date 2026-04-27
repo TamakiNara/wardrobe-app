@@ -745,4 +745,65 @@ describe("EditOutfitPage", () => {
     expect(seasonSelect?.value).toBe("春");
     expect(seasonOptionValues).toContain("春");
   });
+
+  it("現在の季節絞り込み中でもオールの item は候補に含める", async () => {
+    fetchUserPreferencesMock.mockResolvedValue({
+      preferences: {
+        currentSeason: "spring",
+      },
+    });
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn()
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => ({
+            outfit: {
+              id: 10,
+              name: "Spring Outfit",
+              memo: null,
+              seasons: [],
+              tpos: [],
+              tpo_ids: [],
+              outfitItems: [],
+            },
+          }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => ({
+            items: [
+              {
+                id: 1,
+                name: "All Season Cardigan",
+                status: "active",
+                category: "tops",
+                subcategory: "cardigan",
+                shape: "cardigan",
+                colors: [],
+                seasons: ["オール"],
+                tpos: [],
+                tpo_ids: [],
+              },
+            ],
+          }),
+        }),
+    );
+
+    const { default: EditOutfitPage } = await import("./page");
+
+    await act(async () => {
+      root.render(
+        React.createElement(EditOutfitPage, {
+          params: Promise.resolve({ id: "10" }),
+        }),
+      );
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain("All Season Cardigan");
+  });
 });

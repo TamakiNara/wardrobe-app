@@ -660,4 +660,42 @@ describe("NewOutfitPage", () => {
     expect(seasonSelect?.value).toBe("春");
     expect(seasonOptionValues).toContain("春");
   });
+
+  it("現在の季節絞り込み中でもオールの item は候補に含める", async () => {
+    fetchUserPreferencesMock.mockResolvedValue({
+      preferences: {
+        currentSeason: "spring",
+      },
+    });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          items: [
+            {
+              id: 1,
+              name: "All Season Cardigan",
+              category: "tops",
+              subcategory: "cardigan",
+              shape: "cardigan",
+              colors: [],
+              seasons: ["オール"],
+              tpos: [],
+            },
+          ],
+        }),
+      }),
+    );
+
+    const { default: NewOutfitPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(NewOutfitPage));
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain("All Season Cardigan");
+  });
 });
