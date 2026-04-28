@@ -138,14 +138,19 @@ function PurchaseCandidateGroupPrice({
 
 function PurchaseCandidateGroupNavigation({
   candidates,
-  detailHrefBuilder,
+  detailQueryString,
 }: {
   candidates: PurchaseCandidateGroupCandidate[];
-  detailHrefBuilder: (candidateId: number) => string;
+  detailQueryString?: string;
 }) {
   if (candidates.length <= 1) {
     return null;
   }
+
+  const buildDetailHref = (candidateId: number) =>
+    detailQueryString
+      ? `/purchase-candidates/${candidateId}?${detailQueryString}`
+      : `/purchase-candidates/${candidateId}`;
 
   return (
     <section className="rounded-2xl border border-slate-200 bg-slate-50/70 px-4 py-3">
@@ -217,7 +222,7 @@ function PurchaseCandidateGroupNavigation({
           ) : (
             <Link
               key={groupCandidate.id}
-              href={detailHrefBuilder(groupCandidate.id)}
+              href={buildDetailHref(groupCandidate.id)}
               className={className}
             >
               {content}
@@ -306,10 +311,9 @@ export default async function PurchaseCandidateDetailPage({
     return_to: returnTarget.href,
     return_label: returnTarget.label,
   });
-  const buildDetailHref = (candidateId: number) =>
-    shouldPreserveReturnContext
-      ? `/purchase-candidates/${candidateId}?${detailQuery.toString()}`
-      : `/purchase-candidates/${candidateId}`;
+  const detailQueryString = shouldPreserveReturnContext
+    ? detailQuery.toString()
+    : undefined;
   const editHref = shouldPreserveReturnContext
     ? `/purchase-candidates/${candidate.id}/edit?${detailQuery.toString()}`
     : `/purchase-candidates/${candidate.id}/edit`;
@@ -477,7 +481,7 @@ export default async function PurchaseCandidateDetailPage({
 
         <PurchaseCandidateGroupNavigation
           candidates={candidate.group_candidates ?? []}
-          detailHrefBuilder={buildDetailHref}
+          detailQueryString={detailQueryString}
         />
 
         <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
