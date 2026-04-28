@@ -10,6 +10,7 @@ import {
 } from "react";
 import { useRouter } from "next/navigation";
 import FieldLabel from "@/components/forms/field-label";
+import OutfitColorThumbnail from "@/components/outfits/outfit-color-thumbnail";
 import {
   findItemCategoryLabel,
   findItemShapeLabel,
@@ -29,6 +30,7 @@ import {
 } from "@/lib/wear-logs/form";
 import { fetchAllPaginatedCandidates } from "@/lib/wear-logs/candidates";
 import type { ItemRecord } from "@/types/items";
+import type { ItemSpec } from "@/types/items";
 import type {
   WearLogDetailResponse,
   WearLogRecord,
@@ -52,8 +54,44 @@ type OutfitCandidate = {
   name: string | null;
   seasons?: string[];
   tpos?: string[];
-  outfit_items?: Array<unknown>;
-  outfitItems?: Array<unknown>;
+  outfit_items?: Array<{
+    id: number;
+    item_id: number;
+    sort_order: number;
+    item: {
+      id: number;
+      name: string | null;
+      category: string;
+      shape: string;
+      colors: {
+        role: "main" | "sub";
+        mode: "preset" | "custom";
+        value: string;
+        hex: string;
+        label: string;
+      }[];
+      spec?: ItemSpec | null;
+    };
+  }>;
+  outfitItems?: Array<{
+    id: number;
+    item_id: number;
+    sort_order: number;
+    item: {
+      id: number;
+      name: string | null;
+      category: string;
+      shape: string;
+      colors: {
+        role: "main" | "sub";
+        mode: "preset" | "custom";
+        value: string;
+        hex: string;
+        label: string;
+      }[];
+      spec?: ItemSpec | null;
+    };
+  }>;
 };
 
 const WEAR_LOG_FILTER_SEASONS = SEASON_OPTIONS.filter(
@@ -121,6 +159,50 @@ function matchesSeasonFilter(seasons: string[], filterSeason: string) {
   }
 
   return seasons.includes(filterSeason) || seasons.includes("オール");
+}
+
+function getOutfitItems(
+  outfit: WearLogSelectableOutfit,
+): NonNullable<WearLogSelectableOutfit["outfitItems"]> {
+  return (outfit.outfitItems ?? []).reduce<
+    NonNullable<WearLogSelectableOutfit["outfitItems"]>
+  >((carry, outfitItem) => {
+    const item = outfitItem.item;
+
+    if (
+      !item ||
+      typeof item.category !== "string" ||
+      item.category.trim() === "" ||
+      typeof item.shape !== "string" ||
+      item.shape.trim() === ""
+    ) {
+      return carry;
+    }
+
+    return [
+      ...carry,
+      {
+        ...outfitItem,
+        item: {
+          ...item,
+          colors: Array.isArray(item.colors) ? item.colors : [],
+          spec: item.spec ?? null,
+        },
+      },
+    ];
+  }, []);
+}
+
+function getOutfitItemNameCandidates(
+  outfit: WearLogSelectableOutfit,
+): Array<string> {
+  return (outfit.outfitItems ?? [])
+    .map((outfitItem) => outfitItem.item?.name?.trim() || "名称未設定")
+    .filter((name, index, array) => array.indexOf(name) === index);
+}
+
+function getOutfitItemNames(outfit: WearLogSelectableOutfit) {
+  return getOutfitItemNameCandidates(outfit);
 }
 
 export default function WearLogForm({
@@ -244,6 +326,7 @@ export default function WearLogForm({
             seasons: outfit.seasons ?? [],
             tpos: outfit.tpos ?? [],
             itemCount: (outfit.outfitItems ?? outfit.outfit_items ?? []).length,
+            outfitItems: outfit.outfitItems ?? outfit.outfit_items ?? [],
           })),
           wearLogData,
         );
@@ -849,6 +932,8 @@ export default function WearLogForm({
 
             {filteredOutfits.map((outfit) => {
               const isSelected = sourceOutfitId === outfit.id;
+              const outfitItems = getOutfitItems(outfit);
+              const itemNamesLabel = getOutfitItemNames(outfit).join(" / ");
 
               return (
                 <div
@@ -865,36 +950,36 @@ export default function WearLogForm({
                       onClick={() => setSourceOutfitId(outfit.id)}
                       className="min-w-0 flex-1 text-left"
                     >
-                      <div className="flex flex-wrap items-center gap-2">
-                        <p className="font-medium text-gray-900">
-                          {outfit.name ?? "名称未設定"}
-                        </p>
-                        {isSelected ? (
-                          <span className="rounded-full border border-blue-200 bg-white px-2 py-0.5 text-xs font-medium text-blue-700">
-                            選択中
-                          </span>
+                      <div className="flex items-start gap-3">
+                        {outfitItems.length > 0 ? (
+                          <div className="shrink-0 pt-0.5">
+                            <OutfitColorThumbnail
+                              outfitItems={outfitItems}
+                              size="small"
+                            />
+                          </div>
                         ) : null}
-                        {outfit.status === "invalid" ? (
-                          <span className="rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800">
-                            現在は利用不可
-                          </span>
-                        ) : null}
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="font-medium text-gray-900">
+                              {outfit.name ?? "名称未設定"}
+                            </p>
+                            {isSelected ? (
+                              <span className="rounded-full border border-blue-200 bg-white px-2 py-0.5 text-xs font-medium text-blue-700">
+                                選択中
+                              </span>
+                            ) : null}
+                            {outfit.status === "invalid" ? (
+                              <span className="rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800">
+                                現在は利用不可
+                              </span>
+                            ) : null}
+                          </div>
+                          <p className="mt-2 text-sm text-gray-600">
+                            {itemNamesLabel || "構成アイテム未設定"}
+                          </p>
+                        </div>
                       </div>
-                      <p className="mt-2 text-sm text-gray-600">
-                        構成アイテム {outfit.itemCount ?? 0} 件
-                      </p>
-                      <p className="mt-1 text-sm text-gray-600">
-                        季節:{" "}
-                        {outfit.seasons?.length
-                          ? outfit.seasons.join(" / ")
-                          : "未設定"}
-                      </p>
-                      <p className="mt-1 text-sm text-gray-600">
-                        TPO:{" "}
-                        {outfit.tpos?.length
-                          ? outfit.tpos.join(" / ")
-                          : "未設定"}
-                      </p>
                     </button>
 
                     <Link

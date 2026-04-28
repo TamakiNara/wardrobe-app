@@ -1,5 +1,6 @@
 import type { ItemCareStatus, ItemStatus } from "@/types/items";
 import type { ItemFormColor } from "@/types/items";
+import type { ItemSpec } from "@/types/items";
 import type {
   WearLogItemSourceType,
   WearLogRecord,
@@ -25,6 +26,19 @@ export type WearLogSelectableOutfit = {
   seasons?: string[];
   tpos?: string[];
   itemCount?: number;
+  outfitItems?: Array<{
+    id: number;
+    item_id: number;
+    sort_order: number;
+    item: {
+      id: number;
+      name: string | null;
+      category: string;
+      shape: string;
+      colors: ItemFormColor[];
+      spec?: ItemSpec | null;
+    };
+  }>;
 };
 
 export type SelectedWearLogItem = {
