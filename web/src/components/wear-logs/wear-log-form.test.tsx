@@ -911,6 +911,52 @@ describe("WearLogForm", () => {
     );
   });
 
+  it("アイテム候補のカスタムカラーは custom_label を優先表示する", async () => {
+    fetchAllPaginatedCandidatesMock
+      .mockResolvedValueOnce({
+        status: 200,
+        entries: [
+          {
+            id: 1,
+            name: "レーヨンスキッパーブラウス",
+            status: "active",
+            category: "tops",
+            shape: "shirt",
+            colors: [
+              {
+                role: "main",
+                mode: "custom",
+                value: "custom-gray",
+                hex: "#6B7280",
+                label: "カスタムカラー",
+                custom_label: "グレージュ",
+              },
+            ],
+            seasons: ["春"],
+            tpos: ["仕事"],
+          },
+        ],
+      })
+      .mockResolvedValueOnce({
+        status: 200,
+        entries: [],
+      });
+
+    vi.stubGlobal("fetch", vi.fn());
+
+    const { default: WearLogForm } = await import("./wear-log-form");
+
+    await act(async () => {
+      root.render(React.createElement(WearLogForm, { mode: "create" }));
+    });
+    await act(async () => {
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain("グレージュ");
+    expect(container.textContent).not.toContain("カスタムカラー");
+  });
+
   it("作成時の現在の季節絞り込みでもオール指定の候補はコーデ・アイテムともに表示される", async () => {
     fetchAllPaginatedCandidatesMock
       .mockResolvedValueOnce({

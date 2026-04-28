@@ -205,6 +205,19 @@ function getOutfitItemNames(outfit: WearLogSelectableOutfit) {
   return getOutfitItemNameCandidates(outfit);
 }
 
+function getColorDisplayLabel(
+  color: NonNullable<WearLogSelectableItem["colors"]>[number],
+) {
+  const customLabel = color.custom_label?.trim();
+
+  if (customLabel) {
+    return customLabel;
+  }
+
+  const label = color.label?.trim();
+  return label || "色未設定";
+}
+
 export default function WearLogForm({
   mode,
   wearLogId,
@@ -552,7 +565,7 @@ export default function WearLogForm({
               className="h-3 w-3 rounded-full border border-gray-300"
               style={{ backgroundColor: mainColor.hex }}
             />
-            {mainColor.label}
+            {getColorDisplayLabel(mainColor)}
           </span>
         )}
         {subColor && (
@@ -561,7 +574,7 @@ export default function WearLogForm({
               className="h-3 w-3 rounded-full border border-gray-300"
               style={{ backgroundColor: subColor.hex }}
             />
-            {subColor.label}
+            {getColorDisplayLabel(subColor)}
           </span>
         )}
       </div>
