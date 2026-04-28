@@ -406,6 +406,7 @@ export default async function PurchaseCandidateDetailPage({
                   <PurchaseCandidateItemDraftAction
                     candidateId={candidate.id}
                     convertedItemId={candidate.converted_item_id}
+                    sizeOptions={sizeOptions}
                   />
                 )}
                 <Link

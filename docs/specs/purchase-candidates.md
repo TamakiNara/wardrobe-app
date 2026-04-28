@@ -571,6 +571,9 @@ Phase 3:
 - item 作成時に `purchase_candidate_id` を渡した場合、Laravel 側で item 作成と candidate 更新を同じ transaction で処理する
 - `purchased` の candidate では `item-draft` を生成せず、詳細画面でも item 追加導線を表示しない
 - item 作成画面には `returnTo` を渡し、現行の item 化導線である purchase candidate 詳細へキャンセル時に戻れるようにする
+- サイズ候補が 1 つだけなら従来どおりそのまま `item-draft` を生成する
+- サイズ候補が 2 つある場合は、detail 画面でどちらを item 化するか選んでから `item-draft` を生成する
+- `item-draft` API には `selected_size = primary | secondary` を渡せる
 - 戻るボタンの文言と遷移先の正本は `docs/specs/items/form-structure.md` の「戻る導線」を参照する
 
 ---
@@ -1787,7 +1790,9 @@ planned:
 
 item-draft / item 化:
 
-- 現状の item-draft では第1候補だけを返す
+- サイズ候補が 1 つだけなら、その候補をそのまま item-draft に使う
+- サイズ候補が 2 つある場合は、detail 画面の item 化導線で `primary / secondary` を選ばせる
+- 選んだ候補の `size_label` / `size_note` / `size_details` だけを item-draft に含める
 - item 側は単一サイズ前提のままなので、第2候補は item へは引き継がない
 
 import / export:

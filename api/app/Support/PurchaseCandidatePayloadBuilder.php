@@ -9,6 +9,116 @@ use Illuminate\Support\Facades\Storage;
 
 class PurchaseCandidatePayloadBuilder
 {
+    private static function normalizeSelectedSize(?string $selectedSize): ?string
+    {
+        return match ($selectedSize) {
+            'primary' => 'primary',
+            'secondary', 'alternate' => 'alternate',
+            default => null,
+        };
+    }
+
+    private static function hasSizeCandidateContent(
+        ?string $label,
+        ?string $note,
+        mixed $sizeDetails,
+    ): bool {
+        if (trim((string) ($label ?? '')) !== '') {
+            return true;
+        }
+
+        if (trim((string) ($note ?? '')) !== '') {
+            return true;
+        }
+
+        $normalized = SizeDetailSupport::normalizeForValidation($sizeDetails);
+        if (! is_array($normalized)) {
+            return false;
+        }
+
+        $structured = $normalized['structured'] ?? null;
+        if (is_array($structured) && $structured !== []) {
+            return true;
+        }
+
+        $customFields = $normalized['custom_fields'] ?? null;
+
+        return is_array($customFields) && $customFields !== [];
+    }
+
+    /**
+     * @return array<int, array{key:string,size_label:?string,size_note:?string,size_details:mixed}>
+     */
+    private static function resolveSizeCandidates(PurchaseCandidate $candidate): array
+    {
+        $candidates = [];
+
+        if (self::hasSizeCandidateContent(
+            $candidate->size_label,
+            $candidate->size_note,
+            $candidate->size_details,
+        )) {
+            $candidates[] = [
+                'key' => 'primary',
+                'size_label' => $candidate->size_label,
+                'size_note' => $candidate->size_note,
+                'size_details' => $candidate->size_details,
+            ];
+        }
+
+        if (self::hasSizeCandidateContent(
+            $candidate->alternate_size_label,
+            $candidate->alternate_size_note,
+            $candidate->alternate_size_details,
+        )) {
+            $candidates[] = [
+                'key' => 'alternate',
+                'size_label' => $candidate->alternate_size_label,
+                'size_note' => $candidate->alternate_size_note,
+                'size_details' => $candidate->alternate_size_details,
+            ];
+        }
+
+        return $candidates;
+    }
+
+    /**
+     * @return array{size_label:?string,size_note:?string,size_details:mixed}
+     */
+    private static function resolveSelectedSizeCandidate(
+        PurchaseCandidate $candidate,
+        ?string $selectedSize,
+    ): array {
+        $candidates = self::resolveSizeCandidates($candidate);
+        $normalizedSelectedSize = self::normalizeSelectedSize($selectedSize);
+
+        if ($normalizedSelectedSize !== null) {
+            foreach ($candidates as $sizeCandidate) {
+                if ($sizeCandidate['key'] === $normalizedSelectedSize) {
+                    return [
+                        'size_label' => $sizeCandidate['size_label'],
+                        'size_note' => $sizeCandidate['size_note'],
+                        'size_details' => $sizeCandidate['size_details'],
+                    ];
+                }
+            }
+        }
+
+        if (count($candidates) === 1) {
+            return [
+                'size_label' => $candidates[0]['size_label'],
+                'size_note' => $candidates[0]['size_note'],
+                'size_details' => $candidates[0]['size_details'],
+            ];
+        }
+
+        return [
+            'size_label' => $candidate->size_label,
+            'size_note' => $candidate->size_note,
+            'size_details' => $candidate->size_details,
+        ];
+    }
+
     private static function resolveItemClassification(PurchaseCandidate $candidate): ?array
     {
         return PurchaseCandidateCategoryMap::resolveItemDraftCategory(
@@ -128,8 +238,10 @@ class PurchaseCandidatePayloadBuilder
         ];
     }
 
-    public static function buildItemDraft(PurchaseCandidate $candidate): array
-    {
+    public static function buildItemDraft(
+        PurchaseCandidate $candidate,
+        ?string $selectedSize = null,
+    ): array {
         $candidate->loadMissing(['colors', 'seasons', 'tpos', 'images', 'materials']);
 
         $resolvedCategory = self::resolveItemClassification($candidate);
@@ -137,6 +249,11 @@ class PurchaseCandidatePayloadBuilder
         if ($resolvedCategory === null) {
             return [];
         }
+
+        $resolvedSizeCandidate = self::resolveSelectedSizeCandidate(
+            $candidate,
+            $selectedSize,
+        );
 
         return [
             'name' => $candidate->name,
@@ -153,10 +270,10 @@ class PurchaseCandidatePayloadBuilder
             'purchase_url' => $candidate->purchase_url,
             'memo' => $candidate->memo,
             'size_gender' => $candidate->size_gender,
-            'size_label' => $candidate->size_label,
-            'size_note' => $candidate->size_note,
+            'size_label' => $resolvedSizeCandidate['size_label'],
+            'size_note' => $resolvedSizeCandidate['size_note'],
             'purchased_at' => null,
-            'size_details' => $candidate->size_details,
+            'size_details' => $resolvedSizeCandidate['size_details'],
             'spec' => self::buildScopedSpec($candidate),
             'is_rain_ok' => $candidate->is_rain_ok,
             'sheerness' => $candidate->sheerness,

@@ -25,15 +25,18 @@ vi.mock(
     default: ({
       candidateId,
       convertedItemId,
+      sizeOptions,
     }: {
       candidateId: number;
       convertedItemId: number | null;
+      sizeOptions?: Array<{ key: string; label: string }>;
     }) =>
       React.createElement(
         "button",
         {
           "data-testid": "item-draft-action",
           "data-candidate-id": candidateId,
+          "data-size-options": sizeOptions?.length ?? 0,
         },
         convertedItemId === null
           ? "アイテムに追加する"

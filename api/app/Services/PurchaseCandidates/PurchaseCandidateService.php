@@ -247,8 +247,11 @@ class PurchaseCandidateService
             ->findOrFail($candidateId);
     }
 
-    public function buildItemDraft(User $user, int $candidateId): array
-    {
+    public function buildItemDraft(
+        User $user,
+        int $candidateId,
+        ?string $selectedSize = null,
+    ): array {
         $candidate = $this->findOwnedCandidate($user, $candidateId);
 
         if ($candidate->status === 'purchased') {
@@ -257,7 +260,27 @@ class PurchaseCandidateService
             ]);
         }
 
-        $draft = \App\Support\PurchaseCandidatePayloadBuilder::buildItemDraft($candidate);
+        $hasPrimarySize = $this->hasSizeCandidateContent(
+            $candidate->size_label,
+            $candidate->size_note,
+            $candidate->size_details,
+        );
+        $hasAlternateSize = $this->hasSizeCandidateContent(
+            $candidate->alternate_size_label,
+            $candidate->alternate_size_note,
+            $candidate->alternate_size_details,
+        );
+
+        if ($hasPrimarySize && $hasAlternateSize && $selectedSize === null) {
+            throw ValidationException::withMessages([
+                'selected_size' => 'サイズ候補を選んでからアイテムに追加してください。',
+            ]);
+        }
+
+        $draft = \App\Support\PurchaseCandidatePayloadBuilder::buildItemDraft(
+            $candidate,
+            $selectedSize,
+        );
 
         if ($draft === []) {
             throw ValidationException::withMessages([
@@ -275,6 +298,34 @@ class PurchaseCandidateService
                 ->map(fn (PurchaseCandidateImage $image) => \App\Support\PurchaseCandidatePayloadBuilder::buildImage($image))
                 ->all(),
         ];
+    }
+
+    private function hasSizeCandidateContent(
+        ?string $label,
+        ?string $note,
+        mixed $sizeDetails,
+    ): bool {
+        if (trim((string) ($label ?? '')) !== '') {
+            return true;
+        }
+
+        if (trim((string) ($note ?? '')) !== '') {
+            return true;
+        }
+
+        $normalized = \App\Support\SizeDetailSupport::normalizeForValidation($sizeDetails);
+        if (! is_array($normalized)) {
+            return false;
+        }
+
+        $structured = $normalized['structured'] ?? null;
+        if (is_array($structured) && $structured !== []) {
+            return true;
+        }
+
+        $customFields = $normalized['custom_fields'] ?? null;
+
+        return is_array($customFields) && $customFields !== [];
     }
 
     private function syncAttributes(PurchaseCandidate $candidate, array $validated): void

@@ -1670,6 +1670,22 @@ paths:
         `memo` は item 作成画面の初期値として含めるが、`wanted_reason` は item へ持ち込まない。
         item 保存成功時の candidate `purchased` 更新と converted 情報の保存は、item create 側で処理する。
         `purchased` の candidate では item 化済み履歴として扱うため、この API は利用しない。
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                selected_size:
+                  type: string
+                  nullable: true
+                  enum:
+                    - primary
+                    - secondary
+                  description: |
+                    サイズ候補が2つある場合に、item 化へ使う候補を指定する。
+                    1候補だけなら省略できる。
       security:
         - SessionCookieAuth: []
       parameters:
@@ -1687,7 +1703,7 @@ paths:
         "404":
           description: 未検出（対象なし・他人データ秘匿を含む）
         "422":
-          description: "item-draft を生成できないカテゴリ、または `purchased` candidate に対する生成要求"
+          description: "item-draft を生成できないカテゴリ、`purchased` candidate に対する生成要求、または複数サイズ候補時の `selected_size` 未指定"
           content:
             application/json:
               schema:

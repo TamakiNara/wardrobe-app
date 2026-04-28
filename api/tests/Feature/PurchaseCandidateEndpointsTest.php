@@ -2867,7 +2867,52 @@ class PurchaseCandidateEndpointsTest extends TestCase
         $this->assertSame(45, data_get($candidate->alternate_size_details, 'structured.shoulder_width.value'));
     }
 
-    public function test_post_purchase_candidate_item_draft_uses_primary_size_when_alternate_size_exists(): void
+    public function test_post_purchase_candidate_item_draft_uses_primary_size_when_only_primary_size_exists(): void
+    {
+        $user = User::factory()->create();
+        $candidate = $this->createCandidate($user, [
+            'status' => 'considering',
+            'category_id' => 'tops_tshirt_cutsew',
+            'size_gender' => 'women',
+            'size_label' => 'M',
+            'size_note' => 'ジャスト寄り',
+            'size_details' => [
+                'structured' => [
+                    'shoulder_width' => [
+                        'value' => 42.5,
+                    ],
+                ],
+                'custom_fields' => [
+                    [
+                        'label' => '袖幅',
+                        'value' => 19,
+                        'sort_order' => 1,
+                    ],
+                ],
+            ],
+            'alternate_size_label' => null,
+            'alternate_size_note' => null,
+            'alternate_size_details' => null,
+        ]);
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $response = $this->postJson("/api/purchase-candidates/{$candidate->id}/item-draft", [], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('item_draft.size_label', 'M')
+            ->assertJsonPath('item_draft.size_note', 'ジャスト寄り')
+            ->assertJsonPath('item_draft.size_details.structured.shoulder_width.value', 42.5)
+            ->assertJsonPath('item_draft.size_details.custom_fields.0.label', '袖幅');
+
+        $this->assertNull(data_get($response->json(), 'item_draft.alternate_size_label'));
+    }
+
+    public function test_post_purchase_candidate_item_draft_requires_selected_size_when_two_size_options_exist(): void
     {
         $user = User::factory()->create();
         $candidate = $this->createCandidate($user, [
@@ -2902,12 +2947,141 @@ class PurchaseCandidateEndpointsTest extends TestCase
             'X-CSRF-TOKEN' => $token,
         ]);
 
+        $response->assertStatus(422)
+            ->assertJsonPath('errors.selected_size.0', 'サイズ候補を選んでからアイテムに追加してください。');
+    }
+
+    public function test_post_purchase_candidate_item_draft_can_use_primary_size_option(): void
+    {
+        $user = User::factory()->create();
+        $candidate = $this->createCandidate($user, [
+            'status' => 'considering',
+            'category_id' => 'tops_tshirt_cutsew',
+            'size_gender' => 'women',
+            'size_label' => 'M',
+            'size_note' => 'ジャスト寄り',
+            'size_details' => [
+                'structured' => [
+                    'shoulder_width' => [
+                        'value' => 42.5,
+                    ],
+                ],
+                'custom_fields' => [
+                    [
+                        'label' => '袖幅',
+                        'value' => 19,
+                        'sort_order' => 1,
+                    ],
+                ],
+            ],
+            'alternate_size_label' => 'L',
+            'alternate_size_note' => 'ゆったり寄り',
+            'alternate_size_details' => [
+                'structured' => [
+                    'shoulder_width' => [
+                        'value' => 45,
+                    ],
+                ],
+                'custom_fields' => [
+                    [
+                        'label' => '袖幅',
+                        'value' => 21,
+                        'sort_order' => 1,
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $response = $this->postJson("/api/purchase-candidates/{$candidate->id}/item-draft", [
+            'selected_size' => 'primary',
+        ], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
         $response->assertOk()
             ->assertJsonPath('item_draft.size_label', 'M')
             ->assertJsonPath('item_draft.size_note', 'ジャスト寄り')
-            ->assertJsonPath('item_draft.size_details.structured.shoulder_width.value', 42.5);
+            ->assertJsonPath('item_draft.size_details.structured.shoulder_width.value', 42.5)
+            ->assertJsonPath('item_draft.size_details.custom_fields.0.value', 19);
+    }
 
-        $this->assertNull(data_get($response->json(), 'item_draft.alternate_size_label'));
+    public function test_post_purchase_candidate_item_draft_can_use_secondary_size_option(): void
+    {
+        $user = User::factory()->create();
+        $candidate = $this->createCandidate($user, [
+            'status' => 'considering',
+            'category_id' => 'tops_tshirt_cutsew',
+            'size_gender' => 'women',
+            'size_label' => 'M',
+            'size_note' => 'ジャスト寄り',
+            'size_details' => [
+                'structured' => [
+                    'shoulder_width' => [
+                        'value' => 42.5,
+                    ],
+                ],
+                'custom_fields' => [
+                    [
+                        'label' => '袖幅',
+                        'value' => 19,
+                        'sort_order' => 1,
+                    ],
+                ],
+            ],
+            'alternate_size_label' => 'L',
+            'alternate_size_note' => 'ゆったり寄り',
+            'alternate_size_details' => [
+                'structured' => [
+                    'shoulder_width' => [
+                        'value' => 45,
+                    ],
+                ],
+                'custom_fields' => [
+                    [
+                        'label' => '袖幅',
+                        'value' => 21,
+                        'sort_order' => 1,
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $draftResponse = $this->postJson("/api/purchase-candidates/{$candidate->id}/item-draft", [
+            'selected_size' => 'secondary',
+        ], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $draftResponse->assertOk()
+            ->assertJsonPath('item_draft.size_label', 'L')
+            ->assertJsonPath('item_draft.size_note', 'ゆったり寄り')
+            ->assertJsonPath('item_draft.size_details.structured.shoulder_width.value', 45)
+            ->assertJsonPath('item_draft.size_details.custom_fields.0.label', '袖幅')
+            ->assertJsonPath('item_draft.size_details.custom_fields.0.value', 21);
+
+        $payload = $draftResponse->json('item_draft');
+        $payload['purchase_candidate_id'] = $candidate->id;
+        $payload['images'] = [];
+
+        $createResponse = $this->postJson('/api/items', $payload, [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $createResponse->assertCreated()
+            ->assertJsonPath('item.size_label', 'L')
+            ->assertJsonPath('item.size_note', 'ゆったり寄り')
+            ->assertJsonPath('item.size_details.structured.shoulder_width.value', 45)
+            ->assertJsonPath('item.size_details.custom_fields.0.label', '袖幅')
+            ->assertJsonPath('item.size_details.custom_fields.0.value', 21);
     }
 
     public function test_post_purchase_candidate_image_upload_and_delete_work_with_limit(): void

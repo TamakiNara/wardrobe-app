@@ -129,8 +129,16 @@ class PurchaseCandidateController extends Controller
 
     public function itemDraft(Request $request, int $id): JsonResponse
     {
+        $validated = $request->validate([
+            'selected_size' => ['nullable', 'string', 'in:primary,secondary,alternate'],
+        ]);
+
         return response()->json(
-            $this->purchaseCandidateService->buildItemDraft($request->user(), $id)
+            $this->purchaseCandidateService->buildItemDraft(
+                $request->user(),
+                $id,
+                $validated['selected_size'] ?? null,
+            )
         );
     }
 
