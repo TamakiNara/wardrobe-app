@@ -57,6 +57,13 @@ class ItemInputRequirementSupport
             'pajamas' => ['pajamas'],
             'other' => [],
         ],
+        'underwear' => [
+            'bra' => ['bra'],
+            'shorts' => ['shorts'],
+            'shapewear' => ['shapewear'],
+            'undershirt' => ['undershirt'],
+            'other' => [],
+        ],
         'bags' => [
             'tote' => ['tote'],
             'shoulder' => ['shoulder'],
@@ -124,6 +131,7 @@ class ItemInputRequirementSupport
         'onepiece_dress',
         'allinone',
         'inner',
+        'underwear',
         'skirts',
         'bags',
         'fashion_accessories',
@@ -140,6 +148,7 @@ class ItemInputRequirementSupport
         'onepiece_dress',
         'allinone',
         'inner',
+        'underwear',
         'skirts',
         'bags',
         'fashion_accessories',
@@ -197,6 +206,13 @@ class ItemInputRequirementSupport
             'underwear' => 'underwear',
             'pajamas' => 'pajamas',
             'other' => 'roomwear',
+        ],
+        'underwear' => [
+            'bra' => 'bra',
+            'shorts' => 'shorts',
+            'shapewear' => 'shapewear',
+            'undershirt' => 'undershirt',
+            'other' => 'bra',
         ],
         'bags' => [
             'tote' => 'tote',
@@ -266,6 +282,7 @@ class ItemInputRequirementSupport
         'onepiece_dress' => 'onepiece',
         'allinone' => 'allinone',
         'inner' => 'roomwear',
+        'underwear' => 'bra',
         'bags' => 'bag',
         'fashion_accessories' => 'other',
         'shoes' => 'other',
@@ -355,7 +372,8 @@ class ItemInputRequirementSupport
         // 一時対応: shape なし許容カテゴリの other は、null ではなく空文字で保存する。
         if (
             ($category === 'tops' && $subcategory === 'other') ||
-            ($category === 'skirts' && $subcategory === 'other')
+            ($category === 'skirts' && $subcategory === 'other') ||
+            ($category === 'underwear' && $subcategory === 'other')
         ) {
             return '';
         }

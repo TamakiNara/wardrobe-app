@@ -72,17 +72,19 @@ function buildPageHref(
     page: page <= 1 ? undefined : String(page),
   });
 
-  return query ? `/purchase-candidates?${query}` : "/purchase-candidates";
+  return query
+    ? `/purchase-candidates/underwear?${query}`
+    : "/purchase-candidates/underwear";
 }
 
 async function getPurchaseCandidates(
   searchParams: PurchaseCandidatesPageSearchParams,
 ): Promise<PurchaseCandidatesResponse> {
-  const query = buildQueryString(searchParams);
-  const endpoint = query
-    ? `/api/purchase-candidates?${query}`
-    : "/api/purchase-candidates";
-  const response = await fetchLaravelWithCookie(endpoint);
+  const params = new URLSearchParams(buildQueryString(searchParams));
+  params.set("storage", "underwear");
+  const response = await fetchLaravelWithCookie(
+    `/api/purchase-candidates?${params.toString()}`,
+  );
 
   if (response.status === 401) {
     redirect("/login");
@@ -147,7 +149,7 @@ async function getCategoryOptions(): Promise<CategoryOption[]> {
   return buildSupportedCategoryOptions(
     categoriesData.groups ?? [],
     visibilityData.visibleCategoryIds,
-  ).filter((option) => option.value !== "underwear");
+  ).filter((option) => option.value === "underwear");
 }
 
 async function getBrandOptions(): Promise<UserBrandRecord[]> {
@@ -172,7 +174,7 @@ async function getBrandOptions(): Promise<UserBrandRecord[]> {
     .sort((a, b) => a.name.localeCompare(b.name, "ja-JP"));
 }
 
-export function mergePurchaseCandidateBrandOptions(
+function mergePurchaseCandidateBrandOptions(
   brandOptions: UserBrandRecord[],
   availableBrands: string[],
 ): UserBrandRecord[] {
@@ -233,7 +235,7 @@ function buildPurchaseCandidateListGroups(
   });
 }
 
-export default async function PurchaseCandidatesPage({
+export default async function UnderwearPurchaseCandidatesPage({
   searchParams,
 }: {
   searchParams: Promise<PurchaseCandidatesPageSearchParams>;
@@ -266,6 +268,10 @@ export default async function PurchaseCandidatesPage({
   );
   const shouldShowFilteredEmptyState =
     data.meta.totalAll > 0 && purchaseCandidateGroups.length === 0;
+  const detailQueryString = new URLSearchParams({
+    return_to: "/purchase-candidates/underwear",
+    return_label: "アンダーウェア購入検討一覧",
+  }).toString();
 
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">
@@ -273,24 +279,25 @@ export default async function PurchaseCandidatesPage({
         <IndexPageHeader
           breadcrumbs={[
             { label: "ホーム", href: "/" },
-            { label: "購入検討一覧" },
+            { label: "購入検討一覧", href: "/purchase-candidates" },
+            { label: "アンダーウェア購入検討一覧" },
           ]}
           eyebrow="購入検討管理"
-          title="購入検討一覧"
-          description="検討中・保留中・購入済み・見送りの候補をまとめて確認します。"
+          title="アンダーウェア購入検討一覧"
+          description="通常の購入検討一覧とは分けて、下着類の購入検討だけをまとめて管理します。"
           actions={
             <>
               <Link
-                href="/purchase-candidates/underwear"
-                className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+                href="/purchase-candidates"
+                className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
               >
-                <UnderwearIcon className="h-4 w-4 text-gray-700" />
-                アンダーウェア
+                購入検討一覧
               </Link>
               <Link
                 href="/purchase-candidates/new"
-                className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
               >
+                <UnderwearIcon className="h-4 w-4 text-white" />
                 購入検討を追加
               </Link>
             </>
@@ -322,11 +329,10 @@ export default async function PurchaseCandidatesPage({
         {data.meta.totalAll === 0 ? (
           <section className="rounded-2xl border border-dashed border-gray-300 bg-white p-10 text-center shadow-sm">
             <h2 className="text-lg font-semibold text-gray-900">
-              購入検討がまだありません
+              アンダーウェアの購入検討がまだありません
             </h2>
             <p className="mt-2 text-sm text-gray-600">
-              気になるアイテムを候補として登録して比較や item
-              化の準備を進めましょう。
+              ブラやショーツなど、通常一覧に並べたくない購入検討をここで管理できます。
             </p>
           </section>
         ) : shouldShowFilteredEmptyState ? (
@@ -335,7 +341,7 @@ export default async function PurchaseCandidatesPage({
               条件に一致する購入検討がありません
             </h2>
             <p className="mt-2 text-sm text-gray-600">
-              条件を変えてお試しください。
+              条件を変えて試してください。
             </p>
           </section>
         ) : (
@@ -348,6 +354,7 @@ export default async function PurchaseCandidatesPage({
                 <PurchaseCandidateListCard
                   key={group.key}
                   candidates={group.candidates}
+                  detailQueryString={detailQueryString}
                 />
               ))}
             </section>

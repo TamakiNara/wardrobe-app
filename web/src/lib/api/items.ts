@@ -30,6 +30,7 @@ type FetchItemsIndexParams = {
   sort?: "updated_at_desc" | "name_asc";
   page?: number;
   all?: boolean;
+  storage?: "underwear";
 };
 
 export async function fetchItemsIndex(params: FetchItemsIndexParams = {}) {
@@ -69,6 +70,10 @@ export async function fetchItemsIndex(params: FetchItemsIndexParams = {}) {
 
   if (params.all) {
     searchParams.set("all", "1");
+  }
+
+  if (params.storage === "underwear") {
+    searchParams.set("storage", "underwear");
   }
 
   const query = searchParams.toString();

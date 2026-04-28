@@ -140,6 +140,12 @@ class ListQuerySupport
                 'underwear' => 'roomwear_inner_underwear',
                 'pajamas' => 'roomwear_inner_pajamas',
             ],
+            'underwear' => [
+                'bra' => 'underwear_bra',
+                'shorts' => 'underwear_shorts',
+                'shapewear' => 'underwear_shapewear',
+                'undershirt' => 'underwear_undershirt',
+            ],
             'legwear' => [
                 'socks' => 'legwear_socks',
                 'stockings' => 'legwear_stockings',
@@ -351,6 +357,10 @@ class ListQuerySupport
             return null;
         }
 
+        if ($category === 'inner' && $shape === 'underwear') {
+            return 'underwear';
+        }
+
         return match ($category) {
             'outer', 'outerwear' => 'outerwear',
             'onepiece_dress' => 'onepiece_dress',
@@ -404,6 +414,10 @@ class ListQuerySupport
                 ['category' => 'bags'],
                 ['category' => 'accessories', 'shapes' => ['tote', 'shoulder', 'rucksack', 'hand', 'clutch', 'body']],
             ],
+            'underwear' => [
+                ['category' => 'underwear'],
+                ['category' => 'inner', 'shapes' => ['underwear']],
+            ],
             'fashion_accessories' => [
                 ['category' => 'fashion_accessories'],
                 ['category' => 'accessories', 'shapes' => ['hat', 'belt', 'scarf-stole', 'gloves', 'jewelry', 'wallet-case', 'scarf-bandana', 'hair-accessory', 'eyewear', 'watch', 'accessory', 'other']],
@@ -422,6 +436,16 @@ class ListQuerySupport
         $visibleCategoryId = ItemSubcategorySupport::visibleCategoryIdFor($category, $subcategory);
 
         if ($visibleCategoryId === null) {
+            if ($category === 'underwear') {
+                return match ($subcategory) {
+                    'bra', 'shorts', 'shapewear', 'undershirt', 'other' => [[
+                        'category' => 'underwear',
+                        'subcategory' => $subcategory,
+                    ]],
+                    default => [],
+                };
+            }
+
             return [];
         }
 

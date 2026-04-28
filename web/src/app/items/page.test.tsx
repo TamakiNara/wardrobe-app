@@ -94,12 +94,16 @@ describe("ItemsPage", () => {
 
     expect(markup).toContain("アイテム管理");
     expect(markup).toContain("アイテム一覧");
-    expect(markup).toContain("現在、所持品のアイテムはありません");
     expect(markup).toContain(
-      "新しく登録するか、手放したアイテム一覧からクローゼットに戻すアイテムがないか確認してください。",
+      "季節・形・実寸・TPOを整理して、手持ちのアイテムを管理します。アンダーウェアは専用一覧で確認できます。",
+    );
+    expect(markup).toContain("現在、登録中のアイテムはありません");
+    expect(markup).toContain(
+      "新しく追加するか、手放したアイテム一覧からクローゼットに戻すアイテムがないか確認してください。",
     );
     expect(markup).toContain('href="/items/disposed"');
-    expect(markup).toContain("手放したアイテム一覧を見る");
+    expect(markup).toContain("手放したアイテム一覧");
+    expect(markup).toContain("アンダーウェア");
     expect(markup).toContain("アイテムを追加する");
   });
 
@@ -270,7 +274,8 @@ describe("ItemsPage", () => {
     expect(fetchMock).toHaveBeenCalledTimes(4);
     expect(markup).toContain("アイテム管理");
     expect(markup).toContain('href="/items/disposed"');
-    expect(markup).toContain("手放したアイテム一覧を見る");
+    expect(markup).toContain("手放したアイテム一覧");
+    expect(markup).toContain("アンダーウェア");
     expect(fetchMock).toHaveBeenNthCalledWith(
       4,
       "http://localhost:8000/api/items?season=%E5%A4%8F",

@@ -3,6 +3,7 @@
 主な spec の入口です。
 
 - [items: tops 詳細仕様](./items/tops.md)
+- [items: アンダーウェア一覧とカテゴリ責務](./items/underwear.md)
 - [items: status 管理](./items/status-management.md)
 - [items: detail status UI](./items/detail-status-ui.md)
 - [items: 素材・混率仕様](./items/material-composition.md)

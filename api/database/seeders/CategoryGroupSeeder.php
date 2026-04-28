@@ -17,12 +17,13 @@ class CategoryGroupSeeder extends Seeder
             ['id' => 'onepiece_dress', 'name' => 'ワンピース・ドレス', 'sort_order' => 5],
             ['id' => 'allinone', 'name' => 'オールインワン', 'sort_order' => 6],
             ['id' => 'roomwear_inner', 'name' => 'ルームウェア・インナー', 'sort_order' => 7],
-            ['id' => 'legwear', 'name' => 'レッグウェア', 'sort_order' => 8],
-            ['id' => 'shoes', 'name' => 'シューズ', 'sort_order' => 9],
-            ['id' => 'bags', 'name' => 'バッグ', 'sort_order' => 10],
-            ['id' => 'fashion_accessories', 'name' => 'ファッション小物', 'sort_order' => 11],
-            ['id' => 'swimwear', 'name' => '水着', 'sort_order' => 12],
-            ['id' => 'kimono', 'name' => '着物', 'sort_order' => 13],
+            ['id' => 'underwear', 'name' => 'アンダーウェア', 'sort_order' => 8],
+            ['id' => 'legwear', 'name' => 'レッグウェア', 'sort_order' => 9],
+            ['id' => 'shoes', 'name' => 'シューズ', 'sort_order' => 10],
+            ['id' => 'bags', 'name' => 'バッグ', 'sort_order' => 11],
+            ['id' => 'fashion_accessories', 'name' => 'ファッション小物', 'sort_order' => 12],
+            ['id' => 'swimwear', 'name' => '水着', 'sort_order' => 13],
+            ['id' => 'kimono', 'name' => '着物', 'sort_order' => 14],
         ];
 
         foreach ($groups as $group) {

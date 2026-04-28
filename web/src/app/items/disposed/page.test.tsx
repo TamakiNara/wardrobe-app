@@ -88,7 +88,7 @@ describe("DisposedItemsPage", () => {
     expect(markup).toContain("アイテム管理");
     expect(markup).toContain("手放したアイテム一覧");
     expect(markup).toContain(
-      "通常一覧とは分けて管理し、必要に応じて所持品に戻せます。",
+      "通常一覧とは分けて管理し、必要に応じて手放した履歴から見直せます。",
     );
     expect(markup).toContain("rounded-lg border border-gray-300");
     expect(markup).toContain("表示件数: 1 / 1");
@@ -138,9 +138,7 @@ describe("DisposedItemsPage", () => {
     expect(markup).toContain("アイテム管理");
     expect(markup).toContain("手放したアイテム一覧");
     expect(markup).toContain("手放したアイテムはまだありません。");
-    expect(markup).toContain(
-      "現在、確認や復帰判断が必要な手放し済みアイテムはありません。",
-    );
+    expect(markup).toContain("現在、記録済みの手放しアイテムはありません。");
     expect(markup).toContain('href="/items"');
     expect(markup).toContain("アイテム一覧に戻る");
   });

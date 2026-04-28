@@ -144,6 +144,14 @@
 - `dropped` は削除ではなく **見送り履歴を残す状態** として扱う
 - item 保存時には candidate 画像ファイルを item 用保存先へ物理コピーし、保存後は item 側画像として独立管理する
 
+### アンダーウェアの扱い
+
+- `underwear` は通常の purchase candidate と同じデータ構造で保存する
+- ただし UI 上は通常一覧から分離する
+- 通常一覧 `/purchase-candidates` では `underwear` を表示しない
+- 専用一覧 `/purchase-candidates/underwear` では `underwear` のみ表示する
+- detail / edit / item 化は既存画面を流用し、戻り先だけ `アンダーウェア購入検討一覧` に切り替える
+
 ---
 
 ## 色違いグループ

@@ -148,6 +148,31 @@ export const PURCHASE_CANDIDATE_ITEM_CATEGORY_MAP = {
     subcategory: "other",
     shape: "roomwear",
   },
+  underwear_bra: {
+    category: "underwear",
+    subcategory: "bra",
+    shape: "bra",
+  },
+  underwear_shorts: {
+    category: "underwear",
+    subcategory: "shorts",
+    shape: "shorts",
+  },
+  underwear_shapewear: {
+    category: "underwear",
+    subcategory: "shapewear",
+    shape: "shapewear",
+  },
+  underwear_undershirt: {
+    category: "underwear",
+    subcategory: "undershirt",
+    shape: "undershirt",
+  },
+  underwear_other: {
+    category: "underwear",
+    subcategory: "other",
+    shape: "",
+  },
   legwear_socks: {
     category: "legwear",
     subcategory: "socks",

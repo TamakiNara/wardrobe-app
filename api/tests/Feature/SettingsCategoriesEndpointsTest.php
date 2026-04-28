@@ -14,6 +14,14 @@ class SettingsCategoriesEndpointsTest extends TestCase
 {
     use RefreshDatabase;
 
+    private const ROLLED_OUT_UNDERWEAR_IDS = [
+        'underwear_bra',
+        'underwear_shorts',
+        'underwear_shapewear',
+        'underwear_undershirt',
+        'underwear_other',
+    ];
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -78,7 +86,11 @@ class SettingsCategoriesEndpointsTest extends TestCase
 
         $response->assertOk()
             ->assertJson([
-                'visibleCategoryIds' => ['tops_tshirt_cutsew', 'outerwear_jacket'],
+                'visibleCategoryIds' => [
+                    'tops_tshirt_cutsew',
+                    'outerwear_jacket',
+                    ...self::ROLLED_OUT_UNDERWEAR_IDS,
+                ],
             ]);
     }
 
@@ -96,7 +108,10 @@ class SettingsCategoriesEndpointsTest extends TestCase
 
         $response->assertOk()
             ->assertJson([
-                'visibleCategoryIds' => ['tops_tshirt_cutsew'],
+                'visibleCategoryIds' => [
+                    'tops_tshirt_cutsew',
+                    ...self::ROLLED_OUT_UNDERWEAR_IDS,
+                ],
             ]);
     }
 

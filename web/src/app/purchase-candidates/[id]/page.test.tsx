@@ -453,6 +453,61 @@ describe("購入検討詳細画面", () => {
     expect(markup).not.toContain("アイテム追加");
   });
 
+  it("underwear の購入検討は専用一覧へ戻る", async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        purchaseCandidate: {
+          id: 15,
+          status: "considering",
+          priority: "medium",
+          name: "黒ブラ候補",
+          category_id: "underwear_bra",
+          shape: "bra",
+          category_name: "ブラ",
+          brand_name: null,
+          price: null,
+          release_date: null,
+          sale_price: null,
+          sale_ends_at: null,
+          discount_ends_at: null,
+          purchase_url: null,
+          memo: null,
+          wanted_reason: null,
+          size_gender: null,
+          size_label: null,
+          sheerness: null,
+          size_note: null,
+          size_details: null,
+          alternate_size_label: null,
+          alternate_size_note: null,
+          alternate_size_details: null,
+          is_rain_ok: false,
+          converted_item_id: null,
+          converted_at: null,
+          colors: [],
+          seasons: [],
+          tpos: [],
+          materials: [],
+          images: [],
+          created_at: "2026-04-28T10:00:00+09:00",
+          updated_at: "2026-04-28T10:00:00+09:00",
+        },
+      }),
+    });
+
+    const { default: PurchaseCandidateDetailPage } = await import("./page");
+    const markup = renderToStaticMarkup(
+      await PurchaseCandidateDetailPage({
+        params: Promise.resolve({ id: "15" }),
+      }),
+    );
+
+    expect(markup).toContain('href="/purchase-candidates/underwear"');
+    expect(markup).toContain("アンダーウェア購入検討一覧");
+  });
+
   it("tops spec がある場合は分類内に仕様・属性を表示し、spec.tops.shape は出さない", async () => {
     fetchMock.mockResolvedValue({
       ok: true,

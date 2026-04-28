@@ -126,7 +126,7 @@ describe("getItemShapeOptions", () => {
     ).toEqual(["roomwear"]);
     expect(
       getItemShapeOptions("inner", "underwear").map((item) => item.value),
-    ).toEqual(["underwear"]);
+    ).toEqual(["roomwear", "pajamas"]);
     expect(
       getItemShapeOptions("inner", "pajamas").map((item) => item.value),
     ).toEqual(["pajamas"]);

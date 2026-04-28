@@ -116,6 +116,23 @@ class SamplePurchaseCandidateSeeder extends Seeder
                 ],
             ],
             [
+                'name' => 'ノンワイヤーブラ候補',
+                'status' => 'considering',
+                'priority' => 'medium',
+                'category_id' => 'underwear_bra',
+                'brand_name' => 'PEACH JOHN',
+                'price' => 2990,
+                'wanted_reason' => '普段使い用を買い替えたい',
+                'size_gender' => 'women',
+                'size_label' => 'M',
+                'size_note' => 'アンダーはゆるめが好み',
+                'colors' => [
+                    ['role' => 'main', 'mode' => 'preset', 'value' => 'beige', 'hex' => '#D8B89F', 'label' => 'ベージュ'],
+                ],
+                'seasons' => ['オール'],
+                'tpos' => [],
+            ],
+            [
                 'name' => '画像確認_単独候補 複数画像',
                 'status' => 'considering',
                 'priority' => 'high',

@@ -245,6 +245,114 @@ describe("アイテム詳細画面", () => {
     expect(markup).not.toContain("仕様・属性");
   });
 
+  it("active な underwear item はアンダーウェア一覧へ戻る", async () => {
+    fetchMock
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          item: {
+            id: 11,
+            name: "黒ブラ",
+            status: "active",
+            care_status: null,
+            brand_name: null,
+            price: null,
+            purchase_url: null,
+            memo: null,
+            purchased_at: null,
+            size_gender: null,
+            size_label: null,
+            size_note: null,
+            size_details: null,
+            is_rain_ok: false,
+            category: "underwear",
+            subcategory: "bra",
+            shape: "bra",
+            colors: [],
+            seasons: [],
+            tpos: [],
+            spec: null,
+            images: [],
+          },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          preferences: {
+            skinTonePreset: "neutral_medium",
+          },
+        }),
+      });
+
+    const { default: ItemPage } = await import("./page");
+    const markup = renderToStaticMarkup(
+      await ItemPage({
+        params: Promise.resolve({ id: "11" }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+
+    expect(markup).toContain('href="/items/underwear"');
+    expect(markup).toContain("アンダーウェア一覧");
+  });
+
+  it("disposed な underwear item は手放したアンダーウェア一覧へ戻る", async () => {
+    fetchMock
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          item: {
+            id: 12,
+            name: "黒ショーツ",
+            status: "disposed",
+            care_status: null,
+            brand_name: null,
+            price: null,
+            purchase_url: null,
+            memo: null,
+            purchased_at: null,
+            size_gender: null,
+            size_label: null,
+            size_note: null,
+            size_details: null,
+            is_rain_ok: false,
+            category: "underwear",
+            subcategory: "shorts",
+            shape: "shorts",
+            colors: [],
+            seasons: [],
+            tpos: [],
+            spec: null,
+            images: [],
+          },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          preferences: {
+            skinTonePreset: "neutral_medium",
+          },
+        }),
+      });
+
+    const { default: ItemPage } = await import("./page");
+    const markup = renderToStaticMarkup(
+      await ItemPage({
+        params: Promise.resolve({ id: "12" }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+
+    expect(markup).toContain('href="/items/underwear/disposed"');
+    expect(markup).toContain("手放したアンダーウェア一覧");
+  });
+
   it("skirts の素材とデザイン spec を詳細画面で表示する", async () => {
     fetchMock
       .mockResolvedValueOnce({

@@ -10,6 +10,8 @@ use Illuminate\Support\Collection;
 
 class PurchaseCandidatesIndexQuery
 {
+    private const STORAGE_UNDERWEAR = 'underwear';
+
     public static function build(User $user, Request $request): array
     {
         $keyword = trim((string) $request->query('keyword', ''));
@@ -18,9 +20,10 @@ class PurchaseCandidatesIndexQuery
         $category = trim((string) $request->query('category', ''));
         $subcategory = trim((string) $request->query('subcategory', ''));
         $brand = trim((string) $request->query('brand', ''));
+        $storage = self::normalizeStorage($request->query('storage'));
         $sort = $request->query('sort') === 'name_asc' ? 'name_asc' : 'updated_at_desc';
         $page = ListQuerySupport::normalizePage($request->query('page', 1));
-        $visibleCandidatesQuery = self::buildVisibleCandidatesQuery($user);
+        $visibleCandidatesQuery = self::buildVisibleCandidatesQuery($user, $storage);
         $visibleCandidatesCount = (clone $visibleCandidatesQuery)->count();
         $availableBrands = (clone $visibleCandidatesQuery)
             ->whereNotNull('brand_name')
@@ -34,6 +37,7 @@ class PurchaseCandidatesIndexQuery
             ->all();
         $query = self::buildFilteredCandidatesQuery(
             $user,
+            $storage,
             $keyword,
             $status,
             $priority,
@@ -61,6 +65,28 @@ class PurchaseCandidatesIndexQuery
                 'page' => $pagination['page'],
                 'lastPage' => $pagination['lastPage'],
             ],
+        ];
+    }
+
+    private static function normalizeStorage(mixed $storage): ?string
+    {
+        return is_string($storage) && trim($storage) === self::STORAGE_UNDERWEAR
+            ? self::STORAGE_UNDERWEAR
+            : null;
+    }
+
+    /**
+     * @return string[]
+     */
+    private static function underwearCategoryIds(): array
+    {
+        return [
+            'underwear_bra',
+            'underwear_shorts',
+            'underwear_shapewear',
+            'underwear_undershirt',
+            'underwear_other',
+            'roomwear_inner_underwear',
         ];
     }
 
@@ -205,14 +231,21 @@ class PurchaseCandidatesIndexQuery
         return str_contains($category, '_') ? [$category] : [];
     }
 
-    private static function buildVisibleCandidatesQuery(User $user): Builder
+    private static function buildVisibleCandidatesQuery(User $user, ?string $storage): Builder
     {
-        return PurchaseCandidate::query()
+        $query = PurchaseCandidate::query()
             ->where('user_id', $user->id);
+
+        if ($storage === self::STORAGE_UNDERWEAR) {
+            return $query->whereIn('category_id', self::underwearCategoryIds());
+        }
+
+        return $query->whereNotIn('category_id', self::underwearCategoryIds());
     }
 
     private static function buildFilteredCandidatesQuery(
         User $user,
+        ?string $storage,
         string $keyword,
         string $status,
         string $priority,
@@ -221,7 +254,7 @@ class PurchaseCandidatesIndexQuery
         string $brand,
         string $sort
     ): Builder {
-        $query = self::buildVisibleCandidatesQuery($user)
+        $query = self::buildVisibleCandidatesQuery($user, $storage)
             ->with(['category', 'images', 'colors']);
 
         if ($keyword !== '') {

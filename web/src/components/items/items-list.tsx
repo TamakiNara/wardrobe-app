@@ -46,6 +46,7 @@ type ItemsListProps = {
   skinTonePreset?: SkinTonePreset;
   initialCategoryOptions?: CategoryOption[];
   initialSeasonFilter?: string;
+  storage?: "underwear";
 };
 
 type ItemSortValue = "updated_at_desc" | "name_asc";
@@ -139,6 +140,19 @@ function buildQueryString({
   return params.toString();
 }
 
+function buildItemDetailHref(pathname: string, itemId: number): string {
+  const query = new URLSearchParams();
+
+  if (pathname === "/items/underwear") {
+    query.set("return_to", "/items/underwear");
+    query.set("return_label", "アンダーウェア一覧");
+  }
+
+  const suffix = query.size > 0 ? `?${query.toString()}` : "";
+
+  return `/items/${itemId}${suffix}`;
+}
+
 function FilterFieldHeader({
   htmlFor,
   label,
@@ -209,6 +223,7 @@ export default function ItemsList({
   skinTonePreset,
   initialCategoryOptions,
   initialSeasonFilter,
+  storage,
 }: ItemsListProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -379,6 +394,7 @@ export default function ItemsList({
       tpo: tpoFilter,
       sort,
       all: true,
+      storage,
     })
       .then((response) => {
         if (!active) {
@@ -413,6 +429,7 @@ export default function ItemsList({
     keyword,
     effectiveSeasonFilter,
     sort,
+    storage,
     tpoFilter,
     totalCount,
     viewMode,
@@ -832,7 +849,7 @@ export default function ItemsList({
 
                           return (
                             <Link
-                              href={`/items/${item.id}`}
+                              href={buildItemDetailHref(pathname, item.id)}
                               key={item.id}
                               aria-label={`${itemName} / ${shapeGroup.label} / ${mainColorLabel}`}
                               className="rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2"
@@ -907,7 +924,7 @@ export default function ItemsList({
               );
 
             return (
-              <Link href={`/items/${item.id}`} key={item.id}>
+              <Link href={buildItemDetailHref(pathname, item.id)} key={item.id}>
                 <article className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:bg-gray-50">
                   <div className="flex items-start gap-4">
                     <PreviewThumb

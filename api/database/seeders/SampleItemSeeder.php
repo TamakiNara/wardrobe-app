@@ -366,6 +366,21 @@ class SampleItemSeeder extends Seeder
                 ],
             ],
             [
+                'name' => 'シームレスブラ',
+                'brand_name' => 'PEACH JOHN',
+                'category' => 'underwear',
+                'shape' => 'bra',
+                'size_gender' => 'women',
+                'size_label' => 'M',
+                'size_note' => '締め付けが少なく普段使いしやすい',
+                'colors' => [
+                    ['role' => 'main', 'mode' => 'preset', 'value' => 'beige', 'hex' => '#D8B89F', 'label' => 'ベージュ'],
+                ],
+                'seasons' => ['オール'],
+                'tpos' => [],
+                'spec' => null,
+            ],
+            [
                 'name' => 'ベージュトレンチコート',
                 'brand_name' => 'UNITED ARROWS',
                 'category' => 'outer',

@@ -52,6 +52,7 @@ Web UI:
 - `purchase_candidates` では `release_date` / `sale_ends_at` / `discount_ends_at` / `sheerness` / `shape` も export / import 対象に含める
 - `items.colors[*].custom_label` も export / import 対象に含める
 - `items.sheerness` も export / import 対象に含める
+- `underwear` item / purchase candidate も通常データと同じく export / import 対象に含める
 
 注意:
 
@@ -77,6 +78,7 @@ Web UI:
 - 他ユーザーのバックアップファイルは復元できません
 - 復元に失敗した場合、既存データは削除されません
 - `owner.user_id` を含まない古い形式のバックアップファイルは復元できません
+- 復元後の `underwear` は通常一覧には出さず、専用一覧に表示します
 
 着用履歴の参照:
 

@@ -527,10 +527,20 @@ paths:
       summary: アイテム一覧取得
       description: |
         通常一覧に表示する status=active の item を返す。
+        top-level category `underwear` は通常一覧では返さず、
+        アンダーウェア専用一覧では `storage=underwear` を使う。
         response 形式は items 配列と meta.total / meta.totalAll /
         meta.page / meta.lastPage を含む。
       security:
         - SessionCookieAuth: []
+      parameters:
+        - name: storage
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [underwear]
+          description: "'underwear' 指定時はアンダーウェア一覧として取得する。"
       responses:
         "200":
           description: 取得成功
@@ -584,10 +594,20 @@ paths:
       summary: 手放したアイテム一覧取得
       description: |
         `status=disposed` の item だけを返す dedicated 一覧。
+        top-level category `underwear` は通常の手放したアイテム一覧では返さず、
+        アンダーウェア専用一覧では `storage=underwear` を使う。
         通常の `/api/items` と責務を分け、手放した item の確認と詳細遷移を主目的にする。
         response 形式は items 配列と meta.total / meta.totalAll / meta.page / meta.lastPage を含む。
       security:
         - SessionCookieAuth: []
+      parameters:
+        - name: storage
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [underwear]
+          description: "'underwear' 指定時は手放したアンダーウェア一覧として取得する。"
       responses:
         "200":
           description: 取得成功
@@ -1362,6 +1382,8 @@ paths:
       summary: 購入候補一覧取得
       description: |
         considering / on_hold / purchased / dropped の purchase candidate を返す。
+        top-level category `underwear` は通常一覧では返さず、
+        アンダーウェア専用一覧では `storage=underwear` を使う。
         一覧の正本 payload は purchaseCandidateEntries と meta.total / totalAll / page / lastPage。
         purchaseCandidateEntries は single / group の group-aware response とし、pagination は candidate 行数ではなく表示カード数を基準にする。
         比較結果は詳細ロジックを固定せず、現時点では補助表示向けの情報に留める。
@@ -1412,6 +1434,13 @@ paths:
           schema:
             type: string
           description: 並び順の詳細は後続検討。
+        - name: storage
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [underwear]
+          description: "'underwear' 指定時はアンダーウェア購入検討一覧として取得する。"
       responses:
         "200":
           description: 取得成功

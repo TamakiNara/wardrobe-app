@@ -54,19 +54,12 @@ function buildQueryString(searchParams: DisposedItemsPageSearchParams): string {
 
 async function getDisposedItems(
   searchParams: DisposedItemsPageSearchParams,
-  storage?: "underwear",
 ): Promise<DisposedItemsResponse> {
   const params = new URLSearchParams(buildQueryString(searchParams));
-
-  if (storage === "underwear") {
-    params.set("storage", "underwear");
-  }
-
-  const path =
-    params.size > 0
-      ? `/api/items/disposed?${params.toString()}`
-      : "/api/items/disposed";
-  const res = await fetchLaravelWithCookie(path);
+  params.set("storage", "underwear");
+  const res = await fetchLaravelWithCookie(
+    `/api/items/disposed?${params.toString()}`,
+  );
 
   if (res.status === 401) {
     redirect("/login");
@@ -110,10 +103,12 @@ async function getSkinTonePreset(): Promise<SkinTonePreset> {
 }
 
 function buildPageHref(page: number): string {
-  return page <= 1 ? "/items/disposed" : `/items/disposed?page=${page}`;
+  return page <= 1
+    ? "/items/underwear/disposed"
+    : `/items/underwear/disposed?page=${page}`;
 }
 
-export default async function DisposedItemsPage({
+export default async function DisposedUnderwearItemsPage({
   searchParams,
 }: {
   searchParams: Promise<DisposedItemsPageSearchParams>;
@@ -126,7 +121,7 @@ export default async function DisposedItemsPage({
   const currentPage = data.meta.page;
   const lastPage = data.meta.lastPage;
   const returnTo = buildPageHref(currentPage);
-  const returnLabel = "手放したアイテム一覧";
+  const returnLabel = "手放したアンダーウェア一覧";
 
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">
@@ -135,17 +130,18 @@ export default async function DisposedItemsPage({
           breadcrumbs={[
             { label: "ホーム", href: "/" },
             { label: "アイテム一覧", href: "/items" },
-            { label: "手放したアイテム一覧" },
+            { label: "アンダーウェア一覧", href: "/items/underwear" },
+            { label: "手放したアンダーウェア一覧" },
           ]}
-          eyebrow="アイテム管理"
-          title="手放したアイテム一覧"
-          description="通常一覧とは分けて管理し、必要に応じて手放した履歴から見直せます。"
+          eyebrow="アンダーウェア管理"
+          title="手放したアンダーウェア一覧"
+          description="手放したアンダーウェアも通常アイテムとは分けて振り返れます。"
           actions={
             <Link
-              href="/items"
+              href="/items/underwear"
               className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
             >
-              アイテム一覧に戻る
+              アンダーウェア一覧
             </Link>
           }
         />
@@ -153,17 +149,17 @@ export default async function DisposedItemsPage({
         {data.meta.totalAll === 0 ? (
           <section className="rounded-2xl border border-dashed border-gray-300 bg-white p-10 text-center shadow-sm">
             <h2 className="text-lg font-semibold text-gray-900">
-              手放したアイテムはまだありません。
+              手放したアンダーウェアはまだありません。
             </h2>
             <p className="mt-2 text-sm text-gray-600">
-              現在、記録済みの手放しアイテムはありません。
+              現在、記録済みの手放しアンダーウェアはありません。
             </p>
             <div className="mt-6">
               <Link
-                href="/items"
+                href="/items/underwear"
                 className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
               >
-                アイテム一覧に戻る
+                アンダーウェア一覧
               </Link>
             </div>
           </section>

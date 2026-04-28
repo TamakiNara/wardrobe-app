@@ -138,8 +138,10 @@ function PurchaseCandidateGroupPrice({
 
 function PurchaseCandidateGroupNavigation({
   candidates,
+  detailHrefBuilder,
 }: {
   candidates: PurchaseCandidateGroupCandidate[];
+  detailHrefBuilder: (candidateId: number) => string;
 }) {
   if (candidates.length <= 1) {
     return null;
@@ -215,7 +217,7 @@ function PurchaseCandidateGroupNavigation({
           ) : (
             <Link
               key={groupCandidate.id}
-              href={`/purchase-candidates/${groupCandidate.id}`}
+              href={detailHrefBuilder(groupCandidate.id)}
               className={className}
             >
               {content}
@@ -270,15 +272,47 @@ async function getComparableItems(category?: string | null) {
 
 export default async function PurchaseCandidateDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { id } = await params;
+  const resolvedSearchParams = (await searchParams) ?? {};
   const candidate = await getPurchaseCandidate(id);
   const resolvedItemCategory = resolvePurchaseCandidateItemClassification(
     candidate.category_id,
     candidate.shape,
   );
+  const returnToParam =
+    typeof resolvedSearchParams.return_to === "string"
+      ? resolvedSearchParams.return_to
+      : null;
+  const returnLabelParam =
+    typeof resolvedSearchParams.return_label === "string"
+      ? resolvedSearchParams.return_label
+      : null;
+  const returnTarget = returnToParam
+    ? { href: returnToParam, label: returnLabelParam ?? "戻る" }
+    : resolvedItemCategory?.category === "underwear"
+      ? {
+          href: "/purchase-candidates/underwear",
+          label: "アンダーウェア購入検討一覧",
+        }
+      : { href: "/purchase-candidates", label: "購入検討一覧" };
+  const shouldPreserveReturnContext =
+    Boolean(returnToParam) || resolvedItemCategory?.category === "underwear";
+  const detailQuery = new URLSearchParams({
+    return_to: returnTarget.href,
+    return_label: returnTarget.label,
+  });
+  const buildDetailHref = (candidateId: number) =>
+    shouldPreserveReturnContext
+      ? `/purchase-candidates/${candidateId}?${detailQuery.toString()}`
+      : `/purchase-candidates/${candidateId}`;
+  const editHref = shouldPreserveReturnContext
+    ? `/purchase-candidates/${candidate.id}/edit?${detailQuery.toString()}`
+    : `/purchase-candidates/${candidate.id}/edit`;
   const comparableItems = await getComparableItems(
     resolvedItemCategory?.category,
   );
@@ -355,7 +389,7 @@ export default async function PurchaseCandidateDetailPage({
         <EntityDetailHeader
           breadcrumbs={[
             { label: "ホーム", href: "/" },
-            { label: "購入検討一覧", href: "/purchase-candidates" },
+            { label: returnTarget.label, href: returnTarget.href },
             { label: "詳細" },
           ]}
           eyebrow="購入検討管理"
@@ -410,7 +444,7 @@ export default async function PurchaseCandidateDetailPage({
                   />
                 )}
                 <Link
-                  href={`/purchase-candidates/${candidate.id}/edit`}
+                  href={editHref}
                   className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
                 >
                   編集
@@ -429,10 +463,12 @@ export default async function PurchaseCandidateDetailPage({
               </div>
               <div className="flex justify-end">
                 <Link
-                  href="/purchase-candidates"
+                  href={returnTarget.href}
                   className="inline-flex items-center justify-center rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-500 transition hover:bg-gray-50 hover:text-gray-700"
                 >
-                  一覧に戻る
+                  {shouldPreserveReturnContext
+                    ? `${returnTarget.label}へ戻る`
+                    : "一覧に戻る"}
                 </Link>
               </div>
             </div>
@@ -441,6 +477,7 @@ export default async function PurchaseCandidateDetailPage({
 
         <PurchaseCandidateGroupNavigation
           candidates={candidate.group_candidates ?? []}
+          detailHrefBuilder={buildDetailHref}
         />
 
         <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">

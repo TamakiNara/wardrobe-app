@@ -66,6 +66,68 @@ async function getSkinTonePreset(): Promise<SkinTonePreset> {
   return data.preferences?.skinTonePreset ?? DEFAULT_SKIN_TONE_PRESET;
 }
 
+function resolveItemReturnTarget(
+  item: ItemRecord,
+  currentCategory: string,
+  returnToParam: string | null,
+  returnLabelParam: string | null,
+) {
+  if (returnToParam) {
+    return {
+      href: returnToParam,
+      label: returnLabelParam ?? "戻る",
+    };
+  }
+
+  const isUnderwear =
+    currentCategory === "underwear" ||
+    item.category === "underwear" ||
+    (item.category === "inner" &&
+      (item.subcategory === "underwear" || item.shape === "underwear"));
+
+  if (isUnderwear && item.status === "disposed") {
+    return {
+      href: "/items/underwear/disposed",
+      label: "手放したアンダーウェア一覧",
+    };
+  }
+
+  if (isUnderwear) {
+    return {
+      href: "/items/underwear",
+      label: "アンダーウェア一覧",
+    };
+  }
+
+  if (item.status === "disposed") {
+    return {
+      href: "/items/disposed",
+      label: "手放したアイテム一覧",
+    };
+  }
+
+  return {
+    href: "/items",
+    label: "アイテム一覧",
+  };
+}
+
+function shouldPreserveItemReturnContext(
+  href: string,
+  currentCategory: string,
+  item: ItemRecord,
+) {
+  if (href.startsWith("/items/underwear")) {
+    return true;
+  }
+
+  if (href === "/items/disposed" && item.status === "disposed") {
+    return true;
+  }
+
+  return currentCategory === "underwear" || item.category === "underwear";
+}
+
 export default async function ItemPage({
   params,
   searchParams,
@@ -94,6 +156,23 @@ export default async function ItemPage({
   const topsSpecRaw = buildTopsSpecRaw(item.spec?.tops);
   const currentCategory =
     resolveCurrentItemCategoryValue(item.category, item.shape) ?? item.category;
+  const returnTarget = resolveItemReturnTarget(
+    item,
+    currentCategory,
+    returnToParam,
+    returnLabelParam,
+  );
+  const shouldPreserveReturnContext = shouldPreserveItemReturnContext(
+    returnTarget.href,
+    currentCategory,
+    item,
+  );
+  const editHref = shouldPreserveReturnContext
+    ? `/items/${item.id}/edit?${new URLSearchParams({
+        return_to: returnTarget.href,
+        return_label: returnTarget.label,
+      }).toString()}`
+    : `/items/${item.id}/edit`;
   const bottomsLengthLabel =
     currentCategory === "skirts"
       ? findSkirtLengthLabel(
@@ -186,10 +265,6 @@ export default async function ItemPage({
   ].filter((detail): detail is { label: string; value: string } =>
     Boolean(detail.value),
   );
-  const backHref = returnToParam ?? "/items";
-  const backLabel = returnToParam
-    ? `${returnLabelParam ?? "戻る"}へ戻る`
-    : "一覧に戻る";
 
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">
@@ -197,15 +272,7 @@ export default async function ItemPage({
         <EntityDetailHeader
           breadcrumbs={[
             { label: "ホーム", href: "/" },
-            ...(returnToParam
-              ? [
-                  {
-                    label: returnLabelParam ?? "戻る",
-                    href: returnToParam,
-                  },
-                ]
-              : []),
-            { label: "アイテム一覧", href: "/items" },
+            { label: returnTarget.label, href: returnTarget.href },
             { label: "詳細" },
           ]}
           eyebrow="アイテム管理"
@@ -229,16 +296,18 @@ export default async function ItemPage({
           actions={
             <>
               <Link
-                href={`/items/${item.id}/edit`}
+                href={editHref}
                 className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
               >
                 編集
               </Link>
               <Link
-                href={backHref}
+                href={returnTarget.href}
                 className="inline-flex items-center justify-center rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-500 transition hover:bg-gray-50 hover:text-gray-700"
               >
-                {backLabel}
+                {returnToParam || shouldPreserveReturnContext
+                  ? `${returnTarget.label}へ戻る`
+                  : "一覧に戻る"}
               </Link>
             </>
           }

@@ -84,6 +84,25 @@ const sampleGroups: CategoryGroupRecord[] = [
       },
     ],
   },
+  {
+    id: "underwear",
+    name: "アンダーウェア",
+    sortOrder: 80,
+    categories: [
+      {
+        id: "underwear_bra",
+        groupId: "underwear",
+        name: "ブラ",
+        sortOrder: 10,
+      },
+      {
+        id: "underwear_shorts",
+        groupId: "underwear",
+        name: "ショーツ",
+        sortOrder: 20,
+      },
+    ],
+  },
 ];
 
 const sampleItems: ItemRecord[] = [
@@ -135,7 +154,11 @@ describe("SettingsCategoriesPage", () => {
     root = createRoot(container);
     fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
     fetchCategoryVisibilitySettingsMock.mockResolvedValue({
-      visibleCategoryIds: ["tops_tshirt_cutsew", "roomwear_inner_roomwear"],
+      visibleCategoryIds: [
+        "tops_tshirt_cutsew",
+        "roomwear_inner_roomwear",
+        "underwear_bra",
+      ],
     });
     fetchItemsMock.mockResolvedValue(sampleItems);
     searchParamsValue = "";
@@ -167,17 +190,20 @@ describe("SettingsCategoriesPage", () => {
     expect(container.innerHTML).toContain('href="/settings"');
 
     const checkboxes = getCategoryCheckboxes(container);
-    expect(checkboxes).toHaveLength(4);
+    expect(checkboxes).toHaveLength(6);
     expect(checkboxes[0]?.checked).toBe(true);
     expect(checkboxes[1]?.checked).toBe(false);
     expect(checkboxes[2]?.checked).toBe(true);
     expect(checkboxes[3]?.checked).toBe(false);
+    expect(checkboxes[4]?.checked).toBe(true);
+    expect(checkboxes[5]?.checked).toBe(false);
   });
 
   it("未保存変更があると保存ボタンが有効になり、保存後に戻る", async () => {
     updateCategoryVisibilitySettingsMock.mockResolvedValue({
       visibleCategoryIds: [
         "roomwear_inner_roomwear",
+        "underwear_bra",
         "tops_shirt_blouse",
         "tops_tshirt_cutsew",
       ],
@@ -217,6 +243,7 @@ describe("SettingsCategoriesPage", () => {
         "roomwear_inner_roomwear",
         "tops_shirt_blouse",
         "tops_tshirt_cutsew",
+        "underwear_bra",
       ],
     });
     expect(getSaveButtons(container).every((button) => button.disabled)).toBe(
@@ -230,6 +257,8 @@ describe("SettingsCategoriesPage", () => {
       visibleCategoryIds: [
         "roomwear_inner_roomwear",
         "roomwear_inner_underwear",
+        "underwear_bra",
+        "underwear_shorts",
         "tops_shirt_blouse",
         "tops_tshirt_cutsew",
       ],
@@ -244,11 +273,13 @@ describe("SettingsCategoriesPage", () => {
 
     expect(container.textContent).toContain("カテゴリ表示設定");
     const checkboxes = getCategoryCheckboxes(container);
-    expect(checkboxes).toHaveLength(4);
+    expect(checkboxes).toHaveLength(6);
     expect(checkboxes[0]?.checked).toBe(true);
     expect(checkboxes[1]?.checked).toBe(true);
     expect(checkboxes[2]?.checked).toBe(true);
     expect(checkboxes[3]?.checked).toBe(true);
+    expect(checkboxes[4]?.checked).toBe(true);
+    expect(checkboxes[5]?.checked).toBe(true);
 
     const saveButtons = getSaveButtons(container);
     expect(saveButtons).toHaveLength(2);
@@ -266,6 +297,8 @@ describe("SettingsCategoriesPage", () => {
         "roomwear_inner_underwear",
         "tops_shirt_blouse",
         "tops_tshirt_cutsew",
+        "underwear_bra",
+        "underwear_shorts",
       ],
     });
     expect(pushMock).toHaveBeenCalledWith("/");

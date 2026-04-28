@@ -23,6 +23,7 @@ const MASTER_GROUP_TO_ITEM_CATEGORY: Record<string, string> = {
   onepiece_dress: "onepiece_dress",
   allinone: "allinone",
   roomwear_inner: "inner",
+  underwear: "underwear",
   legwear: "legwear",
   shoes: "shoes",
   bags: "bags",

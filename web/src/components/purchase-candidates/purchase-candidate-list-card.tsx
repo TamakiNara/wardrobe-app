@@ -20,6 +20,7 @@ import type {
 
 type PurchaseCandidateListCardProps = {
   candidates: PurchaseCandidateListItem[];
+  detailQueryString?: string;
 };
 
 function formatPrice(price: number | null): string {
@@ -94,6 +95,7 @@ function resolveCandidateImages(
 
 export default function PurchaseCandidateListCard({
   candidates,
+  detailQueryString,
 }: PurchaseCandidateListCardProps) {
   const sortedCandidates = useMemo(
     () =>
@@ -127,6 +129,10 @@ export default function PurchaseCandidateListCard({
   }
 
   const selectedImages = resolveCandidateImages(selectedCandidate);
+  const resolveDetailHref = (candidateId: number) =>
+    detailQueryString
+      ? `/purchase-candidates/${candidateId}?${detailQueryString}`
+      : `/purchase-candidates/${candidateId}`;
   const selectedImageIndex =
     selectedImageState.candidateId === selectedCandidate.id
       ? selectedImageState.imageIndex
@@ -212,7 +218,7 @@ export default function PurchaseCandidateListCard({
           className="relative sm:col-start-1 sm:row-start-1"
         >
           <Link
-            href={`/purchase-candidates/${selectedCandidate.id}`}
+            href={resolveDetailHref(selectedCandidate.id)}
             className="block outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2"
           >
             <div className="relative flex aspect-[4/3] min-h-44 items-center justify-center bg-gray-50 p-1 transition hover:bg-gray-100 sm:aspect-square sm:min-h-[13rem] lg:min-h-[14rem]">
@@ -301,7 +307,7 @@ export default function PurchaseCandidateListCard({
           </div>
 
           <Link
-            href={`/purchase-candidates/${selectedCandidate.id}`}
+            href={resolveDetailHref(selectedCandidate.id)}
             className="block rounded-lg outline-none transition hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-blue-400"
           >
             <h2 className="text-[15px] font-semibold leading-6 text-gray-900">
@@ -387,7 +393,7 @@ export default function PurchaseCandidateListCard({
               />
             ) : null}
             <Link
-              href={`/purchase-candidates/${selectedCandidate.id}`}
+              href={resolveDetailHref(selectedCandidate.id)}
               className="text-sm font-medium text-blue-600 hover:underline"
             >
               詳細を見る

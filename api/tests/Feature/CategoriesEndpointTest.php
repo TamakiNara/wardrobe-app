@@ -125,9 +125,18 @@ class CategoriesEndpointTest extends TestCase
             'roomwear_inner_roomwear',
             array_column($innerGroup['categories'], 'id'),
         );
-        $this->assertContains(
+        $this->assertNotContains(
             'roomwear_inner_underwear',
             array_column($innerGroup['categories'], 'id'),
+        );
+
+        $underwearGroup = collect($groups)->firstWhere('id', 'underwear');
+
+        $this->assertNotNull($underwearGroup);
+        $this->assertSame('アンダーウェア', $underwearGroup['name']);
+        $this->assertContains(
+            'underwear_bra',
+            array_column($underwearGroup['categories'], 'id'),
         );
     }
 

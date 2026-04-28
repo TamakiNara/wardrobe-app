@@ -3,7 +3,7 @@
 import { Save } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { FormPageHeader } from "@/components/shared/form-page-header";
 import {
   FORM_CONTROL_INNER_INPUT_CLASS,
@@ -149,6 +149,9 @@ export default function EditItemPage({
   params: Promise<{ id: string }>;
 }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const returnToParam = searchParams.get("return_to");
+  const returnLabelParam = searchParams.get("return_label");
 
   const [itemId, setItemId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
@@ -231,6 +234,25 @@ export default function EditItemPage({
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
+
+  const detailHref = useMemo(() => {
+    if (itemId === null) {
+      return returnToParam ?? "/items";
+    }
+
+    if (!returnToParam) {
+      return `/items/${itemId}`;
+    }
+
+    const params = new URLSearchParams({
+      return_to: returnToParam,
+      return_label: returnLabelParam ?? "アイテム一覧",
+    });
+    return `/items/${itemId}?${params.toString()}`;
+  }, [itemId, returnLabelParam, returnToParam]);
+
+  const listHref = returnToParam ?? "/items";
+  const listLabel = returnLabelParam ?? "アイテム一覧";
 
   const isTopsCategory = category === "tops";
   const effectiveSubcategory = useMemo(
@@ -1276,7 +1298,7 @@ export default function EditItemPage({
 
       setSubmitSuccess("アイテムを更新しました。");
       setTimeout(() => {
-        router.push(`/items/${itemId}`);
+        router.push(detailHref);
         router.refresh();
       }, 800);
     } catch (error) {
@@ -1453,8 +1475,8 @@ export default function EditItemPage({
         <FormPageHeader
           breadcrumbs={[
             { label: "ホーム", href: "/" },
-            { label: "アイテム一覧", href: "/items" },
-            ...(itemId ? [{ label: "詳細", href: `/items/${itemId}` }] : []),
+            { label: listLabel, href: listHref },
+            ...(itemId ? [{ label: "詳細", href: detailHref }] : []),
             { label: "編集" },
           ]}
           eyebrow="アイテム管理"
@@ -1462,7 +1484,7 @@ export default function EditItemPage({
           description="登録済みのアイテム情報を見直して更新します。"
           actions={
             <Link
-              href={itemId ? `/items/${itemId}` : "/items"}
+              href={detailHref}
               className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
             >
               詳細に戻る
@@ -2517,7 +2539,7 @@ export default function EditItemPage({
                 </button>
 
                 <Link
-                  href={itemId ? `/items/${itemId}` : "/items"}
+                  href={detailHref}
                   className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
                 >
                   キャンセル

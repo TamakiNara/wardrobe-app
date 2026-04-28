@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { ItemsPageHeader } from "@/components/items/items-page-header";
 import { UnderwearIcon } from "@/components/shared/underwear-icon";
 import ItemsList from "@/components/items/items-list";
@@ -64,17 +64,10 @@ function buildQueryString(searchParams: ItemsPageSearchParams): string {
 
 async function getItems(
   searchParams: ItemsPageSearchParams,
-  storage?: "underwear",
 ): Promise<ItemsResponse> {
   const params = new URLSearchParams(buildQueryString(searchParams));
-
-  if (storage === "underwear") {
-    params.set("storage", "underwear");
-  }
-
-  const path =
-    params.size > 0 ? `/api/items?${params.toString()}` : "/api/items";
-  const res = await fetchLaravelWithCookie(path);
+  params.set("storage", "underwear");
+  const res = await fetchLaravelWithCookie(`/api/items?${params.toString()}`);
 
   if (res.status === 401) {
     redirect("/login");
@@ -113,7 +106,7 @@ async function getItems(
   };
 }
 
-export default async function ItemsPage({
+export default async function UnderwearItemsPage({
   searchParams,
 }: {
   searchParams: Promise<ItemsPageSearchParams>;
@@ -152,12 +145,12 @@ export default async function ItemsPage({
     initialCategoryOptions = buildSupportedCategoryOptions(
       categoryGroupsData.groups ?? [],
       categoryVisibilityData.visibleCategoryIds,
-    ).filter((option) => option.value !== "underwear");
+    ).filter((option) => option.value === "underwear");
   }
 
   const data = await getItems(resolvedSearchParams);
-  const underwearIndexHref = "/items/underwear";
-  const newItemHref = "/items/new";
+  const newUnderwearItemHref =
+    "/items/new?category=underwear&returnTo=%2Fitems%2Funderwear";
 
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">
@@ -165,33 +158,31 @@ export default async function ItemsPage({
         <ItemsPageHeader
           breadcrumbs={[
             { label: "ホーム", href: "/" },
-            { label: "アイテム一覧" },
+            { label: "アイテム一覧", href: "/items" },
+            { label: "アンダーウェア一覧" },
           ]}
-          eyebrow="アイテム管理"
-          title="アイテム一覧"
-          description="季節・形・実寸・TPOを整理して、手持ちのアイテムを管理します。アンダーウェアは専用一覧で確認できます。"
+          eyebrow="アンダーウェア管理"
+          title="アンダーウェア一覧"
+          description="通常のアイテム一覧とは分けて、見せない下着類をまとめて管理します。"
           actions={
             <>
               <Link
-                href={underwearIndexHref}
-                aria-label="アンダーウェア一覧"
-                className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
-              >
-                <UnderwearIcon className="h-4 w-4 text-gray-700" />
-                <span>アンダーウェア</span>
-              </Link>
-
-              <Link
-                href="/items/disposed"
+                href="/items/underwear/disposed"
                 className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
               >
-                手放したアイテム一覧
+                手放したアンダーウェア一覧
               </Link>
-
               <Link
-                href={newItemHref}
-                className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
+                href="/items"
+                className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
               >
+                アイテム一覧
+              </Link>
+              <Link
+                href={newUnderwearItemHref}
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
+              >
+                <UnderwearIcon className="h-4 w-4 text-white" />
                 アイテムを追加
               </Link>
             </>
@@ -201,31 +192,29 @@ export default async function ItemsPage({
         {data.meta.totalAll === 0 ? (
           <section className="rounded-2xl border border-dashed border-gray-300 bg-white p-10 text-center shadow-sm">
             <h2 className="text-lg font-semibold text-gray-900">
-              現在、登録中のアイテムはありません
+              アンダーウェアはまだありません
             </h2>
             <p className="mt-2 text-sm text-gray-600">
-              新しく追加するか、手放したアイテム一覧からクローゼットに戻すアイテムがないか確認してください。見せないアンダーウェアは専用一覧で管理できます。
+              ブラやショーツなど、通常一覧に出したくない下着類をここで管理できます。
             </p>
-
             <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
               <Link
-                href={underwearIndexHref}
-                aria-label="アンダーウェア一覧"
-                className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
-              >
-                <UnderwearIcon className="h-4 w-4 text-gray-700" />
-                <span>アンダーウェア</span>
-              </Link>
-              <Link
-                href="/items/disposed"
+                href="/items/underwear/disposed"
                 className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
               >
-                手放したアイテム一覧
+                手放したアンダーウェア一覧
               </Link>
               <Link
-                href={newItemHref}
-                className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
+                href="/items"
+                className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
               >
+                アイテム一覧
+              </Link>
+              <Link
+                href={newUnderwearItemHref}
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
+              >
+                <UnderwearIcon className="h-4 w-4 text-white" />
                 アイテムを追加する
               </Link>
             </div>
@@ -244,6 +233,7 @@ export default async function ItemsPage({
             skinTonePreset={skinTonePreset}
             initialCategoryOptions={initialCategoryOptions}
             initialSeasonFilter={preferredSeasonFilter}
+            storage="underwear"
           />
         )}
       </div>

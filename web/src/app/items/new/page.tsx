@@ -27,6 +27,7 @@ import {
 import {
   buildSupportedCategoryOptions,
   fetchCategoryGroups,
+  resolveCurrentItemCategoryValue,
 } from "@/lib/api/categories";
 import { ApiClientError } from "@/lib/api/client";
 import { getUserFacingSubmitErrorMessage } from "@/lib/api/error-message";
@@ -143,6 +144,21 @@ export default function NewItemPage() {
   const source = searchParams.get("source");
   const isPurchaseCandidateSource = source === "purchase-candidate";
   const requestedReturnTo = searchParams.get("returnTo");
+  const requestedCategoryParam = searchParams.get("category");
+  const requestedInitialCategory = useMemo(() => {
+    const nextCategory = resolveCurrentItemCategoryValue(
+      requestedCategoryParam,
+      null,
+    );
+
+    if (!nextCategory) {
+      return "";
+    }
+
+    return ITEM_CATEGORIES.some((item) => item.value === nextCategory)
+      ? (nextCategory as ItemCategory)
+      : "";
+  }, [requestedCategoryParam]);
   const cancelHref =
     requestedReturnTo &&
     requestedReturnTo.startsWith("/") &&
@@ -181,11 +197,15 @@ export default function NewItemPage() {
     buildEditableItemMaterials(),
   );
   const [isRainOk, setIsRainOk] = useState(false);
-  const [category, setCategory] = useState<ItemCategory | "">("");
+  const [category, setCategory] = useState<ItemCategory | "">(
+    requestedInitialCategory,
+  );
   const [categoryOptions, setCategoryOptions] = useState<CategoryOption[]>([
     ...ITEM_CATEGORIES,
   ]);
-  const [subcategory, setSubcategory] = useState("");
+  const [subcategory, setSubcategory] = useState(
+    resolveItemSubcategoryForForm(requestedInitialCategory, null) ?? "",
+  );
   const [shape, setShape] = useState("");
 
   const [mainColor, setMainColor] = useState<ItemColorValue | "">("");

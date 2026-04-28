@@ -31,6 +31,46 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 
+if (! function_exists('defaultRolledOutVisibleCategoryIds')) {
+    function defaultRolledOutVisibleCategoryIds(): array
+    {
+        return [
+            'underwear_bra',
+            'underwear_shorts',
+            'underwear_shapewear',
+            'underwear_undershirt',
+            'underwear_other',
+        ];
+    }
+}
+
+if (! function_exists('resolveVisibleCategoryIdsForSettings')) {
+    function resolveVisibleCategoryIdsForSettings($user, array $activeCurrentVisibleCategoryIds): array
+    {
+        $visibleCategoryIds = $user->visible_category_ids;
+
+        if (! is_array($visibleCategoryIds)) {
+            return $activeCurrentVisibleCategoryIds;
+        }
+
+        $normalizedVisibleCategoryIds = array_values(array_filter(
+            $visibleCategoryIds,
+            fn ($id) => is_string($id) && in_array($id, $activeCurrentVisibleCategoryIds, true)
+        ));
+
+        foreach ($activeCurrentVisibleCategoryIds as $categoryId) {
+            if (
+                in_array($categoryId, defaultRolledOutVisibleCategoryIds(), true)
+                && ! in_array($categoryId, $normalizedVisibleCategoryIds, true)
+            ) {
+                $normalizedVisibleCategoryIds[] = $categoryId;
+            }
+        }
+
+        return $normalizedVisibleCategoryIds;
+    }
+}
+
 Route::get('/csrf-cookie', function (Request $request) {
     // セッション開始＆CSRFトークン生成
     $request->session()->start();
@@ -90,16 +130,10 @@ Route::prefix('api')->middleware(['web'])->group(function () {
             ->pluck('id')
             ->all();
 
-        $visibleCategoryIds = $user->visible_category_ids;
-
-        if (! is_array($visibleCategoryIds)) {
-            $visibleCategoryIds = $activeCurrentVisibleCategoryIds;
-        } else {
-            $visibleCategoryIds = array_values(array_filter(
-                $visibleCategoryIds,
-                fn ($id) => is_string($id) && in_array($id, $activeCurrentVisibleCategoryIds, true)
-            ));
-        }
+        $visibleCategoryIds = resolveVisibleCategoryIdsForSettings(
+            $user,
+            $activeCurrentVisibleCategoryIds,
+        );
 
         return response()->json([
             'visibleCategoryIds' => $visibleCategoryIds,

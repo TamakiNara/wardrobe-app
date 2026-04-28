@@ -194,6 +194,44 @@ class PurchaseCandidateEndpointsTest extends TestCase
             ->assertJsonPath('meta.current_page', 1);
     }
 
+    public function test_get_purchase_candidates_excludes_underwear_from_normal_list_and_storage_underwear_returns_only_underwear(): void
+    {
+        $user = User::factory()->create();
+
+        $normalCandidate = $this->createCandidate($user, [
+            'name' => '通常候補',
+            'category_id' => 'outerwear_coat',
+        ]);
+
+        $underwearCandidate = $this->createCandidate($user, [
+            'name' => '黒ブラ候補',
+            'category_id' => 'underwear_bra',
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $normalResponse = $this->getJson('/api/purchase-candidates', [
+            'Accept' => 'application/json',
+        ]);
+
+        $normalResponse->assertOk()
+            ->assertJsonPath('purchaseCandidateEntries.0.candidate.id', $normalCandidate->id)
+            ->assertJsonMissing([
+                'name' => '黒ブラ候補',
+            ]);
+
+        $underwearResponse = $this->getJson('/api/purchase-candidates?storage=underwear', [
+            'Accept' => 'application/json',
+        ]);
+
+        $underwearResponse->assertOk()
+            ->assertJsonPath('purchaseCandidateEntries.0.candidate.id', $underwearCandidate->id)
+            ->assertJsonPath('purchaseCandidateEntries.0.candidate.category_id', 'underwear_bra')
+            ->assertJsonMissing([
+                'name' => '通常候補',
+            ]);
+    }
+
     public function test_get_purchase_candidates_applies_filters_sort_and_pagination(): void
     {
         $user = User::factory()->create();

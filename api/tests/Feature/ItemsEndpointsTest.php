@@ -529,6 +529,53 @@ class ItemsEndpointsTest extends TestCase
         ]);
     }
 
+    public function test_get_items_excludes_underwear_from_normal_list_and_storage_underwear_returns_only_underwear(): void
+    {
+        $user = User::factory()->create();
+        $user->forceFill([
+            'visible_category_ids' => ['tops_tshirt_cutsew', 'underwear_bra'],
+        ])->save();
+
+        $visibleItem = $this->createItem($user, [
+            'name' => '表示される白T',
+            'category' => 'tops',
+            'shape' => 'tshirt',
+        ]);
+
+        $underwearItem = $this->createItem($user, [
+            'name' => '黒ブラ',
+            'category' => 'underwear',
+            'subcategory' => 'bra',
+            'shape' => 'bra',
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $normalResponse = $this->getJson('/api/items', [
+            'Accept' => 'application/json',
+        ]);
+
+        $normalResponse->assertOk()
+            ->assertJsonCount(1, 'items')
+            ->assertJsonPath('items.0.id', $visibleItem->id)
+            ->assertJsonMissing([
+                'name' => '黒ブラ',
+            ]);
+
+        $underwearResponse = $this->getJson('/api/items?storage=underwear', [
+            'Accept' => 'application/json',
+        ]);
+
+        $underwearResponse->assertOk()
+            ->assertJsonCount(1, 'items')
+            ->assertJsonPath('items.0.id', $underwearItem->id)
+            ->assertJsonPath('items.0.category', 'underwear')
+            ->assertJsonPath('meta.totalAll', 1)
+            ->assertJsonMissing([
+                'name' => '表示される白T',
+            ]);
+    }
+
     public function test_get_disposed_items_returns_only_current_users_disposed_items(): void
     {
         $user = User::factory()->create();
@@ -572,6 +619,51 @@ class ItemsEndpointsTest extends TestCase
         $response->assertJsonMissing([
             'name' => '他人の手放しアイテム',
         ]);
+    }
+
+    public function test_get_disposed_items_excludes_underwear_from_normal_disposed_list_and_storage_underwear_returns_only_underwear(): void
+    {
+        $user = User::factory()->create();
+
+        $disposedTop = $this->createItem($user, [
+            'name' => '手放した白T',
+            'status' => 'disposed',
+            'category' => 'tops',
+            'shape' => 'tshirt',
+        ]);
+
+        $disposedUnderwear = $this->createItem($user, [
+            'name' => '手放した黒ブラ',
+            'status' => 'disposed',
+            'category' => 'underwear',
+            'subcategory' => 'bra',
+            'shape' => 'bra',
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $normalResponse = $this->getJson('/api/items/disposed', [
+            'Accept' => 'application/json',
+        ]);
+
+        $normalResponse->assertOk()
+            ->assertJsonCount(1, 'items')
+            ->assertJsonPath('items.0.id', $disposedTop->id)
+            ->assertJsonMissing([
+                'name' => '手放した黒ブラ',
+            ]);
+
+        $underwearResponse = $this->getJson('/api/items/disposed?storage=underwear', [
+            'Accept' => 'application/json',
+        ]);
+
+        $underwearResponse->assertOk()
+            ->assertJsonCount(1, 'items')
+            ->assertJsonPath('items.0.id', $disposedUnderwear->id)
+            ->assertJsonPath('items.0.category', 'underwear')
+            ->assertJsonMissing([
+                'name' => '手放した白T',
+            ]);
     }
 
     public function test_post_items_stores_purchase_fields_and_images(): void

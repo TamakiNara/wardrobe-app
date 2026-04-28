@@ -1037,6 +1037,56 @@ describe("WearLogForm", () => {
     expect(container.textContent).not.toContain("夏パンツ");
   });
 
+  it("underwear item は着用履歴の候補に表示しない", async () => {
+    fetchAllPaginatedCandidatesMock
+      .mockResolvedValueOnce({
+        status: 200,
+        entries: [
+          {
+            id: 1,
+            name: "白T",
+            status: "active",
+            category: "tops",
+            shape: "tshirt",
+            colors: [],
+            seasons: [],
+            tpos: [],
+          },
+          {
+            id: 2,
+            name: "黒ブラ",
+            status: "active",
+            category: "underwear",
+            shape: "bra",
+            colors: [],
+            seasons: [],
+            tpos: [],
+          },
+        ],
+      })
+      .mockResolvedValueOnce({
+        status: 200,
+        entries: [],
+      });
+
+    const { default: WearLogForm } = await import("./wear-log-form");
+
+    await act(async () => {
+      root.render(React.createElement(WearLogForm, { mode: "create" }));
+    });
+    await act(async () => {
+      await waitForEffects();
+    });
+
+    const categorySelect = container.querySelector<HTMLSelectElement>(
+      '[data-testid="wear-log-item-category-filter"]',
+    );
+
+    expect(container.textContent).toContain("白T");
+    expect(container.textContent).not.toContain("黒ブラ");
+    expect(categorySelect?.innerHTML).not.toContain("アンダーウェア");
+  });
+
   it("422 の field error を項目近くに表示し、items error は選択エラーとして見せる", async () => {
     fetchAllPaginatedCandidatesMock
       .mockResolvedValueOnce({

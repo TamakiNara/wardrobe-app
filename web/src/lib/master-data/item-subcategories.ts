@@ -45,9 +45,15 @@ export const ITEM_SUBCATEGORIES = {
   ],
   inner: [
     { value: "roomwear", label: "ルームウェア" },
-    { value: "underwear", label: "インナー" },
     { value: "pajamas", label: "パジャマ" },
     { value: "other", label: "その他ルームウェア・インナー" },
+  ],
+  underwear: [
+    { value: "bra", label: "ブラ" },
+    { value: "shorts", label: "ショーツ" },
+    { value: "shapewear", label: "補正下着" },
+    { value: "undershirt", label: "肌着" },
+    { value: "other", label: "その他アンダーウェア" },
   ],
   bags: [
     { value: "tote", label: "トートバッグ" },
@@ -118,6 +124,7 @@ export const REQUIRED_SUBCATEGORY_CATEGORIES = new Set<string>([
   "onepiece_dress",
   "allinone",
   "inner",
+  "underwear",
   "bags",
   "fashion_accessories",
   "shoes",
@@ -131,6 +138,7 @@ const REPRESENTATIVE_SUBCATEGORY_BY_CATEGORY: Record<string, string> = {
   shoes: "sneakers",
   swimwear: "swimwear",
   kimono: "kimono",
+  underwear: "bra",
 };
 
 export function getItemSubcategoryOptions(category?: string | null) {

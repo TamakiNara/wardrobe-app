@@ -78,6 +78,13 @@ const LEGACY_INFERRED_SUBCATEGORY_BY_CATEGORY: Record<
     pajamas: "pajamas",
     other: "other",
   },
+  underwear: {
+    bra: "bra",
+    shorts: "shorts",
+    shapewear: "shapewear",
+    undershirt: "undershirt",
+    other: "other",
+  },
   bags: {
     tote: "tote",
     shoulder: "shoulder",
@@ -189,6 +196,13 @@ const DEFAULT_SHAPE_BY_SUBCATEGORY: Record<string, Record<string, string>> = {
     pajamas: "pajamas",
     other: "roomwear",
   },
+  underwear: {
+    bra: "bra",
+    shorts: "shorts",
+    shapewear: "shapewear",
+    undershirt: "undershirt",
+    other: "bra",
+  },
   bags: {
     tote: "tote",
     shoulder: "shoulder",
@@ -270,6 +284,13 @@ const VISIBLE_CATEGORY_ID_BY_SUBCATEGORY: Record<
     underwear: "roomwear_inner_underwear",
     pajamas: "roomwear_inner_pajamas",
     other: "roomwear_inner_other",
+  },
+  underwear: {
+    bra: "underwear_bra",
+    shorts: "underwear_shorts",
+    shapewear: "underwear_shapewear",
+    undershirt: "underwear_undershirt",
+    other: "underwear_other",
   },
   bags: {
     tote: "bags_tote",
@@ -415,6 +436,12 @@ const VISIBLE_CATEGORY_ID_BY_SHAPE: Record<string, Record<string, string>> = {
     underwear: "roomwear_inner_underwear",
     pajamas: "roomwear_inner_pajamas",
   },
+  underwear: {
+    bra: "underwear_bra",
+    shorts: "underwear_shorts",
+    shapewear: "underwear_shapewear",
+    undershirt: "underwear_undershirt",
+  },
   legwear: {
     socks: "legwear_socks",
     stockings: "legwear_stockings",
@@ -511,6 +538,7 @@ const KNOWN_SUBCATEGORY_VALUES_BY_CATEGORY: Record<string, Set<string>> = {
   ]),
   swimwear: new Set(["swimwear", "rashguard", "other"]),
   kimono: new Set(["kimono", "yukata", "japanese_accessory", "other"]),
+  underwear: new Set(["bra", "shorts", "shapewear", "undershirt", "other"]),
 };
 
 // フロントエンドではバックエンド正本の読み替えとして、現行値 / 旧値の吸収だけを共有する
@@ -561,6 +589,10 @@ export function resolveCurrentItemCategoryValue(
     return "fashion_accessories";
   }
 
+  if (category === "inner" && shape === "underwear") {
+    return "underwear";
+  }
+
   if (category === "pants" || category === "skirts") {
     return category;
   }
@@ -570,6 +602,7 @@ export function resolveCurrentItemCategoryValue(
     category === "allinone" ||
     category === "tops" ||
     category === "inner" ||
+    category === "underwear" ||
     category === "legwear" ||
     category === "shoes" ||
     category === "bags" ||
@@ -673,6 +706,13 @@ export function resolveCurrentItemSubcategoryValue(
 
   const normalizedSubcategory =
     typeof subcategory === "string" ? subcategory.trim() : "";
+
+  if (
+    currentCategory === "underwear" &&
+    normalizedSubcategory === "underwear"
+  ) {
+    return "other";
+  }
 
   if (normalizedSubcategory) {
     const knownSubcategories =

@@ -17,6 +17,7 @@ const fetchUserTposMock = vi.fn();
 const routerMock = { push: pushMock, refresh: refreshMock };
 let searchParamsSourceValue = "";
 let searchParamsReturnToValue = "";
+let searchParamsCategoryValue = "";
 const scrollIntoViewMock = vi.fn();
 
 vi.mock("next/link", () => ({
@@ -32,7 +33,9 @@ vi.mock("next/navigation", () => ({
         ? searchParamsSourceValue
         : key === "returnTo"
           ? searchParamsReturnToValue
-          : null,
+          : key === "category"
+            ? searchParamsCategoryValue
+            : null,
   }),
 }));
 
@@ -88,8 +91,10 @@ vi.mock("@/lib/api/categories", async () => {
     });
 
     await collapseSizeDetails();
-    expect(container.textContent).toContain("実寸を入力");
-    expect(container.textContent).not.toContain("閉じる");
+    expect(container.textContent).toContain("肩幅 42.5cm");
+    expect(
+      container.querySelector('button[aria-expanded="false"]'),
+    ).not.toBeNull();
 
     await openSizeDetails();
 
@@ -468,6 +473,25 @@ const sampleGroups: CategoryGroupRecord[] = [
     ],
   },
   {
+    id: "underwear",
+    name: "アンダーウェア",
+    sortOrder: 32,
+    categories: [
+      {
+        id: "underwear_bra",
+        groupId: "underwear",
+        name: "ブラ",
+        sortOrder: 10,
+      },
+      {
+        id: "underwear_shorts",
+        groupId: "underwear",
+        name: "ショーツ",
+        sortOrder: 20,
+      },
+    ],
+  },
+  {
     id: "legwear",
     name: "レッグウェア",
     sortOrder: 35,
@@ -826,15 +850,15 @@ describe("新規登録画面", () => {
   let root: ReturnType<typeof createRoot>;
 
   async function openSizeDetails() {
-    const expandedToggleButton = Array.from(
-      container.querySelectorAll("button"),
-    ).find((button) => button.textContent?.includes("折りたたむ"));
+    const expandedToggleButton = container.querySelector<HTMLButtonElement>(
+      'button[aria-expanded="true"]',
+    );
     if (expandedToggleButton) {
       return;
     }
 
-    const toggleButton = Array.from(container.querySelectorAll("button")).find(
-      (button) => button.textContent?.includes("実寸を入力"),
+    const toggleButton = container.querySelector<HTMLButtonElement>(
+      'button[aria-expanded="false"]',
     );
     expect(toggleButton).not.toBeUndefined();
 
@@ -845,8 +869,8 @@ describe("新規登録画面", () => {
   }
 
   async function collapseSizeDetails() {
-    const toggleButton = Array.from(container.querySelectorAll("button")).find(
-      (button) => button.textContent?.includes("折りたたむ"),
+    const toggleButton = container.querySelector<HTMLButtonElement>(
+      'button[aria-expanded="true"]',
     );
     expect(toggleButton).not.toBeUndefined();
 
@@ -861,6 +885,7 @@ describe("新規登録画面", () => {
     window.sessionStorage.clear();
     searchParamsSourceValue = "";
     searchParamsReturnToValue = "";
+    searchParamsCategoryValue = "";
     globalThis.IS_REACT_ACT_ENVIRONMENT = true;
     window.HTMLElement.prototype.scrollIntoView = scrollIntoViewMock;
     container = document.createElement("div");
@@ -875,6 +900,7 @@ describe("新規登録画面", () => {
         "onepiece_dress_onepiece",
         "allinone_allinone",
         "roomwear_inner_roomwear",
+        "underwear_bra",
         "legwear_socks",
         "shoes_sneakers",
         "bags_tote",
@@ -931,6 +957,7 @@ describe("新規登録画面", () => {
       "ワンピース・ドレス",
       "オールインワン",
       "ルームウェア・インナー",
+      "アンダーウェア",
       "レッグウェア",
       "シューズ",
       "バッグ",
@@ -1037,6 +1064,25 @@ describe("新規登録画面", () => {
 
     expect(container.innerHTML).toContain('href="/purchase-candidates/42"');
     expect(container.textContent).toContain("元の画面に戻る");
+  });
+
+  it("category=underwear 付きで開くとアンダーウェアを初期選択する", async () => {
+    searchParamsCategoryValue = "underwear";
+
+    const { default: NewItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(NewItemPage));
+      await waitForEffects();
+    });
+
+    const categorySelect =
+      container.querySelector<HTMLSelectElement>("#category");
+    const subcategorySelect =
+      container.querySelector<HTMLSelectElement>("#subcategory");
+
+    expect(categorySelect?.value).toBe("underwear");
+    expect(subcategorySelect?.value).toBe("bra");
   });
 
   it("purchase candidate draft から名前とカテゴリ初期値を読み込む", async () => {
@@ -1483,7 +1529,7 @@ describe("新規登録画面", () => {
     });
 
     expect(container.textContent).toContain("実寸");
-    expect(container.textContent).toContain("実寸を入力");
+    expect(container.textContent).toContain("実寸は未入力です");
     expect(container.textContent).not.toContain("自由項目を追加");
     expect(container.querySelector("#structured-size-waist")).toBeNull();
 

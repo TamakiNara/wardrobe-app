@@ -14,6 +14,7 @@ class ItemSubcategorySupport
         'onepiece_dress' => 'onepiece_dress',
         'allinone' => 'allinone',
         'inner' => 'roomwear_inner',
+        'underwear' => 'underwear',
         'bags' => 'bags',
         'fashion_accessories' => 'fashion_accessories',
         'shoes' => 'shoes',
@@ -89,6 +90,13 @@ class ItemSubcategorySupport
             'roomwear' => 'roomwear',
             'underwear' => 'underwear',
             'pajamas' => 'pajamas',
+            'other' => 'other',
+        ],
+        'underwear' => [
+            'bra' => 'bra',
+            'shorts' => 'shorts',
+            'shapewear' => 'shapewear',
+            'undershirt' => 'undershirt',
             'other' => 'other',
         ],
         'bags' => [
@@ -200,8 +208,14 @@ class ItemSubcategorySupport
         ],
         'inner' => [
             'roomwear',
-            'underwear',
             'pajamas',
+            'other',
+        ],
+        'underwear' => [
+            'bra',
+            'shorts',
+            'shapewear',
+            'undershirt',
             'other',
         ],
         'bags' => [
@@ -271,6 +285,7 @@ class ItemSubcategorySupport
         'onepiece_dress',
         'allinone',
         'inner',
+        'underwear',
         'bags',
         'fashion_accessories',
         'shoes',
@@ -332,9 +347,15 @@ class ItemSubcategorySupport
         ],
         'inner' => [
             'roomwear' => 'roomwear_inner_roomwear',
-            'underwear' => 'roomwear_inner_underwear',
             'pajamas' => 'roomwear_inner_pajamas',
             'other' => 'roomwear_inner_other',
+        ],
+        'underwear' => [
+            'bra' => 'underwear_bra',
+            'shorts' => 'underwear_shorts',
+            'shapewear' => 'underwear_shapewear',
+            'undershirt' => 'underwear_undershirt',
+            'other' => 'underwear_other',
         ],
         'bags' => [
             'tote' => 'bags_tote',
@@ -464,6 +485,10 @@ class ItemSubcategorySupport
 
         if ($normalized === '') {
             return null;
+        }
+
+        if ($category === 'underwear' && $normalized === 'underwear') {
+            return 'other';
         }
 
         $available = self::valuesFor($category);

@@ -691,6 +691,89 @@ class ImportExportEndpointsTest extends TestCase
         $this->assertSame(12, data_get($importedItem->size_details, 'structured.depth.value'));
     }
 
+    public function test_export_import_roundtrip_preserves_underwear_items_and_purchase_candidates(): void
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->create();
+        $this->createCategory('underwear_bra', 'underwear', 'ブラ');
+
+        $item = Item::query()->create([
+            'user_id' => $user->id,
+            'name' => '黒ブラ',
+            'status' => 'active',
+            'category' => 'underwear',
+            'subcategory' => 'bra',
+            'shape' => 'bra',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'black',
+                'hex' => '#111111',
+                'label' => 'ブラック',
+            ]],
+            'seasons' => [],
+            'tpos' => [],
+            'spec' => null,
+        ]);
+
+        $candidate = PurchaseCandidate::query()->create([
+            'user_id' => $user->id,
+            'status' => 'considering',
+            'priority' => 'medium',
+            'name' => '黒ブラ候補',
+            'category_id' => 'underwear_bra',
+            'shape' => null,
+            'brand_name' => null,
+            'price' => null,
+            'purchase_url' => null,
+            'wanted_reason' => null,
+            'memo' => null,
+            'size_label' => 'M',
+            'size_note' => null,
+            'size_details' => null,
+            'alternate_size_label' => null,
+            'alternate_size_note' => null,
+            'alternate_size_details' => null,
+        ]);
+        $candidate->colors()->create([
+            'role' => 'main',
+            'mode' => 'preset',
+            'value' => 'black',
+            'hex' => '#111111',
+            'label' => 'ブラック',
+            'sort_order' => 1,
+        ]);
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $exportPayload = $this->getJson('/api/export', [
+            'Accept' => 'application/json',
+        ])->assertOk()->json();
+
+        $this->assertSame('underwear', data_get($exportPayload, 'items.0.category'));
+        $this->assertSame('bra', data_get($exportPayload, 'items.0.subcategory'));
+        $this->assertSame('underwear_bra', data_get($exportPayload, 'purchase_candidates.0.category_id'));
+
+        Item::query()->delete();
+        PurchaseCandidate::query()->delete();
+
+        $this->postJson('/api/import', $exportPayload, [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ])->assertOk();
+
+        $importedItem = Item::query()->sole();
+        $importedCandidate = PurchaseCandidate::query()->sole();
+
+        $this->assertSame('underwear', $importedItem->category);
+        $this->assertSame('bra', $importedItem->subcategory);
+        $this->assertSame('bra', $importedItem->shape);
+        $this->assertSame('underwear_bra', $importedCandidate->category_id);
+        $this->assertNull($importedCandidate->shape);
+    }
+
     public function test_export_import_roundtrip_allows_legacy_bottoms_without_length_spec(): void
     {
         Storage::fake('public');

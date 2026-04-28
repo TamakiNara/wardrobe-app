@@ -82,8 +82,13 @@ export const ITEM_SHAPES = {
   ],
   inner: [
     { value: "roomwear", label: "ルームウェア" },
-    { value: "underwear", label: "インナー" },
     { value: "pajamas", label: "パジャマ" },
+  ],
+  underwear: [
+    { value: "bra", label: "ブラ" },
+    { value: "shorts", label: "ショーツ" },
+    { value: "shapewear", label: "補正下着" },
+    { value: "undershirt", label: "肌着" },
   ],
   legwear: [
     { value: "socks", label: "ソックス" },
@@ -159,6 +164,7 @@ export const ITEM_CATEGORIES = [
   { value: "onepiece_dress", label: "ワンピース・ドレス" },
   { value: "allinone", label: "オールインワン" },
   { value: "inner", label: "ルームウェア・インナー" },
+  { value: "underwear", label: "アンダーウェア" },
   { value: "legwear", label: "レッグウェア" },
   { value: "shoes", label: "シューズ" },
   { value: "bags", label: "バッグ" },
@@ -253,8 +259,14 @@ const SHAPE_VALUES_BY_SUBCATEGORY: Partial<
   },
   inner: {
     roomwear: ["roomwear"],
-    underwear: ["underwear"],
     pajamas: ["pajamas"],
+    other: [],
+  },
+  underwear: {
+    bra: ["bra"],
+    shorts: ["shorts"],
+    shapewear: ["shapewear"],
+    undershirt: ["undershirt"],
     other: [],
   },
   bags: {
@@ -330,7 +342,8 @@ export function getItemShapeOptions(
       category === "legwear" ||
       category === "swimwear" ||
       category === "kimono" ||
-      category === "inner")
+      category === "inner" ||
+      category === "underwear")
   ) {
     return [];
   }

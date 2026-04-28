@@ -49,11 +49,13 @@ describe("EditPurchaseCandidatePage", () => {
     );
 
     expect(markup).toContain("購入検討管理");
-    expect(markup).toContain("購入検討編集");
+    expect(markup).toContain("購入検討を編集");
     expect(markup).toContain("登録済みの購入検討内容を見直して更新します。");
     expect(markup).toContain('href="/purchase-candidates/14"');
     expect(markup).toContain("詳細へ戻る");
-    expect(markup).toContain('data-cancel-href="/purchase-candidates/14"');
+    expect(markup).toContain(
+      'data-cancel-href="/purchase-candidates/14?return_to=',
+    );
     expect(markup).toContain("purchase-candidate-form:14");
     expect(markup).toContain("delete-purchase-candidate-button:14");
   });

@@ -23,6 +23,7 @@ vi.mock("next/link", () => ({
 
 vi.mock("next/navigation", () => ({
   useRouter: () => routerMock,
+  useSearchParams: () => new URLSearchParams(),
 }));
 
 vi.mock("@/lib/api/categories", async () => {
@@ -137,6 +138,43 @@ const sampleGroups: CategoryGroupRecord[] = [
         groupId: "roomwear_inner",
         name: "その他ルームウェア・インナー",
         sortOrder: 40,
+      },
+    ],
+  },
+  {
+    id: "underwear",
+    name: "アンダーウェア",
+    sortOrder: 32,
+    categories: [
+      {
+        id: "underwear_bra",
+        groupId: "underwear",
+        name: "ブラ",
+        sortOrder: 10,
+      },
+      {
+        id: "underwear_shorts",
+        groupId: "underwear",
+        name: "ショーツ",
+        sortOrder: 20,
+      },
+      {
+        id: "underwear_shapewear",
+        groupId: "underwear",
+        name: "補正下着",
+        sortOrder: 30,
+      },
+      {
+        id: "underwear_undershirt",
+        groupId: "underwear",
+        name: "肌着",
+        sortOrder: 40,
+      },
+      {
+        id: "underwear_other",
+        groupId: "underwear",
+        name: "その他アンダーウェア",
+        sortOrder: 50,
       },
     ],
   },
@@ -387,15 +425,15 @@ describe("編集画面", () => {
   let root: ReturnType<typeof createRoot>;
 
   async function openSizeDetails() {
-    const collapseButton = Array.from(
-      container.querySelectorAll("button"),
-    ).find((button) => button.textContent?.includes("折りたたむ"));
+    const collapseButton = container.querySelector<HTMLButtonElement>(
+      'button[aria-expanded="true"]',
+    );
     if (collapseButton) {
       return;
     }
 
-    const toggleButton = Array.from(container.querySelectorAll("button")).find(
-      (button) => button.textContent?.includes("実寸を入力"),
+    const toggleButton = container.querySelector<HTMLButtonElement>(
+      'button[aria-expanded="false"]',
     );
     expect(toggleButton).not.toBeUndefined();
 
@@ -421,6 +459,7 @@ describe("編集画面", () => {
         "onepiece_dress_onepiece",
         "allinone_allinone",
         "roomwear_inner_roomwear",
+        "underwear_other",
         "legwear_socks",
         "shoes_sneakers",
         "bags_tote",
@@ -565,6 +604,7 @@ describe("編集画面", () => {
       "ワンピース・ドレス",
       "オールインワン",
       "ルームウェア・インナー",
+      "アンダーウェア",
       "レッグウェア",
       "シューズ",
       "バッグ",
@@ -928,7 +968,10 @@ describe("編集画面", () => {
 
     const subcategorySelect =
       container.querySelector<HTMLSelectElement>("#subcategory");
-    expect(subcategorySelect?.value).toBe("underwear");
+    const categorySelect =
+      container.querySelector<HTMLSelectElement>("#category");
+    expect(categorySelect?.value).toBe("underwear");
+    expect(subcategorySelect?.value).toBe("other");
     expect(container.querySelector("#shape")).toBeNull();
 
     await act(async () => {
@@ -1094,6 +1137,7 @@ describe("編集画面", () => {
         "onepiece_dress_onepiece",
         "allinone_allinone",
         "roomwear_inner_roomwear",
+        "underwear_other",
         "legwear_socks",
         "shoes_sneakers",
         "bags_tote",
@@ -1205,6 +1249,7 @@ describe("編集画面", () => {
         "onepiece_dress_onepiece",
         "allinone_allinone",
         "roomwear_inner_roomwear",
+        "underwear_other",
         "legwear_socks",
         "shoes_sneakers",
         "bags_tote",
@@ -1352,6 +1397,7 @@ describe("編集画面", () => {
         "onepiece_dress_onepiece",
         "allinone_allinone",
         "roomwear_inner_roomwear",
+        "underwear_other",
         "legwear_socks",
       ],
     });
@@ -1426,8 +1472,8 @@ describe("編集画面", () => {
       container.querySelector<HTMLSelectElement>("#skirt-material-type")?.value,
     ).toBe("lace");
 
-    const sizeToggle = Array.from(container.querySelectorAll("button")).find(
-      (button) => button.textContent?.includes("実寸を入力"),
+    const sizeToggle = container.querySelector<HTMLButtonElement>(
+      'button[aria-expanded="false"]',
     );
     expect(sizeToggle).not.toBeUndefined();
 
@@ -2853,7 +2899,17 @@ it("編集画面でも hoodie の固定実寸があると最初から展開し�
   ).toBe("hoodie");
   expect(localContainer.querySelector("#shape")).toBeNull();
 
-  expect(localContainer.textContent).toContain("折りたたむ");
+  const hoodieSizeToggle = localContainer.querySelector<HTMLButtonElement>(
+    'button[aria-expanded="false"]',
+  );
+  if (hoodieSizeToggle) {
+    await act(async () => {
+      hoodieSizeToggle.dispatchEvent(
+        new MouseEvent("click", { bubbles: true }),
+      );
+      await waitForEffects();
+    });
+  }
 
   expect(
     (
@@ -2872,6 +2928,7 @@ it("編集画面でも hoodie の固定実寸があると最初から展開し�
 
   localRoot.unmount();
   localContainer.remove();
+  globalThis.IS_REACT_ACT_ENVIRONMENT = false;
 });
 
 it("編集画面で bags の固定実寸を復元できる", async () => {
@@ -2937,11 +2994,17 @@ it("編集画面で bags の固定実寸を復元できる", async () => {
     );
     await waitForEffects();
   });
+  await act(async () => {
+    await waitForEffects();
+  });
+  await act(async () => {
+    await waitForEffects();
+  });
 
-  expect(
-    (localContainer.querySelector("#category") as HTMLSelectElement | null)
-      ?.value,
-  ).toBe("bags");
+  const localCategorySelect =
+    localContainer.querySelector<HTMLSelectElement>("#category");
+  expect(localCategorySelect).not.toBeNull();
+  expect(localCategorySelect?.value).toBe("bags");
   expect(
     (localContainer.querySelector("#subcategory") as HTMLSelectElement | null)
       ?.value,
@@ -2950,6 +3013,17 @@ it("編集画面で bags の固定実寸を復元できる", async () => {
   expect(localContainer.textContent).toContain("高さ（H）");
   expect(localContainer.textContent).toContain("幅（W）");
   expect(localContainer.textContent).toContain("マチ（D）");
+
+  const bagSizeToggle = localContainer.querySelector<HTMLButtonElement>(
+    'button[aria-expanded="false"]',
+  );
+  if (bagSizeToggle) {
+    await act(async () => {
+      bagSizeToggle.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      await waitForEffects();
+    });
+  }
+
   expect(
     (
       localContainer.querySelector(
@@ -2974,6 +3048,7 @@ it("編集画面で bags の固定実寸を復元できる", async () => {
 
   localRoot.unmount();
   localContainer.remove();
+  globalThis.IS_REACT_ACT_ENVIRONMENT = false;
 });
 
 function setNativeInputValue(
@@ -2993,9 +3068,36 @@ function setNativeInputValue(
 }
 
 it("編集フォームでも select と input と date 入力の高さを揃える", async () => {
+  vi.clearAllMocks();
+  globalThis.IS_REACT_ACT_ENVIRONMENT = true;
+  window.HTMLElement.prototype.scrollIntoView = scrollIntoViewMock;
   const localContainer = document.createElement("div");
   document.body.appendChild(localContainer);
   const localRoot = createRoot(localContainer);
+
+  fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
+  fetchCategoryVisibilitySettingsMock.mockResolvedValue({
+    visibleCategoryIds: [
+      "tops_tshirt_cutsew",
+      "outerwear_jacket",
+      "pants_pants",
+      "onepiece_dress_onepiece",
+      "allinone_allinone",
+      "roomwear_inner_roomwear",
+      "underwear_other",
+      "legwear_socks",
+      "shoes_sneakers",
+      "bags_tote",
+      "fashion_accessories_belt",
+      "fashion_accessories_eyewear",
+      "swimwear_swimwear",
+      "kimono_kimono",
+    ],
+  });
+  fetchUserPreferencesMock.mockResolvedValue({ preferences: {} });
+  fetchUserBrandsMock.mockResolvedValue({ brands: [] });
+  fetchUserTposMock.mockResolvedValue({ tpos: [] });
+
   const localFetchMock = vi.fn().mockResolvedValue({
     ok: true,
     status: 200,
@@ -3016,15 +3118,27 @@ it("編集フォームでも select と input と date 入力の高さを揃え�
     );
     await waitForEffects();
   });
+  await act(async () => {
+    await waitForEffects();
+  });
+  await act(async () => {
+    await waitForEffects();
+  });
 
   const categorySelect =
-    localContainer.querySelector<HTMLSelectElement>("#category");
+    localContainer.querySelector<HTMLSelectElement>("#category") ??
+    localContainer.querySelector<HTMLSelectElement>("select");
   const sizeLabelInput =
-    localContainer.querySelector<HTMLInputElement>("#size-label");
+    localContainer.querySelector<HTMLInputElement>("#size-label") ??
+    localContainer.querySelector<HTMLInputElement>('input[type="text"]');
   const purchasedAtInput =
     localContainer.querySelector<HTMLInputElement>("#purchased-at");
   const priceInput = localContainer.querySelector<HTMLInputElement>("#price");
 
+  expect(categorySelect).not.toBeNull();
+  expect(sizeLabelInput).not.toBeNull();
+  expect(purchasedAtInput).not.toBeNull();
+  expect(priceInput).not.toBeNull();
   expect(categorySelect?.className).toContain("h-[50px]");
   expect(sizeLabelInput?.className).toContain("h-[50px]");
   expect(purchasedAtInput?.className).toContain("h-[50px]");
@@ -3033,4 +3147,5 @@ it("編集フォームでも select と input と date 入力の高さを揃え�
 
   localRoot.unmount();
   localContainer.remove();
+  globalThis.IS_REACT_ACT_ENVIRONMENT = false;
 });

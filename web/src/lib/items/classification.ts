@@ -12,6 +12,7 @@ const ALWAYS_HIDDEN_SHAPE_FIELD_CATEGORIES = new Set([
   "legwear",
   "swimwear",
   "kimono",
+  "underwear",
 ]);
 
 const FALLBACK_SHAPE_BY_CATEGORY: Record<string, string> = {
@@ -22,6 +23,7 @@ const FALLBACK_SHAPE_BY_CATEGORY: Record<string, string> = {
   onepiece_dress: "onepiece",
   allinone: "allinone",
   inner: "roomwear",
+  underwear: "bra",
   bags: "bag",
   fashion_accessories: "other",
   shoes: "other",
@@ -115,7 +117,8 @@ export function resolveItemClassification(
 
     if (
       (category === "tops" && subcategory === "other") ||
-      (category === "skirts" && subcategory === "other")
+      (category === "skirts" && subcategory === "other") ||
+      (category === "underwear" && subcategory === "other")
     ) {
       return "";
     }

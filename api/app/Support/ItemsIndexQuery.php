@@ -9,6 +9,8 @@ use Illuminate\Http\Request;
 
 class ItemsIndexQuery
 {
+    private const STORAGE_UNDERWEAR = 'underwear';
+
     public static function build(User $user, Request $request): array
     {
         $keyword = trim((string) $request->query('keyword', ''));
@@ -26,7 +28,8 @@ class ItemsIndexQuery
         $visibleCategoryIds = is_array($visibleCategoryIdsRaw)
             ? collect($visibleCategoryIdsRaw)
             : null;
-        $visibleItemsQuery = self::buildVisibleItemsQuery($user, $visibleCategoryIds);
+        $storage = self::normalizeStorage($request->query('storage'));
+        $visibleItemsQuery = self::buildVisibleItemsQuery($user, $visibleCategoryIds, $storage);
         $visibleItems = $visibleItemsQuery
             ->get(['id', 'category', 'brand_name', 'seasons', 'tpo_ids', 'tpos']);
         $tpoNameById = UserTpoNameResolver::buildNameMap(
@@ -38,6 +41,7 @@ class ItemsIndexQuery
         $query = self::buildFilteredItemsQuery(
             $user,
             $visibleCategoryIds,
+            $storage,
             $keyword,
             $brand,
             $category,
@@ -96,19 +100,76 @@ class ItemsIndexQuery
         ];
     }
 
-    private static function buildVisibleItemsQuery(User $user, ?\Illuminate\Support\Collection $visibleCategoryIds): Builder
+    private static function normalizeStorage(mixed $storage): ?string
     {
-        return ListQuerySupport::applyVisibleItemFilter(
-            Item::query()
-                ->where('user_id', $user->id)
-                ->where('status', 'active'),
-            $visibleCategoryIds
+        return is_string($storage) && trim($storage) === self::STORAGE_UNDERWEAR
+            ? self::STORAGE_UNDERWEAR
+            : null;
+    }
+
+    private static function applyUnderwearStorageFilter(
+        Builder $query,
+        ?string $storage,
+    ): Builder {
+        return $query->where(function (Builder $builder) use ($storage) {
+            if ($storage === self::STORAGE_UNDERWEAR) {
+                $builder
+                    ->where('category', 'underwear')
+                    ->orWhere(function (Builder $legacy) {
+                        $legacy
+                            ->where('category', 'inner')
+                            ->where(function (Builder $inner) {
+                                $inner
+                                    ->where('subcategory', 'underwear')
+                                    ->orWhere('shape', 'underwear');
+                            });
+                    });
+
+                return;
+            }
+
+            $builder
+                ->where('category', '!=', 'underwear')
+                ->where(function (Builder $legacy) {
+                    $legacy
+                        ->where('category', '!=', 'inner')
+                        ->orWhere(function (Builder $inner) {
+                            $inner
+                                ->where(function (Builder $notLegacyUnderwear) {
+                                    $notLegacyUnderwear
+                                        ->whereNull('subcategory')
+                                        ->orWhere('subcategory', '!=', 'underwear');
+                                })
+                                ->where(function (Builder $notLegacyShape) {
+                                    $notLegacyShape
+                                        ->whereNull('shape')
+                                        ->orWhere('shape', '!=', 'underwear');
+                                });
+                        });
+                });
+        });
+    }
+
+    private static function buildVisibleItemsQuery(
+        User $user,
+        ?\Illuminate\Support\Collection $visibleCategoryIds,
+        ?string $storage,
+    ): Builder {
+        return self::applyUnderwearStorageFilter(
+            ListQuerySupport::applyVisibleItemFilter(
+                Item::query()
+                    ->where('user_id', $user->id)
+                    ->where('status', 'active'),
+                $visibleCategoryIds
+            ),
+            $storage,
         );
     }
 
     private static function buildFilteredItemsQuery(
         User $user,
         ?\Illuminate\Support\Collection $visibleCategoryIds,
+        ?string $storage,
         string $keyword,
         string $brand,
         string $category,
@@ -118,7 +179,7 @@ class ItemsIndexQuery
         string $sort,
         array $tpoNameById
     ): Builder {
-        $query = self::buildVisibleItemsQuery($user, $visibleCategoryIds)
+        $query = self::buildVisibleItemsQuery($user, $visibleCategoryIds, $storage)
             ->with(['images', 'user']);
 
         if ($keyword !== '') {

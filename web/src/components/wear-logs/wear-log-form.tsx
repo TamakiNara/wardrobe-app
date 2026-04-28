@@ -435,11 +435,14 @@ export default function WearLogForm({
   const selectedCleaningItems = selectedItemRecords.filter(
     (item) => item.care_status === "in_cleaning",
   );
+  const visibleCandidateItems = useMemo(() => {
+    return candidateItems.filter((item) => item.category !== "underwear");
+  }, [candidateItems]);
 
   const availableItemCategoryValues = useMemo(() => {
     return Array.from(
       new Set(
-        candidateItems
+        visibleCandidateItems
           .map((item) => item.category)
           .filter(
             (category): category is string =>
@@ -447,7 +450,7 @@ export default function WearLogForm({
           ),
       ),
     );
-  }, [candidateItems]);
+  }, [visibleCandidateItems]);
 
   const filteredOutfits = useMemo(() => {
     const keyword = outfitKeyword.trim().toLowerCase();
@@ -468,7 +471,7 @@ export default function WearLogForm({
   const filteredItems = useMemo(() => {
     const keyword = itemKeyword.trim().toLowerCase();
 
-    return candidateItems
+    return visibleCandidateItems
       .filter((item) => {
         const name = (item.name ?? "名称未設定").toLowerCase();
         const category = (
@@ -499,7 +502,7 @@ export default function WearLogForm({
         return [...carry, item];
       }, []);
   }, [
-    candidateItems,
+    visibleCandidateItems,
     itemKeyword,
     itemCategoryFilter,
     itemSeasonFilter,
