@@ -2567,6 +2567,41 @@ describe("購入検討フォーム", () => {
     ).not.toBeNull();
   });
 
+  it("underwear の bra / shorts で固定実寸を切り替えて表示する", async () => {
+    await renderForm({
+      initialCategoryGroupId: "underwear",
+    });
+
+    expect(getCategoryGroupSelect().value).toBe("underwear");
+    await setCategorySelection("underwear", "underwear_bra");
+
+    await openSizeDetails();
+
+    expect(container.textContent).toContain("アンダーバスト");
+    expect(container.textContent).toContain("トップバスト");
+    expect(
+      container.querySelector<HTMLInputElement>("#structured-size-underbust"),
+    ).not.toBeNull();
+    expect(
+      container.querySelector<HTMLInputElement>("#structured-size-top_bust"),
+    ).not.toBeNull();
+
+    await setCategorySelection("underwear", "underwear_shorts");
+
+    expect(container.textContent).toContain("ウエスト");
+    expect(container.textContent).toContain("ヒップ");
+    expect(container.textContent).toContain("股上");
+    expect(
+      container.querySelector<HTMLInputElement>("#structured-size-waist"),
+    ).not.toBeNull();
+    expect(
+      container.querySelector<HTMLInputElement>("#structured-size-hip"),
+    ).not.toBeNull();
+    expect(
+      container.querySelector<HTMLInputElement>("#structured-size-rise"),
+    ).not.toBeNull();
+  });
+
   it("入れ替えで第1・第2候補の値を丸ごと入れ替えて送信する", async () => {
     searchParamsValue = "source=duplicate";
     window.sessionStorage.setItem(

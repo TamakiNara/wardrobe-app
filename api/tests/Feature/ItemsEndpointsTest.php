@@ -925,6 +925,58 @@ class ItemsEndpointsTest extends TestCase
         $this->assertSame(12, data_get($item->size_details, 'structured.depth.value'));
     }
 
+    public function test_post_items_accepts_underwear_bra_size_details(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/items', [
+            'name' => 'レースブラ',
+            'category' => 'underwear',
+            'subcategory' => 'bra',
+            'shape' => 'bra',
+            'size_label' => 'C70',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'black',
+                'hex' => '#111111',
+                'label' => 'ブラック',
+            ]],
+            'size_details' => [
+                'structured' => [
+                    'underbust' => [
+                        'value' => 68,
+                        'min' => null,
+                        'max' => null,
+                        'note' => null,
+                    ],
+                    'top_bust' => [
+                        'value' => 83.5,
+                        'min' => null,
+                        'max' => null,
+                        'note' => null,
+                    ],
+                ],
+            ],
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('item.category', 'underwear')
+            ->assertJsonPath('item.shape', 'bra')
+            ->assertJsonPath('item.size_label', 'C70')
+            ->assertJsonPath('item.size_details.structured.underbust.value', 68)
+            ->assertJsonPath('item.size_details.structured.top_bust.value', 83.5);
+
+        $item = Item::query()->findOrFail($response->json('item.id'));
+
+        $this->assertSame(68, data_get($item->size_details, 'structured.underbust.value'));
+        $this->assertSame(83.5, data_get($item->size_details, 'structured.top_bust.value'));
+    }
+
     public function test_post_items_rejects_unknown_size_gender(): void
     {
         $user = User::factory()->create();

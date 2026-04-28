@@ -705,6 +705,23 @@ class ImportExportEndpointsTest extends TestCase
             'category' => 'underwear',
             'subcategory' => 'bra',
             'shape' => 'bra',
+            'size_label' => 'C70',
+            'size_details' => [
+                'structured' => [
+                    'underbust' => [
+                        'value' => 68,
+                        'min' => null,
+                        'max' => null,
+                        'note' => null,
+                    ],
+                    'top_bust' => [
+                        'value' => 83.5,
+                        'min' => null,
+                        'max' => null,
+                        'note' => null,
+                    ],
+                ],
+            ],
             'colors' => [[
                 'role' => 'main',
                 'mode' => 'preset',
@@ -731,7 +748,28 @@ class ImportExportEndpointsTest extends TestCase
             'memo' => null,
             'size_label' => 'M',
             'size_note' => null,
-            'size_details' => null,
+            'size_details' => [
+                'structured' => [
+                    'waist' => [
+                        'value' => 64,
+                        'min' => null,
+                        'max' => null,
+                        'note' => null,
+                    ],
+                    'hip' => [
+                        'value' => 86.5,
+                        'min' => null,
+                        'max' => null,
+                        'note' => null,
+                    ],
+                    'rise' => [
+                        'value' => 24,
+                        'min' => null,
+                        'max' => null,
+                        'note' => null,
+                    ],
+                ],
+            ],
             'alternate_size_label' => null,
             'alternate_size_note' => null,
             'alternate_size_details' => null,
@@ -754,7 +792,12 @@ class ImportExportEndpointsTest extends TestCase
 
         $this->assertSame('underwear', data_get($exportPayload, 'items.0.category'));
         $this->assertSame('bra', data_get($exportPayload, 'items.0.subcategory'));
+        $this->assertSame(68, data_get($exportPayload, 'items.0.size_details.structured.underbust.value'));
+        $this->assertSame(83.5, data_get($exportPayload, 'items.0.size_details.structured.top_bust.value'));
         $this->assertSame('underwear_bra', data_get($exportPayload, 'purchase_candidates.0.category_id'));
+        $this->assertSame(64, data_get($exportPayload, 'purchase_candidates.0.size_details.structured.waist.value'));
+        $this->assertSame(86.5, data_get($exportPayload, 'purchase_candidates.0.size_details.structured.hip.value'));
+        $this->assertSame(24, data_get($exportPayload, 'purchase_candidates.0.size_details.structured.rise.value'));
 
         Item::query()->delete();
         PurchaseCandidate::query()->delete();
@@ -770,8 +813,13 @@ class ImportExportEndpointsTest extends TestCase
         $this->assertSame('underwear', $importedItem->category);
         $this->assertSame('bra', $importedItem->subcategory);
         $this->assertSame('bra', $importedItem->shape);
+        $this->assertSame(68, data_get($importedItem->size_details, 'structured.underbust.value'));
+        $this->assertSame(83.5, data_get($importedItem->size_details, 'structured.top_bust.value'));
         $this->assertSame('underwear_bra', $importedCandidate->category_id);
         $this->assertNull($importedCandidate->shape);
+        $this->assertSame(64, data_get($importedCandidate->size_details, 'structured.waist.value'));
+        $this->assertSame(86.5, data_get($importedCandidate->size_details, 'structured.hip.value'));
+        $this->assertSame(24, data_get($importedCandidate->size_details, 'structured.rise.value'));
     }
 
     public function test_export_import_roundtrip_allows_legacy_bottoms_without_length_spec(): void

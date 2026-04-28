@@ -890,4 +890,67 @@ describe("アイテム詳細画面", () => {
     expect(markup).toContain("28.5cm");
     expect(markup).toContain("12cm");
   });
+
+  it("underwear の bra 固定実寸を詳細画面で表示する", async () => {
+    fetchMock
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          item: {
+            id: 25,
+            name: "ブラ詳細",
+            status: "active",
+            care_status: null,
+            sheerness: null,
+            brand_name: null,
+            price: null,
+            purchase_url: null,
+            memo: null,
+            purchased_at: null,
+            size_gender: null,
+            size_label: "C70",
+            size_note: null,
+            size_details: {
+              structured: {
+                underbust: 68,
+                top_bust: 83.5,
+              },
+            },
+            is_rain_ok: false,
+            category: "underwear",
+            subcategory: "bra",
+            shape: "bra",
+            colors: [],
+            seasons: [],
+            tpos: [],
+            spec: null,
+            images: [],
+            materials: [],
+          },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          preferences: {
+            skinTonePreset: "neutral_medium",
+          },
+        }),
+      });
+
+    const { default: ItemPage } = await import("./page");
+    const markup = renderToStaticMarkup(
+      await ItemPage({
+        params: Promise.resolve({ id: "25" }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+
+    expect(markup).toContain("アンダーバスト");
+    expect(markup).toContain("トップバスト");
+    expect(markup).toContain("68cm");
+    expect(markup).toContain("83.5cm");
+  });
 });

@@ -1085,6 +1085,28 @@ describe("新規登録画面", () => {
     expect(subcategorySelect?.value).toBe("bra");
   });
 
+  it("underwear の bra では専用の固定実寸を表示する", async () => {
+    searchParamsCategoryValue = "underwear";
+
+    const { default: NewItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(NewItemPage));
+      await waitForEffects();
+    });
+
+    await openSizeDetails();
+
+    expect(container.textContent).toContain("アンダーバスト");
+    expect(container.textContent).toContain("トップバスト");
+    expect(
+      container.querySelector<HTMLInputElement>("#structured-size-underbust"),
+    ).not.toBeNull();
+    expect(
+      container.querySelector<HTMLInputElement>("#structured-size-top_bust"),
+    ).not.toBeNull();
+  });
+
   it("purchase candidate draft から名前とカテゴリ初期値を読み込む", async () => {
     searchParamsSourceValue = "purchase-candidate";
     window.sessionStorage.setItem(

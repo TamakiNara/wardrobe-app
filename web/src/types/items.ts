@@ -49,6 +49,8 @@ export type StructuredSizeFieldName =
   | "thigh_width"
   | "total_length"
   | "skirt_length"
+  | "underbust"
+  | "top_bust"
   | "height"
   | "width"
   | "depth";

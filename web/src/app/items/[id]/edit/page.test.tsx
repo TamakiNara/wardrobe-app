@@ -3051,6 +3051,97 @@ it("編集画面で bags の固定実寸を復元できる", async () => {
   globalThis.IS_REACT_ACT_ENVIRONMENT = false;
 });
 
+it("underwear の bra 編集で固定実寸を復元する", async () => {
+  vi.clearAllMocks();
+  globalThis.IS_REACT_ACT_ENVIRONMENT = true;
+  window.HTMLElement.prototype.scrollIntoView = scrollIntoViewMock;
+  const localContainer = document.createElement("div");
+  document.body.appendChild(localContainer);
+  const localRoot = createRoot(localContainer);
+
+  fetchCategoryGroupsMock.mockResolvedValue(sampleGroups);
+  fetchUserPreferencesMock.mockResolvedValue({ preferences: {} });
+  fetchUserBrandsMock.mockResolvedValue({ brands: [] });
+  fetchUserTposMock.mockResolvedValue({ tpos: [] });
+
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        item: createEditableItemResponse({
+          category: "underwear",
+          subcategory: "bra",
+          shape: "bra",
+          size_details: {
+            structured: {
+              underbust: 68,
+              top_bust: 83.5,
+            },
+          },
+        }),
+      }),
+    }),
+  );
+
+  const { default: EditItemPage } = await import("./page");
+
+  await act(async () => {
+    localRoot.render(
+      React.createElement(EditItemPage, {
+        params: Promise.resolve({ id: "3" }),
+      }),
+    );
+    await waitForEffects();
+  });
+  await act(async () => {
+    await waitForEffects();
+  });
+
+  expect(
+    (localContainer.querySelector("#category") as HTMLSelectElement | null)
+      ?.value,
+  ).toBe("underwear");
+  expect(
+    (localContainer.querySelector("#subcategory") as HTMLSelectElement | null)
+      ?.value,
+  ).toBe("bra");
+  expect(localContainer.textContent).toContain("アンダーバスト");
+  expect(localContainer.textContent).toContain("トップバスト");
+
+  const underwearSizeToggle = localContainer.querySelector<HTMLButtonElement>(
+    'button[aria-expanded="false"]',
+  );
+  if (underwearSizeToggle) {
+    await act(async () => {
+      underwearSizeToggle.dispatchEvent(
+        new MouseEvent("click", { bubbles: true }),
+      );
+      await waitForEffects();
+    });
+  }
+
+  expect(
+    (
+      localContainer.querySelector(
+        "#structured-size-underbust",
+      ) as HTMLInputElement | null
+    )?.value,
+  ).toBe("68");
+  expect(
+    (
+      localContainer.querySelector(
+        "#structured-size-top_bust",
+      ) as HTMLInputElement | null
+    )?.value,
+  ).toBe("83.5");
+
+  localRoot.unmount();
+  localContainer.remove();
+  globalThis.IS_REACT_ACT_ENVIRONMENT = false;
+});
+
 function setNativeInputValue(
   element: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement,
   value: string,

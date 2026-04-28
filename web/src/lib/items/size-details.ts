@@ -73,6 +73,8 @@ const STRUCTURED_SIZE_FIELD_LABELS: Record<StructuredSizeFieldName, string> = {
   thigh_width: "わたり幅",
   total_length: "総丈",
   skirt_length: "スカート丈",
+  underbust: "アンダーバスト",
+  top_bust: "トップバスト",
   height: "高さ（H）",
   width: "幅（W）",
   depth: "マチ（D）",
@@ -99,6 +101,8 @@ const STRUCTURED_SIZE_FIELD_GROUPS = {
   pants: ["waist", "hip", "rise", "inseam", "hem_width", "thigh_width"],
   skirt: ["waist", "hip", "total_length", "skirt_length"],
   onepiece: ["shoulder_width", "body_width", "sleeve_length", "total_length"],
+  underwearBra: ["underbust", "top_bust"],
+  underwearShorts: ["waist", "hip", "rise"],
   bag: ["height", "width", "depth"],
 } satisfies Record<string, StructuredSizeFieldName[]>;
 
@@ -185,6 +189,16 @@ function resolveStructuredSizeFieldGroup(
     (shape === "onepiece" || shape === "dress")
   ) {
     return "onepiece";
+  }
+
+  if (category === "underwear") {
+    if (shape === "bra") {
+      return "underwearBra";
+    }
+
+    if (shape === "shorts") {
+      return "underwearShorts";
+    }
   }
 
   if (category === "bags") {

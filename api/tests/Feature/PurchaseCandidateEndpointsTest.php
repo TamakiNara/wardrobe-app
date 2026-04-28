@@ -786,6 +786,68 @@ class PurchaseCandidateEndpointsTest extends TestCase
         $this->assertSame(12, data_get($candidate->size_details, 'structured.depth.value'));
     }
 
+    public function test_post_purchase_candidate_accepts_underwear_shorts_size_details(): void
+    {
+        $user = User::factory()->create();
+        $this->createCategory('underwear_shorts', 'underwear', 'ショーツ');
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $response = $this->postJson('/api/purchase-candidates', [
+            'status' => 'considering',
+            'priority' => 'medium',
+            'name' => 'ショーツ候補',
+            'category_id' => 'underwear_shorts',
+            'size_label' => 'M',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'black',
+                'hex' => '#111111',
+                'label' => 'ブラック',
+            ]],
+            'size_details' => [
+                'structured' => [
+                    'waist' => [
+                        'value' => 64,
+                        'min' => null,
+                        'max' => null,
+                        'note' => null,
+                    ],
+                    'hip' => [
+                        'value' => 86.5,
+                        'min' => null,
+                        'max' => null,
+                        'note' => null,
+                    ],
+                    'rise' => [
+                        'value' => 24,
+                        'min' => null,
+                        'max' => null,
+                        'note' => null,
+                    ],
+                ],
+            ],
+        ], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('purchaseCandidate.category_id', 'underwear_shorts')
+            ->assertJsonPath('purchaseCandidate.size_label', 'M')
+            ->assertJsonPath('purchaseCandidate.size_details.structured.waist.value', 64)
+            ->assertJsonPath('purchaseCandidate.size_details.structured.hip.value', 86.5)
+            ->assertJsonPath('purchaseCandidate.size_details.structured.rise.value', 24);
+
+        $candidate = PurchaseCandidate::query()->findOrFail($response->json('purchaseCandidate.id'));
+
+        $this->assertSame(64, data_get($candidate->size_details, 'structured.waist.value'));
+        $this->assertSame(86.5, data_get($candidate->size_details, 'structured.hip.value'));
+        $this->assertSame(24, data_get($candidate->size_details, 'structured.rise.value'));
+    }
+
     public function test_post_purchase_candidate_stores_main_color_custom_label_only(): void
     {
         $user = User::factory()->create();

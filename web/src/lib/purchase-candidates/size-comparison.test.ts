@@ -218,6 +218,65 @@ describe("size-comparison", () => {
     );
   });
 
+  it("underwear の bra 固定実寸もサイズ比較行に含める", () => {
+    const candidate = createCandidate({
+      category_id: "underwear_bra",
+      category_name: "ブラ",
+      shape: "bra",
+      resolvedCategory: "underwear",
+      resolvedSubcategory: "bra",
+      resolvedShape: "bra",
+      size_label: "C70",
+      size_details: {
+        structured: {
+          underbust: { value: 68 },
+          top_bust: { value: 83.5 },
+        },
+      },
+    });
+
+    const rows = buildPurchaseCandidateMultiSizeComparisonRows(
+      getPurchaseCandidateSizeOptions(candidate),
+      {
+        category: "underwear",
+        shape: "bra",
+      },
+      createItem({
+        category: "underwear",
+        subcategory: "bra",
+        shape: "bra",
+        size_label: "C70",
+        size_details: {
+          structured: {
+            underbust: { value: 67 },
+            top_bust: { value: 82 },
+          },
+        },
+      }),
+    );
+
+    expect(rows).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          key: "underbust",
+          label: "アンダーバスト",
+          candidateValues: expect.objectContaining({
+            primary: "68cm",
+          }),
+          itemValue: "67cm",
+        }),
+        expect.objectContaining({
+          key: "top_bust",
+          label: "トップバスト",
+          candidateValues: expect.objectContaining({
+            primary: "83.5cm",
+          }),
+          itemValue: "82cm",
+        }),
+      ]),
+    );
+  });
+
   it("どちらかのサイズ候補に実寸があれば比較可能とみなす", () => {
     expect(
       hasStructuredSizeComparisonBase(

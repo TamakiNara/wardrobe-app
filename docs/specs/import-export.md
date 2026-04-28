@@ -53,6 +53,7 @@ Web UI:
 - `items.colors[*].custom_label` も export / import 対象に含める
 - `items.sheerness` も export / import 対象に含める
 - `underwear` item / purchase candidate も通常データと同じく export / import 対象に含める
+- `underwear / bra` の `underbust` / `top_bust`、`underwear / shorts` の `waist` / `hip` / `rise` も通常の `size_details.structured` として export / import 対象に含める
 
 注意:
 

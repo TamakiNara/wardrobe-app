@@ -877,6 +877,69 @@ describe("購入検討詳細画面", () => {
     expect(markup).toContain("28.5cm");
     expect(markup).toContain("12cm");
   });
+  it("underwear の shorts 固定実寸を詳細画面で表示する", async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        purchaseCandidate: {
+          id: 27,
+          status: "considering",
+          priority: "medium",
+          name: "ショーツ候補",
+          category_id: "underwear_shorts",
+          shape: "shorts",
+          category_name: "ショーツ",
+          brand_name: null,
+          price: null,
+          release_date: null,
+          sale_price: null,
+          sale_ends_at: null,
+          discount_ends_at: null,
+          purchase_url: null,
+          memo: null,
+          wanted_reason: null,
+          size_gender: null,
+          size_label: "M",
+          size_note: null,
+          size_details: {
+            structured: {
+              waist: 64,
+              hip: 86.5,
+              rise: 24,
+            },
+          },
+          is_rain_ok: false,
+          group_id: null,
+          group_order: null,
+          group_candidates: [],
+          converted_item_id: null,
+          converted_at: null,
+          colors: [],
+          seasons: [],
+          tpos: [],
+          materials: [],
+          images: [],
+          created_at: "2026-03-24T10:00:00+09:00",
+          updated_at: "2026-03-24T10:00:00+09:00",
+        },
+      }),
+    });
+
+    const { default: PurchaseCandidateDetailPage } = await import("./page");
+    const markup = renderToStaticMarkup(
+      await PurchaseCandidateDetailPage({
+        params: Promise.resolve({ id: "27" }),
+      }),
+    );
+
+    expect(markup).toContain("ウエスト");
+    expect(markup).toContain("ヒップ");
+    expect(markup).toContain("股上");
+    expect(markup).toContain("64cm");
+    expect(markup).toContain("86.5cm");
+    expect(markup).toContain("24cm");
+  });
   it("複数サイズ候補がある場合は両方のサイズ候補を表示する", async () => {
     fetchMock.mockResolvedValue({
       ok: true,

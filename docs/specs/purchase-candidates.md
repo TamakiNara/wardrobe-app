@@ -151,6 +151,11 @@
 - 通常一覧 `/purchase-candidates` では `underwear` を表示しない
 - 専用一覧 `/purchase-candidates/underwear` では `underwear` のみ表示する
 - detail / edit / item 化は既存画面を流用し、戻り先だけ `アンダーウェア購入検討一覧` に切り替える
+- `underwear / bra` と `underwear / shorts` は item と同じ fixed size resolver を使う
+  - `bra`: アンダーバスト / トップバスト
+  - `shorts`: ウエスト / ヒップ / 股上
+  - `C70` / `D75` のようなブラサイズは `サイズ表記` で扱う
+  - それ以外のブラ / ショーツ固有情報は初期実装では自由項目で扱う
 
 ---
 

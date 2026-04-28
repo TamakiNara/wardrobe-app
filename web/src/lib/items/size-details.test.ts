@@ -201,6 +201,16 @@ describe("固定実寸 resolver", () => {
         (definition) => definition.name,
       ),
     ).toEqual(["height", "width", "depth"]);
+    expect(
+      getStructuredSizeFieldDefinitions("underwear", "bra").map(
+        (definition) => definition.name,
+      ),
+    ).toEqual(["underbust", "top_bust"]);
+    expect(
+      getStructuredSizeFieldDefinitions("underwear", "shorts").map(
+        (definition) => definition.name,
+      ),
+    ).toEqual(["waist", "hip", "rise"]);
   });
 
   it("旧データ互換のため pleated skirt の対応を維持する", () => {
@@ -225,5 +235,11 @@ describe("固定実寸 resolver", () => {
     expect(
       resolveStructuredSizeFieldLabel("skirt_length", "skirts", "flare"),
     ).toBe("スカート丈");
+    expect(
+      resolveStructuredSizeFieldLabel("underbust", "underwear", "bra"),
+    ).toBe("アンダーバスト");
+    expect(
+      resolveStructuredSizeFieldLabel("top_bust", "underwear", "bra"),
+    ).toBe("トップバスト");
   });
 });

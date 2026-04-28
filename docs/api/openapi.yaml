@@ -2585,6 +2585,14 @@ components:
           allOf:
             - $ref: "#/components/schemas/ItemSizeDetailValue"
           description: スカート丈。
+        underbust:
+          allOf:
+            - $ref: "#/components/schemas/ItemSizeDetailValue"
+          description: アンダーバスト。
+        top_bust:
+          allOf:
+            - $ref: "#/components/schemas/ItemSizeDetailValue"
+          description: トップバスト。
         height:
           allOf:
             - $ref: "#/components/schemas/ItemSizeDetailValue"
