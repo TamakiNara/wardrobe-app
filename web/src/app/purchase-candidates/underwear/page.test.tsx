@@ -130,6 +130,9 @@ describe("UnderwearPurchaseCandidatesPage", () => {
 
     expect(markup).toContain("アンダーウェア購入検討一覧");
     expect(markup).toContain('href="/purchase-candidates"');
+    expect(markup).toContain(
+      'href="/purchase-candidates/new?category=underwear&amp;returnTo=%2Fpurchase-candidates%2Funderwear"',
+    );
     expect(markup).toContain('data-category-count="1"');
     expect(markup).toContain("黒ブラ候補");
     expect(markup).toContain(

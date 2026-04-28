@@ -294,7 +294,7 @@ export default async function UnderwearPurchaseCandidatesPage({
                 購入検討一覧
               </Link>
               <Link
-                href="/purchase-candidates/new"
+                href="/purchase-candidates/new?category=underwear&returnTo=%2Fpurchase-candidates%2Funderwear"
                 className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
               >
                 <UnderwearIcon className="h-4 w-4 text-white" />

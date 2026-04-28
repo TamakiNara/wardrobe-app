@@ -122,6 +122,8 @@ type PurchaseCandidateFormProps = {
   mode: "create" | "edit";
   candidateId?: string;
   cancelHref?: string;
+  initialCategoryId?: string;
+  initialCategoryGroupId?: string;
   footerAction?: ReactNode;
 };
 
@@ -238,8 +240,20 @@ function resolveInitialPurchaseCandidateShape(
 function buildCategoryOptions(
   groups: CategoryGroupRecord[],
   visibleCategoryIds?: string[],
+  forcedCategoryIds: string[] = [],
+  forcedCategoryGroupIds: string[] = [],
 ): PurchaseCandidateCategoryOption[] {
   const visibleSet = visibleCategoryIds ? new Set(visibleCategoryIds) : null;
+  const forcedSet = new Set(
+    forcedCategoryIds
+      .map((categoryId) => categoryId.trim())
+      .filter((categoryId) => categoryId !== ""),
+  );
+  const forcedGroupSet = new Set(
+    forcedCategoryGroupIds
+      .map((groupId) => groupId.trim())
+      .filter((groupId) => groupId !== ""),
+  );
 
   return groups.flatMap((group) =>
     group.categories
@@ -248,7 +262,11 @@ function buildCategoryOptions(
           return true;
         }
 
-        return visibleSet.has(category.id);
+        return (
+          visibleSet.has(category.id) ||
+          forcedSet.has(category.id) ||
+          forcedGroupSet.has(category.groupId)
+        );
       })
       .map((category) => ({
         value: category.id,
@@ -428,6 +446,8 @@ export default function PurchaseCandidateForm({
   mode,
   candidateId,
   cancelHref = "/purchase-candidates",
+  initialCategoryId,
+  initialCategoryGroupId,
   footerAction,
 }: PurchaseCandidateFormProps) {
   const router = useRouter();
@@ -879,9 +899,43 @@ export default function PurchaseCandidateForm({
         const nextCategoryOptions = buildCategoryOptions(
           groups,
           visibleCategoryIds,
+          mode === "create" && initialCategoryId ? [initialCategoryId] : [],
+          mode === "create" && initialCategoryGroupId
+            ? [initialCategoryGroupId]
+            : [],
         );
 
         setCategoryOptions(nextCategoryOptions);
+
+        const resolveInitialCategoryGroupId = () => {
+          const normalizedInitialCategoryGroupId =
+            initialCategoryGroupId?.trim();
+          if (normalizedInitialCategoryGroupId) {
+            return normalizedInitialCategoryGroupId;
+          }
+
+          const normalizedInitialCategoryId = initialCategoryId?.trim();
+          if (
+            normalizedInitialCategoryId &&
+            nextCategoryOptions.some(
+              (option) => option.groupId === normalizedInitialCategoryId,
+            )
+          ) {
+            return normalizedInitialCategoryId;
+          }
+
+          return "";
+        };
+
+        const applyInitialCategory = (nextCategoryId: string) => {
+          setCategoryGroupId(
+            resolveCategoryGroupId(nextCategoryId, nextCategoryOptions),
+          );
+          setCategoryId(nextCategoryId);
+          setShape(resolveInitialPurchaseCandidateShape(nextCategoryId, null));
+          resetSpecFormState();
+          applySpecFormState(nextCategoryId, null, null);
+        };
 
         if (mode === "edit" && candidateId) {
           const response = await fetch(
@@ -990,6 +1044,28 @@ export default function PurchaseCandidateForm({
             candidate.shape,
             candidate.spec,
           );
+        } else if (mode === "create" && initialCategoryId) {
+          const normalizedInitialCategoryId = initialCategoryId.trim();
+          const hasMatchingCategory = nextCategoryOptions.some(
+            (option) => option.value === normalizedInitialCategoryId,
+          );
+
+          if (hasMatchingCategory) {
+            applyInitialCategory(normalizedInitialCategoryId);
+          } else {
+            const nextInitialCategoryGroupId = resolveInitialCategoryGroupId();
+            if (nextInitialCategoryGroupId) {
+              setCategoryGroupId(nextInitialCategoryGroupId);
+              setCategoryId("");
+              setShape("");
+              resetSpecFormState();
+            }
+          }
+        } else if (mode === "create") {
+          const nextInitialCategoryGroupId = resolveInitialCategoryGroupId();
+          if (nextInitialCategoryGroupId) {
+            setCategoryGroupId(nextInitialCategoryGroupId);
+          }
         }
       } catch {
         setLoadError("購入検討フォームの初期化に失敗しました。");
@@ -999,7 +1075,7 @@ export default function PurchaseCandidateForm({
     }
 
     loadInitialData();
-  }, [candidateId, mode, router]);
+  }, [candidateId, initialCategoryGroupId, initialCategoryId, mode, router]);
 
   useEffect(() => {
     if (mode !== "create") {

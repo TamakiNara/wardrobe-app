@@ -231,6 +231,25 @@ describe("購入検討フォーム", () => {
           },
         ],
       },
+      {
+        id: "underwear",
+        name: "アンダーウェア",
+        sortOrder: 50,
+        categories: [
+          {
+            id: "underwear_bra",
+            groupId: "underwear",
+            name: "ブラ",
+            sortOrder: 10,
+          },
+          {
+            id: "underwear_shorts",
+            groupId: "underwear",
+            name: "ショーツ",
+            sortOrder: 20,
+          },
+        ],
+      },
     ]);
     fetchCategoryVisibilitySettingsMock.mockResolvedValue({
       visibleCategoryIds: [
@@ -267,6 +286,8 @@ describe("購入検討フォーム", () => {
   async function renderForm(props?: {
     mode?: "create" | "edit";
     candidateId?: string;
+    initialCategoryId?: string;
+    initialCategoryGroupId?: string;
   }) {
     const { default: PurchaseCandidateForm } =
       await import("./purchase-candidate-form");
@@ -318,6 +339,16 @@ describe("購入検討フォーム", () => {
       setNativeValue(getCategorySelect(), categoryId);
     });
   }
+
+  it("initialCategoryGroupId があると大分類を初期選択する", async () => {
+    await renderForm({
+      initialCategoryId: "underwear",
+      initialCategoryGroupId: "underwear",
+    });
+
+    expect(getCategoryGroupSelect().value).toBe("underwear");
+    expect(getCategorySelect().value).toBe("");
+  });
 
   it("日本語ラベルと必須表示を描画できる", async () => {
     await renderForm();
