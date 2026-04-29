@@ -5,6 +5,7 @@ Outfit の作成・編集・状態管理に関する仕様を定義する。
 
 - 一覧フィルタ / `currentSeason`: `./list-filters.md`
 - item 候補絞り込み: `./item-candidate-rules.md`
+- 天気予報連動・服装フィードバック検討: `../recommendation/weather-and-feedback.md`
 
 ---
 

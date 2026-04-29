@@ -6,6 +6,7 @@
 - [items: アンダーウェア一覧とカテゴリ責務](./items/underwear.md)
 - [items: status 管理](./items/status-management.md)
 - [items: detail status UI](./items/detail-status-ui.md)
+- [recommendation: 天気予報連動・服装フィードバック検討](./recommendation/weather-and-feedback.md)
 - [items: 素材・混率仕様](./items/material-composition.md)
 - [items: クローゼットビュー](./items/closet-view.md)
 - [items: 一覧フィルタ / currentSeason](./items/list-filters.md)
