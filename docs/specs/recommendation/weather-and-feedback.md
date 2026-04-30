@@ -499,7 +499,7 @@ MVP の初期判断としては **案A 寄り**です。
 
 - 論理名: フィードバックタグ
 - 意味:
-  - その日の服装全体で気になったこと、失敗したこと、注意点を固定タグで複数記録する
+  - その日の服装全体でよかったこと・気になったことを固定タグで複数記録する
 - 型候補:
   - nullable JSON array
 
@@ -606,21 +606,27 @@ MVP の初期判断としては **案A 寄り**です。
 
 #### TPO・見た目
 
-- `tpo_mismatch`
-  - 表示名: TPOに合わなかった
-  - 意味: 仕事・外出・場面に対して服装が合わなかった
+- `worked_for_tpo`
+  - 表示名: TPOに合っていた
+  - 意味: 仕事・外出・予定などの場面に合っていた
 - `too_formal`
   - 表示名: きちんとしすぎた
   - 意味: 場面に対してフォーマルすぎた
 - `too_casual`
   - 表示名: カジュアルすぎた
   - 意味: 場面に対してカジュアルすぎた
+- `color_worked_well`
+  - 表示名: 色合わせがよかった
+  - 意味: 色の組み合わせがしっくりきた
 - `color_mismatch`
   - 表示名: 色合わせが微妙だった
   - 意味: 色の組み合わせがしっくりこなかった
 - `mood_mismatch`
   - 表示名: 気分に合わなかった
   - 意味: その日の気分や雰囲気に合わなかった
+- `tpo_mismatch`
+  - 表示名: TPOに合わなかった
+  - 意味: 方向性が分からない失敗としては使えるが、MVP UI では `too_casual` / `worked_for_tpo` / `too_formal` を優先し、`tpo_mismatch` は要再判断に回す
 
 評価:
 
@@ -685,6 +691,140 @@ MVP の初期判断としては **案A 寄り**です。
 - 特定の item に起因することが多い
 - 同じ item を別コーデで使った時にも再利用しやすい
 - item 詳細で履歴や傾向として見せやすい
+
+### MVP 実装範囲の最終整理
+
+#### MVP で `wear_logs` に持つ項目
+
+MVP では、以下を `wear_logs` に直接持つ前提で確定する。
+
+- `outdoor_temperature_feel`
+- `indoor_temperature_feel`
+- `overall_rating`
+- `feedback_tags`
+- `feedback_memo`
+
+この段階では、あくまで **コーディネート全体 / その日の服装全体** に対する振り返りを記録する。個別 item 評価は MVP 対象外とする。
+
+#### MVP で `feedback_tags` に残すタグ
+
+保存先は単一の `feedback_tags` 配列でよいが、UI では次のグループに分けて見せる。
+
+**よかった点**
+
+- `comfortable_all_day`
+- `temperature_matched`
+- `rain_ready`
+
+**気になった点: 時間帯**
+
+- `morning_cold`
+- `day_cold`
+- `night_cold`
+- `morning_hot`
+- `day_hot`
+- `night_hot`
+
+**気になった点: 天気・環境**
+
+- `rain_problem`
+- `wind_problem`
+- `humidity_uncomfortable`
+- `aircon_cold`
+- `heating_hot`
+
+**評価スケール由来で保存するタグ**
+
+- `worked_for_tpo`
+- `too_casual`
+- `too_formal`
+- `color_worked_well`
+- `color_mismatch`
+- `mood_mismatch`
+
+ここでは `worked_for_tpo` / `color_worked_well` も `feedback_tags` に保存するが、UI 上は単純な「よかった点チップ」ではなく、対になる評価 UI から入力する前提とする。
+
+#### タグではなく専用カラムにした方がよい項目
+
+次はタグではなく、専用カラムで持つ方がよい。
+
+- `outdoor_temperature_feel`
+- `indoor_temperature_feel`
+- `overall_rating`
+- `feedback_memo`
+
+理由:
+
+- 選択肢が固定で意味が明確
+- 将来の集計や推薦に直接使いやすい
+- タグ配列に混ぜるより validation と UI が整理しやすい
+
+#### UI 上で左右方向・対になる選択肢に向く項目
+
+以下は単純な複数選択 chip よりも、方向性が分かる UI の方が自然。
+
+- 屋外の温度感
+  - `cold` ← `slightly_cold` ← `comfortable` → `slightly_hot` → `hot`
+- 屋内の温度感
+  - `cold` ← `slightly_cold` ← `comfortable` → `slightly_hot` → `hot`
+- 朝 / 昼 / 夜の体感
+  - `寒い` / `暑い`
+  - 未選択は「問題なし / 記録なし」として扱う
+- TPO
+  - `too_casual` / `worked_for_tpo` / `too_formal`
+- 色合わせ
+  - `color_mismatch` / 未選択 / `color_worked_well`
+- 気分との一致
+  - `mood_mismatch` を MVP の最小構成とし、将来 `felt_confident` を対になるプラス評価として追加検討する
+
+#### 「よかった点」 / 「気になった点」の整理
+
+MVP では、UI 上の見せ方と保存上の扱いを分ける。
+
+- 保存先
+  - すべて `feedback_tags` の単一配列
+- UI 表示
+  - `よかった点`
+  - `気になった点`
+  - `TPO・見た目の評価`
+    のように意味単位で分ける
+
+整理方針:
+
+- `comfortable_all_day` / `temperature_matched` / `rain_ready`
+  - 素直に「よかった点」へ置く
+- `worked_for_tpo` / `too_casual` / `too_formal`
+  - TPO スケールとして見せる
+- `color_worked_well` / `color_mismatch`
+  - 色合わせスケールとして見せる
+- `mood_mismatch`
+  - MVP では単独の気になった点として扱う
+- `tpo_mismatch`
+  - 方向性が曖昧なため MVP では採用せず、要再判断に残す
+- `felt_confident`
+  - 将来のプラス評価候補として残す
+
+#### `item_feedbacks` に回す項目
+
+次の項目はコーディネート全体ではなく、特定 item への継続的な評価として扱う方が自然なため、MVP の `wear_logs.feedback_tags` には入れない。
+
+- `hard_to_walk`
+- `hard_to_move`
+- `tightness`
+- `sheerness_problem`
+- `itchy`
+- `heavy`
+- `slips_off`
+- `wrinkles_easily`
+- `easy_to_walk`
+- `easy_to_move`
+- `comfortable_fit`
+- `skin_friendly`
+- `lightweight`
+- `stays_in_place`
+- `wrinkle_resistant`
+
+これらは将来の `item_feedbacks` に回し、item 詳細やおすすめ機能で再利用する。
 
 ### validation 方針
 
