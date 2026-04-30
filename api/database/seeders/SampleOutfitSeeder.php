@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\UserTpo;
 use Database\Seeders\Support\TestSeedUsers;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Collection;
 
 class SampleOutfitSeeder extends Seeder
 {
@@ -126,12 +127,7 @@ class SampleOutfitSeeder extends Seeder
                 'tpo_ids' => $this->resolveTpoIds($user, $definition['tpos']),
             ]);
 
-            foreach ($definition['items'] as $index => $itemName) {
-                $item = $items->get($itemName);
-                if ($item === null) {
-                    continue;
-                }
-
+            foreach ($this->resolveDefinitionItems($items, $definition) as $index => $item) {
                 $outfit->outfitItems()->create([
                     'item_id' => $item->id,
                     'sort_order' => $index + 1,
@@ -174,6 +170,10 @@ class SampleOutfitSeeder extends Seeder
         foreach ($outfits as $outfit) {
             $selectedItems = $items->shuffle()->take(random_int(3, 5))->values();
 
+            if ($selectedItems->isEmpty()) {
+                throw new \RuntimeException('Large user sample outfit must have at least one item.');
+            }
+
             foreach ($selectedItems as $index => $item) {
                 $outfit->outfitItems()->create([
                     'item_id' => $item->id,
@@ -195,5 +195,34 @@ class SampleOutfitSeeder extends Seeder
             ->filter()
             ->values()
             ->all();
+    }
+
+    private function resolveDefinitionItems(Collection $items, array $definition): Collection
+    {
+        $resolvedItems = collect($definition['items'])
+            ->map(fn (string $itemName) => $items->get($itemName))
+            ->filter();
+
+        if ($resolvedItems->count() !== count($definition['items'])) {
+            $missingItems = collect($definition['items'])
+                ->reject(fn (string $itemName) => $items->has($itemName))
+                ->values()
+                ->all();
+
+            throw new \RuntimeException(sprintf(
+                'Sample outfit "%s" references missing items: %s',
+                $definition['name'],
+                implode(', ', $missingItems),
+            ));
+        }
+
+        if ($resolvedItems->isEmpty()) {
+            throw new \RuntimeException(sprintf(
+                'Sample outfit "%s" must include at least one item.',
+                $definition['name'],
+            ));
+        }
+
+        return $resolvedItems->values();
     }
 }

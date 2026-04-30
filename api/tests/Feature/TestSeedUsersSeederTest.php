@@ -64,14 +64,20 @@ class TestSeedUsersSeederTest extends TestCase
         $this->assertCount(3, UserTpo::query()->where('user_id', $emptyUser->id)->get());
         $this->assertCount(0, UserBrand::query()->where('user_id', $emptyUser->id)->get());
 
-        $this->assertDatabaseCount('items', 68);
-        $this->assertDatabaseCount('purchase_candidates', 21);
+        $this->assertDatabaseCount('items', 69);
+        $this->assertDatabaseCount('purchase_candidates', 22);
 
         $this->assertNotNull($standardUser->visible_category_ids);
-        $this->assertCount(80, $standardUser->visible_category_ids);
+        $this->assertCount(85, $standardUser->visible_category_ids);
         $this->assertCount(12, $standardUser->outfits);
-        $this->assertCount(32, $standardUser->items);
-        $this->assertCount(19, PurchaseCandidate::query()->where('user_id', $standardUser->id)->get());
+        $this->assertTrue(
+            $standardUser->outfits()
+                ->withCount('outfitItems')
+                ->get()
+                ->every(fn ($outfit) => $outfit->outfit_items_count > 0),
+        );
+        $this->assertCount(33, $standardUser->items);
+        $this->assertCount(20, PurchaseCandidate::query()->where('user_id', $standardUser->id)->get());
 
         $standardTpos = UserTpo::query()
             ->where('user_id', $standardUser->id)
@@ -160,6 +166,12 @@ class TestSeedUsersSeederTest extends TestCase
         $this->assertGreaterThanOrEqual(30, $largeUser->items->count());
         $this->assertSeededItemsUseCurrentSchema($largeUser->items);
         $this->assertGreaterThanOrEqual(10, $largeUser->outfits->count());
+        $this->assertTrue(
+            $largeUser->outfits()
+                ->withCount('outfitItems')
+                ->get()
+                ->every(fn ($outfit) => $outfit->outfit_items_count > 0),
+        );
         $this->assertGreaterThanOrEqual(14, WearLog::query()->where('user_id', $largeUser->id)->count());
         $this->assertTrue(WearLog::query()
             ->where('user_id', $largeUser->id)
