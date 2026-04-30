@@ -6,6 +6,15 @@ use App\Models\WearLog;
 
 class WearLogPayloadBuilder
 {
+    private static function hasFeedback(WearLog $wearLog): bool
+    {
+        return $wearLog->overall_rating !== null
+            || $wearLog->outdoor_temperature_feel !== null
+            || $wearLog->indoor_temperature_feel !== null
+            || ! empty($wearLog->feedback_tags)
+            || ($wearLog->feedback_memo !== null && trim($wearLog->feedback_memo) !== '');
+    }
+
     private static function buildThumbnailItem($wearLogItem): array
     {
         $sourceItem = $wearLogItem->sourceItem;
@@ -39,10 +48,12 @@ class WearLogPayloadBuilder
             'date' => $date,
             'plannedCount' => $entries->where('status', 'planned')->count(),
             'wornCount' => $entries->where('status', 'worn')->count(),
+            'has_feedback' => $entries->contains(fn (WearLog $wearLog) => self::hasFeedback($wearLog)),
             'dots' => $entries
                 ->take(3)
                 ->map(fn ($wearLog) => [
                     'status' => $wearLog->status,
+                    'has_feedback' => self::hasFeedback($wearLog),
                 ])
                 ->values()
                 ->all(),
@@ -63,6 +74,10 @@ class WearLogPayloadBuilder
             'source_outfit_name' => $wearLog->sourceOutfit?->name,
             'items_count' => $wearLog->wear_log_items_count ?? $wearLog->wearLogItems()->count(),
             'memo' => $wearLog->memo,
+            'outdoor_temperature_feel' => $wearLog->outdoor_temperature_feel,
+            'indoor_temperature_feel' => $wearLog->indoor_temperature_feel,
+            'overall_rating' => $wearLog->overall_rating,
+            'feedback_tags' => $wearLog->feedback_tags,
             'thumbnail_items' => $wearLog->wearLogItems
                 ->sortBy('sort_order')
                 ->values()
@@ -87,6 +102,8 @@ class WearLogPayloadBuilder
                 fn ($wearLogItem) => $wearLogItem->sourceItem?->status === 'disposed'
             ),
             'memo' => $wearLog->memo,
+            'overall_rating' => $wearLog->overall_rating,
+            'feedback_tags' => $wearLog->feedback_tags,
             'items_count' => $wearLog->wearLogItems->count(),
             'thumbnail_items' => $wearLog->wearLogItems
                 ->sortBy('sort_order')
@@ -109,6 +126,11 @@ class WearLogPayloadBuilder
             'source_outfit_name' => $wearLog->sourceOutfit?->name,
             'source_outfit_status' => $wearLog->sourceOutfit?->status,
             'memo' => $wearLog->memo,
+            'outdoor_temperature_feel' => $wearLog->outdoor_temperature_feel,
+            'indoor_temperature_feel' => $wearLog->indoor_temperature_feel,
+            'overall_rating' => $wearLog->overall_rating,
+            'feedback_tags' => $wearLog->feedback_tags,
+            'feedback_memo' => $wearLog->feedback_memo,
             'items' => $wearLog->wearLogItems
                 ->sortBy('sort_order')
                 ->values()

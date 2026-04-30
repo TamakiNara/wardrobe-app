@@ -92,6 +92,11 @@ class ImportExportWearLogsTest extends TestCase
             'event_date' => '2026-04-25',
             'display_order' => 1,
             'source_outfit_id' => $outfit->id,
+            'outdoor_temperature_feel' => 'slightly_cold',
+            'indoor_temperature_feel' => 'comfortable',
+            'overall_rating' => 'good',
+            'feedback_tags' => ['comfortable_all_day', 'rain_problem'],
+            'feedback_memo' => '冷房は問題なかった',
             'memo' => '着用履歴のメモ',
         ]);
         $wearLog->wearLogItems()->create([
@@ -126,6 +131,12 @@ class ImportExportWearLogsTest extends TestCase
         $response->assertOk()
             ->assertJsonCount(1, 'wear_logs')
             ->assertJsonPath('wear_logs.0.status', 'worn')
+            ->assertJsonPath('wear_logs.0.outdoor_temperature_feel', 'slightly_cold')
+            ->assertJsonPath('wear_logs.0.indoor_temperature_feel', 'comfortable')
+            ->assertJsonPath('wear_logs.0.overall_rating', 'good')
+            ->assertJsonPath('wear_logs.0.feedback_tags.0', 'comfortable_all_day')
+            ->assertJsonPath('wear_logs.0.feedback_tags.1', 'rain_problem')
+            ->assertJsonPath('wear_logs.0.feedback_memo', '冷房は問題なかった')
             ->assertJsonPath('wear_logs.0.items.0.item_source_type', 'outfit');
     }
 
@@ -185,6 +196,11 @@ class ImportExportWearLogsTest extends TestCase
 
         $this->assertSame($importedOutfit->id, $importedWearLog->source_outfit_id);
         $this->assertSame($importedItem->id, $importedWearLog->wearLogItems->firstOrFail()->source_item_id);
+        $this->assertSame('slightly_cold', $importedWearLog->outdoor_temperature_feel);
+        $this->assertSame('comfortable', $importedWearLog->indoor_temperature_feel);
+        $this->assertSame('good', $importedWearLog->overall_rating);
+        $this->assertSame(['comfortable_all_day', 'rain_problem'], $importedWearLog->feedback_tags);
+        $this->assertSame('冷房は問題なかった', $importedWearLog->feedback_memo);
     }
 
     public function test_import_failure_keeps_existing_data_when_wear_log_reference_cannot_be_mapped(): void
@@ -301,5 +317,38 @@ class ImportExportWearLogsTest extends TestCase
             ->firstOrFail();
 
         $this->assertNull($importedWearLog->wearLogItems->firstOrFail()->source_item_id);
+    }
+
+    public function test_import_rejects_invalid_wear_log_feedback_tag_and_keeps_existing_data(): void
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->create();
+        $this->createCategory('tops_shirt_blouse', 'tops', 'シャツ・ブラウス');
+        $current = $this->seedWearLogSourceData($user);
+
+        $this->actingAs($user, 'web');
+
+        $exportPayload = $this->getJson('/api/export', [
+            'Accept' => 'application/json',
+        ])->assertOk()->json();
+
+        $exportPayload['wear_logs'][0]['feedback_tags'] = ['comfortable_all_day', 'humidity_uncomfortable'];
+
+        $token = $this->issueCsrfToken();
+
+        $response = $this->postJson('/api/import', $exportPayload, [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertStatus(422);
+
+        $this->assertDatabaseHas('wear_logs', [
+            'id' => $current['wearLog']->id,
+            'user_id' => $user->id,
+            'overall_rating' => 'good',
+            'feedback_memo' => '冷房は問題なかった',
+        ]);
     }
 }

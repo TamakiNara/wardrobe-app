@@ -4,6 +4,37 @@ export type WearLogStatus = "planned" | "worn";
 
 export type WearLogItemSourceType = "outfit" | "manual";
 
+export type WearLogTemperatureFeel =
+  | "cold"
+  | "slightly_cold"
+  | "comfortable"
+  | "slightly_hot"
+  | "hot";
+
+export type WearLogOverallRating = "good" | "neutral" | "bad";
+
+export type WearLogFeedbackTag =
+  | "comfortable_all_day"
+  | "temperature_gap_ready"
+  | "rain_ready"
+  | "morning_cold"
+  | "day_cold"
+  | "night_cold"
+  | "morning_hot"
+  | "day_hot"
+  | "night_hot"
+  | "rain_problem"
+  | "wind_problem"
+  | "aircon_cold"
+  | "heating_hot"
+  | "worked_for_tpo"
+  | "too_casual"
+  | "too_formal"
+  | "color_worked_well"
+  | "color_mismatch"
+  | "mood_matched"
+  | "mood_mismatch";
+
 export type WearLogThumbnailItemColor = {
   role: "main" | "sub";
   hex: string;
@@ -29,6 +60,8 @@ export type WearLogListItem = {
   source_outfit_status: "active" | "invalid" | null;
   has_disposed_items: boolean;
   memo: string | null;
+  overall_rating: WearLogOverallRating | null;
+  feedback_tags: WearLogFeedbackTag[] | null;
   items_count: number;
   thumbnail_items: WearLogThumbnailItem[];
 };
@@ -52,6 +85,11 @@ export type WearLogRecord = {
   source_outfit_name: string | null;
   source_outfit_status: "active" | "invalid" | null;
   memo: string | null;
+  outdoor_temperature_feel: WearLogTemperatureFeel | null;
+  indoor_temperature_feel: WearLogTemperatureFeel | null;
+  overall_rating: WearLogOverallRating | null;
+  feedback_tags: WearLogFeedbackTag[] | null;
+  feedback_memo: string | null;
   items: WearLogItemDetail[];
   created_at: string;
   updated_at: string;
@@ -83,6 +121,11 @@ export type WearLogUpsertPayload = {
   display_order: number;
   source_outfit_id: number | null;
   memo: string;
+  outdoor_temperature_feel: WearLogTemperatureFeel | null;
+  indoor_temperature_feel: WearLogTemperatureFeel | null;
+  overall_rating: WearLogOverallRating | null;
+  feedback_tags: WearLogFeedbackTag[] | null;
+  feedback_memo: string;
   items: WearLogUpsertItem[];
 };
 
@@ -93,12 +136,14 @@ export type WearLogMutationResponse = {
 
 export type WearLogCalendarDot = {
   status: WearLogStatus;
+  has_feedback: boolean;
 };
 
 export type WearLogCalendarDaySummary = {
   date: string;
   plannedCount: number;
   wornCount: number;
+  has_feedback: boolean;
   dots: WearLogCalendarDot[];
   overflowCount: number;
 };
@@ -116,6 +161,10 @@ export type WearLogByDateItem = {
   source_outfit_name: string | null;
   items_count: number;
   memo: string | null;
+  outdoor_temperature_feel: WearLogTemperatureFeel | null;
+  indoor_temperature_feel: WearLogTemperatureFeel | null;
+  overall_rating: WearLogOverallRating | null;
+  feedback_tags: WearLogFeedbackTag[] | null;
   thumbnail_items: WearLogThumbnailItem[];
 };
 

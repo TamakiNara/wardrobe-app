@@ -6,6 +6,9 @@ import WearLogColorThumbnail from "@/components/wear-logs/wear-log-color-thumbna
 import { DEFAULT_SKIN_TONE_PRESET } from "@/lib/master-data/skin-tone-presets";
 import { fetchLaravelWithCookie } from "@/lib/server/laravel";
 import {
+  getWearLogFeedbackSummaryTags,
+  getWearLogFeedbackTagLabel,
+  getWearLogOverallRatingLabel,
   WEAR_LOG_STATUS_LABELS,
   getWearLogStatusBadgeClassName,
   getWearLogStatusLabel,
@@ -473,6 +476,29 @@ export default async function WearLogsPage({
                           一部アイテムは現在利用不可です。
                         </p>
                       )}
+
+                      {wearLog.overall_rating ? (
+                        <p className="mt-2 text-sm font-medium text-gray-800">
+                          総合評価:{" "}
+                          {getWearLogOverallRatingLabel(wearLog.overall_rating)}
+                        </p>
+                      ) : null}
+
+                      {getWearLogFeedbackSummaryTags(wearLog.feedback_tags)
+                        .length > 0 ? (
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {getWearLogFeedbackSummaryTags(
+                            wearLog.feedback_tags,
+                          ).map((tag) => (
+                            <span
+                              key={`${wearLog.id}-${tag}`}
+                              className="rounded-full border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs text-gray-700"
+                            >
+                              {getWearLogFeedbackTagLabel(tag)}
+                            </span>
+                          ))}
+                        </div>
+                      ) : null}
 
                       {wearLog.memo && (
                         <p className="mt-2 text-sm text-gray-600">

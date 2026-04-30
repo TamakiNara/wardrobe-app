@@ -162,6 +162,16 @@ describe("WearLogForm", () => {
     expect(container.textContent).toContain("コーディネート / アイテム");
     expect(container.textContent).toContain("コーディネートを選択");
     expect(container.textContent).toContain("アイテムを選択");
+    expect(container.textContent).toContain("振り返り");
+    expect(container.textContent).toContain("よかったこと");
+    expect(container.textContent).toContain("気になったこと");
+    expect(container.textContent).toContain("TPO・見た目");
+    expect(container.textContent).toContain("振り返りメモ");
+    expect(container.textContent).toContain("寒暖差に対応できた");
+    expect(container.textContent).toContain("合っていた");
+    expect(container.textContent).toContain("ちょうどいい");
+    expect(container.textContent).not.toContain("湿気で不快");
+    expect(container.textContent).not.toMatch(/気になったこと\s*\d+件/);
     expect(container.textContent?.match(/必須/g)?.length).toBe(4);
     expect(container.textContent).toContain("通勤コーデ");
     expect(container.textContent).toContain("白シャツ / ネイビーパンツ");
@@ -202,12 +212,20 @@ describe("WearLogForm", () => {
       "/api/wear-logs",
       expect.objectContaining({
         method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
           status: "planned",
           event_date: "2026-03-24",
           display_order: 1,
           source_outfit_id: null,
           memo: "",
+          outdoor_temperature_feel: "comfortable",
+          indoor_temperature_feel: "comfortable",
+          overall_rating: null,
+          feedback_tags: null,
+          feedback_memo: "",
           items: [
             {
               source_item_id: 1,
@@ -337,6 +355,11 @@ describe("WearLogForm", () => {
             source_outfit_name: "現在は無効",
             source_outfit_status: "invalid",
             memo: "memo",
+            outdoor_temperature_feel: "cold",
+            indoor_temperature_feel: "comfortable",
+            overall_rating: "neutral",
+            feedback_tags: ["morning_cold", "worked_for_tpo"],
+            feedback_memo: "朝は少し寒かった",
             items: [
               {
                 id: 11,
@@ -369,6 +392,8 @@ describe("WearLogForm", () => {
       "「必須」が付いた項目は更新に必要です。",
     );
     expect(container.textContent).toContain("コーディネート / アイテム");
+    expect(container.textContent).toContain("振り返り");
+    expect(container.textContent).toContain("振り返りメモ");
     expect(container.textContent?.match(/必須/g)?.length).toBe(4);
     expect(container.textContent).toContain(
       "現在は候補に使えないデータが含まれていますが、この記録の内容確認と更新は続けられます。",
@@ -388,6 +413,22 @@ describe("WearLogForm", () => {
     expect(container.innerHTML).toContain(
       'href="/items/7?return_to=%2Fwear-logs%2F1%2Fedit&amp;return_label=%E7%9D%80%E7%94%A8%E5%B1%A5%E6%AD%B4%E3%83%95%E3%82%A9%E3%83%BC%E3%83%A0"',
     );
+    expect(
+      container.querySelector<HTMLInputElement>(
+        '[data-testid="outdoor-temperature-feel"] input[type="range"]',
+      )?.value,
+    ).toBe("0");
+    expect(container.textContent).toContain("寒い");
+    expect(
+      container.querySelector(
+        '[data-testid="overall-rating"] button[aria-pressed="true"]',
+      )?.textContent,
+    ).toContain("普通");
+    expect(
+      container.querySelector<HTMLTextAreaElement>(
+        'textarea[placeholder="気になったことや、次回の参考にしたいことを残せます。"]',
+      )?.value,
+    ).toBe("朝は少し寒かった");
   });
 
   it("複数ページの候補を読み込み、後続ページの item も選択できる", async () => {
@@ -496,6 +537,11 @@ describe("WearLogForm", () => {
           display_order: 1,
           source_outfit_id: null,
           memo: "",
+          outdoor_temperature_feel: "comfortable",
+          indoor_temperature_feel: "comfortable",
+          overall_rating: null,
+          feedback_tags: null,
+          feedback_memo: "",
           items: [
             {
               source_item_id: 2,
@@ -679,6 +725,11 @@ describe("WearLogForm", () => {
           display_order: 1,
           source_outfit_id: null,
           memo: "",
+          outdoor_temperature_feel: "comfortable",
+          indoor_temperature_feel: "comfortable",
+          overall_rating: null,
+          feedback_tags: null,
+          feedback_memo: "",
           items: [
             {
               source_item_id: 2,
@@ -1164,6 +1215,155 @@ describe("WearLogForm", () => {
     expect(container.textContent).toContain("入力内容を確認してください。");
     expect(container.textContent).not.toContain(
       "着用履歴を保存できませんでした。",
+    );
+  });
+  it("フィードバック入力を保存 payload に含められる", async () => {
+    fetchAllPaginatedCandidatesMock
+      .mockResolvedValueOnce({
+        status: 200,
+        entries: [
+          {
+            id: 1,
+            name: "白シャツ",
+            status: "active",
+            category: "tops",
+            shape: "shirt",
+            colors: [],
+          },
+        ],
+      })
+      .mockResolvedValueOnce({
+        status: 200,
+        entries: [],
+      });
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValueOnce({
+        ok: true,
+        status: 201,
+        json: async () => ({
+          message: "created",
+          wearLog: { id: 20 },
+        }),
+      }),
+    );
+
+    const { default: WearLogForm } = await import("./wear-log-form");
+
+    await act(async () => {
+      root.render(React.createElement(WearLogForm, { mode: "create" }));
+    });
+    await act(async () => {
+      await waitForEffects();
+    });
+
+    const dateInput =
+      container.querySelector<HTMLInputElement>('input[type="date"]');
+    const checkbox = container.querySelector<HTMLInputElement>(
+      'input[type="checkbox"]',
+    );
+    const outdoorSlider = container.querySelector<HTMLInputElement>(
+      '[data-testid="outdoor-temperature-feel"] input[type="range"]',
+    );
+    const indoorSlider = container.querySelector<HTMLInputElement>(
+      '[data-testid="indoor-temperature-feel"] input[type="range"]',
+    );
+    const ratingButtons = container.querySelector(
+      '[data-testid="overall-rating"]',
+    );
+    const feedbackMemoField = container.querySelector<HTMLTextAreaElement>(
+      'textarea[placeholder="気になったことや、次回の参考にしたいことを残せます。"]',
+    );
+    const form = container.querySelector("form");
+    const positiveButtons = Array.from(
+      container.querySelectorAll("section button[aria-pressed]"),
+    );
+
+    expect(container.textContent).toContain("振り返り");
+    expect(container.textContent).toContain("よかったこと");
+    expect(container.textContent).toContain("気になったこと");
+    expect(container.textContent).toContain("TPO・見た目");
+    expect(container.textContent).toContain("振り返りメモ");
+    expect(container.textContent).toContain("寒暖差に対応できた");
+    expect(container.textContent).toContain("合っていた");
+    expect(container.textContent).not.toContain("湿気で不快");
+    expect(container.textContent).not.toMatch(/気になったこと\s*\d+件/);
+
+    await act(async () => {
+      const dateSetter = Object.getOwnPropertyDescriptor(
+        window.HTMLInputElement.prototype,
+        "value",
+      )?.set;
+      dateSetter?.call(dateInput, "2026-03-24");
+      dateInput?.dispatchEvent(new Event("input", { bubbles: true }));
+      checkbox?.click();
+      dateSetter?.call(outdoorSlider, "1");
+      outdoorSlider?.dispatchEvent(new Event("change", { bubbles: true }));
+      dateSetter?.call(outdoorSlider, "2");
+      outdoorSlider?.dispatchEvent(new Event("input", { bubbles: true }));
+      dateSetter?.call(indoorSlider, "1");
+      indoorSlider?.dispatchEvent(new Event("change", { bubbles: true }));
+      ratingButtons
+        ?.querySelectorAll("button")[0]
+        ?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      positiveButtons
+        .find((button) => button.textContent?.includes("快適"))
+        ?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      positiveButtons
+        .find((button) => button.textContent?.includes("雨"))
+        ?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      Array.from(container.querySelectorAll("button"))
+        .find((button) => button.textContent?.includes("気になったこと"))
+        ?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      await waitForEffects();
+      Array.from(container.querySelectorAll("button"))
+        .find((button) => button.textContent?.includes("合っていた"))
+        ?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      Array.from(container.querySelectorAll("button"))
+        .find((button) => button.textContent?.includes("微妙だった"))
+        ?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      const memoSetter = Object.getOwnPropertyDescriptor(
+        window.HTMLTextAreaElement.prototype,
+        "value",
+      )?.set;
+      memoSetter?.call(feedbackMemoField, "冷房が少し強かったが全体的には快適");
+      feedbackMemoField?.dispatchEvent(new Event("input", { bubbles: true }));
+      form?.dispatchEvent(
+        new Event("submit", { bubbles: true, cancelable: true }),
+      );
+      await waitForEffects();
+    });
+
+    expect(global.fetch).toHaveBeenLastCalledWith(
+      "/api/wear-logs",
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({
+          status: "planned",
+          event_date: "2026-03-24",
+          display_order: 1,
+          source_outfit_id: null,
+          memo: "",
+          outdoor_temperature_feel: "comfortable",
+          indoor_temperature_feel: "slightly_cold",
+          overall_rating: "good",
+          feedback_tags: [
+            "comfortable_all_day",
+            "rain_ready",
+            "worked_for_tpo",
+            "color_mismatch",
+          ],
+          feedback_memo: "冷房が少し強かったが全体的には快適",
+          items: [
+            {
+              source_item_id: 1,
+              sort_order: 1,
+              item_source_type: "manual",
+            },
+          ],
+        }),
+      }),
     );
   });
 });

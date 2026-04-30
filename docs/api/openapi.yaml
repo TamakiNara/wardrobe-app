@@ -2013,6 +2013,28 @@ components:
           type: string
           nullable: true
           example: 通勤コーデの記録
+        outdoor_temperature_feel:
+          allOf:
+            - $ref: "#/components/schemas/WearLogTemperatureFeel"
+          nullable: true
+        indoor_temperature_feel:
+          allOf:
+            - $ref: "#/components/schemas/WearLogTemperatureFeel"
+          nullable: true
+        overall_rating:
+          allOf:
+            - $ref: "#/components/schemas/WearLogOverallRating"
+          nullable: true
+        feedback_tags:
+          type: array
+          nullable: true
+          items:
+            $ref: "#/components/schemas/WearLogFeedbackTag"
+          description: |
+            服装の振り返りタグ。重複は保存時に一意化し、空配列は `null` として扱う。
+        feedback_memo:
+          type: string
+          nullable: true
         items:
           type: array
           items:
@@ -3317,6 +3339,46 @@ components:
         - planned
         - worn
 
+    WearLogTemperatureFeel:
+      type: string
+      enum:
+        - cold
+        - slightly_cold
+        - comfortable
+        - slightly_hot
+        - hot
+
+    WearLogOverallRating:
+      type: string
+      enum:
+        - good
+        - neutral
+        - bad
+
+    WearLogFeedbackTag:
+      type: string
+      enum:
+        - comfortable_all_day
+        - temperature_gap_ready
+        - rain_ready
+        - morning_cold
+        - day_cold
+        - night_cold
+        - morning_hot
+        - day_hot
+        - night_hot
+        - rain_problem
+        - wind_problem
+        - aircon_cold
+        - heating_hot
+        - worked_for_tpo
+        - too_casual
+        - too_formal
+        - color_worked_well
+        - color_mismatch
+        - mood_matched
+        - mood_mismatch
+
     WearLogItemSourceType:
       type: string
       enum:
@@ -3369,6 +3431,28 @@ components:
           type: string
           nullable: true
           example: 雨だったので1枚追加
+        outdoor_temperature_feel:
+          allOf:
+            - $ref: "#/components/schemas/WearLogTemperatureFeel"
+          nullable: true
+        indoor_temperature_feel:
+          allOf:
+            - $ref: "#/components/schemas/WearLogTemperatureFeel"
+          nullable: true
+        overall_rating:
+          allOf:
+            - $ref: "#/components/schemas/WearLogOverallRating"
+          nullable: true
+        feedback_tags:
+          type: array
+          nullable: true
+          items:
+            $ref: "#/components/schemas/WearLogFeedbackTag"
+          description: |
+            服装の振り返りタグ。重複は保存時に一意化し、空配列は `null` として扱う。
+        feedback_memo:
+          type: string
+          nullable: true
         items:
           type: array
           description: |
@@ -3420,6 +3504,15 @@ components:
           type: string
           nullable: true
           example: 雨だったので上着追加
+        overall_rating:
+          allOf:
+            - $ref: "#/components/schemas/WearLogOverallRating"
+          nullable: true
+        feedback_tags:
+          type: array
+          nullable: true
+          items:
+            $ref: "#/components/schemas/WearLogFeedbackTag"
         items_count:
           type: integer
           example: 3
@@ -3559,6 +3652,26 @@ components:
           type: string
           nullable: true
           example: 雨だったので上着追加
+        outdoor_temperature_feel:
+          allOf:
+            - $ref: "#/components/schemas/WearLogTemperatureFeel"
+          nullable: true
+        indoor_temperature_feel:
+          allOf:
+            - $ref: "#/components/schemas/WearLogTemperatureFeel"
+          nullable: true
+        overall_rating:
+          allOf:
+            - $ref: "#/components/schemas/WearLogOverallRating"
+          nullable: true
+        feedback_tags:
+          type: array
+          nullable: true
+          items:
+            $ref: "#/components/schemas/WearLogFeedbackTag"
+        feedback_memo:
+          type: string
+          nullable: true
         items:
           type: array
           items:
@@ -3582,9 +3695,13 @@ components:
       type: object
       required:
         - status
+        - has_feedback
       properties:
         status:
           $ref: "#/components/schemas/WearLogStatus"
+        has_feedback:
+          type: boolean
+          description: この wear log 自体に、服装の振り返り入力があるか。
 
     WearLogCalendarDaySummary:
       description: |
@@ -3596,6 +3713,7 @@ components:
         - plannedCount
         - wornCount
         - dots
+        - has_feedback
         - overflowCount
       properties:
         date:
@@ -3612,6 +3730,12 @@ components:
           maxItems: 3
           items:
             $ref: "#/components/schemas/WearLogCalendarDot"
+        has_feedback:
+          type: boolean
+          description: |
+            その日の wear log に、服装の振り返り
+            (`overall_rating` / `outdoor_temperature_feel` / `indoor_temperature_feel` / `feedback_tags` / `feedback_memo`)
+            のいずれかが入力されているか。
         overflowCount:
           type: integer
           example: 1
@@ -3661,6 +3785,23 @@ components:
         memo:
           type: string
           nullable: true
+        outdoor_temperature_feel:
+          allOf:
+            - $ref: "#/components/schemas/WearLogTemperatureFeel"
+          nullable: true
+        indoor_temperature_feel:
+          allOf:
+            - $ref: "#/components/schemas/WearLogTemperatureFeel"
+          nullable: true
+        overall_rating:
+          allOf:
+            - $ref: "#/components/schemas/WearLogOverallRating"
+          nullable: true
+        feedback_tags:
+          type: array
+          nullable: true
+          items:
+            $ref: "#/components/schemas/WearLogFeedbackTag"
         thumbnail_items:
           type: array
           description: |

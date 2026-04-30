@@ -1,5 +1,6 @@
 "use client";
 
+import { Check, CircleCheck } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -7,9 +8,13 @@ import WearLogModalColorThumbnail from "@/components/wear-logs/wear-log-modal-co
 import { ApiClientError, apiFetch } from "@/lib/api/client";
 import { getJapaneseHoliday } from "@/lib/wear-logs/japanese-holidays";
 import {
+  getWearLogFeedbackSummaryTags,
+  getWearLogFeedbackTagLabel,
+  getWearLogOverallRatingBadgeClassName,
+  getWearLogOverallRatingLabel,
   getWearLogStatusBadgeClassName,
-  getWearLogStatusDotClassName,
   getWearLogStatusLabel,
+  getWearLogTemperatureFeelLabel,
 } from "@/lib/wear-logs/labels";
 import type { SkinTonePreset } from "@/types/settings";
 import type {
@@ -221,6 +226,134 @@ function buildCreateHref(date: string, wearLogsCount: number): string {
   return `/wear-logs/new?${params.toString()}`;
 }
 
+function hasWearLogFeedbackSummary(
+  wearLog: WearLogByDateResponse["wearLogs"][number],
+): boolean {
+  return (
+    wearLog.overall_rating !== null ||
+    wearLog.outdoor_temperature_feel !== null ||
+    wearLog.indoor_temperature_feel !== null ||
+    (wearLog.feedback_tags?.length ?? 0) > 0
+  );
+}
+
+function buildWearLogTemperatureSummaryParts(
+  wearLog: WearLogByDateResponse["wearLogs"][number],
+): string[] {
+  return [
+    wearLog.overall_rating
+      ? `振り返り: ${getWearLogOverallRatingLabel(wearLog.overall_rating)}`
+      : null,
+    wearLog.outdoor_temperature_feel
+      ? `屋外 ${getWearLogTemperatureFeelLabel(wearLog.outdoor_temperature_feel)}`
+      : null,
+    wearLog.indoor_temperature_feel
+      ? `屋内 ${getWearLogTemperatureFeelLabel(wearLog.indoor_temperature_feel)}`
+      : null,
+  ].filter((part): part is string => Boolean(part));
+}
+
+function buildWearLogModalFeedbackSummary(
+  wearLog: WearLogByDateResponse["wearLogs"][number],
+) {
+  const overallRatingLabel = wearLog.overall_rating
+    ? getWearLogOverallRatingLabel(wearLog.overall_rating)
+    : null;
+  const temperatureSummaryParts = buildWearLogTemperatureSummaryParts(
+    wearLog,
+  ).filter((part) => part.startsWith("屋外") || part.startsWith("屋内"));
+  const summaryTags = getWearLogFeedbackSummaryTags(wearLog.feedback_tags, 3);
+
+  return {
+    overallRatingLabel,
+    temperatureSummaryParts,
+    summaryTags,
+  };
+}
+
+function renderWearLogCalendarMarker(
+  dot: WearLogCalendarDaySummary["dots"][number],
+) {
+  const ariaLabel = dot.has_feedback
+    ? dot.status === "worn"
+      ? "着用済み・振り返りあり"
+      : "予定・振り返りあり"
+    : dot.status === "worn"
+      ? "着用済み"
+      : "予定";
+
+  if (!dot.has_feedback) {
+    if (dot.status === "worn") {
+      return (
+        <span
+          className="inline-flex h-3.5 w-3.5 shrink-0 items-center justify-center"
+          data-status={dot.status}
+          data-feedback="false"
+          data-marker-kind="dot-filled"
+          aria-label={ariaLabel}
+        >
+          <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" aria-hidden="true">
+            <circle
+              cx="8"
+              cy="8"
+              r="6"
+              fill="currentColor"
+              className="text-blue-600"
+            />
+          </svg>
+        </span>
+      );
+    }
+
+    return (
+      <span
+        className="inline-flex h-3.5 w-3.5 shrink-0 items-center justify-center text-blue-300"
+        data-status={dot.status}
+        data-feedback="false"
+        data-marker-kind="dot-outline"
+        aria-label={ariaLabel}
+      >
+        <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" aria-hidden="true">
+          <circle
+            cx="8"
+            cy="8"
+            r="5.25"
+            fill="white"
+            stroke="currentColor"
+            strokeWidth="1.5"
+          />
+        </svg>
+      </span>
+    );
+  }
+
+  if (dot.status === "worn") {
+    return (
+      <span
+        className="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white shadow-[0_0_0_1px_rgba(37,99,235,0.12)]"
+        data-status={dot.status}
+        data-feedback="true"
+        data-marker-kind="check-filled"
+        aria-label={ariaLabel}
+      >
+        <Check className="h-3 w-3" strokeWidth={2.8} />
+      </span>
+    );
+  }
+
+  return (
+    <span
+      className="inline-flex h-4 w-4 shrink-0 items-center justify-center text-blue-600"
+      data-status={dot.status}
+      data-feedback="true"
+      data-marker-kind="circle-check"
+      aria-label={ariaLabel}
+    >
+      <CircleCheck className="h-4 w-4" strokeWidth={2.35} />
+    </span>
+  );
+}
+
 export default function WearLogCalendar({
   month,
   days,
@@ -407,11 +540,9 @@ export default function WearLogCalendar({
                     {!!summary ? (
                       <>
                         {summary.dots.map((dot, index) => (
-                          <span
-                            key={`${cell.date}-${dot.status}-${index}`}
-                            className={`h-3.5 w-3.5 rounded-full ${getWearLogStatusDotClassName(dot.status)}`}
-                            data-status={dot.status}
-                          />
+                          <span key={`${cell.date}-${dot.status}-${index}`}>
+                            {renderWearLogCalendarMarker(dot)}
+                          </span>
                         ))}
                         {summary.overflowCount > 0 && (
                           <span className="text-[11px] font-medium text-gray-500">
@@ -457,64 +588,119 @@ export default function WearLogCalendar({
               ) : detailsError ? (
                 <p className="text-sm text-red-600">{detailsError}</p>
               ) : dayDetails && dayDetails.wearLogs.length > 0 ? (
-                dayDetails.wearLogs.map((wearLog) => (
-                  <article
-                    key={wearLog.id}
-                    className={`rounded-2xl border px-4 py-3 ${
-                      wearLog.status === "planned" && wearLog.event_date < today
-                        ? "border-gray-200 bg-gray-100"
-                        : "border-gray-200 bg-gray-50"
-                    }`}
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex min-w-0 flex-1 items-start gap-3">
-                        <WearLogModalColorThumbnail
-                          items={wearLog.thumbnail_items ?? []}
-                          skinTonePreset={skinTonePreset}
-                        />
-                        <div className="min-w-0">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <span
-                              className={`rounded-full border px-2.5 py-1 text-xs font-medium ${getWearLogStatusBadgeClassName(wearLog.status)}`}
-                            >
-                              {getWearLogStatusLabel(wearLog.status)}
-                            </span>
-                            <p className="text-sm font-medium text-gray-900">
-                              {wearLog.display_order}件目
+                dayDetails.wearLogs.map((wearLog) => {
+                  const {
+                    overallRatingLabel,
+                    temperatureSummaryParts,
+                    summaryTags,
+                  } = buildWearLogModalFeedbackSummary(wearLog);
+                  const shouldShowFeedbackSummary =
+                    hasWearLogFeedbackSummary(wearLog) &&
+                    (overallRatingLabel !== null ||
+                      temperatureSummaryParts.length > 0 ||
+                      summaryTags.length > 0);
+
+                  return (
+                    <article
+                      key={wearLog.id}
+                      className={`rounded-2xl border px-4 py-3 ${
+                        wearLog.status === "planned" &&
+                        wearLog.event_date < today
+                          ? "border-gray-200 bg-gray-100"
+                          : "border-gray-200 bg-gray-50"
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex min-w-0 flex-1 items-start gap-3">
+                          <WearLogModalColorThumbnail
+                            items={wearLog.thumbnail_items ?? []}
+                            skinTonePreset={skinTonePreset}
+                          />
+                          <div className="min-w-0">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span
+                                className={`rounded-full border px-2.5 py-1 text-xs font-medium ${getWearLogStatusBadgeClassName(wearLog.status)}`}
+                              >
+                                {getWearLogStatusLabel(wearLog.status)}
+                              </span>
+                              <p className="text-sm font-medium text-gray-900">
+                                {wearLog.display_order}件目
+                              </p>
+                            </div>
+                            <p className="mt-1 text-sm text-gray-600">
+                              {wearLog.source_outfit_name ??
+                                `アイテム ${wearLog.items_count} 件`}
                             </p>
                           </div>
-                          <p className="mt-1 text-sm text-gray-600">
-                            {wearLog.source_outfit_name ??
-                              `アイテム ${wearLog.items_count} 件`}
-                          </p>
                         </div>
+                        <Link
+                          href={`/wear-logs/${wearLog.id}`}
+                          className="text-sm font-medium text-blue-600 hover:underline"
+                        >
+                          詳細
+                        </Link>
                       </div>
-                      <Link
-                        href={`/wear-logs/${wearLog.id}`}
-                        className="text-sm font-medium text-blue-600 hover:underline"
-                      >
-                        詳細
-                      </Link>
-                    </div>
 
-                    <p className="mt-2 text-xs text-gray-500">
-                      アイテム {wearLog.items_count} 件
-                    </p>
-
-                    {wearLog.memo && (
-                      <p className="mt-2 line-clamp-2 text-sm text-gray-600">
-                        {wearLog.memo}
+                      <p className="mt-2 text-xs text-gray-500">
+                        アイテム {wearLog.items_count} 件
                       </p>
-                    )}
 
-                    {wearLog.status === "planned" &&
-                      wearLog.event_date < today && (
-                        <p className="mt-2 text-xs text-gray-500">
-                          過去日の未着用予定です。
+                      {wearLog.memo && (
+                        <p className="mt-2 line-clamp-2 text-sm text-gray-600">
+                          {wearLog.memo}
                         </p>
                       )}
-                  </article>
-                ))
+
+                      {shouldShowFeedbackSummary ? (
+                        <div className="mt-2 space-y-2">
+                          <span className="sr-only">
+                            {buildWearLogTemperatureSummaryParts(wearLog).join(
+                              " / ",
+                            )}
+                          </span>
+                          {overallRatingLabel ? (
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-medium text-gray-500">
+                                総合評価
+                              </span>
+                              <span
+                                className={`inline-flex items-center rounded-full border px-2.5 py-1 text-sm font-semibold ${getWearLogOverallRatingBadgeClassName(
+                                  wearLog.overall_rating!,
+                                )}`}
+                              >
+                                {overallRatingLabel}
+                              </span>
+                            </div>
+                          ) : null}
+                          {temperatureSummaryParts.length > 0 ? (
+                            <p className="text-xs text-gray-600">
+                              {temperatureSummaryParts.join(" / ")}
+                            </p>
+                          ) : null}
+                          {summaryTags.length > 0 ? (
+                            <div className="flex flex-wrap gap-2">
+                              {summaryTags.map((tag) => (
+                                <span
+                                  key={`${wearLog.id}-${tag}`}
+                                  className="rounded-full border border-gray-200 bg-white px-2.5 py-1 text-xs text-gray-700"
+                                >
+                                  {getWearLogFeedbackTagLabel(tag)}
+                                </span>
+                              ))}
+                            </div>
+                          ) : null}
+                        </div>
+                      ) : null}
+
+                      {wearLog.status === "planned" &&
+                        wearLog.event_date < today && (
+                          <p className="mt-2 text-xs text-gray-500">
+                            過去日の未着用予定です。
+                          </p>
+                        )}
+                    </article>
+                  );
+                })
               ) : (
                 <div className="space-y-3 rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-5">
                   <p className="text-sm font-medium text-gray-900">

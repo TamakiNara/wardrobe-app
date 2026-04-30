@@ -54,6 +54,13 @@ Web UI:
 - `items.sheerness` も export / import 対象に含める
 - `underwear` item / purchase candidate も通常データと同じく export / import 対象に含める
 - `underwear / bra` の `underbust` / `top_bust`、`underwear / shorts` の `waist` / `hip` / `rise` も通常の `size_details.structured` として export / import 対象に含める
+- `wear_logs` の服装フィードバック
+  - `outdoor_temperature_feel`
+  - `indoor_temperature_feel`
+  - `overall_rating`
+  - `feedback_tags`
+  - `feedback_memo`
+    も export / import 対象に含める
 
 注意:
 

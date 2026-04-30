@@ -6,8 +6,12 @@ import { EntityDetailHeader } from "@/components/shared/entity-detail-header";
 import { ITEM_CARE_STATUS_LABELS } from "@/lib/items/metadata";
 import { fetchLaravelWithCookie } from "@/lib/server/laravel";
 import {
+  getWearLogFeedbackTagLabel,
+  getWearLogOverallRatingLabel,
   getWearLogStatusBadgeClassName,
   getWearLogStatusLabel,
+  getWearLogTemperatureFeelLabel,
+  splitWearLogFeedbackTags,
 } from "@/lib/wear-logs/labels";
 import type { WearLogRecord } from "@/types/wear-logs";
 
@@ -61,6 +65,14 @@ export default async function WearLogDetailPage({
   const cleaningItems = wearLog.items.filter(
     (item) => item.source_item_care_status === "in_cleaning",
   );
+  const feedbackSummary = splitWearLogFeedbackTags(wearLog.feedback_tags ?? []);
+  const hasFeedbackSection =
+    wearLog.outdoor_temperature_feel !== null ||
+    wearLog.indoor_temperature_feel !== null ||
+    wearLog.overall_rating !== null ||
+    feedbackSummary.positives.length > 0 ||
+    feedbackSummary.concerns.length > 0 ||
+    (wearLog.feedback_memo ?? "").trim() !== "";
 
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">
@@ -206,6 +218,108 @@ export default async function WearLogDetailPage({
             </dl>
           </div>
         </section>
+
+        {hasFeedbackSection ? (
+          <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+            <h2 className="text-lg font-semibold text-gray-900">
+              服装の振り返り
+            </h2>
+
+            {wearLog.overall_rating ? (
+              <div className="mt-4 space-y-1">
+                <p className="text-sm font-medium text-gray-500">総合評価</p>
+                <div>
+                  <span
+                    className={`inline-flex rounded-full border px-3 py-1.5 text-sm font-semibold ${
+                      wearLog.overall_rating === "good"
+                        ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                        : wearLog.overall_rating === "bad"
+                          ? "border-amber-200 bg-amber-50 text-amber-700"
+                          : "border-slate-200 bg-slate-100 text-slate-700"
+                    }`}
+                  >
+                    {getWearLogOverallRatingLabel(wearLog.overall_rating)}
+                  </span>
+                </div>
+              </div>
+            ) : null}
+
+            <div className="mt-4 flex flex-wrap items-baseline gap-x-6 gap-y-2 text-sm text-gray-700">
+              {wearLog.outdoor_temperature_feel ? (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-gray-500">
+                    屋外
+                  </span>
+                  <span className="font-medium text-gray-900">
+                    {getWearLogTemperatureFeelLabel(
+                      wearLog.outdoor_temperature_feel,
+                    )}
+                  </span>
+                </div>
+              ) : null}
+
+              {wearLog.indoor_temperature_feel ? (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-gray-500">
+                    屋内
+                  </span>
+                  <span className="font-medium text-gray-900">
+                    {getWearLogTemperatureFeelLabel(
+                      wearLog.indoor_temperature_feel,
+                    )}
+                  </span>
+                </div>
+              ) : null}
+            </div>
+
+            {feedbackSummary.positives.length > 0 ? (
+              <div className="mt-5">
+                <h3 className="text-sm font-medium text-gray-700">
+                  よかったこと
+                </h3>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {feedbackSummary.positives.map((tag) => (
+                    <span
+                      key={tag}
+                      className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-sm text-emerald-800"
+                    >
+                      {getWearLogFeedbackTagLabel(tag)}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
+            {feedbackSummary.concerns.length > 0 ? (
+              <div className="mt-5">
+                <h3 className="text-sm font-medium text-gray-700">
+                  気になったこと
+                </h3>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {feedbackSummary.concerns.map((tag) => (
+                    <span
+                      key={tag}
+                      className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-sm text-amber-800"
+                    >
+                      {getWearLogFeedbackTagLabel(tag)}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
+            {(wearLog.feedback_memo ?? "").trim() !== "" ? (
+              <div className="mt-5">
+                <h3 className="text-sm font-medium text-gray-700">
+                  フィードバックメモ
+                </h3>
+                <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-gray-600">
+                  {wearLog.feedback_memo}
+                </p>
+              </div>
+            ) : null}
+          </section>
+        ) : null}
 
         <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-gray-900">アイテム</h2>

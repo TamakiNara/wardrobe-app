@@ -6,6 +6,7 @@ use App\Models\Item;
 use App\Models\Outfit;
 use App\Models\User;
 use App\Models\WearLog;
+use App\Support\WearLogFeedbackSupport;
 use App\Support\WearLogPayloadBuilder;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
@@ -26,6 +27,11 @@ class WearLogService
                 'display_order' => $validated['display_order'],
                 'source_outfit_id' => $validated['source_outfit_id'] ?? null,
                 'memo' => $validated['memo'] ?? null,
+                'outdoor_temperature_feel' => $validated['outdoor_temperature_feel'] ?? null,
+                'indoor_temperature_feel' => $validated['indoor_temperature_feel'] ?? null,
+                'overall_rating' => $validated['overall_rating'] ?? null,
+                'feedback_tags' => WearLogFeedbackSupport::normalizeFeedbackTags($validated['feedback_tags'] ?? null),
+                'feedback_memo' => $validated['feedback_memo'] ?? null,
             ]);
 
             $this->syncWearLogItems(
@@ -52,6 +58,11 @@ class WearLogService
                 'display_order' => $validated['display_order'],
                 'source_outfit_id' => $validated['source_outfit_id'] ?? null,
                 'memo' => $validated['memo'] ?? null,
+                'outdoor_temperature_feel' => $validated['outdoor_temperature_feel'] ?? null,
+                'indoor_temperature_feel' => $validated['indoor_temperature_feel'] ?? null,
+                'overall_rating' => $validated['overall_rating'] ?? null,
+                'feedback_tags' => WearLogFeedbackSupport::normalizeFeedbackTags($validated['feedback_tags'] ?? null),
+                'feedback_memo' => $validated['feedback_memo'] ?? null,
             ]);
 
             $wearLog->wearLogItems()->delete();
@@ -85,7 +96,17 @@ class WearLogService
             ->whereBetween('event_date', [$startOfMonth->format('Y-m-d'), $endOfMonth->format('Y-m-d')])
             ->orderBy('event_date')
             ->orderBy('display_order')
-            ->get(['id', 'status', 'event_date', 'display_order']);
+            ->get([
+                'id',
+                'status',
+                'event_date',
+                'display_order',
+                'outdoor_temperature_feel',
+                'indoor_temperature_feel',
+                'overall_rating',
+                'feedback_tags',
+                'feedback_memo',
+            ]);
 
         return [
             'month' => $startOfMonth->format('Y-m'),

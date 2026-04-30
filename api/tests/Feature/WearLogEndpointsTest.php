@@ -298,6 +298,7 @@ class WearLogEndpointsTest extends TestCase
             'status' => 'planned',
             'event_date' => '2026-03-05',
             'display_order' => 1,
+            'overall_rating' => 'good',
         ]);
         $second = $this->createWearLog($user, [
             'status' => 'worn',
@@ -342,14 +343,20 @@ class WearLogEndpointsTest extends TestCase
             ->assertJsonPath('days.0.date', '2026-03-05')
             ->assertJsonPath('days.0.plannedCount', 2)
             ->assertJsonPath('days.0.wornCount', 2)
+            ->assertJsonPath('days.0.has_feedback', true)
             ->assertJsonCount(3, 'days.0.dots')
             ->assertJsonPath('days.0.dots.0.status', $first->status)
+            ->assertJsonPath('days.0.dots.0.has_feedback', true)
             ->assertJsonPath('days.0.dots.1.status', $second->status)
+            ->assertJsonPath('days.0.dots.1.has_feedback', false)
             ->assertJsonPath('days.0.dots.2.status', $third->status)
+            ->assertJsonPath('days.0.dots.2.has_feedback', false)
             ->assertJsonPath('days.0.overflowCount', 1)
             ->assertJsonPath('days.1.date', '2026-03-10')
             ->assertJsonPath('days.1.plannedCount', 1)
             ->assertJsonPath('days.1.wornCount', 0)
+            ->assertJsonPath('days.1.has_feedback', false)
+            ->assertJsonPath('days.1.dots.0.has_feedback', false)
             ->assertJsonPath('days.1.overflowCount', 0);
     }
 
@@ -383,6 +390,10 @@ class WearLogEndpointsTest extends TestCase
             'display_order' => 2,
             'source_outfit_id' => null,
             'memo' => '2件目',
+            'outdoor_temperature_feel' => 'slightly_cold',
+            'indoor_temperature_feel' => 'comfortable',
+            'overall_rating' => 'good',
+            'feedback_tags' => ['temperature_gap_ready', 'morning_hot', 'rain_problem'],
         ]);
         $later->wearLogItems()->createMany([
             [
@@ -439,6 +450,11 @@ class WearLogEndpointsTest extends TestCase
             ->assertJsonPath('wearLogs.1.source_outfit_name', null)
             ->assertJsonPath('wearLogs.1.items_count', 2)
             ->assertJsonPath('wearLogs.1.memo', '2件目')
+            ->assertJsonPath('wearLogs.1.outdoor_temperature_feel', 'slightly_cold')
+            ->assertJsonPath('wearLogs.1.indoor_temperature_feel', 'comfortable')
+            ->assertJsonPath('wearLogs.1.overall_rating', 'good')
+            ->assertJsonPath('wearLogs.1.feedback_tags.0', 'temperature_gap_ready')
+            ->assertJsonPath('wearLogs.1.feedback_tags.1', 'morning_hot')
             ->assertJsonCount(2, 'wearLogs.1.thumbnail_items')
             ->assertJsonPath('wearLogs.1.thumbnail_items.0.category', 'tops')
             ->assertJsonPath('wearLogs.1.thumbnail_items.0.sort_order', 1)
@@ -620,6 +636,60 @@ class WearLogEndpointsTest extends TestCase
         $response->assertCreated()
             ->assertJsonPath('wearLog.items.0.source_item_id', $item->id)
             ->assertJsonPath('wearLog.items.0.item_source_type', 'manual');
+    }
+
+    public function test_post_wear_log_can_create_with_feedback_fields_and_normalizes_tags(): void
+    {
+        $user = User::factory()->create();
+        $item = $this->createItem($user);
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $response = $this->postJson('/api/wear-logs', [
+            'status' => 'worn',
+            'event_date' => '2026-03-24',
+            'display_order' => 1,
+            'source_outfit_id' => null,
+            'memo' => 'feedback included',
+            'outdoor_temperature_feel' => 'comfortable',
+            'indoor_temperature_feel' => 'slightly_cold',
+            'overall_rating' => 'good',
+            'feedback_tags' => ['rain_ready', 'comfortable_all_day', 'morning_hot', 'day_cold', 'night_hot', 'rain_ready'],
+            'feedback_memo' => '夜は少し冷えた',
+            'items' => [
+                [
+                    'source_item_id' => $item->id,
+                    'sort_order' => 1,
+                    'item_source_type' => 'manual',
+                ],
+            ],
+        ], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('wearLog.outdoor_temperature_feel', 'comfortable')
+            ->assertJsonPath('wearLog.indoor_temperature_feel', 'slightly_cold')
+            ->assertJsonPath('wearLog.overall_rating', 'good')
+            ->assertJsonPath('wearLog.feedback_tags.0', 'rain_ready')
+            ->assertJsonPath('wearLog.feedback_tags.1', 'comfortable_all_day')
+            ->assertJsonPath('wearLog.feedback_tags.2', 'morning_hot')
+            ->assertJsonPath('wearLog.feedback_tags.3', 'day_cold')
+            ->assertJsonPath('wearLog.feedback_tags.4', 'night_hot')
+            ->assertJsonPath('wearLog.feedback_memo', '夜は少し冷えた');
+
+        $this->assertDatabaseHas('wear_logs', [
+            'user_id' => $user->id,
+            'outdoor_temperature_feel' => 'comfortable',
+            'indoor_temperature_feel' => 'slightly_cold',
+            'overall_rating' => 'good',
+            'feedback_memo' => '夜は少し冷えた',
+        ]);
+
+        $wearLog = WearLog::query()->where('user_id', $user->id)->latest('id')->firstOrFail();
+        $this->assertSame(['rain_ready', 'comfortable_all_day', 'morning_hot', 'day_cold', 'night_hot'], $wearLog->feedback_tags);
     }
 
     public function test_post_wear_log_can_create_with_outfit_and_items(): void
@@ -881,6 +951,43 @@ class WearLogEndpointsTest extends TestCase
             ->assertJsonPath('errors.source_outfit_id.0', '使用できないコーディネートは選択できません。');
     }
 
+    public function test_post_wear_log_returns_422_when_feedback_fields_are_invalid(): void
+    {
+        $user = User::factory()->create();
+        $item = $this->createItem($user);
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $response = $this->postJson('/api/wear-logs', [
+            'status' => 'worn',
+            'event_date' => '2026-03-24',
+            'display_order' => 1,
+            'source_outfit_id' => null,
+            'outdoor_temperature_feel' => 'freezing',
+            'indoor_temperature_feel' => 'slightly_cold',
+            'overall_rating' => 'excellent',
+            'feedback_tags' => ['rain_ready', 'humidity_uncomfortable'],
+            'items' => [
+                [
+                    'source_item_id' => $item->id,
+                    'sort_order' => 1,
+                    'item_source_type' => 'manual',
+                ],
+            ],
+        ], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors([
+                'outdoor_temperature_feel',
+                'overall_rating',
+                'feedback_tags.1',
+            ]);
+    }
+
     public function test_put_wear_log_updates_record(): void
     {
         $user = User::factory()->create();
@@ -921,6 +1028,102 @@ class WearLogEndpointsTest extends TestCase
             ->assertJsonPath('wearLog.status', 'worn')
             ->assertJsonPath('wearLog.event_date', '2026-03-26')
             ->assertJsonPath('wearLog.display_order', 2);
+    }
+
+    public function test_put_wear_log_updates_feedback_fields(): void
+    {
+        $user = User::factory()->create();
+        $item = $this->createItem($user);
+        $wearLog = $this->createWearLog($user, [
+            'outdoor_temperature_feel' => 'cold',
+            'indoor_temperature_feel' => 'comfortable',
+            'overall_rating' => 'neutral',
+            'feedback_tags' => ['rain_problem'],
+            'feedback_memo' => 'initial memo',
+        ]);
+
+        $wearLog->wearLogItems()->create([
+            'source_item_id' => $item->id,
+            'sort_order' => 1,
+            'item_source_type' => 'manual',
+        ]);
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $response = $this->putJson("/api/wear-logs/{$wearLog->id}", [
+            'status' => 'planned',
+            'event_date' => '2026-03-24',
+            'display_order' => 1,
+            'source_outfit_id' => null,
+            'memo' => 'updated',
+            'outdoor_temperature_feel' => 'slightly_hot',
+            'indoor_temperature_feel' => 'comfortable',
+            'overall_rating' => 'good',
+            'feedback_tags' => ['worked_for_tpo', 'worked_for_tpo', 'color_worked_well'],
+            'feedback_memo' => 'updated memo',
+            'items' => [
+                [
+                    'source_item_id' => $item->id,
+                    'sort_order' => 1,
+                    'item_source_type' => 'manual',
+                ],
+            ],
+        ], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('wearLog.outdoor_temperature_feel', 'slightly_hot')
+            ->assertJsonPath('wearLog.indoor_temperature_feel', 'comfortable')
+            ->assertJsonPath('wearLog.overall_rating', 'good')
+            ->assertJsonPath('wearLog.feedback_tags.0', 'worked_for_tpo')
+            ->assertJsonPath('wearLog.feedback_tags.1', 'color_worked_well')
+            ->assertJsonPath('wearLog.feedback_memo', 'updated memo');
+
+        $wearLog->refresh();
+        $this->assertSame('slightly_hot', $wearLog->outdoor_temperature_feel);
+        $this->assertSame('comfortable', $wearLog->indoor_temperature_feel);
+        $this->assertSame('good', $wearLog->overall_rating);
+        $this->assertSame(['worked_for_tpo', 'color_worked_well'], $wearLog->feedback_tags);
+        $this->assertSame('updated memo', $wearLog->feedback_memo);
+    }
+
+    public function test_get_wear_logs_and_detail_include_feedback_fields(): void
+    {
+        $user = User::factory()->create();
+        $wearLog = $this->createWearLog($user, [
+            'status' => 'worn',
+            'outdoor_temperature_feel' => 'slightly_cold',
+            'indoor_temperature_feel' => 'comfortable',
+            'overall_rating' => 'good',
+            'feedback_tags' => ['comfortable_all_day', 'rain_ready'],
+            'feedback_memo' => '快適だった',
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $listResponse = $this->getJson('/api/wear-logs', [
+            'Accept' => 'application/json',
+        ]);
+
+        $listResponse->assertOk()
+            ->assertJsonPath('wearLogs.0.overall_rating', 'good')
+            ->assertJsonPath('wearLogs.0.feedback_tags.0', 'comfortable_all_day')
+            ->assertJsonPath('wearLogs.0.feedback_tags.1', 'rain_ready');
+
+        $detailResponse = $this->getJson("/api/wear-logs/{$wearLog->id}", [
+            'Accept' => 'application/json',
+        ]);
+
+        $detailResponse->assertOk()
+            ->assertJsonPath('wearLog.outdoor_temperature_feel', 'slightly_cold')
+            ->assertJsonPath('wearLog.indoor_temperature_feel', 'comfortable')
+            ->assertJsonPath('wearLog.overall_rating', 'good')
+            ->assertJsonPath('wearLog.feedback_tags.0', 'comfortable_all_day')
+            ->assertJsonPath('wearLog.feedback_tags.1', 'rain_ready')
+            ->assertJsonPath('wearLog.feedback_memo', '快適だった');
     }
 
     public function test_put_wear_log_can_update_with_outfit_only_and_materialize_wear_log_items(): void

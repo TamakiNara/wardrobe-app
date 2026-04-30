@@ -233,6 +233,11 @@ class ImportService
                         'display_order' => $wearLogPayload['display_order'],
                         'source_outfit_id' => $mappedSourceOutfitId,
                         'memo' => $wearLogPayload['memo'] ?? null,
+                        'outdoor_temperature_feel' => $wearLogPayload['outdoor_temperature_feel'] ?? null,
+                        'indoor_temperature_feel' => $wearLogPayload['indoor_temperature_feel'] ?? null,
+                        'overall_rating' => $wearLogPayload['overall_rating'] ?? null,
+                        'feedback_tags' => $wearLogPayload['feedback_tags'] ?? null,
+                        'feedback_memo' => $wearLogPayload['feedback_memo'] ?? null,
                     ]);
 
                     if ($mappedItems !== []) {

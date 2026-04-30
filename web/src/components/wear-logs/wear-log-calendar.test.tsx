@@ -82,6 +82,15 @@ describe("WearLogCalendar", () => {
           source_outfit_name: "春コーデ",
           items_count: 2,
           memo: "メモあり",
+          outdoor_temperature_feel: "slightly_cold",
+          indoor_temperature_feel: "comfortable",
+          overall_rating: "good",
+          feedback_tags: [
+            "temperature_gap_ready",
+            "morning_hot",
+            "rain_problem",
+          ],
+          feedback_memo: "振り返りメモ",
           thumbnail_items: [
             {
               source_item_id: 1,
@@ -111,10 +120,11 @@ describe("WearLogCalendar", () => {
               plannedCount: 1,
               wornCount: 1,
               dots: [
-                { status: "planned" },
-                { status: "worn" },
-                { status: "planned" },
+                { status: "planned", has_feedback: false },
+                { status: "worn", has_feedback: true },
+                { status: "planned", has_feedback: true },
               ],
+              has_feedback: true,
               overflowCount: 1,
             },
           ],
@@ -130,6 +140,13 @@ describe("WearLogCalendar", () => {
     expect(container.textContent).not.toContain("日曜");
     expect(container.textContent).toContain("2026年3月");
     expect(container.textContent).toContain("+1");
+    expect(
+      container.querySelector('[aria-label="着用済み・振り返りあり"]'),
+    ).not.toBeNull();
+    expect(
+      container.querySelector('[aria-label="予定・振り返りあり"]'),
+    ).not.toBeNull();
+    expect(container.querySelector('[aria-label="振り返りあり"]')).toBeNull();
 
     const dayButton = findDayButton(container, "2026-03-05");
 
@@ -144,6 +161,17 @@ describe("WearLogCalendar", () => {
     expect(container.textContent).toContain("日付詳細");
     expect(container.textContent).toContain("春コーデ");
     expect(container.textContent).toContain("メモあり");
+    expect(container.textContent).toContain("総合評価");
+    expect(container.textContent).toContain("よかった");
+    expect(container.textContent).toContain("屋外 少し寒い");
+    expect(container.textContent).toContain("屋内 ちょうどいい");
+    expect(container.textContent).toContain("寒暖差に対応できた");
+    expect(container.textContent).toContain("朝暑い");
+    expect(container.textContent).toContain("雨で困った");
+    expect(container.textContent).not.toContain("振り返りメモ");
+    expect(container.textContent!.indexOf("よかった")).toBeLessThan(
+      container.textContent!.indexOf("屋外 少し寒い"),
+    );
     expect(container.innerHTML).toContain('href="/wear-logs/11"');
     expect(container.innerHTML).toContain("wear-log-modal-color-thumbnail");
   });
@@ -218,9 +246,68 @@ describe("WearLogCalendar", () => {
           days: [
             {
               date: "2026-03-05",
+              plannedCount: 2,
+              wornCount: 2,
+              dots: [
+                { status: "planned", has_feedback: false },
+                { status: "worn", has_feedback: false },
+                { status: "planned", has_feedback: true },
+                { status: "worn", has_feedback: true },
+              ],
+              has_feedback: true,
+              overflowCount: 1,
+            },
+          ],
+        }),
+      );
+      await waitForEffects();
+    });
+
+    const dayButton = findDayButton(container, "2026-03-05");
+    const plannedDot = dayButton?.querySelector<HTMLSpanElement>(
+      'span[data-marker-kind="dot-outline"][data-status="planned"][data-feedback="false"]',
+    );
+    const wornDot = dayButton?.querySelector<HTMLSpanElement>(
+      'span[data-marker-kind="dot-filled"][data-status="worn"][data-feedback="false"]',
+    );
+    const plannedFeedbackMarker = dayButton?.querySelector<HTMLSpanElement>(
+      'span[data-marker-kind="circle-check"][data-status="planned"][data-feedback="true"]',
+    );
+    const wornFeedbackMarker = dayButton?.querySelector<HTMLSpanElement>(
+      'span[data-marker-kind="check-filled"][data-status="worn"][data-feedback="true"]',
+    );
+
+    expect(plannedDot).not.toBeNull();
+    expect(wornDot).not.toBeNull();
+    expect(plannedFeedbackMarker).not.toBeNull();
+    expect(wornFeedbackMarker).not.toBeNull();
+    expect(plannedFeedbackMarker?.querySelector("svg")).not.toBeNull();
+    expect(wornFeedbackMarker?.querySelector("svg")).not.toBeNull();
+    expect(
+      container.querySelector('[aria-label="予定・振り返りあり"]'),
+    ).not.toBeNull();
+    expect(
+      container.querySelector('[aria-label="着用済み・振り返りあり"]'),
+    ).not.toBeNull();
+    expect(container.querySelector('[aria-label="振り返りあり"]')).toBeNull();
+    expect(container.textContent).toContain("+1");
+  });
+
+  it("振り返りなしの着用履歴ではカレンダーセルに印を出さない", async () => {
+    const { default: WearLogCalendar } = await import("./wear-log-calendar");
+
+    await act(async () => {
+      root.render(
+        React.createElement(WearLogCalendar, {
+          month: "2026-03",
+          weekStart: "monday",
+          days: [
+            {
+              date: "2026-03-06",
               plannedCount: 1,
-              wornCount: 1,
-              dots: [{ status: "planned" }, { status: "worn" }],
+              wornCount: 0,
+              dots: [{ status: "planned", has_feedback: false }],
+              has_feedback: false,
               overflowCount: 0,
             },
           ],
@@ -229,18 +316,10 @@ describe("WearLogCalendar", () => {
       await waitForEffects();
     });
 
-    const plannedDot = container.querySelector<HTMLSpanElement>(
-      'button[data-date="2026-03-05"] span[data-status="planned"]',
-    );
-    const wornDot = container.querySelector<HTMLSpanElement>(
-      'button[data-date="2026-03-05"] span[data-status="worn"]',
-    );
+    const dayButton = findDayButton(container, "2026-03-06");
 
-    expect(plannedDot?.className).toContain("border-blue-300");
-    expect(plannedDot?.className).toContain("bg-white");
-    expect(plannedDot?.className).toContain("h-3.5");
-    expect(wornDot?.className).toContain("bg-blue-600");
-    expect(wornDot?.className).toContain("h-3.5");
+    expect(dayButton?.querySelector('[aria-label="振り返りあり"]')).toBeNull();
+    expect(dayButton?.querySelector('[aria-label="予定"]')).not.toBeNull();
   });
 
   it("今日と選択状態を表示できる", async () => {

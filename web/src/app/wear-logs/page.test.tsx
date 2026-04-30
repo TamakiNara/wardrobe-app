@@ -88,6 +88,8 @@ describe("WearLogsPage", () => {
               source_outfit_status: "active",
               has_disposed_items: false,
               memo: "メモあり",
+              overall_rating: "good",
+              feedback_tags: ["comfortable_all_day", "rain_problem"],
               items_count: 2,
               thumbnail_items: [
                 {
@@ -140,6 +142,7 @@ describe("WearLogsPage", () => {
     ).toBe(false);
     expect(markup).toContain("春コーデ");
     expect(markup).toContain("wear-log-color-thumbnail");
+    expect(markup).toContain("総合評価:");
     expect(markup).toContain('href="/wear-logs/1"');
   });
 
@@ -249,6 +252,8 @@ describe("WearLogsPage", () => {
               source_outfit_status: null,
               has_disposed_items: false,
               memo: null,
+              overall_rating: null,
+              feedback_tags: [],
               items_count: 1,
               thumbnail_items: [],
             },

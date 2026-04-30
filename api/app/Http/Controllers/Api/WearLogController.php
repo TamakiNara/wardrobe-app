@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Services\WearLogs\WearLogService;
+use App\Support\WearLogFeedbackSupport;
 use App\Support\WearLogPayloadBuilder;
 use App\Support\WearLogsIndexQuery;
 use Illuminate\Http\JsonResponse;
@@ -90,6 +91,12 @@ class WearLogController extends Controller
             'display_order' => ['required', 'integer', 'min:1'],
             'source_outfit_id' => ['nullable', 'integer'],
             'memo' => ['nullable', 'string'],
+            'outdoor_temperature_feel' => ['nullable', 'string', 'in:'.implode(',', WearLogFeedbackSupport::TEMPERATURE_FEELS)],
+            'indoor_temperature_feel' => ['nullable', 'string', 'in:'.implode(',', WearLogFeedbackSupport::TEMPERATURE_FEELS)],
+            'overall_rating' => ['nullable', 'string', 'in:'.implode(',', WearLogFeedbackSupport::OVERALL_RATINGS)],
+            'feedback_tags' => ['nullable', 'array'],
+            'feedback_tags.*' => ['required', 'string', 'in:'.implode(',', WearLogFeedbackSupport::FEEDBACK_TAGS)],
+            'feedback_memo' => ['nullable', 'string'],
             'items' => ['present', 'array'],
             'items.*.source_item_id' => ['required', 'integer'],
             'items.*.sort_order' => ['required', 'integer', 'min:1'],

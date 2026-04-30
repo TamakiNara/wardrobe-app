@@ -206,6 +206,11 @@ class ExportService
             'display_order' => $wearLog->display_order,
             'source_outfit_id' => $wearLog->source_outfit_id,
             'memo' => $wearLog->memo,
+            'outdoor_temperature_feel' => $wearLog->outdoor_temperature_feel,
+            'indoor_temperature_feel' => $wearLog->indoor_temperature_feel,
+            'overall_rating' => $wearLog->overall_rating,
+            'feedback_tags' => $wearLog->feedback_tags,
+            'feedback_memo' => $wearLog->feedback_memo,
             'items' => $wearLog->wearLogItems
                 ->sortBy('sort_order')
                 ->values()

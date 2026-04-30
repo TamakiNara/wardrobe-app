@@ -2,8 +2,11 @@ import type { ItemCareStatus, ItemStatus } from "@/types/items";
 import type { ItemFormColor } from "@/types/items";
 import type { ItemSpec } from "@/types/items";
 import type {
+  WearLogFeedbackTag,
   WearLogItemSourceType,
+  WearLogOverallRating,
   WearLogRecord,
+  WearLogTemperatureFeel,
   WearLogUpsertPayload,
 } from "@/types/wear-logs";
 
@@ -135,6 +138,11 @@ export function buildWearLogPayload(params: {
   displayOrder: number;
   sourceOutfitId: number | null;
   memo: string;
+  outdoorTemperatureFeel: WearLogTemperatureFeel | null;
+  indoorTemperatureFeel: WearLogTemperatureFeel | null;
+  overallRating: WearLogOverallRating | null;
+  feedbackTags: WearLogFeedbackTag[] | null;
+  feedbackMemo: string;
   selectedItems: SelectedWearLogItem[];
 }): WearLogUpsertPayload {
   return {
@@ -143,6 +151,14 @@ export function buildWearLogPayload(params: {
     display_order: params.displayOrder,
     source_outfit_id: params.sourceOutfitId,
     memo: params.memo,
+    outdoor_temperature_feel: params.outdoorTemperatureFeel,
+    indoor_temperature_feel: params.indoorTemperatureFeel,
+    overall_rating: params.overallRating,
+    feedback_tags:
+      params.feedbackTags && params.feedbackTags.length > 0
+        ? params.feedbackTags
+        : null,
+    feedback_memo: params.feedbackMemo,
     items: params.selectedItems.map((item, index) => ({
       source_item_id: item.sourceItemId,
       sort_order: index + 1,

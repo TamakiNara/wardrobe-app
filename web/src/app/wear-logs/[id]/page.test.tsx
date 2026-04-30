@@ -60,6 +60,24 @@ describe("WearLogDetailPage", () => {
           source_outfit_name: "通勤コーディネート",
           source_outfit_status: "invalid",
           memo: "既存記録の確認",
+          outdoor_temperature_feel: "slightly_cold",
+          indoor_temperature_feel: "comfortable",
+          overall_rating: "good",
+          feedback_tags: [
+            "comfortable_all_day",
+            "worked_for_tpo",
+            "color_worked_well",
+            "mood_matched",
+            "morning_hot",
+            "day_cold",
+            "night_hot",
+            "rain_problem",
+            "too_casual",
+            "mood_mismatch",
+            "humidity_uncomfortable",
+            "unknown_tag",
+          ],
+          feedback_memo: "冷房は問題なかった",
           created_at: "2026-03-24T09:00:00Z",
           updated_at: "2026-03-24T10:00:00Z",
           items: [
@@ -118,6 +136,32 @@ describe("WearLogDetailPage", () => {
     expect(markup).toContain("参照コーディネート");
     expect(markup).toContain("手動追加");
     expect(markup).not.toContain(">元のコーディネート<");
+    expect(markup).toContain("服装の振り返り");
+    expect(markup).toContain("総合評価");
+    expect(markup).toContain("屋外");
+    expect(markup).toContain("屋内");
+    expect(markup).toContain("よかったこと");
+    expect(markup).toContain("気になったこと");
+    expect(markup).not.toContain("気になった点");
+    expect(markup).toContain("TPOに合っていた");
+    expect(markup).toContain("色合わせがよかった");
+    expect(markup).toContain("気分に合っていた");
+    expect(markup).toContain("朝暑い");
+    expect(markup).toContain("昼寒い");
+    expect(markup).toContain("夜暑い");
+    expect(markup.indexOf("気になったこと")).toBeLessThan(
+      markup.indexOf("朝暑い"),
+    );
+    expect(markup).toContain("カジュアルすぎた");
+    expect(markup).toContain("気分と合わなかった");
+    expect(markup).not.toContain("湿気で不快");
+    expect(markup).not.toContain("unknown_tag");
+    expect(markup).not.toContain(
+      'class="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-sm text-amber-800"></span>',
+    );
+    expect(markup.indexOf("総合評価")).toBeLessThan(markup.indexOf("屋外"));
+    expect(markup.indexOf("屋外")).toBeLessThan(markup.indexOf("屋内"));
+    expect(markup).toContain("フィードバックメモ");
     expect(markup).toContain('href="/wear-logs/12/edit"');
     expect(markup).toContain('href="/wear-logs"');
     expect(markup).toContain(
@@ -127,5 +171,39 @@ describe("WearLogDetailPage", () => {
     expect(markup).not.toContain("wear-log-color-thumbnail");
     expect(markup).not.toContain("wear-log-modal-color-thumbnail");
     expect(markup).not.toContain("wear-log-form:");
+  });
+
+  it("振り返りが未入力ならセクションを表示しない", async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        wearLog: {
+          id: 15,
+          status: "planned",
+          event_date: "2026-03-25",
+          display_order: 1,
+          source_outfit_id: null,
+          source_outfit_name: null,
+          source_outfit_status: null,
+          memo: "",
+          outdoor_temperature_feel: null,
+          indoor_temperature_feel: null,
+          overall_rating: null,
+          feedback_tags: [],
+          feedback_memo: null,
+          created_at: "2026-03-25T09:00:00Z",
+          updated_at: "2026-03-25T09:00:00Z",
+          items: [],
+        },
+      }),
+    });
+
+    const { default: WearLogDetailPage } = await import("./page");
+    const markup = renderToStaticMarkup(
+      await WearLogDetailPage({ params: Promise.resolve({ id: "15" }) }),
+    );
+
+    expect(markup).not.toContain("服装の振り返り");
   });
 });

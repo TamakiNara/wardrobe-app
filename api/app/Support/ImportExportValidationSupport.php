@@ -172,7 +172,7 @@ class ImportExportValidationSupport
      */
     public static function validateOutfitPayload(array $payload): array
     {
-        return Validator::make($payload, [
+        $validated = Validator::make($payload, [
             'id' => ['nullable', 'integer'],
             'status' => ['nullable', 'string', 'in:active,invalid'],
             'name' => ['nullable', 'string', 'max:255'],
@@ -187,6 +187,12 @@ class ImportExportValidationSupport
             'outfit_items.*.item_id' => ['required', 'integer'],
             'outfit_items.*.sort_order' => ['required', 'integer', 'min:1'],
         ])->validate();
+
+        $validated['feedback_tags'] = WearLogFeedbackSupport::normalizeFeedbackTags(
+            $validated['feedback_tags'] ?? null,
+        );
+
+        return $validated;
     }
 
     /**
@@ -219,6 +225,12 @@ class ImportExportValidationSupport
             'display_order' => ['required', 'integer', 'min:1'],
             'source_outfit_id' => ['nullable', 'integer'],
             'memo' => ['nullable', 'string'],
+            'outdoor_temperature_feel' => ['nullable', 'string', 'in:'.implode(',', WearLogFeedbackSupport::TEMPERATURE_FEELS)],
+            'indoor_temperature_feel' => ['nullable', 'string', 'in:'.implode(',', WearLogFeedbackSupport::TEMPERATURE_FEELS)],
+            'overall_rating' => ['nullable', 'string', 'in:'.implode(',', WearLogFeedbackSupport::OVERALL_RATINGS)],
+            'feedback_tags' => ['nullable', 'array'],
+            'feedback_tags.*' => ['required', 'string', 'in:'.implode(',', WearLogFeedbackSupport::FEEDBACK_TAGS)],
+            'feedback_memo' => ['nullable', 'string'],
             'items' => ['present', 'array'],
             'items.*.source_item_id' => ['present', 'nullable', 'integer'],
             'items.*.sort_order' => ['required', 'integer', 'min:1'],

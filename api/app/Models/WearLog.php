@@ -18,10 +18,16 @@ class WearLog extends Model
         'display_order',
         'source_outfit_id',
         'memo',
+        'outdoor_temperature_feel',
+        'indoor_temperature_feel',
+        'overall_rating',
+        'feedback_tags',
+        'feedback_memo',
     ];
 
     protected $casts = [
         'event_date' => 'date:Y-m-d',
+        'feedback_tags' => 'array',
     ];
 
     public function user(): BelongsTo
