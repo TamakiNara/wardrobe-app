@@ -150,6 +150,63 @@ describe("NewOutfitPage", () => {
     expect(container.textContent?.match(/必須/g)?.length).toBe(2);
   });
 
+  it("2ページ目にあるアイテムもコーディネートのアイテム候補に表示する", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn()
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => ({
+            items: [
+              {
+                id: 1,
+                name: "白T",
+                category: "tops",
+                shape: "tshirt",
+                colors: [],
+                seasons: [],
+                tpos: [],
+              },
+            ],
+            meta: {
+              lastPage: 2,
+            },
+          }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => ({
+            items: [
+              {
+                id: 276,
+                name: "イージーケアコーデュロイシャツ",
+                category: "tops",
+                shape: "shirt",
+                colors: [],
+                seasons: ["春"],
+                tpos: [],
+              },
+            ],
+            meta: {
+              lastPage: 2,
+            },
+          }),
+        }),
+    );
+
+    const { default: NewOutfitPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(NewOutfitPage));
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain("イージーケアコーデュロイシャツ");
+  });
+
   it("active outfit 由来の duplicate 初期値を反映する", async () => {
     searchParamsValue = "source=duplicate";
     const payload: OutfitDuplicatePayload = {

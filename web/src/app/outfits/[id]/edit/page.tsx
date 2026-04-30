@@ -26,6 +26,7 @@ import {
   fetchUserPreferences,
   fetchUserTpos,
 } from "@/lib/api/settings";
+import { fetchAllPaginatedCandidates } from "@/lib/wear-logs/candidates";
 import type { CreateOutfitPayload } from "@/types/outfits";
 import type { ItemRecord } from "@/types/items";
 import { SEASON_OPTIONS } from "@/lib/master-data/item-attributes";
@@ -95,7 +96,7 @@ export default function EditOutfitPage({
       try {
         const [
           outfitRes,
-          itemsRes,
+          itemsResponse,
           settings,
           tpoResponse,
           preferencesResponse,
@@ -103,15 +104,13 @@ export default function EditOutfitPage({
           fetch(`/api/outfits/${id}`, {
             headers: { Accept: "application/json" },
           }),
-          fetch("/api/items", {
-            headers: { Accept: "application/json" },
-          }),
+          fetchAllPaginatedCandidates<Item, "items">("/api/items", "items"),
           fetchCategoryVisibilitySettings().catch(() => null),
           fetchUserTpos(true).catch(() => ({ tpos: [] as UserTpoRecord[] })),
           fetchUserPreferences().catch(() => ({ preferences: {} })),
         ]);
 
-        if (outfitRes.status === 401 || itemsRes.status === 401) {
+        if (outfitRes.status === 401 || itemsResponse.status === 401) {
           router.push("/login");
           return;
         }
@@ -122,10 +121,10 @@ export default function EditOutfitPage({
         }
 
         const outfitData = await outfitRes.json();
-        const itemsData = await itemsRes.json().catch(() => ({ items: [] }));
 
         const outfit: Outfit = outfitData.outfit;
-        const allItems: Item[] = itemsData.items ?? [];
+        const allItems: Item[] =
+          itemsResponse.status === 200 ? itemsResponse.entries : [];
 
         const outfitItems = (outfit.outfitItems ?? outfit.outfit_items ?? [])
           .slice()

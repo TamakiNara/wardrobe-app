@@ -183,6 +183,103 @@ describe("EditOutfitPage", () => {
     expect(container.textContent?.match(/必須/g)?.length).toBe(2);
   }, 20000);
 
+  it("2ページ目にあるアイテムもコーディネート編集の候補に表示する", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn()
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => ({
+            outfit: {
+              id: 10,
+              name: "通勤コーデ",
+              memo: null,
+              seasons: [],
+              tpos: [],
+              tpo_ids: [],
+              outfitItems: [
+                {
+                  id: 201,
+                  item_id: 1,
+                  sort_order: 0,
+                  item: {
+                    id: 1,
+                    name: "白T",
+                    status: "active",
+                    category: "tops",
+                    shape: "tshirt",
+                    colors: [],
+                    seasons: [],
+                    tpos: [],
+                    tpo_ids: [],
+                  },
+                },
+              ],
+            },
+          }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => ({
+            items: [
+              {
+                id: 1,
+                name: "白T",
+                status: "active",
+                category: "tops",
+                shape: "tshirt",
+                colors: [],
+                seasons: [],
+                tpos: [],
+                tpo_ids: [],
+              },
+            ],
+            meta: {
+              lastPage: 2,
+            },
+          }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => ({
+            items: [
+              {
+                id: 276,
+                name: "イージーケアコーデュロイシャツ",
+                status: "active",
+                category: "tops",
+                shape: "shirt",
+                colors: [],
+                seasons: ["春"],
+                tpos: [],
+                tpo_ids: [],
+              },
+            ],
+            meta: {
+              lastPage: 2,
+            },
+          }),
+        }),
+    );
+
+    const { default: EditOutfitPage } = await import("./page");
+
+    await act(async () => {
+      root.render(
+        React.createElement(EditOutfitPage, {
+          params: Promise.resolve({ id: "10" }),
+        }),
+      );
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain("イージーケアコーデュロイシャツ");
+  });
+
   it("既存構成の disposed item は表示しつつ、このままでは保存できないことを案内する", async () => {
     vi.stubGlobal(
       "fetch",

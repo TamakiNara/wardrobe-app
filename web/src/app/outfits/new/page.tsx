@@ -26,6 +26,7 @@ import {
   fetchUserPreferences,
   fetchUserTpos,
 } from "@/lib/api/settings";
+import { fetchAllPaginatedCandidates } from "@/lib/wear-logs/candidates";
 import {
   clearOutfitDuplicatePayload,
   loadOutfitDuplicatePayload,
@@ -88,41 +89,30 @@ export default function NewOutfitPage() {
       setLoadingItems(true);
 
       try {
-        const [res, settings, tpoResponse, preferencesResponse] =
+        const [itemsResponse, settings, tpoResponse, preferencesResponse] =
           await Promise.all([
-            fetch("/api/items", {
-              headers: {
-                Accept: "application/json",
-              },
-            }),
+            fetchAllPaginatedCandidates<Item, "items">("/api/items", "items"),
             fetchCategoryVisibilitySettings().catch(() => null),
             fetchUserTpos(true).catch(() => ({ tpos: [] as UserTpoRecord[] })),
             fetchUserPreferences().catch(() => ({ preferences: {} })),
           ]);
 
-        if (res.status === 401) {
+        if (itemsResponse.status === 401) {
           router.push("/login");
           return;
         }
 
-        const data = await res.json().catch(() => null);
-
-        if (!res.ok) {
-          setSubmitError(
-            getUserFacingSubmitErrorMessage(
-              data,
-              OUTFIT_ITEMS_LOAD_ERROR_MESSAGE,
-            ),
-          );
+        if (itemsResponse.status !== 200) {
+          setSubmitError(OUTFIT_ITEMS_LOAD_ERROR_MESSAGE);
           return;
         }
 
         const visibleCategoryIds = settings?.visibleCategoryIds;
         const nextItems = visibleCategoryIds
-          ? (data?.items ?? []).filter((item: Item) =>
+          ? itemsResponse.entries.filter((item: Item) =>
               isItemVisibleByCategorySettings(item, visibleCategoryIds),
             )
-          : (data?.items ?? []);
+          : itemsResponse.entries;
 
         setItems(nextItems);
         setTpoOptions(tpoResponse.tpos);
