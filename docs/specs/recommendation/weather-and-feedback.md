@@ -367,6 +367,352 @@ MVP の初期判断としては **案A 寄り**です。
 
 ただし、命名は将来分離可能な粒度を意識します。
 
+### wear_logs 直持ち案の詳細整理
+
+初期実装では、服装フィードバックは `wear_logs` に直接持つ案を第一候補とします。
+
+理由:
+
+- 1 wear log = 1日の着用振り返り、という粒度に合う
+- 既存の着用履歴登録 / 編集 / 詳細導線へ自然に載せやすい
+- backup / restore、OpenAPI、一覧 / 詳細の組み込みが比較的軽い
+- MVP 段階では、フィードバックだけを独立更新・集計する要求がまだ強くない
+
+許容するトレードオフ:
+
+- `wear_logs` はやや太くなる
+- 将来、評価履歴のバージョン管理や複数回振り返りをしたくなると窮屈
+
+現時点の推奨:
+
+- まずは `wear_logs` 直持ちで入れる
+- ただし、物理名・論理名・enum 値は将来 `wear_log_feedbacks` へ切り出しても意味が崩れないようにする
+
+### 追加カラム案
+
+#### `outdoor_temperature_feel`
+
+- 論理名: 屋外の温度感
+- 意味:
+  - 外を歩いたとき、移動中、屋外滞在時に寒かったか・暑かったか
+- 型候補:
+  - nullable string enum
+
+#### `indoor_temperature_feel`
+
+- 論理名: 屋内の温度感
+- 意味:
+  - 室内、職場、店舗、電車内などで寒かったか・暑かったか
+- 型候補:
+  - nullable string enum
+
+#### `overall_rating`
+
+- 論理名: 総合評価
+- 意味:
+  - その日の服装全体がよかったか、普通か、微妙だったか
+- 型候補:
+  - nullable string enum
+
+#### `feedback_tags`
+
+- 論理名: フィードバックタグ
+- 意味:
+  - その日の服装で気になったこと、失敗したこと、注意点を固定タグで複数記録する
+- 型候補:
+  - nullable JSON array
+
+#### `feedback_memo`
+
+- 論理名: フィードバックメモ
+- 意味:
+  - 固定タグで表現しきれない振り返りを自由記述で残す
+- 型候補:
+  - nullable text
+
+### 温度感 enum 案
+
+`outdoor_temperature_feel` / `indoor_temperature_feel` 共通:
+
+- `cold`
+  - 表示名: 寒い
+- `slightly_cold`
+  - 表示名: 少し寒い
+- `comfortable`
+  - 表示名: ちょうどいい
+- `slightly_hot`
+  - 表示名: 少し暑い
+- `hot`
+  - 表示名: 暑い
+
+評価:
+
+- 内部値は意味が明確で、将来の集計にも使いやすい
+- `comfortable` は「ネガティブではない基準点」として残す価値がある
+
+### 総合評価 enum 案
+
+- `good`
+  - 表示名: よかった
+- `neutral`
+  - 表示名: 普通
+- `bad`
+  - 表示名: 微妙
+
+評価:
+
+- MVP として十分軽い
+- 点数化せずにおすすめ候補の基礎スコアへ変換しやすい
+
+### feedback_tags 定義案
+
+#### 時間帯
+
+- `morning_cold`
+  - 表示名: 朝寒い
+  - 意味: 朝の移動・外出時に寒かった
+- `day_cold`
+  - 表示名: 昼寒い
+  - 意味: 日中に寒かった
+- `night_cold`
+  - 表示名: 夜寒い
+  - 意味: 夜の帰宅時などに寒かった
+- `morning_hot`
+  - 表示名: 朝暑い
+  - 意味: 朝から暑かった
+- `day_hot`
+  - 表示名: 昼暑い
+  - 意味: 日中に暑かった
+- `night_hot`
+  - 表示名: 夜暑い
+  - 意味: 夜でも暑かった
+
+#### 天気・環境
+
+- `rain_problem`
+  - 表示名: 雨で困った
+  - 意味: 雨で靴・裾・アウターなどに問題があった
+- `wind_problem`
+  - 表示名: 風で困った
+  - 意味: 風で寒い、スカートが扱いづらい、髪型や服装が崩れたなど
+- `humidity_uncomfortable`
+  - 表示名: 湿気で不快
+  - 意味: 湿気や蒸し暑さで不快だった
+- `aircon_cold`
+  - 表示名: 冷房で寒かった
+  - 意味: 室内や電車内の冷房で寒かった
+- `heating_hot`
+  - 表示名: 暖房で暑かった
+  - 意味: 暖房で暑く感じた
+
+#### 着心地・動きやすさ
+
+- `hard_to_move`
+  - 表示名: 動きにくかった
+  - 意味: 腕・肩・腰回りなどの可動域が狭かった
+- `hard_to_walk`
+  - 表示名: 歩きにくかった
+  - 意味: 靴・ボトムス・丈などにより歩きにくかった
+- `tightness`
+  - 表示名: 締め付けが気になった
+  - 意味: ウエスト、胸周り、袖、靴などの締め付けが気になった
+- `sheerness_problem`
+  - 表示名: 透け感が気になった
+  - 意味: 透け感が想定より気になった
+- `itchy`
+  - 表示名: チクチクした
+  - 意味: 素材や縫い目が肌に当たって気になった
+
+#### TPO・見た目
+
+- `tpo_mismatch`
+  - 表示名: TPOに合わなかった
+  - 意味: 仕事・外出・場面に対して服装が合わなかった
+- `too_formal`
+  - 表示名: きちんとしすぎた
+  - 意味: 場面に対してフォーマルすぎた
+- `too_casual`
+  - 表示名: カジュアルすぎた
+  - 意味: 場面に対してカジュアルすぎた
+- `color_mismatch`
+  - 表示名: 色合わせが微妙だった
+  - 意味: 色の組み合わせがしっくりこなかった
+- `mood_mismatch`
+  - 表示名: 気分に合わなかった
+  - 意味: その日の気分や雰囲気に合わなかった
+
+評価:
+
+- 内部値は snake_case に統一する
+- 表示名はネガティブ情報中心にして、選ぶ負荷を軽くする
+- カテゴリ分けは UI 表示用であり、保存時は単一配列で十分
+
+### validation 方針
+
+#### enum 系
+
+- `outdoor_temperature_feel`
+  - nullable
+  - 許可値は 5 値のみ
+- `indoor_temperature_feel`
+  - nullable
+  - 許可値は 5 値のみ
+- `overall_rating`
+  - nullable
+  - 許可値は 3 値のみ
+
+#### `feedback_tags`
+
+- nullable array
+- 要素は string
+- 許可値は定義済みタグのみ
+- 重複タグは不可、または保存前に normalize で一意化
+
+推奨:
+
+- API validation では `distinct` と allow-list を併用する
+- 返却順は UI カテゴリ順を維持できると見やすいが、保存上は単純配列でよい
+
+### 別テーブル化の将来余地
+
+将来 `wear_log_feedbacks` へ切り出したくなる兆候:
+
+- 同じ wear log に複数回の振り返りを持ちたい
+- フィードバックだけを独立更新・監査したい
+- タグや温度感を別軸で大量集計したい
+- 天気情報とフィードバックを明確に別 API で更新したい
+
+ただし MVP では、そこまでの要件はまだ強くないため後回しでよいです。
+
+### UI 案
+
+セクション名候補:
+
+- `服装の振り返り`
+- `着心地・振り返り`
+
+推奨は `服装の振り返り` です。意味が広く、TPO や見た目も含めやすいためです。
+
+入力方法:
+
+- 屋外の温度感
+  - chip / segmented button
+- 屋内の温度感
+  - chip / segmented button
+- 総合評価
+  - chip / segmented button
+- フィードバックタグ
+  - カテゴリごとの複数選択 chip
+- フィードバックメモ
+  - 任意 textarea
+
+入力負荷を下げる案:
+
+- 温度感と総合評価は常時表示
+- タグ群は `気になったことを記録する` 配下で展開
+- タグカテゴリ自体も必要なら折りたたみ可能にする
+
+推奨:
+
+- 初期表示は軽く保つ
+- ただし「隠しすぎて存在に気づけない」は避ける
+- そのため、温度感 / 総合評価は常時表示、タグ群だけ段階表示がよい
+
+### 表示方針
+
+#### 着用履歴詳細
+
+表示候補:
+
+- 屋外の温度感
+- 屋内の温度感
+- 総合評価
+- フィードバックタグ全件
+- フィードバックメモ
+
+推奨:
+
+- すべて表示
+
+#### 着用履歴一覧
+
+表示候補:
+
+- 総合評価
+- 主要タグのみ
+
+推奨:
+
+- 総合評価は 1 つ見せる
+- タグは最大 2〜3 件までの省略表示
+- 温度感は一覧では必須でない
+
+#### カレンダー
+
+MVP:
+
+- 表示しない
+
+将来:
+
+- 評価アイコン程度を検討
+
+### import/export 影響
+
+`wear_logs` 直持ちにする場合、次を backup / restore 対象へ追加する必要があります。
+
+- `outdoor_temperature_feel`
+- `indoor_temperature_feel`
+- `overall_rating`
+- `feedback_tags`
+- `feedback_memo`
+
+利点:
+
+- `wear_logs` レコード内で完結するため、別テーブルを増やすより roundtrip は単純
+
+注意:
+
+- enum 値の allow-list を import validation 側にも揃える
+- `feedback_tags` の unknown 値をどう扱うかは方針統一が必要
+
+### OpenAPI / docs 影響
+
+更新対象見込み:
+
+- wear log create / update request
+- wear log detail response
+- import/export spec
+- wear log spec
+- recommendation / weather planning spec
+
+### seed / test data 影響
+
+影響対象:
+
+- wear log feature tests
+- backup / restore tests
+- 一覧 / 詳細 / 新規 / 編集の frontend tests
+- sample / test user seed の wear log データ
+
+推奨:
+
+- 初期 seed には「フィードバックなし」と「フィードバックあり」を少数混ぜる
+- タグは代表例を 1〜2 件ずつに抑え、過剰に盛り込まない
+
+### 実装タスク分解
+
+1. `wear_logs` 追加カラムの migration 設計
+2. model cast / enum allow-list / validation 追加
+3. create / update / detail API 追加
+4. frontend type 追加
+5. wear log 新規 / 編集フォームへ `服装の振り返り` セクション追加
+6. wear log 詳細表示追加
+7. 一覧への軽量表示追加
+8. import/export 対応
+9. docs / OpenAPI 更新
+10. seed / feature tests / UI tests 更新
+
 ---
 
 ## コーディネート側の適温条件

@@ -10,6 +10,8 @@
 wear logs は、クローゼット系Webアプリにおける **「いつ・何を着たか / 着る予定か」** を記録する機能とする。  
 初期実装範囲では、厳密な監査履歴よりも、**予定管理・振り返り・再利用に実用的であること** を優先する。
 
+天気予報連動や服装フィードバックの拡張設計は、別紙 `docs/specs/recommendation/weather-and-feedback.md` で整理する。
+
 関連資料:
 
 - outfit 仕様: `docs/specs/outfits/create-edit.md`
