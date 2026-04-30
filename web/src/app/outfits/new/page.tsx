@@ -41,6 +41,18 @@ import type { UserTpoRecord } from "@/types/settings";
 
 type Item = ItemRecord;
 
+function getMainColorLabel(item: Item): string | null {
+  const mainColor = item.colors?.[0];
+
+  if (!mainColor) {
+    return null;
+  }
+
+  const customLabel = mainColor.custom_label?.trim();
+
+  return customLabel || mainColor.label;
+}
+
 const OUTFIT_ITEMS_LOAD_ERROR_MESSAGE =
   "アイテム一覧の取得に失敗しました。時間をおいて再度お試しください。";
 const OUTFIT_CREATE_ERROR_MESSAGE =
@@ -599,9 +611,10 @@ export default function NewOutfitPage() {
                   <div className="grid gap-3 md:grid-cols-2">
                     {filteredItems.map((item) => {
                       const checked = selectedItemIds.includes(item.id);
-                      const mainColor = item.colors.find(
-                        (c) => c.role === "main",
-                      );
+                      const mainColor =
+                        item.colors.find((c) => c.role === "main") ??
+                        item.colors[0];
+                      const mainColorLabel = getMainColorLabel(item);
 
                       return (
                         <label
@@ -628,13 +641,13 @@ export default function NewOutfitPage() {
                                 {formatItemClassification(item)}
                               </p>
 
-                              {mainColor && (
+                              {mainColor && mainColorLabel && (
                                 <div className="mt-2 inline-flex items-center gap-2 rounded-full border border-gray-300 px-3 py-1 text-sm">
                                   <span
                                     className="h-4 w-4 rounded-full border border-gray-300"
                                     style={{ backgroundColor: mainColor.hex }}
                                   />
-                                  {mainColor.label}
+                                  {mainColorLabel}
                                 </div>
                               )}
                             </div>

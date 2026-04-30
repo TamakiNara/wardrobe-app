@@ -903,4 +903,66 @@ describe("EditOutfitPage", () => {
 
     expect(container.textContent).toContain("All Season Cardigan");
   });
+  it("カスタムカラーでは custom_label を優先表示する", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn()
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => ({
+            outfit: {
+              id: 10,
+              name: "通勤コーデ",
+              memo: null,
+              seasons: [],
+              tpos: [],
+              tpo_ids: [],
+              outfitItems: [],
+            },
+          }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => ({
+            items: [
+              {
+                id: 276,
+                name: "イージーケアコーデュロイシャツ",
+                status: "active",
+                category: "tops",
+                subcategory: "shirt_blouse",
+                shape: "shirt",
+                colors: [
+                  {
+                    label: "カスタムカラー",
+                    custom_label: "ラベンダー90",
+                    hex: "#c8b3d0",
+                  },
+                ],
+                seasons: ["春"],
+                tpos: [],
+                tpo_ids: [],
+              },
+            ],
+          }),
+        }),
+    );
+
+    const { default: EditOutfitPage } = await import("./page");
+
+    await act(async () => {
+      root.render(
+        React.createElement(EditOutfitPage, {
+          params: Promise.resolve({ id: "10" }),
+        }),
+      );
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain("ラベンダー90");
+    expect(container.textContent).not.toContain("カスタムカラー");
+  });
 });

@@ -53,6 +53,18 @@ type Outfit = {
   outfitItems?: OutfitItem[];
 };
 
+function getMainColorLabel(item: Item): string | null {
+  const mainColor = item.colors?.[0];
+
+  if (!mainColor) {
+    return null;
+  }
+
+  const customLabel = mainColor.custom_label?.trim();
+
+  return customLabel || mainColor.label;
+}
+
 const OUTFIT_UPDATE_ERROR_MESSAGE =
   "コーディネートの更新に失敗しました。時間をおいて再度お試しください。";
 
@@ -600,9 +612,10 @@ export default function EditOutfitPage({
                   <div className="grid gap-3 md:grid-cols-2">
                     {filteredCandidateItems.map((item) => {
                       const checked = selectedItemIds.includes(item.id);
-                      const mainColor = item.colors.find(
-                        (c) => c.role === "main",
-                      );
+                      const mainColor =
+                        item.colors.find((c) => c.role === "main") ??
+                        item.colors[0];
+                      const mainColorLabel = getMainColorLabel(item);
 
                       return (
                         <label
@@ -641,13 +654,13 @@ export default function EditOutfitPage({
                                 </p>
                               )}
 
-                              {mainColor && (
+                              {mainColor && mainColorLabel && (
                                 <div className="mt-2 inline-flex items-center gap-2 rounded-full border border-gray-300 px-3 py-1 text-sm">
                                   <span
                                     className="h-4 w-4 rounded-full border border-gray-300"
                                     style={{ backgroundColor: mainColor.hex }}
                                   />
-                                  {mainColor.label}
+                                  {mainColorLabel}
                                 </div>
                               )}
                             </div>
