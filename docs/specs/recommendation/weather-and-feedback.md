@@ -296,11 +296,8 @@ API 連携を見据えた地域情報の候補:
 
 候補:
 
-- 動きにくかった
-- 歩きにくかった
-- 締め付けが気になった
-- 透け感が気になった
-- チクチクした
+- 現時点では、これらは **コーディネート全体評価より個別 item 評価に向く** ため、`wear_logs.feedback_tags` の主要候補からは外す
+- 将来的には `item_feedbacks` で扱う
 
 ### TPO・見た目タグ
 
@@ -323,6 +320,40 @@ API 連携を見据えた地域情報の候補:
 ### メモ
 
 自由記述メモは任意で保持します。分析の主軸は固定選択肢とし、メモは補助とします。
+
+### 全体評価に残す項目
+
+`wear_logs` に直持ちする全体評価として残す候補:
+
+- `outdoor_temperature_feel`
+- `indoor_temperature_feel`
+- `overall_rating`
+- `feedback_tags`
+- `feedback_memo`
+
+`feedback_tags` に残す全体評価向きタグ:
+
+- `morning_cold`
+- `day_cold`
+- `night_cold`
+- `morning_hot`
+- `day_hot`
+- `night_hot`
+- `rain_problem`
+- `wind_problem`
+- `humidity_uncomfortable`
+- `aircon_cold`
+- `heating_hot`
+- `tpo_mismatch`
+- `too_formal`
+- `too_casual`
+- `color_mismatch`
+- `mood_mismatch`
+
+整理方針:
+
+- その日の服装全体が、気温・天気・TPO・見た目に対してどうだったかは `wear_logs` に残す
+- 「どの item が原因だったか」を主に知りたいタグは `wear_logs` から外し、将来の `item_feedbacks` へ寄せる
 
 ---
 
@@ -367,9 +398,57 @@ MVP の初期判断としては **案A 寄り**です。
 
 ただし、命名は将来分離可能な粒度を意識します。
 
+### 個別 item 評価の保存先再整理
+
+前提:
+
+- 個別 item への評価は、その日限りの一時情報ではなく継続的な評価として蓄積したい
+- 例:
+  - この靴は歩きにくい
+  - このニットはチクチクする
+  - このスカートは動きにくい
+  - このバッグは重い
+
+推奨:
+
+- 個別 item 評価は `wear_log_items` に持たせない
+- 将来的に `item_feedbacks` のような **items 紐づきテーブル** で持つ
+
+想定テーブル案:
+
+#### `item_feedbacks`
+
+- `id`
+- `user_id`
+- `item_id`
+- `wear_log_id` nullable
+- `feedback_date`
+- `feedback_tags`
+- `rating` nullable
+- `memo`
+- `created_at`
+- `updated_at`
+
+ポイント:
+
+- `item_id` は必須
+- `wear_log_id` は nullable
+  - 着用履歴から発生した評価なら `wear_log_id` を持つ
+  - item 詳細から直接追加した評価なら `wear_log_id` は null
+- `feedback_date` を持つ
+- item 詳細で履歴として見られる
+- 将来的に item ごとの統計に使える
+
+この方針により、
+
+- コーディネート全体評価は `wear_logs`
+- 個別 item 評価は `item_feedbacks`
+
+と責務を分ける。
+
 ### wear_logs 直持ち案の詳細整理
 
-初期実装では、服装フィードバックは `wear_logs` に直接持つ案を第一候補とします。
+初期実装では、**コーディネート全体の服装フィードバック** を `wear_logs` に直接持つ案を第一候補とします。
 
 理由:
 
@@ -385,8 +464,9 @@ MVP の初期判断としては **案A 寄り**です。
 
 現時点の推奨:
 
-- まずは `wear_logs` 直持ちで入れる
-- ただし、物理名・論理名・enum 値は将来 `wear_log_feedbacks` へ切り出しても意味が崩れないようにする
+- まずは全体評価を `wear_logs` 直持ちで入れる
+- 個別 item 評価は MVP では入れず、将来の `item_feedbacks` へ回す
+- 物理名・論理名・enum 値は将来の分離後も意味が崩れないようにする
 
 ### 追加カラム案
 
@@ -418,7 +498,7 @@ MVP の初期判断としては **案A 寄り**です。
 
 - 論理名: フィードバックタグ
 - 意味:
-  - その日の服装で気になったこと、失敗したこと、注意点を固定タグで複数記録する
+  - その日の服装全体で気になったこと、失敗したこと、注意点を固定タグで複数記録する
 - 型候補:
   - nullable JSON array
 
@@ -505,24 +585,6 @@ MVP の初期判断としては **案A 寄り**です。
   - 表示名: 暖房で暑かった
   - 意味: 暖房で暑く感じた
 
-#### 着心地・動きやすさ
-
-- `hard_to_move`
-  - 表示名: 動きにくかった
-  - 意味: 腕・肩・腰回りなどの可動域が狭かった
-- `hard_to_walk`
-  - 表示名: 歩きにくかった
-  - 意味: 靴・ボトムス・丈などにより歩きにくかった
-- `tightness`
-  - 表示名: 締め付けが気になった
-  - 意味: ウエスト、胸周り、袖、靴などの締め付けが気になった
-- `sheerness_problem`
-  - 表示名: 透け感が気になった
-  - 意味: 透け感が想定より気になった
-- `itchy`
-  - 表示名: チクチクした
-  - 意味: 素材や縫い目が肌に当たって気になった
-
 #### TPO・見た目
 
 - `tpo_mismatch`
@@ -546,6 +608,34 @@ MVP の初期判断としては **案A 寄り**です。
 - 内部値は snake_case に統一する
 - 表示名はネガティブ情報中心にして、選ぶ負荷を軽くする
 - カテゴリ分けは UI 表示用であり、保存時は単一配列で十分
+- `hard_to_walk` など個別 item 原因を主に表すタグは `wear_logs.feedback_tags` から外す
+
+### 将来の `item_feedbacks` 向きタグ
+
+以下は `wear_logs` ではなく、将来の `item_feedbacks` 向きとして扱う。
+
+- `hard_to_walk`
+  - 表示名: 歩きにくかった
+- `hard_to_move`
+  - 表示名: 動きにくかった
+- `tightness`
+  - 表示名: 締め付けが気になった
+- `sheerness_problem`
+  - 表示名: 透け感が気になった
+- `itchy`
+  - 表示名: チクチクした
+- `heavy`
+  - 表示名: 重かった
+- `slips_off`
+  - 表示名: 脱げやすい / ずれやすい
+- `wrinkles_easily`
+  - 表示名: シワになりやすい
+
+理由:
+
+- 特定の item に起因することが多い
+- 同じ item を別コーデで使った時にも再利用しやすい
+- item 詳細で履歴や傾向として見せやすい
 
 ### validation 方針
 
@@ -584,6 +674,22 @@ MVP の初期判断としては **案A 寄り**です。
 
 ただし MVP では、そこまでの要件はまだ強くないため後回しでよいです。
 
+### wear_log_items の責務整理
+
+`wear_log_items` は、あくまで「その着用履歴に含まれる item 構成」を表すテーブルとする。
+
+責務:
+
+- `wear_log_id`
+- `source_item_id`
+- `item_source_type`
+- `sort_order`
+
+評価:
+
+- 持たない
+- 必要なら将来 `item_feedbacks` を `wear_log_id` 経由で関連づける
+
 ### UI 案
 
 セクション名候補:
@@ -592,6 +698,10 @@ MVP の初期判断としては **案A 寄り**です。
 - `着心地・振り返り`
 
 推奨は `服装の振り返り` です。意味が広く、TPO や見た目も含めやすいためです。
+
+MVP の入力対象:
+
+- コーディネート全体評価のみ
 
 入力方法:
 
@@ -617,6 +727,11 @@ MVP の初期判断としては **案A 寄り**です。
 - 初期表示は軽く保つ
 - ただし「隠しすぎて存在に気づけない」は避ける
 - そのため、温度感 / 総合評価は常時表示、タグ群だけ段階表示がよい
+
+将来案:
+
+- 着用履歴フォームで、着用 item ごとに `気づき` を追加できるようにする
+- ただし MVP では個別 item 評価 UI は入れない
 
 ### 表示方針
 
@@ -676,6 +791,11 @@ MVP:
 - enum 値の allow-list を import validation 側にも揃える
 - `feedback_tags` の unknown 値をどう扱うかは方針統一が必要
 
+将来 `item_feedbacks` を追加した場合:
+
+- 別テーブルとして export/import 対象に加える
+- `wear_log_id` nullable 前提の roundtrip を考慮する
+
 ### OpenAPI / docs 影響
 
 更新対象見込み:
@@ -699,6 +819,7 @@ MVP:
 
 - 初期 seed には「フィードバックなし」と「フィードバックあり」を少数混ぜる
 - タグは代表例を 1〜2 件ずつに抑え、過剰に盛り込まない
+- 個別 item 評価は MVP では seed 不要
 
 ### 実装タスク分解
 
@@ -712,6 +833,10 @@ MVP:
 8. import/export 対応
 9. docs / OpenAPI 更新
 10. seed / feature tests / UI tests 更新
+
+将来タスク:
+
+- `item_feedbacks` の migration / API / UI / import-export / 一覧集計
 
 ---
 
