@@ -111,7 +111,7 @@ Web UI:
   - `location_id`
   - `location_name_snapshot`
   - `forecast_area_code_snapshot`
-  - `weather_condition`
+  - `weather_code`
   - `temperature_high`
   - `temperature_low`
   - `memo`
@@ -165,7 +165,7 @@ Web UI:
 - `weather_records.location_id` は nullable です
   - 保存済み地域は新しい地域 ID へ張り替えます
   - 一時地域は `location_id = null` のまま復元します
-- 不正な `weather_condition` は復元できません
+- 不正な `weather_code` は復元できません
 - `temperature_high < temperature_low` の天気記録は復元できません
 
 着用履歴の参照:
@@ -196,3 +196,11 @@ Web UI:
 
 - `purchase_candidates` では `alternate_size_label` / `alternate_size_note` / `alternate_size_details` も export / import 対象に含める
 - item-draft は引き続き第1候補だけを item 側へ渡す
+
+### weather record の互換
+
+- export は `weather_code` を正として出力します。
+- import も `weather_code` を正として受け付けます。
+- 旧 backup 互換として `weather_condition` があれば読み込み時だけ `weather_code` へ fallback します。
+- `weather_condition=storm` は import 時に `other` へ正規化します。
+- `primary_weather` / `has_rain_possibility` / icon は `weather_code` 定義から導出するため、backup data には保存しません。

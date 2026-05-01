@@ -113,7 +113,7 @@ describe("WearLogCalendar", () => {
           location_name: "川口",
           location_name_snapshot: "川口",
           forecast_area_code_snapshot: "110000",
-          weather_condition: "sunny",
+          weather_code: "sunny",
           temperature_high: 22,
           temperature_low: 13,
           memo: "日中はよく晴れた",
@@ -192,7 +192,7 @@ describe("WearLogCalendar", () => {
       container.textContent!.indexOf("屋外 少し寒い"),
     );
     expect(container.textContent).toContain("川口");
-    expect(container.textContent).toContain("晴れ / 最高22℃ / 最低13℃");
+    expect(container.textContent).toContain("晴れ / 最高 22℃ / 最低 13℃");
     expect(container.textContent).toContain("メモ: 日中はよく晴れた");
     expect(container.textContent).toContain("天気を編集");
     expect(container.innerHTML).toContain('href="/wear-logs/11"');
@@ -496,5 +496,34 @@ describe("WearLogCalendar", () => {
     expect(
       findDayButton(container, "2026-04-30")?.getAttribute("data-today"),
     ).toBe("false");
+  });
+  it("does not render weather icons inside calendar cells", async () => {
+    const { default: WearLogCalendar } = await import("./wear-log-calendar");
+
+    await act(async () => {
+      root.render(
+        React.createElement(WearLogCalendar, {
+          month: "2026-05",
+          weekStart: "monday",
+          days: [
+            {
+              date: "2026-05-03",
+              plannedCount: 0,
+              wornCount: 1,
+              dots: [{ status: "worn", has_feedback: false }],
+              has_feedback: false,
+              overflowCount: 0,
+            },
+          ],
+        }),
+      );
+      await waitForEffects();
+    });
+
+    expect(
+      findDayButton(container, "2026-05-03")?.querySelector(
+        "[data-weather-icon]",
+      ),
+    ).toBeNull();
   });
 });

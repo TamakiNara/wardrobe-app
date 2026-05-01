@@ -1391,3 +1391,14 @@ validation 方針:
 - 屋外 / 屋内の温度感は最初から含める方向がよい
 - 問題があった時間帯や環境をタグで軽く記録できる構造がよい
 - おすすめ機能は MVP 外だが、データ構造は将来利用を前提に設計する
+
+---
+
+## weather_code の整理
+
+- `weather_records` には `weather_code` を保存し、単独天気と複合天気の両方を扱えるようにします。
+- `primary_weather` は表示上の主天気であり、DB には保存しません。
+- `has_rain_possibility` は雨対策候補を示す派生値であり、DB には保存しません。
+- `cloudy_with_occasional_rain` や `sunny_with_occasional_rain` は雨を含んでいても、主天気を自動で `rain` に寄せません。
+- 実際に雨に当たったかどうかは将来の `was_exposed_to_rain` で扱う候補です。
+- MVP の weather_code には `thunder` / `fog` / `windy` / `storm` を入れず、`other` とメモで逃がします。

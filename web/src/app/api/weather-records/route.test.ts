@@ -94,7 +94,7 @@ describe("/api/weather-records route", () => {
       body: JSON.stringify({
         weather_date: "2026-05-01",
         location_id: 1,
-        weather_condition: "sunny",
+        weather_code: "sunny",
       }),
     });
 

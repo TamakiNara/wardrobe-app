@@ -116,7 +116,7 @@ class WeatherEndpointsTest extends TestCase
             'location_id' => $location->id,
             'location_name_snapshot' => '川口',
             'forecast_area_code_snapshot' => '110000',
-            'weather_condition' => 'sunny',
+            'weather_code' => 'sunny',
             'temperature_high' => 22,
             'temperature_low' => 13,
             'memo' => null,
@@ -165,7 +165,7 @@ class WeatherEndpointsTest extends TestCase
         $createFirstResponse = $this->postJson('/api/weather-records', [
             'weather_date' => '2026-04-30',
             'location_id' => $firstLocation->id,
-            'weather_condition' => 'sunny',
+            'weather_code' => 'sunny',
             'temperature_high' => 22.5,
             'temperature_low' => 13.0,
             'memo' => '昼は日差しが強かった',
@@ -183,7 +183,7 @@ class WeatherEndpointsTest extends TestCase
         $createSecondResponse = $this->postJson('/api/weather-records', [
             'weather_date' => '2026-04-30',
             'location_id' => $secondLocation->id,
-            'weather_condition' => 'cloudy',
+            'weather_code' => 'cloudy_then_rain',
             'temperature_high' => null,
             'temperature_low' => 14.5,
             'memo' => null,
@@ -198,7 +198,7 @@ class WeatherEndpointsTest extends TestCase
         $duplicateResponse = $this->postJson('/api/weather-records', [
             'weather_date' => '2026-04-30',
             'location_id' => $firstLocation->id,
-            'weather_condition' => 'rain',
+            'weather_code' => 'rain',
         ], [
             'Accept' => 'application/json',
             'X-CSRF-TOKEN' => $token,
@@ -210,7 +210,7 @@ class WeatherEndpointsTest extends TestCase
         $invalidTemperatureResponse = $this->postJson('/api/weather-records', [
             'weather_date' => '2026-04-29',
             'location_id' => $firstLocation->id,
-            'weather_condition' => 'sunny',
+            'weather_code' => 'sunny',
             'temperature_high' => 10,
             'temperature_low' => 18,
         ], [
@@ -224,14 +224,14 @@ class WeatherEndpointsTest extends TestCase
         $invalidConditionResponse = $this->postJson('/api/weather-records', [
             'weather_date' => '2026-04-29',
             'location_id' => $firstLocation->id,
-            'weather_condition' => 'foggy',
+            'weather_code' => 'storm',
         ], [
             'Accept' => 'application/json',
             'X-CSRF-TOKEN' => $token,
         ]);
 
         $invalidConditionResponse->assertStatus(422)
-            ->assertJsonValidationErrors(['weather_condition']);
+            ->assertJsonValidationErrors(['weather_code']);
 
         $listResponse = $this->getJson('/api/weather-records?date=2026-04-30', [
             'Accept' => 'application/json',
@@ -244,7 +244,7 @@ class WeatherEndpointsTest extends TestCase
 
         $firstRecordId = (int) $createFirstResponse->json('weatherRecord.id');
         $updateResponse = $this->patchJson("/api/weather-records/{$firstRecordId}", [
-            'weather_condition' => 'rain',
+            'weather_code' => 'sunny_with_occasional_rain',
             'temperature_high' => 20,
             'temperature_low' => 12,
             'memo' => '夕方から雨',
@@ -254,7 +254,7 @@ class WeatherEndpointsTest extends TestCase
         ]);
 
         $updateResponse->assertOk()
-            ->assertJsonPath('weatherRecord.weather_condition', 'rain')
+            ->assertJsonPath('weatherRecord.weather_code', 'sunny_with_occasional_rain')
             ->assertJsonPath('weatherRecord.memo', '夕方から雨');
     }
 
@@ -269,7 +269,7 @@ class WeatherEndpointsTest extends TestCase
             'weather_date' => '2026-05-01',
             'location_id' => null,
             'location_name' => '旅行先',
-            'weather_condition' => 'cloudy',
+            'weather_code' => 'cloudy',
             'temperature_high' => 18.5,
             'temperature_low' => 11.0,
             'memo' => '一時的な地域',
@@ -304,7 +304,7 @@ class WeatherEndpointsTest extends TestCase
             'weather_date' => '2026-05-01',
             'location_id' => null,
             'location_name' => '旅行先',
-            'weather_condition' => 'cloudy',
+            'weather_code' => 'cloudy',
         ], [
             'Accept' => 'application/json',
             'X-CSRF-TOKEN' => $token,
@@ -314,7 +314,7 @@ class WeatherEndpointsTest extends TestCase
             'weather_date' => '2026-05-01',
             'location_id' => null,
             'location_name' => '旅行先',
-            'weather_condition' => 'rain',
+            'weather_code' => 'rain',
         ], [
             'Accept' => 'application/json',
             'X-CSRF-TOKEN' => $token,
@@ -336,7 +336,7 @@ class WeatherEndpointsTest extends TestCase
             'location_id' => null,
             'location_name' => '出張先',
             'save_location' => true,
-            'weather_condition' => 'rain',
+            'weather_code' => 'rain_then_cloudy',
         ], [
             'Accept' => 'application/json',
             'X-CSRF-TOKEN' => $token,
@@ -351,5 +351,41 @@ class WeatherEndpointsTest extends TestCase
 
         $response->assertJsonPath('weatherRecord.location_id', $savedLocation->id)
             ->assertJsonPath('weatherRecord.location_name', '出張先');
+    }
+
+    public function test_weather_records_accept_composite_weather_codes(): void
+    {
+        $user = User::factory()->create();
+        $token = $this->issueCsrfToken();
+
+        $location = UserWeatherLocation::query()->create([
+            'user_id' => $user->id,
+            'name' => '川口',
+            'forecast_area_code' => '110000',
+            'latitude' => null,
+            'longitude' => null,
+            'is_default' => true,
+            'display_order' => 1,
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/weather-records', [
+            'weather_date' => '2026-05-02',
+            'location_id' => $location->id,
+            'weather_code' => 'cloudy_with_occasional_rain',
+        ], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('weatherRecord.weather_code', 'cloudy_with_occasional_rain');
+
+        $this->assertDatabaseHas('weather_records', [
+            'user_id' => $user->id,
+            'weather_date' => '2026-05-02',
+            'weather_code' => 'cloudy_with_occasional_rain',
+        ]);
     }
 }

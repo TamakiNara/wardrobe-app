@@ -1,4 +1,16 @@
-export type WeatherCondition = "sunny" | "cloudy" | "rain" | "snow" | "other";
+export type WeatherCode =
+  | "sunny"
+  | "cloudy"
+  | "rain"
+  | "snow"
+  | "other"
+  | "sunny_then_cloudy"
+  | "cloudy_then_sunny"
+  | "cloudy_then_rain"
+  | "rain_then_cloudy"
+  | "sunny_with_occasional_clouds"
+  | "cloudy_with_occasional_rain"
+  | "sunny_with_occasional_rain";
 
 export type WeatherRecord = {
   id: number;
@@ -7,7 +19,7 @@ export type WeatherRecord = {
   location_name: string;
   location_name_snapshot: string;
   forecast_area_code_snapshot: string | null;
-  weather_condition: WeatherCondition;
+  weather_code: WeatherCode;
   temperature_high: number | null;
   temperature_low: number | null;
   memo: string | null;
@@ -32,7 +44,7 @@ export type WeatherRecordUpsertPayload = {
   location_id: number | null;
   location_name?: string | null;
   save_location?: boolean;
-  weather_condition: WeatherCondition;
+  weather_code: WeatherCode;
   temperature_high: number | null;
   temperature_low: number | null;
   memo: string | null;

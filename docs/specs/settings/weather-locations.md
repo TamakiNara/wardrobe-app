@@ -85,3 +85,12 @@ MVP では、既に `weather_records` から参照されている保存済み地
 - 表示名は `川口` のような生活上の地域名でもよい
 - API 連携時は `forecast_area_code` に対応する予報区域を別途選ぶ UI を検討する
 - 将来は `表示名: 川口 / 予報区域: 埼玉県南部 / forecast_area_code: 110010` のように、表示名と予報API用地域コードを分けて扱う余地を残す
+
+---
+
+## weather_code との関係
+
+- `user_weather_locations` は地域設定であり、天気コード自体は保持しません。
+- 単独天気 / 複合天気の選択は `weather_records.weather_code` に保存します。
+- `forecast_area_code` は将来 API 用の地域コードであり、icon や rain possibility とは別概念です。
+- 雨可能性 (`has_rain_possibility`) は保存せず、`weather_code` 定義から導出します。

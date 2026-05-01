@@ -374,7 +374,7 @@ class ImportService
                         'forecast_area_code_snapshot' => $weatherRecordPayload['forecast_area_code_snapshot']
                             ?? $weatherRecordPayload['area_code_snapshot']
                             ?? null,
-                        'weather_condition' => $weatherRecordPayload['weather_condition'],
+                        'weather_code' => $weatherRecordPayload['weather_code'],
                         'temperature_high' => $weatherRecordPayload['temperature_high'] ?? null,
                         'temperature_low' => $weatherRecordPayload['temperature_low'] ?? null,
                         'memo' => $weatherRecordPayload['memo'] ?? null,

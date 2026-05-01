@@ -4983,14 +4983,24 @@ components:
           items:
             $ref: "#/components/schemas/PurchaseCandidateImageRecord"
 
-    WeatherCondition:
+    WeatherCode:
       type: string
+      description: >
+        単独天気と複合天気を含む天気コード。icon、fallback icon、primary weather、
+        has_rain_possibility は保存せず、この code 定義から導出する。
       enum:
         - sunny
         - cloudy
         - rain
         - snow
         - other
+        - sunny_then_cloudy
+        - cloudy_then_sunny
+        - cloudy_then_rain
+        - rain_then_cloudy
+        - sunny_with_occasional_clouds
+        - cloudy_with_occasional_rain
+        - sunny_with_occasional_rain
 
     WeatherSourceType:
       type: string
@@ -5085,7 +5095,7 @@ components:
         - location_id
         - location_name
         - location_name_snapshot
-        - weather_condition
+        - weather_code
         - source_type
         - source_name
       properties:
@@ -5105,8 +5115,8 @@ components:
           type: string
           nullable: true
           description: 保存時点の予報API用地域コード snapshot。MVPでは weather.tsukumijima.net の city code を主対象とする。
-        weather_condition:
-          $ref: "#/components/schemas/WeatherCondition"
+        weather_code:
+          $ref: "#/components/schemas/WeatherCode"
         temperature_high:
           type: number
           nullable: true
@@ -5147,7 +5157,7 @@ components:
       type: object
       required:
         - weather_date
-        - weather_condition
+        - weather_code
       properties:
         weather_date:
           type: string
@@ -5160,8 +5170,8 @@ components:
           nullable: true
         save_location:
           type: boolean
-        weather_condition:
-          $ref: "#/components/schemas/WeatherCondition"
+        weather_code:
+          $ref: "#/components/schemas/WeatherCode"
         temperature_high:
           type: number
           nullable: true

@@ -304,7 +304,7 @@ class ImportExportEndpointsTest extends TestCase
             'location_id' => $weatherLocation->id,
             'location_name_snapshot' => '川口',
             'forecast_area_code_snapshot' => '110000',
-            'weather_condition' => 'sunny',
+            'weather_code' => 'sunny',
             'temperature_high' => 22.5,
             'temperature_low' => 13.0,
             'memo' => '昼は日差しが強かった',
@@ -319,7 +319,7 @@ class ImportExportEndpointsTest extends TestCase
             'location_id' => null,
             'location_name_snapshot' => '旅行先',
             'forecast_area_code_snapshot' => null,
-            'weather_condition' => 'cloudy',
+            'weather_code' => 'cloudy_then_rain',
             'temperature_high' => 20.0,
             'temperature_low' => 12.5,
             'memo' => '一時的な地域',
@@ -374,7 +374,7 @@ class ImportExportEndpointsTest extends TestCase
             ->assertJsonPath('purchase_candidates.0.name', '購入候補シャツ')
             ->assertJsonPath('outfits.0.name', '通勤コーデ')
             ->assertJsonPath('weather_locations.0.name', '川口')
-            ->assertJsonPath('weather_records.0.weather_condition', 'sunny')
+            ->assertJsonPath('weather_records.0.weather_code', 'sunny')
             ->assertJsonPath('weather_records.0.location_name_snapshot', '川口')
             ->assertJsonPath('weather_records.1.location_id', null)
             ->assertJsonPath('weather_records.1.location_name_snapshot', '旅行先')
@@ -522,10 +522,10 @@ class ImportExportEndpointsTest extends TestCase
         $this->assertSame($importedItem->id, $importedCandidate->converted_item_id);
         $this->assertSame($importedItem->id, $importedOutfit->outfitItems->first()?->item_id);
         $this->assertTrue($importedWeatherLocation->is_default);
-        $this->assertSame('sunny', $importedWeatherRecord->weather_condition);
+        $this->assertSame('sunny', $importedWeatherRecord->weather_code);
         $this->assertSame('川口', $importedWeatherRecord->location_name_snapshot);
         $this->assertSame('110000', $importedWeatherRecord->forecast_area_code_snapshot);
-        $this->assertSame('cloudy', $importedTemporaryWeatherRecord->weather_condition);
+        $this->assertSame('cloudy_then_rain', $importedTemporaryWeatherRecord->weather_code);
         $this->assertNull($importedTemporaryWeatherRecord->location_id);
         $this->assertSame('旅行先', $importedTemporaryWeatherRecord->location_name_snapshot);
         $this->assertDatabaseHas('user_brands', [
@@ -1621,5 +1621,41 @@ class ImportExportEndpointsTest extends TestCase
         $this->assertSame('ジャスト', $importedCandidate->alternate_size_note);
         $this->assertSame(64, data_get($importedCandidate->alternate_size_details, 'structured.body_length.value'));
         $this->assertSame('裄丈', data_get($importedCandidate->alternate_size_details, 'custom_fields.0.label'));
+    }
+
+    public function test_import_accepts_legacy_weather_condition_field(): void
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->create();
+        $this->createCategory('tops_shirt_blouse', 'tops', 'シャツ・ブラウス');
+        $this->seedExportSourceData($user);
+
+        $this->actingAs($user, 'web');
+
+        $exportPayload = $this->getJson('/api/export', [
+            'Accept' => 'application/json',
+        ])->assertOk()->json();
+
+        $legacyRecord = $exportPayload['weather_records'][1];
+        unset($legacyRecord['weather_code']);
+        $legacyRecord['weather_condition'] = 'storm';
+        $exportPayload['weather_records'] = [$legacyRecord];
+
+        $token = $this->issueCsrfToken();
+
+        $this->postJson('/api/import', $exportPayload, [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ])->assertOk();
+
+        $importedWeatherRecord = WeatherRecord::query()
+            ->where('user_id', $user->id)
+            ->whereDate('weather_date', $legacyRecord['weather_date'])
+            ->where('location_name_snapshot', $legacyRecord['location_name_snapshot'])
+            ->latest('id')
+            ->firstOrFail();
+
+        $this->assertSame('other', $importedWeatherRecord->weather_code);
     }
 }

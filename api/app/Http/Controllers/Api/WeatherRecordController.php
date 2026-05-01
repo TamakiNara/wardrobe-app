@@ -58,7 +58,7 @@ class WeatherRecordController extends Controller
             'location_id' => $locationId,
             'location_name_snapshot' => $locationNameSnapshot,
             'forecast_area_code_snapshot' => $forecastAreaCodeSnapshot,
-            'weather_condition' => $validated['weather_condition'],
+            'weather_code' => $validated['weather_code'],
             'temperature_high' => $validated['temperature_high'] ?? null,
             'temperature_low' => $validated['temperature_low'] ?? null,
             'memo' => WeatherRecordSupport::normalizeMemo($validated['memo'] ?? null),
@@ -105,7 +105,7 @@ class WeatherRecordController extends Controller
             'location_id' => $locationId,
             'location_name_snapshot' => $locationNameSnapshot,
             'forecast_area_code_snapshot' => $forecastAreaCodeSnapshot,
-            'weather_condition' => $validated['weather_condition'] ?? $record->weather_condition,
+            'weather_code' => $validated['weather_code'] ?? $record->weather_code,
             'temperature_high' => $validated['temperature_high'] ?? $record->temperature_high,
             'temperature_low' => $validated['temperature_low'] ?? $record->temperature_low,
             'memo' => array_key_exists('memo', $validated)
@@ -139,11 +139,11 @@ class WeatherRecordController extends Controller
             'location_id' => ['sometimes', 'nullable', 'integer'],
             'location_name' => ['sometimes', 'nullable', 'string', 'max:255'],
             'save_location' => ['sometimes', 'boolean'],
-            'weather_condition' => [
+            'weather_code' => [
                 $partial ? 'sometimes' : 'required',
                 'required',
                 'string',
-                'in:'.implode(',', WeatherRecordSupport::WEATHER_CONDITIONS),
+                'in:'.implode(',', WeatherRecordSupport::weatherCodes()),
             ],
             'temperature_high' => ['sometimes', 'nullable', 'numeric'],
             'temperature_low' => ['sometimes', 'nullable', 'numeric'],

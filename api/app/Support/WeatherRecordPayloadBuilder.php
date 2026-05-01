@@ -15,7 +15,7 @@ class WeatherRecordPayloadBuilder
             'location_name' => $record->location_name_snapshot,
             'location_name_snapshot' => $record->location_name_snapshot,
             'forecast_area_code_snapshot' => $record->forecast_area_code_snapshot,
-            'weather_condition' => $record->weather_condition,
+            'weather_code' => $record->weather_code,
             'temperature_high' => $record->temperature_high,
             'temperature_low' => $record->temperature_low,
             'memo' => $record->memo,

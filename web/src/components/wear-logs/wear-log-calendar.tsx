@@ -4,10 +4,10 @@ import { Check, CircleCheck } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import WeatherRecordSummary from "@/components/weather/weather-record-summary";
 import WearLogModalColorThumbnail from "@/components/wear-logs/wear-log-modal-color-thumbnail";
 import { ApiClientError, apiFetch } from "@/lib/api/client";
 import { formatLocalDateYmd } from "@/lib/date/local-date";
-import { buildWeatherRecordConditionSummary } from "@/lib/weather/labels";
 import { getJapaneseHoliday } from "@/lib/wear-logs/japanese-holidays";
 import {
   getWearLogFeedbackSummaryTags,
@@ -629,9 +629,7 @@ export default function WearLogCalendar({
                             <p className="text-sm font-medium text-gray-900">
                               {record.location_name}
                             </p>
-                            <p className="mt-1 text-sm text-gray-600">
-                              {buildWeatherRecordConditionSummary(record)}
-                            </p>
+                            <WeatherRecordSummary record={record} />
                             {(record.memo ?? "").trim() !== "" ? (
                               <p className="mt-1 text-sm text-gray-500">
                                 メモ: {record.memo}

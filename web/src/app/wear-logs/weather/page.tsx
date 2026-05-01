@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { FormPageHeader } from "@/components/shared/form-page-header";
+import WeatherRecordSummary from "@/components/weather/weather-record-summary";
 import { ApiClientError } from "@/lib/api/client";
 import { formatLocalDateYmd } from "@/lib/date/local-date";
 import {
@@ -17,25 +18,18 @@ import {
   fetchWeatherRecordsByDate,
   updateWeatherRecord,
 } from "@/lib/api/weather";
-import {
-  buildWeatherRecordConditionSummary,
-  formatJapaneseDate,
-  getWeatherConditionLabel,
-} from "@/lib/weather/labels";
+import { formatJapaneseDate, getWeatherCodeLabel } from "@/lib/weather/labels";
+import { WEATHER_CODE_DEFINITIONS } from "@/lib/weather/weather-code-definitions";
 import type { UserWeatherLocationRecord } from "@/types/settings";
 import type {
-  WeatherCondition,
+  WeatherCode,
   WeatherRecord,
   WeatherRecordUpsertPayload,
 } from "@/types/weather";
 
-const WEATHER_OPTIONS: WeatherCondition[] = [
-  "sunny",
-  "cloudy",
-  "rain",
-  "snow",
-  "other",
-];
+const WEATHER_OPTIONS: WeatherCode[] = WEATHER_CODE_DEFINITIONS.map(
+  (definition) => definition.code,
+);
 
 function isValidDate(value: string | null): value is string {
   return value !== null && /^\d{4}-\d{2}-\d{2}$/.test(value);
@@ -114,8 +108,7 @@ function WearLogWeatherPageContent() {
   );
   const [temporaryLocationName, setTemporaryLocationName] = useState("");
   const [saveTemporaryLocation, setSaveTemporaryLocation] = useState(false);
-  const [weatherCondition, setWeatherCondition] =
-    useState<WeatherCondition>("sunny");
+  const [weatherCode, setWeatherCode] = useState<WeatherCode>("sunny");
   const [temperatureHigh, setTemperatureHigh] = useState("");
   const [temperatureLow, setTemperatureLow] = useState("");
   const [memo, setMemo] = useState("");
@@ -138,7 +131,7 @@ function WearLogWeatherPageContent() {
       nextMode: "saved" | "temporary" = locationMode,
     ) => {
       setEditingRecordId(null);
-      setWeatherCondition("sunny");
+      setWeatherCode("sunny");
       setTemperatureHigh("");
       setTemperatureLow("");
       setMemo("");
@@ -170,7 +163,7 @@ function WearLogWeatherPageContent() {
     }
 
     setSaveTemporaryLocation(false);
-    setWeatherCondition(record.weather_condition);
+    setWeatherCode(record.weather_code);
     setTemperatureHigh(
       record.temperature_high === null ? "" : String(record.temperature_high),
     );
@@ -271,7 +264,7 @@ function WearLogWeatherPageContent() {
         locationMode === "temporary" ? normalizedTemporaryLocationName : null,
       save_location:
         locationMode === "temporary" ? saveTemporaryLocation : undefined,
-      weather_condition: weatherCondition,
+      weather_code: weatherCode,
       temperature_high: normalizeTemperature(temperatureHigh),
       temperature_low: normalizeTemperature(temperatureLow),
       memo: memo.trim() === "" ? null : memo.trim(),
@@ -299,7 +292,7 @@ function WearLogWeatherPageContent() {
           getFirstValidationMessage(error.data, [
             "location_id",
             "location_name",
-            "weather_condition",
+            "weather_code",
             "temperature_high",
             "temperature_low",
             "memo",
@@ -594,17 +587,15 @@ function WearLogWeatherPageContent() {
                     </span>
                     <select
                       id="weather-condition"
-                      value={weatherCondition}
+                      value={weatherCode}
                       onChange={(event) =>
-                        setWeatherCondition(
-                          event.target.value as WeatherCondition,
-                        )
+                        setWeatherCode(event.target.value as WeatherCode)
                       }
                       className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900"
                     >
                       {WEATHER_OPTIONS.map((option) => (
                         <option key={option} value={option}>
-                          {getWeatherConditionLabel(option)}
+                          {getWeatherCodeLabel(option)}
                         </option>
                       ))}
                     </select>
@@ -739,9 +730,7 @@ function WearLogWeatherPageContent() {
                           <p className="text-sm font-medium text-gray-900">
                             {record.location_name}
                           </p>
-                          <p className="mt-1 text-sm text-gray-600">
-                            {buildWeatherRecordConditionSummary(record)}
-                          </p>
+                          <WeatherRecordSummary record={record} />
                           {(record.memo ?? "").trim() !== "" ? (
                             <p className="mt-1 text-sm text-gray-600">
                               メモ: {record.memo}

@@ -69,7 +69,7 @@ describe("WearLogDetailPage", () => {
               location_name: "川口",
               location_name_snapshot: "川口",
               forecast_area_code_snapshot: "110000",
-              weather_condition: "sunny",
+              weather_code: "sunny",
               temperature_high: 22,
               temperature_low: 13,
               memo: "日差しが強かった",
@@ -117,9 +117,10 @@ describe("WearLogDetailPage", () => {
     expect(markup).toContain("気分と合わなかった");
     expect(markup).toContain("この日の天気");
     expect(markup).toContain("川口");
-    expect(markup).toContain("晴れ / 最高22℃ / 最低13℃");
+    expect(markup).toContain("晴れ / 最高 22℃ / 最低 13℃");
     expect(markup).toContain("日差しが強かった");
     expect(markup).toContain("メモ: 日差しが強かった");
+    expect(markup).toContain('data-weather-code="sunny"');
     expect(markup).toContain('href="/items/33"');
   });
 

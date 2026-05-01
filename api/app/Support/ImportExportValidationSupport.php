@@ -338,8 +338,12 @@ class ImportExportValidationSupport
      */
     public static function validateWeatherRecordPayload(array $payload): array
     {
-        $payload['weather_condition'] = self::normalizeWeatherConditionForImport(
-            $payload['weather_condition'] ?? null,
+        if (array_key_exists('weather_condition', $payload) && ! array_key_exists('weather_code', $payload)) {
+            $payload['weather_code'] = $payload['weather_condition'];
+        }
+
+        $payload['weather_code'] = WeatherRecordSupport::normalizeWeatherCodeForImport(
+            $payload['weather_code'] ?? null,
         );
 
         if (array_key_exists('area_code_snapshot', $payload) && ! array_key_exists('forecast_area_code_snapshot', $payload)) {
@@ -352,7 +356,7 @@ class ImportExportValidationSupport
             'location_id' => ['nullable', 'integer'],
             'location_name_snapshot' => ['required', 'string', 'max:255'],
             'forecast_area_code_snapshot' => ['nullable', 'string', 'max:50'],
-            'weather_condition' => ['required', 'string', 'in:'.implode(',', WeatherRecordSupport::WEATHER_CONDITIONS)],
+            'weather_code' => ['required', 'string', 'in:'.implode(',', WeatherRecordSupport::weatherCodes())],
             'temperature_high' => ['nullable', 'numeric'],
             'temperature_low' => ['nullable', 'numeric'],
             'memo' => ['nullable', 'string'],
@@ -371,15 +375,6 @@ class ImportExportValidationSupport
         }
 
         return $validated;
-    }
-
-    private static function normalizeWeatherConditionForImport(mixed $value): mixed
-    {
-        if ($value === 'storm') {
-            return 'other';
-        }
-
-        return $value;
     }
 
     /**

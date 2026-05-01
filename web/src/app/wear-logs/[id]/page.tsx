@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import WeatherRecordSummary from "@/components/weather/weather-record-summary";
 import DeleteWearLogButton from "@/components/wear-logs/delete-wear-log-button";
 import WearLogStatusAction from "@/components/wear-logs/wear-log-status-action";
 import { EntityDetailHeader } from "@/components/shared/entity-detail-header";
 import { fetchLaravelWithCookie } from "@/lib/server/laravel";
-import { buildWeatherRecordConditionSummary } from "@/lib/weather/labels";
 import {
   getWearLogFeedbackTagLabel,
   getWearLogOverallRatingBadgeClassName,
@@ -268,9 +268,7 @@ export default async function WearLogDetailPage({
                   <p className="text-sm font-medium text-gray-900">
                     {record.location_name}
                   </p>
-                  <p className="mt-1 text-sm text-gray-600">
-                    {buildWeatherRecordConditionSummary(record)}
-                  </p>
+                  <WeatherRecordSummary record={record} />
                   {(record.memo ?? "").trim() !== "" ? (
                     <p className="mt-1 text-sm text-gray-600">
                       メモ: {record.memo}

@@ -1,15 +1,19 @@
-import type { WeatherCondition, WeatherRecord } from "@/types/weather";
+import {
+  getWeatherCodeDefinition,
+  type PrimaryWeather,
+} from "@/lib/weather/weather-code-definitions";
+import type { WeatherCode, WeatherRecord } from "@/types/weather";
 
-export const WEATHER_CONDITION_LABELS: Record<WeatherCondition, string> = {
-  sunny: "晴れ",
-  cloudy: "くもり",
-  rain: "雨",
-  snow: "雪",
-  other: "その他",
-};
+export function getWeatherCodeLabel(code: WeatherCode): string {
+  return getWeatherCodeDefinition(code).label;
+}
 
-export function getWeatherConditionLabel(condition: WeatherCondition): string {
-  return WEATHER_CONDITION_LABELS[condition];
+export function getWeatherPrimaryWeather(code: WeatherCode): PrimaryWeather {
+  return getWeatherCodeDefinition(code).primaryWeather;
+}
+
+export function hasWeatherRainPossibility(code: WeatherCode): boolean {
+  return getWeatherCodeDefinition(code).hasRainPossibility;
 }
 
 export function formatWeatherTemperature(value: number | null): string | null {
@@ -42,13 +46,13 @@ export function buildWeatherRecordSummary(record: WeatherRecord): string {
 export function buildWeatherRecordConditionSummary(
   record: WeatherRecord,
 ): string {
-  const parts = [getWeatherConditionLabel(record.weather_condition)];
+  const parts = [getWeatherCodeLabel(record.weather_code)];
   const high = formatWeatherTemperature(record.temperature_high);
   const low = formatWeatherTemperature(record.temperature_low);
 
   if (high || low) {
     parts.push(
-      [high ? `最高${high}` : null, low ? `最低${low}` : null]
+      [high ? `最高 ${high}` : null, low ? `最低 ${low}` : null]
         .filter((part): part is string => Boolean(part))
         .join(" / "),
     );

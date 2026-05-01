@@ -53,7 +53,7 @@ describe("/api/weather-records/[id] route", () => {
         Cookie: "laravel-session=old_session",
       },
       body: JSON.stringify({
-        weather_condition: "cloudy",
+        weather_code: "cloudy",
       }),
     });
 

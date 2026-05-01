@@ -16,7 +16,7 @@ class WeatherRecord extends Model
         'location_id',
         'location_name_snapshot',
         'forecast_area_code_snapshot',
-        'weather_condition',
+        'weather_code',
         'temperature_high',
         'temperature_low',
         'memo',

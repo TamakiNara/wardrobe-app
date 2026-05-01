@@ -439,7 +439,7 @@ class WearLogEndpointsTest extends TestCase
             'location_id' => $weatherLocation->id,
             'location_name_snapshot' => '川口',
             'forecast_area_code_snapshot' => '110000',
-            'weather_condition' => 'sunny',
+            'weather_code' => 'sunny_with_occasional_rain',
             'temperature_high' => 22.0,
             'temperature_low' => 13.0,
             'memo' => '日中はよく晴れた',
@@ -487,7 +487,7 @@ class WearLogEndpointsTest extends TestCase
             ->assertJsonPath('wearLogs.1.thumbnail_items.0.sort_order', 1)
             ->assertJsonPath('wearLogs.1.thumbnail_items.1.category', 'bottoms')
             ->assertJsonPath('weatherRecords.0.location_name', '川口')
-            ->assertJsonPath('weatherRecords.0.weather_condition', 'sunny')
+            ->assertJsonPath('weatherRecords.0.weather_code', 'sunny_with_occasional_rain')
             ->assertJsonPath('weatherRecords.0.temperature_high', 22)
             ->assertJsonPath('weatherRecords.0.memo', '日中はよく晴れた');
     }
