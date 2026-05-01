@@ -1,4 +1,5 @@
 import type { ItemSpec } from "@/types/items";
+import type { WeatherRecord } from "@/types/weather";
 
 export type WearLogStatus = "planned" | "worn";
 
@@ -90,6 +91,7 @@ export type WearLogRecord = {
   overall_rating: WearLogOverallRating | null;
   feedback_tags: WearLogFeedbackTag[] | null;
   feedback_memo: string | null;
+  weather_records: WeatherRecord[];
   items: WearLogItemDetail[];
   created_at: string;
   updated_at: string;
@@ -171,4 +173,5 @@ export type WearLogByDateItem = {
 export type WearLogByDateResponse = {
   event_date: string;
   wearLogs: WearLogByDateItem[];
+  weatherRecords: WeatherRecord[];
 };

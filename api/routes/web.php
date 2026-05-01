@@ -6,6 +6,8 @@ use App\Http\Controllers\Api\ItemStatusController;
 use App\Http\Controllers\Api\PurchaseCandidateController;
 use App\Http\Controllers\Api\SettingsTpoController;
 use App\Http\Controllers\Api\WearLogController;
+use App\Http\Controllers\Api\WeatherLocationController;
+use App\Http\Controllers\Api\WeatherRecordController;
 use App\Http\Controllers\AuthController;
 use App\Http\Requests\ItemStoreRequest;
 use App\Http\Requests\ItemUpdateRequest;
@@ -275,6 +277,20 @@ Route::prefix('api')->middleware(['web'])->group(function () {
         Route::get('/settings/tpos', 'index');
         Route::post('/settings/tpos', 'store');
         Route::patch('/settings/tpos/{id}', 'update');
+    });
+
+    Route::middleware('auth:web')->controller(WeatherLocationController::class)->group(function () {
+        Route::get('/settings/weather-locations', 'index');
+        Route::post('/settings/weather-locations', 'store');
+        Route::patch('/settings/weather-locations/{id}', 'update');
+        Route::delete('/settings/weather-locations/{id}', 'destroy');
+    });
+
+    Route::middleware('auth:web')->controller(WeatherRecordController::class)->group(function () {
+        Route::get('/weather-records', 'index');
+        Route::post('/weather-records', 'store');
+        Route::patch('/weather-records/{id}', 'update');
+        Route::delete('/weather-records/{id}', 'destroy');
     });
 
     // Items

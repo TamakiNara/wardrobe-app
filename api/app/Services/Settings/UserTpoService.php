@@ -15,9 +15,25 @@ class UserTpoService
     public function ensurePresets(User $user): Collection
     {
         return DB::transaction(function () use ($user) {
+            $existingTpos = UserTpo::query()
+                ->where('user_id', $user->id)
+                ->get()
+                ->keyBy('name');
+
+            foreach (self::PRESET_NAMES as $presetName) {
+                $existingTpo = $existingTpos->get($presetName);
+
+                if ($existingTpo === null || $existingTpo->is_preset) {
+                    continue;
+                }
+
+                $existingTpo->forceFill([
+                    'is_preset' => true,
+                ])->save();
+            }
+
             $existingPresetNames = UserTpo::query()
                 ->where('user_id', $user->id)
-                ->where('is_preset', true)
                 ->pluck('name')
                 ->all();
 
@@ -203,7 +219,6 @@ class UserTpoService
     {
         $existingPresetNames = UserTpo::query()
             ->where('user_id', $user->id)
-            ->where('is_preset', true)
             ->pluck('name')
             ->all();
 

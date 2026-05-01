@@ -80,3 +80,37 @@ export type UpdateUserBrandPayload = {
   kana?: string | null;
   is_active?: boolean;
 };
+
+export type UserWeatherLocationRecord = {
+  id: number;
+  name: string;
+  forecast_area_code: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  is_default: boolean;
+  display_order: number;
+  created_at: string | null;
+  updated_at: string | null;
+};
+
+export type UserWeatherLocationsResponse = {
+  locations: UserWeatherLocationRecord[];
+};
+
+export type CreateUserWeatherLocationPayload = {
+  name: string;
+  forecast_area_code?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  is_default?: boolean;
+  display_order?: number;
+};
+
+export type UpdateUserWeatherLocationPayload = {
+  name?: string;
+  forecast_area_code?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  is_default?: boolean;
+  display_order?: number;
+};

@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use App\Models\WearLog;
+use App\Models\WeatherRecord;
 
 class WearLogPayloadBuilder
 {
@@ -113,7 +114,10 @@ class WearLogPayloadBuilder
         ];
     }
 
-    public static function buildDetail(WearLog $wearLog): array
+    /**
+     * @param  iterable<WeatherRecord>|null  $weatherRecords
+     */
+    public static function buildDetail(WearLog $wearLog, ?iterable $weatherRecords = null): array
     {
         $wearLog->loadMissing(['sourceOutfit', 'wearLogItems.sourceItem']);
 
@@ -131,6 +135,10 @@ class WearLogPayloadBuilder
             'overall_rating' => $wearLog->overall_rating,
             'feedback_tags' => $wearLog->feedback_tags,
             'feedback_memo' => $wearLog->feedback_memo,
+            'weather_records' => collect($weatherRecords ?? [])
+                ->map(fn (WeatherRecord $record) => WeatherRecordPayloadBuilder::build($record))
+                ->values()
+                ->all(),
             'items' => $wearLog->wearLogItems
                 ->sortBy('sort_order')
                 ->values()

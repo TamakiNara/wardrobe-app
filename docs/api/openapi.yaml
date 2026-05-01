@@ -493,7 +493,7 @@ paths:
         ログイン中のユーザーのアイテム・購入検討・コーディネート・着用履歴を
         バックアップ JSON から復元する。
         復元前に現在ユーザーの対象データを削除し、item / outfit / wear log 参照は新しい ID に張り替える。
-        owner.user_id が現在ユーザーと一致しない場合は復元しない。
+        owner.user_id はバックアップ作成元のメタデータとして扱い、現在ユーザーとの一致は必須にしない。
       security:
         - SessionCookieAuth: []
       parameters:
@@ -1738,6 +1738,185 @@ paths:
               schema:
                 $ref: "#/components/schemas/ValidationErrorResponse"
 
+  /api/settings/weather-locations:
+    get:
+      tags:
+        - Settings
+      summary: 天気登録で使う地域一覧を取得
+      operationId: getWeatherLocations
+      responses:
+        "200":
+          description: 地域一覧
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WeatherLocationsResponse"
+    post:
+      tags:
+        - Settings
+      summary: 天気登録で使う地域を追加
+      operationId: createWeatherLocation
+      parameters:
+        - $ref: "#/components/parameters/XCsrfTokenHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WeatherLocationUpsertRequest"
+      responses:
+        "201":
+          description: 作成成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WeatherLocationMutationResponse"
+        "422":
+          description: バリデーションエラー
+
+  /api/settings/weather-locations/{id}:
+    patch:
+      tags:
+        - Settings
+      summary: 天気登録で使う地域を更新
+      operationId: updateWeatherLocation
+      parameters:
+        - $ref: "#/components/parameters/XCsrfTokenHeader"
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WeatherLocationUpsertRequest"
+      responses:
+        "200":
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WeatherLocationMutationResponse"
+        "422":
+          description: バリデーションエラー
+    delete:
+      tags:
+        - Settings
+      summary: 天気登録で使う地域を削除
+      operationId: deleteWeatherLocation
+      parameters:
+        - $ref: "#/components/parameters/XCsrfTokenHeader"
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: 削除成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageOnlyResponse"
+        "422":
+          description: 使用中地域のため削除不可
+
+  /api/weather-records:
+    get:
+      tags:
+        - Wear Logs
+      summary: 指定日の天気記録一覧を取得
+      operationId: getWeatherRecordsByDate
+      parameters:
+        - name: date
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: 天気記録一覧
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WeatherRecordsResponse"
+        "422":
+          description: バリデーションエラー
+    post:
+      tags:
+        - Wear Logs
+      summary: 天気記録を作成
+      operationId: createWeatherRecord
+      parameters:
+        - $ref: "#/components/parameters/XCsrfTokenHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WeatherRecordUpsertRequest"
+      responses:
+        "201":
+          description: 作成成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WeatherRecordMutationResponse"
+        "422":
+          description: バリデーションエラー
+
+  /api/weather-records/{id}:
+    patch:
+      tags:
+        - Wear Logs
+      summary: 天気記録を更新
+      operationId: updateWeatherRecord
+      parameters:
+        - $ref: "#/components/parameters/XCsrfTokenHeader"
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WeatherRecordUpsertRequest"
+      responses:
+        "200":
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WeatherRecordMutationResponse"
+        "422":
+          description: バリデーションエラー
+    delete:
+      tags:
+        - Wear Logs
+      summary: 天気記録を削除
+      operationId: deleteWeatherRecord
+      parameters:
+        - $ref: "#/components/parameters/XCsrfTokenHeader"
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: 削除成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageOnlyResponse"
+
 components:
   parameters:
     XCsrfTokenHeader:
@@ -1947,12 +2126,52 @@ components:
 
     ImportExportOwner:
       type: object
-      required:
-        - user_id
       properties:
         user_id:
           type: integer
           example: 1
+          nullable: true
+
+    ImportExportUserTpo:
+      type: object
+      required:
+        - name
+      properties:
+        id:
+          type: integer
+          nullable: true
+        name:
+          type: string
+          maxLength: 50
+        sort_order:
+          type: integer
+          nullable: true
+          minimum: 1
+        is_active:
+          type: boolean
+          nullable: true
+        is_preset:
+          type: boolean
+          nullable: true
+
+    ImportExportUserBrand:
+      type: object
+      required:
+        - name
+      properties:
+        id:
+          type: integer
+          nullable: true
+        name:
+          type: string
+          maxLength: 255
+        kana:
+          type: string
+          nullable: true
+          maxLength: 255
+        is_active:
+          type: boolean
+          nullable: true
 
     ImportExportOpaqueEntity:
       type: object
@@ -2045,7 +2264,6 @@ components:
       required:
         - version
         - exported_at
-        - owner
         - items
         - purchase_candidates
         - outfits
@@ -2061,6 +2279,20 @@ components:
           example: "2026-04-25T06:51:38+09:00"
         owner:
           $ref: "#/components/schemas/ImportExportOwner"
+        user_tpos:
+          type: array
+          items:
+            $ref: "#/components/schemas/ImportExportUserTpo"
+        user_brands:
+          type: array
+          items:
+            $ref: "#/components/schemas/ImportExportUserBrand"
+        visible_category_ids:
+          type: array
+          items:
+            type: string
+        user_preferences:
+          $ref: "#/components/schemas/UserPreferencesRecord"
         items:
           type: array
           items:
@@ -2094,11 +2326,14 @@ components:
     ImportExecutionCounts:
       type: object
       required:
+        - user_tpos
         - items
         - purchase_candidates
         - outfits
         - wear_logs
       properties:
+        user_tpos:
+          $ref: "#/components/schemas/ImportExecutionCountSummary"
         items:
           $ref: "#/components/schemas/ImportExecutionCountSummary"
         purchase_candidates:
@@ -4747,6 +4982,205 @@ components:
           description: item 作成画面へ引き継ぐ candidate 画像一覧。
           items:
             $ref: "#/components/schemas/PurchaseCandidateImageRecord"
+
+    WeatherCondition:
+      type: string
+      enum:
+        - sunny
+        - cloudy
+        - rain
+        - snow
+        - other
+
+    WeatherSourceType:
+      type: string
+      enum:
+        - manual
+        - forecast_api
+        - historical_api
+
+    WeatherLocationRecord:
+      type: object
+      required:
+        - id
+        - name
+        - is_default
+        - display_order
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        forecast_area_code:
+          type: string
+          nullable: true
+          description: 予報API用地域コード。MVPでは weather.tsukumijima.net の city code を主対象とするが、気象庁 office/class10/class20 code と完全互換を前提にしない。
+        latitude:
+          type: number
+          nullable: true
+          description: 将来の過去天気APIや座標ベースAPI向けの緯度。MVPでは任意。
+        longitude:
+          type: number
+          nullable: true
+          description: 将来の過去天気APIや座標ベースAPI向けの経度。MVPでは任意。
+        is_default:
+          type: boolean
+        display_order:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+          nullable: true
+        updated_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    WeatherLocationsResponse:
+      type: object
+      required:
+        - locations
+      properties:
+        locations:
+          type: array
+          items:
+            $ref: "#/components/schemas/WeatherLocationRecord"
+
+    WeatherLocationUpsertRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        forecast_area_code:
+          type: string
+          nullable: true
+          description: 予報API用地域コード。任意。MVPでは weather.tsukumijima.net の city code を主対象とする。
+        latitude:
+          type: number
+          nullable: true
+        longitude:
+          type: number
+          nullable: true
+        is_default:
+          type: boolean
+        display_order:
+          type: integer
+          minimum: 1
+
+    WeatherLocationMutationResponse:
+      allOf:
+        - $ref: "#/components/schemas/MessageOnlyResponse"
+        - type: object
+          required:
+            - location
+          properties:
+            location:
+              $ref: "#/components/schemas/WeatherLocationRecord"
+
+    WeatherRecord:
+      type: object
+      required:
+        - id
+        - weather_date
+        - location_id
+        - location_name
+        - location_name_snapshot
+        - weather_condition
+        - source_type
+        - source_name
+      properties:
+        id:
+          type: integer
+        weather_date:
+          type: string
+          format: date
+        location_id:
+          type: integer
+          nullable: true
+        location_name:
+          type: string
+        location_name_snapshot:
+          type: string
+        forecast_area_code_snapshot:
+          type: string
+          nullable: true
+          description: 保存時点の予報API用地域コード snapshot。MVPでは weather.tsukumijima.net の city code を主対象とする。
+        weather_condition:
+          $ref: "#/components/schemas/WeatherCondition"
+        temperature_high:
+          type: number
+          nullable: true
+        temperature_low:
+          type: number
+          nullable: true
+        memo:
+          type: string
+          nullable: true
+        source_type:
+          $ref: "#/components/schemas/WeatherSourceType"
+        source_name:
+          type: string
+        source_fetched_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          nullable: true
+        updated_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    WeatherRecordsResponse:
+      type: object
+      required:
+        - weatherRecords
+      properties:
+        weatherRecords:
+          type: array
+          items:
+            $ref: "#/components/schemas/WeatherRecord"
+
+    WeatherRecordUpsertRequest:
+      type: object
+      required:
+        - weather_date
+        - weather_condition
+      properties:
+        weather_date:
+          type: string
+          format: date
+        location_id:
+          type: integer
+          nullable: true
+        location_name:
+          type: string
+          nullable: true
+        save_location:
+          type: boolean
+        weather_condition:
+          $ref: "#/components/schemas/WeatherCondition"
+        temperature_high:
+          type: number
+          nullable: true
+        temperature_low:
+          type: number
+          nullable: true
+        memo:
+          type: string
+          nullable: true
+
+    WeatherRecordMutationResponse:
+      allOf:
+        - $ref: "#/components/schemas/MessageOnlyResponse"
+        - type: object
+          required:
+            - weatherRecord
+          properties:
+            weatherRecord:
+              $ref: "#/components/schemas/WeatherRecord"
 
   securitySchemes:
     SessionCookieAuth:

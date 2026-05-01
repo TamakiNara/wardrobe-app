@@ -6,8 +6,10 @@ use App\Models\Item;
 use App\Models\Outfit;
 use App\Models\User;
 use App\Models\WearLog;
+use App\Models\WeatherRecord;
 use App\Support\WearLogFeedbackSupport;
 use App\Support\WearLogPayloadBuilder;
+use App\Support\WeatherRecordPayloadBuilder;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -128,10 +130,15 @@ class WearLogService
             ->orderBy('display_order')
             ->get();
 
+        $weatherRecords = $this->getWeatherRecordsByDate($user, $eventDate);
+
         return [
             'event_date' => $eventDate,
             'wearLogs' => $wearLogs
                 ->map(fn (WearLog $wearLog) => WearLogPayloadBuilder::buildByDateListItem($wearLog))
+                ->all(),
+            'weatherRecords' => $weatherRecords
+                ->map(fn (WeatherRecord $record) => WeatherRecordPayloadBuilder::build($record))
                 ->all(),
         ];
     }
@@ -311,5 +318,22 @@ class WearLogService
             })
             ->values()
             ->all();
+    }
+
+    public function getWeatherRecordsByDate(User $user, string $eventDate): Collection
+    {
+        return WeatherRecord::query()
+            ->where('user_id', $user->id)
+            ->whereDate('weather_date', $eventDate)
+            ->with('location')
+            ->get()
+            ->sortBy(
+                fn (WeatherRecord $record) => sprintf(
+                    '%010d-%010d',
+                    $record->location?->display_order ?? PHP_INT_MAX,
+                    $record->id,
+                )
+            )
+            ->values();
     }
 }

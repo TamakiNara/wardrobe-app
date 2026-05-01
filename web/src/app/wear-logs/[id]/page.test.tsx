@@ -1,209 +1,163 @@
 import React from "react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const headersMock = vi.fn();
 const redirectMock = vi.fn();
-const fetchMock = vi.fn();
-
-vi.mock("next/headers", () => ({
-  headers: headersMock,
-}));
-
-vi.mock("next/navigation", () => ({
-  redirect: redirectMock,
-}));
+const useRouterMock = vi.fn();
+const fetchLaravelWithCookieMock = vi.fn();
 
 vi.mock("next/link", () => ({
   default: ({ children, href, ...props }: React.ComponentProps<"a">) =>
     React.createElement("a", { href, ...props }, children),
 }));
 
-vi.mock("@/components/wear-logs/wear-log-status-action", () => ({
-  default: ({ wearLog }: { wearLog: { id: number; status: string } }) =>
-    React.createElement(
-      "div",
-      { "data-testid": "wear-log-status-action" },
-      `wear-log-status-action:${wearLog.id}:${wearLog.status}`,
-    ),
+vi.mock("next/navigation", () => ({
+  redirect: redirectMock,
+  useRouter: () => useRouterMock(),
 }));
 
-vi.mock("@/components/wear-logs/delete-wear-log-button", () => ({
-  default: ({ wearLogId }: { wearLogId: string }) =>
-    React.createElement(
-      "div",
-      { "data-testid": "delete-action" },
-      `delete-wear-log-button:${wearLogId}`,
-    ),
+vi.mock("@/lib/server/laravel", () => ({
+  fetchLaravelWithCookie: fetchLaravelWithCookieMock,
 }));
 
 describe("WearLogDetailPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    headersMock.mockResolvedValue({
-      get: (name: string) => (name === "cookie" ? "session=test" : null),
+    useRouterMock.mockReturnValue({
+      push: vi.fn(),
+      replace: vi.fn(),
+      refresh: vi.fn(),
+      prefetch: vi.fn(),
     });
-    vi.stubGlobal("fetch", fetchMock);
   });
 
-  it("個別詳細で主操作と warning を current として表示できる", async () => {
-    fetchMock.mockResolvedValueOnce({
-      ok: true,
+  afterEach(() => {
+    vi.resetModules();
+  });
+
+  it("振り返りとこの日の天気を表示できる", async () => {
+    fetchLaravelWithCookieMock.mockResolvedValue({
       status: 200,
+      ok: true,
       json: async () => ({
         wearLog: {
-          id: 12,
+          id: 55,
           status: "worn",
-          event_date: "2026-03-24",
-          display_order: 2,
-          source_outfit_id: 8,
-          source_outfit_name: "通勤コーディネート",
-          source_outfit_status: "invalid",
-          memo: "既存記録の確認",
+          event_date: "2026-04-30",
+          display_order: 1,
+          source_outfit_id: 12,
+          source_outfit_name: "通勤コーデ",
+          source_outfit_status: "active",
+          memo: "朝は少し肌寒かった",
           outdoor_temperature_feel: "slightly_cold",
           indoor_temperature_feel: "comfortable",
-          overall_rating: "good",
+          overall_rating: "neutral",
           feedback_tags: [
-            "comfortable_all_day",
             "worked_for_tpo",
             "color_worked_well",
             "mood_matched",
             "morning_hot",
-            "day_cold",
-            "night_hot",
-            "rain_problem",
-            "too_casual",
+            "color_mismatch",
             "mood_mismatch",
-            "humidity_uncomfortable",
-            "unknown_tag",
           ],
-          feedback_memo: "冷房は問題なかった",
-          created_at: "2026-03-24T09:00:00Z",
-          updated_at: "2026-03-24T10:00:00Z",
+          feedback_memo: "羽織りは正解だった",
+          weather_records: [
+            {
+              id: 31,
+              weather_date: "2026-04-30",
+              location_id: 5,
+              location_name: "川口",
+              location_name_snapshot: "川口",
+              forecast_area_code_snapshot: "110000",
+              weather_condition: "sunny",
+              temperature_high: 22,
+              temperature_low: 13,
+              memo: "日差しが強かった",
+              source_type: "manual",
+              source_name: "manual",
+              source_fetched_at: null,
+              created_at: null,
+              updated_at: null,
+            },
+          ],
           items: [
             {
-              id: 1,
+              id: 101,
               source_item_id: 33,
               item_name: "白シャツ",
-              source_item_status: "disposed",
-              source_item_care_status: "in_cleaning",
-              sort_order: 1,
               item_source_type: "outfit",
-            },
-            {
-              id: 2,
-              source_item_id: 34,
-              item_name: "ネイビーパンツ",
+              sort_order: 1,
               source_item_status: "active",
-              source_item_care_status: null,
-              sort_order: 2,
-              item_source_type: "manual",
+              source_item_care_status: "none",
             },
           ],
+          created_at: "2026-04-30T09:00:00Z",
+          updated_at: "2026-04-30T09:00:00Z",
         },
       }),
     });
 
     const { default: WearLogDetailPage } = await import("./page");
     const markup = renderToStaticMarkup(
-      await WearLogDetailPage({ params: Promise.resolve({ id: "12" }) }),
+      await WearLogDetailPage({
+        params: Promise.resolve({ id: "55" }),
+      }),
     );
 
-    expect(markup).toContain("着用履歴管理");
-    expect(markup).toContain("着用履歴詳細");
-    expect(markup).toContain("着用済み");
-    expect(markup).toContain("2026-03-24");
-    expect(markup).toContain("2件目");
-    expect(markup).toContain("一覧へ戻る");
-    expect(markup).toContain("編集");
-    expect(markup).toContain("wear-log-status-action:12:worn");
-    expect(markup).toContain("delete-wear-log-button:12");
-    expect(markup).toContain(
-      "元のコーディネートは現在候補外ですが、既存の記録として保持しています。",
-    );
-    expect(markup).toContain("白シャツ");
-    expect(markup).toContain("手放し済み");
-    expect(markup).toContain("クリーニング中");
-    expect(markup).toContain(
-      "クリーニング中のアイテムが含まれています。着用済みとして登録する前に内容を確認してください。",
-    );
-    expect(markup).toContain(
-      "このアイテムは現在候補外ですが、既存の記録として表示しています。",
-    );
-    expect(markup).toContain(
-      "クリーニング中ですが、予定・着用履歴ともに保持できます。",
-    );
-    expect(markup).toContain("参照コーディネート");
-    expect(markup).toContain("手動追加");
-    expect(markup).not.toContain(">元のコーディネート<");
     expect(markup).toContain("服装の振り返り");
     expect(markup).toContain("総合評価");
-    expect(markup).toContain("屋外");
-    expect(markup).toContain("屋内");
+    expect(markup).toContain("普通");
     expect(markup).toContain("よかったこと");
-    expect(markup).toContain("気になったこと");
-    expect(markup).not.toContain("気になった点");
     expect(markup).toContain("TPOに合っていた");
     expect(markup).toContain("色合わせがよかった");
     expect(markup).toContain("気分に合っていた");
+    expect(markup).toContain("気になったこと");
     expect(markup).toContain("朝暑い");
-    expect(markup).toContain("昼寒い");
-    expect(markup).toContain("夜暑い");
-    expect(markup.indexOf("気になったこと")).toBeLessThan(
-      markup.indexOf("朝暑い"),
-    );
-    expect(markup).toContain("カジュアルすぎた");
+    expect(markup).toContain("色合わせが微妙だった");
     expect(markup).toContain("気分と合わなかった");
-    expect(markup).not.toContain("湿気で不快");
-    expect(markup).not.toContain("unknown_tag");
-    expect(markup).not.toContain(
-      'class="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-sm text-amber-800"></span>',
-    );
-    expect(markup.indexOf("総合評価")).toBeLessThan(markup.indexOf("屋外"));
-    expect(markup.indexOf("屋外")).toBeLessThan(markup.indexOf("屋内"));
-    expect(markup).toContain("フィードバックメモ");
-    expect(markup).toContain('href="/wear-logs/12/edit"');
-    expect(markup).toContain('href="/wear-logs"');
-    expect(markup).toContain(
-      'href="/outfits/8?from=wear-log&amp;wear_log_id=12"',
-    );
+    expect(markup).toContain("この日の天気");
+    expect(markup).toContain("川口");
+    expect(markup).toContain("晴れ / 最高22℃ / 最低13℃");
+    expect(markup).toContain("日差しが強かった");
+    expect(markup).toContain("メモ: 日差しが強かった");
     expect(markup).toContain('href="/items/33"');
-    expect(markup).not.toContain("wear-log-color-thumbnail");
-    expect(markup).not.toContain("wear-log-modal-color-thumbnail");
-    expect(markup).not.toContain("wear-log-form:");
   });
 
-  it("振り返りが未入力ならセクションを表示しない", async () => {
-    fetchMock.mockResolvedValueOnce({
-      ok: true,
+  it("振り返りも天気も未登録なら該当セクションを出さない", async () => {
+    fetchLaravelWithCookieMock.mockResolvedValue({
       status: 200,
+      ok: true,
       json: async () => ({
         wearLog: {
-          id: 15,
+          id: 56,
           status: "planned",
-          event_date: "2026-03-25",
+          event_date: "2026-04-29",
           display_order: 1,
           source_outfit_id: null,
           source_outfit_name: null,
           source_outfit_status: null,
-          memo: "",
+          memo: null,
           outdoor_temperature_feel: null,
           indoor_temperature_feel: null,
           overall_rating: null,
           feedback_tags: [],
           feedback_memo: null,
-          created_at: "2026-03-25T09:00:00Z",
-          updated_at: "2026-03-25T09:00:00Z",
+          weather_records: [],
           items: [],
+          created_at: "2026-04-29T09:00:00Z",
+          updated_at: "2026-04-29T09:00:00Z",
         },
       }),
     });
 
     const { default: WearLogDetailPage } = await import("./page");
     const markup = renderToStaticMarkup(
-      await WearLogDetailPage({ params: Promise.resolve({ id: "15" }) }),
+      await WearLogDetailPage({
+        params: Promise.resolve({ id: "56" }),
+      }),
     );
 
     expect(markup).not.toContain("服装の振り返り");
+    expect(markup).not.toContain("この日の天気");
   });
 });

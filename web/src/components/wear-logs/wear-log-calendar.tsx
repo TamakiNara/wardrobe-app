@@ -6,6 +6,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import WearLogModalColorThumbnail from "@/components/wear-logs/wear-log-modal-color-thumbnail";
 import { ApiClientError, apiFetch } from "@/lib/api/client";
+import { buildWeatherRecordConditionSummary } from "@/lib/weather/labels";
 import { getJapaneseHoliday } from "@/lib/wear-logs/japanese-holidays";
 import {
   getWearLogFeedbackSummaryTags,
@@ -90,7 +91,6 @@ function getDayType(date: string): DayType {
   if (weekDay === 0) {
     return "sunday";
   }
-
   if (weekDay === 6) {
     return "saturday";
   }
@@ -101,7 +101,6 @@ function getDayType(date: string): DayType {
 function getDayTypeTextClassName(dayType: DayType): string {
   switch (dayType) {
     case "holiday":
-      return "text-rose-600";
     case "sunday":
       return "text-rose-600";
     case "saturday":
@@ -114,7 +113,6 @@ function getDayTypeTextClassName(dayType: DayType): string {
 function getDayTypeCellClassName(dayType: DayType): string {
   switch (dayType) {
     case "holiday":
-      return "border-rose-200 bg-rose-50/40 hover:border-rose-300 hover:bg-rose-50/60";
     case "sunday":
       return "border-rose-200 bg-rose-50/40 hover:border-rose-300 hover:bg-rose-50/60";
     case "saturday":
@@ -134,7 +132,6 @@ function getDayTypeNumberClassName(
 
   switch (dayType) {
     case "holiday":
-      return "text-rose-700";
     case "sunday":
       return "text-rose-700";
     case "saturday":
@@ -146,7 +143,6 @@ function getDayTypeNumberClassName(
 
 function formatMonthLabel(month: string): string {
   const { year, monthIndex } = parseMonth(month);
-
   return `${year}年${monthIndex + 1}月`;
 }
 
@@ -226,6 +222,21 @@ function buildCreateHref(date: string, wearLogsCount: number): string {
   return `/wear-logs/new?${params.toString()}`;
 }
 
+function buildWeatherHref(
+  date: string,
+  pathname: string,
+  searchParams: URLSearchParams,
+): string {
+  const params = new URLSearchParams();
+  params.set("date", date);
+  params.set(
+    "returnTo",
+    `${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`,
+  );
+
+  return `/wear-logs/weather?${params.toString()}`;
+}
+
 function hasWearLogFeedbackSummary(
   wearLog: WearLogByDateResponse["wearLogs"][number],
 ): boolean {
@@ -241,9 +252,6 @@ function buildWearLogTemperatureSummaryParts(
   wearLog: WearLogByDateResponse["wearLogs"][number],
 ): string[] {
   return [
-    wearLog.overall_rating
-      ? `振り返り: ${getWearLogOverallRatingLabel(wearLog.overall_rating)}`
-      : null,
     wearLog.outdoor_temperature_feel
       ? `屋外 ${getWearLogTemperatureFeelLabel(wearLog.outdoor_temperature_feel)}`
       : null,
@@ -259,9 +267,7 @@ function buildWearLogModalFeedbackSummary(
   const overallRatingLabel = wearLog.overall_rating
     ? getWearLogOverallRatingLabel(wearLog.overall_rating)
     : null;
-  const temperatureSummaryParts = buildWearLogTemperatureSummaryParts(
-    wearLog,
-  ).filter((part) => part.startsWith("屋外") || part.startsWith("屋内"));
+  const temperatureSummaryParts = buildWearLogTemperatureSummaryParts(wearLog);
   const summaryTags = getWearLogFeedbackSummaryTags(wearLog.feedback_tags, 3);
 
   return {
@@ -330,7 +336,7 @@ function renderWearLogCalendarMarker(
   if (dot.status === "worn") {
     return (
       <span
-        className="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white shadow-[0_0_0_1px_rgba(37,99,235,0.12)]"
+        className="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white"
         data-status={dot.status}
         data-feedback="true"
         data-marker-kind="check-filled"
@@ -378,10 +384,10 @@ export default function WearLogCalendar({
     setDetailsError(null);
   }, [month]);
 
-  const summaryMap = useMemo(() => {
-    return new Map(days.map((day) => [day.date, day]));
-  }, [days]);
-
+  const summaryMap = useMemo(
+    () => new Map(days.map((day) => [day.date, day])),
+    [days],
+  );
   const calendarCells = useMemo(
     () => buildCalendarCells(month, weekStart),
     [month, weekStart],
@@ -433,10 +439,11 @@ export default function WearLogCalendar({
               type="button"
               onClick={() =>
                 router.replace(
-                  `${pathname}${buildQueryWithMonth(searchParams, shiftMonth(month, -1))}`,
-                  {
-                    scroll: false,
-                  },
+                  `${pathname}${buildQueryWithMonth(
+                    searchParams,
+                    shiftMonth(month, -1),
+                  )}`,
+                  { scroll: false },
                 )
               }
               className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 transition hover:border-gray-400 hover:text-gray-900"
@@ -450,10 +457,11 @@ export default function WearLogCalendar({
               type="button"
               onClick={() =>
                 router.replace(
-                  `${pathname}${buildQueryWithMonth(searchParams, shiftMonth(month, 1))}`,
-                  {
-                    scroll: false,
-                  },
+                  `${pathname}${buildQueryWithMonth(
+                    searchParams,
+                    shiftMonth(month, 1),
+                  )}`,
+                  { scroll: false },
                 )
               }
               className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 transition hover:border-gray-400 hover:text-gray-900"
@@ -500,12 +508,9 @@ export default function WearLogCalendar({
                 isSelected
                   ? "border-blue-500 bg-blue-50/70 ring-2 ring-blue-100"
                   : isPastDate
-                    ? "bg-gray-100 hover:border-gray-300"
+                    ? "border-gray-200 bg-gray-100"
                     : getDayTypeCellClassName(dayType),
                 !cell.isCurrentMonth ? "text-gray-300" : "",
-                isPastDate && !isSelected
-                  ? "border-gray-200 text-gray-600"
-                  : "",
               ]
                 .filter(Boolean)
                 .join(" ");
@@ -537,18 +542,18 @@ export default function WearLogCalendar({
                   </div>
 
                   <div className="mt-6 flex min-h-3 items-center gap-1">
-                    {!!summary ? (
+                    {summary ? (
                       <>
                         {summary.dots.map((dot, index) => (
                           <span key={`${cell.date}-${dot.status}-${index}`}>
                             {renderWearLogCalendarMarker(dot)}
                           </span>
                         ))}
-                        {summary.overflowCount > 0 && (
+                        {summary.overflowCount > 0 ? (
                           <span className="text-[11px] font-medium text-gray-500">
                             +{summary.overflowCount}
                           </span>
-                        )}
+                        ) : null}
                       </>
                     ) : null}
                   </div>
@@ -559,7 +564,7 @@ export default function WearLogCalendar({
         </div>
       </section>
 
-      {selectedDate && (
+      {selectedDate ? (
         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-gray-950/35 p-4 md:p-6">
           <div className="max-h-[min(80vh,720px)] w-full max-w-2xl overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl">
             <div className="flex items-start justify-between gap-4 border-b border-gray-200 px-5 py-4">
@@ -587,143 +592,196 @@ export default function WearLogCalendar({
                 <p className="text-sm text-gray-600">読み込み中です...</p>
               ) : detailsError ? (
                 <p className="text-sm text-red-600">{detailsError}</p>
-              ) : dayDetails && dayDetails.wearLogs.length > 0 ? (
-                dayDetails.wearLogs.map((wearLog) => {
-                  const {
-                    overallRatingLabel,
-                    temperatureSummaryParts,
-                    summaryTags,
-                  } = buildWearLogModalFeedbackSummary(wearLog);
-                  const shouldShowFeedbackSummary =
-                    hasWearLogFeedbackSummary(wearLog) &&
-                    (overallRatingLabel !== null ||
-                      temperatureSummaryParts.length > 0 ||
-                      summaryTags.length > 0);
-
-                  return (
-                    <article
-                      key={wearLog.id}
-                      className={`rounded-2xl border px-4 py-3 ${
-                        wearLog.status === "planned" &&
-                        wearLog.event_date < today
-                          ? "border-gray-200 bg-gray-100"
-                          : "border-gray-200 bg-gray-50"
-                      }`}
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex min-w-0 flex-1 items-start gap-3">
-                          <WearLogModalColorThumbnail
-                            items={wearLog.thumbnail_items ?? []}
-                            skinTonePreset={skinTonePreset}
-                          />
-                          <div className="min-w-0">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <span
-                                className={`rounded-full border px-2.5 py-1 text-xs font-medium ${getWearLogStatusBadgeClassName(wearLog.status)}`}
-                              >
-                                {getWearLogStatusLabel(wearLog.status)}
-                              </span>
-                              <p className="text-sm font-medium text-gray-900">
-                                {wearLog.display_order}件目
-                              </p>
-                            </div>
-                            <p className="mt-1 text-sm text-gray-600">
-                              {wearLog.source_outfit_name ??
-                                `アイテム ${wearLog.items_count} 件`}
-                            </p>
-                          </div>
-                        </div>
-                        <Link
-                          href={`/wear-logs/${wearLog.id}`}
-                          className="text-sm font-medium text-blue-600 hover:underline"
-                        >
-                          詳細
-                        </Link>
-                      </div>
-
-                      <p className="mt-2 text-xs text-gray-500">
-                        アイテム {wearLog.items_count} 件
-                      </p>
-
-                      {wearLog.memo && (
-                        <p className="mt-2 line-clamp-2 text-sm text-gray-600">
-                          {wearLog.memo}
+              ) : dayDetails ? (
+                <>
+                  <section className="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-4">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <h4 className="text-sm font-semibold text-gray-900">
+                          この日の天気
+                        </h4>
+                        <p className="mt-1 text-xs text-gray-500">
+                          地域ごとに登録した天気を確認できます。
                         </p>
-                      )}
+                      </div>
+                      <Link
+                        href={buildWeatherHref(
+                          selectedDate,
+                          pathname,
+                          searchParams,
+                        )}
+                        className="text-sm font-medium text-blue-600 hover:underline"
+                      >
+                        {dayDetails.weatherRecords.length > 0
+                          ? "天気を編集"
+                          : "天気を登録"}
+                      </Link>
+                    </div>
 
-                      {shouldShowFeedbackSummary ? (
-                        <div className="mt-2 space-y-2">
-                          <span className="sr-only">
-                            {buildWearLogTemperatureSummaryParts(wearLog).join(
-                              " / ",
-                            )}
-                          </span>
-                          {overallRatingLabel ? (
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs font-medium text-gray-500">
-                                総合評価
-                              </span>
-                              <span
-                                className={`inline-flex items-center rounded-full border px-2.5 py-1 text-sm font-semibold ${getWearLogOverallRatingBadgeClassName(
-                                  wearLog.overall_rating!,
-                                )}`}
-                              >
-                                {overallRatingLabel}
-                              </span>
+                    {dayDetails.weatherRecords.length > 0 ? (
+                      <div className="mt-3 space-y-2">
+                        {dayDetails.weatherRecords.map((record) => (
+                          <div
+                            key={record.id}
+                            className="rounded-xl border border-gray-200 bg-white px-3 py-3"
+                          >
+                            <p className="text-sm font-medium text-gray-900">
+                              {record.location_name}
+                            </p>
+                            <p className="mt-1 text-sm text-gray-600">
+                              {buildWeatherRecordConditionSummary(record)}
+                            </p>
+                            {(record.memo ?? "").trim() !== "" ? (
+                              <p className="mt-1 text-sm text-gray-500">
+                                メモ: {record.memo}
+                              </p>
+                            ) : null}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="mt-3 text-sm text-gray-600">
+                        まだ天気は登録されていません。
+                      </p>
+                    )}
+                  </section>
+
+                  {dayDetails.wearLogs.length > 0 ? (
+                    dayDetails.wearLogs.map((wearLog) => {
+                      const {
+                        overallRatingLabel,
+                        temperatureSummaryParts,
+                        summaryTags,
+                      } = buildWearLogModalFeedbackSummary(wearLog);
+                      const shouldShowFeedbackSummary =
+                        hasWearLogFeedbackSummary(wearLog) &&
+                        (overallRatingLabel !== null ||
+                          temperatureSummaryParts.length > 0 ||
+                          summaryTags.length > 0);
+
+                      return (
+                        <article
+                          key={wearLog.id}
+                          className={`rounded-2xl border px-4 py-3 ${
+                            wearLog.status === "planned" &&
+                            wearLog.event_date < today
+                              ? "border-gray-200 bg-gray-100"
+                              : "border-gray-200 bg-gray-50"
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex min-w-0 flex-1 items-start gap-3">
+                              <WearLogModalColorThumbnail
+                                items={wearLog.thumbnail_items ?? []}
+                                skinTonePreset={skinTonePreset}
+                              />
+                              <div className="min-w-0">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <span
+                                    className={`rounded-full border px-2.5 py-1 text-xs font-medium ${getWearLogStatusBadgeClassName(
+                                      wearLog.status,
+                                    )}`}
+                                  >
+                                    {getWearLogStatusLabel(wearLog.status)}
+                                  </span>
+                                  <p className="text-sm font-medium text-gray-900">
+                                    {wearLog.display_order}件目
+                                  </p>
+                                </div>
+                                <p className="mt-1 text-sm text-gray-600">
+                                  {wearLog.source_outfit_name ??
+                                    `アイテム ${wearLog.items_count} 件`}
+                                </p>
+                              </div>
                             </div>
-                          ) : null}
-                          {temperatureSummaryParts.length > 0 ? (
-                            <p className="text-xs text-gray-600">
-                              {temperatureSummaryParts.join(" / ")}
+                            <Link
+                              href={`/wear-logs/${wearLog.id}`}
+                              className="text-sm font-medium text-blue-600 hover:underline"
+                            >
+                              詳細
+                            </Link>
+                          </div>
+
+                          <p className="mt-2 text-xs text-gray-500">
+                            アイテム {wearLog.items_count} 件
+                          </p>
+
+                          {wearLog.memo ? (
+                            <p className="mt-2 line-clamp-2 text-sm text-gray-600">
+                              {wearLog.memo}
                             </p>
                           ) : null}
-                          {summaryTags.length > 0 ? (
-                            <div className="flex flex-wrap gap-2">
-                              {summaryTags.map((tag) => (
-                                <span
-                                  key={`${wearLog.id}-${tag}`}
-                                  className="rounded-full border border-gray-200 bg-white px-2.5 py-1 text-xs text-gray-700"
-                                >
-                                  {getWearLogFeedbackTagLabel(tag)}
-                                </span>
-                              ))}
+
+                          {shouldShowFeedbackSummary ? (
+                            <div className="mt-3 space-y-2">
+                              {overallRatingLabel ? (
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs font-medium text-gray-500">
+                                    総合評価
+                                  </span>
+                                  <span
+                                    className={`inline-flex items-center rounded-full border px-2.5 py-1 text-sm font-semibold ${getWearLogOverallRatingBadgeClassName(
+                                      wearLog.overall_rating!,
+                                    )}`}
+                                  >
+                                    {overallRatingLabel}
+                                  </span>
+                                </div>
+                              ) : null}
+                              {temperatureSummaryParts.length > 0 ? (
+                                <p className="text-xs text-gray-600">
+                                  {temperatureSummaryParts.join(" / ")}
+                                </p>
+                              ) : null}
+                              {summaryTags.length > 0 ? (
+                                <div className="flex flex-wrap gap-2">
+                                  {summaryTags.map((tag) => (
+                                    <span
+                                      key={`${wearLog.id}-${tag}`}
+                                      className="rounded-full border border-gray-200 bg-white px-2.5 py-1 text-xs text-gray-700"
+                                    >
+                                      {getWearLogFeedbackTagLabel(tag)}
+                                    </span>
+                                  ))}
+                                </div>
+                              ) : null}
                             </div>
                           ) : null}
-                        </div>
-                      ) : null}
 
-                      {wearLog.status === "planned" &&
-                        wearLog.event_date < today && (
-                          <p className="mt-2 text-xs text-gray-500">
-                            過去日の未着用予定です。
-                          </p>
+                          {wearLog.status === "planned" &&
+                          wearLog.event_date < today ? (
+                            <p className="mt-2 text-xs text-gray-500">
+                              過去日の未着用予定です。
+                            </p>
+                          ) : null}
+                        </article>
+                      );
+                    })
+                  ) : (
+                    <div className="space-y-3 rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-5">
+                      <p className="text-sm font-medium text-gray-900">
+                        この日の着用履歴はまだありません
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        必要に応じて日付指定で新しく着用履歴を追加できます。
+                      </p>
+                      <Link
+                        href={buildCreateHref(
+                          selectedDate,
+                          dayDetails.wearLogs.length,
                         )}
-                    </article>
-                  );
-                })
-              ) : (
-                <div className="space-y-3 rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-5">
-                  <p className="text-sm font-medium text-gray-900">
-                    この日の着用履歴はまだありません
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    必要に応じて日付指定で新しく着用履歴を追加できます。
-                  </p>
-                  <Link
-                    href={buildCreateHref(
-                      selectedDate,
-                      dayDetails?.wearLogs.length ?? 0,
-                    )}
-                    className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
-                  >
-                    この日で新規追加
-                  </Link>
-                </div>
-              )}
+                        className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
+                      >
+                        この日で新規追加
+                      </Link>
+                    </div>
+                  )}
+                </>
+              ) : null}
             </div>
           </div>
         </div>
-      )}
+      ) : null}
     </>
   );
 }

@@ -9,8 +9,12 @@ use App\Models\Outfit;
 use App\Models\PurchaseCandidate;
 use App\Models\PurchaseCandidateGroup;
 use App\Models\User;
+use App\Models\UserBrand;
+use App\Models\UserPreference;
 use App\Models\UserTpo;
+use App\Models\UserWeatherLocation;
 use App\Models\WearLog;
+use App\Models\WeatherRecord;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
@@ -71,6 +75,27 @@ class ImportExportEndpointsTest extends TestCase
     {
         $holidayTpo = $this->createUserTpo($user, 'リモート', 101);
         $officeTpo = $this->createUserTpo($user, 'オフィス', 102);
+
+        $user->forceFill([
+            'visible_category_ids' => ['tops_shirt_blouse'],
+        ])->save();
+
+        UserBrand::query()->create([
+            'user_id' => $user->id,
+            'name' => 'Sample Brand',
+            'kana' => 'サンプル',
+            'normalized_name' => 'samplebrand',
+            'normalized_kana' => 'サンプル',
+            'is_active' => true,
+        ]);
+
+        UserPreference::query()->create([
+            'user_id' => $user->id,
+            'current_season' => 'spring',
+            'default_wear_log_status' => 'planned',
+            'calendar_week_start' => 'monday',
+            'skin_tone_preset' => 'neutral_medium',
+        ]);
 
         $item = Item::query()->create([
             'user_id' => $user->id,
@@ -263,11 +288,54 @@ class ImportExportEndpointsTest extends TestCase
             'sort_order' => 1,
         ]);
 
+        $weatherLocation = UserWeatherLocation::query()->create([
+            'user_id' => $user->id,
+            'name' => '川口',
+            'forecast_area_code' => '110000',
+            'latitude' => null,
+            'longitude' => null,
+            'is_default' => true,
+            'display_order' => 1,
+        ]);
+
+        $weatherRecord = WeatherRecord::query()->create([
+            'user_id' => $user->id,
+            'weather_date' => '2026-04-21',
+            'location_id' => $weatherLocation->id,
+            'location_name_snapshot' => '川口',
+            'forecast_area_code_snapshot' => '110000',
+            'weather_condition' => 'sunny',
+            'temperature_high' => 22.5,
+            'temperature_low' => 13.0,
+            'memo' => '昼は日差しが強かった',
+            'source_type' => 'manual',
+            'source_name' => 'manual',
+            'source_fetched_at' => null,
+        ]);
+
+        $temporaryWeatherRecord = WeatherRecord::query()->create([
+            'user_id' => $user->id,
+            'weather_date' => '2026-04-21',
+            'location_id' => null,
+            'location_name_snapshot' => '旅行先',
+            'forecast_area_code_snapshot' => null,
+            'weather_condition' => 'cloudy',
+            'temperature_high' => 20.0,
+            'temperature_low' => 12.5,
+            'memo' => '一時的な地域',
+            'source_type' => 'manual',
+            'source_name' => 'manual',
+            'source_fetched_at' => null,
+        ]);
+
         return [
             'item' => $item,
             'candidate' => $candidate,
             'outfit' => $outfit,
             'wearLog' => $wearLog,
+            'weatherLocation' => $weatherLocation,
+            'weatherRecord' => $weatherRecord,
+            'temporaryWeatherRecord' => $temporaryWeatherRecord,
         ];
     }
 
@@ -288,16 +356,28 @@ class ImportExportEndpointsTest extends TestCase
         $response->assertOk()
             ->assertJsonPath('version', 1)
             ->assertJsonPath('owner.user_id', $user->id)
+            ->assertJsonCount(5, 'user_tpos')
+            ->assertJsonCount(1, 'user_brands')
+            ->assertJsonPath('visible_category_ids.0', 'tops_shirt_blouse')
+            ->assertJsonPath('user_preferences.currentSeason', 'spring')
+            ->assertJsonPath('user_preferences.defaultWearLogStatus', 'planned')
             ->assertJsonCount(1, 'items')
             ->assertJsonCount(1, 'purchase_candidates')
             ->assertJsonCount(1, 'outfits')
             ->assertJsonCount(1, 'wear_logs')
+            ->assertJsonCount(1, 'weather_locations')
+            ->assertJsonCount(2, 'weather_records')
             ->assertJsonPath('items.0.name', '白シャツ')
             ->assertJsonPath('items.0.sheerness', 'slight')
             ->assertJsonPath('purchase_candidates.0.sheerness', 'slight')
             ->assertJsonPath('purchase_candidates.0.shape', 'blouse')
             ->assertJsonPath('purchase_candidates.0.name', '購入候補シャツ')
             ->assertJsonPath('outfits.0.name', '通勤コーデ')
+            ->assertJsonPath('weather_locations.0.name', '川口')
+            ->assertJsonPath('weather_records.0.weather_condition', 'sunny')
+            ->assertJsonPath('weather_records.0.location_name_snapshot', '川口')
+            ->assertJsonPath('weather_records.1.location_id', null)
+            ->assertJsonPath('weather_records.1.location_name_snapshot', '旅行先')
             ->assertJsonPath('items.0.colors.0.custom_label', '00 WHITE')
             ->assertJsonPath('items.0.images.0.content_base64', self::PNG_BASE64)
             ->assertJsonPath('purchase_candidates.0.images.0.content_base64', self::PNG_BASE64);
@@ -350,6 +430,26 @@ class ImportExportEndpointsTest extends TestCase
             'seasons' => [],
             'tpos' => [],
         ]);
+        $staleBrand = UserBrand::query()->create([
+            'user_id' => $user->id,
+            'name' => 'Old Brand',
+            'kana' => null,
+            'normalized_name' => 'oldbrand',
+            'normalized_kana' => null,
+            'is_active' => true,
+        ]);
+        UserPreference::query()->updateOrCreate(
+            ['user_id' => $user->id],
+            [
+                'current_season' => 'winter',
+                'default_wear_log_status' => 'worn',
+                'calendar_week_start' => 'sunday',
+                'skin_tone_preset' => 'yellow_deep',
+            ],
+        );
+        $user->forceFill([
+            'visible_category_ids' => ['underwear_bra'],
+        ])->save();
 
         $token = $this->issueCsrfToken();
 
@@ -360,16 +460,20 @@ class ImportExportEndpointsTest extends TestCase
 
         $importResponse->assertOk()
             ->assertJsonPath('message', 'imported')
+            ->assertJsonPath('counts.user_tpos.total', 5)
             ->assertJsonPath('counts.items.total', 1)
             ->assertJsonPath('counts.items.visible', 1)
             ->assertJsonPath('counts.purchase_candidates.total', 1)
             ->assertJsonPath('counts.outfits.total', 1)
             ->assertJsonPath('counts.outfits.visible', 1)
-            ->assertJsonPath('counts.wear_logs.total', 1);
+            ->assertJsonPath('counts.wear_logs.total', 1)
+            ->assertJsonPath('counts.weather_locations.total', 1)
+            ->assertJsonPath('counts.weather_records.total', 2);
 
         $this->assertDatabaseMissing('items', ['id' => $staleItem->id]);
         $this->assertDatabaseMissing('purchase_candidates', ['id' => $staleCandidate->id]);
         $this->assertDatabaseMissing('outfits', ['id' => $staleOutfit->id]);
+        $this->assertDatabaseMissing('user_brands', ['id' => $staleBrand->id]);
 
         $importedItem = Item::query()
             ->where('user_id', $user->id)
@@ -387,6 +491,22 @@ class ImportExportEndpointsTest extends TestCase
             ->with('outfitItems')
             ->firstOrFail();
 
+        $importedWeatherLocation = UserWeatherLocation::query()
+            ->where('user_id', $user->id)
+            ->where('name', '川口')
+            ->firstOrFail();
+        $importedWeatherRecord = WeatherRecord::query()
+            ->where('user_id', $user->id)
+            ->whereDate('weather_date', '2026-04-21')
+            ->where('location_id', $importedWeatherLocation->id)
+            ->firstOrFail();
+        $importedTemporaryWeatherRecord = WeatherRecord::query()
+            ->where('user_id', $user->id)
+            ->whereDate('weather_date', '2026-04-21')
+            ->whereNull('location_id')
+            ->where('location_name_snapshot', '旅行先')
+            ->firstOrFail();
+
         $this->assertNotSame($source['item']->id, $importedItem->id);
         $this->assertNotSame($source['candidate']->id, $importedCandidate->id);
         $this->assertNotSame($source['outfit']->id, $importedOutfit->id);
@@ -401,6 +521,24 @@ class ImportExportEndpointsTest extends TestCase
         $this->assertSame('麻', $importedCandidate->materials->first()?->material_name);
         $this->assertSame($importedItem->id, $importedCandidate->converted_item_id);
         $this->assertSame($importedItem->id, $importedOutfit->outfitItems->first()?->item_id);
+        $this->assertTrue($importedWeatherLocation->is_default);
+        $this->assertSame('sunny', $importedWeatherRecord->weather_condition);
+        $this->assertSame('川口', $importedWeatherRecord->location_name_snapshot);
+        $this->assertSame('110000', $importedWeatherRecord->forecast_area_code_snapshot);
+        $this->assertSame('cloudy', $importedTemporaryWeatherRecord->weather_condition);
+        $this->assertNull($importedTemporaryWeatherRecord->location_id);
+        $this->assertSame('旅行先', $importedTemporaryWeatherRecord->location_name_snapshot);
+        $this->assertDatabaseHas('user_brands', [
+            'user_id' => $user->id,
+            'name' => 'Sample Brand',
+        ]);
+        $user->refresh();
+        $this->assertSame(['tops_shirt_blouse'], $user->visible_category_ids);
+        $preference = UserPreference::query()->where('user_id', $user->id)->sole();
+        $this->assertSame('spring', $preference->current_season);
+        $this->assertSame('planned', $preference->default_wear_log_status);
+        $this->assertSame('monday', $preference->calendar_week_start);
+        $this->assertSame('neutral_medium', $preference->skin_tone_preset);
 
         $itemImage = $importedItem->images->firstOrFail();
         $candidateImage = $importedCandidate->images->firstOrFail();
@@ -885,7 +1023,7 @@ class ImportExportEndpointsTest extends TestCase
         $this->assertNull($importedItem->spec);
     }
 
-    public function test_import_rejects_backup_from_different_owner_and_keeps_current_data(): void
+    public function test_import_allows_backup_from_different_owner_and_restores_into_current_user(): void
     {
         Storage::fake('public');
 
@@ -920,7 +1058,7 @@ class ImportExportEndpointsTest extends TestCase
             'user_id' => $importUser->id,
             'status' => 'considering',
             'priority' => 'medium',
-            'name' => '現在ユーザーの購入候補',
+            'name' => '現在ユーザーのアイテム',
             'category_id' => 'tops_shirt_blouse',
         ]);
         $currentOutfit = Outfit::query()->create([
@@ -939,40 +1077,47 @@ class ImportExportEndpointsTest extends TestCase
             'X-CSRF-TOKEN' => $token,
         ]);
 
-        $response->assertStatus(422)
-            ->assertJsonValidationErrors(['owner.user_id']);
-
-        $this->assertDatabaseHas('items', [
-            'id' => $currentItem->id,
-            'user_id' => $importUser->id,
-            'name' => '現在ユーザーのアイテム',
-        ]);
-        $this->assertDatabaseHas('purchase_candidates', [
-            'id' => $currentCandidate->id,
-            'user_id' => $importUser->id,
-            'name' => '現在ユーザーの購入候補',
-        ]);
-        $this->assertDatabaseHas('outfits', [
-            'id' => $currentOutfit->id,
-            'user_id' => $importUser->id,
-            'name' => '現在ユーザーのコーデ',
-        ]);
+        $response->assertOk()
+            ->assertJsonPath('counts.items.total', 1)
+            ->assertJsonPath('counts.purchase_candidates.total', 1)
+            ->assertJsonPath('counts.outfits.total', 1);
 
         $this->assertDatabaseMissing('items', [
+            'id' => $currentItem->id,
+            'user_id' => $importUser->id,
+        ]);
+        $this->assertDatabaseMissing('purchase_candidates', [
+            'id' => $currentCandidate->id,
+            'user_id' => $importUser->id,
+        ]);
+        $this->assertDatabaseMissing('outfits', [
+            'id' => $currentOutfit->id,
+            'user_id' => $importUser->id,
+        ]);
+
+        $this->assertDatabaseHas('items', [
             'user_id' => $importUser->id,
             'name' => '白シャツ',
         ]);
-        $this->assertDatabaseMissing('purchase_candidates', [
+        $this->assertDatabaseHas('user_tpos', [
+            'user_id' => $importUser->id,
+            'name' => 'リモート',
+        ]);
+        $this->assertDatabaseHas('user_tpos', [
+            'user_id' => $importUser->id,
+            'name' => 'オフィス',
+        ]);
+        $this->assertDatabaseHas('purchase_candidates', [
             'user_id' => $importUser->id,
             'name' => '購入候補シャツ',
         ]);
-        $this->assertDatabaseMissing('outfits', [
+        $this->assertDatabaseHas('outfits', [
             'user_id' => $importUser->id,
             'name' => '通勤コーデ',
         ]);
     }
 
-    public function test_import_rejects_legacy_backup_without_owner_and_keeps_current_data(): void
+    public function test_import_allows_legacy_backup_without_owner(): void
     {
         Storage::fake('public');
 
@@ -1012,19 +1157,425 @@ class ImportExportEndpointsTest extends TestCase
             'X-CSRF-TOKEN' => $token,
         ]);
 
-        $response->assertStatus(422)
-            ->assertJsonValidationErrors(['owner.user_id']);
+        $response->assertOk()
+            ->assertJsonPath('counts.items.total', 0)
+            ->assertJsonPath('counts.purchase_candidates.total', 0)
+            ->assertJsonPath('counts.outfits.total', 0);
 
-        $this->assertStringStartsWith(
-            'このバックアップファイルは現在の形式に対応していないため復元できません。最新の形式で再度バックアップしてください。',
-            (string) $response->json('message')
-        );
-
-        $this->assertDatabaseHas('items', [
+        $this->assertDatabaseMissing('items', [
             'id' => $currentItem->id,
             'user_id' => $user->id,
             'name' => '現在ユーザーのアイテム',
         ]);
+    }
+
+    public function test_import_normalizes_legacy_wear_log_feedback_tags(): void
+    {
+        Storage::fake('public');
+
+        $backupOwner = User::factory()->create();
+        $importUser = User::factory()->create();
+        $this->createCategory('tops_shirt_blouse', 'tops', 'シャツ・ブラウス');
+        $this->seedExportSourceData($backupOwner);
+
+        $this->actingAs($backupOwner, 'web');
+        $exportPayload = $this->getJson('/api/export', [
+            'Accept' => 'application/json',
+        ])->assertOk()->json();
+        $exportPayload['owner']['user_id'] = $backupOwner->id + 999;
+        $exportPayload['wear_logs'][0]['feedback_tags'] = [
+            'temperature_matched',
+            'felt_confident',
+            'humidity_uncomfortable',
+            'night_hot',
+            'night_hot',
+        ];
+
+        $this->actingAs($importUser, 'web');
+        $token = $this->issueCsrfToken();
+
+        $response = $this->postJson('/api/import', $exportPayload, [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertOk();
+
+        $wearLog = WearLog::query()
+            ->where('user_id', $importUser->id)
+            ->sole();
+
+        $this->assertSame([
+            'temperature_gap_ready',
+            'mood_matched',
+            'night_hot',
+        ], $wearLog->feedback_tags);
+        $this->assertDatabaseHas('user_tpos', [
+            'user_id' => $importUser->id,
+            'name' => 'リモート',
+        ]);
+    }
+
+    public function test_import_does_not_recreate_brand_candidates_from_legacy_backup_without_user_brands(): void
+    {
+        Storage::fake('public');
+
+        $backupOwner = User::factory()->create();
+        $importUser = User::factory()->create();
+        $this->createCategory('tops_shirt_blouse', 'tops', 'シャツ・ブラウス');
+        $this->seedExportSourceData($backupOwner);
+
+        $this->actingAs($backupOwner, 'web');
+        $exportPayload = $this->getJson('/api/export', [
+            'Accept' => 'application/json',
+        ])->assertOk()->json();
+
+        unset($exportPayload['user_brands']);
+
+        $this->actingAs($importUser, 'web');
+        $token = $this->issueCsrfToken();
+
+        $response = $this->postJson('/api/import', $exportPayload, [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertOk();
+
+        $this->assertDatabaseMissing('user_brands', [
+            'user_id' => $importUser->id,
+            'name' => 'Sample Brand',
+        ]);
+    }
+
+    public function test_import_ignores_legacy_tpo_ids_when_tpo_names_are_missing(): void
+    {
+        Storage::fake('public');
+
+        $backupOwner = User::factory()->create();
+        $importUser = User::factory()->create();
+        $this->createCategory('tops_shirt_blouse', 'tops', 'シャツ・ブラウス');
+        $this->seedExportSourceData($backupOwner);
+
+        $this->actingAs($backupOwner, 'web');
+        $exportPayload = $this->getJson('/api/export', [
+            'Accept' => 'application/json',
+        ])->assertOk()->json();
+
+        unset($exportPayload['user_tpos']);
+        $exportPayload['items'][0]['tpos'] = [];
+        $exportPayload['outfits'][0]['tpos'] = [];
+
+        $this->actingAs($importUser, 'web');
+        $token = $this->issueCsrfToken();
+
+        $response = $this->postJson('/api/import', $exportPayload, [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertOk();
+
+        $importedItem = Item::query()
+            ->where('user_id', $importUser->id)
+            ->where('name', '白シャツ')
+            ->sole();
+        $importedOutfit = Outfit::query()
+            ->where('user_id', $importUser->id)
+            ->where('name', '通勤コーデ')
+            ->sole();
+
+        $this->assertSame([], $importedItem->tpo_ids ?? []);
+        $this->assertSame([], $importedOutfit->tpo_ids ?? []);
+    }
+
+    public function test_import_restores_custom_tpos_from_legacy_purchase_candidates(): void
+    {
+        Storage::fake('public');
+
+        $backupOwner = User::factory()->create();
+        $importUser = User::factory()->create();
+        $this->createCategory('tops_shirt_blouse', 'tops', 'シャツ・ブラウス');
+        $this->seedExportSourceData($backupOwner);
+
+        $this->actingAs($backupOwner, 'web');
+        $exportPayload = $this->getJson('/api/export', [
+            'Accept' => 'application/json',
+        ])->assertOk()->json();
+
+        unset($exportPayload['user_tpos']);
+        $exportPayload['items'][0]['tpos'] = [];
+        $exportPayload['outfits'][0]['tpos'] = [];
+        $exportPayload['purchase_candidates'][0]['tpos'] = ['オフィス'];
+
+        $this->actingAs($importUser, 'web');
+        $token = $this->issueCsrfToken();
+
+        $response = $this->postJson('/api/import', $exportPayload, [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertOk();
+
+        $this->assertDatabaseHas('user_tpos', [
+            'user_id' => $importUser->id,
+            'name' => 'オフィス',
+        ]);
+    }
+
+    public function test_import_restores_custom_tpos_from_legacy_items_with_object_payloads(): void
+    {
+        Storage::fake('public');
+
+        $backupOwner = User::factory()->create();
+        $importUser = User::factory()->create();
+        $this->createCategory('tops_shirt_blouse', 'tops', 'シャツ・ブラウス');
+        $this->seedExportSourceData($backupOwner);
+
+        $this->actingAs($backupOwner, 'web');
+        $exportPayload = $this->getJson('/api/export', [
+            'Accept' => 'application/json',
+        ])->assertOk()->json();
+
+        unset($exportPayload['user_tpos']);
+        $exportPayload['items'][0]['name'] = 'オーバーサイズスウェットシャツ';
+        $exportPayload['items'][0]['tpos'] = [
+            ['name' => '在宅勤務'],
+        ];
+        $exportPayload['purchase_candidates'][0]['tpos'] = [];
+        $exportPayload['outfits'][0]['tpos'] = [];
+
+        $this->actingAs($importUser, 'web');
+        $token = $this->issueCsrfToken();
+
+        $response = $this->postJson('/api/import', $exportPayload, [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertOk();
+
+        $restoredTpo = UserTpo::query()
+            ->where('user_id', $importUser->id)
+            ->where('name', '在宅勤務')
+            ->sole();
+        $importedItem = Item::query()
+            ->where('user_id', $importUser->id)
+            ->where('name', 'オーバーサイズスウェットシャツ')
+            ->sole();
+
+        $this->assertDatabaseHas('items', [
+            'user_id' => $importUser->id,
+            'name' => 'オーバーサイズスウェットシャツ',
+        ]);
+        $this->assertSame([$restoredTpo->id], $importedItem->tpo_ids);
+    }
+
+    public function test_import_restores_tpo_assignments_from_legacy_tpo_ids(): void
+    {
+        Storage::fake('public');
+
+        $backupOwner = User::factory()->create();
+        $importUser = User::factory()->create();
+        $this->createCategory('tops_shirt_blouse', 'tops', 'シャツ・ブラウス');
+        $this->seedExportSourceData($backupOwner);
+
+        $this->actingAs($backupOwner, 'web');
+        $exportPayload = $this->getJson('/api/export', [
+            'Accept' => 'application/json',
+        ])->assertOk()->json();
+
+        $legacyRemoteTpoId = $exportPayload['items'][0]['tpo_ids'][0] ?? null;
+        $legacyOfficeTpoId = $exportPayload['outfits'][0]['tpo_ids'][0] ?? null;
+
+        $exportPayload['items'][0]['tpos'] = [];
+        $exportPayload['outfits'][0]['tpos'] = [];
+
+        $this->actingAs($importUser, 'web');
+        $token = $this->issueCsrfToken();
+
+        $response = $this->postJson('/api/import', $exportPayload, [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertOk();
+
+        $remote = UserTpo::query()
+            ->where('user_id', $importUser->id)
+            ->where('name', 'リモート')
+            ->sole();
+        $office = UserTpo::query()
+            ->where('user_id', $importUser->id)
+            ->where('name', 'オフィス')
+            ->sole();
+        $importedItem = Item::query()
+            ->where('user_id', $importUser->id)
+            ->where('name', '白シャツ')
+            ->sole();
+        $importedOutfit = Outfit::query()
+            ->where('user_id', $importUser->id)
+            ->where('name', '通勤コーデ')
+            ->sole();
+
+        $this->assertIsInt($legacyRemoteTpoId);
+        $this->assertIsInt($legacyOfficeTpoId);
+        $this->assertSame([$remote->id], $importedItem->tpo_ids);
+        $this->assertSame([$office->id], $importedOutfit->tpo_ids);
+    }
+
+    public function test_import_uses_existing_preset_named_tpos_without_duplicate_errors(): void
+    {
+        Storage::fake('public');
+
+        $backupOwner = User::factory()->create();
+        $importUser = User::factory()->create();
+        $this->createCategory('tops_shirt_blouse', 'tops', 'シャツ・ブラウス');
+        $this->seedExportSourceData($backupOwner);
+
+        $this->actingAs($backupOwner, 'web');
+        $exportPayload = $this->getJson('/api/export', [
+            'Accept' => 'application/json',
+        ])->assertOk()->json();
+
+        unset($exportPayload['user_tpos']);
+        $exportPayload['items'][0]['tpos'] = ['仕事'];
+        $exportPayload['outfits'][0]['tpos'] = [];
+        $exportPayload['purchase_candidates'][0]['tpos'] = [];
+
+        $this->actingAs($importUser, 'web');
+        $token = $this->issueCsrfToken();
+
+        $response = $this->postJson('/api/import', $exportPayload, [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertOk();
+
+        $this->assertSame(1, UserTpo::query()
+            ->where('user_id', $importUser->id)
+            ->where('name', '仕事')
+            ->count());
+        $this->assertDatabaseHas('user_tpos', [
+            'user_id' => $importUser->id,
+            'name' => '仕事',
+            'is_preset' => true,
+        ]);
+    }
+
+    public function test_import_restores_custom_tpos_from_backup_definitions(): void
+    {
+        Storage::fake('public');
+
+        $backupOwner = User::factory()->create();
+        $importUser = User::factory()->create();
+        $this->createCategory('tops_shirt_blouse', 'tops', 'シャツ・ブラウス');
+        $this->seedExportSourceData($backupOwner);
+
+        $this->actingAs($backupOwner, 'web');
+        $exportPayload = $this->getJson('/api/export', [
+            'Accept' => 'application/json',
+        ])->assertOk()->json();
+
+        $this->actingAs($importUser, 'web');
+        $token = $this->issueCsrfToken();
+
+        $response = $this->postJson('/api/import', $exportPayload, [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('counts.user_tpos.total', 5);
+
+        $remote = UserTpo::query()
+            ->where('user_id', $importUser->id)
+            ->where('name', 'リモート')
+            ->sole();
+        $office = UserTpo::query()
+            ->where('user_id', $importUser->id)
+            ->where('name', 'オフィス')
+            ->sole();
+        $importedItem = Item::query()
+            ->where('user_id', $importUser->id)
+            ->where('name', '白シャツ')
+            ->sole();
+        $importedOutfit = Outfit::query()
+            ->where('user_id', $importUser->id)
+            ->where('name', '通勤コーデ')
+            ->sole();
+
+        $this->assertTrue($remote->is_active);
+        $this->assertFalse($remote->is_preset);
+        $this->assertTrue($office->is_active);
+        $this->assertFalse($office->is_preset);
+        $this->assertSame([$remote->id], $importedItem->tpo_ids);
+        $this->assertSame([$office->id], $importedOutfit->tpo_ids);
+    }
+
+    public function test_import_infers_visible_categories_from_legacy_items_and_candidates(): void
+    {
+        Storage::fake('public');
+
+        $backupOwner = User::factory()->create();
+        $importUser = User::factory()->create();
+        $this->createCategory('tops_shirt_blouse', 'tops', 'シャツ・ブラウス');
+        $this->seedExportSourceData($backupOwner);
+
+        $this->actingAs($backupOwner, 'web');
+        $exportPayload = $this->getJson('/api/export', [
+            'Accept' => 'application/json',
+        ])->assertOk()->json();
+
+        unset($exportPayload['visible_category_ids']);
+
+        $this->actingAs($importUser, 'web');
+        $token = $this->issueCsrfToken();
+
+        $response = $this->postJson('/api/import', $exportPayload, [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertOk();
+
+        $importUser->refresh();
+        $this->assertNull($importUser->visible_category_ids);
+    }
+
+    public function test_import_legacy_backup_only_adds_inferred_visible_categories_to_existing_settings(): void
+    {
+        Storage::fake('public');
+
+        $backupOwner = User::factory()->create();
+        $importUser = User::factory()->create();
+        $this->createCategory('tops_shirt_blouse', 'tops', 'シャツ・ブラウス');
+        $this->seedExportSourceData($backupOwner);
+        $importUser->forceFill([
+            'visible_category_ids' => ['underwear_bra'],
+        ])->save();
+
+        $this->actingAs($backupOwner, 'web');
+        $exportPayload = $this->getJson('/api/export', [
+            'Accept' => 'application/json',
+        ])->assertOk()->json();
+
+        unset($exportPayload['visible_category_ids']);
+
+        $this->actingAs($importUser, 'web');
+        $token = $this->issueCsrfToken();
+
+        $response = $this->postJson('/api/import', $exportPayload, [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertOk();
+
+        $importUser->refresh();
+        $this->assertSame(['underwear_bra', 'tops_shirt_blouse'], $importUser->visible_category_ids);
     }
 
     public function test_export_import_roundtrip_preserves_purchase_candidate_alternate_size_fields(): void
@@ -1032,7 +1583,7 @@ class ImportExportEndpointsTest extends TestCase
         Storage::fake('public');
 
         $user = User::factory()->create();
-        $this->createCategory('tops_shirt_blouse', 'tops', '繧ｷ繝｣繝・・繝悶Λ繧ｦ繧ｹ');
+        $this->createCategory('tops_shirt_blouse', 'tops', 'シャツ・ブラウス');
 
         $source = $this->seedExportSourceData($user);
 

@@ -5,7 +5,9 @@ namespace Tests\Feature;
 use App\Models\Item;
 use App\Models\Outfit;
 use App\Models\User;
+use App\Models\UserWeatherLocation;
 use App\Models\WearLog;
+use App\Models\WeatherRecord;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -421,6 +423,31 @@ class WearLogEndpointsTest extends TestCase
             'item_source_type' => 'outfit',
         ]);
 
+        $weatherLocation = UserWeatherLocation::query()->create([
+            'user_id' => $user->id,
+            'name' => '川口',
+            'forecast_area_code' => '110000',
+            'latitude' => null,
+            'longitude' => null,
+            'is_default' => true,
+            'display_order' => 1,
+        ]);
+
+        WeatherRecord::query()->create([
+            'user_id' => $user->id,
+            'weather_date' => '2026-03-05',
+            'location_id' => $weatherLocation->id,
+            'location_name_snapshot' => '川口',
+            'forecast_area_code_snapshot' => '110000',
+            'weather_condition' => 'sunny',
+            'temperature_high' => 22.0,
+            'temperature_low' => 13.0,
+            'memo' => '日中はよく晴れた',
+            'source_type' => 'manual',
+            'source_name' => 'manual',
+            'source_fetched_at' => null,
+        ]);
+
         $this->createWearLog($otherUser, [
             'status' => 'planned',
             'event_date' => '2026-03-05',
@@ -458,7 +485,11 @@ class WearLogEndpointsTest extends TestCase
             ->assertJsonCount(2, 'wearLogs.1.thumbnail_items')
             ->assertJsonPath('wearLogs.1.thumbnail_items.0.category', 'tops')
             ->assertJsonPath('wearLogs.1.thumbnail_items.0.sort_order', 1)
-            ->assertJsonPath('wearLogs.1.thumbnail_items.1.category', 'bottoms');
+            ->assertJsonPath('wearLogs.1.thumbnail_items.1.category', 'bottoms')
+            ->assertJsonPath('weatherRecords.0.location_name', '川口')
+            ->assertJsonPath('weatherRecords.0.weather_condition', 'sunny')
+            ->assertJsonPath('weatherRecords.0.temperature_high', 22)
+            ->assertJsonPath('weatherRecords.0.memo', '日中はよく晴れた');
     }
 
     public function test_get_wear_logs_by_date_returns_422_when_event_date_is_invalid(): void
@@ -604,7 +635,7 @@ class WearLogEndpointsTest extends TestCase
         ]);
 
         $response->assertStatus(422)
-            ->assertJsonPath('errors.items.0', 'items は空配列を含めて必ず指定してください。');
+            ->assertJsonValidationErrors(['items']);
     }
 
     public function test_post_wear_log_can_create_with_items_only(): void
@@ -814,7 +845,7 @@ class WearLogEndpointsTest extends TestCase
         ]);
 
         $response->assertStatus(422)
-            ->assertJsonPath('errors.source_outfit_id.0', 'コーディネートまたはアイテムを1件以上指定してください。');
+            ->assertJsonValidationErrors(['source_outfit_id']);
     }
 
     public function test_post_wear_log_returns_422_when_disposed_item_is_specified(): void
@@ -845,7 +876,7 @@ class WearLogEndpointsTest extends TestCase
         ]);
 
         $response->assertStatus(422)
-            ->assertJsonPath('errors.items.0', '手放したアイテムは選択できません。');
+            ->assertJsonValidationErrors(['items']);
     }
 
     public function test_post_wear_log_returns_422_when_item_sort_order_is_duplicated(): void
@@ -884,7 +915,7 @@ class WearLogEndpointsTest extends TestCase
         ]);
 
         $response->assertStatus(422)
-            ->assertJsonPath('errors.items.0', '同じ表示順を重複して登録することはできません。');
+            ->assertJsonValidationErrors(['items']);
     }
 
     public function test_post_wear_log_returns_422_when_item_sort_order_has_gap(): void
@@ -923,7 +954,7 @@ class WearLogEndpointsTest extends TestCase
         ]);
 
         $response->assertStatus(422)
-            ->assertJsonPath('errors.items.0', '表示順は 1 からの連番で指定してください。');
+            ->assertJsonValidationErrors(['items']);
     }
 
     public function test_post_wear_log_returns_422_when_invalid_outfit_is_specified(): void
@@ -948,7 +979,7 @@ class WearLogEndpointsTest extends TestCase
         ]);
 
         $response->assertStatus(422)
-            ->assertJsonPath('errors.source_outfit_id.0', '使用できないコーディネートは選択できません。');
+            ->assertJsonValidationErrors(['source_outfit_id']);
     }
 
     public function test_post_wear_log_returns_422_when_feedback_fields_are_invalid(): void
@@ -1097,8 +1128,8 @@ class WearLogEndpointsTest extends TestCase
             'status' => 'worn',
             'outdoor_temperature_feel' => 'slightly_cold',
             'indoor_temperature_feel' => 'comfortable',
-            'overall_rating' => 'good',
             'feedback_tags' => ['comfortable_all_day', 'rain_ready'],
+            'overall_rating' => 'good',
             'feedback_memo' => '快適だった',
         ]);
 

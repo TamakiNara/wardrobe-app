@@ -10,6 +10,8 @@ export type ExportPayload = {
   purchase_candidates: unknown[];
   outfits: unknown[];
   wear_logs: unknown[];
+  weather_locations: unknown[];
+  weather_records: unknown[];
 };
 
 export type ImportResponse = {
@@ -27,6 +29,12 @@ export type ImportResponse = {
       visible: number;
     };
     wear_logs: {
+      total: number;
+    };
+    weather_locations: {
+      total: number;
+    };
+    weather_records: {
       total: number;
     };
   };

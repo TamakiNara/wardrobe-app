@@ -8,12 +8,19 @@ use App\Models\Outfit;
 use App\Models\PurchaseCandidate;
 use App\Models\PurchaseCandidateMaterial;
 use App\Models\User;
+use App\Models\UserBrand;
+use App\Models\UserPreference;
+use App\Models\UserTpo;
+use App\Models\UserWeatherLocation;
 use App\Models\WearLog;
+use App\Models\WeatherRecord;
 use App\Support\ImportExportImageSupport;
 use App\Support\ItemMaterialSupport;
 use App\Support\ItemSpecNormalizer;
 use App\Support\ItemSpecPayloadSupport;
 use App\Support\ItemSubcategorySupport;
+use App\Support\WeatherLocationPayloadBuilder;
+use App\Support\WeatherRecordPayloadBuilder;
 
 class ExportService
 {
@@ -25,6 +32,38 @@ class ExportService
             'owner' => [
                 'user_id' => $user->id,
             ],
+            'user_tpos' => UserTpo::query()
+                ->where('user_id', $user->id)
+                ->orderBy('sort_order')
+                ->orderBy('id')
+                ->get()
+                ->map(fn (UserTpo $tpo) => [
+                    'id' => $tpo->id,
+                    'name' => $tpo->name,
+                    'sort_order' => $tpo->sort_order,
+                    'is_active' => $tpo->is_active,
+                    'is_preset' => $tpo->is_preset,
+                ])
+                ->all(),
+            'user_brands' => UserBrand::query()
+                ->where('user_id', $user->id)
+                ->orderByDesc('is_active')
+                ->orderBy('name')
+                ->orderBy('id')
+                ->get()
+                ->map(fn (UserBrand $brand) => [
+                    'id' => $brand->id,
+                    'name' => $brand->name,
+                    'kana' => $brand->kana,
+                    'is_active' => $brand->is_active,
+                ])
+                ->all(),
+            'visible_category_ids' => is_array($user->visible_category_ids)
+                ? array_values($user->visible_category_ids)
+                : [],
+            'user_preferences' => \App\Support\UserPreferencePayloadBuilder::build(
+                UserPreference::query()->where('user_id', $user->id)->first()
+            ),
             'items' => Item::query()
                 ->where('user_id', $user->id)
                 ->with(['images', 'materials'])
@@ -54,6 +93,22 @@ class ExportService
                 ->orderBy('id')
                 ->get()
                 ->map(fn (WearLog $wearLog) => $this->buildWearLogPayload($wearLog))
+                ->all(),
+            'weather_locations' => UserWeatherLocation::query()
+                ->where('user_id', $user->id)
+                ->orderByDesc('is_default')
+                ->orderBy('display_order')
+                ->orderBy('id')
+                ->get()
+                ->map(fn (UserWeatherLocation $location) => WeatherLocationPayloadBuilder::build($location))
+                ->all(),
+            'weather_records' => WeatherRecord::query()
+                ->where('user_id', $user->id)
+                ->with('location')
+                ->orderBy('weather_date')
+                ->orderBy('id')
+                ->get()
+                ->map(fn (WeatherRecord $record) => WeatherRecordPayloadBuilder::build($record))
                 ->all(),
         ];
     }

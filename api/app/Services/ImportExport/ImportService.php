@@ -7,12 +7,20 @@ use App\Models\Outfit;
 use App\Models\PurchaseCandidate;
 use App\Models\PurchaseCandidateGroup;
 use App\Models\User;
+use App\Models\UserBrand;
+use App\Models\UserPreference;
+use App\Models\UserTpo;
+use App\Models\UserWeatherLocation;
 use App\Models\WearLog;
+use App\Models\WeatherRecord;
 use App\Services\Items\ItemStoreService;
 use App\Services\PurchaseCandidates\PurchaseCandidateService;
 use App\Services\Settings\UserTpoService;
+use App\Support\BrandNormalizer;
 use App\Support\ImportExportImageSupport;
 use App\Support\ImportExportValidationSupport;
+use App\Support\ItemSubcategorySupport;
+use App\Support\SkinTonePresetSupport;
 use App\Support\TpoSelectionResolver;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -28,22 +36,42 @@ class ImportService
     /**
      * @param  array<string, mixed>  $payload
      * @return array{
+     *   user_tpos: array{total: int},
      *   items: array{total: int, visible: int},
      *   purchase_candidates: array{total: int},
      *   outfits: array{total: int, visible: int},
-     *   wear_logs: array{total: int}
+     *   wear_logs: array{total: int},
+     *   weather_locations: array{total: int},
+     *   weather_records: array{total: int}
      * }
      */
     public function import(User $user, array $payload): array
     {
-        $ownerUserId = data_get($payload, 'owner.user_id');
-
-        if (! is_int($ownerUserId) || $ownerUserId !== $user->id) {
-            throw ValidationException::withMessages([
-                'owner.user_id' => 'このバックアップファイルは作成したユーザー本人のみ復元できます。',
-            ]);
-        }
-
+        $validatedUserTpos = $this->validateCollectionPayloads(
+            $payload['user_tpos'] ?? [],
+            'user_tpos',
+            'TPO',
+            fn ($tpo) => ImportExportValidationSupport::validateUserTpoPayload((array) $tpo),
+        );
+        $hasUserBrandsPayload = array_key_exists('user_brands', $payload);
+        $validatedUserBrands = $hasUserBrandsPayload
+            ? $this->validateCollectionPayloads(
+                $payload['user_brands'] ?? [],
+                'user_brands',
+                'ブランド候補',
+                fn ($brand) => ImportExportValidationSupport::validateUserBrandPayload((array) $brand),
+            )
+            : [];
+        $hasVisibleCategoryIdsPayload = array_key_exists('visible_category_ids', $payload);
+        $validatedVisibleCategoryIds = ImportExportValidationSupport::validateVisibleCategoryIdsPayload(
+            $hasVisibleCategoryIdsPayload ? ($payload['visible_category_ids'] ?? []) : null,
+        );
+        $hasUserPreferencesPayload = array_key_exists('user_preferences', $payload);
+        $validatedUserPreferences = ImportExportValidationSupport::validateUserPreferencePayload(
+            $hasUserPreferencesPayload && is_array($payload['user_preferences'] ?? null)
+                ? $payload['user_preferences']
+                : null,
+        );
         $validatedItems = $this->validateCollectionPayloads(
             $payload['items'] ?? [],
             'items',
@@ -68,6 +96,18 @@ class ImportService
             '着用履歴',
             fn ($wearLog) => ImportExportValidationSupport::validateWearLogPayload((array) $wearLog),
         );
+        $validatedWeatherLocations = $this->validateCollectionPayloads(
+            $payload['weather_locations'] ?? [],
+            'weather_locations',
+            '天気地域',
+            fn ($location) => ImportExportValidationSupport::validateWeatherLocationPayload((array) $location),
+        );
+        $validatedWeatherRecords = $this->validateCollectionPayloads(
+            $payload['weather_records'] ?? [],
+            'weather_records',
+            '天気記録',
+            fn ($record) => ImportExportValidationSupport::validateWeatherRecordPayload((array) $record),
+        );
 
         $existingItemFiles = ImportExportImageSupport::collectStoredFiles(
             Item::query()->where('user_id', $user->id)->with('images')->get()->pluck('images')->flatten()
@@ -85,19 +125,63 @@ class ImportService
                 $validatedCandidates,
                 $validatedOutfits,
                 $validatedWearLogs,
+                $validatedUserTpos,
+                $validatedUserBrands,
+                $validatedVisibleCategoryIds,
+                $validatedUserPreferences,
+                $hasUserBrandsPayload,
+                $hasVisibleCategoryIdsPayload,
+                $hasUserPreferencesPayload,
+                $validatedWeatherLocations,
+                $validatedWeatherRecords,
                 &$createdFiles,
             ) {
+                WeatherRecord::query()->where('user_id', $user->id)->delete();
+                UserWeatherLocation::query()->where('user_id', $user->id)->delete();
                 WearLog::query()->where('user_id', $user->id)->delete();
                 Outfit::query()->where('user_id', $user->id)->delete();
                 PurchaseCandidate::query()->where('user_id', $user->id)->delete();
                 PurchaseCandidateGroup::query()->where('user_id', $user->id)->delete();
                 Item::query()->where('user_id', $user->id)->delete();
+                UserBrand::query()->where('user_id', $user->id)->delete();
+                UserTpo::query()->where('user_id', $user->id)->delete();
+
+                if ($hasUserPreferencesPayload) {
+                    UserPreference::query()->where('user_id', $user->id)->delete();
+                }
+
+                $legacyTpoIdMap = $this->restoreUserTpos(
+                    $user,
+                    $validatedUserTpos,
+                    $validatedItems,
+                    $validatedCandidates,
+                    $validatedOutfits,
+                );
+                $this->restoreUserBrands(
+                    $user,
+                    $validatedUserBrands,
+                    $hasUserBrandsPayload,
+                );
+                $this->restoreVisibleCategoryIds(
+                    $user,
+                    $validatedVisibleCategoryIds,
+                    $hasVisibleCategoryIdsPayload,
+                    $validatedItems,
+                    $validatedCandidates,
+                );
+                $this->restoreUserPreferences(
+                    $user,
+                    $validatedUserPreferences,
+                    $hasUserPreferencesPayload,
+                );
 
                 $itemIdMap = [];
                 foreach ($validatedItems as $itemPayload) {
-                    $item = $this->itemStoreService->store($user, array_merge($itemPayload, [
-                        'images' => [],
-                    ]));
+                    $item = $this->itemStoreService->store($user, array_merge(
+                        $this->resolveImportedTpoSelection($itemPayload, $legacyTpoIdMap),
+                        [
+                            'images' => [],
+                        ]));
 
                     if (($itemPayload['status'] ?? 'active') !== 'active') {
                         $item->forceFill([
@@ -112,6 +196,23 @@ class ImportService
                     );
 
                     $itemIdMap[(int) ($itemPayload['id'] ?? $item->id)] = $item->id;
+                }
+
+                $weatherLocationIdMap = [];
+                foreach ($validatedWeatherLocations as $locationPayload) {
+                    $location = UserWeatherLocation::query()->create([
+                        'user_id' => $user->id,
+                        'name' => $locationPayload['name'],
+                        'forecast_area_code' => $locationPayload['forecast_area_code']
+                            ?? $locationPayload['area_code']
+                            ?? null,
+                        'latitude' => $locationPayload['latitude'] ?? null,
+                        'longitude' => $locationPayload['longitude'] ?? null,
+                        'is_default' => $locationPayload['is_default'] ?? false,
+                        'display_order' => $locationPayload['display_order'] ?? 1,
+                    ]);
+
+                    $weatherLocationIdMap[(int) ($locationPayload['id'] ?? $location->id)] = $location->id;
                 }
 
                 $groupIdMap = [];
@@ -177,10 +278,7 @@ class ImportService
                         'tpo_ids' => TpoSelectionResolver::resolve(
                             $this->userTpoService,
                             $user,
-                            [
-                                'tpo_ids' => $outfitPayload['tpo_ids'] ?? [],
-                                'tpos' => $outfitPayload['tpos'] ?? [],
-                            ],
+                            $this->resolveImportedTpoSelection($outfitPayload, $legacyTpoIdMap),
                         ),
                     ]);
 
@@ -254,7 +352,42 @@ class ImportService
                     }
                 }
 
+                foreach ($validatedWeatherRecords as $weatherRecordPayload) {
+                    $originalLocationId = $weatherRecordPayload['location_id'] ?? null;
+                    $mappedLocationId = null;
+
+                    if (is_int($originalLocationId)) {
+                        $mappedLocationId = $weatherLocationIdMap[$originalLocationId] ?? null;
+                    }
+
+                    if (is_int($originalLocationId) && ! is_int($mappedLocationId)) {
+                        throw ValidationException::withMessages([
+                            'weather_records' => '復元対象に存在しない地域を参照する天気記録は復元できません。',
+                        ]);
+                    }
+
+                    WeatherRecord::query()->create([
+                        'user_id' => $user->id,
+                        'weather_date' => $weatherRecordPayload['weather_date'],
+                        'location_id' => $mappedLocationId,
+                        'location_name_snapshot' => $weatherRecordPayload['location_name_snapshot'],
+                        'forecast_area_code_snapshot' => $weatherRecordPayload['forecast_area_code_snapshot']
+                            ?? $weatherRecordPayload['area_code_snapshot']
+                            ?? null,
+                        'weather_condition' => $weatherRecordPayload['weather_condition'],
+                        'temperature_high' => $weatherRecordPayload['temperature_high'] ?? null,
+                        'temperature_low' => $weatherRecordPayload['temperature_low'] ?? null,
+                        'memo' => $weatherRecordPayload['memo'] ?? null,
+                        'source_type' => $weatherRecordPayload['source_type'] ?? 'manual',
+                        'source_name' => $weatherRecordPayload['source_name'] ?? 'manual',
+                        'source_fetched_at' => $weatherRecordPayload['source_fetched_at'] ?? null,
+                    ]);
+                }
+
                 return [
+                    'user_tpos' => [
+                        'total' => UserTpo::query()->where('user_id', $user->id)->count(),
+                    ],
                     'items' => [
                         'total' => count($validatedItems),
                         'visible' => collect($validatedItems)
@@ -273,6 +406,12 @@ class ImportService
                     'wear_logs' => [
                         'total' => count($validatedWearLogs),
                     ],
+                    'weather_locations' => [
+                        'total' => count($validatedWeatherLocations),
+                    ],
+                    'weather_records' => [
+                        'total' => count($validatedWeatherRecords),
+                    ],
                 ];
             });
         } catch (\Throwable $exception) {
@@ -286,6 +425,270 @@ class ImportService
         ]);
 
         return $counts;
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $validatedUserTpos
+     * @param  array<int, array<string, mixed>>  $validatedItems
+     * @param  array<int, array<string, mixed>>  $validatedCandidates
+     * @param  array<int, array<string, mixed>>  $validatedOutfits
+     */
+    private function restoreUserTpos(
+        User $user,
+        array $validatedUserTpos,
+        array $validatedItems,
+        array $validatedCandidates,
+        array $validatedOutfits,
+    ): array {
+        $sortOrder = 1;
+        $seenNames = [];
+        $legacyTpoIdMap = [];
+
+        foreach ($validatedUserTpos as $payload) {
+            $name = trim((string) ($payload['name'] ?? ''));
+            if ($name === '' || isset($seenNames[mb_strtolower($name, 'UTF-8')])) {
+                continue;
+            }
+
+            $userTpo = UserTpo::query()->create([
+                'user_id' => $user->id,
+                'name' => $name,
+                'sort_order' => $sortOrder++,
+                'is_active' => (bool) ($payload['is_active'] ?? true),
+                'is_preset' => (bool) ($payload['is_preset'] ?? false),
+            ]);
+
+            $seenNames[mb_strtolower($name, 'UTF-8')] = true;
+
+            if (is_int($payload['id'] ?? null)) {
+                $legacyTpoIdMap[$payload['id']] = $userTpo->id;
+            }
+        }
+
+        $legacyReferencedNames = collect([...$validatedItems, ...$validatedCandidates, ...$validatedOutfits])
+            ->flatMap(function (array $payload) {
+                $tpos = $payload['tpos'] ?? [];
+
+                return is_array($tpos) ? $tpos : [];
+            })
+            ->map(fn ($name) => is_string($name) ? trim($name) : '')
+            ->filter(fn ($name) => $name !== '')
+            ->unique()
+            ->values();
+
+        foreach ($legacyReferencedNames as $name) {
+            $normalizedKey = mb_strtolower($name, 'UTF-8');
+
+            if (isset($seenNames[$normalizedKey])) {
+                continue;
+            }
+
+            $userTpo = UserTpo::query()->create([
+                'user_id' => $user->id,
+                'name' => $name,
+                'sort_order' => $sortOrder++,
+                'is_active' => true,
+                'is_preset' => false,
+            ]);
+
+            $seenNames[$normalizedKey] = true;
+        }
+
+        return $legacyTpoIdMap;
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     * @param  array<int, int>  $legacyTpoIdMap
+     * @return array<string, mixed>
+     */
+    private function resolveImportedTpoSelection(array $payload, array $legacyTpoIdMap): array
+    {
+        $legacyTpoIds = collect($payload['tpo_ids'] ?? [])
+            ->filter(fn ($id) => is_int($id))
+            ->values()
+            ->all();
+        $mappedTpoIds = collect($legacyTpoIds)
+            ->map(fn (int $legacyId) => $legacyTpoIdMap[$legacyId] ?? null)
+            ->filter(fn ($id) => is_int($id))
+            ->unique()
+            ->values()
+            ->all();
+        $tpoNames = collect($payload['tpos'] ?? [])
+            ->filter(fn ($name) => is_string($name) && trim($name) !== '')
+            ->map(fn (string $name) => trim($name))
+            ->values()
+            ->all();
+
+        unset($payload['tpo_ids']);
+
+        if ($tpoNames !== []) {
+            $payload['tpos'] = $tpoNames;
+
+            return $payload;
+        }
+
+        if ($mappedTpoIds !== []) {
+            $payload['tpo_ids'] = $mappedTpoIds;
+        } else {
+            $payload['tpos'] = [];
+        }
+
+        return $payload;
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $validatedUserBrands
+     */
+    private function restoreUserBrands(
+        User $user,
+        array $validatedUserBrands,
+        bool $hasUserBrandsPayload,
+    ): void {
+        $seenNormalizedNames = [];
+        $seenNormalizedKana = [];
+
+        if (! $hasUserBrandsPayload) {
+            return;
+        }
+
+        foreach ($validatedUserBrands as $payload) {
+            $this->createUserBrandFromImportPayload(
+                $user,
+                $payload['name'] ?? '',
+                $payload['kana'] ?? null,
+                (bool) ($payload['is_active'] ?? true),
+                $seenNormalizedNames,
+                $seenNormalizedKana,
+            );
+        }
+    }
+
+    /**
+     * @param  list<string>|null  $validatedVisibleCategoryIds
+     * @param  array<int, array<string, mixed>>  $validatedItems
+     * @param  array<int, array<string, mixed>>  $validatedCandidates
+     */
+    private function restoreVisibleCategoryIds(
+        User $user,
+        ?array $validatedVisibleCategoryIds,
+        bool $hasVisibleCategoryIdsPayload,
+        array $validatedItems,
+        array $validatedCandidates,
+    ): void {
+        if ($hasVisibleCategoryIdsPayload) {
+            $user->forceFill([
+                'visible_category_ids' => $validatedVisibleCategoryIds ?? [],
+            ])->save();
+
+            return;
+        }
+
+        if (! is_array($user->visible_category_ids)) {
+            return;
+        }
+
+        $currentVisibleCategoryIds = ItemSubcategorySupport::currentVisibleCategoryIds();
+
+        $inferredVisibleCategoryIds = collect($validatedItems)
+            ->map(function (array $payload) {
+                return ItemSubcategorySupport::visibleCategoryIdFor(
+                    is_string($payload['category'] ?? null) ? $payload['category'] : null,
+                    is_string($payload['subcategory'] ?? null) ? $payload['subcategory'] : null,
+                );
+            })
+            ->merge(
+                collect($validatedCandidates)
+                    ->map(fn (array $payload) => is_string($payload['category_id'] ?? null) ? $payload['category_id'] : null)
+            )
+            ->filter(fn ($categoryId) => is_string($categoryId) && in_array($categoryId, $currentVisibleCategoryIds, true))
+            ->unique()
+            ->values()
+            ->all();
+
+        if ($inferredVisibleCategoryIds === []) {
+            return;
+        }
+
+        $mergedVisibleCategoryIds = collect($user->visible_category_ids)
+            ->filter(fn ($categoryId) => is_string($categoryId) && in_array($categoryId, $currentVisibleCategoryIds, true))
+            ->merge($inferredVisibleCategoryIds)
+            ->unique()
+            ->values()
+            ->all();
+
+        $user->forceFill([
+            'visible_category_ids' => $mergedVisibleCategoryIds,
+        ])->save();
+    }
+
+    /**
+     * @param  array<string, mixed>|null  $validatedUserPreferences
+     */
+    private function restoreUserPreferences(
+        User $user,
+        ?array $validatedUserPreferences,
+        bool $hasUserPreferencesPayload,
+    ): void {
+        if (! $hasUserPreferencesPayload || $validatedUserPreferences === null) {
+            return;
+        }
+
+        UserPreference::query()->updateOrCreate(
+            ['user_id' => $user->id],
+            [
+                'current_season' => $validatedUserPreferences['currentSeason'] ?? null,
+                'default_wear_log_status' => $validatedUserPreferences['defaultWearLogStatus'] ?? null,
+                'calendar_week_start' => $validatedUserPreferences['calendarWeekStart'] ?? null,
+                'skin_tone_preset' => $validatedUserPreferences['skinTonePreset'] ?? SkinTonePresetSupport::DEFAULT_PRESET,
+            ],
+        );
+    }
+
+    /**
+     * @param  array<string, true>  $seenNormalizedNames
+     * @param  array<string, true>  $seenNormalizedKana
+     */
+    private function createUserBrandFromImportPayload(
+        User $user,
+        string $name,
+        ?string $kana,
+        bool $isActive,
+        array &$seenNormalizedNames,
+        array &$seenNormalizedKana,
+    ): void {
+        $trimmedName = trim($name);
+        $trimmedKana = $kana !== null ? trim($kana) : null;
+
+        if ($trimmedName === '') {
+            return;
+        }
+
+        $normalizedName = BrandNormalizer::normalizeName($trimmedName);
+        $normalizedKana = BrandNormalizer::normalizeKana($trimmedKana);
+
+        if (isset($seenNormalizedNames[$normalizedName])) {
+            return;
+        }
+
+        if ($normalizedKana !== null && isset($seenNormalizedKana[$normalizedKana])) {
+            return;
+        }
+
+        UserBrand::query()->create([
+            'user_id' => $user->id,
+            'name' => $trimmedName,
+            'kana' => $trimmedKana === '' ? null : $trimmedKana,
+            'normalized_name' => $normalizedName,
+            'normalized_kana' => $normalizedKana,
+            'is_active' => $isActive,
+        ]);
+
+        $seenNormalizedNames[$normalizedName] = true;
+
+        if ($normalizedKana !== null) {
+            $seenNormalizedKana[$normalizedKana] = true;
+        }
     }
 
     /**

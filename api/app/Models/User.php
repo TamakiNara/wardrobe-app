@@ -83,4 +83,14 @@ class User extends Authenticatable
     {
         return $this->hasOne(UserPreference::class);
     }
+
+    public function weatherLocations(): HasMany
+    {
+        return $this->hasMany(UserWeatherLocation::class);
+    }
+
+    public function weatherRecords(): HasMany
+    {
+        return $this->hasMany(WeatherRecord::class);
+    }
 }

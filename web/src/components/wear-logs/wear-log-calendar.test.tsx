@@ -105,6 +105,25 @@ describe("WearLogCalendar", () => {
           ],
         },
       ],
+      weatherRecords: [
+        {
+          id: 31,
+          weather_date: "2026-03-05",
+          location_id: 5,
+          location_name: "川口",
+          location_name_snapshot: "川口",
+          forecast_area_code_snapshot: "110000",
+          weather_condition: "sunny",
+          temperature_high: 22,
+          temperature_low: 13,
+          memo: "日中はよく晴れた",
+          source_type: "manual",
+          source_name: "manual",
+          source_fetched_at: null,
+          created_at: "2026-03-05T08:00:00Z",
+          updated_at: "2026-03-05T08:00:00Z",
+        },
+      ],
     });
 
     const { default: WearLogCalendar } = await import("./wear-log-calendar");
@@ -172,6 +191,10 @@ describe("WearLogCalendar", () => {
     expect(container.textContent!.indexOf("よかった")).toBeLessThan(
       container.textContent!.indexOf("屋外 少し寒い"),
     );
+    expect(container.textContent).toContain("川口");
+    expect(container.textContent).toContain("晴れ / 最高22℃ / 最低13℃");
+    expect(container.textContent).toContain("メモ: 日中はよく晴れた");
+    expect(container.textContent).toContain("天気を編集");
     expect(container.innerHTML).toContain('href="/wear-logs/11"');
     expect(container.innerHTML).toContain("wear-log-modal-color-thumbnail");
   });
@@ -326,6 +349,7 @@ describe("WearLogCalendar", () => {
     apiFetchMock.mockResolvedValue({
       event_date: "2026-03-05",
       wearLogs: [],
+      weatherRecords: [],
     });
 
     vi.setSystemTime(new Date("2026-03-26T09:00:00+09:00"));
@@ -366,6 +390,7 @@ describe("WearLogCalendar", () => {
     apiFetchMock.mockResolvedValue({
       event_date: "2026-03-08",
       wearLogs: [],
+      weatherRecords: [],
     });
 
     const { default: WearLogCalendar } = await import("./wear-log-calendar");

@@ -3,10 +3,11 @@ import { redirect } from "next/navigation";
 import DeleteWearLogButton from "@/components/wear-logs/delete-wear-log-button";
 import WearLogStatusAction from "@/components/wear-logs/wear-log-status-action";
 import { EntityDetailHeader } from "@/components/shared/entity-detail-header";
-import { ITEM_CARE_STATUS_LABELS } from "@/lib/items/metadata";
 import { fetchLaravelWithCookie } from "@/lib/server/laravel";
+import { buildWeatherRecordConditionSummary } from "@/lib/weather/labels";
 import {
   getWearLogFeedbackTagLabel,
+  getWearLogOverallRatingBadgeClassName,
   getWearLogOverallRatingLabel,
   getWearLogStatusBadgeClassName,
   getWearLogStatusLabel,
@@ -16,7 +17,7 @@ import {
 import type { WearLogRecord } from "@/types/wear-logs";
 
 function getItemSourceTypeLabel(itemSourceType: "outfit" | "manual"): string {
-  return itemSourceType === "outfit" ? "参照コーディネート" : "手動追加";
+  return itemSourceType === "outfit" ? "コーディネート由来" : "手動追加";
 }
 
 function getTodayYmd(): string {
@@ -59,20 +60,15 @@ export default async function WearLogDetailPage({
   const today = getTodayYmd();
   const isPastPlanned =
     wearLog.status === "planned" && wearLog.event_date < today;
-  const disposedItems = wearLog.items.filter(
-    (item) => item.source_item_status === "disposed",
-  );
-  const cleaningItems = wearLog.items.filter(
-    (item) => item.source_item_care_status === "in_cleaning",
-  );
   const feedbackSummary = splitWearLogFeedbackTags(wearLog.feedback_tags ?? []);
   const hasFeedbackSection =
+    wearLog.overall_rating !== null ||
     wearLog.outdoor_temperature_feel !== null ||
     wearLog.indoor_temperature_feel !== null ||
-    wearLog.overall_rating !== null ||
     feedbackSummary.positives.length > 0 ||
     feedbackSummary.concerns.length > 0 ||
     (wearLog.feedback_memo ?? "").trim() !== "";
+  const hasWeatherSection = wearLog.weather_records.length > 0;
 
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">
@@ -122,7 +118,7 @@ export default async function WearLogDetailPage({
             <div className="min-w-0 flex-1">
               {isPastPlanned ? (
                 <p className="text-sm text-gray-600">
-                  この記録は過去の未完了予定です。着用済みへ変更できます。
+                  この予定は過去日の未着用記録です。着用済みへ更新できます。
                 </p>
               ) : null}
             </div>
@@ -131,63 +127,6 @@ export default async function WearLogDetailPage({
               <DeleteWearLogButton wearLogId={String(wearLog.id)} />
             </div>
           </div>
-
-          {(wearLog.source_outfit_status === "invalid" ||
-            disposedItems.length > 0 ||
-            cleaningItems.length > 0) && (
-            <div className="mt-4 space-y-3">
-              {wearLog.source_outfit_status === "invalid" && (
-                <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-                  元のコーディネートは現在候補外ですが、既存の記録として保持しています。
-                </p>
-              )}
-
-              {disposedItems.length > 0 && (
-                <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-                  手放し済みのアイテムが含まれています。履歴確認はできますが、候補としては現在使えません。
-                </p>
-              )}
-
-              {cleaningItems.length > 0 && (
-                <div
-                  className={`rounded-xl border px-4 py-3 ${
-                    wearLog.status === "worn"
-                      ? "border-amber-300 bg-amber-50"
-                      : "border-sky-200 bg-sky-50"
-                  }`}
-                >
-                  <p
-                    className={`text-sm font-medium ${
-                      wearLog.status === "worn"
-                        ? "text-amber-900"
-                        : "text-sky-900"
-                    }`}
-                  >
-                    {wearLog.status === "worn"
-                      ? "クリーニング中のアイテムが含まれています。着用済みとして登録する前に内容を確認してください。"
-                      : "クリーニング中のアイテムが含まれています。予定として保存はできますが、必要なら先に状態を確認してください。"}
-                  </p>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {cleaningItems.map((item) =>
-                      item.source_item_id !== null ? (
-                        <Link
-                          key={`detail-cleaning-${item.id}`}
-                          href={`/items/${item.source_item_id}`}
-                          className={`rounded-full border px-3 py-1 text-xs font-medium ${
-                            wearLog.status === "worn"
-                              ? "border-amber-300 bg-white text-amber-900"
-                              : "border-sky-300 bg-white text-sky-800"
-                          }`}
-                        >
-                          {item.item_name ?? "名称未設定"}を確認
-                        </Link>
-                      ) : null,
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
 
           <div className="mt-6 border-t border-gray-100 pt-5">
             <dl className="grid gap-4 md:grid-cols-2">
@@ -212,7 +151,7 @@ export default async function WearLogDetailPage({
               <div>
                 <dt className="text-sm font-medium text-gray-700">メモ</dt>
                 <dd className="mt-1 text-sm text-gray-600">
-                  {wearLog.memo || "未設定"}
+                  {wearLog.memo || "未記録"}
                 </dd>
               </div>
             </dl>
@@ -226,17 +165,13 @@ export default async function WearLogDetailPage({
             </h2>
 
             {wearLog.overall_rating ? (
-              <div className="mt-4 space-y-1">
+              <div className="mt-4">
                 <p className="text-sm font-medium text-gray-500">総合評価</p>
-                <div>
+                <div className="mt-1">
                   <span
-                    className={`inline-flex rounded-full border px-3 py-1.5 text-sm font-semibold ${
-                      wearLog.overall_rating === "good"
-                        ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                        : wearLog.overall_rating === "bad"
-                          ? "border-amber-200 bg-amber-50 text-amber-700"
-                          : "border-slate-200 bg-slate-100 text-slate-700"
-                    }`}
+                    className={`inline-flex rounded-full border px-3 py-1.5 text-sm font-semibold ${getWearLogOverallRatingBadgeClassName(
+                      wearLog.overall_rating,
+                    )}`}
                   >
                     {getWearLogOverallRatingLabel(wearLog.overall_rating)}
                   </span>
@@ -244,44 +179,42 @@ export default async function WearLogDetailPage({
               </div>
             ) : null}
 
-            <div className="mt-4 flex flex-wrap items-baseline gap-x-6 gap-y-2 text-sm text-gray-700">
-              {wearLog.outdoor_temperature_feel ? (
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-gray-500">
-                    屋外
-                  </span>
-                  <span className="font-medium text-gray-900">
-                    {getWearLogTemperatureFeelLabel(
-                      wearLog.outdoor_temperature_feel,
-                    )}
-                  </span>
-                </div>
-              ) : null}
-
-              {wearLog.indoor_temperature_feel ? (
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-gray-500">
-                    屋内
-                  </span>
-                  <span className="font-medium text-gray-900">
-                    {getWearLogTemperatureFeelLabel(
-                      wearLog.indoor_temperature_feel,
-                    )}
-                  </span>
-                </div>
-              ) : null}
-            </div>
+            {(wearLog.outdoor_temperature_feel ||
+              wearLog.indoor_temperature_feel) && (
+              <dl className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-gray-700">
+                {wearLog.outdoor_temperature_feel ? (
+                  <div className="flex items-center gap-2">
+                    <dt className="text-gray-500">屋外</dt>
+                    <dd className="font-medium text-gray-900">
+                      {getWearLogTemperatureFeelLabel(
+                        wearLog.outdoor_temperature_feel,
+                      )}
+                    </dd>
+                  </div>
+                ) : null}
+                {wearLog.indoor_temperature_feel ? (
+                  <div className="flex items-center gap-2">
+                    <dt className="text-gray-500">屋内</dt>
+                    <dd className="font-medium text-gray-900">
+                      {getWearLogTemperatureFeelLabel(
+                        wearLog.indoor_temperature_feel,
+                      )}
+                    </dd>
+                  </div>
+                ) : null}
+              </dl>
+            )}
 
             {feedbackSummary.positives.length > 0 ? (
               <div className="mt-5">
-                <h3 className="text-sm font-medium text-gray-700">
+                <h3 className="text-sm font-medium text-gray-500">
                   よかったこと
                 </h3>
                 <div className="mt-2 flex flex-wrap gap-2">
                   {feedbackSummary.positives.map((tag) => (
                     <span
-                      key={tag}
-                      className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-sm text-emerald-800"
+                      key={`positive-${tag}`}
+                      className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-sm text-emerald-700"
                     >
                       {getWearLogFeedbackTagLabel(tag)}
                     </span>
@@ -292,14 +225,14 @@ export default async function WearLogDetailPage({
 
             {feedbackSummary.concerns.length > 0 ? (
               <div className="mt-5">
-                <h3 className="text-sm font-medium text-gray-700">
+                <h3 className="text-sm font-medium text-gray-500">
                   気になったこと
                 </h3>
                 <div className="mt-2 flex flex-wrap gap-2">
                   {feedbackSummary.concerns.map((tag) => (
                     <span
-                      key={tag}
-                      className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-sm text-amber-800"
+                      key={`concern-${tag}`}
+                      className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-sm text-amber-700"
                     >
                       {getWearLogFeedbackTagLabel(tag)}
                     </span>
@@ -309,11 +242,11 @@ export default async function WearLogDetailPage({
             ) : null}
 
             {(wearLog.feedback_memo ?? "").trim() !== "" ? (
-              <div className="mt-5">
-                <h3 className="text-sm font-medium text-gray-700">
-                  フィードバックメモ
+              <div className="mt-5 border-t border-gray-100 pt-4">
+                <h3 className="text-sm font-medium text-gray-500">
+                  振り返りメモ
                 </h3>
-                <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-gray-600">
+                <p className="mt-2 whitespace-pre-wrap text-sm text-gray-700">
                   {wearLog.feedback_memo}
                 </p>
               </div>
@@ -321,77 +254,70 @@ export default async function WearLogDetailPage({
           </section>
         ) : null}
 
+        {hasWeatherSection ? (
+          <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+            <h2 className="text-lg font-semibold text-gray-900">
+              この日の天気
+            </h2>
+            <div className="mt-4 space-y-3">
+              {wearLog.weather_records.map((record) => (
+                <div
+                  key={record.id}
+                  className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3"
+                >
+                  <p className="text-sm font-medium text-gray-900">
+                    {record.location_name}
+                  </p>
+                  <p className="mt-1 text-sm text-gray-600">
+                    {buildWeatherRecordConditionSummary(record)}
+                  </p>
+                  {(record.memo ?? "").trim() !== "" ? (
+                    <p className="mt-1 text-sm text-gray-600">
+                      メモ: {record.memo}
+                    </p>
+                  ) : null}
+                </div>
+              ))}
+            </div>
+          </section>
+        ) : null}
+
         <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-gray-900">アイテム</h2>
 
-          {wearLog.items.length === 0 ? (
-            <p className="mt-3 text-sm text-gray-600">
-              アイテムは登録されていません。
-            </p>
-          ) : (
+          {wearLog.items.length > 0 ? (
             <div className="mt-4 space-y-3">
               {wearLog.items.map((item) => (
-                <article
+                <div
                   key={item.id}
-                  className="rounded-xl border border-gray-200 p-3"
+                  className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3"
                 >
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="text-sm font-medium text-gray-900">
-                          {item.item_name ?? "名称未設定"}
-                        </h3>
-                        {item.source_item_status === "disposed" && (
-                          <span className="rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800">
-                            手放し済み
-                          </span>
-                        )}
-                        {item.source_item_care_status === "in_cleaning" && (
-                          <span className="rounded-full border border-sky-300 bg-sky-50 px-2 py-0.5 text-xs font-medium text-sky-800">
-                            {ITEM_CARE_STATUS_LABELS.in_cleaning}
-                          </span>
-                        )}
-                      </div>
-                      <p className="mt-1 text-sm text-gray-500">
-                        {item.sort_order}番目
-                        {" / "}
-                        {item.item_source_type === "outfit" &&
-                        wearLog.source_outfit_id !== null ? (
-                          <Link
-                            href={`/outfits/${wearLog.source_outfit_id}?from=wear-log&wear_log_id=${wearLog.id}`}
-                            className="font-medium text-blue-600 hover:underline"
-                          >
-                            参照コーディネート
-                          </Link>
-                        ) : (
-                          getItemSourceTypeLabel(item.item_source_type)
-                        )}
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-gray-900">
+                        {item.item_name ?? "名前未設定"}
+                      </p>
+                      <p className="mt-1 text-xs text-gray-500">
+                        {item.sort_order}件目 /{" "}
+                        {getItemSourceTypeLabel(item.item_source_type)}
                       </p>
                     </div>
-
-                    {item.source_item_id !== null && (
+                    {item.source_item_id !== null ? (
                       <Link
                         href={`/items/${item.source_item_id}`}
                         className="text-sm font-medium text-blue-600 hover:underline"
                       >
                         アイテム詳細
                       </Link>
-                    )}
+                    ) : null}
                   </div>
-
-                  {item.source_item_status === "disposed" && (
-                    <p className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-                      このアイテムは現在候補外ですが、既存の記録として表示しています。
-                    </p>
-                  )}
-                  {item.source_item_care_status === "in_cleaning" && (
-                    <p className="mt-3 rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-800">
-                      クリーニング中ですが、予定・着用履歴ともに保持できます。
-                    </p>
-                  )}
-                </article>
+                </div>
               ))}
             </div>
+          ) : (
+            <p className="mt-4 text-sm text-gray-600">
+              アイテムはまだありません。
+            </p>
           )}
         </section>
       </div>

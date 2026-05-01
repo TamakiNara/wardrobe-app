@@ -3,15 +3,19 @@ import type {
   CategoryVisibilitySettings,
   CreateUserBrandPayload,
   CreateUserTpoPayload,
+  CreateUserWeatherLocationPayload,
   UpdateUserPreferencesPayload,
   UpdateUserBrandPayload,
   UpdateUserTpoPayload,
+  UpdateUserWeatherLocationPayload,
   UpdateCategoryVisibilitySettingsPayload,
   UserPreferencesResponse,
   UserBrandRecord,
   UserBrandsResponse,
   UserTpoRecord,
   UserTposResponse,
+  UserWeatherLocationRecord,
+  UserWeatherLocationsResponse,
 } from "@/types/settings";
 
 export async function fetchCategoryVisibilitySettings(): Promise<CategoryVisibilitySettings> {
@@ -147,6 +151,54 @@ export async function updateUserBrand(
         "Content-Type": "application/json",
       },
       body: JSON.stringify(payload),
+    },
+  );
+}
+
+export async function fetchUserWeatherLocations(): Promise<UserWeatherLocationsResponse> {
+  return apiFetch<UserWeatherLocationsResponse>(
+    "/api/settings/weather-locations",
+  );
+}
+
+export async function createUserWeatherLocation(
+  payload: CreateUserWeatherLocationPayload,
+): Promise<{ message: string; location: UserWeatherLocationRecord }> {
+  return apiFetch<{ message: string; location: UserWeatherLocationRecord }>(
+    "/api/settings/weather-locations",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    },
+  );
+}
+
+export async function updateUserWeatherLocation(
+  locationId: number,
+  payload: UpdateUserWeatherLocationPayload,
+): Promise<{ message: string; location: UserWeatherLocationRecord }> {
+  return apiFetch<{ message: string; location: UserWeatherLocationRecord }>(
+    `/api/settings/weather-locations/${locationId}`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    },
+  );
+}
+
+export async function deleteUserWeatherLocation(
+  locationId: number,
+): Promise<{ message: string }> {
+  return apiFetch<{ message: string }>(
+    `/api/settings/weather-locations/${locationId}`,
+    {
+      method: "DELETE",
     },
   );
 }

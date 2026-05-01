@@ -359,6 +359,23 @@ function SettingsPageContent() {
 
           <SettingsCard>
             <h2 className="text-lg font-semibold text-gray-900">
+              天気の地域設定
+            </h2>
+            <p className="mt-2 text-sm text-gray-600">
+              天気登録で使う地域やデフォルト地域を管理できます。
+            </p>
+            <div className="mt-4">
+              <Link
+                href="/settings/weather-locations"
+                className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+              >
+                天気の地域設定へ
+              </Link>
+            </div>
+          </SettingsCard>
+
+          <SettingsCard>
+            <h2 className="text-lg font-semibold text-gray-900">
               インポート・エクスポート
             </h2>
             <p className="mt-2 text-sm text-gray-600">

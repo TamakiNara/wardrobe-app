@@ -76,6 +76,7 @@ describe("SettingsPage", () => {
     expect(container.innerHTML).toContain('href="/settings/categories"');
     expect(container.innerHTML).toContain('href="/settings/tpos"');
     expect(container.innerHTML).toContain('href="/settings/brands"');
+    expect(container.innerHTML).toContain('href="/settings/weather-locations"');
     expect(container.innerHTML).toContain('href="/settings/import-export"');
     expect(container.textContent).toContain("カテゴリ設定へ");
     expect(container.textContent).toContain("TPO 設定へ");

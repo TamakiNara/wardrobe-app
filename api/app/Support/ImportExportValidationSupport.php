@@ -4,6 +4,7 @@ namespace App\Support;
 
 use App\Http\Requests\ItemUpsertRequest;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 
 class ImportExportValidationSupport
 {
@@ -11,9 +12,76 @@ class ImportExportValidationSupport
      * @param  array<string, mixed>  $payload
      * @return array<string, mixed>
      */
+    public static function validateUserTpoPayload(array $payload): array
+    {
+        return Validator::make($payload, [
+            'id' => ['nullable', 'integer'],
+            'name' => ['required', 'string', 'max:50'],
+            'sort_order' => ['nullable', 'integer', 'min:1'],
+            'is_active' => ['nullable', 'boolean'],
+            'is_preset' => ['nullable', 'boolean'],
+        ])->validate();
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
+    public static function validateUserBrandPayload(array $payload): array
+    {
+        return Validator::make($payload, [
+            'id' => ['nullable', 'integer'],
+            'name' => ['required', 'string', 'max:255'],
+            'kana' => ['nullable', 'string', 'max:255'],
+            'is_active' => ['nullable', 'boolean'],
+        ])->validate();
+    }
+
+    /**
+     * @return list<string>|null
+     */
+    public static function validateVisibleCategoryIdsPayload(mixed $payload): ?array
+    {
+        if ($payload === null) {
+            return null;
+        }
+
+        $validated = Validator::make([
+            'visible_category_ids' => $payload,
+        ], [
+            'visible_category_ids' => ['nullable', 'array'],
+            'visible_category_ids.*' => ['required', 'string', 'distinct', 'max:100'],
+        ])->validate();
+
+        return $validated['visible_category_ids'] ?? [];
+    }
+
+    /**
+     * @param  array<string, mixed>|null  $payload
+     * @return array<string, mixed>|null
+     */
+    public static function validateUserPreferencePayload(?array $payload): ?array
+    {
+        if ($payload === null) {
+            return null;
+        }
+
+        return Validator::make($payload, [
+            'currentSeason' => ['nullable', 'string', 'in:spring,summer,autumn,winter'],
+            'defaultWearLogStatus' => ['nullable', 'string', 'in:planned,worn'],
+            'calendarWeekStart' => ['nullable', 'string', 'in:monday,sunday'],
+            'skinTonePreset' => ['nullable', 'string', 'in:'.implode(',', SkinTonePresetSupport::values())],
+        ])->validate();
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
     public static function validateItemPayload(array $payload): array
     {
         $payload = self::normalizeLegacyItemPayload($payload);
+        $payload = self::normalizeTposForImport($payload);
         $payload['size_details'] = SizeDetailSupport::normalizeForValidation(
             $payload['size_details'] ?? null,
         );
@@ -59,6 +127,7 @@ class ImportExportValidationSupport
     public static function validatePurchaseCandidatePayload(array $payload): array
     {
         $normalizedPayload = self::normalizeMaterials($payload);
+        $normalizedPayload = self::normalizeTposForImport($normalizedPayload);
         $normalizedPayload['size_details'] = SizeDetailSupport::normalizeForValidation(
             $normalizedPayload['size_details'] ?? null,
         );
@@ -172,6 +241,7 @@ class ImportExportValidationSupport
      */
     public static function validateOutfitPayload(array $payload): array
     {
+        $payload = self::normalizeTposForImport($payload);
         $validated = Validator::make($payload, [
             'id' => ['nullable', 'integer'],
             'status' => ['nullable', 'string', 'in:active,invalid'],
@@ -188,10 +258,6 @@ class ImportExportValidationSupport
             'outfit_items.*.sort_order' => ['required', 'integer', 'min:1'],
         ])->validate();
 
-        $validated['feedback_tags'] = WearLogFeedbackSupport::normalizeFeedbackTags(
-            $validated['feedback_tags'] ?? null,
-        );
-
         return $validated;
     }
 
@@ -201,6 +267,10 @@ class ImportExportValidationSupport
      */
     public static function validateWearLogPayload(array $payload): array
     {
+        $payload['feedback_tags'] = WearLogFeedbackSupport::normalizeFeedbackTagsForImport(
+            $payload['feedback_tags'] ?? null,
+        );
+
         if (is_array($payload['items'] ?? null)) {
             $payload['items'] = array_map(
                 static function ($item) {
@@ -239,6 +309,116 @@ class ImportExportValidationSupport
             'items.present' => '着用アイテムは配列で指定してください。',
             'items.*.source_item_id.present' => '参照アイテムを配列で指定してください。',
         ])->validate();
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
+    public static function validateWeatherLocationPayload(array $payload): array
+    {
+        if (array_key_exists('area_code', $payload) && ! array_key_exists('forecast_area_code', $payload)) {
+            $payload['forecast_area_code'] = $payload['area_code'];
+        }
+
+        return Validator::make($payload, [
+            'id' => ['nullable', 'integer'],
+            'name' => ['required', 'string', 'max:255'],
+            'forecast_area_code' => ['nullable', 'string', 'max:50'],
+            'latitude' => ['nullable', 'numeric', 'between:-90,90'],
+            'longitude' => ['nullable', 'numeric', 'between:-180,180'],
+            'is_default' => ['nullable', 'boolean'],
+            'display_order' => ['nullable', 'integer', 'min:1'],
+        ])->validate();
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
+    public static function validateWeatherRecordPayload(array $payload): array
+    {
+        $payload['weather_condition'] = self::normalizeWeatherConditionForImport(
+            $payload['weather_condition'] ?? null,
+        );
+
+        if (array_key_exists('area_code_snapshot', $payload) && ! array_key_exists('forecast_area_code_snapshot', $payload)) {
+            $payload['forecast_area_code_snapshot'] = $payload['area_code_snapshot'];
+        }
+
+        $validated = Validator::make($payload, [
+            'id' => ['nullable', 'integer'],
+            'weather_date' => ['required', 'date'],
+            'location_id' => ['nullable', 'integer'],
+            'location_name_snapshot' => ['required', 'string', 'max:255'],
+            'forecast_area_code_snapshot' => ['nullable', 'string', 'max:50'],
+            'weather_condition' => ['required', 'string', 'in:'.implode(',', WeatherRecordSupport::WEATHER_CONDITIONS)],
+            'temperature_high' => ['nullable', 'numeric'],
+            'temperature_low' => ['nullable', 'numeric'],
+            'memo' => ['nullable', 'string'],
+            'source_type' => ['nullable', 'string', 'in:'.implode(',', WeatherRecordSupport::SOURCE_TYPES)],
+            'source_name' => ['nullable', 'string', 'max:100'],
+            'source_fetched_at' => ['nullable', 'date'],
+        ])->validate();
+
+        $high = $validated['temperature_high'] ?? null;
+        $low = $validated['temperature_low'] ?? null;
+
+        if (is_numeric($high) && is_numeric($low) && (float) $high < (float) $low) {
+            throw ValidationException::withMessages([
+                'temperature_high' => '最高気温は最低気温以上で入力してください。',
+            ]);
+        }
+
+        return $validated;
+    }
+
+    private static function normalizeWeatherConditionForImport(mixed $value): mixed
+    {
+        if ($value === 'storm') {
+            return 'other';
+        }
+
+        return $value;
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
+    private static function normalizeTposForImport(array $payload): array
+    {
+        $tpos = $payload['tpos'] ?? null;
+
+        if (! is_array($tpos)) {
+            $payload['tpos'] = [];
+
+            return $payload;
+        }
+
+        $payload['tpos'] = collect($tpos)
+            ->map(function ($value) {
+                if (is_string($value)) {
+                    return trim($value);
+                }
+
+                if (! is_array($value)) {
+                    return '';
+                }
+
+                foreach (['name', 'tpo', 'label'] as $key) {
+                    if (is_string($value[$key] ?? null)) {
+                        return trim($value[$key]);
+                    }
+                }
+
+                return '';
+            })
+            ->filter(fn ($name) => $name !== '')
+            ->values()
+            ->all();
+
+        return $payload;
     }
 
     /**

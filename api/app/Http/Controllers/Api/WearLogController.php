@@ -46,9 +46,13 @@ class WearLogController extends Controller
     public function show(Request $request, int $id): JsonResponse
     {
         $wearLog = $this->wearLogService->findOwnedWearLog($request->user(), $id);
+        $weatherRecords = $this->wearLogService->getWeatherRecordsByDate(
+            $request->user(),
+            $wearLog->event_date?->format('Y-m-d') ?? ''
+        );
 
         return response()->json([
-            'wearLog' => WearLogPayloadBuilder::buildDetail($wearLog),
+            'wearLog' => WearLogPayloadBuilder::buildDetail($wearLog, $weatherRecords),
         ]);
     }
 
