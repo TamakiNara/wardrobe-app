@@ -15,6 +15,7 @@ import { fetchUserWeatherLocations } from "@/lib/api/settings";
 import {
   createWeatherRecord,
   deleteWeatherRecord,
+  fetchWeatherForecast,
   fetchWeatherRecordsByDate,
   updateWeatherRecord,
 } from "@/lib/api/weather";
@@ -23,6 +24,7 @@ import { WEATHER_CODE_DEFINITIONS } from "@/lib/weather/weather-code-definitions
 import type { UserWeatherLocationRecord } from "@/types/settings";
 import type {
   WeatherCode,
+  WeatherForecast,
   WeatherRecord,
   WeatherRecordUpsertPayload,
 } from "@/types/weather";
@@ -85,6 +87,10 @@ function sortLocations(locations: UserWeatherLocationRecord[]) {
   });
 }
 
+function isForecastEnabledLocation(location: UserWeatherLocationRecord | null) {
+  return Boolean(location?.forecast_area_code?.trim());
+}
+
 function WearLogWeatherPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -116,6 +122,12 @@ function WearLogWeatherPageContent() {
   const [pageError, setPageError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [fetchingForecast, setFetchingForecast] = useState(false);
+  const [sourceType, setSourceType] = useState<
+    "manual" | "forecast_api" | "historical_api"
+  >("manual");
+  const [sourceName, setSourceName] = useState("manual");
+  const [sourceFetchedAt, setSourceFetchedAt] = useState<string | null>(null);
 
   const selectedRecord = useMemo(
     () =>
@@ -124,6 +136,34 @@ function WearLogWeatherPageContent() {
         : (records.find((record) => record.id === editingRecordId) ?? null),
     [editingRecordId, records],
   );
+
+  const selectedLocation = useMemo(
+    () =>
+      selectedLocationId === null
+        ? null
+        : (locations.find((location) => location.id === selectedLocationId) ??
+          null),
+    [locations, selectedLocationId],
+  );
+
+  const forecastButtonDisabledReason = useMemo(() => {
+    if (locationMode === "temporary") {
+      return "今回だけの地域では天気取得は使えません。";
+    }
+
+    if (selectedLocationId === null) {
+      return "地域を選択すると天気を取得できます。";
+    }
+
+    if (!isForecastEnabledLocation(selectedLocation)) {
+      return "予報API用地域コードが設定された地域で取得できます。";
+    }
+
+    return null;
+  }, [locationMode, selectedLocation, selectedLocationId]);
+
+  const canFetchForecast =
+    validDate !== null && forecastButtonDisabledReason === null;
 
   const resetDraft = useCallback(
     (
@@ -136,6 +176,9 @@ function WearLogWeatherPageContent() {
       setTemperatureLow("");
       setMemo("");
       setSaveTemporaryLocation(false);
+      setSourceType("manual");
+      setSourceName("manual");
+      setSourceFetchedAt(null);
 
       if (nextMode === "temporary") {
         setTemporaryLocationName("");
@@ -171,6 +214,24 @@ function WearLogWeatherPageContent() {
       record.temperature_low === null ? "" : String(record.temperature_low),
     );
     setMemo(record.memo ?? "");
+    setSourceType(record.source_type);
+    setSourceName(record.source_name);
+    setSourceFetchedAt(record.source_fetched_at);
+  }, []);
+
+  const applyForecastToForm = useCallback((forecast: WeatherForecast) => {
+    setWeatherCode(forecast.weather_code);
+    setTemperatureHigh(
+      forecast.temperature_high === null
+        ? ""
+        : String(forecast.temperature_high),
+    );
+    setTemperatureLow(
+      forecast.temperature_low === null ? "" : String(forecast.temperature_low),
+    );
+    setSourceType(forecast.source_type);
+    setSourceName(forecast.source_name);
+    setSourceFetchedAt(forecast.source_fetched_at);
   }, []);
 
   const loadPage = useCallback(async () => {
@@ -268,6 +329,9 @@ function WearLogWeatherPageContent() {
       temperature_high: normalizeTemperature(temperatureHigh),
       temperature_low: normalizeTemperature(temperatureLow),
       memo: memo.trim() === "" ? null : memo.trim(),
+      source_type: sourceType,
+      source_name: sourceName,
+      source_fetched_at: sourceFetchedAt,
     };
 
     try {
@@ -355,6 +419,50 @@ function WearLogWeatherPageContent() {
     }
   }
 
+  async function handleFetchForecast() {
+    if (
+      !validDate ||
+      !canFetchForecast ||
+      selectedLocationId === null ||
+      fetchingForecast
+    ) {
+      return;
+    }
+
+    setPageMessage(null);
+    setPageError(null);
+    setFetchingForecast(true);
+
+    try {
+      const response = await fetchWeatherForecast({
+        weather_date: validDate,
+        location_id: selectedLocationId,
+      });
+
+      applyForecastToForm(response.forecast);
+      setPageMessage(
+        "天気情報を取得しました。内容を確認して保存してください。",
+      );
+    } catch (error) {
+      if (error instanceof ApiClientError) {
+        setPageError(
+          getFirstValidationMessage(error.data, [
+            "location_id",
+            "weather_date",
+          ]) ??
+            getUserFacingSubmitErrorMessage(
+              error.data,
+              "天気情報を取得できませんでした。手入力で登録できます。",
+            ),
+        );
+      } else {
+        setPageError("天気情報を取得できませんでした。手入力で登録できます。");
+      }
+    } finally {
+      setFetchingForecast(false);
+    }
+  }
+
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">
       <div className="mx-auto max-w-4xl space-y-6">
@@ -366,7 +474,7 @@ function WearLogWeatherPageContent() {
           ]}
           eyebrow="天気登録"
           title={validDate ? formatWeatherPageTitle(validDate) : "天気"}
-          description="日付ごとの天気を地域別に手入力で登録します。"
+          description="日付ごとの天気を地域別に登録できます。予報APIからフォームへ反映してから保存することもできます。"
           actions={
             <Link
               href={returnHref}
@@ -432,6 +540,32 @@ function WearLogWeatherPageContent() {
                   <p className="text-sm text-gray-600">
                     普段使う地域は保存できます。旅行先などは今回だけ入力できます。
                   </p>
+
+                  <div className="rounded-xl border border-sky-100 bg-sky-50/70 px-4 py-3">
+                    <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                      <div className="space-y-1">
+                        <p className="text-sm font-medium text-sky-950">
+                          予報APIからフォームへ反映
+                        </p>
+                        <p className="text-sm text-sky-900/80">
+                          保存済み地域と予報API用地域コードがある場合のみ使えます。取得しても自動保存はされません。
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => void handleFetchForecast()}
+                        disabled={!canFetchForecast || fetchingForecast}
+                        className="inline-flex items-center justify-center rounded-lg border border-sky-200 bg-white px-4 py-2 text-sm font-medium text-sky-700 transition hover:bg-sky-50 disabled:cursor-not-allowed disabled:border-sky-100 disabled:text-sky-300"
+                      >
+                        {fetchingForecast ? "取得中…" : "天気を取得"}
+                      </button>
+                    </div>
+                    {forecastButtonDisabledReason ? (
+                      <p className="mt-2 text-xs text-sky-900/70">
+                        {forecastButtonDisabledReason}
+                      </p>
+                    ) : null}
+                  </div>
 
                   <div className="space-y-0">
                     <div
@@ -531,6 +665,9 @@ function WearLogWeatherPageContent() {
                           </p>
                           <p className="mt-1 text-sm text-gray-600">
                             よく使う地域は地域設定から追加できます。
+                          </p>
+                          <p className="mt-2 text-xs text-gray-500">
+                            予報API用地域コードが設定された地域で天気を取得できます。
                           </p>
                           <Link
                             href="/settings/weather-locations"

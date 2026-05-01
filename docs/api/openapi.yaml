@@ -1869,6 +1869,37 @@ paths:
         "422":
           description: バリデーションエラー
 
+  /api/weather-records/forecast:
+    post:
+      tags:
+        - Wear Logs
+      summary: 保存済み地域の予報を取得してフォーム反映用データを返す
+      description: |
+        weather.tsukumijima.net の予報 API を backend 経由で呼び出し、
+        対象日付と一致する forecast を `weather_code` と気温へ正規化して返す。
+        取得結果はフォーム反映のみで、自動保存は行わない。
+        `forecast_area_code` を持つ保存済み地域だけが対象で、今回だけの地域は対象外。
+      operationId: fetchWeatherRecordForecast
+      parameters:
+        - $ref: "#/components/parameters/XCsrfTokenHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WeatherForecastRequest"
+      responses:
+        "200":
+          description: 取得成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WeatherForecastResponse"
+        "422":
+          description: バリデーションエラーまたは対象日不一致
+        "502":
+          description: 外部 API 通信失敗
+
   /api/weather-records/{id}:
     patch:
       tags:
@@ -5181,6 +5212,86 @@ components:
         memo:
           type: string
           nullable: true
+        source_type:
+          $ref: "#/components/schemas/WeatherSourceType"
+        source_name:
+          type: string
+          nullable: true
+          description: |
+            手入力のみの場合は `manual`、予報取得結果を反映して保存する場合は `tsukumijima`。
+        source_fetched_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: |
+            `source_type = forecast_api` のときは取得時刻を入れる。手入力のみの場合は null。
+
+    WeatherForecastRequest:
+      type: object
+      required:
+        - weather_date
+        - location_id
+      properties:
+        weather_date:
+          type: string
+          format: date
+        location_id:
+          type: integer
+          description: forecast_area_code を持つ保存済み地域 ID
+
+    WeatherForecast:
+      type: object
+      required:
+        - weather_date
+        - location_id
+        - location_name
+        - forecast_area_code
+        - weather_code
+        - source_type
+        - source_name
+        - source_fetched_at
+      properties:
+        weather_date:
+          type: string
+          format: date
+        location_id:
+          type: integer
+        location_name:
+          type: string
+        forecast_area_code:
+          type: string
+          description: weather.tsukumijima.net の city code
+        weather_code:
+          $ref: "#/components/schemas/WeatherCode"
+        temperature_high:
+          type: integer
+          nullable: true
+        temperature_low:
+          type: integer
+          nullable: true
+        source_type:
+          type: string
+          enum: [forecast_api]
+        source_name:
+          type: string
+          example: tsukumijima
+        source_fetched_at:
+          type: string
+          format: date-time
+        raw_telop:
+          type: string
+          nullable: true
+          description: 変換元 telop。DB 保存はしない。
+
+    WeatherForecastResponse:
+      allOf:
+        - $ref: "#/components/schemas/MessageOnlyResponse"
+        - type: object
+          required:
+            - forecast
+          properties:
+            forecast:
+              $ref: "#/components/schemas/WeatherForecast"
 
     WeatherRecordMutationResponse:
       allOf:

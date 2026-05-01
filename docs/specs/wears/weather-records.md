@@ -139,19 +139,27 @@ MVP で扱う入力項目:
 - `この地域を今後も使う地域として保存する` を ON にした場合のみ、`user_weather_locations` に追加する
 - 今回だけの地域は `forecast_area_code` を持たなくてもよい
 - `forecast_area_code` は MVP では任意
+- `天気を取得` は保存済み地域かつ `forecast_area_code` がある場合だけ使える
+- 今回だけの地域は予報 API の取得対象外
 - 地域コード一覧 UI は将来対応
 
 ### source の扱い
 
-MVP では API 取得は行わないが、将来拡張に備えて次を保存する。
+手入力だけで登録した場合は、次を保存する。
 
 - `source_type = manual`
 - `source_name = manual`
 - `source_fetched_at = null`
 
+- `天気を取得` で予報 API の結果をフォームへ反映し、そのまま保存した場合は次を保存する
+  - `source_type = forecast_api`
+  - `source_name = tsukumijima`
+  - `source_fetched_at = 取得成功時刻`
+- API 取得結果はフォーム反映のみで、自動保存はしない
+- 取得後にユーザーが手修正して保存しても、MVP では `forecast_api` のまま扱う
+
 将来候補:
 
-- `forecast_api`
 - `historical_api`
 
 ---
@@ -289,6 +297,8 @@ MVP では次を backup / restore 対象に含める。
 - 表示時は code 定義から label / icon / fallback icon / `primary_weather` / `has_rain_possibility` / `accessory_icon` を導出します。
 - `has_rain_possibility` は「実際に雨に当たった」ことではなく、雨対策が必要かもしれない天気かどうかを示します。
 - `cloudy_then_rain` / `cloudy_with_occasional_rain` / `sunny_with_occasional_rain` のように雨を含むコードでも、主天気は自動で `rain` に寄せません。
+- `weather.tsukumijima.net` 連携では `telop` を既存 `weather_code` へ正規化し、変換できないものは `other` にします。
+- `was_exposed_to_rain` は将来の着用履歴フィードバック側で扱う候補です。
 
 ### MVP で扱う weather_code
 

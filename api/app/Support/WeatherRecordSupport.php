@@ -174,6 +174,34 @@ class WeatherRecordSupport
         return $value;
     }
 
+    public static function normalizeTelopToWeatherCode(?string $telop): string
+    {
+        if (! is_string($telop)) {
+            return 'other';
+        }
+
+        $normalized = preg_replace('/\s+/u', '', trim($telop));
+
+        if (! is_string($normalized) || $normalized === '') {
+            return 'other';
+        }
+
+        return match ($normalized) {
+            '晴れ' => 'sunny',
+            'くもり', '曇り' => 'cloudy',
+            '雨' => 'rain',
+            '雪' => 'snow',
+            '晴れのちくもり', '晴れのち曇り' => 'sunny_then_cloudy',
+            'くもりのち晴れ', '曇りのち晴れ' => 'cloudy_then_sunny',
+            'くもりのち雨', '曇りのち雨' => 'cloudy_then_rain',
+            '雨のちくもり', '雨のち曇り' => 'rain_then_cloudy',
+            '晴れ時々くもり', '晴れ時々曇り' => 'sunny_with_occasional_clouds',
+            'くもり時々雨', '曇り時々雨' => 'cloudy_with_occasional_rain',
+            '晴れ時々雨' => 'sunny_with_occasional_rain',
+            default => 'other',
+        };
+    }
+
     public static function normalizeMemo(mixed $value): ?string
     {
         if (! is_string($value)) {

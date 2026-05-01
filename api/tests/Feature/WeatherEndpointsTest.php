@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\UserWeatherLocation;
 use App\Models\WeatherRecord;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 class WeatherEndpointsTest extends TestCase
@@ -387,5 +388,269 @@ class WeatherEndpointsTest extends TestCase
             'weather_date' => '2026-05-02',
             'weather_code' => 'cloudy_with_occasional_rain',
         ]);
+    }
+
+    public function test_weather_forecast_can_be_fetched_for_owned_location_with_forecast_area_code(): void
+    {
+        Http::fake([
+            'https://weather.tsukumijima.net/api/forecast/city/*' => Http::response([
+                'forecasts' => [
+                    [
+                        'date' => '2026-05-01',
+                        'telop' => '曇りのち雨',
+                        'temperature' => [
+                            'max' => ['celsius' => '22'],
+                            'min' => ['celsius' => '13'],
+                        ],
+                    ],
+                ],
+            ], 200),
+        ]);
+
+        $user = User::factory()->create();
+        $token = $this->issueCsrfToken();
+        $location = UserWeatherLocation::query()->create([
+            'user_id' => $user->id,
+            'name' => '川口',
+            'forecast_area_code' => '110000',
+            'latitude' => null,
+            'longitude' => null,
+            'is_default' => true,
+            'display_order' => 1,
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/weather-records/forecast', [
+            'weather_date' => '2026-05-01',
+            'location_id' => $location->id,
+        ], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('message', 'fetched')
+            ->assertJsonPath('forecast.weather_code', 'cloudy_then_rain')
+            ->assertJsonPath('forecast.temperature_high', 22)
+            ->assertJsonPath('forecast.temperature_low', 13)
+            ->assertJsonPath('forecast.source_type', 'forecast_api')
+            ->assertJsonPath('forecast.source_name', 'tsukumijima')
+            ->assertJsonPath('forecast.raw_telop', '曇りのち雨');
+    }
+
+    public function test_weather_forecast_cannot_be_fetched_for_other_users_location(): void
+    {
+        Http::fake();
+
+        $user = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $token = $this->issueCsrfToken();
+        $location = UserWeatherLocation::query()->create([
+            'user_id' => $otherUser->id,
+            'name' => '東京23区',
+            'forecast_area_code' => '130010',
+            'latitude' => null,
+            'longitude' => null,
+            'is_default' => true,
+            'display_order' => 1,
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/weather-records/forecast', [
+            'weather_date' => '2026-05-01',
+            'location_id' => $location->id,
+        ], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['location_id']);
+    }
+
+    public function test_weather_forecast_requires_forecast_area_code(): void
+    {
+        Http::fake();
+
+        $user = User::factory()->create();
+        $token = $this->issueCsrfToken();
+        $location = UserWeatherLocation::query()->create([
+            'user_id' => $user->id,
+            'name' => '出張先',
+            'forecast_area_code' => null,
+            'latitude' => null,
+            'longitude' => null,
+            'is_default' => true,
+            'display_order' => 1,
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/weather-records/forecast', [
+            'weather_date' => '2026-05-01',
+            'location_id' => $location->id,
+        ], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['location_id']);
+    }
+
+    public function test_weather_forecast_returns_error_when_date_is_not_in_forecasts(): void
+    {
+        Http::fake([
+            'https://weather.tsukumijima.net/api/forecast/city/*' => Http::response([
+                'forecasts' => [
+                    [
+                        'date' => '2026-05-02',
+                        'telop' => '晴れ',
+                        'temperature' => [
+                            'max' => ['celsius' => '24'],
+                            'min' => ['celsius' => '11'],
+                        ],
+                    ],
+                ],
+            ], 200),
+        ]);
+
+        $user = User::factory()->create();
+        $token = $this->issueCsrfToken();
+        $location = UserWeatherLocation::query()->create([
+            'user_id' => $user->id,
+            'name' => '川口',
+            'forecast_area_code' => '110000',
+            'latitude' => null,
+            'longitude' => null,
+            'is_default' => true,
+            'display_order' => 1,
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/weather-records/forecast', [
+            'weather_date' => '2026-05-01',
+            'location_id' => $location->id,
+        ], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['weather_date']);
+    }
+
+    public function test_weather_forecast_maps_unknown_telop_to_other_and_allows_partial_temperatures(): void
+    {
+        Http::fake([
+            'https://weather.tsukumijima.net/api/forecast/city/*' => Http::response([
+                'forecasts' => [
+                    [
+                        'date' => '2026-05-01',
+                        'telop' => '雷',
+                        'temperature' => [
+                            'max' => ['celsius' => null],
+                            'min' => ['celsius' => '9'],
+                        ],
+                    ],
+                ],
+            ], 200),
+        ]);
+
+        $user = User::factory()->create();
+        $token = $this->issueCsrfToken();
+        $location = UserWeatherLocation::query()->create([
+            'user_id' => $user->id,
+            'name' => '川口',
+            'forecast_area_code' => '110000',
+            'latitude' => null,
+            'longitude' => null,
+            'is_default' => true,
+            'display_order' => 1,
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/weather-records/forecast', [
+            'weather_date' => '2026-05-01',
+            'location_id' => $location->id,
+        ], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('forecast.weather_code', 'other')
+            ->assertJsonPath('forecast.temperature_high', null)
+            ->assertJsonPath('forecast.temperature_low', 9);
+    }
+
+    public function test_weather_forecast_returns_error_when_upstream_api_fails(): void
+    {
+        Http::fake([
+            'https://weather.tsukumijima.net/api/forecast/city/*' => Http::response([], 500),
+        ]);
+
+        $user = User::factory()->create();
+        $token = $this->issueCsrfToken();
+        $location = UserWeatherLocation::query()->create([
+            'user_id' => $user->id,
+            'name' => '川口',
+            'forecast_area_code' => '110000',
+            'latitude' => null,
+            'longitude' => null,
+            'is_default' => true,
+            'display_order' => 1,
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/weather-records/forecast', [
+            'weather_date' => '2026-05-01',
+            'location_id' => $location->id,
+        ], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertStatus(502)
+            ->assertJsonPath('message', '天気情報を取得できませんでした。手入力で登録できます。');
+    }
+
+    public function test_weather_records_can_store_forecast_source_metadata(): void
+    {
+        $user = User::factory()->create();
+        $token = $this->issueCsrfToken();
+        $location = UserWeatherLocation::query()->create([
+            'user_id' => $user->id,
+            'name' => '川口',
+            'forecast_area_code' => '110000',
+            'latitude' => null,
+            'longitude' => null,
+            'is_default' => true,
+            'display_order' => 1,
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/weather-records', [
+            'weather_date' => '2026-05-03',
+            'location_id' => $location->id,
+            'weather_code' => 'sunny_then_cloudy',
+            'source_type' => 'forecast_api',
+            'source_name' => 'tsukumijima',
+            'source_fetched_at' => '2026-05-01T10:00:00+09:00',
+        ], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('weatherRecord.source_type', 'forecast_api')
+            ->assertJsonPath('weatherRecord.source_name', 'tsukumijima')
+            ->assertJsonPath('weatherRecord.source_fetched_at', '2026-05-01T10:00:00.000000Z');
     }
 }

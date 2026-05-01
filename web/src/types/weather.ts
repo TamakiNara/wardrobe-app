@@ -48,4 +48,31 @@ export type WeatherRecordUpsertPayload = {
   temperature_high: number | null;
   temperature_low: number | null;
   memo: string | null;
+  source_type?: "manual" | "forecast_api" | "historical_api";
+  source_name?: string | null;
+  source_fetched_at?: string | null;
+};
+
+export type WeatherForecastRequestPayload = {
+  weather_date: string;
+  location_id: number;
+};
+
+export type WeatherForecast = {
+  weather_date: string;
+  location_id: number;
+  location_name: string;
+  forecast_area_code: string;
+  weather_code: WeatherCode;
+  temperature_high: number | null;
+  temperature_low: number | null;
+  source_type: "forecast_api";
+  source_name: string;
+  source_fetched_at: string;
+  raw_telop: string | null;
+};
+
+export type WeatherForecastResponse = {
+  message: string;
+  forecast: WeatherForecast;
 };

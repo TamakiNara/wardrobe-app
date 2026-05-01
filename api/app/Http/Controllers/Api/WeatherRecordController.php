@@ -5,14 +5,21 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\UserWeatherLocation;
 use App\Models\WeatherRecord;
+use App\Services\Weather\FetchWeatherForecastException;
+use App\Services\Weather\FetchWeatherForecastService;
 use App\Support\WeatherRecordPayloadBuilder;
 use App\Support\WeatherRecordSupport;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Validation\ValidationException;
 
 class WeatherRecordController extends Controller
 {
+    public function __construct(
+        private readonly FetchWeatherForecastService $forecastService,
+    ) {}
+
     public function index(Request $request): JsonResponse
     {
         $validated = $request->validate([
@@ -41,6 +48,33 @@ class WeatherRecordController extends Controller
         ]);
     }
 
+    public function forecast(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'weather_date' => ['required', 'date'],
+            'location_id' => ['required', 'integer'],
+        ]);
+
+        try {
+            $forecast = $this->forecastService->fetch(
+                $request->user()->id,
+                (int) $validated['location_id'],
+                $validated['weather_date'],
+            );
+        } catch (ValidationException $exception) {
+            throw $exception;
+        } catch (FetchWeatherForecastException $exception) {
+            return response()->json([
+                'message' => $exception->getMessage(),
+            ], 502);
+        }
+
+        return response()->json([
+            'message' => 'fetched',
+            'forecast' => $forecast,
+        ]);
+    }
+
     public function store(Request $request): JsonResponse
     {
         $validated = $this->validatePayload($request, false);
@@ -62,9 +96,7 @@ class WeatherRecordController extends Controller
             'temperature_high' => $validated['temperature_high'] ?? null,
             'temperature_low' => $validated['temperature_low'] ?? null,
             'memo' => WeatherRecordSupport::normalizeMemo($validated['memo'] ?? null),
-            'source_type' => 'manual',
-            'source_name' => 'manual',
-            'source_fetched_at' => null,
+            ...$this->resolveSourceMetadata($validated),
         ]);
 
         return response()->json([
@@ -111,6 +143,7 @@ class WeatherRecordController extends Controller
             'memo' => array_key_exists('memo', $validated)
                 ? WeatherRecordSupport::normalizeMemo($validated['memo'])
                 : $record->memo,
+            ...$this->resolveSourceMetadata($validated, $record),
         ]);
 
         return response()->json([
@@ -148,6 +181,9 @@ class WeatherRecordController extends Controller
             'temperature_high' => ['sometimes', 'nullable', 'numeric'],
             'temperature_low' => ['sometimes', 'nullable', 'numeric'],
             'memo' => ['sometimes', 'nullable', 'string'],
+            'source_type' => ['sometimes', 'string', 'in:'.implode(',', WeatherRecordSupport::SOURCE_TYPES)],
+            'source_name' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'source_fetched_at' => ['sometimes', 'nullable', 'date'],
         ];
 
         return $request->validate($rules);
@@ -281,5 +317,61 @@ class WeatherRecordController extends Controller
                 'location_name' => '同じ日付・同じ地域の天気はすでに登録されています。',
             ]);
         }
+    }
+
+    /**
+     * @return array{
+     *     source_type: string,
+     *     source_name: string,
+     *     source_fetched_at: string|null
+     * }|array{}
+     */
+    private function resolveSourceMetadata(array $validated, ?WeatherRecord $existing = null): array
+    {
+        if (
+            ! Arr::exists($validated, 'source_type')
+            && ! Arr::exists($validated, 'source_name')
+            && ! Arr::exists($validated, 'source_fetched_at')
+        ) {
+            if ($existing !== null) {
+                return [];
+            }
+
+            return [
+                'source_type' => 'manual',
+                'source_name' => 'manual',
+                'source_fetched_at' => null,
+            ];
+        }
+
+        $sourceType = Arr::exists($validated, 'source_type')
+            ? $validated['source_type']
+            : ($existing?->source_type ?? 'manual');
+
+        $sourceName = Arr::exists($validated, 'source_name')
+            ? WeatherRecordSupport::normalizeLocationName($validated['source_name'])
+            : ($existing?->source_name ?? null);
+
+        if ($sourceName === null) {
+            $sourceName = match ($sourceType) {
+                'forecast_api' => 'tsukumijima',
+                'historical_api' => 'historical_api',
+                default => 'manual',
+            };
+        }
+
+        $sourceFetchedAt = Arr::exists($validated, 'source_fetched_at')
+            ? $validated['source_fetched_at']
+            : ($existing?->source_fetched_at?->toIso8601String());
+
+        if ($sourceType === 'manual') {
+            $sourceFetchedAt = null;
+        }
+
+        return [
+            'source_type' => $sourceType,
+            'source_name' => $sourceName,
+            'source_fetched_at' => $sourceFetchedAt,
+        ];
     }
 }

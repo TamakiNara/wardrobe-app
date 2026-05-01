@@ -288,6 +288,7 @@ Route::prefix('api')->middleware(['web'])->group(function () {
 
     Route::middleware('auth:web')->controller(WeatherRecordController::class)->group(function () {
         Route::get('/weather-records', 'index');
+        Route::post('/weather-records/forecast', 'forecast');
         Route::post('/weather-records', 'store');
         Route::patch('/weather-records/{id}', 'update');
         Route::delete('/weather-records/{id}', 'destroy');
