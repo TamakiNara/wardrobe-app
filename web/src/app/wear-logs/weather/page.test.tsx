@@ -51,7 +51,7 @@ describe("WearLogWeatherPage forecast integration", () => {
   const savedLocationWithCode: UserWeatherLocationRecord = {
     id: 1,
     name: "川口",
-    forecast_area_code: "110000",
+    forecast_area_code: "110010",
     latitude: null,
     longitude: null,
     is_default: true,
@@ -138,7 +138,7 @@ describe("WearLogWeatherPage forecast integration", () => {
     const fetchButton = getButtonByText("天気を取得") as HTMLButtonElement;
     expect(fetchButton.disabled).toBe(true);
     expect(container.textContent).toContain(
-      "予報API用地域コードが設定された地域で取得できます。",
+      "予報区域を設定すると、天気を取得できます。",
     );
   });
 
@@ -172,7 +172,7 @@ describe("WearLogWeatherPage forecast integration", () => {
         weather_date: "2026-05-01",
         location_id: 1,
         location_name: "川口",
-        forecast_area_code: "110000",
+        forecast_area_code: "110010",
         weather_code: "cloudy_then_rain",
         temperature_high: 22,
         temperature_low: 13,
@@ -190,7 +190,7 @@ describe("WearLogWeatherPage forecast integration", () => {
         location_id: 1,
         location_name: "川口",
         location_name_snapshot: "川口",
-        forecast_area_code_snapshot: "110000",
+        forecast_area_code_snapshot: "110010",
         weather_code: "cloudy_then_rain",
         temperature_high: 22,
         temperature_low: 13,
@@ -230,6 +230,8 @@ describe("WearLogWeatherPage forecast integration", () => {
     expect(container.textContent).toContain(
       "天気情報を取得しました。内容を確認して保存してください。",
     );
+    expect(container.textContent).toContain("取得した予報表記:");
+    expect(container.textContent).toContain("曇りのち雨");
 
     const form = container.querySelector("form");
     expect(form).not.toBeNull();
@@ -290,5 +292,47 @@ describe("WearLogWeatherPage forecast integration", () => {
     );
     expect(createWeatherRecordMock).not.toHaveBeenCalled();
     expect(updateWeatherRecordMock).not.toHaveBeenCalled();
+  });
+
+  it("変換できない raw telop は見える形で保持し、その他として案内する", async () => {
+    fetchWeatherForecastMock.mockResolvedValue({
+      message: "fetched",
+      forecast: {
+        weather_date: "2026-05-01",
+        location_id: 1,
+        location_name: "川口",
+        forecast_area_code: "110010",
+        weather_code: "other",
+        temperature_high: 18,
+        temperature_low: null,
+        source_type: "forecast_api",
+        source_name: "tsukumijima",
+        source_fetched_at: "2026-05-01T10:00:00+09:00",
+        raw_telop: "晴一時雨",
+      },
+    });
+
+    const { default: WearLogWeatherPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(WearLogWeatherPage));
+      await waitForEffects();
+    });
+
+    await act(async () => {
+      getButtonByText("天気を取得")!.dispatchEvent(
+        new MouseEvent("click", { bubbles: true }),
+      );
+      await waitForEffects();
+    });
+
+    expect(
+      (container.querySelector("#weather-condition") as HTMLSelectElement)
+        .value,
+    ).toBe("other");
+    expect(container.textContent).toContain("晴一時雨");
+    expect(container.textContent).toContain(
+      "この表記は現在の weather_code に変換できなかったため、「その他」として反映しています。",
+    );
   });
 });

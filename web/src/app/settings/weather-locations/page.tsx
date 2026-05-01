@@ -12,6 +12,12 @@ import { SettingsCard } from "@/components/settings/settings-card";
 import { SettingsPageHeader } from "@/components/settings/settings-page-header";
 import { settingsActionIcons } from "@/lib/icons/settings-icons";
 import {
+  buildForecastAreaOptionsWithFallback,
+  findForecastAreaByCode,
+  formatForecastAreaOptionLabel,
+  groupForecastAreasByPrefecture,
+} from "@/lib/weather/forecast-areas";
+import {
   createUserWeatherLocation,
   deleteUserWeatherLocation,
   fetchUserWeatherLocations,
@@ -56,10 +62,12 @@ function SettingsWeatherLocationsPageContent() {
   const [listMessage, setListMessage] = useState<string | null>(null);
   const [listError, setListError] = useState<string | null>(null);
   const [newName, setNewName] = useState("");
+  const [newForecastAreaCode, setNewForecastAreaCode] = useState("");
   const [newIsDefault, setNewIsDefault] = useState(false);
   const [adding, setAdding] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editName, setEditName] = useState("");
+  const [editForecastAreaCode, setEditForecastAreaCode] = useState("");
   const [editIsDefault, setEditIsDefault] = useState(false);
   const [updatingId, setUpdatingId] = useState<number | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
@@ -95,6 +103,19 @@ function SettingsWeatherLocationsPageContent() {
   }, [loadLocations, router]);
 
   const sortedLocations = useMemo(() => sortLocations(locations), [locations]);
+  const forecastAreaOptions = useMemo(
+    () =>
+      buildForecastAreaOptionsWithFallback([
+        newForecastAreaCode,
+        editForecastAreaCode,
+        ...locations.map((location) => location.forecast_area_code),
+      ]),
+    [editForecastAreaCode, locations, newForecastAreaCode],
+  );
+  const forecastAreaGroups = useMemo(
+    () => groupForecastAreasByPrefecture(forecastAreaOptions),
+    [forecastAreaOptions],
+  );
   const successMessage = formMessage ?? listMessage;
   const errorMessage = formError ?? listError;
 
@@ -118,10 +139,13 @@ function SettingsWeatherLocationsPageContent() {
     try {
       await createUserWeatherLocation({
         name: newName,
+        forecast_area_code:
+          newForecastAreaCode.trim() === "" ? null : newForecastAreaCode,
         is_default: newIsDefault,
       });
       await refreshLocations();
       setNewName("");
+      setNewForecastAreaCode("");
       setNewIsDefault(false);
       setFormMessage("地域を追加しました。");
     } catch (error) {
@@ -147,6 +171,7 @@ function SettingsWeatherLocationsPageContent() {
     resetMessages();
     setEditingId(location.id);
     setEditName(location.name);
+    setEditForecastAreaCode(location.forecast_area_code ?? "");
     setEditIsDefault(location.is_default);
   }
 
@@ -159,6 +184,8 @@ function SettingsWeatherLocationsPageContent() {
     try {
       await updateUserWeatherLocation(locationId, {
         name: editName,
+        forecast_area_code:
+          editForecastAreaCode.trim() === "" ? null : editForecastAreaCode,
         is_default: editIsDefault,
       });
       await refreshLocations();
@@ -254,7 +281,7 @@ function SettingsWeatherLocationsPageContent() {
 
         <SettingsPageHeader
           title="天気の地域設定"
-          description="天気登録で使う地域を管理します。よく使う地域やデフォルト地域をここで設定できます。"
+          description="天気登録で使う地域と予報区域を管理します。よく使う地域やデフォルト地域をここで設定できます。"
           backHref="/settings"
         />
 
@@ -293,6 +320,35 @@ function SettingsWeatherLocationsPageContent() {
                 className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                 placeholder="例: 川口"
               />
+            </div>
+
+            <div>
+              <label
+                htmlFor="new-weather-location-forecast-area"
+                className="mb-1 block text-sm font-medium text-gray-700"
+              >
+                予報区域
+              </label>
+              <select
+                id="new-weather-location-forecast-area"
+                value={newForecastAreaCode}
+                onChange={(event) => setNewForecastAreaCode(event.target.value)}
+                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              >
+                <option value="">未設定</option>
+                {forecastAreaGroups.map((group) => (
+                  <optgroup key={group.prefecture} label={group.prefecture}>
+                    {group.areas.map((area) => (
+                      <option key={area.code} value={area.code}>
+                        {formatForecastAreaOptionLabel(area)}
+                      </option>
+                    ))}
+                  </optgroup>
+                ))}
+              </select>
+              <p className="mt-2 text-xs text-gray-500">
+                天気予報APIで使う地域を選びます。
+              </p>
             </div>
           </div>
 
@@ -370,6 +426,40 @@ function SettingsWeatherLocationsPageContent() {
                               className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                             />
                           </div>
+
+                          <div>
+                            <label
+                              htmlFor={`edit-weather-location-forecast-area-${location.id}`}
+                              className="mb-1 block text-sm font-medium text-gray-700"
+                            >
+                              予報区域
+                            </label>
+                            <select
+                              id={`edit-weather-location-forecast-area-${location.id}`}
+                              value={editForecastAreaCode}
+                              onChange={(event) =>
+                                setEditForecastAreaCode(event.target.value)
+                              }
+                              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                            >
+                              <option value="">未設定</option>
+                              {forecastAreaGroups.map((group) => (
+                                <optgroup
+                                  key={group.prefecture}
+                                  label={group.prefecture}
+                                >
+                                  {group.areas.map((area) => (
+                                    <option key={area.code} value={area.code}>
+                                      {formatForecastAreaOptionLabel(area)}
+                                    </option>
+                                  ))}
+                                </optgroup>
+                              ))}
+                            </select>
+                            <p className="mt-2 text-xs text-gray-500">
+                              天気を取得するときに使う地域です。
+                            </p>
+                          </div>
                         </div>
 
                         <label className="inline-flex items-center gap-2 text-sm text-gray-700">
@@ -415,6 +505,20 @@ function SettingsWeatherLocationsPageContent() {
                               </span>
                             ) : null}
                           </div>
+                          <p className="mt-2 text-sm text-gray-600">
+                            予報区域:{" "}
+                            {location.forecast_area_code
+                              ? formatForecastAreaOptionLabel(
+                                  findForecastAreaByCode(
+                                    location.forecast_area_code,
+                                  ) ?? {
+                                    code: location.forecast_area_code,
+                                    label: "設定済みのコード",
+                                    prefecture: "その他",
+                                  },
+                                )
+                              : "未設定"}
+                          </p>
                         </div>
 
                         <div className="flex flex-wrap items-center gap-2">

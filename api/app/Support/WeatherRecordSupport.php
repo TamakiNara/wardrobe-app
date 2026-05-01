@@ -187,17 +187,17 @@ class WeatherRecordSupport
         }
 
         return match ($normalized) {
-            '晴れ' => 'sunny',
-            'くもり', '曇り' => 'cloudy',
+            '晴れ', '晴' => 'sunny',
+            'くもり', '曇り', '曇' => 'cloudy',
             '雨' => 'rain',
             '雪' => 'snow',
-            '晴れのちくもり', '晴れのち曇り' => 'sunny_then_cloudy',
-            'くもりのち晴れ', '曇りのち晴れ' => 'cloudy_then_sunny',
-            'くもりのち雨', '曇りのち雨' => 'cloudy_then_rain',
-            '雨のちくもり', '雨のち曇り' => 'rain_then_cloudy',
-            '晴れ時々くもり', '晴れ時々曇り' => 'sunny_with_occasional_clouds',
-            'くもり時々雨', '曇り時々雨' => 'cloudy_with_occasional_rain',
-            '晴れ時々雨' => 'sunny_with_occasional_rain',
+            '晴れのちくもり', '晴れのち曇り', '晴のちくもり', '晴のち曇', '晴のち曇り' => 'sunny_then_cloudy',
+            'くもりのち晴れ', '曇りのち晴れ', '曇のち晴れ', '曇のち晴' => 'cloudy_then_sunny',
+            'くもりのち雨', '曇りのち雨', '曇のち雨' => 'cloudy_then_rain',
+            '雨のちくもり', '雨のち曇り', '雨のち曇' => 'rain_then_cloudy',
+            '晴れ時々くもり', '晴れ時々曇り', '晴時々くもり', '晴時々曇', '晴時々曇り' => 'sunny_with_occasional_clouds',
+            'くもり時々雨', '曇り時々雨', '曇時々雨' => 'cloudy_with_occasional_rain',
+            '晴れ時々雨', '晴時々雨' => 'sunny_with_occasional_rain',
             default => 'other',
         };
     }

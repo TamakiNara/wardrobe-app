@@ -38,6 +38,15 @@ function setInputValue(element: HTMLInputElement, value: string) {
   element.dispatchEvent(new Event("change", { bubbles: true }));
 }
 
+function setSelectValue(element: HTMLSelectElement, value: string) {
+  const setter = Object.getOwnPropertyDescriptor(
+    Object.getPrototypeOf(element),
+    "value",
+  )?.set;
+  setter?.call(element, value);
+  element.dispatchEvent(new Event("change", { bubbles: true }));
+}
+
 describe("SettingsWeatherLocationsPage", () => {
   let container: HTMLDivElement;
   let root: ReturnType<typeof createRoot>;
@@ -54,7 +63,7 @@ describe("SettingsWeatherLocationsPage", () => {
         {
           id: 1,
           name: "川口",
-          forecast_area_code: "110000",
+          forecast_area_code: "110010",
           latitude: null,
           longitude: null,
           is_default: true,
@@ -102,13 +111,20 @@ describe("SettingsWeatherLocationsPage", () => {
     expect(container.textContent).toContain("デフォルト地域");
     expect(container.textContent).toContain("川口");
     expect(container.textContent).toContain("東京23区");
-    expect(container.textContent).not.toContain("予報API用地域コード");
+    expect(container.textContent).toContain("予報区域");
     expect(
-      container.querySelector("#new-weather-location-area-code"),
-    ).toBeNull();
+      container.querySelector("#new-weather-location-forecast-area"),
+    ).not.toBeNull();
+    expect(container.textContent).toContain("さいたま（110010）");
+    const newForecastAreaSelect = container.querySelector<HTMLSelectElement>(
+      "#new-weather-location-forecast-area",
+    );
+    expect(
+      newForecastAreaSelect?.querySelectorAll("option").length,
+    ).toBeGreaterThan(100);
   });
 
-  it("地域を追加できる", async () => {
+  it("予報区域を選んで地域を追加できる", async () => {
     const { default: SettingsWeatherLocationsPage } = await import("./page");
 
     await act(async () => {
@@ -122,12 +138,16 @@ describe("SettingsWeatherLocationsPage", () => {
     const defaultCheckbox = container.querySelector<HTMLInputElement>(
       'input[type="checkbox"]',
     );
+    const forecastAreaSelect = container.querySelector<HTMLSelectElement>(
+      "#new-weather-location-forecast-area",
+    );
     const addButton = Array.from(
       container.querySelectorAll<HTMLButtonElement>("button"),
     ).find((button) => button.textContent?.includes("地域を追加"));
 
     await act(async () => {
       setInputValue(nameInput!, "秋田");
+      setSelectValue(forecastAreaSelect!, "130010");
       defaultCheckbox!.click();
       await waitForEffects();
     });
@@ -139,12 +159,13 @@ describe("SettingsWeatherLocationsPage", () => {
 
     expect(createUserWeatherLocationMock).toHaveBeenCalledWith({
       name: "秋田",
+      forecast_area_code: "130010",
       is_default: true,
     });
     expect(container.textContent).toContain("地域を追加しました。");
   });
 
-  it("地域設定を更新したときに通知ボックスへ成功メッセージを出す", async () => {
+  it("既存地域の予報区域を復元して更新できる", async () => {
     const { default: SettingsWeatherLocationsPage } = await import("./page");
 
     await act(async () => {
@@ -164,12 +185,18 @@ describe("SettingsWeatherLocationsPage", () => {
     const editNameInput = container.querySelector<HTMLInputElement>(
       "#edit-weather-location-name-1",
     );
+    const editForecastAreaSelect = container.querySelector<HTMLSelectElement>(
+      "#edit-weather-location-forecast-area-1",
+    );
     const saveButton = Array.from(
       container.querySelectorAll<HTMLButtonElement>("button"),
     ).find((button) => button.textContent?.includes("更新"));
 
+    expect(editForecastAreaSelect?.value).toBe("110010");
+
     await act(async () => {
       setInputValue(editNameInput!, "川口駅前");
+      setSelectValue(editForecastAreaSelect!, "140010");
       await waitForEffects();
     });
 
@@ -180,9 +207,51 @@ describe("SettingsWeatherLocationsPage", () => {
 
     expect(updateUserWeatherLocationMock).toHaveBeenCalledWith(1, {
       name: "川口駅前",
+      forecast_area_code: "140010",
       is_default: true,
     });
     expect(container.textContent).toContain("地域設定を更新しました。");
+  });
+
+  it("予報区域は未設定を選べる", async () => {
+    const { default: SettingsWeatherLocationsPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(SettingsWeatherLocationsPage));
+      await waitForEffects();
+    });
+
+    const editButton = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button"),
+    ).find((button) => button.textContent?.includes("編集"));
+
+    await act(async () => {
+      editButton?.click();
+      await waitForEffects();
+    });
+
+    const editForecastAreaSelect = container.querySelector<HTMLSelectElement>(
+      "#edit-weather-location-forecast-area-1",
+    );
+    const saveButton = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button"),
+    ).find((button) => button.textContent?.includes("更新"));
+
+    await act(async () => {
+      setSelectValue(editForecastAreaSelect!, "");
+      await waitForEffects();
+    });
+
+    await act(async () => {
+      saveButton?.click();
+      await waitForEffects();
+    });
+
+    expect(updateUserWeatherLocationMock).toHaveBeenCalledWith(1, {
+      name: "川口",
+      forecast_area_code: null,
+      is_default: true,
+    });
   });
 
   it("地域を削除したときに通知ボックスへ成功メッセージを出す", async () => {

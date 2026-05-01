@@ -5055,7 +5055,7 @@ components:
         forecast_area_code:
           type: string
           nullable: true
-          description: 予報API用地域コード。MVPでは weather.tsukumijima.net の city code を主対象とするが、気象庁 office/class10/class20 code と完全互換を前提にしない。
+          description: 予報API用地域コード。通常 UI では `予報区域` の選択結果として保存する。MVPでは weather.tsukumijima.net の city code を主対象とするが、気象庁 office/class10/class20 code と完全互換を前提にしない。
         latitude:
           type: number
           nullable: true
@@ -5095,7 +5095,7 @@ components:
         forecast_area_code:
           type: string
           nullable: true
-          description: 予報API用地域コード。任意。MVPでは weather.tsukumijima.net の city code を主対象とする。
+          description: 予報API用地域コード。任意。通常 UI では `予報区域` select から設定し、手入力は想定しない。MVPでは `primary_area.xml` 相当の全国静的定義を使い、weather.tsukumijima.net の city code を主対象とする。
         latitude:
           type: number
           nullable: true
@@ -5281,7 +5281,7 @@ components:
         raw_telop:
           type: string
           nullable: true
-          description: 変換元 telop。DB 保存はしない。
+          description: 変換元 telop。DB 保存はしない。frontend では `other` になった理由を確認できるよう取得後表示してよい。
 
     WeatherForecastResponse:
       allOf:

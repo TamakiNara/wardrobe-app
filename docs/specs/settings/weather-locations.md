@@ -38,6 +38,17 @@ UI 上の役割整理:
   - 旅行先や一時的な外出先
   - `user_weather_locations` には保存せず、`weather_records` の snapshot のみに残す
 
+### 予報区域 UI
+
+- 通常 UI では `forecast_area_code` を直接入力させず、`予報区域` として選択する
+- 表示ラベルは `予報区域`
+- 補足文は `天気予報APIで使う地域を選びます。` を基本とする
+- 例: `さいたま（110010）`
+- `未設定` も選べる
+- MVP では `primary_area.xml` 相当の全国一覧をアプリ内の静的定義として select で表示する
+- 将来、`primary_area.xml` 相当の定義から自動同期する余地を残す
+- backend API は既存データや import 互換のため `forecast_area_code` を厳格 enum では制限せず、通常操作は UI の選択肢で制御する
+
 ---
 
 ## ルール
@@ -87,6 +98,7 @@ MVP では、既に `weather_records` から参照されている保存済み地
 - 将来は `表示名: 川口 / 予報区域: 埼玉県南部 / forecast_area_code: 110010` のように、表示名と予報API用地域コードを分けて扱う余地を残す
 - 天気登録画面の `天気を取得` は、保存済み地域かつ `forecast_area_code` が設定された地域だけを対象にする
 - 今回だけの地域は `user_weather_locations` に保存しないため、予報 API の取得対象にしない
+- `forecast_area_code` は weather.tsukumijima.net の city code を保存するが、ユーザーには `予報区域` として見せる
 
 ---
 

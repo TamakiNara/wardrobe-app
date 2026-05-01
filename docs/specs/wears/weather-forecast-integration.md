@@ -35,6 +35,8 @@
 - `登録済みの地域` タブで選択中の地域のみ
 - かつ `forecast_area_code` が non-null / non-empty の地域のみ
 - `今回だけの地域` タブでは `天気を取得` は使えない
+- `forecast_area_code` は地域設定画面の `予報区域` select から設定する
+- `予報区域` の選択肢は `primary_area.xml` 相当の全国一覧を静的定義で持つ
 
 ### 非対象
 
@@ -63,7 +65,7 @@
 ### disabled 時の案内
 
 - 保存済み地域だが `forecast_area_code` がない場合
-  - `予報API用地域コードが設定された地域で取得できます。`
+  - `予報区域を設定すると、天気を取得できます。`
 - 今回だけの地域タブの場合
   - `今回だけの地域では天気取得は使えません。`
 
@@ -72,6 +74,7 @@
 - フォームの `weather_code`, `temperature_high`, `temperature_low` を上書きする
 - `memo` は自動入力しない
 - 画面上に `天気情報を取得しました。内容を確認して保存してください。` を表示する
+- 取得した `raw_telop` を画面上に表示し、`other` に落ちた場合も元の予報表記を確認できるようにする
 
 ### 取得失敗時
 
@@ -139,6 +142,7 @@
 - 対象地域の `forecast_area_code` が存在すること
 - `weather_date` は `YYYY-MM-DD`
 - 今回だけの地域は対象外
+- `forecast_area_code` 自体は weather.tsukumijima.net の city code を前提とする
 
 ---
 
@@ -216,6 +220,7 @@
 - `雨時々止む` のような細粒度表現を扱うか
 
 MVP では無理に拡張せず、不明な `telop` は安全側で `other` にする。
+ただし `晴` / `曇` を使う短縮表記など、よく使われる livedoor 互換表記は current の `weather_code` へ寄せる。
 
 ---
 

@@ -128,6 +128,7 @@ function WearLogWeatherPageContent() {
   >("manual");
   const [sourceName, setSourceName] = useState("manual");
   const [sourceFetchedAt, setSourceFetchedAt] = useState<string | null>(null);
+  const [forecastRawTelop, setForecastRawTelop] = useState<string | null>(null);
 
   const selectedRecord = useMemo(
     () =>
@@ -156,7 +157,7 @@ function WearLogWeatherPageContent() {
     }
 
     if (!isForecastEnabledLocation(selectedLocation)) {
-      return "予報API用地域コードが設定された地域で取得できます。";
+      return "予報区域を設定すると、天気を取得できます。";
     }
 
     return null;
@@ -179,6 +180,7 @@ function WearLogWeatherPageContent() {
       setSourceType("manual");
       setSourceName("manual");
       setSourceFetchedAt(null);
+      setForecastRawTelop(null);
 
       if (nextMode === "temporary") {
         setTemporaryLocationName("");
@@ -217,6 +219,7 @@ function WearLogWeatherPageContent() {
     setSourceType(record.source_type);
     setSourceName(record.source_name);
     setSourceFetchedAt(record.source_fetched_at);
+    setForecastRawTelop(null);
   }, []);
 
   const applyForecastToForm = useCallback((forecast: WeatherForecast) => {
@@ -232,6 +235,7 @@ function WearLogWeatherPageContent() {
     setSourceType(forecast.source_type);
     setSourceName(forecast.source_name);
     setSourceFetchedAt(forecast.source_fetched_at);
+    setForecastRawTelop(forecast.raw_telop);
   }, []);
 
   const loadPage = useCallback(async () => {
@@ -563,6 +567,19 @@ function WearLogWeatherPageContent() {
                     {forecastButtonDisabledReason ? (
                       <p className="mt-2 text-xs text-sky-900/70">
                         {forecastButtonDisabledReason}
+                        {locationMode === "saved" &&
+                        selectedLocationId !== null &&
+                        !isForecastEnabledLocation(selectedLocation) ? (
+                          <>
+                            {" "}
+                            <Link
+                              href="/settings/weather-locations"
+                              className="font-medium text-sky-700 underline"
+                            >
+                              地域設定へ
+                            </Link>
+                          </>
+                        ) : null}
                       </p>
                     ) : null}
                   </div>
@@ -667,7 +684,7 @@ function WearLogWeatherPageContent() {
                             よく使う地域は地域設定から追加できます。
                           </p>
                           <p className="mt-2 text-xs text-gray-500">
-                            予報API用地域コードが設定された地域で天気を取得できます。
+                            予報区域を設定すると、天気を取得できます。
                           </p>
                           <Link
                             href="/settings/weather-locations"
@@ -738,6 +755,21 @@ function WearLogWeatherPageContent() {
                     </select>
                   </label>
                 </div>
+
+                {forecastRawTelop ? (
+                  <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                    <p>
+                      取得した予報表記:{" "}
+                      <span className="font-medium">{forecastRawTelop}</span>
+                    </p>
+                    {weatherCode === "other" ? (
+                      <p className="mt-1 text-amber-800">
+                        この表記は現在の weather_code
+                        に変換できなかったため、「その他」として反映しています。
+                      </p>
+                    ) : null}
+                  </div>
+                ) : null}
 
                 <div className="grid gap-5 md:grid-cols-2">
                   <label className="space-y-2">
