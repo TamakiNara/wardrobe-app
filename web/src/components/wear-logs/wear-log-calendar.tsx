@@ -6,6 +6,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import WearLogModalColorThumbnail from "@/components/wear-logs/wear-log-modal-color-thumbnail";
 import { ApiClientError, apiFetch } from "@/lib/api/client";
+import { formatLocalDateYmd } from "@/lib/date/local-date";
 import { buildWeatherRecordConditionSummary } from "@/lib/weather/labels";
 import { getJapaneseHoliday } from "@/lib/wear-logs/japanese-holidays";
 import {
@@ -392,7 +393,7 @@ export default function WearLogCalendar({
     () => buildCalendarCells(month, weekStart),
     [month, weekStart],
   );
-  const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
+  const today = useMemo(() => formatLocalDateYmd(), []);
 
   async function openDayDetails(date: string) {
     setSelectedDate(date);

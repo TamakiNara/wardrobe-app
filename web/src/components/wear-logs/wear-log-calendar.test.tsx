@@ -468,4 +468,33 @@ describe("WearLogCalendar", () => {
 
     expect(weekdayHeaders).toEqual(["日", "月", "火", "水", "木", "金", "土"]);
   });
+  it("uses the local day for today markers before 09:00 JST", async () => {
+    apiFetchMock.mockResolvedValue({
+      event_date: "2026-05-01",
+      wearLogs: [],
+      weatherRecords: [],
+    });
+
+    vi.setSystemTime(new Date("2026-05-01T08:00:00+09:00"));
+
+    const { default: WearLogCalendar } = await import("./wear-log-calendar");
+
+    await act(async () => {
+      root.render(
+        React.createElement(WearLogCalendar, {
+          month: "2026-05",
+          weekStart: "monday",
+          days: [],
+        }),
+      );
+      await waitForEffects();
+    });
+
+    expect(
+      findDayButton(container, "2026-05-01")?.getAttribute("data-today"),
+    ).toBe("true");
+    expect(
+      findDayButton(container, "2026-04-30")?.getAttribute("data-today"),
+    ).toBe("false");
+  });
 });

@@ -12,6 +12,7 @@ import { useRouter } from "next/navigation";
 import { ChevronDown, ChevronUp, Frown, Meh, Smile } from "lucide-react";
 import FieldLabel from "@/components/forms/field-label";
 import OutfitColorThumbnail from "@/components/outfits/outfit-color-thumbnail";
+import { formatLocalDateYmd } from "@/lib/date/local-date";
 import {
   findItemCategoryLabel,
   findItemShapeLabel,
@@ -550,9 +551,7 @@ export default function WearLogForm({
           setSelectedItems(buildSelectedWearLogItems(wearLogData));
         } else {
           setStatus(initialStatus);
-          setEventDate(
-            initialEventDate ?? new Date().toISOString().slice(0, 10),
-          );
+          setEventDate(initialEventDate ?? formatLocalDateYmd());
           setDisplayOrder(initialDisplayOrder);
           setOutdoorTemperatureFeel("comfortable");
           setIndoorTemperatureFeel("comfortable");

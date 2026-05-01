@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { FormPageHeader } from "@/components/shared/form-page-header";
 import { ApiClientError } from "@/lib/api/client";
+import { formatLocalDateYmd } from "@/lib/date/local-date";
 import {
   flattenValidationErrors,
   getUserFacingSubmitErrorMessage,
@@ -97,7 +98,7 @@ function WearLogWeatherPageContent() {
   const returnTo = searchParams.get("returnTo");
   const validDate = isValidDate(date) ? date : null;
   const returnHref = buildReturnHref(
-    validDate ?? new Date().toISOString().slice(0, 10),
+    validDate ?? formatLocalDateYmd(),
     returnTo,
   );
 
