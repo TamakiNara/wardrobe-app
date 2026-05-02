@@ -15,7 +15,7 @@ class FetchJmaWeatherForecastServiceTest extends TestCase
         Http::fake([
             'https://www.jma.go.jp/bosai/forecast/data/forecast/130000.json' => Http::response($this->buildForecastPayload([
                 'area' => ['code' => '130010', 'name' => '東京地方'],
-                'weathers' => ['晴れ', '曇のち雨', '晴時々曇'],
+                'weathers' => ['晴れ', 'くもりのち雨', '晴れ時々くもり'],
                 'weatherCodes' => ['100', '212', '101'],
                 'temps' => ['13', '22', '14', '24'],
             ]), 200),
@@ -30,7 +30,25 @@ class FetchJmaWeatherForecastServiceTest extends TestCase
         $this->assertSame(13, $forecast['temperature_low']);
         $this->assertSame('forecast_api', $forecast['source_type']);
         $this->assertSame('jma_forecast_json', $forecast['source_name']);
-        $this->assertSame('曇のち雨', $forecast['raw_weather_text']);
+        $this->assertSame('くもりのち雨', $forecast['raw_weather_text']);
+    }
+
+    public function test_jma_weather_text_is_normalized_for_display_and_weather_code_mapping(): void
+    {
+        Http::fake([
+            'https://www.jma.go.jp/bosai/forecast/data/forecast/130000.json' => Http::response($this->buildForecastPayload([
+                'area' => ['code' => '130010', 'name' => '東京地方'],
+                'weathers' => ['晴れ　夜のはじめ頃　くもり', '曇', '晴'],
+                'weatherCodes' => ['101', '200', '100'],
+                'temps' => ['13', '22', '14', '24'],
+            ]), 200),
+        ]);
+
+        $service = $this->app->make(FetchJmaWeatherForecastService::class);
+        $forecast = $service->fetch('130000', '130010', '2026-05-01');
+
+        $this->assertSame('sunny_then_cloudy', $forecast['weather_code']);
+        $this->assertSame('晴れ 夜のはじめ頃 くもり', $forecast['raw_weather_text']);
     }
 
     public function test_office_code_and_region_code_pair_can_find_the_target_area(): void
@@ -92,7 +110,7 @@ class FetchJmaWeatherForecastServiceTest extends TestCase
         Http::fake([
             'https://www.jma.go.jp/bosai/forecast/data/forecast/130000.json' => Http::response($this->buildForecastPayload([
                 'area' => ['code' => '130010', 'name' => '東京地方'],
-                'weathers' => ['晴れ', '曇り', '雨'],
+                'weathers' => ['晴れ', 'くもり', '雨'],
                 'weatherCodes' => ['100', '200', '300'],
                 'temps' => ['13', '22', '14', '24'],
             ]), 200),
@@ -113,7 +131,7 @@ class FetchJmaWeatherForecastServiceTest extends TestCase
         Http::fake([
             'https://www.jma.go.jp/bosai/forecast/data/forecast/130000.json' => Http::response($this->buildForecastPayload([
                 'area' => ['code' => '130010', 'name' => '東京地方'],
-                'weathers' => ['晴れ', '曇り', '雨'],
+                'weathers' => ['晴れ', 'くもり', '雨'],
                 'weatherCodes' => ['100', '200', '300'],
                 'temps' => ['13', '22', '14', '24'],
             ]), 200),

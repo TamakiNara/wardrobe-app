@@ -479,4 +479,49 @@ describe("WearLogWeatherPage forecast integration", () => {
       "この表記は現在の weather_code に変換できなかったため、「その他」として反映しています。",
     );
   });
+  it("JMA の時間帯入り raw telop は整形済みの表記で表示される", async () => {
+    fetchUserWeatherLocationsMock.mockResolvedValue({
+      locations: [savedLocationWithJmaCodes],
+    });
+    fetchWeatherForecastMock.mockResolvedValue({
+      message: "fetched",
+      forecast: {
+        weather_date: "2026-05-01",
+        location_id: 3,
+        location_name: "支社 JMA",
+        forecast_area_code: null,
+        weather_code: "sunny_then_cloudy",
+        temperature_high: 20,
+        temperature_low: 12,
+        source_type: "forecast_api",
+        source_name: "jma_forecast_json",
+        source_fetched_at: "2026-05-01T10:00:00+09:00",
+        raw_telop: "晴れ 夜のはじめ頃 くもり",
+      },
+    });
+
+    const { default: WearLogWeatherPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(WearLogWeatherPage));
+      await waitForEffects();
+    });
+
+    await act(async () => {
+      getButtonByText("天気を取得")!.dispatchEvent(
+        new MouseEvent("click", { bubbles: true }),
+      );
+      await waitForEffects();
+    });
+
+    expect(
+      (container.querySelector("#weather-condition") as HTMLSelectElement)
+        .value,
+    ).toBe("sunny_then_cloudy");
+    expect(container.textContent).toContain("取得した予報表記");
+    expect(container.textContent).toContain("晴れ 夜のはじめ頃 くもり");
+    expect(container.textContent).not.toContain(
+      "weather_code に変換できなかったため",
+    );
+  });
 });

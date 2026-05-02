@@ -64,17 +64,24 @@ class FetchJmaWeatherForecastService
         }
 
         $rawWeatherText = $this->resolveWeatherText($payload, $regionCode, $weatherDate);
+        $displayWeatherText = WeatherRecordSupport::normalizeWeatherTextForDisplay($rawWeatherText);
         [$temperatureHigh, $temperatureLow] = $this->resolveTemperatures($payload, $regionCode, $weatherDate);
+
+        if ($displayWeatherText === null) {
+            throw new FetchWeatherForecastException(
+                'JMA forecast JSON から天気表記を整形できませんでした。'
+            );
+        }
 
         return [
             'weather_date' => $weatherDate,
-            'weather_code' => WeatherRecordSupport::normalizeWeatherTextToWeatherCode($rawWeatherText),
+            'weather_code' => WeatherRecordSupport::normalizeWeatherTextToWeatherCode($displayWeatherText),
             'temperature_high' => $temperatureHigh,
             'temperature_low' => $temperatureLow,
             'source_type' => 'forecast_api',
             'source_name' => 'jma_forecast_json',
             'source_fetched_at' => CarbonImmutable::now()->toIso8601String(),
-            'raw_weather_text' => $rawWeatherText,
+            'raw_weather_text' => $displayWeatherText,
         ];
     }
 

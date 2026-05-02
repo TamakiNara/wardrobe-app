@@ -179,6 +179,24 @@ class WeatherRecordSupport
         return self::normalizeWeatherTextToWeatherCode($telop);
     }
 
+    public static function normalizeWeatherTextForDisplay(?string $weatherText): ?string
+    {
+        if (! is_string($weatherText)) {
+            return null;
+        }
+
+        $normalized = str_replace("\u{3000}", ' ', trim($weatherText));
+        $normalized = preg_replace('/\s+/u', ' ', $normalized);
+
+        if (! is_string($normalized)) {
+            return null;
+        }
+
+        $normalized = trim($normalized);
+
+        return $normalized === '' ? null : $normalized;
+    }
+
     public static function normalizeWeatherTextToWeatherCode(?string $weatherText): string
     {
         $normalized = self::normalizeWeatherText($weatherText);
@@ -187,7 +205,7 @@ class WeatherRecordSupport
             return 'other';
         }
 
-        return match ($normalized) {
+        $directMatch = match ($normalized) {
             '晴' => 'sunny',
             '曇' => 'cloudy',
             '雨' => 'rain',
@@ -198,9 +216,17 @@ class WeatherRecordSupport
             '雨のち曇' => 'rain_then_cloudy',
             '晴時々曇' => 'sunny_with_occasional_clouds',
             '曇時々雨' => 'cloudy_with_occasional_rain',
+            '曇一時雨' => 'cloudy_with_occasional_rain',
             '晴時々雨' => 'sunny_with_occasional_rain',
-            default => 'other',
+            '晴一時雨' => 'sunny_with_occasional_rain',
+            default => null,
         };
+
+        if (is_string($directMatch)) {
+            return $directMatch;
+        }
+
+        return self::matchTransitionWeatherCode($normalized) ?? 'other';
     }
 
     public static function normalizeMemo(mixed $value): ?string
@@ -227,11 +253,13 @@ class WeatherRecordSupport
 
     private static function normalizeWeatherText(?string $weatherText): ?string
     {
-        if (! is_string($weatherText)) {
+        $displayNormalized = self::normalizeWeatherTextForDisplay($weatherText);
+
+        if ($displayNormalized === null) {
             return null;
         }
 
-        $normalized = preg_replace('/\s+/u', '', trim($weatherText));
+        $normalized = preg_replace('/\s+/u', '', $displayNormalized);
 
         if (! is_string($normalized) || $normalized === '') {
             return null;
@@ -243,5 +271,27 @@ class WeatherRecordSupport
             'くもり' => '曇',
             '曇り' => '曇',
         ]);
+    }
+
+    private static function matchTransitionWeatherCode(string $normalized): ?string
+    {
+        $transitionPatterns = [
+            ['prefix' => '晴', 'suffix' => '曇', 'code' => 'sunny_then_cloudy'],
+            ['prefix' => '曇', 'suffix' => '晴', 'code' => 'cloudy_then_sunny'],
+            ['prefix' => '曇', 'suffix' => '雨', 'code' => 'cloudy_then_rain'],
+            ['prefix' => '雨', 'suffix' => '曇', 'code' => 'rain_then_cloudy'],
+        ];
+
+        foreach ($transitionPatterns as $pattern) {
+            if (
+                str_starts_with($normalized, $pattern['prefix']) &&
+                str_ends_with($normalized, $pattern['suffix']) &&
+                $normalized !== $pattern['prefix'].$pattern['suffix']
+            ) {
+                return $pattern['code'];
+            }
+        }
+
+        return null;
     }
 }
