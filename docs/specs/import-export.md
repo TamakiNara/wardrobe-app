@@ -118,3 +118,14 @@ Web UI:
 
 - `forecast_area_code` から JMA コードへの自動変換はまだ行わない
 - forecast source を JMA 優先へ切り替えても、import / export では legacy `forecast_area_code` を引き続き保持する
+
+---
+
+## 2026-05-03 Open-Meteo redesign note
+
+### planned
+
+- `weather_locations` の正本は将来的に `latitude` / `longitude` / `timezone` へ寄せることを第一候補とする
+- `forecast_area_code` / `jma_forecast_region_code` / `jma_forecast_office_code` / `observation_station_code` / `observation_station_name` は、段階移行中は legacy restore 互換のため残す
+- Open-Meteo 移行後も旧 backup 互換は維持する前提で設計する
+- 詳細は [wears/weather-open-meteo-redesign.md](./wears/weather-open-meteo-redesign.md) を参照する

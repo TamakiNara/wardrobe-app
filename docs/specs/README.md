@@ -31,3 +31,4 @@
 - DB 構造や保存形式を見たいときは `../data/database.md` を参照する
 - 実装メモや暫定判断を見たいときは `../project/implementation-notes.md` を参照する
 - docs の書き方ルールを確認したいときは `../project/docs-writing-guidelines.md` を参照する
+- [wear logs: Open-Meteo 再設計メモ](./wears/weather-open-meteo-redesign.md)

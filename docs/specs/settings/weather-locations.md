@@ -175,3 +175,14 @@ JMA へ切り替える初期段階では、既存 `forecast_area_code` を以下
 
 - forecast 取得側は、`jma_forecast_region_code` / `jma_forecast_office_code` が両方ある場合に JMA forecast JSON を優先する
 - JMA コードがなく legacy `forecast_area_code` がある地域は、段階移行中の fallback として tsukumijima を使う
+
+---
+
+## 2026-05-03 Open-Meteo redesign note
+
+### planned
+
+- 地域設定の正本は、将来的に `latitude` / `longitude` / `timezone` へ寄せる
+- `forecast_area_code` / `jma_forecast_region_code` / `jma_forecast_office_code` / `observation_station_code` は段階移行中の legacy 候補として扱う
+- 地域登録 UI は Open-Meteo Geocoding API による候補検索を第一候補に再設計する
+- 詳細は [weather-open-meteo-redesign.md](../wears/weather-open-meteo-redesign.md) を参照する

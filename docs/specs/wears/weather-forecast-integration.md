@@ -363,3 +363,13 @@ JMA forecast JSON を使う場合の `source_name` は以下を推奨する。
 - `雨か雪` / `雪時々雨` / `くもり一時雪` / `晴れ一時雪` は、無理に既存 weather_code へ寄せず候補 code として別枠整理する
 - 候補 icon 例: `rain_or_snow` は `CloudSnow` または `Snowflake + Umbrella`、`snow_with_occasional_rain` / `cloudy_with_occasional_snow` は `CloudSnow`
 - `storm` / 荒天は current では `other` または注意情報側として扱う候補にとどめる
+
+---
+
+## 2026-05-03 Open-Meteo redesign note
+
+### planned
+
+- JMA forecast JSON は current 実装として残しつつ、本命候補は Open-Meteo JMA forecast API へ切り替える方向で再設計する
+- forecast provider の再設計メモは [weather-open-meteo-redesign.md](./weather-open-meteo-redesign.md) を参照する
+- `jma_forecast_region_code` / `jma_forecast_office_code` は当面 legacy 候補として保持し、将来的には `latitude` / `longitude` / `timezone` 正本へ寄せる

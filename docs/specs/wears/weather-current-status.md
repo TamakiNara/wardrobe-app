@@ -208,3 +208,12 @@
 - `rain_or_snow` / `snow_with_occasional_rain` / `cloudy_with_occasional_snow` / `sunny_with_occasional_snow` などの雨雪混在・雪混じり天気は、実データ頻度を見て weather_code 候補として別途整理する
 - `storm` / 荒天は current には入れず、注意情報として分けるか weather_code 候補として追加するかを再判断する
 - 最高 / 最低気温に `Thermometer` を付ける案は、情報過多を避けるため今回は見送りとする
+
+---
+
+## 2026-05-03 Open-Meteo redesign note
+
+- JMA forecast JSON + 気象庁最新 CSV を本命にする案は、コード体系と地点対応の複雑さが大きいため再検討に入った
+- 次段の本命候補は Open-Meteo JMA forecast / historical API とする
+- 再設計メモは [weather-open-meteo-redesign.md](./weather-open-meteo-redesign.md) を参照する
+- current 実装の JMA forecast JSON / tsukumijima fallback / JMA latest CSV PoC は、当面 current または legacy PoC として扱う

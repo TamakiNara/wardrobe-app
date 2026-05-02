@@ -92,3 +92,13 @@
 - 実績側で最初に採用する取得元を `jma_latest_csv` に寄せるか
 - 観測所コードを `user_weather_locations` に直接持つか、別テーブルへ分離するか
 - 緯度経度から観測所を補助解決するか
+
+---
+
+## 2026-05-03 Open-Meteo redesign note
+
+### planned
+
+- 観測所コードベースの最新 CSV PoC は保留とし、実績取得の本命候補は Open-Meteo historical API へ切り替える方向で再設計する
+- historical provider の再設計メモは [weather-open-meteo-redesign.md](./weather-open-meteo-redesign.md) を参照する
+- `observation_station_code` / `observation_station_name` は当面 legacy PoC 向けに保持し、将来的には `latitude` / `longitude` ベースへ寄せる
