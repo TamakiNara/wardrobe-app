@@ -173,5 +173,5 @@ JMA へ切り替える初期段階では、既存 `forecast_area_code` を以下
 
 ### planned
 
-- forecast 取得側は、将来的に `jma_forecast_region_code` / `jma_forecast_office_code` を優先する
-- forecast endpoint の provider 自動切替は次段で実装する
+- forecast 取得側は、`jma_forecast_region_code` / `jma_forecast_office_code` が両方ある場合に JMA forecast JSON を優先する
+- JMA コードがなく legacy `forecast_area_code` がある地域は、段階移行中の fallback として tsukumijima を使う

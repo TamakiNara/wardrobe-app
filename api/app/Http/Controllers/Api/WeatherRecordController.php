@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\UserWeatherLocation;
 use App\Models\WeatherRecord;
+use App\Services\Weather\FetchJmaWeatherForecastService;
 use App\Services\Weather\FetchWeatherForecastException;
 use App\Services\Weather\FetchWeatherForecastService;
 use App\Support\WeatherRecordPayloadBuilder;
@@ -17,7 +18,8 @@ use Illuminate\Validation\ValidationException;
 class WeatherRecordController extends Controller
 {
     public function __construct(
-        private readonly FetchWeatherForecastService $forecastService,
+        private readonly FetchWeatherForecastService $tsukumijimaForecastService,
+        private readonly FetchJmaWeatherForecastService $jmaForecastService,
     ) {}
 
     public function index(Request $request): JsonResponse
@@ -56,7 +58,7 @@ class WeatherRecordController extends Controller
         ]);
 
         try {
-            $forecast = $this->forecastService->fetch(
+            $forecast = $this->fetchForecastForLocation(
                 $request->user()->id,
                 (int) $validated['location_id'],
                 $validated['weather_date'],
@@ -72,6 +74,69 @@ class WeatherRecordController extends Controller
         return response()->json([
             'message' => 'fetched',
             'forecast' => $forecast,
+        ]);
+    }
+
+    /**
+     * @return array{
+     *     weather_date: string,
+     *     location_id: int,
+     *     location_name: string,
+     *     forecast_area_code: string|null,
+     *     weather_code: string,
+     *     temperature_high: int|null,
+     *     temperature_low: int|null,
+     *     source_type: string,
+     *     source_name: string,
+     *     source_fetched_at: string,
+     *     raw_telop: string|null
+     * }
+     */
+    private function fetchForecastForLocation(int $userId, int $locationId, string $weatherDate): array
+    {
+        $location = $this->resolveOwnedLocation($userId, $locationId);
+        $legacyForecastAreaCode = $this->normalizeLocationCode($location->forecast_area_code);
+        $jmaRegionCode = $this->normalizeLocationCode($location->jma_forecast_region_code);
+        $jmaOfficeCode = $this->normalizeLocationCode($location->jma_forecast_office_code);
+
+        if (($jmaRegionCode === null) xor ($jmaOfficeCode === null)) {
+            throw ValidationException::withMessages([
+                'location_id' => 'JMA予報区域の設定が不完全です。地域設定を確認してください。',
+            ]);
+        }
+
+        if ($jmaRegionCode !== null && $jmaOfficeCode !== null) {
+            $forecast = $this->jmaForecastService->fetch(
+                $jmaOfficeCode,
+                $jmaRegionCode,
+                $weatherDate,
+            );
+
+            return [
+                'weather_date' => $forecast['weather_date'],
+                'location_id' => $location->id,
+                'location_name' => $location->name,
+                'forecast_area_code' => $legacyForecastAreaCode,
+                'weather_code' => $forecast['weather_code'],
+                'temperature_high' => $forecast['temperature_high'],
+                'temperature_low' => $forecast['temperature_low'],
+                'source_type' => $forecast['source_type'],
+                'source_name' => $forecast['source_name'],
+                'source_fetched_at' => $forecast['source_fetched_at'],
+                'raw_telop' => $forecast['raw_weather_text'],
+            ];
+        }
+
+        if ($legacyForecastAreaCode !== null) {
+            return $this->tsukumijimaForecastService->fetch(
+                $userId,
+                $locationId,
+                $weatherDate,
+            );
+        }
+
+        throw ValidationException::withMessages([
+            'location_id' => '予報区域の設定がありません。地域設定を確認してください。',
         ]);
     }
 
@@ -276,6 +341,13 @@ class WeatherRecordController extends Controller
         }
 
         return $location;
+    }
+
+    private function normalizeLocationCode(?string $value): ?string
+    {
+        $normalized = trim((string) ($value ?? ''));
+
+        return $normalized === '' ? null : $normalized;
     }
 
     private function validateTemperatures(array $validated): void

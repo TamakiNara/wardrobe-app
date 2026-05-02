@@ -62,7 +62,7 @@ export type WeatherForecast = {
   weather_date: string;
   location_id: number;
   location_name: string;
-  forecast_area_code: string;
+  forecast_area_code: string | null;
   weather_code: WeatherCode;
   temperature_high: number | null;
   temperature_low: number | null;

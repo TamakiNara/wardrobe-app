@@ -15,15 +15,18 @@
 
 ## current
 
-MVP 時点では、予報取得は `weather.tsukumijima.net` を使う。
+MVP の current 実装では、forecast endpoint が provider を自動選択する。
 
-- 利用 URL:
+- JMA コードが両方ある地域:
+  - `https://www.jma.go.jp/bosai/forecast/data/forecast/{jma_forecast_office_code}.json`
+  - `jma_forecast_region_code` を対象区域として使う
+  - `source_name = jma_forecast_json`
+- JMA コードがなく legacy `forecast_area_code` がある地域:
   - `https://weather.tsukumijima.net/api/forecast/city/{forecast_area_code}`
-- `user_weather_locations.forecast_area_code` を city code として扱う
-- 取得した `telop` をアプリ側の `weather_code` に正規化する
-- 保存時の source metadata:
-  - `source_type = forecast_api`
+  - `forecast_area_code` を fallback 用 city code として扱う
   - `source_name = tsukumijima`
+- どちらのコードもない地域:
+  - forecast 取得不可
 
 ### current の長所
 
@@ -258,8 +261,8 @@ JMA forecast JSON を使う場合の `source_name` は以下を推奨する。
 
 - backend には `FetchJmaWeatherForecastService` の PoC がある
 - `user_weather_locations` は `jma_forecast_region_code` / `jma_forecast_office_code` を保存できる
-- ただし `POST /api/weather-records/forecast` の provider 自動切替はまだ行っていない
-- 既存の forecast 取得 current は引き続き `weather.tsukumijima.net`
+- `POST /api/weather-records/forecast` は JMA コードがある地域で `jma_forecast_json` を優先し、JMA 未設定かつ legacy `forecast_area_code` がある地域では `tsukumijima` fallback を使う
+- JMA コードが片方だけの地域と、JMA / legacy の両方がない地域は forecast 取得不可とする
 
 ### planned
 

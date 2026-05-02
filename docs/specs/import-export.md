@@ -116,4 +116,4 @@ Web UI:
 ### planned
 
 - `forecast_area_code` から JMA コードへの自動変換はまだ行わない
-- forecast source の JMA 優先切替は別タスクで進める
+- forecast source を JMA 優先へ切り替えても、import / export では legacy `forecast_area_code` を引き続き保持する

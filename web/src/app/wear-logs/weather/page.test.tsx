@@ -52,6 +52,8 @@ describe("WearLogWeatherPage forecast integration", () => {
     id: 1,
     name: "川口",
     forecast_area_code: "110010",
+    jma_forecast_region_code: null,
+    jma_forecast_office_code: null,
     latitude: null,
     longitude: null,
     is_default: true,
@@ -64,10 +66,40 @@ describe("WearLogWeatherPage forecast integration", () => {
     id: 2,
     name: "旅行先候補",
     forecast_area_code: null,
+    jma_forecast_region_code: null,
+    jma_forecast_office_code: null,
     latitude: null,
     longitude: null,
     is_default: false,
     display_order: 2,
+    created_at: null,
+    updated_at: null,
+  };
+
+  const savedLocationWithJmaCodes: UserWeatherLocationRecord = {
+    id: 3,
+    name: "川口 JMA",
+    forecast_area_code: null,
+    jma_forecast_region_code: "110010",
+    jma_forecast_office_code: "110000",
+    latitude: null,
+    longitude: null,
+    is_default: false,
+    display_order: 3,
+    created_at: null,
+    updated_at: null,
+  };
+
+  const savedLocationWithIncompleteJmaCodes: UserWeatherLocationRecord = {
+    id: 4,
+    name: "設定不完全 JMA",
+    forecast_area_code: null,
+    jma_forecast_region_code: "130010",
+    jma_forecast_office_code: null,
+    latitude: null,
+    longitude: null,
+    is_default: false,
+    display_order: 4,
     created_at: null,
     updated_at: null,
   };
@@ -88,7 +120,12 @@ describe("WearLogWeatherPage forecast integration", () => {
     vi.restoreAllMocks();
     pushMock.mockReset();
     fetchUserWeatherLocationsMock.mockResolvedValue({
-      locations: [savedLocationWithCode, savedLocationWithoutCode],
+      locations: [
+        savedLocationWithCode,
+        savedLocationWithoutCode,
+        savedLocationWithJmaCodes,
+        savedLocationWithIncompleteJmaCodes,
+      ],
     });
     fetchWeatherRecordsByDateMock.mockResolvedValue({
       weatherRecords: [] satisfies WeatherRecord[],
@@ -123,6 +160,22 @@ describe("WearLogWeatherPage forecast integration", () => {
     expect(fetchButton).not.toHaveProperty("disabled", true);
   });
 
+  it("JMA コードがある保存済み地域でも天気を取得できる", async () => {
+    fetchUserWeatherLocationsMock.mockResolvedValue({
+      locations: [savedLocationWithJmaCodes],
+    });
+
+    const { default: WearLogWeatherPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(WearLogWeatherPage));
+      await waitForEffects();
+    });
+
+    const fetchButton = getButtonByText("天気を取得") as HTMLButtonElement;
+    expect(fetchButton.disabled).toBe(false);
+  });
+
   it("forecast_area_code がない保存済み地域では disabled 理由を表示する", async () => {
     fetchUserWeatherLocationsMock.mockResolvedValue({
       locations: [savedLocationWithoutCode],
@@ -139,6 +192,25 @@ describe("WearLogWeatherPage forecast integration", () => {
     expect(fetchButton.disabled).toBe(true);
     expect(container.textContent).toContain(
       "予報区域を設定すると、天気を取得できます。",
+    );
+  });
+
+  it("JMA コードが不完全な保存済み地域では disabled 理由を表示する", async () => {
+    fetchUserWeatherLocationsMock.mockResolvedValue({
+      locations: [savedLocationWithIncompleteJmaCodes],
+    });
+
+    const { default: WearLogWeatherPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(WearLogWeatherPage));
+      await waitForEffects();
+    });
+
+    const fetchButton = getButtonByText("天気を取得") as HTMLButtonElement;
+    expect(fetchButton.disabled).toBe(true);
+    expect(container.textContent).toContain(
+      "JMA予報区域の設定が不完全です。地域設定を確認してください。",
     );
   });
 
@@ -251,6 +323,78 @@ describe("WearLogWeatherPage forecast integration", () => {
         source_type: "forecast_api",
         source_name: "tsukumijima",
         source_fetched_at: "2026-05-01T10:00:00+09:00",
+      }),
+    );
+  });
+
+  it("JMA 取得結果も source_name=jma_forecast_json のまま保存する", async () => {
+    fetchUserWeatherLocationsMock.mockResolvedValue({
+      locations: [savedLocationWithJmaCodes],
+    });
+    fetchWeatherForecastMock.mockResolvedValue({
+      message: "fetched",
+      forecast: {
+        weather_date: "2026-05-01",
+        location_id: 3,
+        location_name: "川口 JMA",
+        forecast_area_code: null,
+        weather_code: "cloudy_then_rain",
+        temperature_high: 21,
+        temperature_low: 14,
+        source_type: "forecast_api",
+        source_name: "jma_forecast_json",
+        source_fetched_at: "2026-05-01T10:00:00+09:00",
+        raw_telop: "曇のち雨",
+      },
+    });
+    createWeatherRecordMock.mockResolvedValue({
+      message: "created",
+      weatherRecord: {
+        id: 11,
+        weather_date: "2026-05-01",
+        location_id: 3,
+        location_name: "川口 JMA",
+        location_name_snapshot: "川口 JMA",
+        forecast_area_code_snapshot: null,
+        weather_code: "cloudy_then_rain",
+        temperature_high: 21,
+        temperature_low: 14,
+        memo: null,
+        source_type: "forecast_api",
+        source_name: "jma_forecast_json",
+        source_fetched_at: "2026-05-01T10:00:00+09:00",
+        created_at: null,
+        updated_at: null,
+      },
+    });
+
+    const { default: WearLogWeatherPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(WearLogWeatherPage));
+      await waitForEffects();
+    });
+
+    await act(async () => {
+      getButtonByText("天気を取得")!.dispatchEvent(
+        new MouseEvent("click", { bubbles: true }),
+      );
+      await waitForEffects();
+    });
+
+    await act(async () => {
+      container
+        .querySelector("form")!
+        .dispatchEvent(
+          new Event("submit", { bubbles: true, cancelable: true }),
+        );
+      await waitForEffects();
+    });
+
+    expect(createWeatherRecordMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        source_type: "forecast_api",
+        source_name: "jma_forecast_json",
       }),
     );
   });

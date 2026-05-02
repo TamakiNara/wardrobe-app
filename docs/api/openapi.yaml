@@ -1875,10 +1875,12 @@ paths:
         - Wear Logs
       summary: 保存済み地域の予報を取得してフォーム反映用データを返す
       description: |
-        weather.tsukumijima.net の予報 API を backend 経由で呼び出し、
+        保存済み地域の provider 設定を backend 側で自動判定し、
+        JMA コードがあれば JMA forecast JSON、なければ legacy `forecast_area_code` による
+        weather.tsukumijima.net fallback を使って forecast を取得する。
         対象日付と一致する forecast を `weather_code` と気温へ正規化して返す。
         取得結果はフォーム反映のみで、自動保存は行わない。
-        `forecast_area_code` を持つ保存済み地域だけが対象で、今回だけの地域は対象外。
+        今回だけの地域は対象外で、JMA / legacy のどちらの予報コードもない地域は取得不可。
       operationId: fetchWeatherRecordForecast
       parameters:
         - $ref: "#/components/parameters/XCsrfTokenHeader"
@@ -5236,7 +5238,8 @@ components:
           type: string
           nullable: true
           description: |
-            手入力のみの場合は `manual`、予報取得結果を反映して保存する場合は `tsukumijima`。
+            手入力のみの場合は `manual`、予報取得結果を反映して保存する場合は
+            `tsukumijima` または `jma_forecast_json`。
         source_fetched_at:
           type: string
           format: date-time
@@ -5255,7 +5258,7 @@ components:
           format: date
         location_id:
           type: integer
-          description: forecast_area_code を持つ保存済み地域 ID
+          description: JMA コードまたは legacy forecast_area_code を持つ保存済み地域 ID
 
     WeatherForecast:
       type: object
@@ -5263,7 +5266,6 @@ components:
         - weather_date
         - location_id
         - location_name
-        - forecast_area_code
         - weather_code
         - source_type
         - source_name
@@ -5278,7 +5280,8 @@ components:
           type: string
         forecast_area_code:
           type: string
-          description: weather.tsukumijima.net の city code
+          nullable: true
+          description: weather.tsukumijima.net fallback 用の legacy city code。JMA 取得時は null を返してよい。
         weather_code:
           $ref: "#/components/schemas/WeatherCode"
         temperature_high:
@@ -5292,7 +5295,8 @@ components:
           enum: [forecast_api]
         source_name:
           type: string
-          example: tsukumijima
+          description: manual / tsukumijima / jma_forecast_json などの source 名
+          example: jma_forecast_json
         source_fetched_at:
           type: string
           format: date-time

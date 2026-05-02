@@ -87,8 +87,40 @@ function sortLocations(locations: UserWeatherLocationRecord[]) {
   });
 }
 
-function isForecastEnabledLocation(location: UserWeatherLocationRecord | null) {
+function hasJmaForecastCodes(location: UserWeatherLocationRecord | null) {
+  return Boolean(
+    location?.jma_forecast_region_code?.trim() &&
+    location?.jma_forecast_office_code?.trim(),
+  );
+}
+
+function hasIncompleteJmaForecastCodes(
+  location: UserWeatherLocationRecord | null,
+) {
+  const hasRegionCode = Boolean(location?.jma_forecast_region_code?.trim());
+  const hasOfficeCode = Boolean(location?.jma_forecast_office_code?.trim());
+
+  return hasRegionCode !== hasOfficeCode;
+}
+
+function hasLegacyForecastCode(location: UserWeatherLocationRecord | null) {
   return Boolean(location?.forecast_area_code?.trim());
+}
+
+function getForecastDisabledReason(location: UserWeatherLocationRecord | null) {
+  if (location === null) {
+    return "地域を選択すると天気を取得できます。";
+  }
+
+  if (hasIncompleteJmaForecastCodes(location)) {
+    return "JMA予報区域の設定が不完全です。地域設定を確認してください。";
+  }
+
+  if (hasJmaForecastCodes(location) || hasLegacyForecastCode(location)) {
+    return null;
+  }
+
+  return "予報区域を設定すると、天気を取得できます。";
 }
 
 function WearLogWeatherPageContent() {
@@ -152,16 +184,8 @@ function WearLogWeatherPageContent() {
       return "今回だけの地域では天気取得は使えません。";
     }
 
-    if (selectedLocationId === null) {
-      return "地域を選択すると天気を取得できます。";
-    }
-
-    if (!isForecastEnabledLocation(selectedLocation)) {
-      return "予報区域を設定すると、天気を取得できます。";
-    }
-
-    return null;
-  }, [locationMode, selectedLocation, selectedLocationId]);
+    return getForecastDisabledReason(selectedLocation);
+  }, [locationMode, selectedLocation]);
 
   const canFetchForecast =
     validDate !== null && forecastButtonDisabledReason === null;
@@ -569,7 +593,7 @@ function WearLogWeatherPageContent() {
                         {forecastButtonDisabledReason}
                         {locationMode === "saved" &&
                         selectedLocationId !== null &&
-                        !isForecastEnabledLocation(selectedLocation) ? (
+                        forecastButtonDisabledReason !== null ? (
                           <>
                             {" "}
                             <Link
