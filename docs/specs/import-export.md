@@ -44,6 +44,7 @@ Web UI:
 - `source_type`
 - `source_name`
 - `source_fetched_at`
+- `weather_code` の current allow-list には `thunder` / `fog` / `windy` も含む
 
 ---
 

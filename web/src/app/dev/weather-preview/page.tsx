@@ -13,6 +13,10 @@ import {
   normalizeWeatherPreviewText,
   WEATHER_PREVIEW_SAMPLES,
 } from "@/lib/weather/weather-preview-samples";
+import {
+  getWeatherMainIconToneClassName,
+  WEATHER_ACCESSORY_ICON_TONE_CLASS_NAME,
+} from "@/lib/weather/weather-visuals";
 
 function InfoChip({
   children,
@@ -40,24 +44,29 @@ function InfoChip({
 function WeatherIconCell({
   iconName,
   dataAttribute,
+  toneClassName,
 }: {
   iconName: string | null;
   dataAttribute: string;
+  toneClassName?: string;
 }) {
   if (!iconName) {
     return <span className="text-xs text-slate-400">-</span>;
   }
 
   return (
-    <span
-      className="inline-flex items-center justify-center rounded-full bg-sky-50 p-2 text-sky-700"
-      {...{ [dataAttribute]: iconName }}
-    >
-      <WeatherGlyph
-        name={iconName as Parameters<typeof WeatherGlyph>[0]["name"]}
-        className="h-4 w-4"
-      />
-    </span>
+    <div className="inline-flex flex-col items-center gap-1 text-center">
+      <span
+        className={`inline-flex items-center justify-center rounded-full p-2 ${toneClassName ?? "bg-slate-100 text-slate-700"}`}
+        {...{ [dataAttribute]: iconName }}
+      >
+        <WeatherGlyph
+          name={iconName as Parameters<typeof WeatherGlyph>[0]["name"]}
+          className="h-4 w-4"
+        />
+      </span>
+      <span className="font-mono text-[11px] text-slate-500">{iconName}</span>
+    </div>
   );
 }
 
@@ -87,7 +96,8 @@ export default function WeatherPreviewPage() {
               weather_code 一覧
             </h2>
             <p className="text-sm text-slate-600">
-              実際の weather_code 定義をそのまま表示しています。
+              実際の weather_code 定義をそのまま表示しています。各アイコン列では
+              Lucide の実アイコンと icon 名を並べて確認できます。
             </p>
           </div>
           <div className="overflow-x-auto">
@@ -98,9 +108,9 @@ export default function WeatherPreviewPage() {
                   <th className="px-3 py-3">表示名</th>
                   <th className="px-3 py-3">primary_weather</th>
                   <th className="px-3 py-3">has_rain_possibility</th>
-                  <th className="px-3 py-3">メインアイコン</th>
-                  <th className="px-3 py-3">補助アイコン</th>
-                  <th className="px-3 py-3">fallback_icon</th>
+                  <th className="px-3 py-3">メインアイコン / icon 名</th>
+                  <th className="px-3 py-3">補助アイコン / icon 名</th>
+                  <th className="px-3 py-3">fallback_icon / icon 名</th>
                   <th className="px-3 py-3">備考</th>
                 </tr>
               </thead>
@@ -132,25 +142,45 @@ export default function WeatherPreviewPage() {
                       <WeatherIconCell
                         iconName={definition.icon}
                         dataAttribute="data-main-icon"
+                        toneClassName={getWeatherMainIconToneClassName(
+                          definition.code,
+                        )}
                       />
                     </td>
                     <td className="px-3 py-3">
                       <WeatherIconCell
                         iconName={definition.accessoryIcon}
                         dataAttribute="data-accessory-icon"
+                        toneClassName={WEATHER_ACCESSORY_ICON_TONE_CLASS_NAME}
                       />
                     </td>
                     <td className="px-3 py-3">
                       <WeatherIconCell
                         iconName={definition.fallbackIcon}
                         dataAttribute="data-fallback-icon"
+                        toneClassName="bg-slate-100 text-slate-600"
                       />
                     </td>
                     <td className="px-3 py-3 text-xs text-slate-600">
                       {definition.code === "other" ? (
                         <InfoChip tone="red">未分類 fallback</InfoChip>
                       ) : definition.hasRainPossibility ? (
-                        <InfoChip tone="amber">傘補助あり</InfoChip>
+                        <div className="flex flex-col gap-1">
+                          <InfoChip tone="amber">傘補助あり</InfoChip>
+                          <span>メインは天気、青系の傘は雨対策の補助表示</span>
+                        </div>
+                      ) : definition.code === "cloudy" ? (
+                        <span>weather_code は cloudy、アイコン名は Cloud</span>
+                      ) : definition.code === "thunder" ? (
+                        <span>
+                          雷は thunder として分け、CloudLightning を優先
+                        </span>
+                      ) : definition.code === "fog" ? (
+                        <span>霧は fog として分け、CloudFog を使う</span>
+                      ) : definition.code === "windy" ? (
+                        <span>強風は windy として分け、Wind を使う</span>
+                      ) : definition.code === "snow" ? (
+                        <span>単独の雪は Snowflake を優先</span>
                       ) : (
                         <span>-</span>
                       )}
@@ -180,7 +210,7 @@ export default function WeatherPreviewPage() {
                   <th className="px-3 py-3">表示用整形後テキスト</th>
                   <th className="px-3 py-3">weather_code</th>
                   <th className="px-3 py-3">表示名</th>
-                  <th className="px-3 py-3">アイコン</th>
+                  <th className="px-3 py-3">アイコン / icon 名</th>
                   <th className="px-3 py-3">has_rain_possibility</th>
                 </tr>
               </thead>
@@ -216,15 +246,21 @@ export default function WeatherPreviewPage() {
                         {getWeatherCodeLabel(sample.weatherCode)}
                       </td>
                       <td className="px-3 py-3">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-3">
                           <WeatherIconCell
                             iconName={definition.icon}
                             dataAttribute="data-sample-main-icon"
+                            toneClassName={getWeatherMainIconToneClassName(
+                              sample.weatherCode,
+                            )}
                           />
                           {definition.accessoryIcon ? (
                             <WeatherIconCell
                               iconName={definition.accessoryIcon}
                               dataAttribute="data-sample-accessory-icon"
+                              toneClassName={
+                                WEATHER_ACCESSORY_ICON_TONE_CLASS_NAME
+                              }
                             />
                           ) : null}
                         </div>

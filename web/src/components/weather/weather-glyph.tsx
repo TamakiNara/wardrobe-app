@@ -1,5 +1,7 @@
 import {
   Cloud,
+  CloudFog,
+  CloudLightning,
   CloudRain,
   CloudSnow,
   CloudSun,
@@ -7,6 +9,8 @@ import {
   Snowflake,
   Sun,
   Umbrella,
+  Wind,
+  Zap,
   type LucideIcon,
 } from "lucide-react";
 import { createElement } from "react";
@@ -15,12 +19,16 @@ import type { WeatherVisualIconName } from "@/lib/weather/weather-code-definitio
 const WEATHER_ICON_COMPONENTS: Record<WeatherVisualIconName, LucideIcon> = {
   Sun,
   Cloud,
+  CloudFog,
+  CloudLightning,
   CloudSun,
   CloudRain,
   CloudSunRain,
   CloudSnow,
   Snowflake,
   Umbrella,
+  Wind,
+  Zap,
 };
 
 export function resolveWeatherIcon(name: WeatherVisualIconName): LucideIcon {

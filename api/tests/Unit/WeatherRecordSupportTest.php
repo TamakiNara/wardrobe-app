@@ -38,6 +38,9 @@ class WeatherRecordSupportTest extends TestCase
             'cloudy' => ['くもり', 'cloudy'],
             'rain' => ['雨', 'rain'],
             'snow' => ['雪', 'snow'],
+            'thunder' => ['雷', 'thunder'],
+            'fog' => ['霧', 'fog'],
+            'windy' => ['強風', 'windy'],
             'sunny_then_cloudy' => ['晴れのちくもり', 'sunny_then_cloudy'],
             'cloudy_then_sunny' => ['くもりのち晴れ', 'cloudy_then_sunny'],
             'cloudy_then_rain' => ['くもりのち雨', 'cloudy_then_rain'],
@@ -57,13 +60,14 @@ class WeatherRecordSupportTest extends TestCase
             'rain_then_cloudy_with_from' => ['雨 昼過ぎ から くもり', 'rain_then_cloudy'],
             'sunny_with_occasional_rain_with_ichiji' => ['晴れ 一時 雨', 'sunny_with_occasional_rain'],
             'cloudy_with_occasional_rain_with_ichiji' => ['くもり 一時 雨', 'cloudy_with_occasional_rain'],
-            'other_with_thunder' => ['雷', 'other'],
-            'other_with_fog' => ['霧', 'other'],
-            'other_with_wind' => ['強風', 'other'],
             'other_with_rain_or_snow' => ['雨か雪', 'other'],
             'other_with_snow_then_rain' => ['雪時々雨', 'other'],
             'other_with_cloudy_and_temporary_snow' => ['くもり一時雪', 'other'],
             'other_with_sunny_and_temporary_snow' => ['晴れ一時雪', 'other'],
+            'other_with_rain_and_thunder' => ['雨で雷を伴う', 'other'],
+            'other_with_cloudy_and_thunder' => ['くもり時々雷', 'other'],
+            'other_with_fog_and_rain' => ['霧一時雨', 'other'],
+            'other_with_windy_and_rain' => ['強風を伴う雨', 'other'],
         ];
     }
 }

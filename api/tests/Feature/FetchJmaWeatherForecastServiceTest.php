@@ -71,7 +71,7 @@ class FetchJmaWeatherForecastServiceTest extends TestCase
         $this->assertSame('sunny', $forecast['weather_code']);
     }
 
-    public function test_unrecognized_jma_weather_text_falls_back_to_other(): void
+    public function test_single_thunder_jma_weather_text_maps_to_thunder(): void
     {
         Http::fake([
             'https://www.jma.go.jp/bosai/forecast/data/forecast/110000.json' => Http::response($this->buildForecastPayload([
@@ -86,7 +86,7 @@ class FetchJmaWeatherForecastServiceTest extends TestCase
         $service = $this->app->make(FetchJmaWeatherForecastService::class);
         $forecast = $service->fetch('110000', '110010', '2026-05-01');
 
-        $this->assertSame('other', $forecast['weather_code']);
+        $this->assertSame('thunder', $forecast['weather_code']);
         $this->assertSame('雷', $forecast['raw_weather_text']);
     }
 

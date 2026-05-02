@@ -43,7 +43,8 @@
 - 単独天気と複合天気を扱う。
 - DB に icon 名は保存しない。
 - `icon` / `has_rain_possibility` / `primary_weather` は `weather_code` 定義から導出する。
-- MVP の `weather_code` には雷 / 霧 / 強風 / 荒天は入れていない。
+- MVP の `weather_code` には `thunder` / `fog` / `windy` を含める。
+- `storm` / 荒天はまだ正式採用していない。
 - 変換できない表記は `other` に落とす。
 
 ### 天気アイコン
@@ -83,7 +84,8 @@
 - `weather_code` は簡易表示・アイコン・分析用の正規化値、`raw_weather_text` は取得元の詳細表記として役割を分けている。
 - JMA 天気文の時間帯入り表記は、既存 `weather_code` に安全に寄せられるものだけ正規化する。
 - `から` や時間帯語を挟む遷移表記でも、意味を崩さず既存 code に寄せられる場合のみ吸収する。
-- 雷 / 霧 / 強風 / 雪混じり複合天気は今回も `other` のままとする。
+- 単独の `雷` / `霧` / `強風` は `thunder` / `fog` / `windy` へ正規化する。
+- 雨雪混在・雪混じり複合天気や荒天は今回も `other` のままとする。
 - 変換ルールは、実データで頻出する表記を見ながら小さく追加していく。
 
 ### tsukumijima fallback
@@ -162,7 +164,7 @@
 
 - JMA 天気文の `weather_code` 変換ルールをどこまで増やすか
 - `一時` 系を `時々` 系として扱う範囲
-- 雷 / 霧 / 強風 / 荒天を `weather_code` に入れるか、環境情報として分けるか
+- `storm` / 荒天を `weather_code` に入れるか、環境情報として分けるか
 - カレンダーセルに天気アイコンを出すか
 - 実績取得でどの観測所を使うか
 - 観測所をユーザーに選ばせるか、自動推定するか
@@ -189,3 +191,20 @@
 
 - このファイルは current / planned / 要再判断の整理用ドキュメントであり、個別の request / response / DB 定義の正本は関連 docs と OpenAPI を参照する。
 - 予報用コードと実績用観測所コードは別体系のまま進める前提とする。
+---
+
+## 2026-05-02 weather icon preview note
+
+### current
+
+- `snow` のメインアイコンは `Snowflake` を優先し、`CloudSnow` は fallback 側に回す
+- `thunder` / `fog` / `windy` を current の `weather_code` とし、Lucide `CloudLightning` / `CloudFog` / `Wind` を割り当てる
+- 雨系ではメインアイコンを「天気そのもの」、傘アイコンを「雨対策が必要かもしれない」補助表示として分けて扱う
+- `Umbrella` は雨系メインアイコンと近い blue / sky 系トーンの補助色で表示する
+- `/dev/weather-preview` は weather_code / icon / JMA 正規化の目視確認用ページとして使い、通常ナビには出さない
+
+### pending / 要再判断
+
+- `rain_or_snow` / `snow_with_occasional_rain` / `cloudy_with_occasional_snow` / `sunny_with_occasional_snow` などの雨雪混在・雪混じり天気は、実データ頻度を見て weather_code 候補として別途整理する
+- `storm` / 荒天は current には入れず、注意情報として分けるか weather_code 候補として追加するかを再判断する
+- 最高 / 最低気温に `Thermometer` を付ける案は、情報過多を避けるため今回は見送りとする

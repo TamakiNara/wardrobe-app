@@ -1,14 +1,26 @@
-export type PrimaryWeather = "sunny" | "cloudy" | "rain" | "snow" | "other";
+export type PrimaryWeather =
+  | "sunny"
+  | "cloudy"
+  | "rain"
+  | "snow"
+  | "thunder"
+  | "fog"
+  | "windy"
+  | "other";
 
 export type WeatherVisualIconName =
   | "Sun"
   | "Cloud"
   | "CloudSun"
   | "CloudRain"
+  | "CloudLightning"
+  | "CloudFog"
   | "CloudSunRain"
   | "CloudSnow"
   | "Snowflake"
-  | "Umbrella";
+  | "Umbrella"
+  | "Wind"
+  | "Zap";
 
 export type WeatherCodeDefinition = {
   code: import("@/types/weather").WeatherCode;
@@ -52,8 +64,35 @@ export const WEATHER_CODE_DEFINITIONS = [
     code: "snow",
     label: "雪",
     primaryWeather: "snow",
-    icon: "CloudSnow",
-    fallbackIcon: "Snowflake",
+    icon: "Snowflake",
+    fallbackIcon: "CloudSnow",
+    hasRainPossibility: false,
+    accessoryIcon: null,
+  },
+  {
+    code: "thunder",
+    label: "雷",
+    primaryWeather: "thunder",
+    icon: "CloudLightning",
+    fallbackIcon: "Zap",
+    hasRainPossibility: true,
+    accessoryIcon: "Umbrella",
+  },
+  {
+    code: "fog",
+    label: "霧",
+    primaryWeather: "fog",
+    icon: "CloudFog",
+    fallbackIcon: "Cloud",
+    hasRainPossibility: false,
+    accessoryIcon: null,
+  },
+  {
+    code: "windy",
+    label: "強風",
+    primaryWeather: "windy",
+    icon: "Wind",
+    fallbackIcon: "Cloud",
     hasRainPossibility: false,
     accessoryIcon: null,
   },

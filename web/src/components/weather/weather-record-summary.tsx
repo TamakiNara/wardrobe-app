@@ -1,5 +1,9 @@
 import { buildWeatherRecordConditionSummary } from "@/lib/weather/labels";
 import { getWeatherCodeDefinition } from "@/lib/weather/weather-code-definitions";
+import {
+  getWeatherMainIconToneClassName,
+  WEATHER_ACCESSORY_ICON_TONE_CLASS_NAME,
+} from "@/lib/weather/weather-visuals";
 import type { WeatherRecord } from "@/types/weather";
 import WeatherGlyph from "@/components/weather/weather-glyph";
 
@@ -13,12 +17,15 @@ export default function WeatherRecordSummary({
   summaryClassName = "mt-1 text-sm text-gray-600",
 }: WeatherRecordSummaryProps) {
   const definition = getWeatherCodeDefinition(record.weather_code);
+  const mainIconToneClassName = getWeatherMainIconToneClassName(
+    record.weather_code,
+  );
 
   return (
     <div className="space-y-1">
       <div className="flex flex-wrap items-center gap-2 text-gray-700">
         <span
-          className="inline-flex items-center justify-center rounded-full bg-sky-50 p-1.5 text-sky-700"
+          className={`inline-flex items-center justify-center rounded-full p-1.5 ${mainIconToneClassName}`}
           data-weather-icon={definition.icon}
           data-weather-code={record.weather_code}
         >
@@ -35,7 +42,7 @@ export default function WeatherRecordSummary({
         ) : null}
         {definition.accessoryIcon ? (
           <span
-            className="inline-flex items-center justify-center rounded-full bg-amber-50 p-1.5 text-amber-700"
+            className={`inline-flex items-center justify-center rounded-full p-1.5 ${WEATHER_ACCESSORY_ICON_TONE_CLASS_NAME}`}
             data-weather-accessory-icon={definition.accessoryIcon}
             data-rain-possibility={
               definition.hasRainPossibility ? "true" : "false"

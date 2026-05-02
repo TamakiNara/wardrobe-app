@@ -5026,6 +5026,9 @@ components:
         - cloudy
         - rain
         - snow
+        - thunder
+        - fog
+        - windy
         - other
         - sunny_then_cloudy
         - cloudy_then_sunny

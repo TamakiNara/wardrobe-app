@@ -1664,4 +1664,93 @@ class ImportExportEndpointsTest extends TestCase
 
         $this->assertSame('other', $importedWeatherRecord->weather_code);
     }
+
+    public function test_import_export_roundtrip_preserves_thunder_fog_and_windy_weather_codes(): void
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->create();
+        $this->createCategory('tops_shirt_blouse', 'tops', 'シャツ・ブラウス');
+        $source = $this->seedExportSourceData($user);
+
+        WeatherRecord::query()->create([
+            'user_id' => $user->id,
+            'weather_date' => '2026-05-10',
+            'location_id' => $source['weatherLocation']->id,
+            'location_name_snapshot' => '川口',
+            'forecast_area_code_snapshot' => '110000',
+            'weather_code' => 'thunder',
+            'temperature_high' => 24.0,
+            'temperature_low' => 17.0,
+            'memo' => '午後に雷あり',
+            'source_type' => 'manual',
+            'source_name' => 'manual',
+            'source_fetched_at' => null,
+        ]);
+
+        WeatherRecord::query()->create([
+            'user_id' => $user->id,
+            'weather_date' => '2026-05-11',
+            'location_id' => $source['weatherLocation']->id,
+            'location_name_snapshot' => '川口',
+            'forecast_area_code_snapshot' => '110000',
+            'weather_code' => 'fog',
+            'temperature_high' => 20.0,
+            'temperature_low' => 14.0,
+            'memo' => '朝は霧',
+            'source_type' => 'manual',
+            'source_name' => 'manual',
+            'source_fetched_at' => null,
+        ]);
+
+        WeatherRecord::query()->create([
+            'user_id' => $user->id,
+            'weather_date' => '2026-05-12',
+            'location_id' => null,
+            'location_name_snapshot' => '海沿い',
+            'forecast_area_code_snapshot' => null,
+            'weather_code' => 'windy',
+            'temperature_high' => 18.0,
+            'temperature_low' => 11.0,
+            'memo' => '海風が強い',
+            'source_type' => 'manual',
+            'source_name' => 'manual',
+            'source_fetched_at' => null,
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $exportPayload = $this->getJson('/api/export', [
+            'Accept' => 'application/json',
+        ])->assertOk()->json();
+
+        $this->assertContains('thunder', array_column($exportPayload['weather_records'], 'weather_code'));
+        $this->assertContains('fog', array_column($exportPayload['weather_records'], 'weather_code'));
+        $this->assertContains('windy', array_column($exportPayload['weather_records'], 'weather_code'));
+
+        WeatherRecord::query()->delete();
+
+        $token = $this->issueCsrfToken();
+
+        $this->postJson('/api/import', $exportPayload, [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ])->assertOk();
+
+        $this->assertDatabaseHas('weather_records', [
+            'user_id' => $user->id,
+            'weather_date' => '2026-05-10',
+            'weather_code' => 'thunder',
+        ]);
+        $this->assertDatabaseHas('weather_records', [
+            'user_id' => $user->id,
+            'weather_date' => '2026-05-11',
+            'weather_code' => 'fog',
+        ]);
+        $this->assertDatabaseHas('weather_records', [
+            'user_id' => $user->id,
+            'weather_date' => '2026-05-12',
+            'weather_code' => 'windy',
+        ]);
+    }
 }

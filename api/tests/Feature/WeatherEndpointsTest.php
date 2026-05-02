@@ -460,6 +460,46 @@ class WeatherEndpointsTest extends TestCase
         ]);
     }
 
+    public function test_weather_records_accept_thunder_fog_and_windy_codes(): void
+    {
+        $user = User::factory()->create();
+        $token = $this->issueCsrfToken();
+
+        $location = UserWeatherLocation::query()->create([
+            'user_id' => $user->id,
+            'name' => '川口',
+            'forecast_area_code' => '110000',
+            'latitude' => null,
+            'longitude' => null,
+            'is_default' => true,
+            'display_order' => 1,
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        foreach (['thunder', 'fog', 'windy'] as $index => $weatherCode) {
+            $weatherDate = sprintf('2026-05-%02d', 3 + $index);
+
+            $response = $this->postJson('/api/weather-records', [
+                'weather_date' => $weatherDate,
+                'location_id' => $location->id,
+                'weather_code' => $weatherCode,
+            ], [
+                'Accept' => 'application/json',
+                'X-CSRF-TOKEN' => $token,
+            ]);
+
+            $response->assertCreated()
+                ->assertJsonPath('weatherRecord.weather_code', $weatherCode);
+
+            $this->assertDatabaseHas('weather_records', [
+                'user_id' => $user->id,
+                'weather_date' => $weatherDate,
+                'weather_code' => $weatherCode,
+            ]);
+        }
+    }
+
     public function test_weather_forecast_uses_jma_when_location_has_complete_jma_codes(): void
     {
         Http::fake([
@@ -707,7 +747,7 @@ class WeatherEndpointsTest extends TestCase
             ->assertJsonValidationErrors(['weather_date']);
     }
 
-    public function test_weather_forecast_maps_unknown_telop_to_other_and_allows_partial_temperatures(): void
+    public function test_weather_forecast_maps_thunder_telop_and_allows_partial_temperatures(): void
     {
         Http::fake([
             'https://weather.tsukumijima.net/api/forecast/city/*' => Http::response([
@@ -747,7 +787,7 @@ class WeatherEndpointsTest extends TestCase
         ]);
 
         $response->assertOk()
-            ->assertJsonPath('forecast.weather_code', 'other')
+            ->assertJsonPath('forecast.weather_code', 'thunder')
             ->assertJsonPath('forecast.temperature_high', null)
             ->assertJsonPath('forecast.temperature_low', 9);
     }

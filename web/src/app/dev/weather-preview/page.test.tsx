@@ -13,6 +13,8 @@ vi.mock("lucide-react", () => {
 
   return {
     Cloud: icon("Cloud"),
+    CloudFog: icon("CloudFog"),
+    CloudLightning: icon("CloudLightning"),
     CloudRain: icon("CloudRain"),
     CloudSnow: icon("CloudSnow"),
     CloudSun: icon("CloudSun"),
@@ -20,6 +22,8 @@ vi.mock("lucide-react", () => {
     Snowflake: icon("Snowflake"),
     Sun: icon("Sun"),
     Umbrella: icon("Umbrella"),
+    Wind: icon("Wind"),
+    Zap: icon("Zap"),
   };
 });
 
@@ -34,7 +38,9 @@ describe("WeatherPreviewPage", () => {
     expect(markup).toContain("JMA天気文 正規化確認");
     expect(markup).toContain("sunny_then_cloudy");
     expect(markup).toContain("雷");
-    expect(markup).toContain("other");
+    expect(markup).toContain("thunder");
+    expect(markup).toContain("fog");
+    expect(markup).toContain("windy");
   });
 
   it("晴れ 夜のはじめ頃 くもり を sunny_then_cloudy として表示する", async () => {
@@ -56,5 +62,30 @@ describe("WeatherPreviewPage", () => {
 
     expect(markup).toContain('data-accessory-icon="Umbrella"');
     expect(markup).toContain('data-sample-accessory-icon="Umbrella"');
+  });
+
+  it("snow は preview でも Snowflake を表示する", async () => {
+    const { default: WeatherPreviewPage } = await import("./page");
+    const markup = renderToStaticMarkup(
+      React.createElement(WeatherPreviewPage),
+    );
+
+    expect(markup).toContain('data-main-icon="Snowflake"');
+    expect(markup).toContain("Cloud");
+    expect(markup).toContain("Snowflake");
+  });
+
+  it("雷 / 霧 / 強風は preview で専用コードとアイコンを表示する", async () => {
+    const { default: WeatherPreviewPage } = await import("./page");
+    const markup = renderToStaticMarkup(
+      React.createElement(WeatherPreviewPage),
+    );
+
+    expect(markup).toContain("thunder");
+    expect(markup).toContain("fog");
+    expect(markup).toContain("windy");
+    expect(markup).toContain("CloudLightning");
+    expect(markup).toContain("CloudFog");
+    expect(markup).toContain('data-main-icon="Wind"');
   });
 });
