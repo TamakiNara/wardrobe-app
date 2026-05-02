@@ -466,6 +466,7 @@ class WeatherEndpointsTest extends TestCase
             'https://www.jma.go.jp/bosai/forecast/data/forecast/110000.json' => Http::response(
                 $this->buildJmaForecastPayload([
                     'area' => ['code' => '110010', 'name' => '埼玉県南部'],
+                    'temp_area' => ['code' => '43241', 'name' => 'さいたま'],
                     'weathers' => ['晴れ', '曇のち雨', '晴れ'],
                     'weatherCodes' => ['100', '212', '100'],
                     'temps' => ['13', '22', '14', '24'],
@@ -798,6 +799,7 @@ class WeatherEndpointsTest extends TestCase
     /**
      * @param  array{
      *     area: array{code: string, name: string},
+     *     temp_area?: array{code: string, name: string},
      *     weathers: array<int, string>,
      *     weatherCodes: array<int, string>,
      *     temps: array<int, string>|null
@@ -843,7 +845,7 @@ class WeatherEndpointsTest extends TestCase
                         ],
                         'areas' => [
                             [
-                                'area' => $definition['area'],
+                                'area' => $definition['temp_area'] ?? $definition['area'],
                                 'temps' => $definition['temps'],
                             ],
                         ],

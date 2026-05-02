@@ -15,6 +15,7 @@ class FetchJmaWeatherForecastServiceTest extends TestCase
         Http::fake([
             'https://www.jma.go.jp/bosai/forecast/data/forecast/130000.json' => Http::response($this->buildForecastPayload([
                 'area' => ['code' => '130010', 'name' => '東京地方'],
+                'temp_area' => ['code' => '44132', 'name' => '東京'],
                 'weathers' => ['晴れ', 'くもりのち雨', '晴れ時々くもり'],
                 'weatherCodes' => ['100', '212', '101'],
                 'temps' => ['13', '22', '14', '24'],
@@ -38,6 +39,7 @@ class FetchJmaWeatherForecastServiceTest extends TestCase
         Http::fake([
             'https://www.jma.go.jp/bosai/forecast/data/forecast/130000.json' => Http::response($this->buildForecastPayload([
                 'area' => ['code' => '130010', 'name' => '東京地方'],
+                'temp_area' => ['code' => '44132', 'name' => '東京'],
                 'weathers' => ['晴れ　夜のはじめ頃　くもり', '曇', '晴'],
                 'weatherCodes' => ['101', '200', '100'],
                 'temps' => ['13', '22', '14', '24'],
@@ -56,6 +58,7 @@ class FetchJmaWeatherForecastServiceTest extends TestCase
         Http::fake([
             'https://www.jma.go.jp/bosai/forecast/data/forecast/110000.json' => Http::response($this->buildForecastPayload([
                 'area' => ['code' => '110010', 'name' => '埼玉県南部'],
+                'temp_area' => ['code' => '43241', 'name' => 'さいたま'],
                 'weathers' => ['晴れ', '晴れ', '晴れ'],
                 'weatherCodes' => ['100', '100', '100'],
                 'temps' => ['11', '19', '12', '20'],
@@ -73,6 +76,7 @@ class FetchJmaWeatherForecastServiceTest extends TestCase
         Http::fake([
             'https://www.jma.go.jp/bosai/forecast/data/forecast/110000.json' => Http::response($this->buildForecastPayload([
                 'area' => ['code' => '110010', 'name' => '埼玉県南部'],
+                'temp_area' => ['code' => '43241', 'name' => 'さいたま'],
                 'weathers' => ['雷', '雷', '雷'],
                 'weatherCodes' => ['400', '400', '400'],
                 'temps' => ['11', '19', '12', '20'],
@@ -91,6 +95,7 @@ class FetchJmaWeatherForecastServiceTest extends TestCase
         Http::fake([
             'https://www.jma.go.jp/bosai/forecast/data/forecast/130000.json' => Http::response($this->buildForecastPayload([
                 'area' => ['code' => '130010', 'name' => '東京地方'],
+                'temp_area' => ['code' => '44132', 'name' => '東京'],
                 'weathers' => ['晴れ', '晴れ', '晴れ'],
                 'weatherCodes' => ['100', '100', '100'],
                 'temps' => null,
@@ -105,11 +110,33 @@ class FetchJmaWeatherForecastServiceTest extends TestCase
         $this->assertNull($forecast['temperature_low']);
     }
 
+    public function test_weekly_temperature_block_is_used_when_daily_temperature_block_does_not_cover_the_date(): void
+    {
+        Http::fake([
+            'https://www.jma.go.jp/bosai/forecast/data/forecast/130000.json' => Http::response($this->buildForecastPayload([
+                'area' => ['code' => '130010', 'name' => '東京地方'],
+                'temp_area' => ['code' => '44132', 'name' => '東京'],
+                'weathers' => ['晴れ', 'くもり', 'くもり 一時 雨'],
+                'weatherCodes' => ['100', '200', '202'],
+                'temps' => null,
+                'weekly_temps_min' => ['', '16', '14'],
+                'weekly_temps_max' => ['', '25', '23'],
+            ]), 200),
+        ]);
+
+        $service = $this->app->make(FetchJmaWeatherForecastService::class);
+        $forecast = $service->fetch('130000', '130010', '2026-05-03');
+
+        $this->assertSame(25, $forecast['temperature_high']);
+        $this->assertSame(16, $forecast['temperature_low']);
+    }
+
     public function test_fetch_throws_validation_error_when_weather_date_is_missing(): void
     {
         Http::fake([
             'https://www.jma.go.jp/bosai/forecast/data/forecast/130000.json' => Http::response($this->buildForecastPayload([
                 'area' => ['code' => '130010', 'name' => '東京地方'],
+                'temp_area' => ['code' => '44132', 'name' => '東京'],
                 'weathers' => ['晴れ', 'くもり', '雨'],
                 'weatherCodes' => ['100', '200', '300'],
                 'temps' => ['13', '22', '14', '24'],
@@ -131,6 +158,7 @@ class FetchJmaWeatherForecastServiceTest extends TestCase
         Http::fake([
             'https://www.jma.go.jp/bosai/forecast/data/forecast/130000.json' => Http::response($this->buildForecastPayload([
                 'area' => ['code' => '130010', 'name' => '東京地方'],
+                'temp_area' => ['code' => '44132', 'name' => '東京'],
                 'weathers' => ['晴れ', 'くもり', '雨'],
                 'weatherCodes' => ['100', '200', '300'],
                 'temps' => ['13', '22', '14', '24'],
@@ -163,9 +191,12 @@ class FetchJmaWeatherForecastServiceTest extends TestCase
     /**
      * @param  array{
      *     area: array{code: string, name: string},
+     *     temp_area?: array{code: string, name: string},
      *     weathers: array<int, string>,
      *     weatherCodes: array<int, string>,
-     *     temps: array<int, string>|null
+     *     temps: array<int, string>|null,
+     *     weekly_temps_min?: array<int, string>,
+     *     weekly_temps_max?: array<int, string>
      * }  $definition
      * @return array<int, array<string, mixed>>
      */
@@ -208,8 +239,31 @@ class FetchJmaWeatherForecastServiceTest extends TestCase
                         ],
                         'areas' => [
                             [
-                                'area' => $definition['area'],
+                                'area' => $definition['temp_area'] ?? $definition['area'],
                                 'temps' => $definition['temps'],
+                            ],
+                        ],
+                    ],
+                ],
+            ];
+        }
+
+        if (array_key_exists('weekly_temps_min', $definition) || array_key_exists('weekly_temps_max', $definition)) {
+            $payload[] = [
+                'publishingOffice' => '気象庁',
+                'reportDatetime' => '2026-05-01T05:00:00+09:00',
+                'timeSeries' => [
+                    [
+                        'timeDefines' => [
+                            '2026-05-02T00:00:00+09:00',
+                            '2026-05-03T00:00:00+09:00',
+                            '2026-05-04T00:00:00+09:00',
+                        ],
+                        'areas' => [
+                            [
+                                'area' => $definition['temp_area'] ?? $definition['area'],
+                                'tempsMin' => $definition['weekly_temps_min'] ?? [],
+                                'tempsMax' => $definition['weekly_temps_max'] ?? [],
                             ],
                         ],
                     ],

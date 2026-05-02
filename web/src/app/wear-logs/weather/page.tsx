@@ -189,6 +189,10 @@ function WearLogWeatherPageContent() {
 
   const canFetchForecast =
     validDate !== null && forecastButtonDisabledReason === null;
+  const showMissingForecastTemperatureMessage =
+    forecastRawTelop !== null &&
+    temperatureHigh.trim() === "" &&
+    temperatureLow.trim() === "";
 
   const resetDraft = useCallback(
     (
@@ -842,6 +846,12 @@ function WearLogWeatherPageContent() {
                     </div>
                   </label>
                 </div>
+
+                {showMissingForecastTemperatureMessage ? (
+                  <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                    気温は取得できませんでした。必要に応じて手入力してください。
+                  </p>
+                ) : null}
 
                 <label className="space-y-2">
                   <span className="text-sm font-medium text-gray-700">

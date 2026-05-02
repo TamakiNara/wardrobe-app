@@ -35,6 +35,8 @@ describe("/api/weather-records/forecast route", () => {
               weather_date: "2026-05-01",
               location_id: 1,
               weather_code: "cloudy_then_rain",
+              temperature_high: 22,
+              temperature_low: 13,
             },
           }),
           {
@@ -72,5 +74,7 @@ describe("/api/weather-records/forecast route", () => {
       }),
     );
     expect(json.forecast.weather_code).toBe("cloudy_then_rain");
+    expect(json.forecast.temperature_high).toBe(22);
+    expect(json.forecast.temperature_low).toBe(13);
   });
 });

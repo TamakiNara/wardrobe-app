@@ -76,6 +76,16 @@ MVP 後の JMA forecast JSON では、まず以下を取得対象とする。
 - 降水確率
 - 最高 / 最低気温
 
+### 気温 block の構造メモ
+
+- JMA forecast JSON の気温 block は、予報区域 code ではなく代表地点 code を返すことがある
+- 例:
+  - `jma_forecast_region_code = 110010`（埼玉県南部）
+  - 気温 block 側の area code は `43241`（さいたま）になる
+- そのため、気温取得では `region_code` の完全一致だけで探すと見つからない場合がある
+- current 実装では、まず同一 code を優先し、見つからない場合は区域予報 block と代表地点 block の並び順対応で代表地点を解決する
+- 並び順対応が使えない場合は、無理に補完せず `temperature_high` / `temperature_low = null` のまま返す
+
 ### JMA forecast JSON の長所
 
 - 気象庁サイト由来のデータを直接使える
