@@ -285,13 +285,38 @@ class WeatherRecordSupport
         foreach ($transitionPatterns as $pattern) {
             if (
                 str_starts_with($normalized, $pattern['prefix']) &&
-                str_ends_with($normalized, $pattern['suffix']) &&
-                $normalized !== $pattern['prefix'].$pattern['suffix']
+                str_ends_with($normalized, $pattern['suffix'])
             ) {
-                return $pattern['code'];
+                $middle = mb_substr(
+                    $normalized,
+                    mb_strlen($pattern['prefix']),
+                    mb_strlen($normalized) - mb_strlen($pattern['prefix']) - mb_strlen($pattern['suffix'])
+                );
+
+                if (self::isSupportedTransitionMiddle($middle)) {
+                    return $pattern['code'];
+                }
             }
         }
 
         return null;
+    }
+
+    private static function isSupportedTransitionMiddle(string $middle): bool
+    {
+        if ($middle === '') {
+            return false;
+        }
+
+        $normalizedMiddle = str_replace('から', '', $middle);
+
+        return in_array($normalizedMiddle, [
+            'のち',
+            '夜のはじめ頃',
+            '夕方',
+            '昼過ぎ',
+            '午後',
+            '夜',
+        ], true);
     }
 }

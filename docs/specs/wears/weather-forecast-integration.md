@@ -311,3 +311,37 @@ JMA forecast JSON を使う場合の `source_name` は以下を推奨する。
 
 - forecast endpoint は今後、JMA コードがある場合に `jma_forecast_json` を優先する
 - `forecast_area_code` は fallback / import 互換の legacy code として段階的に後退させる
+
+
+---
+
+## 2026-05-02 weather text normalization note
+
+### current
+
+- `weather_code` は簡易表示 / アイコン / 分析用の正規化値
+- `raw_weather_text` は取得元の詳細表記を確認するための表示用文字列
+- JMA の時間帯入り天気文は、既存 `weather_code` に安全に寄せられるものだけ正規化する
+- 表示用 `raw_weather_text` は全角スペースを半角化し、連続スペースを 1 つにまとめて trim する
+- 時間帯や補足表現を挿んでも既存 code に安全に寄せられるものは吸収する
+  - `晴れ 夜のはじめ頃 くもり`
+  - `晴れ 夕方 から くもり`
+  - `くもり 昼過ぎ から 晴れ`
+  - `くもり 夕方 から 雨`
+  - `雨 昼過ぎ から くもり`
+- `晴れ 一時 雨` / `くもり 一時 雨` は既存の `with_occasional_rain` 系へ寄せる
+
+### other のまま残す表記
+
+- 雷を含む天気文
+- 霧を含む天気文
+- 強風を含む天気文
+- 荒天
+- 雨か雪
+- 雪時々雨
+- 雪混じり複合天気
+
+### planned
+
+- 実データで頻出する JMA 表記を見ながら、既存 `weather_code` に安全に寄せられるものだけ追加する
+- `raw_weather_text` は将来的に source_payload や raw code 保存と合わせて見直す余地を残す
