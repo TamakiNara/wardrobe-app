@@ -99,3 +99,21 @@ Web UI:
 - JMA 専用カラム追加時に backup version を上げるか
 - `forecast_area_code_snapshot` の rename を import/export へいつ反映するか
 - legacy backup を何 version 先まで互換維持するか
+
+
+---
+
+## 2026-05-02 implementation note
+
+### current
+
+- `weather_locations` の export / import は以下を含む
+  - `forecast_area_code`
+  - `jma_forecast_region_code`
+  - `jma_forecast_office_code`
+- 旧 backup に `forecast_area_code` だけがある場合も、そのまま復元できる
+
+### planned
+
+- `forecast_area_code` から JMA コードへの自動変換はまだ行わない
+- forecast source の JMA 優先切替は別タスクで進める

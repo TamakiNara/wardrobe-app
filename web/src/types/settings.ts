@@ -85,6 +85,8 @@ export type UserWeatherLocationRecord = {
   id: number;
   name: string;
   forecast_area_code: string | null;
+  jma_forecast_region_code: string | null;
+  jma_forecast_office_code: string | null;
   latitude: number | null;
   longitude: number | null;
   is_default: boolean;
@@ -100,6 +102,8 @@ export type UserWeatherLocationsResponse = {
 export type CreateUserWeatherLocationPayload = {
   name: string;
   forecast_area_code?: string | null;
+  jma_forecast_region_code?: string | null;
+  jma_forecast_office_code?: string | null;
   latitude?: number | null;
   longitude?: number | null;
   is_default?: boolean;
@@ -109,6 +113,8 @@ export type CreateUserWeatherLocationPayload = {
 export type UpdateUserWeatherLocationPayload = {
   name?: string;
   forecast_area_code?: string | null;
+  jma_forecast_region_code?: string | null;
+  jma_forecast_office_code?: string | null;
   latitude?: number | null;
   longitude?: number | null;
   is_default?: boolean;

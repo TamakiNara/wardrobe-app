@@ -15,6 +15,8 @@ class UserWeatherLocation extends Model
         'user_id',
         'name',
         'forecast_area_code',
+        'jma_forecast_region_code',
+        'jma_forecast_office_code',
         'latitude',
         'longitude',
         'is_default',

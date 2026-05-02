@@ -155,3 +155,23 @@ JMA へ切り替える初期段階では、既存 `forecast_area_code` を以下
 - import / export
 - forecast fetch service
 - `weather_records` の snapshot 設計
+
+
+---
+
+## 2026-05-02 implementation note
+
+### current
+
+- `user_weather_locations` は以下を保持できる
+  - `forecast_area_code` nullable
+  - `jma_forecast_region_code` nullable
+  - `jma_forecast_office_code` nullable
+- 地域設定 UI の主入力は `JMA予報区域`
+- `forecast_area_code` は weather.tsukumijima.net 用の legacy code として保持するが、通常 UI の入力欄には出さない
+- legacy `forecast_area_code` だけが残っている地域は、補助表示で `旧API用コードあり` として扱う
+
+### planned
+
+- forecast 取得側は、将来的に `jma_forecast_region_code` / `jma_forecast_office_code` を優先する
+- forecast endpoint の provider 自動切替は次段で実装する

@@ -30,6 +30,8 @@ class WeatherEndpointsTest extends TestCase
         $firstResponse = $this->postJson('/api/settings/weather-locations', [
             'name' => '川口',
             'forecast_area_code' => '110000',
+            'jma_forecast_region_code' => '110010',
+            'jma_forecast_office_code' => '110000',
         ], [
             'Accept' => 'application/json',
             'X-CSRF-TOKEN' => $token,
@@ -37,6 +39,8 @@ class WeatherEndpointsTest extends TestCase
 
         $firstResponse->assertCreated()
             ->assertJsonPath('location.name', '川口')
+            ->assertJsonPath('location.jma_forecast_region_code', '110010')
+            ->assertJsonPath('location.jma_forecast_office_code', '110000')
             ->assertJsonPath('location.is_default', true)
             ->assertJsonPath('location.display_order', 1);
 
@@ -45,6 +49,8 @@ class WeatherEndpointsTest extends TestCase
         $secondResponse = $this->postJson('/api/settings/weather-locations', [
             'name' => '東京23区',
             'forecast_area_code' => '130010',
+            'jma_forecast_region_code' => '130010',
+            'jma_forecast_office_code' => '130000',
             'is_default' => true,
         ], [
             'Accept' => 'application/json',
@@ -53,6 +59,8 @@ class WeatherEndpointsTest extends TestCase
 
         $secondResponse->assertCreated()
             ->assertJsonPath('location.name', '東京23区')
+            ->assertJsonPath('location.jma_forecast_region_code', '130010')
+            ->assertJsonPath('location.jma_forecast_office_code', '130000')
             ->assertJsonPath('location.is_default', true)
             ->assertJsonPath('location.display_order', 2);
 
@@ -156,18 +164,47 @@ class WeatherEndpointsTest extends TestCase
 
         $response = $this->patchJson("/api/settings/weather-locations/{$location->id}", [
             'forecast_area_code' => null,
+            'jma_forecast_region_code' => null,
+            'jma_forecast_office_code' => null,
         ], [
             'Accept' => 'application/json',
             'X-CSRF-TOKEN' => $token,
         ]);
 
         $response->assertOk()
-            ->assertJsonPath('location.forecast_area_code', null);
+            ->assertJsonPath('location.forecast_area_code', null)
+            ->assertJsonPath('location.jma_forecast_region_code', null)
+            ->assertJsonPath('location.jma_forecast_office_code', null);
 
         $this->assertDatabaseHas('user_weather_locations', [
             'id' => $location->id,
             'forecast_area_code' => null,
+            'jma_forecast_region_code' => null,
+            'jma_forecast_office_code' => null,
         ]);
+    }
+
+    public function test_weather_location_rejects_inconsistent_jma_region_and_office_codes(): void
+    {
+        $user = User::factory()->create();
+        $token = $this->issueCsrfToken();
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/settings/weather-locations', [
+            'name' => '??',
+            'jma_forecast_region_code' => '110010',
+            'jma_forecast_office_code' => '130000',
+        ], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors([
+                'jma_forecast_region_code',
+                'jma_forecast_office_code',
+            ]);
     }
 
     public function test_weather_records_can_be_created_listed_updated_and_deduplicated(): void

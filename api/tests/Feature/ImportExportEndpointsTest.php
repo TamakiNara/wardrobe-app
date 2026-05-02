@@ -292,6 +292,8 @@ class ImportExportEndpointsTest extends TestCase
             'user_id' => $user->id,
             'name' => '川口',
             'forecast_area_code' => '110000',
+            'jma_forecast_region_code' => '110010',
+            'jma_forecast_office_code' => '110000',
             'latitude' => null,
             'longitude' => null,
             'is_default' => true,
@@ -374,6 +376,8 @@ class ImportExportEndpointsTest extends TestCase
             ->assertJsonPath('purchase_candidates.0.name', '購入候補シャツ')
             ->assertJsonPath('outfits.0.name', '通勤コーデ')
             ->assertJsonPath('weather_locations.0.name', '川口')
+            ->assertJsonPath('weather_locations.0.jma_forecast_region_code', '110010')
+            ->assertJsonPath('weather_locations.0.jma_forecast_office_code', '110000')
             ->assertJsonPath('weather_records.0.weather_code', 'sunny')
             ->assertJsonPath('weather_records.0.location_name_snapshot', '川口')
             ->assertJsonPath('weather_records.1.location_id', null)
@@ -522,6 +526,8 @@ class ImportExportEndpointsTest extends TestCase
         $this->assertSame($importedItem->id, $importedCandidate->converted_item_id);
         $this->assertSame($importedItem->id, $importedOutfit->outfitItems->first()?->item_id);
         $this->assertTrue($importedWeatherLocation->is_default);
+        $this->assertSame('110010', $importedWeatherLocation->jma_forecast_region_code);
+        $this->assertSame('110000', $importedWeatherLocation->jma_forecast_office_code);
         $this->assertSame('sunny', $importedWeatherRecord->weather_code);
         $this->assertSame('川口', $importedWeatherRecord->location_name_snapshot);
         $this->assertSame('110000', $importedWeatherRecord->forecast_area_code_snapshot);

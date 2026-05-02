@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\UserWeatherLocation;
+use App\Support\JmaForecastAreaCodeSupport;
 use App\Support\WeatherLocationPayloadBuilder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -60,6 +61,8 @@ class WeatherLocationController extends Controller
                 'user_id' => $user->id,
                 'name' => $validated['name'],
                 'forecast_area_code' => $validated['forecast_area_code'] ?? null,
+                'jma_forecast_region_code' => $validated['jma_forecast_region_code'] ?? null,
+                'jma_forecast_office_code' => $validated['jma_forecast_office_code'] ?? null,
                 'latitude' => $validated['latitude'] ?? null,
                 'longitude' => $validated['longitude'] ?? null,
                 'is_default' => $isDefault,
@@ -145,12 +148,33 @@ class WeatherLocationController extends Controller
         $rules = [
             'name' => [$partial ? 'sometimes' : 'required', 'required', 'string', 'max:100'],
             'forecast_area_code' => ['sometimes', 'nullable', 'string', 'max:50'],
+            'jma_forecast_region_code' => ['sometimes', 'nullable', 'string', 'max:50'],
+            'jma_forecast_office_code' => ['sometimes', 'nullable', 'string', 'max:50'],
             'latitude' => ['sometimes', 'nullable', 'numeric', 'between:-90,90'],
             'longitude' => ['sometimes', 'nullable', 'numeric', 'between:-180,180'],
             'is_default' => ['sometimes', 'boolean'],
             'display_order' => ['sometimes', 'integer', 'min:1'],
         ];
 
-        return $request->validate($rules);
+        $validated = $request->validate($rules);
+
+        $regionFieldProvided = array_key_exists('jma_forecast_region_code', $validated);
+        $officeFieldProvided = array_key_exists('jma_forecast_office_code', $validated);
+
+        if (! $partial || $regionFieldProvided || $officeFieldProvided) {
+            JmaForecastAreaCodeSupport::validateRegionOfficePair(
+                JmaForecastAreaCodeSupport::normalizeCode($validated['jma_forecast_region_code'] ?? null),
+                JmaForecastAreaCodeSupport::normalizeCode($validated['jma_forecast_office_code'] ?? null),
+            );
+
+            $validated['jma_forecast_region_code'] = JmaForecastAreaCodeSupport::normalizeCode(
+                $validated['jma_forecast_region_code'] ?? null,
+            );
+            $validated['jma_forecast_office_code'] = JmaForecastAreaCodeSupport::normalizeCode(
+                $validated['jma_forecast_office_code'] ?? null,
+            );
+        }
+
+        return $validated;
     }
 }

@@ -12,11 +12,10 @@ import { SettingsCard } from "@/components/settings/settings-card";
 import { SettingsPageHeader } from "@/components/settings/settings-page-header";
 import { settingsActionIcons } from "@/lib/icons/settings-icons";
 import {
-  buildForecastAreaOptionsWithFallback,
-  findForecastAreaByCode,
-  formatForecastAreaOptionLabel,
-  groupForecastAreasByPrefecture,
-} from "@/lib/weather/forecast-areas";
+  buildJmaForecastAreaOptionsWithFallback,
+  findJmaForecastAreaByRegionCode,
+  groupJmaForecastAreasByOffice,
+} from "@/lib/weather/jma-forecast-areas";
 import {
   createUserWeatherLocation,
   deleteUserWeatherLocation,
@@ -62,12 +61,12 @@ function SettingsWeatherLocationsPageContent() {
   const [listMessage, setListMessage] = useState<string | null>(null);
   const [listError, setListError] = useState<string | null>(null);
   const [newName, setNewName] = useState("");
-  const [newForecastAreaCode, setNewForecastAreaCode] = useState("");
+  const [newJmaRegionCode, setNewJmaRegionCode] = useState("");
   const [newIsDefault, setNewIsDefault] = useState(false);
   const [adding, setAdding] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editName, setEditName] = useState("");
-  const [editForecastAreaCode, setEditForecastAreaCode] = useState("");
+  const [editJmaRegionCode, setEditJmaRegionCode] = useState("");
   const [editIsDefault, setEditIsDefault] = useState(false);
   const [updatingId, setUpdatingId] = useState<number | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
@@ -103,18 +102,25 @@ function SettingsWeatherLocationsPageContent() {
   }, [loadLocations, router]);
 
   const sortedLocations = useMemo(() => sortLocations(locations), [locations]);
-  const forecastAreaOptions = useMemo(
+  const jmaForecastAreaOptions = useMemo(
     () =>
-      buildForecastAreaOptionsWithFallback([
-        newForecastAreaCode,
-        editForecastAreaCode,
-        ...locations.map((location) => location.forecast_area_code),
+      buildJmaForecastAreaOptionsWithFallback([
+        {
+          region_code: newJmaRegionCode,
+        },
+        {
+          region_code: editJmaRegionCode,
+        },
+        ...locations.map((location) => ({
+          region_code: location.jma_forecast_region_code,
+          office_code: location.jma_forecast_office_code,
+        })),
       ]),
-    [editForecastAreaCode, locations, newForecastAreaCode],
+    [editJmaRegionCode, locations, newJmaRegionCode],
   );
-  const forecastAreaGroups = useMemo(
-    () => groupForecastAreasByPrefecture(forecastAreaOptions),
-    [forecastAreaOptions],
+  const jmaForecastAreaGroups = useMemo(
+    () => groupJmaForecastAreasByOffice(jmaForecastAreaOptions),
+    [jmaForecastAreaOptions],
   );
   const successMessage = formMessage ?? listMessage;
   const errorMessage = formError ?? listError;
@@ -130,6 +136,27 @@ function SettingsWeatherLocationsPageContent() {
     await loadLocations();
   }
 
+  function buildJmaSelectionPayload(regionCode: string) {
+    const normalizedRegionCode = regionCode.trim();
+
+    if (normalizedRegionCode === "") {
+      return {
+        jma_forecast_region_code: null,
+        jma_forecast_office_code: null,
+      };
+    }
+
+    const selectedArea =
+      jmaForecastAreaOptions.find(
+        (area) => area.region_code === normalizedRegionCode,
+      ) ?? findJmaForecastAreaByRegionCode(normalizedRegionCode);
+
+    return {
+      jma_forecast_region_code: normalizedRegionCode,
+      jma_forecast_office_code: selectedArea?.office_code ?? null,
+    };
+  }
+
   async function handleCreateLocation() {
     if (adding) return;
 
@@ -139,19 +166,22 @@ function SettingsWeatherLocationsPageContent() {
     try {
       await createUserWeatherLocation({
         name: newName,
-        forecast_area_code:
-          newForecastAreaCode.trim() === "" ? null : newForecastAreaCode,
+        ...buildJmaSelectionPayload(newJmaRegionCode),
         is_default: newIsDefault,
       });
       await refreshLocations();
       setNewName("");
-      setNewForecastAreaCode("");
+      setNewJmaRegionCode("");
       setNewIsDefault(false);
       setFormMessage("地域を追加しました。");
     } catch (error) {
       if (error instanceof ApiClientError) {
         setFormError(
-          getFirstValidationMessage(error.data, ["name"]) ??
+          getFirstValidationMessage(error.data, [
+            "name",
+            "jma_forecast_region_code",
+            "jma_forecast_office_code",
+          ]) ??
             getUserFacingSubmitErrorMessage(
               error.data,
               "地域の追加に失敗しました。時間をおいて再度お試しください。",
@@ -171,7 +201,7 @@ function SettingsWeatherLocationsPageContent() {
     resetMessages();
     setEditingId(location.id);
     setEditName(location.name);
-    setEditForecastAreaCode(location.forecast_area_code ?? "");
+    setEditJmaRegionCode(location.jma_forecast_region_code ?? "");
     setEditIsDefault(location.is_default);
   }
 
@@ -184,8 +214,7 @@ function SettingsWeatherLocationsPageContent() {
     try {
       await updateUserWeatherLocation(locationId, {
         name: editName,
-        forecast_area_code:
-          editForecastAreaCode.trim() === "" ? null : editForecastAreaCode,
+        ...buildJmaSelectionPayload(editJmaRegionCode),
         is_default: editIsDefault,
       });
       await refreshLocations();
@@ -194,7 +223,11 @@ function SettingsWeatherLocationsPageContent() {
     } catch (error) {
       if (error instanceof ApiClientError) {
         setListError(
-          getFirstValidationMessage(error.data, ["name"]) ??
+          getFirstValidationMessage(error.data, [
+            "name",
+            "jma_forecast_region_code",
+            "jma_forecast_office_code",
+          ]) ??
             getUserFacingSubmitErrorMessage(
               error.data,
               "地域設定の更新に失敗しました。時間をおいて再度お試しください。",
@@ -244,7 +277,7 @@ function SettingsWeatherLocationsPageContent() {
     if (deletingId !== null) return;
 
     const confirmed = window.confirm(
-      `「${location.name}」を削除しますか？既に天気記録で使っている地域は削除できません。`,
+      `「${location.name}」を削除しますか？既存の天気記録で使っている地域は削除できません。`,
     );
 
     if (!confirmed) return;
@@ -274,6 +307,32 @@ function SettingsWeatherLocationsPageContent() {
     }
   }
 
+  function renderJmaForecastAreaSelect(
+    id: string,
+    value: string,
+    onChange: (nextValue: string) => void,
+  ) {
+    return (
+      <select
+        id={id}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+      >
+        <option value="">未設定</option>
+        {jmaForecastAreaGroups.map((group) => (
+          <optgroup key={group.office_name} label={group.office_name}>
+            {group.areas.map((area) => (
+              <option key={area.region_code} value={area.region_code}>
+                {area.display_name}
+              </option>
+            ))}
+          </optgroup>
+        ))}
+      </select>
+    );
+  }
+
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">
       <div className="mx-auto max-w-5xl space-y-6">
@@ -281,7 +340,7 @@ function SettingsWeatherLocationsPageContent() {
 
         <SettingsPageHeader
           title="天気の地域設定"
-          description="天気登録で使う地域と予報区域を管理します。よく使う地域やデフォルト地域をここで設定できます。"
+          description="天気取得で使う地域名と予報区域を管理します。よく使う地域やデフォルト地域をここで設定できます。"
           backHref="/settings"
         />
 
@@ -301,7 +360,10 @@ function SettingsWeatherLocationsPageContent() {
           <div>
             <h2 className="text-lg font-semibold text-gray-900">地域を追加</h2>
             <p className="mt-2 text-sm text-gray-600">
-              地域順は手動で並べ替えず、表示順とデフォルト設定で管理します。
+              地域名は自分が分かりやすい名前です。天気取得には予報区域を使います。
+            </p>
+            <p className="mt-1 text-sm text-gray-600">
+              市区町村名と予報区域名は一致しない場合があります。
             </p>
           </div>
 
@@ -324,30 +386,18 @@ function SettingsWeatherLocationsPageContent() {
 
             <div>
               <label
-                htmlFor="new-weather-location-forecast-area"
+                htmlFor="new-weather-location-jma-region"
                 className="mb-1 block text-sm font-medium text-gray-700"
               >
-                予報区域
+                JMA予報区域
               </label>
-              <select
-                id="new-weather-location-forecast-area"
-                value={newForecastAreaCode}
-                onChange={(event) => setNewForecastAreaCode(event.target.value)}
-                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-              >
-                <option value="">未設定</option>
-                {forecastAreaGroups.map((group) => (
-                  <optgroup key={group.prefecture} label={group.prefecture}>
-                    {group.areas.map((area) => (
-                      <option key={area.code} value={area.code}>
-                        {formatForecastAreaOptionLabel(area)}
-                      </option>
-                    ))}
-                  </optgroup>
-                ))}
-              </select>
+              {renderJmaForecastAreaSelect(
+                "new-weather-location-jma-region",
+                newJmaRegionCode,
+                setNewJmaRegionCode,
+              )}
               <p className="mt-2 text-xs text-gray-500">
-                天気予報APIで使う地域を選びます。
+                予報取得には気象庁の予報区域を使います。旧API用コードは新規入力では使いません。
               </p>
             </div>
           </div>
@@ -377,10 +427,10 @@ function SettingsWeatherLocationsPageContent() {
         <SettingsCard>
           <div>
             <h2 className="text-lg font-semibold text-gray-900">
-              登録済み地域
+              登録済みの地域
             </h2>
             <p className="mt-2 text-sm text-gray-600">
-              デフォルト地域は天気登録画面で初期選択されます。
+              デフォルト地域は天気登録画面で初期表示されます。
             </p>
           </div>
 
@@ -401,6 +451,9 @@ function SettingsWeatherLocationsPageContent() {
             <div className="mt-6 space-y-3">
               {sortedLocations.map((location) => {
                 const isEditing = editingId === location.id;
+                const selectedArea = findJmaForecastAreaByRegionCode(
+                  location.jma_forecast_region_code,
+                );
 
                 return (
                   <article
@@ -429,35 +482,18 @@ function SettingsWeatherLocationsPageContent() {
 
                           <div>
                             <label
-                              htmlFor={`edit-weather-location-forecast-area-${location.id}`}
+                              htmlFor={`edit-weather-location-jma-region-${location.id}`}
                               className="mb-1 block text-sm font-medium text-gray-700"
                             >
-                              予報区域
+                              JMA予報区域
                             </label>
-                            <select
-                              id={`edit-weather-location-forecast-area-${location.id}`}
-                              value={editForecastAreaCode}
-                              onChange={(event) =>
-                                setEditForecastAreaCode(event.target.value)
-                              }
-                              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                            >
-                              <option value="">未設定</option>
-                              {forecastAreaGroups.map((group) => (
-                                <optgroup
-                                  key={group.prefecture}
-                                  label={group.prefecture}
-                                >
-                                  {group.areas.map((area) => (
-                                    <option key={area.code} value={area.code}>
-                                      {formatForecastAreaOptionLabel(area)}
-                                    </option>
-                                  ))}
-                                </optgroup>
-                              ))}
-                            </select>
+                            {renderJmaForecastAreaSelect(
+                              `edit-weather-location-jma-region-${location.id}`,
+                              editJmaRegionCode,
+                              setEditJmaRegionCode,
+                            )}
                             <p className="mt-2 text-xs text-gray-500">
-                              天気を取得するときに使う地域です。
+                              地域名と予報区域名は一致しない場合があります。
                             </p>
                           </div>
                         </div>
@@ -504,21 +540,23 @@ function SettingsWeatherLocationsPageContent() {
                                 デフォルト
                               </span>
                             ) : null}
+                            {location.forecast_area_code &&
+                            !location.jma_forecast_region_code ? (
+                              <span className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700">
+                                旧API用コードあり
+                              </span>
+                            ) : null}
                           </div>
                           <p className="mt-2 text-sm text-gray-600">
-                            予報区域:{" "}
-                            {location.forecast_area_code
-                              ? formatForecastAreaOptionLabel(
-                                  findForecastAreaByCode(
-                                    location.forecast_area_code,
-                                  ) ?? {
-                                    code: location.forecast_area_code,
-                                    label: "設定済みのコード",
-                                    prefecture: "その他",
-                                  },
-                                )
-                              : "未設定"}
+                            JMA予報区域:{" "}
+                            {selectedArea?.display_name ?? "未設定"}
                           </p>
+                          {location.forecast_area_code &&
+                          !location.jma_forecast_region_code ? (
+                            <p className="mt-1 text-xs text-amber-700">
+                              旧予報コード設定あり。JMA予報区域を設定すると、今後の取得切替に使えます。
+                            </p>
+                          ) : null}
                         </div>
 
                         <div className="flex flex-wrap items-center gap-2">

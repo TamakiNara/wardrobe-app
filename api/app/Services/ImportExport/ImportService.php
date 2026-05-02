@@ -206,6 +206,8 @@ class ImportService
                         'forecast_area_code' => $locationPayload['forecast_area_code']
                             ?? $locationPayload['area_code']
                             ?? null,
+                        'jma_forecast_region_code' => $locationPayload['jma_forecast_region_code'] ?? null,
+                        'jma_forecast_office_code' => $locationPayload['jma_forecast_office_code'] ?? null,
                         'latitude' => $locationPayload['latitude'] ?? null,
                         'longitude' => $locationPayload['longitude'] ?? null,
                         'is_default' => $locationPayload['is_default'] ?? false,

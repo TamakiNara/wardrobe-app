@@ -321,15 +321,31 @@ class ImportExportValidationSupport
             $payload['forecast_area_code'] = $payload['area_code'];
         }
 
-        return Validator::make($payload, [
+        $validated = Validator::make($payload, [
             'id' => ['nullable', 'integer'],
             'name' => ['required', 'string', 'max:255'],
             'forecast_area_code' => ['nullable', 'string', 'max:50'],
+            'jma_forecast_region_code' => ['nullable', 'string', 'max:50'],
+            'jma_forecast_office_code' => ['nullable', 'string', 'max:50'],
             'latitude' => ['nullable', 'numeric', 'between:-90,90'],
             'longitude' => ['nullable', 'numeric', 'between:-180,180'],
             'is_default' => ['nullable', 'boolean'],
             'display_order' => ['nullable', 'integer', 'min:1'],
         ])->validate();
+
+        JmaForecastAreaCodeSupport::validateRegionOfficePair(
+            JmaForecastAreaCodeSupport::normalizeCode($validated['jma_forecast_region_code'] ?? null),
+            JmaForecastAreaCodeSupport::normalizeCode($validated['jma_forecast_office_code'] ?? null),
+        );
+
+        $validated['jma_forecast_region_code'] = JmaForecastAreaCodeSupport::normalizeCode(
+            $validated['jma_forecast_region_code'] ?? null,
+        );
+        $validated['jma_forecast_office_code'] = JmaForecastAreaCodeSupport::normalizeCode(
+            $validated['jma_forecast_office_code'] ?? null,
+        );
+
+        return $validated;
     }
 
     /**

@@ -12,6 +12,8 @@ class WeatherLocationPayloadBuilder
             'id' => $location->id,
             'name' => $location->name,
             'forecast_area_code' => $location->forecast_area_code,
+            'jma_forecast_region_code' => $location->jma_forecast_region_code,
+            'jma_forecast_office_code' => $location->jma_forecast_office_code,
             'latitude' => $location->latitude,
             'longitude' => $location->longitude,
             'is_default' => $location->is_default,

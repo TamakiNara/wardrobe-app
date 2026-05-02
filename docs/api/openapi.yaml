@@ -5055,7 +5055,16 @@ components:
         forecast_area_code:
           type: string
           nullable: true
-          description: 予報API用地域コード。通常 UI では `予報区域` の選択結果として保存する。MVPでは weather.tsukumijima.net の city code を主対象とするが、気象庁 office/class10/class20 code と完全互換を前提にしない。
+          description: weather.tsukumijima.net 用の legacy 予報コード。既存データ互換と fallback 用に当面維持する。通常 UI の主入力では扱わない。
+          deprecated: true
+        jma_forecast_region_code:
+          type: string
+          nullable: true
+          description: ユーザーが選ぶ JMA 予報区域コード。基本は class10 相当で、分割がない地域では office code 相当を許容する。
+        jma_forecast_office_code:
+          type: string
+          nullable: true
+          description: "`https://www.jma.go.jp/bosai/forecast/data/forecast/{code}.json` の `{code}` に使う JMA 府県予報区コード。"
         latitude:
           type: number
           nullable: true
@@ -5095,7 +5104,16 @@ components:
         forecast_area_code:
           type: string
           nullable: true
-          description: 予報API用地域コード。任意。通常 UI では `予報区域` select から設定し、手入力は想定しない。MVPでは `primary_area.xml` 相当の全国静的定義を使い、weather.tsukumijima.net の city code を主対象とする。
+          description: weather.tsukumijima.net 用の legacy 予報コード。新規 UI の主入力では使わず、既存データ互換と fallback 用に当面維持する。
+          deprecated: true
+        jma_forecast_region_code:
+          type: string
+          nullable: true
+          description: ユーザーが選ぶ JMA 予報区域コード。通常 UI では `JMA予報区域` select から設定する。
+        jma_forecast_office_code:
+          type: string
+          nullable: true
+          description: "`jma_forecast_region_code` に対応する JMA 府県予報区コード。forecast JSON の取得 URL に使う。"
         latitude:
           type: number
           nullable: true

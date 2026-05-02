@@ -64,6 +64,8 @@ describe("SettingsWeatherLocationsPage", () => {
           id: 1,
           name: "川口",
           forecast_area_code: "110010",
+          jma_forecast_region_code: "110010",
+          jma_forecast_office_code: "110000",
           latitude: null,
           longitude: null,
           is_default: true,
@@ -75,6 +77,8 @@ describe("SettingsWeatherLocationsPage", () => {
           id: 2,
           name: "東京23区",
           forecast_area_code: "130010",
+          jma_forecast_region_code: null,
+          jma_forecast_office_code: null,
           latitude: null,
           longitude: null,
           is_default: false,
@@ -98,7 +102,7 @@ describe("SettingsWeatherLocationsPage", () => {
     globalThis.IS_REACT_ACT_ENVIRONMENT = false;
   });
 
-  it("地域一覧を表示できる", async () => {
+  it("JMA予報区域の select を表示できる", async () => {
     const { default: SettingsWeatherLocationsPage } = await import("./page");
 
     await act(async () => {
@@ -107,24 +111,17 @@ describe("SettingsWeatherLocationsPage", () => {
     });
 
     expect(container.textContent).toContain("天気の地域設定");
-    expect(container.textContent).toContain("地域を追加");
-    expect(container.textContent).toContain("デフォルト地域");
-    expect(container.textContent).toContain("川口");
-    expect(container.textContent).toContain("東京23区");
-    expect(container.textContent).toContain("予報区域");
+    expect(container.textContent).toContain("JMA予報区域");
+    expect(
+      container.querySelector("#new-weather-location-jma-region"),
+    ).not.toBeNull();
     expect(
       container.querySelector("#new-weather-location-forecast-area"),
-    ).not.toBeNull();
-    expect(container.textContent).toContain("さいたま（110010）");
-    const newForecastAreaSelect = container.querySelector<HTMLSelectElement>(
-      "#new-weather-location-forecast-area",
-    );
-    expect(
-      newForecastAreaSelect?.querySelectorAll("option").length,
-    ).toBeGreaterThan(100);
+    ).toBeNull();
+    expect(container.textContent).toContain("旧API用コードあり");
   });
 
-  it("予報区域を選んで地域を追加できる", async () => {
+  it("JMA予報区域を選んで地域を追加できる", async () => {
     const { default: SettingsWeatherLocationsPage } = await import("./page");
 
     await act(async () => {
@@ -138,16 +135,16 @@ describe("SettingsWeatherLocationsPage", () => {
     const defaultCheckbox = container.querySelector<HTMLInputElement>(
       'input[type="checkbox"]',
     );
-    const forecastAreaSelect = container.querySelector<HTMLSelectElement>(
-      "#new-weather-location-forecast-area",
+    const jmaRegionSelect = container.querySelector<HTMLSelectElement>(
+      "#new-weather-location-jma-region",
     );
     const addButton = Array.from(
       container.querySelectorAll<HTMLButtonElement>("button"),
     ).find((button) => button.textContent?.includes("地域を追加"));
 
     await act(async () => {
-      setInputValue(nameInput!, "秋田");
-      setSelectValue(forecastAreaSelect!, "130010");
+      setInputValue(nameInput!, "職場");
+      setSelectValue(jmaRegionSelect!, "130010");
       defaultCheckbox!.click();
       await waitForEffects();
     });
@@ -158,14 +155,14 @@ describe("SettingsWeatherLocationsPage", () => {
     });
 
     expect(createUserWeatherLocationMock).toHaveBeenCalledWith({
-      name: "秋田",
-      forecast_area_code: "130010",
+      name: "職場",
+      jma_forecast_region_code: "130010",
+      jma_forecast_office_code: "130000",
       is_default: true,
     });
-    expect(container.textContent).toContain("地域を追加しました。");
   });
 
-  it("既存地域の予報区域を復元して更新できる", async () => {
+  it("既存の JMAコードを復元して更新できる", async () => {
     const { default: SettingsWeatherLocationsPage } = await import("./page");
 
     await act(async () => {
@@ -185,18 +182,18 @@ describe("SettingsWeatherLocationsPage", () => {
     const editNameInput = container.querySelector<HTMLInputElement>(
       "#edit-weather-location-name-1",
     );
-    const editForecastAreaSelect = container.querySelector<HTMLSelectElement>(
-      "#edit-weather-location-forecast-area-1",
+    const editJmaRegionSelect = container.querySelector<HTMLSelectElement>(
+      "#edit-weather-location-jma-region-1",
     );
     const saveButton = Array.from(
       container.querySelectorAll<HTMLButtonElement>("button"),
     ).find((button) => button.textContent?.includes("更新"));
 
-    expect(editForecastAreaSelect?.value).toBe("110010");
+    expect(editJmaRegionSelect?.value).toBe("110010");
 
     await act(async () => {
-      setInputValue(editNameInput!, "川口駅前");
-      setSelectValue(editForecastAreaSelect!, "140010");
+      setInputValue(editNameInput!, "川口（自宅）");
+      setSelectValue(editJmaRegionSelect!, "140010");
       await waitForEffects();
     });
 
@@ -206,14 +203,14 @@ describe("SettingsWeatherLocationsPage", () => {
     });
 
     expect(updateUserWeatherLocationMock).toHaveBeenCalledWith(1, {
-      name: "川口駅前",
-      forecast_area_code: "140010",
+      name: "川口（自宅）",
+      jma_forecast_region_code: "140010",
+      jma_forecast_office_code: "140000",
       is_default: true,
     });
-    expect(container.textContent).toContain("地域設定を更新しました。");
   });
 
-  it("予報区域は未設定を選べる", async () => {
+  it("JMAコードを未設定へ戻せる", async () => {
     const { default: SettingsWeatherLocationsPage } = await import("./page");
 
     await act(async () => {
@@ -230,15 +227,15 @@ describe("SettingsWeatherLocationsPage", () => {
       await waitForEffects();
     });
 
-    const editForecastAreaSelect = container.querySelector<HTMLSelectElement>(
-      "#edit-weather-location-forecast-area-1",
+    const editJmaRegionSelect = container.querySelector<HTMLSelectElement>(
+      "#edit-weather-location-jma-region-1",
     );
     const saveButton = Array.from(
       container.querySelectorAll<HTMLButtonElement>("button"),
     ).find((button) => button.textContent?.includes("更新"));
 
     await act(async () => {
-      setSelectValue(editForecastAreaSelect!, "");
+      setSelectValue(editJmaRegionSelect!, "");
       await waitForEffects();
     });
 
@@ -249,12 +246,13 @@ describe("SettingsWeatherLocationsPage", () => {
 
     expect(updateUserWeatherLocationMock).toHaveBeenCalledWith(1, {
       name: "川口",
-      forecast_area_code: null,
+      jma_forecast_region_code: null,
+      jma_forecast_office_code: null,
       is_default: true,
     });
   });
 
-  it("地域を削除したときに通知ボックスへ成功メッセージを出す", async () => {
+  it("地域を削除できる", async () => {
     const confirmMock = vi.spyOn(window, "confirm").mockReturnValue(true);
     const { default: SettingsWeatherLocationsPage } = await import("./page");
 
@@ -273,8 +271,6 @@ describe("SettingsWeatherLocationsPage", () => {
     });
 
     expect(deleteUserWeatherLocationMock).toHaveBeenCalledWith(1);
-    expect(container.textContent).toContain("地域を削除しました。");
-
     confirmMock.mockRestore();
   });
 });

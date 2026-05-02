@@ -248,3 +248,20 @@ JMA forecast JSON を使う場合の `source_name` は以下を推奨する。
   - `https://www.jma.go.jp/bosai/forecast/data/forecast/{office_code}.json`
 - 気象庁 area 定義:
   - `https://www.jma.go.jp/bosai/common/const/area.json`
+
+
+---
+
+## 2026-05-02 implementation note
+
+### current
+
+- backend には `FetchJmaWeatherForecastService` の PoC がある
+- `user_weather_locations` は `jma_forecast_region_code` / `jma_forecast_office_code` を保存できる
+- ただし `POST /api/weather-records/forecast` の provider 自動切替はまだ行っていない
+- 既存の forecast 取得 current は引き続き `weather.tsukumijima.net`
+
+### planned
+
+- forecast endpoint は今後、JMA コードがある場合に `jma_forecast_json` を優先する
+- `forecast_area_code` は fallback / import 互換の legacy code として段階的に後退させる
