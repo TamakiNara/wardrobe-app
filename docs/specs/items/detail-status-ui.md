@@ -7,6 +7,7 @@ item 詳細画面で行う status 操作 UI の仕様を整理する。
 関連資料:
 
 - item status 正本: `docs/specs/items/status-management.md`
+- duplicate / color variant: `docs/specs/items/duplicate-color-variant.md`
 - outfit 副作用: `docs/specs/outfits/create-edit.md`
 - API: `docs/api/openapi.yaml`
 - エラーメッセージ方針: `docs/specs/error-message-guidelines.md`
@@ -23,10 +24,23 @@ item 詳細画面で行う status 操作 UI の仕様を整理する。
 - 通常の UI 主導線には物理削除を置かない
 - `care_status` は item 詳細から付与 / 解除する
 - `care_status` は主 status と別導線で扱い、通常編集フォームには混ぜても主 status の代替にはしない
+- `複製` / `色違い追加` は status 操作とは別系統の派生作成導線として扱う
+- `複製` / `色違い追加` は破壊系操作の近くへ寄せすぎない
 
 ---
 
 ## 表示する操作
+
+### 全 status 共通で出してよい操作
+
+- `複製`
+- `色違い追加`
+
+補足:
+
+- `複製` / `色違い追加` の正本仕様は `docs/specs/items/duplicate-color-variant.md` を参照する
+- `disposed` item でも draft 生成自体は許可してよい
+- ただし新規保存後の item は `active` 開始を前提とする
 
 ### `active` item の場合
 
@@ -142,6 +156,8 @@ item 詳細画面で行う status 操作 UI の仕様を整理する。
 - 「手放す」は `POST /api/items/{id}/dispose` を想定する
 - 「クローゼットに戻す」は `POST /api/items/{id}/reactivate` を想定する
 - `care_status` の付与 / 解除は `POST /api/items/{id}/care-status` を想定する
+- `複製` は `POST /api/items/{id}/duplicate` を第一候補とする
+- `色違い追加` は `POST /api/items/{id}/color-variant` を第一候補とする
 - どちらも通常の `ItemUpsertRequest` とは分けて扱う
 
 ---

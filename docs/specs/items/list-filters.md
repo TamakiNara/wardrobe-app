@@ -84,7 +84,21 @@ planned / 別 spec 参照:
 
 - outfit 一覧
 - outfit 作成 / 編集画面の item 候補絞り込み
+- 色違い group の詳細表示は `docs/specs/items/duplicate-color-variant.md` を参照
 
 未対応:
 
 - purchase candidate 一覧
+
+---
+
+## 色違い group との関係
+
+- item 側に group 概念を入れても、初回実装では一覧を group-aware 折りたたみ表示にしない
+- 一覧は引き続き 1 item 1 record 表示を正本とする
+- 理由:
+  - item は実物管理であり、色違いでも所持品 1 件ずつ表示される方が自然
+  - 季節 / 色 / underwear / disposed など既存絞り込みとの組み合わせが複雑になりやすい
+  - 一覧 API 変更影響が大きい
+- 同じ group の item 表示は詳細画面側で扱う
+- 将来的に一覧カードへ `色違いあり` バッジを出すことは検討余地ありとする

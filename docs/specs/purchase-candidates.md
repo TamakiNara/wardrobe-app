@@ -1,6 +1,7 @@
 # 購入検討 仕様
 
 購入検討（内部識別子: `purchase_candidates`）機能の仕様を定義する。  
+duplicate / color-variant の共通概念は `docs/specs/duplicate-color-variant.md` を参照する。
 この資料では、購入検討の役割、`items` との責務分離、状態管理、item への昇格、画像、画面、API、集計前提を整理する。
 
 ---
@@ -67,7 +68,11 @@
 - `release_date` / `sale_price` / `sale_ends_at` / `discount_ends_at` は candidate 専用の補助情報として保持する
 - candidate 一覧 / 詳細では sale 情報を補助表示する
 - candidate 複製機能は詳細画面から使い、colors / seasons / tpos / images も引き継ぐ
+- candidate の duplicate / color-variant API は draft payload を返すだけで、DB へ新規 candidate を保存しない
 - candidate 複製時の画像は record 共有ではなく、新 candidate 用保存先へ物理コピーする
+- color-variant でも画像を draft に含める
+- color-variant では色項目を空にする一方、price / sale 情報 / memo / images は引き継ぐ
+- price / sale 情報 / memo / images は確認推奨項目として扱う
 - `purchased` 後 candidate は item 化済み履歴として扱い、candidate 側の更新を item へ逆流させない
 - `purchased` 後 candidate では `memo` / `wanted_reason` / `priority` / `release_date` / `sale_price` / `sale_ends_at` / `discount_ends_at` / `purchase_url` を更新できる
 - `purchased` 後 candidate でも画像追加 / 削除は画像 API で扱える
@@ -1325,6 +1330,26 @@ pagination meta は表示カード単位で扱う。
 
 `DELETE /api/purchase-candidates/{id}`
 
+### duplicate draft 生成
+
+`POST /api/purchase-candidates/{id}/duplicate`
+
+- draft payload を返すのみ
+- DB へ新規 candidate を保存しない
+- 実際の保存は既存の `POST /api/purchase-candidates` で行う
+- `group_id` / `group_order` は draft に含めない
+
+### color-variant draft 生成
+
+`POST /api/purchase-candidates/{id}/color-variant`
+
+- draft payload を返すのみ
+- DB へ新規 candidate を保存しない
+- 色項目を空にした draft を返す
+- `variant_source_candidate_id` を一時入力値として返す
+- 実際の保存は既存の `POST /api/purchase-candidates` で行う
+- 保存時に `variant_source_candidate_id` から group を解決する
+
 ---
 
 ## candidate 画像
@@ -1458,9 +1483,34 @@ candidate 側でも、編集画面と duplicate / color-variant draft で `sort_
 - 手持ち比較結果
 - item に追加ボタン
 - 複製ボタン
+- 色違い追加ボタン
 - 保留 / 見送り操作
 - `purchased` 時の補助説明
 - 同グループ候補一覧（purchased を含む）
+
+---
+
+### duplicate / color-variant の注意表示
+
+- duplicate / color-variant 起点の create 画面では、画面上部に注意カードを表示する
+- 画像 / price / sale 情報 / memo は確認推奨項目としてバッジ表示する
+- color-variant では画像を仮引き継ぎとして扱い、差し替え推奨文言を表示する
+
+#### 文言例
+
+- `元データの情報を引き継いでいます。画像・価格・日付情報は、候補内容に合わせて必要に応じて修正してください。`
+- `元の購入検討画像を仮で引き継いでいます。候補に合わせて必要に応じて差し替えてください。`
+
+#### アイコン候補
+
+- 第一候補: `TriangleAlert`
+- 代替候補: `CircleAlert`
+- 情報寄り: `Info`
+
+補足:
+
+- 実装時には `lucide-react` の export 名を確認する
+- 保存前モーダルは現時点では不要とする
 
 ---
 
@@ -1677,6 +1727,33 @@ candidate 側でも、編集画面と duplicate / color-variant draft で `sort_
 - dropped から considering に戻せる
 - purchased にできる
 
+### duplicate
+
+- draft が返る
+- DB に新規 purchase candidate が作成されない
+- `group_id` が引き継がれない
+- 色項目は通常複製では引き継がれる
+- 画像が draft に含まれる
+- price が draft に含まれる
+- sale 情報が draft に含まれる
+- memo が draft に含まれる
+- 他ユーザーの candidate では生成できない
+
+### color-variant
+
+- draft が返る
+- DB に新規 purchase candidate が作成されない
+- 色項目が空になる
+- 画像が draft に含まれる
+- price が draft に含まれる
+- sale 情報が draft に含まれる
+- memo が draft に含まれる
+- 注意表示対象として扱われる
+- 保存時に同じ group に所属する
+- 元データに group がない場合は group が作成される
+- 元データに group がある場合は同じ group に所属する
+- 他ユーザーの candidate を source に指定できない
+
 ## candidate 画像
 
 - 複数枚登録できる
@@ -1684,6 +1761,10 @@ candidate 側でも、編集画面と duplicate / color-variant draft で `sort_
 - `sort_order` が維持される
 - 上限超過でエラーになる
 - candidate 複製時に画像を新 candidate 用保存先へ物理コピーできる
+- color-variant draft にも画像が含まれる
+- 保存時に新 candidate 用保存先へコピーされる
+- 元画像を参照し続けない
+- 元 candidate 側の画像削除が新 candidate 側に影響しない
 
 ## candidate -> item
 
@@ -1746,6 +1827,7 @@ candidate 側でも、編集画面と duplicate / color-variant draft で `sort_
 
 ## docs 更新対象
 
+- `docs/specs/duplicate-color-variant.md`
 - `docs/api/openapi.yaml`
 - `docs/api/api-overview.md`
 - `docs/data/database.md`
