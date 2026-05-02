@@ -206,6 +206,14 @@ JMA forecast JSON を使う場合の `source_name` は以下を推奨する。
 - JMA forecast JSON の取得仕様確認
 - `forecast_area_code` の legacy 化方針を明文化
 
+### Phase 2 PoC
+
+- backend に `FetchJmaWeatherForecastService` を追加する
+- `office_code` / `region_code` を service 引数で直接受ける
+- JMA forecast JSON の `weathers` を既存 `weather_code` へ正規化できるか確認する
+- `source_name = jma_forecast_json` の payload を返す
+- まだ UI / DB / 既存 forecast API の本番切替は行わない
+
 ### Phase 2
 
 - backend に JMA forecast fetch service を追加
