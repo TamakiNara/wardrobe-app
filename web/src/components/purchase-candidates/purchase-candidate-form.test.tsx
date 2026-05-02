@@ -1550,13 +1550,25 @@ describe("購入検討フォーム", () => {
       container.querySelector<HTMLSelectElement>("#spec-tops-fit")?.value,
     ).toBe("oversized");
     expect(container.textContent).toContain(
-      "複製元の内容を初期値として読み込みました。",
+      "元の購入検討情報を引き継いでいます。黄色で示した項目は、必要に応じて見直してください。",
     );
+    expect(container.textContent).not.toContain("確認推奨");
     expect(container.textContent).toContain("source.png");
     expect(container.textContent).toContain("second.png");
     expect(container.textContent).toContain(
-      "引き継いだ画像は、保存時に新しい購入検討へコピーされます。",
+      "元の購入検討画像を仮で引き継いでいます。必要に応じて差し替えてください。",
     );
+    expect(
+      container.querySelector<HTMLInputElement>("#price")?.parentElement
+        ?.className,
+    ).toContain("border-amber-300");
+    expect(
+      container.querySelector<HTMLInputElement>("#sale_price")?.parentElement
+        ?.className,
+    ).toContain("border-amber-300");
+    expect(
+      container.querySelector<HTMLTextAreaElement>("#memo")?.className,
+    ).toContain("border-amber-300");
     expect(replaceMock).toHaveBeenCalledWith("/purchase-candidates/new");
 
     const imageCards = Array.from(container.querySelectorAll("article"));
@@ -1766,6 +1778,66 @@ describe("購入検討フォーム", () => {
       container.querySelector<HTMLSelectElement>("#spec-tops-fit")?.value,
     ).toBe("oversized");
   });
+
+  it("複製起点では値がある日付だけを確認対象として強調し、空のメモは強調しない", async () => {
+    searchParamsValue = "source=duplicate";
+    window.sessionStorage.setItem(
+      "purchase-candidate-duplicate-payload",
+      JSON.stringify({
+        status: "considering",
+        priority: "medium",
+        name: "日付確認テスト",
+        category_id: "outerwear_coat",
+        brand_name: "Sample Brand",
+        price: 9800,
+        release_date: "2026-06-01",
+        sale_price: 7800,
+        sale_ends_at: "2026-06-20T09:30:00+09:00",
+        discount_ends_at: "2026-05-31T23:00:00+09:00",
+        purchase_url: null,
+        memo: "",
+        wanted_reason: "",
+        size_gender: "",
+        size_label: "",
+        size_note: "",
+        size_details: null,
+        is_rain_ok: false,
+        colors: [],
+        seasons: [],
+        tpos: [],
+        materials: [],
+        images: [],
+      }),
+    );
+
+    await renderForm();
+
+    expect(container.textContent).toContain(
+      "元の購入検討情報を引き継いでいます。黄色で示した項目は、必要に応じて見直してください。",
+    );
+    expect(container.textContent).not.toContain("確認推奨");
+    expect(
+      container.querySelector<HTMLInputElement>("#release_date")?.className,
+    ).toContain("border-amber-300");
+    expect(
+      container.querySelector<HTMLInputElement>("#sale_ends_at_date")
+        ?.className,
+    ).toContain("border-amber-300");
+    expect(
+      container.querySelector<HTMLInputElement>("#discount_ends_at_date")
+        ?.className,
+    ).toContain("border-amber-300");
+    expect(
+      container.querySelector<HTMLTextAreaElement>("#memo")?.className,
+    ).not.toContain("border-amber-300");
+    expect(container.textContent).not.toContain(
+      "元の購入検討画像を仮で引き継いでいます。必要に応じて差し替えてください。",
+    );
+    expect(container.textContent).not.toContain(
+      "色違い追加のため、色は未設定です。メインカラーを選択してください。",
+    );
+  });
+
   it("色違い追加の初期値を読み込み、保存時に source candidate id を送る", async () => {
     searchParamsValue = "source=color-variant";
     window.sessionStorage.setItem(
@@ -1827,7 +1899,14 @@ describe("購入検討フォーム", () => {
       "春コート",
     );
     expect(container.textContent).toContain(
-      "色違いの初期値を読み込みました。保存前に色や画像を調整してください。",
+      "元の購入検討情報を引き継いでいます。黄色で示した項目は、必要に応じて見直してください。色違い追加では、新しい色を選択してください。",
+    );
+    expect(container.textContent).toContain(
+      "色違い追加のため、色は未設定です。メインカラーを選択してください。",
+    );
+    expect(container.textContent).not.toContain("確認推奨");
+    expect(container.textContent).not.toContain(
+      "元の購入検討画像を仮で引き継いでいます。必要に応じて差し替えてください。",
     );
     expect(replaceMock).toHaveBeenCalledWith("/purchase-candidates/new");
     expect(
@@ -1839,6 +1918,13 @@ describe("購入検討フォーム", () => {
         'input[aria-label="メインカラーコード"]',
       ),
     ).toBeNull();
+    expect(
+      container.querySelector<HTMLInputElement>("#price")?.parentElement
+        ?.className,
+    ).toContain("border-amber-300");
+    expect(
+      container.querySelector<HTMLTextAreaElement>("#memo")?.className,
+    ).toContain("border-amber-300");
 
     const form = container.querySelector("form") as HTMLFormElement;
 

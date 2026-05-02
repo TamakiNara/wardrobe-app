@@ -10,7 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeftRight } from "lucide-react";
+import { ArrowLeftRight, Info, TriangleAlert } from "lucide-react";
 import FieldLabel from "@/components/forms/field-label";
 import {
   FORM_CONTROL_COLOR_SCHEME_CLASS,
@@ -128,6 +128,7 @@ type PurchaseCandidateFormProps = {
 };
 
 type SizeCandidateTabKey = "primary" | "alternate";
+type DraftSourceKind = "duplicate" | "color-variant";
 
 const PURCHASE_CANDIDATE_SAVE_ERROR_MESSAGE =
   "保存に失敗しました。時間をおいて再度お試しください。";
@@ -442,6 +443,15 @@ function normalizeDraftDuplicateImages(
   }));
 }
 
+function ReviewHintIcon() {
+  return (
+    <Info
+      className="h-4 w-4 text-amber-600"
+      aria-label="元データから引き継いだため確認してください"
+    />
+  );
+}
+
 export default function PurchaseCandidateForm({
   mode,
   candidateId,
@@ -452,6 +462,9 @@ export default function PurchaseCandidateForm({
 }: PurchaseCandidateFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const source = searchParams.get("source");
+  const requestedDraftSourceKind: DraftSourceKind | null =
+    source === "duplicate" || source === "color-variant" ? source : null;
   const hasAppliedDuplicateDraftRef = useRef(false);
 
   const [loading, setLoading] = useState(true);
@@ -555,10 +568,25 @@ export default function PurchaseCandidateForm({
   const [initializationSuccess, setInitializationSuccess] = useState<
     string | null
   >(null);
+  const [draftSourceKind, setDraftSourceKind] =
+    useState<DraftSourceKind | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const isPurchasedLocked = mode === "edit" && status === "purchased";
+  const isDuplicateDraftSource = mode === "create" && draftSourceKind !== null;
+  const isColorVariantDraftSource =
+    mode === "create" && draftSourceKind === "color-variant";
+  const hasInheritedPrice = isDuplicateDraftSource && price.trim() !== "";
+  const hasInheritedSalePrice =
+    isDuplicateDraftSource && salePrice.trim() !== "";
+  const hasInheritedReleaseDate =
+    isDuplicateDraftSource && releaseDate.trim() !== "";
+  const hasInheritedSaleEndsAt =
+    isDuplicateDraftSource && saleEndsAt.trim() !== "";
+  const hasInheritedDiscountEndsAt =
+    isDuplicateDraftSource && discountEndsAt.trim() !== "";
+  const hasInheritedMemo = isDuplicateDraftSource && memo.trim() !== "";
 
   const selectedMainColor = useMemo(() => {
     if (useCustomMainColor) {
@@ -826,13 +854,10 @@ export default function PurchaseCandidateForm({
     () => validateItemMaterials(materialRows),
     [materialRows],
   );
-  const imageHelperText =
-    duplicateImages.length > 0
-      ? "引き継いだ画像は、保存時に新しい購入検討へコピーされます。"
-      : [
-          "一覧では代表画像を表示し、",
-          "詳細や編集では画像全体を見やすく表示します。",
-        ].join("");
+  const imageHelperText = [
+    "一覧では代表画像を表示し、",
+    "詳細や編集では画像全体を見やすく表示します。",
+  ].join("");
   const displayedImages = useMemo(
     () =>
       mode === "create" && duplicateImages.length > 0
@@ -840,7 +865,8 @@ export default function PurchaseCandidateForm({
         : existingImages,
     [duplicateImages, existingImages, mode],
   );
-  const initializationMessage = initializationError ?? initializationSuccess;
+  const hasInheritedImages =
+    isDuplicateDraftSource && displayedImages.length > 0;
   const submitMessage = submitError ?? submitSuccess;
 
   function resetSpecFormState() {
@@ -1082,11 +1108,7 @@ export default function PurchaseCandidateForm({
       return;
     }
 
-    const source = searchParams.get("source");
-    const isDuplicateSource = source === "duplicate";
-    const isColorVariantSource = source === "color-variant";
-
-    if (!isDuplicateSource && !isColorVariantSource) {
+    if (!requestedDraftSourceKind) {
       return;
     }
 
@@ -1105,6 +1127,7 @@ export default function PurchaseCandidateForm({
     router.replace("/purchase-candidates/new");
     setInitializationError(null);
     setInitializationSuccess(null);
+    setDraftSourceKind(null);
 
     if (!payload) {
       setInitializationError(
@@ -1113,6 +1136,7 @@ export default function PurchaseCandidateForm({
       return;
     }
 
+    const isColorVariantSource = requestedDraftSourceKind === "color-variant";
     const main = isColorVariantSource
       ? undefined
       : payload.colors.find((color) => color.role === "main");
@@ -1205,12 +1229,13 @@ export default function PurchaseCandidateForm({
     setPendingImages([]);
     applySpecFormState(payload.category_id, payload.shape, payload.spec);
     setErrors({});
+    setDraftSourceKind(requestedDraftSourceKind);
     setInitializationSuccess(
       isColorVariantSource
-        ? "色違いの初期値を読み込みました。保存前に色や画像を調整してください。"
-        : "複製元の内容を初期値として読み込みました。",
+        ? "元の購入検討情報を引き継いでいます。黄色で示した項目は、必要に応じて見直してください。色違い追加では、新しい色を選択してください。"
+        : "元の購入検討情報を引き継いでいます。黄色で示した項目は、必要に応じて見直してください。",
     );
-  }, [categoryOptions, loading, mode, router, searchParams]);
+  }, [categoryOptions, loading, mode, requestedDraftSourceKind, router]);
 
   useEffect(() => {
     if (!categoryId || categoryOptions.length === 0) {
@@ -1849,17 +1874,22 @@ export default function PurchaseCandidateForm({
       onSubmit={handleSubmit}
       className="grid gap-6 lg:grid-cols-2 lg:items-start lg:gap-5"
     >
-      {initializationMessage && (
-        <section
-          className={`rounded-xl border px-4 py-3 text-sm lg:col-span-2 ${
-            initializationError
-              ? "border-red-200 bg-red-50 text-red-700"
-              : "border-green-200 bg-green-50 text-green-700"
-          }`}
-        >
-          {initializationMessage}
+      {initializationError ? (
+        <section className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 lg:col-span-2">
+          {initializationError}
         </section>
-      )}
+      ) : null}
+      {initializationSuccess ? (
+        <section className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-800 shadow-sm lg:col-span-2">
+          <div className="flex items-start gap-3">
+            <TriangleAlert
+              className="mt-0.5 h-5 w-5 shrink-0"
+              aria-hidden="true"
+            />
+            <p>{initializationSuccess}</p>
+          </div>
+        </section>
+      ) : null}
 
       <ItemFormSection title="基本情報" className="lg:col-span-1">
         {isPurchasedLocked && (
@@ -1953,14 +1983,28 @@ export default function PurchaseCandidateForm({
       </ItemFormSection>
       <ItemFormSection title="購入情報" className="lg:col-span-1">
         <div className="grid gap-4 md:grid-cols-2">
-          <div>
-            <label
-              htmlFor="price"
-              className="mb-1 block text-sm font-medium text-gray-700"
+          <div
+            className={
+              hasInheritedPrice
+                ? "rounded-xl border border-amber-200 bg-amber-50/60 p-3"
+                : undefined
+            }
+          >
+            <div className="mb-1 flex items-center gap-1.5">
+              <label
+                htmlFor="price"
+                className="block text-sm font-medium text-gray-700"
+              >
+                想定価格
+              </label>
+              {hasInheritedPrice ? <ReviewHintIcon /> : null}
+            </div>
+            <div
+              className={getFormControlWrapperClassName(
+                false,
+                hasInheritedPrice ? "border-amber-300 bg-amber-50" : undefined,
+              )}
             >
-              想定価格
-            </label>
-            <div className={getFormControlWrapperClassName()}>
               <input
                 id="price"
                 type="number"
@@ -1976,14 +2020,30 @@ export default function PurchaseCandidateForm({
 
           <div className="hidden md:block" aria-hidden="true" />
 
-          <div>
-            <label
-              htmlFor="sale_price"
-              className="mb-1 block text-sm font-medium text-gray-700"
+          <div
+            className={
+              hasInheritedSalePrice
+                ? "rounded-xl border border-amber-200 bg-amber-50/60 p-3"
+                : undefined
+            }
+          >
+            <div className="mb-1 flex items-center gap-1.5">
+              <label
+                htmlFor="sale_price"
+                className="block text-sm font-medium text-gray-700"
+              >
+                セール価格
+              </label>
+              {hasInheritedSalePrice ? <ReviewHintIcon /> : null}
+            </div>
+            <div
+              className={getFormControlWrapperClassName(
+                false,
+                hasInheritedSalePrice
+                  ? "border-amber-300 bg-amber-50"
+                  : undefined,
+              )}
             >
-              セール価格
-            </label>
-            <div className={getFormControlWrapperClassName()}>
               <input
                 id="sale_price"
                 type="number"
@@ -1996,11 +2056,20 @@ export default function PurchaseCandidateForm({
             </div>
           </div>
 
-          <div>
+          <div
+            className={
+              hasInheritedDiscountEndsAt
+                ? "rounded-xl border border-amber-200 bg-amber-50/60 p-3"
+                : undefined
+            }
+          >
             <div className="mb-1 flex items-center justify-between gap-3">
-              <span className="block text-sm font-medium text-gray-700">
-                セール終了日
-              </span>
+              <div className="flex items-center gap-1.5">
+                <span className="block text-sm font-medium text-gray-700">
+                  セール終了日
+                </span>
+                {hasInheritedDiscountEndsAt ? <ReviewHintIcon /> : null}
+              </div>
               <button
                 type="button"
                 onClick={() => setDiscountEndsAt("")}
@@ -2027,7 +2096,14 @@ export default function PurchaseCandidateForm({
                 style={{ colorScheme: "light", accentColor: "#2563eb" }}
                 className={getFormControlClassName({
                   shadow: true,
-                  className: FORM_CONTROL_COLOR_SCHEME_CLASS,
+                  className: [
+                    FORM_CONTROL_COLOR_SCHEME_CLASS,
+                    hasInheritedDiscountEndsAt
+                      ? "border-amber-300 bg-amber-50"
+                      : undefined,
+                  ]
+                    .filter(Boolean)
+                    .join(" "),
                 })}
               />
               <input
@@ -2048,19 +2124,35 @@ export default function PurchaseCandidateForm({
                 className={getFormControlClassName({
                   disabled: true,
                   shadow: true,
-                  className: FORM_CONTROL_COLOR_SCHEME_CLASS,
+                  className: [
+                    FORM_CONTROL_COLOR_SCHEME_CLASS,
+                    hasInheritedDiscountEndsAt
+                      ? "border-amber-300 bg-amber-50"
+                      : undefined,
+                  ]
+                    .filter(Boolean)
+                    .join(" "),
                 })}
               />
             </div>
           </div>
 
-          <div>
-            <label
-              htmlFor="release_date"
-              className="mb-1 block text-sm font-medium text-gray-700"
-            >
-              発売日
-            </label>
+          <div
+            className={
+              hasInheritedReleaseDate
+                ? "rounded-xl border border-amber-200 bg-amber-50/60 p-3"
+                : undefined
+            }
+          >
+            <div className="mb-1 flex items-center gap-1.5">
+              <label
+                htmlFor="release_date"
+                className="block text-sm font-medium text-gray-700"
+              >
+                発売日
+              </label>
+              {hasInheritedReleaseDate ? <ReviewHintIcon /> : null}
+            </div>
             <input
               id="release_date"
               type="date"
@@ -2069,16 +2161,32 @@ export default function PurchaseCandidateForm({
               style={{ colorScheme: "light", accentColor: "#2563eb" }}
               className={getFormControlClassName({
                 shadow: true,
-                className: FORM_CONTROL_COLOR_SCHEME_CLASS,
+                className: [
+                  FORM_CONTROL_COLOR_SCHEME_CLASS,
+                  hasInheritedReleaseDate
+                    ? "border-amber-300 bg-amber-50"
+                    : undefined,
+                ]
+                  .filter(Boolean)
+                  .join(" "),
               })}
             />
           </div>
 
-          <div>
+          <div
+            className={
+              hasInheritedSaleEndsAt
+                ? "rounded-xl border border-amber-200 bg-amber-50/60 p-3"
+                : undefined
+            }
+          >
             <div className="mb-1 flex items-center justify-between gap-3">
-              <span className="block text-sm font-medium text-gray-700">
-                販売終了日
-              </span>
+              <div className="flex items-center gap-1.5">
+                <span className="block text-sm font-medium text-gray-700">
+                  販売終了日
+                </span>
+                {hasInheritedSaleEndsAt ? <ReviewHintIcon /> : null}
+              </div>
               <button
                 type="button"
                 onClick={() => setSaleEndsAt("")}
@@ -2105,7 +2213,14 @@ export default function PurchaseCandidateForm({
                 style={{ colorScheme: "light", accentColor: "#2563eb" }}
                 className={getFormControlClassName({
                   shadow: true,
-                  className: FORM_CONTROL_COLOR_SCHEME_CLASS,
+                  className: [
+                    FORM_CONTROL_COLOR_SCHEME_CLASS,
+                    hasInheritedSaleEndsAt
+                      ? "border-amber-300 bg-amber-50"
+                      : undefined,
+                  ]
+                    .filter(Boolean)
+                    .join(" "),
                 })}
               />
               <input
@@ -2126,7 +2241,14 @@ export default function PurchaseCandidateForm({
                 className={getFormControlClassName({
                   disabled: true,
                   shadow: true,
-                  className: FORM_CONTROL_COLOR_SCHEME_CLASS,
+                  className: [
+                    FORM_CONTROL_COLOR_SCHEME_CLASS,
+                    hasInheritedSaleEndsAt
+                      ? "border-amber-300 bg-amber-50"
+                      : undefined,
+                  ]
+                    .filter(Boolean)
+                    .join(" "),
                 })}
               />
             </div>
@@ -2539,8 +2661,24 @@ export default function PurchaseCandidateForm({
       </ItemFormSection>
 
       <ItemFormSection title="色" className="lg:col-span-1 lg:order-4">
+        {isColorVariantDraftSource ? (
+          <div className="rounded-xl border border-sky-200 bg-sky-50/80 px-4 py-3 text-sm text-sky-800">
+            <div className="flex items-start gap-2">
+              <Info className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+              <p>
+                色違い追加のため、色は未設定です。メインカラーを選択してください。
+              </p>
+            </div>
+          </div>
+        ) : null}
         <div className="grid gap-4 md:grid-cols-2">
-          <div>
+          <div
+            className={
+              isColorVariantDraftSource
+                ? "rounded-xl border border-sky-200 bg-sky-50/40 p-3"
+                : undefined
+            }
+          >
             <FieldLabel label="メインカラー" required />
             <div className="space-y-3">
               <label className="flex items-center gap-2 text-sm text-gray-700">
@@ -2987,14 +3125,23 @@ export default function PurchaseCandidateForm({
       </ItemFormSection>
 
       <ItemFormSection title="補足情報" className="lg:col-span-2 lg:order-9">
-        <div>
+        <div
+          className={
+            hasInheritedMemo
+              ? "rounded-xl border border-amber-200 bg-amber-50/60 p-3"
+              : undefined
+          }
+        >
           <div className="mb-1 flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
-            <label
-              htmlFor="memo"
-              className="block text-sm font-medium text-gray-700"
-            >
-              メモ
-            </label>
+            <div className="flex items-center gap-1.5">
+              <label
+                htmlFor="memo"
+                className="block text-sm font-medium text-gray-700"
+              >
+                メモ
+              </label>
+              {hasInheritedMemo ? <ReviewHintIcon /> : null}
+            </div>
             <p className="text-xs text-gray-500">
               このメモは購入後アイテムに引き継がれます。
             </p>
@@ -3004,35 +3151,58 @@ export default function PurchaseCandidateForm({
             value={memo}
             onChange={(event) => setMemo(event.target.value)}
             rows={4}
-            className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            className={getFormControlClassName({
+              className: hasInheritedMemo
+                ? "border-amber-300 bg-amber-50"
+                : undefined,
+            })}
           />
         </div>
       </ItemFormSection>
       <ItemFormSection title="画像" className="lg:col-span-2 lg:order-10">
-        <PurchaseCandidateImageUploader
-          existingImages={displayedImages}
-          pendingImages={pendingImages}
-          onPendingImagesChange={setPendingImages}
-          onDeleteExistingImage={
-            mode === "edit"
-              ? (imageId) => void handleDeleteImage(imageId)
-              : duplicateImages.length > 0
-                ? (imageId) => handleDeleteDraftImage(imageId)
+        {hasInheritedImages ? (
+          <div className="mb-3 rounded-xl border border-amber-200 bg-amber-50/60 px-4 py-3 text-sm text-amber-700">
+            <div className="flex items-start gap-2">
+              <ReviewHintIcon />
+              <span>
+                元の購入検討画像を仮で引き継いでいます。必要に応じて差し替えてください。
+              </span>
+            </div>
+          </div>
+        ) : null}
+        <div
+          className={
+            hasInheritedImages
+              ? "rounded-xl border border-amber-200 bg-amber-50/40 p-3"
+              : undefined
+          }
+        >
+          <PurchaseCandidateImageUploader
+            existingImages={displayedImages}
+            pendingImages={pendingImages}
+            onPendingImagesChange={setPendingImages}
+            onDeleteExistingImage={
+              mode === "edit"
+                ? (imageId) => void handleDeleteImage(imageId)
+                : duplicateImages.length > 0
+                  ? (imageId) => handleDeleteDraftImage(imageId)
+                  : undefined
+            }
+            onMoveExistingImage={
+              mode === "create" && duplicateImages.length > 0
+                ? (image, direction) =>
+                    handleMoveDraftImage(image.id, direction)
                 : undefined
-          }
-          onMoveExistingImage={
-            mode === "create" && duplicateImages.length > 0
-              ? (image, direction) => handleMoveDraftImage(image.id, direction)
-              : undefined
-          }
-          onMakePrimaryExistingImage={
-            mode === "create" && duplicateImages.length > 0
-              ? (image) => handleMakePrimaryDraftImage(image.id)
-              : undefined
-          }
-          disabled={submitting}
-          helperText={imageHelperText}
-        />
+            }
+            onMakePrimaryExistingImage={
+              mode === "create" && duplicateImages.length > 0
+                ? (image) => handleMakePrimaryDraftImage(image.id)
+                : undefined
+            }
+            disabled={submitting}
+            helperText={imageHelperText}
+          />
+        </div>
       </ItemFormSection>
 
       {submitMessage && (
