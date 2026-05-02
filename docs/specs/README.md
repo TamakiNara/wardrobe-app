@@ -16,6 +16,7 @@
 - [outfits: item 候補ルール](./outfits/item-candidate-rules.md)
 - [wear logs: 一覧・詳細・追加・復元](./wears/wear-logs.md)
 - [wear logs: 天気記録](./wears/weather-records.md)
+- [wear logs: 天気機能 current status](./wears/weather-current-status.md)
 - [購入検討: `purchase_candidates` 仕様と item 化](./purchase-candidates.md)
 - [settings: ブランド候補](./settings/brand-candidates.md)
 - [settings: 天気の地域設定](./settings/weather-locations.md)
