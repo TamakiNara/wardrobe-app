@@ -1,6 +1,7 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { redirect } from "next/navigation";
 import ItemCareStatusAction from "@/components/items/item-care-status-action";
+import ItemDuplicateActions from "@/components/items/item-duplicate-actions";
 import ItemStatusAction from "@/components/items/item-status-action";
 import ItemPreviewCard from "@/components/items/item-preview-card";
 import { PurchaseUrlLink } from "@/components/shared/purchase-url-link";
@@ -128,6 +129,43 @@ function shouldPreserveItemReturnContext(
   return currentCategory === "underwear" || item.category === "underwear";
 }
 
+function buildItemDetailHref(
+  itemId: number,
+  returnTarget: { href: string; label: string },
+  shouldPreserveReturnContext: boolean,
+) {
+  if (!shouldPreserveReturnContext) {
+    return `/items/${itemId}`;
+  }
+
+  return `/items/${itemId}?${new URLSearchParams({
+    return_to: returnTarget.href,
+    return_label: returnTarget.label,
+  }).toString()}`;
+}
+
+function getItemGroupStatusBadgeClass(status: ItemRecord["status"]): string {
+  if (status === "disposed") {
+    return "border-amber-200 bg-amber-50 text-amber-700";
+  }
+
+  return "border-slate-200 bg-slate-50 text-slate-500";
+}
+
+function resolveGroupItemColor(item: ItemRecord["group_items"][number]) {
+  return item.colors.find((color) => color.role === "main") ?? item.colors[0];
+}
+
+function resolveGroupItemColorLabel(item: ItemRecord["group_items"][number]) {
+  const color = resolveGroupItemColor(item);
+
+  if (!color) {
+    return item.name ?? "色未設定";
+  }
+
+  return color.custom_label?.trim() || color.label || item.name || "色未設定";
+}
+
 export default async function ItemPage({
   params,
   searchParams,
@@ -218,6 +256,7 @@ export default async function ItemPage({
   );
   const visibleCustomSizeFields = normalizedSizeDetails?.custom_fields ?? [];
   const groupedMaterials = groupItemMaterialsForDisplay(item.materials);
+  const groupItems = item.group_items ?? [];
   const bottomsRiseLabel =
     BOTTOMS_RISE_OPTIONS.find(
       (option) => option.value === item.spec?.bottoms?.rise_type,
@@ -265,7 +304,6 @@ export default async function ItemPage({
   ].filter((detail): detail is { label: string; value: string } =>
     Boolean(detail.value),
   );
-
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">
       <div className="mx-auto max-w-3xl space-y-6">
@@ -294,22 +332,12 @@ export default async function ItemPage({
             ) : null
           }
           actions={
-            <>
-              <Link
-                href={editHref}
-                className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
-              >
-                編集
-              </Link>
-              <Link
-                href={returnTarget.href}
-                className="inline-flex items-center justify-center rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-500 transition hover:bg-gray-50 hover:text-gray-700"
-              >
-                {returnToParam || shouldPreserveReturnContext
-                  ? `${returnTarget.label}へ戻る`
-                  : "一覧に戻る"}
-              </Link>
-            </>
+            <ItemDuplicateActions
+              itemId={item.id}
+              editHref={editHref}
+              returnHref={returnTarget.href}
+              returnLabel="一覧へ戻る"
+            />
           }
         />
 
@@ -349,6 +377,89 @@ export default async function ItemPage({
             </section>
           </div>
         </section>
+
+        {groupItems.length > 1 ? (
+          <section className="rounded-2xl border border-slate-200 bg-slate-50/70 px-4 py-3 shadow-sm">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h2 className="text-sm font-medium text-slate-800">
+                  同じ商品の色違い
+                </h2>
+                <p className="mt-0.5 text-xs text-slate-500">
+                  アイテムを選ぶと別の詳細へ移動します。
+                </p>
+              </div>
+              <span className="rounded-full border border-slate-200 bg-white px-2.5 py-0.5 text-xs font-medium text-slate-500">
+                色違い {groupItems.length}件
+              </span>
+            </div>
+            <nav
+              aria-label="同じ商品の色違い"
+              className="mt-2.5 flex gap-2 overflow-x-auto pb-1"
+            >
+              {groupItems.map((groupItem) => {
+                const groupColor = resolveGroupItemColor(groupItem);
+                const colorLabel = resolveGroupItemColorLabel(groupItem);
+                const groupItemHref = buildItemDetailHref(
+                  groupItem.id,
+                  returnTarget,
+                  shouldPreserveReturnContext,
+                );
+                const content = (
+                  <>
+                    <span
+                      className="h-4 w-6 shrink-0 rounded-[5px] border border-slate-300 shadow-sm"
+                      style={{ backgroundColor: groupColor?.hex ?? "#E5E7EB" }}
+                      title={colorLabel}
+                    />
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-[11px] text-slate-400">
+                        {colorLabel}
+                      </span>
+                    </span>
+                    {groupItem.status === "disposed" ? (
+                      <span
+                        className={`shrink-0 rounded-full border px-1.5 py-0.5 text-[10px] font-medium ${getItemGroupStatusBadgeClass(
+                          groupItem.status,
+                        )}`}
+                      >
+                        手放し済み
+                      </span>
+                    ) : null}
+                    {groupItem.is_current ? (
+                      <span className="shrink-0 rounded-full bg-slate-800 px-1.5 py-0.5 text-[10px] font-medium text-white">
+                        表示中
+                      </span>
+                    ) : null}
+                  </>
+                );
+                const className = `flex min-w-48 items-center gap-2 rounded-xl border px-2.5 py-2 text-left transition ${
+                  groupItem.is_current
+                    ? "border-slate-500 bg-white shadow-sm"
+                    : "border-slate-200 bg-white/80 hover:border-slate-300 hover:bg-white"
+                }`;
+
+                return groupItem.is_current ? (
+                  <span
+                    key={groupItem.id}
+                    aria-current="page"
+                    className={className}
+                  >
+                    {content}
+                  </span>
+                ) : (
+                  <Link
+                    key={groupItem.id}
+                    href={groupItemHref}
+                    className={className}
+                  >
+                    {content}
+                  </Link>
+                );
+              })}
+            </nav>
+          </section>
+        ) : null}
 
         <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-gray-900">

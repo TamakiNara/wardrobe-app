@@ -15,6 +15,7 @@ use App\Models\CategoryMaster;
 use App\Models\Item;
 use App\Models\Outfit;
 use App\Services\Brands\UserBrandService;
+use App\Services\Items\ItemDuplicateService;
 use App\Services\Items\ItemStoreService;
 use App\Services\Items\ItemUpdateService;
 use App\Services\Settings\UserPreferenceService;
@@ -312,6 +313,24 @@ Route::prefix('api')->middleware(['web'])->group(function () {
             'message' => 'created',
             'item' => ItemPayloadBuilder::buildDetail($item),
         ], 201);
+    });
+
+    Route::middleware('auth:web')->post('/items/{id}/duplicate', function (Request $request, int $id) {
+        $payload = app(ItemDuplicateService::class)->duplicate($request->user(), $id);
+
+        return response()->json([
+            'message' => 'duplicated_payload_ready',
+            'item' => $payload,
+        ]);
+    });
+
+    Route::middleware('auth:web')->post('/items/{id}/color-variant', function (Request $request, int $id) {
+        $payload = app(ItemDuplicateService::class)->colorVariant($request->user(), $id);
+
+        return response()->json([
+            'message' => 'color_variant_payload_ready',
+            'item' => $payload,
+        ]);
     });
 
     Route::middleware('auth:web')->get('/items/{id}', function (Request $request, int $id) {

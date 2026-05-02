@@ -1256,7 +1256,7 @@ describe("新規登録画面", () => {
       "購入検討の内容を初期値として読み込みました。",
     );
     expect(container.textContent).toContain(
-      "引き継いだ画像も保存前に取り除けます。",
+      "不要な画像は保存前に取り除けます。",
     );
     expect(container.textContent).not.toContain("引き継ぎ画像の確認");
     expect(container.textContent).toContain("ブランド候補にも追加する");
@@ -3391,5 +3391,202 @@ describe("新規登録画面", () => {
     expect(payload.subcategory).toBe("other");
     expect(payload.shape).toBe("");
     expect(payload.spec.skirt.length_type).toBe("midi");
+  });
+
+  it("duplicate 起点では item draft を読み込み、注意表示と variant_source_item_id を送信する", async () => {
+    searchParamsSourceValue = "duplicate";
+    window.sessionStorage.setItem(
+      "item-duplicate-payload",
+      JSON.stringify({
+        name: "複製元アイテム（コピー）",
+        variant_source_item_id: 5,
+        brand_name: "Sample Brand",
+        price: 12000,
+        purchase_url: "https://example.test/items/5",
+        memo: "duplicate memo",
+        purchased_at: "2026-05-01",
+        size_gender: "women",
+        size_label: "M",
+        size_note: "sample note",
+        size_details: null,
+        is_rain_ok: true,
+        sheerness: "slight",
+        category: "tops",
+        subcategory: "tshirt_cutsew",
+        shape: "tshirt",
+        colors: [
+          {
+            role: "main",
+            mode: "preset",
+            value: "blue",
+            hex: "#3B82F6",
+            custom_label: null,
+            label: "ブルー",
+          },
+        ],
+        seasons: ["spring"],
+        tpos: ["office"],
+        tpo_ids: [],
+        materials: [],
+        spec: null,
+        images: [],
+      }),
+    );
+
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 201,
+      json: async () => ({ item: { id: 55 } }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { default: NewItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(NewItemPage));
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain(
+      "元データの情報を引き継いでいます。黄色で示した項目は、必要に応じて見直してください。",
+    );
+    expect(container.textContent).not.toContain(
+      "色違い追加では、新しい色を選択してください。",
+    );
+    expect(container.textContent).not.toContain(
+      "色違い追加のため、色は未設定です。メインカラーを選択してください。",
+    );
+    expect(container.textContent).not.toContain("確認推奨");
+
+    const nameInput = container.querySelector<HTMLInputElement>("#name");
+    const priceInput = container.querySelector<HTMLInputElement>("#price");
+    const purchasedAtInput =
+      container.querySelector<HTMLInputElement>("#purchased-at");
+    const memoInput = container.querySelector<HTMLTextAreaElement>("#memo");
+    const purchaseUrlInput =
+      container.querySelector<HTMLInputElement>("#purchase-url");
+    const form = container.querySelector("form");
+    const inheritedHintIcons = container.querySelectorAll(
+      '[aria-label="元データから引き継いだため確認してください"]',
+    );
+
+    expect(nameInput?.value).toBe("複製元アイテム（コピー）");
+    expect(priceInput?.value).toBe("12000");
+    expect(purchasedAtInput?.value).toBe("2026-05-01");
+    expect(memoInput?.value).toBe("duplicate memo");
+    expect(inheritedHintIcons).toHaveLength(3);
+    expect(priceInput?.closest(".rounded-xl")?.className).toContain(
+      "bg-amber-50",
+    );
+    expect(purchasedAtInput?.closest(".rounded-xl")?.className).toContain(
+      "bg-amber-50",
+    );
+    expect(memoInput?.closest(".rounded-xl")?.className).toContain(
+      "bg-amber-50",
+    );
+    expect(purchaseUrlInput?.closest(".rounded-xl")).toBeNull();
+    expect(container.textContent).not.toContain(
+      "元データの画像を仮で引き継いでいます。必要に応じて差し替えてください。",
+    );
+    expect(form).not.toBeNull();
+
+    await act(async () => {
+      form!.dispatchEvent(
+        new Event("submit", { bubbles: true, cancelable: true }),
+      );
+      await waitForEffects();
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [, requestInit] = fetchMock.mock.calls[0];
+    const payload = JSON.parse(requestInit.body as string);
+    expect(payload.variant_source_item_id).toBe(5);
+  });
+
+  it("color-variant 起点では色を空にし、値がある項目だけ注意表示する", async () => {
+    searchParamsSourceValue = "color-variant";
+    window.sessionStorage.setItem(
+      "item-duplicate-payload",
+      JSON.stringify({
+        name: "色違い元アイテム",
+        variant_source_item_id: 9,
+        brand_name: "Sample Brand",
+        price: 9800,
+        purchase_url: "https://example.test/items/9",
+        memo: "",
+        purchased_at: "2026-05-01",
+        size_gender: "women",
+        size_label: "M",
+        size_note: "sample note",
+        size_details: null,
+        is_rain_ok: true,
+        sheerness: "slight",
+        category: "tops",
+        subcategory: "tshirt_cutsew",
+        shape: "tshirt",
+        colors: [],
+        seasons: ["spring"],
+        tpos: ["office"],
+        tpo_ids: [],
+        materials: [],
+        spec: null,
+        images: [
+          {
+            disk: "public",
+            path: "items/9/source.png",
+            url: "https://example.test/storage/items/9/source.png",
+            original_filename: "source.png",
+            mime_type: "image/png",
+            file_size: 10,
+            sort_order: 1,
+            is_primary: true,
+          },
+        ],
+      }),
+    );
+
+    const { default: NewItemPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(NewItemPage));
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain(
+      "元データの情報を引き継いでいます。黄色で示した項目は、必要に応じて見直してください。色違い追加では、新しい色を選択してください。",
+    );
+    expect(container.textContent).toContain(
+      "色違い追加のため、色は未設定です。メインカラーを選択してください。",
+    );
+    expect(container.textContent).toContain(
+      "元データの画像を仮で引き継いでいます。必要に応じて差し替えてください。",
+    );
+    expect(container.textContent).not.toContain("確認推奨");
+
+    const priceInput = container.querySelector<HTMLInputElement>("#price");
+    const purchasedAtInput =
+      container.querySelector<HTMLInputElement>("#purchased-at");
+    const memoInput = container.querySelector<HTMLTextAreaElement>("#memo");
+    const mainColorCustomLabel = container.querySelector<HTMLInputElement>(
+      "#main_color_custom_label",
+    );
+    const inheritedHintIcons = container.querySelectorAll(
+      '[aria-label="元データから引き継いだため確認してください"]',
+    );
+
+    expect(mainColorCustomLabel?.value).toBe("");
+    expect(mainColorCustomLabel?.disabled).toBe(true);
+    expect(memoInput?.value).toBe("");
+    expect(
+      container.querySelector('[data-error-key="mainColor"]')?.className,
+    ).toContain("border-sky-200");
+    expect(priceInput?.closest(".rounded-xl")?.className).toContain(
+      "bg-amber-50",
+    );
+    expect(purchasedAtInput?.closest(".rounded-xl")?.className).toContain(
+      "bg-amber-50",
+    );
+    expect(memoInput?.closest(".rounded-xl")).toBeNull();
+    expect(inheritedHintIcons).toHaveLength(3);
   });
 });

@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\CategoryGroup;
 use App\Models\CategoryMaster;
 use App\Models\Item;
+use App\Models\ItemGroup;
 use App\Models\PurchaseCandidate;
 use App\Models\User;
 use App\Models\UserBrand;
@@ -179,6 +180,42 @@ class ItemsEndpointsTest extends TestCase
                 'ratio' => 100,
             ],
         ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function buildItemStorePayload(array $overrides = []): array
+    {
+        return array_merge([
+            'name' => '新しいアイテム',
+            'brand_name' => 'Sample Brand',
+            'price' => 9800,
+            'purchase_url' => 'https://example.test/items/new',
+            'memo' => 'sample memo',
+            'purchased_at' => '2026-05-01',
+            'size_gender' => 'women',
+            'size_label' => 'M',
+            'size_note' => 'sample size note',
+            'size_details' => null,
+            'is_rain_ok' => true,
+            'category' => 'tops',
+            'subcategory' => 'tshirt_cutsew',
+            'shape' => 'tshirt',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'navy',
+                'hex' => '#1f3a8a',
+                'label' => 'ネイビー',
+                'custom_label' => null,
+            ]],
+            'seasons' => ['春'],
+            'tpo_ids' => [],
+            'materials' => [],
+            'spec' => null,
+            'images' => [],
+        ], $overrides);
     }
 
     public function test_get_items_returns_401_when_unauthenticated(): void
@@ -2768,6 +2805,79 @@ class ItemsEndpointsTest extends TestCase
             ->assertJsonPath('item.materials.2.part_label', '裏地');
     }
 
+    public function test_get_item_returns_same_group_items_when_group_exists(): void
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->create();
+        $group = ItemGroup::query()->create([
+            'user_id' => $user->id,
+        ]);
+        $currentItem = $this->createItem($user, [
+            'name' => 'ネイビーTシャツ',
+            'group_id' => $group->id,
+            'group_order' => 1,
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'navy',
+                'hex' => '#1F3A5F',
+                'label' => 'ネイビー',
+            ]],
+        ]);
+        $siblingItem = $this->createItem($user, [
+            'name' => 'ホワイトTシャツ',
+            'status' => 'disposed',
+            'group_id' => $group->id,
+            'group_order' => 2,
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'white',
+                'hex' => '#F8FAFC',
+                'label' => 'ホワイト',
+            ]],
+        ]);
+
+        Storage::disk('public')->put('items/group/current.png', 'current');
+        Storage::disk('public')->put('items/group/sibling.png', 'sibling');
+
+        $currentItem->images()->create([
+            'disk' => 'public',
+            'path' => 'items/group/current.png',
+            'original_filename' => 'current.png',
+            'mime_type' => 'image/png',
+            'file_size' => 10,
+            'sort_order' => 1,
+            'is_primary' => true,
+        ]);
+        $siblingItem->images()->create([
+            'disk' => 'public',
+            'path' => 'items/group/sibling.png',
+            'original_filename' => 'sibling.png',
+            'mime_type' => 'image/png',
+            'file_size' => 12,
+            'sort_order' => 1,
+            'is_primary' => true,
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->getJson("/api/items/{$currentItem->id}", [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('item.group_id', $group->id)
+            ->assertJsonPath('item.group_items.0.id', $currentItem->id)
+            ->assertJsonPath('item.group_items.0.is_current', true)
+            ->assertJsonPath('item.group_items.1.id', $siblingItem->id)
+            ->assertJsonPath('item.group_items.1.status', 'disposed')
+            ->assertJsonPath('item.group_items.1.group_order', 2)
+            ->assertJsonPath('item.group_items.1.images.0.original_filename', 'sibling.png')
+            ->assertJsonPath('item.group_items.1.colors.0.label', 'ホワイト');
+    }
+
     public function test_get_item_omits_tops_shape_from_spec_response(): void
     {
         $user = User::factory()->create();
@@ -2795,6 +2905,230 @@ class ItemsEndpointsTest extends TestCase
             ->assertJsonMissingPath('item.spec.tops.shape')
             ->assertJsonPath('item.spec.tops.sleeve', 'long')
             ->assertJsonPath('item.spec.tops.neck', 'regular_collar');
+    }
+
+    public function test_post_item_duplicate_returns_draft_without_creating_item(): void
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->create();
+        $group = ItemGroup::query()->create([
+            'user_id' => $user->id,
+        ]);
+        $item = $this->createItem($user, [
+            'group_id' => $group->id,
+            'group_order' => 1,
+            'care_status' => 'in_cleaning',
+            'price' => 12800,
+            'purchase_url' => 'https://example.test/items/source',
+            'memo' => 'source memo',
+            'purchased_at' => '2026-04-20',
+            'brand_name' => 'Source Brand',
+            'is_rain_ok' => true,
+            'sheerness' => 'slight',
+        ]);
+        $item->materials()->createMany($this->buildMaterialsPayload());
+
+        Storage::disk('public')->put('items/source/source.png', 'source-image');
+        $item->images()->create([
+            'disk' => 'public',
+            'path' => 'items/source/source.png',
+            'original_filename' => 'source.png',
+            'mime_type' => 'image/png',
+            'file_size' => 12,
+            'sort_order' => 1,
+            'is_primary' => true,
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson("/api/items/{$item->id}/duplicate", []);
+
+        $response->assertOk()
+            ->assertJsonPath('message', 'duplicated_payload_ready')
+            ->assertJsonPath('item.price', 12800)
+            ->assertJsonPath('item.purchase_url', 'https://example.test/items/source')
+            ->assertJsonPath('item.memo', 'source memo')
+            ->assertJsonPath('item.purchased_at', '2026-04-20')
+            ->assertJsonPath('item.images.0.path', 'items/source/source.png')
+            ->assertJsonPath('item.colors.0.value', 'white')
+            ->assertJsonMissingPath('item.group_id')
+            ->assertJsonMissingPath('item.group_order')
+            ->assertJsonMissingPath('item.care_status')
+            ->assertJsonMissingPath('item.status');
+
+        $this->assertSame(1, Item::query()->count());
+    }
+
+    public function test_post_item_color_variant_returns_draft_without_creating_item(): void
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->create();
+        $item = $this->createItem($user, [
+            'status' => 'disposed',
+            'price' => 9900,
+            'purchase_url' => 'https://example.test/items/source-variant',
+            'memo' => 'variant memo',
+            'purchased_at' => '2026-04-18',
+        ]);
+
+        Storage::disk('public')->put('items/source/variant.png', 'variant-image');
+        $item->images()->create([
+            'disk' => 'public',
+            'path' => 'items/source/variant.png',
+            'original_filename' => 'variant.png',
+            'mime_type' => 'image/png',
+            'file_size' => 12,
+            'sort_order' => 1,
+            'is_primary' => true,
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson("/api/items/{$item->id}/color-variant", []);
+
+        $response->assertOk()
+            ->assertJsonPath('message', 'color_variant_payload_ready')
+            ->assertJsonPath('item.variant_source_item_id', $item->id)
+            ->assertJsonPath('item.price', 9900)
+            ->assertJsonPath('item.memo', 'variant memo')
+            ->assertJsonPath('item.images.0.path', 'items/source/variant.png')
+            ->assertJsonCount(0, 'item.colors')
+            ->assertJsonMissingPath('item.group_id')
+            ->assertJsonMissingPath('item.group_order')
+            ->assertJsonMissingPath('item.care_status');
+
+        $this->assertSame(1, Item::query()->count());
+    }
+
+    public function test_post_item_duplicate_rejects_other_users_source(): void
+    {
+        $user = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $item = $this->createItem($otherUser);
+
+        $this->actingAs($user, 'web');
+
+        $this->postJson("/api/items/{$item->id}/duplicate", [])
+            ->assertNotFound();
+    }
+
+    public function test_post_items_rejects_other_users_variant_source_item_id(): void
+    {
+        $user = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $item = $this->createItem($otherUser);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/items', $this->buildItemStorePayload([
+            'variant_source_item_id' => $item->id,
+        ]));
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['variant_source_item_id']);
+    }
+
+    public function test_post_items_color_variant_creates_group_and_copies_images(): void
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->create();
+        $sourceItem = $this->createItem($user, [
+            'status' => 'disposed',
+            'care_status' => 'in_cleaning',
+        ]);
+
+        Storage::disk('public')->put('items/source/source.png', 'source-image');
+        $sourceItem->images()->create([
+            'disk' => 'public',
+            'path' => 'items/source/source.png',
+            'original_filename' => 'source.png',
+            'mime_type' => 'image/png',
+            'file_size' => 12,
+            'sort_order' => 1,
+            'is_primary' => true,
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/items', $this->buildItemStorePayload([
+            'name' => '色違いアイテム',
+            'variant_source_item_id' => $sourceItem->id,
+            'images' => [[
+                'disk' => 'public',
+                'path' => 'items/source/source.png',
+                'url' => null,
+                'original_filename' => 'source.png',
+                'mime_type' => 'image/png',
+                'file_size' => 12,
+                'sort_order' => 1,
+                'is_primary' => true,
+            ]],
+        ]));
+
+        $response->assertCreated()
+            ->assertJsonPath('item.status', 'active')
+            ->assertJsonPath('item.group_order', 2);
+
+        $createdItemId = $response->json('item.id');
+        $createdItem = Item::query()->with('images')->findOrFail($createdItemId);
+        $sourceItem->refresh();
+
+        $this->assertNotNull($sourceItem->group_id);
+        $this->assertSame($sourceItem->group_id, $createdItem->group_id);
+        $this->assertSame(1, $sourceItem->group_order);
+        $this->assertSame(2, $createdItem->group_order);
+        $this->assertSame('disposed', $sourceItem->status);
+        $this->assertNull($createdItem->care_status);
+        $this->assertCount(1, $createdItem->images);
+        $this->assertNotSame(
+            'items/source/source.png',
+            $createdItem->images->first()?->path
+        );
+        $this->assertStringStartsWith(
+            "items/{$createdItem->id}/",
+            (string) $createdItem->images->first()?->path
+        );
+        Storage::disk('public')->assertExists('items/source/source.png');
+        Storage::disk('public')->assertExists((string) $createdItem->images->first()?->path);
+        $this->assertSame(1, ItemGroup::query()->count());
+    }
+
+    public function test_post_items_color_variant_reuses_existing_group(): void
+    {
+        $user = User::factory()->create();
+        $group = ItemGroup::query()->create([
+            'user_id' => $user->id,
+        ]);
+        $existingSibling = $this->createItem($user, [
+            'group_id' => $group->id,
+            'group_order' => 1,
+        ]);
+        $sourceItem = $this->createItem($user, [
+            'group_id' => $group->id,
+            'group_order' => 2,
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/items', $this->buildItemStorePayload([
+            'name' => '既存グループ色違い',
+            'variant_source_item_id' => $sourceItem->id,
+        ]));
+
+        $response->assertCreated()
+            ->assertJsonPath('item.group_id', $group->id)
+            ->assertJsonPath('item.group_order', 3);
+
+        $createdItem = Item::query()->findOrFail($response->json('item.id'));
+
+        $this->assertSame($group->id, $createdItem->group_id);
+        $this->assertSame(3, $createdItem->group_order);
+        $this->assertSame(2, $sourceItem->fresh()->group_order);
+        $this->assertSame(1, $existingSibling->fresh()->group_order);
+        $this->assertSame(1, ItemGroup::query()->count());
     }
 
     public function test_put_item_updates_purchase_fields_and_image_ordering(): void

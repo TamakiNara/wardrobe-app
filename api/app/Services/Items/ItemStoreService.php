@@ -23,6 +23,7 @@ class ItemStoreService
     public function __construct(
         private readonly UserBrandService $userBrandService,
         private readonly UserTpoService $userTpoService,
+        private readonly ItemDuplicateService $itemDuplicateService,
     ) {}
 
     public function store(User $user, array $validated): Item
@@ -32,6 +33,12 @@ class ItemStoreService
 
         try {
             $item = DB::transaction(function () use ($user, $validated, $candidate, &$copiedFiles) {
+                $colorVariantGroup = $this->itemDuplicateService->resolveColorVariantGroupForCreate(
+                    $user,
+                    isset($validated['variant_source_item_id'])
+                        ? (int) $validated['variant_source_item_id']
+                        : null,
+                );
                 $normalizedSubcategory = ItemSubcategorySupport::normalize(
                     $validated['category'] ?? null,
                     $validated['subcategory'] ?? null,
@@ -44,6 +51,8 @@ class ItemStoreService
 
                 $item = Item::create([
                     'user_id' => $user->id,
+                    'group_id' => $colorVariantGroup?->id,
+                    'group_order' => $colorVariantGroup?->nextGroupOrder(),
                     'care_status' => $validated['care_status'] ?? null,
                     'sheerness' => $validated['sheerness'] ?? null,
                     'name' => $validated['name'] ?? null,

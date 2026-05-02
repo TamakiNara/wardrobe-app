@@ -5,6 +5,7 @@ namespace App\Support;
 use App\Models\Item;
 use App\Models\ItemImage;
 use App\Models\ItemMaterial;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
 
 class ItemPayloadBuilder
@@ -21,6 +22,9 @@ class ItemPayloadBuilder
 
         return [
             'id' => $item->id,
+            'group_id' => $item->group_id,
+            'group_order' => $item->group_order,
+            'group_items' => self::buildGroupItems($item),
             'name' => $item->name,
             'status' => $item->status,
             'care_status' => $item->care_status,
@@ -63,6 +67,55 @@ class ItemPayloadBuilder
                 ->values()
                 ->map(fn (ItemImage $image) => self::buildImage($image))
                 ->all(),
+        ];
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private static function buildGroupItems(Item $item): array
+    {
+        if ($item->group_id === null) {
+            return [];
+        }
+
+        /** @var Collection<int, Item> $groupItems */
+        $groupItems = Item::query()
+            ->where('user_id', $item->user_id)
+            ->where('group_id', $item->group_id)
+            ->with(['images'])
+            ->orderByRaw('CASE WHEN id = ? THEN 0 ELSE 1 END', [$item->id])
+            ->orderBy('group_order')
+            ->orderBy('id')
+            ->get();
+
+        return $groupItems
+            ->map(fn (Item $groupItem) => self::buildGroupItemSummary($groupItem, $item->id))
+            ->all();
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private static function buildGroupItemSummary(Item $item, int $currentItemId): array
+    {
+        $item->loadMissing('images');
+
+        return [
+            'id' => $item->id,
+            'group_order' => $item->group_order,
+            'name' => $item->name,
+            'status' => $item->status,
+            'category' => $item->category,
+            'subcategory' => $item->subcategory,
+            'shape' => $item->shape,
+            'colors' => $item->colors ?? [],
+            'images' => $item->images
+                ->sortBy('sort_order')
+                ->values()
+                ->map(fn (ItemImage $image) => self::buildImage($image))
+                ->all(),
+            'is_current' => $item->id === $currentItemId,
         ];
     }
 

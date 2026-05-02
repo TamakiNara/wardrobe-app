@@ -27,6 +27,17 @@ vi.mock("@/components/items/item-care-status-action", () => ({
   default: () => React.createElement("div", null, "care-status-action"),
 }));
 
+vi.mock("@/components/items/item-duplicate-actions", () => ({
+  default: () =>
+    React.createElement(
+      "div",
+      null,
+      React.createElement("a", { href: "/items/1/edit" }, "編集"),
+      React.createElement("span", null, "duplicate-actions"),
+      React.createElement("a", { href: "/items" }, "一覧へ戻る"),
+    ),
+}));
+
 vi.mock("@/components/items/item-preview-card", () => ({
   default: () => React.createElement("div", null, "preview-card"),
 }));
@@ -161,6 +172,7 @@ describe("アイテム詳細画面", () => {
     expect(markup).toContain("example.test");
     expect(markup).toContain('target="_blank"');
     expect(markup).toContain('rel="noreferrer"');
+    expect(markup).toContain("duplicate-actions");
     expect(markup).toContain("status-action");
     expect(markup).toContain("care-status-action");
     expect(markup).toContain(
@@ -174,9 +186,139 @@ describe("アイテム詳細画面", () => {
     expect(markup).toContain("裏地： ポリエステル 100%");
     expect(markup).not.toContain("購入・サイズ情報");
     expect(markup).toContain("coat.png");
-    expect(markup.indexOf(">編集<")).toBeLessThan(
-      markup.indexOf(">一覧に戻る<"),
+    expect(markup.indexOf(">duplicate-actions<")).toBeLessThan(
+      markup.indexOf(">status-action<"),
     );
+    expect(markup.indexOf(">編集<")).toBeLessThan(
+      markup.indexOf(">一覧へ戻る<"),
+    );
+  });
+
+  it("同じ商品の色違いナビを詳細画面に表示する", async () => {
+    fetchMock
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          item: {
+            id: 31,
+            group_id: 9,
+            group_order: 1,
+            name: "ネイビーTシャツ",
+            status: "active",
+            care_status: null,
+            brand_name: null,
+            price: null,
+            purchase_url: null,
+            memo: null,
+            purchased_at: null,
+            size_gender: null,
+            size_label: null,
+            size_note: null,
+            size_details: null,
+            is_rain_ok: false,
+            category: "tops",
+            subcategory: "tshirt_cutsew",
+            shape: "tshirt",
+            colors: [
+              {
+                role: "main",
+                mode: "preset",
+                value: "navy",
+                hex: "#1F3A5F",
+                label: "ネイビー",
+              },
+            ],
+            seasons: [],
+            tpos: [],
+            spec: null,
+            images: [],
+            materials: [],
+            group_items: [
+              {
+                id: 31,
+                group_order: 1,
+                name: "ネイビーTシャツ",
+                status: "active",
+                category: "tops",
+                subcategory: "tshirt_cutsew",
+                shape: "tshirt",
+                colors: [
+                  {
+                    role: "main",
+                    mode: "preset",
+                    value: "navy",
+                    hex: "#1F3A5F",
+                    label: "ネイビー",
+                  },
+                ],
+                images: [],
+                is_current: true,
+              },
+              {
+                id: 32,
+                group_order: 2,
+                name: "ホワイトTシャツ",
+                status: "disposed",
+                category: "tops",
+                subcategory: "tshirt_cutsew",
+                shape: "tshirt",
+                colors: [
+                  {
+                    role: "main",
+                    mode: "preset",
+                    value: "white",
+                    hex: "#F8FAFC",
+                    label: "ホワイト",
+                  },
+                ],
+                images: [
+                  {
+                    id: 5,
+                    item_id: 32,
+                    disk: "public",
+                    path: "items/32/white.png",
+                    url: "https://example.test/storage/items/32/white.png",
+                    original_filename: "white.png",
+                    mime_type: "image/png",
+                    file_size: 1200,
+                    sort_order: 1,
+                    is_primary: true,
+                  },
+                ],
+              },
+            ],
+          },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          preferences: {
+            skinTonePreset: "neutral_medium",
+          },
+        }),
+      });
+
+    const { default: ItemPage } = await import("./page");
+    const markup = renderToStaticMarkup(
+      await ItemPage({
+        params: Promise.resolve({ id: "31" }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+
+    expect(markup).toContain("同じ商品の色違い");
+    expect(markup).toContain("アイテムを選ぶと別の詳細へ移動します。");
+    expect(markup).toContain("色違い 2件");
+    expect(markup).toContain("ネイビーTシャツ");
+    expect(markup).not.toContain("ホワイトTシャツ");
+    expect(markup).toContain("表示中");
+    expect(markup).toContain("手放し済み");
+    expect(markup).toContain("ネイビー");
+    expect(markup).toContain("ホワイト");
+    expect(markup).toContain('href="/items/32"');
   });
 
   it("return_to があるときだけ着用履歴フォームへの戻りリンクを表示する", async () => {
@@ -233,11 +375,11 @@ describe("アイテム詳細画面", () => {
     );
 
     expect(markup).toContain('href="/wear-logs/new"');
-    expect(markup).toContain("着用履歴フォームへ戻る");
+    expect(markup).toContain("一覧へ戻る");
     expect(markup).toContain('href="/items/1/edit"');
     expect(markup).toContain("編集");
     expect(markup.indexOf(">編集<")).toBeLessThan(
-      markup.indexOf(">着用履歴フォームへ戻る<"),
+      markup.indexOf(">一覧へ戻る<"),
     );
     expect(markup).toContain("カテゴリ");
     expect(markup).toContain("コート");

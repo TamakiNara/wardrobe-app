@@ -109,6 +109,7 @@ export type ItemMaterialRecord = {
 export type CreateItemPayload = {
   name: string;
   purchase_candidate_id?: number | null;
+  variant_source_item_id?: number | null;
   care_status?: ItemCareStatus | null;
   sheerness?: ItemSheerness | null;
   brand_name: string | null;
@@ -138,6 +139,8 @@ export type ItemStatus = "active" | "disposed";
 
 export type ItemRecord = {
   id: number;
+  group_id?: number | null;
+  group_order?: number | null;
   name: string | null;
   status: ItemStatus;
   care_status?: ItemCareStatus | null;
@@ -162,4 +165,33 @@ export type ItemRecord = {
   spec?: ItemSpec | null;
   materials?: ItemMaterialRecord[];
   images?: ItemImageRecord[];
+  group_items?: ItemGroupMemberRecord[];
+};
+
+export type ItemGroupMemberRecord = {
+  id: number;
+  group_order?: number | null;
+  name: string | null;
+  status: ItemStatus;
+  category: string;
+  subcategory?: string | null;
+  shape: string;
+  colors: ItemFormColor[];
+  images?: ItemImageRecord[];
+  is_current?: boolean;
+};
+
+export type ItemDuplicatePayload = Omit<
+  CreateItemPayload,
+  "purchase_candidate_id" | "care_status"
+>;
+
+export type ItemDuplicateResponse = {
+  message: string;
+  item: ItemDuplicatePayload;
+};
+
+export type ItemColorVariantResponse = {
+  message: string;
+  item: ItemDuplicatePayload;
 };

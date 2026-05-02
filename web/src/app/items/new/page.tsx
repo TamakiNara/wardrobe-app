@@ -1,8 +1,14 @@
 "use client";
 
-import { Save } from "lucide-react";
+import { Info, Save, TriangleAlert } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type FormEvent,
+} from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormPageHeader } from "@/components/shared/form-page-header";
 import {
@@ -101,12 +107,15 @@ import {
   type SkirtMaterialType,
 } from "@/lib/master-data/item-skin-exposure";
 import {
+  clearItemDuplicatePayload,
+  loadItemDuplicatePayload,
+} from "@/lib/items/duplicate";
+import {
   clearPurchaseCandidateItemDraft,
   loadPurchaseCandidateItemDraft,
   mapPurchaseCandidateItemDraft,
 } from "@/lib/purchase-candidates/item-draft";
 import {
-  formatItemPrice,
   ITEM_CARE_STATUS_LABELS,
   ITEM_SHEERNESS_LABELS,
   ITEM_SIZE_GENDER_LABELS,
@@ -138,11 +147,23 @@ import {
 } from "@/lib/items/input-requirements";
 import type { UserTpoRecord } from "@/types/settings";
 
+function ReviewHintIcon() {
+  return (
+    <Info
+      className="h-4 w-4 text-amber-600"
+      aria-label="元データから引き継いだため確認してください"
+    />
+  );
+}
+
 export default function NewItemPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const source = searchParams.get("source");
   const isPurchaseCandidateSource = source === "purchase-candidate";
+  const isDuplicateSource = source === "duplicate";
+  const isColorVariantSource = source === "color-variant";
+  const isItemDraftSource = isDuplicateSource || isColorVariantSource;
   const requestedReturnTo = searchParams.get("returnTo");
   const requestedCategoryParam = searchParams.get("category");
   const requestedInitialCategory = useMemo(() => {
@@ -255,8 +276,16 @@ export default function NewItemPage() {
   const [sourcePurchaseCandidateId, setSourcePurchaseCandidateId] = useState<
     number | null
   >(null);
+  const [variantSourceItemId, setVariantSourceItemId] = useState<number | null>(
+    null,
+  );
   const [itemImages, setItemImages] = useState<ItemImageRecord[]>([]);
   const [pendingImages, setPendingImages] = useState<File[]>([]);
+  const hasInheritedPrice = isItemDraftSource && price.trim() !== "";
+  const hasInheritedPurchasedAt =
+    isItemDraftSource && purchasedAt.trim() !== "";
+  const hasInheritedMemo = isItemDraftSource && memo.trim() !== "";
+  const hasInheritedImages = isItemDraftSource && itemImages.length > 0;
 
   const isTopsCategory = category === "tops";
   const effectiveSubcategory = useMemo(
@@ -446,6 +475,150 @@ export default function NewItemPage() {
     [materialRows],
   );
 
+  const applyDraftColors = useCallback((draftColors: ItemFormColor[]) => {
+    const mainDraftColor = draftColors.find((color) => color.role === "main");
+    const subDraftColor = draftColors.find((color) => color.role === "sub");
+
+    setMainColorCustomLabel(mainDraftColor?.custom_label ?? "");
+
+    if (mainDraftColor?.mode === "custom") {
+      setUseCustomMainColor(true);
+      setCustomMainHex(mainDraftColor.hex || mainDraftColor.value || "#3B82F6");
+      setMainColor("");
+    } else {
+      setUseCustomMainColor(false);
+      setCustomMainHex("#3B82F6");
+      setMainColor((mainDraftColor?.value as ItemColorValue | undefined) ?? "");
+    }
+
+    if (subDraftColor?.mode === "custom") {
+      setUseCustomSubColor(true);
+      setCustomSubHex(subDraftColor.hex || subDraftColor.value || "#3B82F6");
+      setSubColor("");
+    } else {
+      setUseCustomSubColor(false);
+      setCustomSubHex("#3B82F6");
+      setSubColor((subDraftColor?.value as ItemColorValue | undefined) ?? "");
+    }
+  }, []);
+
+  const applyDraftBaseFields = useCallback(
+    (draft: {
+      name: string;
+      brandName?: string | null;
+      price?: number | null;
+      purchaseUrl?: string | null;
+      memo?: string | null;
+      purchasedAt?: string | null;
+      sizeGender?: "women" | "men" | "unisex" | null;
+      sizeLabel?: string | null;
+      sizeNote?: string | null;
+      sizeDetails?: CreateItemPayload["size_details"];
+      isRainOk: boolean;
+      sheerness?: ItemSheerness | null;
+      category: string;
+      subcategory?: string | null;
+      shape: string;
+      colors: ItemFormColor[];
+      seasons: string[];
+      tpos: string[];
+      materials: CreateItemPayload["materials"];
+      spec?: CreateItemPayload["spec"];
+    }) => {
+      setName(draft.name);
+      setBrandName(draft.brandName ?? "");
+      setPrice(
+        draft.price === null || draft.price === undefined
+          ? ""
+          : String(draft.price),
+      );
+      setPurchaseUrl(draft.purchaseUrl ?? "");
+      setMemo(draft.memo ?? "");
+      setPurchasedAt(draft.purchasedAt ?? "");
+      setSizeGender(draft.sizeGender ?? "");
+      setSizeLabel(draft.sizeLabel ?? "");
+      setSizeNote(draft.sizeNote ?? "");
+
+      const normalizedSizeDetails = normalizeItemSizeDetails(draft.sizeDetails);
+      setStructuredSizeValues(
+        Object.fromEntries(
+          Object.entries(normalizedSizeDetails?.structured ?? {}).map(
+            ([fieldName, fieldValue]) => [
+              fieldName,
+              buildEditableSizeDetailValue(fieldValue),
+            ],
+          ),
+        ) as Partial<Record<StructuredSizeFieldName, EditableSizeDetailValue>>,
+      );
+      setCustomSizeFields(
+        (normalizedSizeDetails?.custom_fields ?? []).map((field, index) => ({
+          id: `draft-size-field-${index}`,
+          label: field.label,
+          ...buildEditableSizeDetailValue(field),
+        })),
+      );
+
+      setIsRainOk(draft.isRainOk);
+      setCareStatus("");
+      setSheerness(draft.sheerness ?? "");
+      setCategory(draft.category as ItemCategory);
+      setSubcategory(
+        resolveCurrentItemSubcategoryValue(
+          draft.category,
+          draft.shape,
+          draft.subcategory,
+        ) ?? "",
+      );
+      setShape(draft.shape);
+      setTopsShape((draft.shape as TopsShapeValue | undefined) || "");
+      setTopsSleeve(
+        (draft.spec?.tops?.sleeve as TopsSleeveValue | undefined) ?? "",
+      );
+      setTopsLength(
+        (draft.spec?.tops?.length as TopsLengthValue | undefined) ?? "",
+      );
+      setTopsNeck((draft.spec?.tops?.neck as TopsNeckValue | undefined) ?? "");
+      setTopsDesign(
+        (draft.spec?.tops?.design as TopsDesignValue | undefined) ?? "",
+      );
+      setTopsFit(
+        (draft.spec?.tops?.fit as TopsFitValue | undefined) ?? DEFAULT_TOPS_FIT,
+      );
+      setBottomsLengthType(
+        (resolveBottomsLengthType(
+          draft.spec?.bottoms?.length_type ?? null,
+        ) as BottomsLengthType | null) ?? "",
+      );
+      setBottomsRiseType(
+        (draft.spec?.bottoms?.rise_type as BottomsRiseType | undefined) ?? "",
+      );
+      setSkirtLengthType(
+        (draft.spec?.skirt?.length_type as SkirtLengthType | undefined) ?? "",
+      );
+      setSkirtMaterialType(
+        (draft.spec?.skirt?.material_type as SkirtMaterialType | undefined) ??
+          "",
+      );
+      setSkirtDesignType(
+        (draft.spec?.skirt?.design_type as SkirtDesignType | undefined) ?? "",
+      );
+      setLegwearCoverageType(
+        (resolveLegwearCoverageType(
+          draft.category,
+          draft.shape,
+          draft.spec?.legwear?.coverage_type ?? null,
+          draft.subcategory,
+        ) as LegwearCoverageType | null) ?? "",
+      );
+      setSelectedSeasons(draft.seasons);
+      setDraftTpoNames(draft.tpos);
+      setSelectedTpoIds([]);
+      setMaterialRows(buildEditableItemMaterials(draft.materials ?? []));
+      applyDraftColors(draft.colors);
+    },
+    [applyDraftColors],
+  );
+
   useEffect(() => {
     let active = true;
 
@@ -494,6 +667,53 @@ export default function NewItemPage() {
       active = false;
     };
   }, [router]);
+
+  useEffect(() => {
+    if (!isItemDraftSource) {
+      return;
+    }
+
+    const draft = loadItemDuplicatePayload();
+
+    if (!draft) {
+      return;
+    }
+
+    setSourcePurchaseCandidateId(null);
+    setVariantSourceItemId(draft.variant_source_item_id ?? null);
+    setSaveBrandAsCandidate(false);
+    setPendingImages([]);
+    applyDraftBaseFields({
+      name: draft.name,
+      brandName: draft.brand_name,
+      price: draft.price,
+      purchaseUrl: draft.purchase_url,
+      memo: draft.memo,
+      purchasedAt: draft.purchased_at,
+      sizeGender: draft.size_gender,
+      sizeLabel: draft.size_label,
+      sizeNote: draft.size_note,
+      sizeDetails: draft.size_details,
+      isRainOk: draft.is_rain_ok,
+      sheerness: draft.sheerness ?? null,
+      category: draft.category,
+      subcategory: draft.subcategory ?? null,
+      shape: draft.shape,
+      colors: draft.colors,
+      seasons: draft.seasons,
+      tpos: draft.tpos ?? [],
+      materials: draft.materials ?? [],
+      spec: draft.spec ?? null,
+    });
+    setItemImages(normalizeItemImages(draft.images ?? []));
+    setDraftInfoMessage(
+      isColorVariantSource
+        ? "元データの情報を引き継いでいます。黄色で示した項目は、必要に応じて見直してください。色違い追加では、新しい色を選択してください。"
+        : "元データの情報を引き継いでいます。黄色で示した項目は、必要に応じて見直してください。",
+    );
+
+    clearItemDuplicatePayload();
+  }, [applyDraftBaseFields, isColorVariantSource, isItemDraftSource]);
 
   useEffect(() => {
     if (!isPurchaseCandidateSource) {
@@ -590,7 +810,7 @@ export default function NewItemPage() {
     setDraftInfoMessage("購入検討の内容を初期値として読み込みました。");
 
     clearPurchaseCandidateItemDraft();
-  }, [isPurchaseCandidateSource]);
+  }, [applyDraftBaseFields, isPurchaseCandidateSource]);
 
   useEffect(() => {
     if (
@@ -1005,6 +1225,7 @@ export default function NewItemPage() {
     return {
       name,
       purchase_candidate_id: sourcePurchaseCandidateId,
+      variant_source_item_id: variantSourceItemId,
       brand_name: brandName.trim() || null,
       save_brand_as_candidate: saveBrandAsCandidate,
       price: price === "" ? null : Number(price),
@@ -1266,14 +1487,14 @@ export default function NewItemPage() {
         />
 
         {draftInfoMessage && (
-          <section className="rounded-2xl border border-blue-200 bg-blue-50 px-5 py-4 text-sm text-blue-700 shadow-sm">
-            <p>{draftInfoMessage}</p>
-            {itemImages.length > 0 && (
-              <p className="mt-1 text-blue-600">
-                候補画像 {itemImages.length}{" "}
-                枚もあわせて引き継ぎ対象として保持しています。
-              </p>
-            )}
+          <section className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-800 shadow-sm">
+            <div className="flex items-start gap-3">
+              <TriangleAlert
+                className="mt-0.5 h-5 w-5 shrink-0"
+                aria-hidden="true"
+              />
+              <p>{draftInfoMessage}</p>
+            </div>
           </section>
         )}
 
@@ -1782,8 +2003,26 @@ export default function NewItemPage() {
             </ItemClassificationGroup>
 
             <ItemFormSection title="色" className="lg:col-span-2">
+              {isColorVariantSource ? (
+                <div className="mb-4 flex items-start gap-2 rounded-xl border border-sky-200 bg-sky-50/80 px-4 py-3 text-sm text-sky-800">
+                  <Info
+                    className="mt-0.5 h-4 w-4 shrink-0"
+                    aria-hidden="true"
+                  />
+                  <p>
+                    色違い追加のため、色は未設定です。メインカラーを選択してください。
+                  </p>
+                </div>
+              ) : null}
               <div className="grid gap-6 md:grid-cols-2">
-                <div className="space-y-3" data-error-key="mainColor">
+                <div
+                  className={`space-y-3 ${
+                    isColorVariantSource
+                      ? "rounded-xl border border-sky-200 bg-sky-50/40 p-4"
+                      : ""
+                  }`}
+                  data-error-key="mainColor"
+                >
                   <FieldLabel
                     as="div"
                     label="メインカラー"
@@ -2154,14 +2393,30 @@ export default function NewItemPage() {
 
             <ItemFormSection title="購入情報" className="lg:col-span-1">
               <div className="grid gap-4 md:grid-cols-2">
-                <div>
-                  <label
-                    htmlFor="price"
-                    className="mb-1 block text-sm font-medium text-gray-700"
+                <div
+                  className={
+                    hasInheritedPrice
+                      ? "rounded-xl border border-amber-200 bg-amber-50/60 p-3"
+                      : undefined
+                  }
+                >
+                  <div className="mb-1 flex items-center gap-1.5">
+                    <label
+                      htmlFor="price"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      実購入価格
+                    </label>
+                    {hasInheritedPrice ? <ReviewHintIcon /> : null}
+                  </div>
+                  <div
+                    className={getFormControlWrapperClassName(
+                      false,
+                      hasInheritedPrice
+                        ? "border-amber-300 bg-amber-50"
+                        : undefined,
+                    )}
                   >
-                    実購入価格
-                  </label>
-                  <div className={getFormControlWrapperClassName()}>
                     <input
                       id="price"
                       type="number"
@@ -2173,26 +2428,34 @@ export default function NewItemPage() {
                     />
                     <span className="text-sm text-gray-500">円</span>
                   </div>
-                  {price !== "" && (
-                    <p className="mt-1 text-xs text-gray-500">
-                      表示: {formatItemPrice(Number(price))}
-                    </p>
-                  )}
                 </div>
 
-                <div>
-                  <label
-                    htmlFor="purchased-at"
-                    className="mb-1 block text-sm font-medium text-gray-700"
-                  >
-                    購入日
-                  </label>
+                <div
+                  className={
+                    hasInheritedPurchasedAt
+                      ? "rounded-xl border border-amber-200 bg-amber-50/60 p-3"
+                      : undefined
+                  }
+                >
+                  <div className="mb-1 flex items-center gap-1.5">
+                    <label
+                      htmlFor="purchased-at"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      購入日
+                    </label>
+                    {hasInheritedPurchasedAt ? <ReviewHintIcon /> : null}
+                  </div>
                   <input
                     id="purchased-at"
                     type="date"
                     value={purchasedAt}
                     onChange={(e) => setPurchasedAt(e.target.value)}
-                    className={getFormControlClassName()}
+                    className={getFormControlClassName({
+                      className: hasInheritedPurchasedAt
+                        ? "border-amber-300 bg-amber-50"
+                        : undefined,
+                    })}
                   />
                 </div>
               </div>
@@ -2215,57 +2478,84 @@ export default function NewItemPage() {
             </ItemFormSection>
 
             <ItemFormSection title="補足情報" className="lg:col-span-1">
-              <div>
-                <label
-                  htmlFor="memo"
-                  className="mb-1 block text-sm font-medium text-gray-700"
-                >
-                  メモ
-                </label>
+              <div
+                className={
+                  hasInheritedMemo
+                    ? "rounded-xl border border-amber-200 bg-amber-50/60 p-3"
+                    : undefined
+                }
+              >
+                <div className="mb-1 flex items-center gap-1.5">
+                  <label
+                    htmlFor="memo"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    メモ
+                  </label>
+                  {hasInheritedMemo ? <ReviewHintIcon /> : null}
+                </div>
                 <textarea
                   id="memo"
                   value={memo}
                   onChange={(e) => setMemo(e.target.value)}
                   rows={4}
-                  className={getFormControlClassName()}
+                  className={getFormControlClassName({
+                    className: hasInheritedMemo
+                      ? "border-amber-300 bg-amber-50"
+                      : undefined,
+                  })}
                 />
               </div>
             </ItemFormSection>
 
             <ItemFormSection
               title="画像"
-              description={
-                draftInfoMessage
-                  ? "購入検討から引き継いだ画像を確認しながら、画像の追加や削除を行えます。"
-                  : "画像の追加や削除などの操作は、画像セクションで行います。"
-              }
+              description="画像の追加や削除などの操作は、画像セクションで行います。"
               className="lg:col-span-2"
             >
-              <ItemImageUploader
-                existingImages={itemImages}
-                pendingImages={pendingImages}
-                onPendingImagesChange={setPendingImages}
-                onDeleteExistingImage={(image) => {
-                  setItemImages((current) =>
-                    normalizeItemImages(
-                      current.filter(
-                        (currentImage) =>
-                          !(
-                            currentImage.path === image.path &&
-                            currentImage.sort_order === image.sort_order &&
-                            currentImage.original_filename ===
-                              image.original_filename
-                          ),
-                      ),
-                    ),
-                  );
-                }}
-                disabled={submitting}
-                helperText="引き継いだ画像も保存前に取り除けます。"
-                existingHeading={
-                  itemImages.length > 0 ? "操作対象の画像" : undefined
+              {hasInheritedImages ? (
+                <div className="mb-3 rounded-xl border border-amber-200 bg-amber-50/60 px-4 py-3 text-sm text-amber-700">
+                  <div className="flex items-start gap-2">
+                    <ReviewHintIcon />
+                    <span>
+                      元データの画像を仮で引き継いでいます。必要に応じて差し替えてください。
+                    </span>
+                  </div>
+                </div>
+              ) : null}
+              <div
+                className={
+                  hasInheritedImages
+                    ? "rounded-xl border border-amber-200 bg-amber-50/40 p-3"
+                    : undefined
                 }
-              />
+              >
+                <ItemImageUploader
+                  existingImages={itemImages}
+                  pendingImages={pendingImages}
+                  onPendingImagesChange={setPendingImages}
+                  onDeleteExistingImage={(image) => {
+                    setItemImages((current) =>
+                      normalizeItemImages(
+                        current.filter(
+                          (currentImage) =>
+                            !(
+                              currentImage.path === image.path &&
+                              currentImage.sort_order === image.sort_order &&
+                              currentImage.original_filename ===
+                                image.original_filename
+                            ),
+                        ),
+                      ),
+                    );
+                  }}
+                  disabled={submitting}
+                  helperText="不要な画像は保存前に取り除けます。"
+                  existingHeading={
+                    itemImages.length > 0 ? "操作対象の画像" : undefined
+                  }
+                />
+              </div>
             </ItemFormSection>
 
             <div className="rounded-2xl border border-gray-200 bg-gray-50/70 px-5 py-4 shadow-sm lg:col-span-2">

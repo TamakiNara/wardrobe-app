@@ -14,6 +14,7 @@ class ItemStoreRequest extends ItemUpsertRequest
         return [
             ...$this->commonRules(),
             'purchase_candidate_id' => ['nullable', 'integer'],
+            'variant_source_item_id' => ['nullable', 'integer'],
         ];
     }
 }
