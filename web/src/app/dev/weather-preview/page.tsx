@@ -1,0 +1,255 @@
+import type { ReactNode } from "react";
+import WeatherGlyph from "@/components/weather/weather-glyph";
+import {
+  getWeatherCodeDefinition,
+  WEATHER_CODE_DEFINITIONS,
+} from "@/lib/weather/weather-code-definitions";
+import {
+  getWeatherCodeLabel,
+  getWeatherPrimaryWeather,
+  hasWeatherRainPossibility,
+} from "@/lib/weather/labels";
+import {
+  normalizeWeatherPreviewText,
+  WEATHER_PREVIEW_SAMPLES,
+} from "@/lib/weather/weather-preview-samples";
+
+function InfoChip({
+  children,
+  tone = "slate",
+}: {
+  children: ReactNode;
+  tone?: "slate" | "amber" | "red";
+}) {
+  const toneClassName =
+    tone === "amber"
+      ? "border-amber-200 bg-amber-50 text-amber-800"
+      : tone === "red"
+        ? "border-red-200 bg-red-50 text-red-700"
+        : "border-slate-200 bg-slate-50 text-slate-700";
+
+  return (
+    <span
+      className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium ${toneClassName}`}
+    >
+      {children}
+    </span>
+  );
+}
+
+function WeatherIconCell({
+  iconName,
+  dataAttribute,
+}: {
+  iconName: string | null;
+  dataAttribute: string;
+}) {
+  if (!iconName) {
+    return <span className="text-xs text-slate-400">-</span>;
+  }
+
+  return (
+    <span
+      className="inline-flex items-center justify-center rounded-full bg-sky-50 p-2 text-sky-700"
+      {...{ [dataAttribute]: iconName }}
+    >
+      <WeatherGlyph
+        name={iconName as Parameters<typeof WeatherGlyph>[0]["name"]}
+        className="h-4 w-4"
+      />
+    </span>
+  );
+}
+
+export default function WeatherPreviewPage() {
+  return (
+    <main className="min-h-screen bg-slate-50 px-4 py-8 text-slate-900 sm:px-6 lg:px-8">
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-8">
+        <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="space-y-2">
+            <p className="text-sm font-semibold tracking-wide text-sky-700">
+              Development Preview
+            </p>
+            <h1 className="text-3xl font-semibold text-slate-900">
+              天気表示・weather_code 確認
+            </h1>
+            <p className="max-w-3xl text-sm leading-6 text-slate-600">
+              このページは開発確認用です。通常ナビには出さず、現在の
+              weather_code 定義、表示名、Lucide アイコン、雨可能性、JMA
+              天気文サンプルの正規化結果をまとめて確認します。
+            </p>
+          </div>
+        </section>
+
+        <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="mb-4 space-y-1">
+            <h2 className="text-xl font-semibold text-slate-900">
+              weather_code 一覧
+            </h2>
+            <p className="text-sm text-slate-600">
+              実際の weather_code 定義をそのまま表示しています。
+            </p>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-slate-200 text-sm">
+              <thead>
+                <tr className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
+                  <th className="px-3 py-3">weather_code</th>
+                  <th className="px-3 py-3">表示名</th>
+                  <th className="px-3 py-3">primary_weather</th>
+                  <th className="px-3 py-3">has_rain_possibility</th>
+                  <th className="px-3 py-3">メインアイコン</th>
+                  <th className="px-3 py-3">補助アイコン</th>
+                  <th className="px-3 py-3">fallback_icon</th>
+                  <th className="px-3 py-3">備考</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {WEATHER_CODE_DEFINITIONS.map((definition) => (
+                  <tr
+                    key={definition.code}
+                    className={
+                      definition.code === "other"
+                        ? "bg-red-50/60"
+                        : definition.hasRainPossibility
+                          ? "bg-amber-50/40"
+                          : "bg-white"
+                    }
+                  >
+                    <td className="px-3 py-3 font-mono text-xs text-slate-700">
+                      {definition.code}
+                    </td>
+                    <td className="px-3 py-3">{definition.label}</td>
+                    <td className="px-3 py-3">{definition.primaryWeather}</td>
+                    <td className="px-3 py-3">
+                      <InfoChip
+                        tone={definition.hasRainPossibility ? "amber" : "slate"}
+                      >
+                        {definition.hasRainPossibility ? "true" : "false"}
+                      </InfoChip>
+                    </td>
+                    <td className="px-3 py-3">
+                      <WeatherIconCell
+                        iconName={definition.icon}
+                        dataAttribute="data-main-icon"
+                      />
+                    </td>
+                    <td className="px-3 py-3">
+                      <WeatherIconCell
+                        iconName={definition.accessoryIcon}
+                        dataAttribute="data-accessory-icon"
+                      />
+                    </td>
+                    <td className="px-3 py-3">
+                      <WeatherIconCell
+                        iconName={definition.fallbackIcon}
+                        dataAttribute="data-fallback-icon"
+                      />
+                    </td>
+                    <td className="px-3 py-3 text-xs text-slate-600">
+                      {definition.code === "other" ? (
+                        <InfoChip tone="red">未分類 fallback</InfoChip>
+                      ) : definition.hasRainPossibility ? (
+                        <InfoChip tone="amber">傘補助あり</InfoChip>
+                      ) : (
+                        <span>-</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="mb-4 space-y-1">
+            <h2 className="text-xl font-semibold text-slate-900">
+              JMA天気文 正規化確認
+            </h2>
+            <p className="text-sm text-slate-600">
+              backend
+              の正規化テストで確認しているサンプルを、画面表示用に一覧化しています。
+            </p>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-slate-200 text-sm">
+              <thead>
+                <tr className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
+                  <th className="px-3 py-3">raw_weather_text</th>
+                  <th className="px-3 py-3">表示用整形後テキスト</th>
+                  <th className="px-3 py-3">weather_code</th>
+                  <th className="px-3 py-3">表示名</th>
+                  <th className="px-3 py-3">アイコン</th>
+                  <th className="px-3 py-3">has_rain_possibility</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {WEATHER_PREVIEW_SAMPLES.map((sample) => {
+                  const definition = getWeatherCodeDefinition(
+                    sample.weatherCode,
+                  );
+                  const normalizedText = normalizeWeatherPreviewText(
+                    sample.rawWeatherText,
+                  );
+                  const rainPossibility = hasWeatherRainPossibility(
+                    sample.weatherCode,
+                  );
+
+                  return (
+                    <tr
+                      key={`${sample.rawWeatherText}-${sample.weatherCode}`}
+                      className={
+                        sample.weatherCode === "other"
+                          ? "bg-red-50/60"
+                          : rainPossibility
+                            ? "bg-amber-50/40"
+                            : "bg-white"
+                      }
+                    >
+                      <td className="px-3 py-3">{sample.rawWeatherText}</td>
+                      <td className="px-3 py-3">{normalizedText}</td>
+                      <td className="px-3 py-3 font-mono text-xs text-slate-700">
+                        {sample.weatherCode}
+                      </td>
+                      <td className="px-3 py-3">
+                        {getWeatherCodeLabel(sample.weatherCode)}
+                      </td>
+                      <td className="px-3 py-3">
+                        <div className="flex items-center gap-2">
+                          <WeatherIconCell
+                            iconName={definition.icon}
+                            dataAttribute="data-sample-main-icon"
+                          />
+                          {definition.accessoryIcon ? (
+                            <WeatherIconCell
+                              iconName={definition.accessoryIcon}
+                              dataAttribute="data-sample-accessory-icon"
+                            />
+                          ) : null}
+                        </div>
+                      </td>
+                      <td className="px-3 py-3">
+                        <div className="flex items-center gap-2">
+                          <InfoChip tone={rainPossibility ? "amber" : "slate"}>
+                            {rainPossibility ? "true" : "false"}
+                          </InfoChip>
+                          {sample.weatherCode === "other" ? (
+                            <InfoChip tone="red">other</InfoChip>
+                          ) : null}
+                          <span className="text-xs text-slate-500">
+                            {getWeatherPrimaryWeather(sample.weatherCode)}
+                          </span>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </main>
+  );
+}

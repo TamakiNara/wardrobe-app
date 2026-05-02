@@ -1,49 +1,7 @@
-import {
-  Cloud,
-  CloudRain,
-  CloudSnow,
-  CloudSun,
-  CloudSunRain,
-  Snowflake,
-  Sun,
-  Umbrella,
-  type LucideIcon,
-} from "lucide-react";
-import { createElement } from "react";
 import { buildWeatherRecordConditionSummary } from "@/lib/weather/labels";
-import {
-  getWeatherCodeDefinition,
-  type WeatherVisualIconName,
-} from "@/lib/weather/weather-code-definitions";
+import { getWeatherCodeDefinition } from "@/lib/weather/weather-code-definitions";
 import type { WeatherRecord } from "@/types/weather";
-
-const WEATHER_ICON_COMPONENTS: Record<WeatherVisualIconName, LucideIcon> = {
-  Sun,
-  Cloud,
-  CloudSun,
-  CloudRain,
-  CloudSunRain,
-  CloudSnow,
-  Snowflake,
-  Umbrella,
-};
-
-function resolveWeatherIcon(name: WeatherVisualIconName): LucideIcon {
-  return WEATHER_ICON_COMPONENTS[name] ?? Cloud;
-}
-
-function WeatherGlyph({
-  name,
-  className,
-}: {
-  name: WeatherVisualIconName;
-  className: string;
-}) {
-  return createElement(resolveWeatherIcon(name), {
-    className,
-    "aria-hidden": true,
-  });
-}
+import WeatherGlyph from "@/components/weather/weather-glyph";
 
 type WeatherRecordSummaryProps = {
   record: WeatherRecord;
