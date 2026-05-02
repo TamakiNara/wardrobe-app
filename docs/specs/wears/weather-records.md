@@ -1,53 +1,25 @@
 # Weather Records Specification
 
-日付ごとの天気情報を手入力で記録するための仕様です。  
-MVP では API 連携は行わず、ユーザーが `日付 × 地域` 単位で天気を登録できることを正本とします。
+日ごとの天気情報を着用記録で使うための仕様を整理する。
+今回は weather forecast の移行設計を中心に、`weather_records` と `user_weather_locations` の関係、および source metadata の扱いを明確にする。
 
 ---
 
 ## 対象
 
-対象:
-
 - `weather_records`
 - `user_weather_locations`
-- 着用履歴カレンダーの日付詳細モーダルからの導線
-- 着用履歴詳細での参照表示
-
-MVP で扱う入力項目:
-
-- 日付
-- 地域
-- 天気
-- 最高気温
-- 最低気温
-- メモ
-
-今回はまだ行わないもの:
-
-- 天気予報 API 連携
-- 過去天気 API 連携
-- 自動取得 / 自動保存
-- おすすめ機能
-- カレンダーセルへの天気表示
+- 着用記録画面での天気表示
 
 ---
 
-## 基本方針
+## current
 
-- 天気情報は `wear_logs` に直接持たせず、独立した `weather_records` として保存する
-- 保存単位は `日付 × 地域`
-- 同じ日付に複数地域の天気を登録できる
-- 着用履歴とは `event_date = weather_date` で参照し、MVP では `weather_record_id` は持たせない
-- 着用履歴は地域ごとに分割しない
+MVP では、天気予報の取得元として `weather.tsukumijima.net` を使う。
 
----
+### user_weather_locations
 
-## user_weather_locations
-
-ユーザーごとの「よく使う地域」や、将来の API 取得に使う地域を管理する設定です。
-
-### カラム
+現行カラム:
 
 - `id`
 - `user_id`
@@ -60,34 +32,9 @@ MVP で扱う入力項目:
 - `created_at`
 - `updated_at`
 
-### 仕様
+### weather_records
 
-- 1 ユーザーにつき複数地域を登録できる
-- `is_default = true` は 1 ユーザーにつき 0 または 1 件
-- `display_order` で表示順を制御する
-- 地域を削除しても過去の天気表示が壊れないよう、`weather_records` 側に snapshot を持つ
-- ただし MVP 実装では、既に `weather_records` から参照されている地域は削除不可とする
-
-### UI
-
-設定画面配下に簡易管理 UI を置く。
-
-- `/settings/weather-locations`
-
-表示内容:
-
-- 地域名
-- 地域コード
-- デフォルト設定
-- 追加 / 編集 / 削除
-
----
-
-## weather_records
-
-日付ごとの天気記録です。
-
-### カラム
+現行カラム:
 
 - `id`
 - `user_id`
@@ -105,210 +52,94 @@ MVP で扱う入力項目:
 - `created_at`
 - `updated_at`
 
-### 地域の種類
+### current source 設計
 
-天気記録の地域には次の 2 種類がある。
-
-- 保存済み地域
-  - `user_weather_locations` に登録済み
-  - `location_id` に紐づけて保存する
-- 一時地域
-  - `user_weather_locations` には追加しない
-  - `location_id = null` として、`location_name_snapshot` のみ保存する
-
-### 仕様
-
-- 保存単位は `日付 × 地域`
-- 保存済み地域では `user_id + weather_date + location_id` の重複登録を避ける
-- 一時地域では `user_id + weather_date + normalized location_name_snapshot` の重複を application validation で軽く防ぐ
-- `location_name_snapshot` / `forecast_area_code_snapshot` は保存時点の値を必ず保存する
-- 地域名を後で変更しても、過去の天気表示は snapshot を正本とする
-
-### 地域入力
-
-天気登録画面では、次のどちらかで登録できる。
-
-- 登録済み地域から選ぶ
-- 今回だけの地域名を入力する
-
-補足:
-
-- 登録済み地域は、よく使う地域や将来の予報 API 取得対象として扱う
-- 今回だけの地域は、旅行先などを自由入力で残すための snapshot 用入力として扱う
-- 一時地域では地域名のみ必須
-- `この地域を今後も使う地域として保存する` を ON にした場合のみ、`user_weather_locations` に追加する
-- 今回だけの地域は `forecast_area_code` を持たなくてもよい
-- `forecast_area_code` は MVP では任意
-- `天気を取得` は保存済み地域かつ `forecast_area_code` がある場合だけ使える
-- 今回だけの地域は予報 API の取得対象外
-- 地域コード一覧 UI は将来対応
-
-### source の扱い
-
-手入力だけで登録した場合は、次を保存する。
-
-- `source_type = manual`
-- `source_name = manual`
-- `source_fetched_at = null`
-
-- `天気を取得` で予報 API の結果をフォームへ反映し、そのまま保存した場合は次を保存する
+- 手入力:
+  - `source_type = manual`
+  - `source_name = manual`
+- 予報 API:
   - `source_type = forecast_api`
   - `source_name = tsukumijima`
-  - `source_fetched_at = 取得成功時刻`
-- API 取得結果はフォーム反映のみで、自動保存はしない
-- 取得後にユーザーが手修正して保存しても、MVP では `forecast_api` のまま扱う
 
-将来候補:
+### current の意味
 
-- `historical_api`
+- `forecast_area_code_snapshot` は、その記録保存時点で使った予報用コードの snapshot
+- 保存先の正本は、外部 API の raw code ではなく `weather_code`
+
+---
+
+## planned
+
+### source 設計
+
+気象庁 forecast JSON を使う段階では、以下を使う。
+
+- `source_type = forecast_api`
+- `source_name = jma_forecast_json`
+
+### 併存期間
+
+段階移行中は、以下の `source_name` が併存してよい。
+
+- `manual`
+- `tsukumijima`
+- `jma_forecast_json`
+
+既存レコードの `source_name = tsukumijima` は、履歴として残す。
+
+### forecast area snapshot
+
+- `forecast_area_code_snapshot` は当面維持する
+- ただし意味は「その時点で採用した予報区域コードの snapshot」として読む
+- 将来 `jma_forecast_region_code` 導入後も、短期的にはこの項目名を維持してよい
+
+### JMA forecast JSON からの変換
+
+保存先の正本は引き続き `weather_code` とする。
+
+方針:
+
+- JMA 数値コードをそのまま保存しない
+- 日本語の `weathers` テキストを主に使って `weather_code` へ正規化する
+- 未対応パターンは `other` に落とす
+
+直接吸収しやすい例:
+
+- `晴`
+- `曇`
+- `雨`
+- `雪`
+- `晴のち曇`
+- `曇のち晴`
+- `曇のち雨`
+- `雨のち曇`
+- `晴時々曇`
+- `曇時々雨`
+- `晴時々雨`
+
+当面 `other` に落としてよい例:
+
+- `雷`
+- `霧`
+- `雨か雪`
+- `雪時々雨`
+- `曇一時雪`
+
+`has_rain_possibility` は、現行どおり `weather_code` 派生でよい。
 
 ---
 
 ## weather_code
 
-内部値は enum / allow-list で管理する。
+MVP 時点で許容する `weather_code` は以下。
 
-- `sunny` - 晴れ
-- `cloudy` - くもり
-- `rain` - 雨
-- `snow` - 雪
-- `other` - その他
-
-MVP では天気選択肢を `晴れ / くもり / 雨 / 雪 / その他` に絞る。`storm` のような細かい荒天区分は持たず、必要なら将来の API 連携時に再検討する。
-
----
-
-## 気温入力
-
-- 単位は摂氏 `℃` 固定
-- `temperature_high` / `temperature_low` はどちらも nullable
-- 小数を許可する
-- 両方入力されている場合のみ `temperature_high >= temperature_low` を検証する
-- MVP の入力 UI は number input 相当を維持し、stepper やスライダーは将来検討とする
-
----
-
-## API
-
-### weather locations
-
-- `GET /api/settings/weather-locations`
-- `POST /api/settings/weather-locations`
-- `PATCH /api/settings/weather-locations/{id}`
-- `DELETE /api/settings/weather-locations/{id}`
-
-### weather records
-
-- `GET /api/weather-records?date=YYYY-MM-DD`
-- `POST /api/weather-records`
-- `PATCH /api/weather-records/{id}`
-- `DELETE /api/weather-records/{id}`
-
----
-
-## 画面導線
-
-### 天気登録画面
-
-- `/wear-logs/weather?date=YYYY-MM-DD`
-
-表示内容:
-
-- 指定日の日付
-- 地域入力
-- 天気
-- 最高気温
-- 最低気温
-- メモ
-- 保存 / 削除
-
-同じ日付に複数地域の天気を持てるため、画面下部にその日の登録済み天気一覧も表示する。
-
-### 着用履歴カレンダーの日付詳細モーダル
-
-- その日の天気一覧を表示する
-- 未登録なら `天気を登録`
-- 登録済みなら `天気を編集`
-
-### 着用履歴詳細
-
-`服装の振り返り` とは別に `この日の天気` セクションを表示する。
-
-表示例:
-
-- 地域
-- 天気
-- 最高気温
-- 最低気温
-- メモ
-
----
-
-## import / export
-
-MVP では次を backup / restore 対象に含める。
-
-- `user_weather_locations`
-- `weather_records`
-
-復元順:
-
-1. `user_weather_locations`
-2. `weather_records`
-
-復元時の注意:
-
-- 保存済み地域の `location_id` は新しい地域 ID へ張り替える
-- 一時地域は `location_id = null` のまま復元する
-- `location_name_snapshot` / `forecast_area_code_snapshot` により表示値は維持される
-- 不正な `weather_code` は validation error
-- `temperature_high < temperature_low` は validation error
-- import 失敗時に既存データを削除しない
-
----
-
-## 将来検討
-
-- 天気予報 API 連携
-- 過去天気 API 連携
-- 地域コード一覧 UI
-- 緯度経度検索 UI
-- `wear_log_weather_records` のような関連テーブル
-- カレンダーセルでの天気表示
-
----
-
-## 予報API用地域コードの整理
-
-- `user_weather_locations.forecast_area_code` を物理名として使う
-- 論理名は `予報API用地域コード` とする
-- 現時点では [weather.tsukumijima.net](https://weather.tsukumijima.net/) の city code を主対象とする
-- `weather_records.forecast_area_code_snapshot` は、その保存時点の予報API用地域コード snapshot を表す
-- この値は気象庁の `office` / `class10` / `class20` code と完全に同一とはみなさない
-- 将来、気象庁 forecast JSON や別系統の予報 API を採用する場合は、専用コード列の追加、またはコードマッピングを検討する
-- 過去天気 API では緯度経度が必要になる可能性があるため、`latitude` / `longitude` は nullable のまま将来用に維持する
-
----
-
-## weather_code の扱い
-
-- `weather_code` は単独天気と複合天気を含む正式な天気コードです。
-- DB に保存するのは `weather_code` のみで、icon 名、fallback icon、`primary_weather`、`has_rain_possibility`、`accessory_icon` は保存しません。
-- 表示時は code 定義から label / icon / fallback icon / `primary_weather` / `has_rain_possibility` / `accessory_icon` を導出します。
-- `has_rain_possibility` は「実際に雨に当たった」ことではなく、雨対策が必要かもしれない天気かどうかを示します。
-- `cloudy_then_rain` / `cloudy_with_occasional_rain` / `sunny_with_occasional_rain` のように雨を含むコードでも、主天気は自動で `rain` に寄せません。
-- `weather.tsukumijima.net` 連携では `telop` を既存 `weather_code` へ正規化し、変換できないものは `other` にします。
-- `was_exposed_to_rain` は将来の着用履歴フィードバック側で扱う候補です。
-
-### MVP で扱う weather_code
-
-- 単独天気
+- 基本:
   - `sunny`
   - `cloudy`
   - `rain`
   - `snow`
   - `other`
-- 複合天気
+- 複合:
   - `sunny_then_cloudy`
   - `cloudy_then_sunny`
   - `cloudy_then_rain`
@@ -317,17 +148,52 @@ MVP では次を backup / restore 対象に含める。
   - `cloudy_with_occasional_rain`
   - `sunny_with_occasional_rain`
 
-### MVP で除外する将来候補
+今回の移行設計では、新しい `weather_code` の追加は必須ではない。
 
-- `thunder`
-- `fog`
-- `windy`
-- `storm`
+---
 
-### 将来候補
+## forecast_area_code の扱い
 
-- `was_exposed_to_rain: true | false | null`
-  - true: 実際に雨に当たった
-  - false: 雨の可能性はあったが実際には当たらなかった
-  - null: 未記録・不明
-  - 用途: 雨対策の検証や雨の日コーデ分析
+### legacy
+
+- `user_weather_locations.forecast_area_code`
+- `weather_records.forecast_area_code_snapshot`
+
+は、段階移行中は legacy 扱いにする。
+
+### planned
+
+将来の予報設定正本は以下に寄せる。
+
+- `jma_forecast_region_code`
+- `jma_forecast_office_code`
+
+ただし `weather_records` 側では、既存 snapshot 互換を優先して当面 `forecast_area_code_snapshot` を維持してよい。
+
+---
+
+## import / export 影響
+
+### planned
+
+JMA 設計を実装する段階では、backup / restore も以下へ追従する。
+
+- `weather_locations`
+  - `jma_forecast_region_code`
+  - `jma_forecast_office_code`
+- `weather_records`
+  - `source_name = jma_forecast_json`
+
+### 旧 backup 互換
+
+- 旧 backup に `forecast_area_code` しかない場合は、legacy 値として受け入れる
+- 実装時は `forecast_area_code -> jma_forecast_region_code` 相当の読み替え fallback を持つ
+- 既存 `source_name = tsukumijima` はそのまま取り込めるようにする
+
+---
+
+## 要再判断
+
+- `forecast_area_code_snapshot` を rename するか
+- JMA weather text 変換の取りこぼしをどこまで `other` で許容するか
+- 週間予報や代表地点気温を `weather_records` へどの時点で取り込むか
