@@ -281,6 +281,7 @@ Route::prefix('api')->middleware(['web'])->group(function () {
     });
 
     Route::middleware('auth:web')->controller(WeatherLocationController::class)->group(function () {
+        Route::get('/weather-locations/geocode', 'geocode');
         Route::get('/settings/weather-locations', 'index');
         Route::post('/settings/weather-locations', 'store');
         Route::patch('/settings/weather-locations/{id}', 'update');

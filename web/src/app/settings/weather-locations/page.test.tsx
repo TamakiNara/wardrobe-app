@@ -7,6 +7,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const pushMock = vi.fn();
 const fetchUserWeatherLocationsMock = vi.fn();
+const searchWeatherLocationGeocodeMock = vi.fn();
 const createUserWeatherLocationMock = vi.fn();
 const updateUserWeatherLocationMock = vi.fn();
 const deleteUserWeatherLocationMock = vi.fn();
@@ -17,6 +18,7 @@ vi.mock("next/navigation", () => ({
 
 vi.mock("@/lib/api/settings", () => ({
   fetchUserWeatherLocations: fetchUserWeatherLocationsMock,
+  searchWeatherLocationGeocode: searchWeatherLocationGeocodeMock,
   createUserWeatherLocation: createUserWeatherLocationMock,
   updateUserWeatherLocation: updateUserWeatherLocationMock,
   deleteUserWeatherLocation: deleteUserWeatherLocationMock,
@@ -90,6 +92,19 @@ describe("SettingsWeatherLocationsPage", () => {
         },
       ],
     });
+    searchWeatherLocationGeocodeMock.mockResolvedValue({
+      results: [
+        {
+          name: "川口市",
+          admin1: "埼玉県",
+          admin2: null,
+          country: "日本",
+          latitude: 35.8077,
+          longitude: 139.7241,
+          timezone: "Asia/Tokyo",
+        },
+      ],
+    });
     createUserWeatherLocationMock.mockResolvedValue({});
     updateUserWeatherLocationMock.mockResolvedValue({});
     deleteUserWeatherLocationMock.mockResolvedValue({});
@@ -104,7 +119,7 @@ describe("SettingsWeatherLocationsPage", () => {
     globalThis.IS_REACT_ACT_ENVIRONMENT = false;
   });
 
-  it("JMA予報区域と座標入力欄を表示できる", async () => {
+  it("JMA予報区域と geocoding 検索欄と座標入力欄を表示できる", async () => {
     const { default: SettingsWeatherLocationsPage } = await import("./page");
 
     await act(async () => {
@@ -115,8 +130,12 @@ describe("SettingsWeatherLocationsPage", () => {
     expect(container.textContent).toContain("天気の地域設定");
     expect(container.textContent).toContain("JMA予報区域");
     expect(container.textContent).toContain("Open-Meteo 用の位置情報");
+    expect(container.textContent).toContain("地域を検索");
     expect(
       container.querySelector("#new-weather-location-jma-region"),
+    ).not.toBeNull();
+    expect(
+      container.querySelector("#new-weather-location-geocode-query"),
     ).not.toBeNull();
     expect(
       container.querySelector("#new-weather-location-latitude"),
@@ -131,6 +150,206 @@ describe("SettingsWeatherLocationsPage", () => {
       container.querySelector("#new-weather-location-forecast-area"),
     ).toBeNull();
     expect(container.textContent).toContain("旧API用コードあり");
+  });
+
+  it("検索結果を選ぶと緯度・経度・タイムゾーンを反映できる", async () => {
+    const { default: SettingsWeatherLocationsPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(SettingsWeatherLocationsPage));
+      await waitForEffects();
+    });
+
+    await act(async () => {
+      setInputValue(
+        container.querySelector<HTMLInputElement>(
+          "#new-weather-location-geocode-query",
+        )!,
+        "川口",
+      );
+      await waitForEffects();
+    });
+
+    const searchButton = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button"),
+    ).find((button) => button.textContent?.includes("検索"));
+
+    await act(async () => {
+      searchButton?.click();
+      await waitForEffects();
+    });
+
+    expect(searchWeatherLocationGeocodeMock).toHaveBeenCalledWith("川口");
+    expect(container.textContent).toContain("川口市 / 埼玉県 / 日本");
+
+    const applyButton = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button"),
+    ).find((button) => button.textContent?.includes("この地点を使う"));
+
+    await act(async () => {
+      applyButton?.click();
+      await waitForEffects();
+    });
+
+    expect(
+      container.querySelector<HTMLInputElement>("#new-weather-location-name")
+        ?.value,
+    ).toBe("川口市");
+    expect(
+      container.querySelector<HTMLInputElement>(
+        "#new-weather-location-latitude",
+      )?.value,
+    ).toBe("35.8077");
+    expect(
+      container.querySelector<HTMLInputElement>(
+        "#new-weather-location-longitude",
+      )?.value,
+    ).toBe("139.7241");
+    expect(
+      container.querySelector<HTMLInputElement>(
+        "#new-weather-location-timezone",
+      )?.value,
+    ).toBe("Asia/Tokyo");
+    expect(container.textContent).toContain("選択済み");
+    expect(container.textContent).toContain("選択中");
+    expect(container.textContent).toContain(
+      "川口市 / 埼玉県 / 日本 を位置情報に反映しました。緯度・経度・タイムゾーンを更新しています。",
+    );
+  });
+
+  it("地域名が入力済みなら候補選択で上書きしない", async () => {
+    const { default: SettingsWeatherLocationsPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(SettingsWeatherLocationsPage));
+      await waitForEffects();
+    });
+
+    await act(async () => {
+      setInputValue(
+        container.querySelector<HTMLInputElement>(
+          "#new-weather-location-name",
+        )!,
+        "職場",
+      );
+      setInputValue(
+        container.querySelector<HTMLInputElement>(
+          "#new-weather-location-geocode-query",
+        )!,
+        "川口",
+      );
+      await waitForEffects();
+    });
+
+    const searchButton = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button"),
+    ).find((button) => button.textContent?.includes("検索"));
+
+    await act(async () => {
+      searchButton?.click();
+      await waitForEffects();
+    });
+
+    const applyButton = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button"),
+    ).find((button) => button.textContent?.includes("この地点を使う"));
+
+    await act(async () => {
+      applyButton?.click();
+      await waitForEffects();
+    });
+
+    expect(
+      container.querySelector<HTMLInputElement>("#new-weather-location-name")
+        ?.value,
+    ).toBe("職場");
+    expect(
+      container.querySelector<HTMLInputElement>(
+        "#new-weather-location-latitude",
+      )?.value,
+    ).toBe("35.8077");
+    expect(container.textContent).toContain("選択済み");
+    expect(container.textContent).toContain(
+      "川口市 / 埼玉県 / 日本 を位置情報に反映しました。緯度・経度・タイムゾーンを更新しています。",
+    );
+  });
+
+  it("検索結果が空なら案内を表示する", async () => {
+    searchWeatherLocationGeocodeMock.mockResolvedValueOnce({
+      results: [],
+    });
+
+    const { default: SettingsWeatherLocationsPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(SettingsWeatherLocationsPage));
+      await waitForEffects();
+    });
+
+    await act(async () => {
+      setInputValue(
+        container.querySelector<HTMLInputElement>(
+          "#new-weather-location-geocode-query",
+        )!,
+        "zzzz",
+      );
+      await waitForEffects();
+    });
+
+    const searchButton = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button"),
+    ).find((button) => button.textContent?.includes("検索"));
+
+    await act(async () => {
+      searchButton?.click();
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain("候補が見つかりませんでした。");
+  });
+
+  it("検索 API 失敗時もフォームを壊さない", async () => {
+    searchWeatherLocationGeocodeMock.mockRejectedValueOnce({
+      status: 502,
+      data: {
+        message:
+          "地域候補の検索に失敗しました。時間をおいて再度お試しください。",
+      },
+    });
+
+    const { default: SettingsWeatherLocationsPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(SettingsWeatherLocationsPage));
+      await waitForEffects();
+    });
+
+    await act(async () => {
+      setInputValue(
+        container.querySelector<HTMLInputElement>(
+          "#new-weather-location-geocode-query",
+        )!,
+        "川口",
+      );
+      await waitForEffects();
+    });
+
+    const searchButton = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button"),
+    ).find((button) => button.textContent?.includes("検索"));
+
+    await act(async () => {
+      searchButton?.click();
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain(
+      "地域候補の検索に失敗しました。時間をおいて再度お試しください。",
+    );
+    expect(
+      container.querySelector<HTMLInputElement>("#new-weather-location-name")
+        ?.value,
+    ).toBe("");
   });
 
   it("JMA予報区域と座標を選んで地域を追加できる", async () => {
@@ -164,7 +383,7 @@ describe("SettingsWeatherLocationsPage", () => {
     ).find((button) => button.textContent?.includes("地域を追加"));
 
     await act(async () => {
-      setInputValue(nameInput!, "職場");
+      setInputValue(nameInput!, "新宿");
       setSelectValue(jmaRegionSelect!, "130010");
       setInputValue(latitudeInput!, "35.6895");
       setInputValue(longitudeInput!, "139.6917");
@@ -179,7 +398,7 @@ describe("SettingsWeatherLocationsPage", () => {
     });
 
     expect(createUserWeatherLocationMock).toHaveBeenCalledWith({
-      name: "職場",
+      name: "新宿",
       jma_forecast_region_code: "130010",
       jma_forecast_office_code: "130000",
       latitude: 35.6895,

@@ -1774,6 +1774,47 @@ paths:
         "422":
           description: バリデーションエラー
 
+  /api/settings/weather-locations/geocode:
+    get:
+      tags:
+        - Settings
+      summary: 地域名から Open-Meteo Geocoding 候補を検索
+      description: |
+        Open-Meteo Geocoding API を backend 経由で呼び出し、地域設定画面で使う候補一覧を返す。
+        候補選択時は `latitude` / `longitude` / `timezone` をフォームへ自動反映し、地域名は空欄のときだけ補完する。
+        Geocoding の詳細結果は今回は DB 保存しない。
+      operationId: geocodeWeatherLocation
+      security:
+        - SessionCookieAuth: []
+      parameters:
+        - in: query
+          name: query
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 100
+          description: 検索に使う地域名キーワード
+      responses:
+        "200":
+          description: 候補一覧
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WeatherLocationGeocodeResponse"
+        "422":
+          description: バリデーションエラー
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "502":
+          description: Geocoding API 呼び出し失敗
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageOnlyResponse"
+
   /api/settings/weather-locations/{id}:
     patch:
       tags:
@@ -5104,6 +5145,45 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/WeatherLocationRecord"
+
+    WeatherLocationGeocodeResult:
+      type: object
+      required:
+        - name
+        - country
+        - latitude
+        - longitude
+        - timezone
+      properties:
+        name:
+          type: string
+        admin1:
+          type: string
+          nullable: true
+        admin2:
+          type: string
+          nullable: true
+        country:
+          type: string
+        latitude:
+          type: number
+          description: 候補地点の緯度。候補選択時に weather location へ反映する。
+        longitude:
+          type: number
+          description: 候補地点の経度。候補選択時に weather location へ反映する。
+        timezone:
+          type: string
+          description: 候補地点のタイムゾーン。候補選択時に weather location へ反映する。
+
+    WeatherLocationGeocodeResponse:
+      type: object
+      required:
+        - results
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/WeatherLocationGeocodeResult"
 
     WeatherLocationUpsertRequest:
       type: object

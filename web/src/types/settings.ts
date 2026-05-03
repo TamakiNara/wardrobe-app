@@ -100,6 +100,20 @@ export type UserWeatherLocationsResponse = {
   locations: UserWeatherLocationRecord[];
 };
 
+export type WeatherLocationGeocodeResult = {
+  name: string;
+  admin1: string | null;
+  admin2: string | null;
+  country: string | null;
+  latitude: number;
+  longitude: number;
+  timezone: string | null;
+};
+
+export type WeatherLocationGeocodeResponse = {
+  results: WeatherLocationGeocodeResult[];
+};
+
 export type CreateUserWeatherLocationPayload = {
   name: string;
   forecast_area_code?: string | null;

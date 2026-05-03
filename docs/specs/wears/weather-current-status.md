@@ -31,6 +31,10 @@
 - `user_weather_locations` を持つ。
 - 地域名はユーザー向け表示名であり、市区町村の正規コードではない。
 - デフォルト地域を設定できる。
+- `latitude` / `longitude` / `timezone` を保持できる。
+- Open-Meteo Geocoding API を使った `地域を検索` 導線があり、候補選択で `latitude` / `longitude` / `timezone` をフォームへ反映できる。
+- Geocoding で候補選択しても、地域名が入力済みなら上書きせず、位置情報だけ更新する。
+- 緯度 / 経度 / タイムゾーンの手入力欄は fallback として残している。
 - JMA 予報区域コードとして以下を保持できる。
   - `jma_forecast_region_code`
   - `jma_forecast_office_code`
@@ -232,11 +236,11 @@
 
 ### current
 
-- 地域設定は JMA 系の legacy カラムに加えて、latitude / longitude / 	imezone を保持できる
+- 地域設定は JMA 系の legacy カラムに加えて、latitude / longitude / timezone を保持できる
 - latitude / longitude はセットで扱い、片方だけの保存はしない
-- 	imezone は Open-Meteo の daily 集計と日付境界に関わるため、国内利用では Asia/Tokyo を基準に案内する
+- timezone は Open-Meteo の daily 集計と日付境界に関わるため、国内利用では Asia/Tokyo を基準に案内する
 
 ### planned
 
-- Open-Meteo forecast / historical の本実装では、weather location の正本を latitude / longitude / 	imezone に寄せる
+- Open-Meteo forecast / historical の本実装では、weather location の正本を latitude / longitude / timezone に寄せる
 - JMA forecast JSON / tsukumijima fallback / JMA latest CSV PoC は current または legacy の知見として残しつつ、主経路からは段階的に外す

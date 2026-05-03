@@ -12,6 +12,7 @@ import type {
   UserPreferencesResponse,
   UserBrandRecord,
   UserBrandsResponse,
+  WeatherLocationGeocodeResponse,
   UserTpoRecord,
   UserTposResponse,
   UserWeatherLocationRecord,
@@ -158,6 +159,18 @@ export async function updateUserBrand(
 export async function fetchUserWeatherLocations(): Promise<UserWeatherLocationsResponse> {
   return apiFetch<UserWeatherLocationsResponse>(
     "/api/settings/weather-locations",
+  );
+}
+
+export async function searchWeatherLocationGeocode(
+  query: string,
+): Promise<WeatherLocationGeocodeResponse> {
+  const params = new URLSearchParams({
+    query,
+  });
+
+  return apiFetch<WeatherLocationGeocodeResponse>(
+    `/api/settings/weather-locations/geocode?${params.toString()}`,
   );
 }
 

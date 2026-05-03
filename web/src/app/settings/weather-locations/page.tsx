@@ -20,9 +20,13 @@ import {
   createUserWeatherLocation,
   deleteUserWeatherLocation,
   fetchUserWeatherLocations,
+  searchWeatherLocationGeocode,
   updateUserWeatherLocation,
 } from "@/lib/api/settings";
-import type { UserWeatherLocationRecord } from "@/types/settings";
+import type {
+  UserWeatherLocationRecord,
+  WeatherLocationGeocodeResult,
+} from "@/types/settings";
 
 function getFirstValidationMessage(data: unknown, keys: string[]) {
   const errors = flattenValidationErrors(data);
@@ -78,6 +82,16 @@ function buildCoordinatePayload(
   };
 }
 
+function buildGeocodeResultLabel(result: WeatherLocationGeocodeResult) {
+  return [result.name, result.admin1, result.country]
+    .filter((value) => value && value.trim() !== "")
+    .join(" / ");
+}
+
+function buildGeocodeResultKey(result: WeatherLocationGeocodeResult) {
+  return `${result.name}-${result.latitude}-${result.longitude}-${result.timezone ?? ""}`;
+}
+
 function SettingsWeatherLocationsPageContent() {
   const EditIcon = settingsActionIcons.edit;
   const router = useRouter();
@@ -93,6 +107,19 @@ function SettingsWeatherLocationsPageContent() {
   const [newLatitude, setNewLatitude] = useState("");
   const [newLongitude, setNewLongitude] = useState("");
   const [newTimezone, setNewTimezone] = useState("Asia/Tokyo");
+  const [newGeocodeQuery, setNewGeocodeQuery] = useState("");
+  const [newGeocodeResults, setNewGeocodeResults] = useState<
+    WeatherLocationGeocodeResult[]
+  >([]);
+  const [newGeocodeError, setNewGeocodeError] = useState<string | null>(null);
+  const [newGeocodeSearched, setNewGeocodeSearched] = useState(false);
+  const [searchingNewGeocode, setSearchingNewGeocode] = useState(false);
+  const [newSelectedGeocodeKey, setNewSelectedGeocodeKey] = useState<
+    string | null
+  >(null);
+  const [newGeocodeMessage, setNewGeocodeMessage] = useState<string | null>(
+    null,
+  );
   const [newIsDefault, setNewIsDefault] = useState(false);
   const [adding, setAdding] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -101,6 +128,19 @@ function SettingsWeatherLocationsPageContent() {
   const [editLatitude, setEditLatitude] = useState("");
   const [editLongitude, setEditLongitude] = useState("");
   const [editTimezone, setEditTimezone] = useState("Asia/Tokyo");
+  const [editGeocodeQuery, setEditGeocodeQuery] = useState("");
+  const [editGeocodeResults, setEditGeocodeResults] = useState<
+    WeatherLocationGeocodeResult[]
+  >([]);
+  const [editGeocodeError, setEditGeocodeError] = useState<string | null>(null);
+  const [editGeocodeSearched, setEditGeocodeSearched] = useState(false);
+  const [searchingEditGeocode, setSearchingEditGeocode] = useState(false);
+  const [editSelectedGeocodeKey, setEditSelectedGeocodeKey] = useState<
+    string | null
+  >(null);
+  const [editGeocodeMessage, setEditGeocodeMessage] = useState<string | null>(
+    null,
+  );
   const [editIsDefault, setEditIsDefault] = useState(false);
   const [updatingId, setUpdatingId] = useState<number | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
@@ -166,6 +206,99 @@ function SettingsWeatherLocationsPageContent() {
     setListError(null);
   }
 
+  function applyGeocodeSelection(
+    result: WeatherLocationGeocodeResult,
+    options: {
+      currentName: string;
+      setName: (value: string) => void;
+      setLatitude: (value: string) => void;
+      setLongitude: (value: string) => void;
+      setTimezone: (value: string) => void;
+      setSelectedKey: (value: string) => void;
+      setMessage: (value: string) => void;
+    },
+  ) {
+    if (options.currentName.trim() === "") {
+      options.setName(result.name);
+    }
+
+    options.setLatitude(String(result.latitude));
+    options.setLongitude(String(result.longitude));
+    options.setTimezone(result.timezone ?? "Asia/Tokyo");
+    options.setSelectedKey(buildGeocodeResultKey(result));
+    options.setMessage(
+      `${buildGeocodeResultLabel(result)} を位置情報に反映しました。緯度・経度・タイムゾーンを更新しています。`,
+    );
+  }
+
+  async function handleNewGeocodeSearch() {
+    if (searchingNewGeocode) return;
+
+    setNewGeocodeError(null);
+    setNewGeocodeSearched(false);
+    setNewGeocodeMessage(null);
+    setSearchingNewGeocode(true);
+
+    try {
+      const response = await searchWeatherLocationGeocode(newGeocodeQuery);
+      setNewGeocodeResults(response.results);
+      setNewGeocodeSearched(true);
+    } catch (error) {
+      if (error instanceof ApiClientError) {
+        setNewGeocodeError(
+          getFirstValidationMessage(error.data, ["query"]) ??
+            getUserFacingSubmitErrorMessage(
+              error.data,
+              "地域候補の検索に失敗しました。時間をおいて再度お試しください。",
+            ),
+        );
+      } else {
+        setNewGeocodeError(
+          "地域候補の検索に失敗しました。時間をおいて再度お試しください。",
+        );
+      }
+
+      setNewGeocodeResults([]);
+      setNewGeocodeSearched(true);
+    } finally {
+      setSearchingNewGeocode(false);
+    }
+  }
+
+  async function handleEditGeocodeSearch() {
+    if (searchingEditGeocode) return;
+
+    setEditGeocodeError(null);
+    setEditGeocodeSearched(false);
+    setEditGeocodeMessage(null);
+    setSearchingEditGeocode(true);
+
+    try {
+      const response = await searchWeatherLocationGeocode(editGeocodeQuery);
+      setEditGeocodeResults(response.results);
+      setEditGeocodeSearched(true);
+    } catch (error) {
+      if (error instanceof ApiClientError) {
+        setEditGeocodeError(
+          getFirstValidationMessage(error.data, ["query"]) ??
+            getUserFacingSubmitErrorMessage(
+              error.data,
+              "地域候補の検索に失敗しました。時間をおいて再度お試しください。",
+            ),
+        );
+      } else {
+        setEditGeocodeError(
+          "地域候補の検索に失敗しました。時間をおいて再度お試しください。",
+        );
+      }
+
+      setEditGeocodeResults([]);
+      setEditGeocodeSearched(true);
+    } finally {
+      setSearchingEditGeocode(false);
+    }
+  }
+
   async function refreshLocations() {
     await loadLocations();
   }
@@ -210,6 +343,12 @@ function SettingsWeatherLocationsPageContent() {
       setNewLatitude("");
       setNewLongitude("");
       setNewTimezone("Asia/Tokyo");
+      setNewGeocodeQuery("");
+      setNewGeocodeResults([]);
+      setNewGeocodeError(null);
+      setNewGeocodeSearched(false);
+      setNewSelectedGeocodeKey(null);
+      setNewGeocodeMessage(null);
       setNewIsDefault(false);
       setFormMessage("地域を追加しました。");
     } catch (error) {
@@ -246,6 +385,12 @@ function SettingsWeatherLocationsPageContent() {
     setEditLatitude(formatCoordinateField(location.latitude));
     setEditLongitude(formatCoordinateField(location.longitude));
     setEditTimezone(location.timezone ?? "Asia/Tokyo");
+    setEditGeocodeQuery(location.name);
+    setEditGeocodeResults([]);
+    setEditGeocodeError(null);
+    setEditGeocodeSearched(false);
+    setEditSelectedGeocodeKey(null);
+    setEditGeocodeMessage(null);
     setEditIsDefault(location.is_default);
   }
 
@@ -432,6 +577,113 @@ function SettingsWeatherLocationsPageContent() {
               />
             </div>
 
+            <div className="rounded-xl border border-blue-200 bg-blue-50/60 px-4 py-4">
+              <div className="space-y-1">
+                <h3 className="text-sm font-semibold text-blue-900">
+                  地域を検索
+                </h3>
+                <p className="text-xs text-blue-800">
+                  地域名から候補を検索して、緯度・経度・タイムゾーンを自動反映できます。
+                </p>
+                <p className="text-xs text-blue-800">
+                  Geocoding API
+                  が失敗した場合でも、下の欄で手入力を続けられます。
+                </p>
+              </div>
+
+              <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+                <input
+                  id="new-weather-location-geocode-query"
+                  value={newGeocodeQuery}
+                  onChange={(event) => setNewGeocodeQuery(event.target.value)}
+                  className="w-full rounded-lg border border-blue-200 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  placeholder="例: 川口"
+                />
+                <button
+                  type="button"
+                  onClick={handleNewGeocodeSearch}
+                  disabled={searchingNewGeocode}
+                  className="inline-flex min-w-28 items-center justify-center rounded-lg border border-blue-300 bg-white px-4 py-3 text-sm font-medium text-blue-700 transition hover:bg-blue-100 disabled:cursor-not-allowed disabled:border-gray-200 disabled:text-gray-400"
+                >
+                  {searchingNewGeocode ? "検索中..." : "検索"}
+                </button>
+              </div>
+
+              {newGeocodeError ? (
+                <p className="mt-3 text-sm text-red-700">{newGeocodeError}</p>
+              ) : null}
+
+              {newGeocodeMessage ? (
+                <p className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+                  {newGeocodeMessage}
+                </p>
+              ) : null}
+
+              {newGeocodeSearched &&
+              newGeocodeResults.length === 0 &&
+              !newGeocodeError ? (
+                <p className="mt-3 text-sm text-blue-900">
+                  候補が見つかりませんでした。
+                </p>
+              ) : null}
+
+              {newGeocodeResults.length > 0 ? (
+                <div className="mt-4 space-y-3">
+                  {newGeocodeResults.map((result) => {
+                    const resultKey = buildGeocodeResultKey(result);
+                    const isSelected = newSelectedGeocodeKey === resultKey;
+
+                    return (
+                      <div
+                        key={resultKey}
+                        className={`rounded-lg px-4 py-3 ${
+                          isSelected
+                            ? "border border-emerald-300 bg-emerald-50/70"
+                            : "border border-blue-200 bg-white"
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <p className="text-sm font-medium text-gray-900">
+                            {buildGeocodeResultLabel(result)}
+                          </p>
+                          {isSelected ? (
+                            <span className="inline-flex rounded-full border border-emerald-300 bg-white px-2 py-0.5 text-xs font-medium text-emerald-700">
+                              選択済み
+                            </span>
+                          ) : null}
+                        </div>
+                        <p className="mt-1 text-xs text-gray-600">
+                          緯度 {result.latitude} / 経度 {result.longitude} /{" "}
+                          {result.timezone ?? "timezone 未設定"}
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            applyGeocodeSelection(result, {
+                              currentName: newName,
+                              setName: setNewName,
+                              setLatitude: setNewLatitude,
+                              setLongitude: setNewLongitude,
+                              setTimezone: setNewTimezone,
+                              setSelectedKey: setNewSelectedGeocodeKey,
+                              setMessage: setNewGeocodeMessage,
+                            })
+                          }
+                          className={`mt-3 inline-flex items-center justify-center rounded-lg px-3 py-2 text-sm font-medium transition ${
+                            isSelected
+                              ? "border border-emerald-300 bg-emerald-100 text-emerald-700"
+                              : "border border-blue-300 bg-blue-50 text-blue-700 hover:bg-blue-100"
+                          }`}
+                        >
+                          {isSelected ? "選択中" : "この地点を使う"}
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : null}
+            </div>
+
             <div>
               <label
                 htmlFor="new-weather-location-jma-region"
@@ -592,6 +844,119 @@ function SettingsWeatherLocationsPageContent() {
                               }
                               className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                             />
+                          </div>
+
+                          <div className="rounded-xl border border-blue-200 bg-blue-50/60 px-4 py-4">
+                            <div className="space-y-1">
+                              <h4 className="text-sm font-semibold text-blue-900">
+                                地域を検索
+                              </h4>
+                              <p className="text-xs text-blue-800">
+                                地域名から候補を検索して、緯度・経度・タイムゾーンを自動反映できます。
+                              </p>
+                            </div>
+
+                            <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+                              <input
+                                id={`edit-weather-location-geocode-query-${location.id}`}
+                                value={editGeocodeQuery}
+                                onChange={(event) =>
+                                  setEditGeocodeQuery(event.target.value)
+                                }
+                                className="w-full rounded-lg border border-blue-200 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                placeholder="例: 川口"
+                              />
+                              <button
+                                type="button"
+                                onClick={handleEditGeocodeSearch}
+                                disabled={searchingEditGeocode}
+                                className="inline-flex min-w-28 items-center justify-center rounded-lg border border-blue-300 bg-white px-4 py-3 text-sm font-medium text-blue-700 transition hover:bg-blue-100 disabled:cursor-not-allowed disabled:border-gray-200 disabled:text-gray-400"
+                              >
+                                {searchingEditGeocode ? "検索中..." : "検索"}
+                              </button>
+                            </div>
+
+                            {editGeocodeError ? (
+                              <p className="mt-3 text-sm text-red-700">
+                                {editGeocodeError}
+                              </p>
+                            ) : null}
+
+                            {editGeocodeMessage ? (
+                              <p className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+                                {editGeocodeMessage}
+                              </p>
+                            ) : null}
+
+                            {editGeocodeSearched &&
+                            editGeocodeResults.length === 0 &&
+                            !editGeocodeError ? (
+                              <p className="mt-3 text-sm text-blue-900">
+                                候補が見つかりませんでした。
+                              </p>
+                            ) : null}
+
+                            {editGeocodeResults.length > 0 ? (
+                              <div className="mt-4 space-y-3">
+                                {editGeocodeResults.map((result) => {
+                                  const resultKey =
+                                    buildGeocodeResultKey(result);
+                                  const isSelected =
+                                    editSelectedGeocodeKey === resultKey;
+
+                                  return (
+                                    <div
+                                      key={resultKey}
+                                      className={`rounded-lg px-4 py-3 ${
+                                        isSelected
+                                          ? "border border-emerald-300 bg-emerald-50/70"
+                                          : "border border-blue-200 bg-white"
+                                      }`}
+                                    >
+                                      <div className="flex items-start justify-between gap-3">
+                                        <p className="text-sm font-medium text-gray-900">
+                                          {buildGeocodeResultLabel(result)}
+                                        </p>
+                                        {isSelected ? (
+                                          <span className="inline-flex rounded-full border border-emerald-300 bg-white px-2 py-0.5 text-xs font-medium text-emerald-700">
+                                            選択済み
+                                          </span>
+                                        ) : null}
+                                      </div>
+                                      <p className="mt-1 text-xs text-gray-600">
+                                        緯度 {result.latitude} / 経度{" "}
+                                        {result.longitude} /{" "}
+                                        {result.timezone ?? "timezone 未設定"}
+                                      </p>
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          applyGeocodeSelection(result, {
+                                            currentName: editName,
+                                            setName: setEditName,
+                                            setLatitude: setEditLatitude,
+                                            setLongitude: setEditLongitude,
+                                            setTimezone: setEditTimezone,
+                                            setSelectedKey:
+                                              setEditSelectedGeocodeKey,
+                                            setMessage: setEditGeocodeMessage,
+                                          })
+                                        }
+                                        className={`mt-3 inline-flex items-center justify-center rounded-lg px-3 py-2 text-sm font-medium transition ${
+                                          isSelected
+                                            ? "border border-emerald-300 bg-emerald-100 text-emerald-700"
+                                            : "border border-blue-300 bg-blue-50 text-blue-700 hover:bg-blue-100"
+                                        }`}
+                                      >
+                                        {isSelected
+                                          ? "選択中"
+                                          : "この地点を使う"}
+                                      </button>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            ) : null}
                           </div>
 
                           <div>

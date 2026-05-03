@@ -1,7 +1,7 @@
 # Weather Forecast Integration
 
 着用記録で使う天気予報データの取得元と、今後の移行方針を整理する。
-今回は実装ではなく、`weather.tsukumijima.net` から気象庁 forecast JSON へ段階移行する前提の設計整理を正本として残す。
+今回は実装ではなく、current の JMA forecast JSON / tsukumijima fallback を整理しつつ、Open-Meteo forecast へ寄せる再設計メモを正本として残す。
 
 ---
 
@@ -376,6 +376,11 @@ JMA forecast JSON を使う場合の `source_name` は以下を推奨する。
 ---
 
 ## 2026-05-03 coordinate-primary direction note
+
+### current
+
+- 地域設定画面には Open-Meteo Geocoding API を使った候補検索があり、forecast 用 location の `latitude` / `longitude` / `timezone` を自動反映できる
+- Geocoding 検索に失敗した場合も、座標とタイムゾーンは手入力 fallback で設定を継続できる
 
 ### planned
 

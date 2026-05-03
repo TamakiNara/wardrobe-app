@@ -1,7 +1,7 @@
 # Weather Location Settings
 
 天気予報取得で使うユーザーごとの地点設定を整理する。
-今回は `weather.tsukumijima.net` から気象庁 forecast JSON へ段階移行する前提で、`user_weather_locations` の設計方針をまとめる。
+今回は Open-Meteo 移行を本命にしつつ、legacy コード群を段階的に後退させる前提で、`user_weather_locations` の設計方針をまとめる。
 
 ---
 
@@ -25,6 +25,7 @@
 - `forecast_area_code` nullable
 - `latitude` nullable
 - `longitude` nullable
+- `timezone` nullable
 - `is_default`
 - `display_order`
 
@@ -38,6 +39,9 @@
   - MVP では `weather.tsukumijima.net` の city code 前提
 - `latitude` / `longitude`
   - 実績取得や位置ベース処理を想定した nullable 項目
+- `timezone`
+  - Open-Meteo の daily 集計と日付境界に関わる nullable 項目
+  - 日本国内利用では通常 `Asia/Tokyo`
 
 ### current の課題
 
@@ -230,13 +234,40 @@ JMA へ切り替える初期段階では、既存 `forecast_area_code` を以下
 - user_weather_locations は次の座標系カラムを保持できる
   - latitude
   - longitude
-  - 	imezone
+  - timezone
 - DB 上は既存地域互換のため nullable のまま維持する
 - 地域設定 UI では、手入力 fallback として 緯度 / 経度 / タイムゾーン を確認・編集できる
-- 	imezone は Open-Meteo の daily 集計と日付境界に関わるため、日本国内では Asia/Tokyo を基本値として案内する
+- timezone は Open-Meteo の daily 集計と日付境界に関わるため、日本国内では Asia/Tokyo を基本値として案内する
 
 ### planned
 
 - 新規地域の主入力は最終的に Open-Meteo Geocoding API による候補検索へ寄せる
-- latitude / longitude / 	imezone は Open-Meteo forecast / historical の正本として使う
-- orecast_area_code / jma_forecast_region_code / jma_forecast_office_code / observation_station_code / observation_station_name は legacy / fallback / import-export 互換として当面残す
+- latitude / longitude / timezone は Open-Meteo forecast / historical の正本として使う
+- forecast_area_code / jma_forecast_region_code / jma_forecast_office_code / observation_station_code / observation_station_name は legacy / fallback / import-export 互換として当面残す
+
+---
+
+## 2026-05-03 geocoding implementation note
+
+### current
+
+- 地域設定画面には Open-Meteo Geocoding API を使った `地域を検索` 導線がある
+- 検索は `/api/settings/weather-locations/geocode` 経由で行う
+- 候補選択で以下を自動反映する
+  - latitude
+  - longitude
+  - timezone
+- 候補の name は、地域名が空欄のときだけ自動反映する
+- 地域名が入力済みのときは、latitude / longitude / timezone だけ更新する
+- 緯度 / 経度 / タイムゾーンの手入力欄は fallback として残す
+- Geocoding API が失敗しても、手入力で設定を続けられる
+
+### planned
+
+- Geocoding 検索結果そのものは、今回は DB 保存しない
+- 将来保存を検討する候補:
+  - geocoding_provider
+  - geocoding_place_id
+  - country
+  - admin1
+  - admin2

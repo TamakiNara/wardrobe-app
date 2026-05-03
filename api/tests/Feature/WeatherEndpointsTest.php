@@ -283,6 +283,95 @@ class WeatherEndpointsTest extends TestCase
             ->assertJsonPath('location.timezone', null);
     }
 
+    public function test_weather_location_geocode_returns_candidates(): void
+    {
+        Http::fake([
+            'https://geocoding-api.open-meteo.com/v1/search*' => Http::response([
+                'results' => [
+                    [
+                        'name' => '川口市',
+                        'admin1' => '埼玉県',
+                        'country' => '日本',
+                        'latitude' => 35.8077,
+                        'longitude' => 139.7241,
+                        'timezone' => 'Asia/Tokyo',
+                    ],
+                ],
+            ], 200),
+        ]);
+
+        $user = User::factory()->create();
+        $this->actingAs($user, 'web');
+
+        $response = $this->getJson('/api/weather-locations/geocode?query=川口', [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('results.0.name', '川口市')
+            ->assertJsonPath('results.0.admin1', '埼玉県')
+            ->assertJsonPath('results.0.country', '日本')
+            ->assertJsonPath('results.0.latitude', 35.8077)
+            ->assertJsonPath('results.0.longitude', 139.7241)
+            ->assertJsonPath('results.0.timezone', 'Asia/Tokyo');
+    }
+
+    public function test_weather_location_geocode_returns_empty_array_when_no_candidates_are_found(): void
+    {
+        Http::fake([
+            'https://geocoding-api.open-meteo.com/v1/search*' => Http::response([], 200),
+        ]);
+
+        $user = User::factory()->create();
+        $this->actingAs($user, 'web');
+
+        $response = $this->getJson('/api/weather-locations/geocode?query=zzzz', [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk()
+            ->assertExactJson([
+                'results' => [],
+            ]);
+    }
+
+    public function test_weather_location_geocode_validates_query_length(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user, 'web');
+
+        $missingQueryResponse = $this->getJson('/api/weather-locations/geocode', [
+            'Accept' => 'application/json',
+        ]);
+
+        $missingQueryResponse->assertStatus(422)
+            ->assertJsonValidationErrors(['query']);
+
+        $tooLongQueryResponse = $this->getJson('/api/weather-locations/geocode?query='.str_repeat('a', 101), [
+            'Accept' => 'application/json',
+        ]);
+
+        $tooLongQueryResponse->assertStatus(422)
+            ->assertJsonValidationErrors(['query']);
+    }
+
+    public function test_weather_location_geocode_returns_upstream_errors_as_bad_gateway(): void
+    {
+        Http::fake([
+            'https://geocoding-api.open-meteo.com/v1/search*' => Http::response([], 500),
+        ]);
+
+        $user = User::factory()->create();
+        $this->actingAs($user, 'web');
+
+        $response = $this->getJson('/api/weather-locations/geocode?query=川口', [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertStatus(502)
+            ->assertJsonPath('message', '地域候補の検索に失敗しました。時間をおいて再度お試しください。');
+    }
+
     public function test_weather_records_can_be_created_listed_updated_and_deduplicated(): void
     {
         $user = User::factory()->create();

@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\UserWeatherLocation;
+use App\Services\Weather\FetchWeatherForecastException;
+use App\Services\Weather\SearchOpenMeteoGeocodingService;
 use App\Support\JmaForecastAreaCodeSupport;
 use App\Support\WeatherLocationPayloadBuilder;
 use Illuminate\Http\JsonResponse;
@@ -13,6 +15,25 @@ use Illuminate\Validation\ValidationException;
 
 class WeatherLocationController extends Controller
 {
+    public function geocode(
+        Request $request,
+        SearchOpenMeteoGeocodingService $service
+    ): JsonResponse {
+        $validated = $request->validate([
+            'query' => ['required', 'string', 'min:1', 'max:100'],
+        ]);
+
+        try {
+            $results = $service->search($validated['query']);
+        } catch (FetchWeatherForecastException $exception) {
+            return response()->json([
+                'message' => $exception->getMessage(),
+            ], 502);
+        }
+
+        return response()->json($results);
+    }
+
     public function index(Request $request): JsonResponse
     {
         $locations = UserWeatherLocation::query()
