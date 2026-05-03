@@ -1,229 +1,334 @@
 # Weather Location Settings
 
-天気予報取得で使うユーザーごとの地点設定を整理する。
-今回は Open-Meteo 移行を本命にしつつ、legacy コード群を段階的に後退させる前提で、`user_weather_locations` の設計方針をまとめる。
+`user_weather_locations` の責務、座標正本、Geocoding、legacy code の扱いを整理する正本です。  
+天気取得 API の詳細は [weather fetching](../wears/weather-fetching.md)、`weather_records` の保存方針は [weather records](../wears/weather-records.md) を参照してください。
+
+関連 docs:
+
+- [weather current status](../wears/weather-current-status.md)
+- [weather fetching](../wears/weather-fetching.md)
+- [weather records](../wears/weather-records.md)
+- [weather-open-meteo-redesign.md](../wears/weather-open-meteo-redesign.md)
+- [import-export](../import-export.md)
 
 ---
 
 ## 目的
 
-- ユーザーが使う地域表示名と、予報取得用コードの責務を分ける
-- `forecast_area_code` の legacy 化方針を明確にする
-- 将来の予報用コードと実績用観測所コードの共存余地を残す
+`user_weather_locations` は、ユーザーがよく使う地域を保存し、天気取得に必要な位置情報を管理する設定である。  
+current では Open-Meteo 移行を前提に、`latitude / longitude / timezone` を主軸へ寄せつつ、legacy code fields を当面共存させる。
+
+この docs では以下を扱う。
+
+- `user_weather_locations` の責務
+- 地域名
+- `latitude / longitude / timezone`
+- Open-Meteo Geocoding API
+- デフォルト地域
+- 今回だけの地域との違い
+- legacy code fields
+- import / export 影響
+- 将来的な legacy 削除方針
 
 ---
 
 ## current
 
+### `user_weather_locations` の責務
+
+current では、`user_weather_locations` は以下の意味を持つ。
+
+- ユーザーがよく使う地域を保存する設定
+- 天気取得に使う位置情報を持つ
+- 天気登録画面で保存済み地域として選択できる
+- デフォルト地域を設定できる
+- 地域名はユーザー向け表示名
+- 地域名と API 上の地点・予報区域・観測地点は一致しない場合がある
+
 設定画面:
 
 - `/settings/weather-locations`
 
-現行の `user_weather_locations` は、予報用設定として以下を持つ。
+代表的な current 項目:
 
 - `name`
-- `forecast_area_code` nullable
 - `latitude` nullable
 - `longitude` nullable
 - `timezone` nullable
 - `is_default`
 - `display_order`
+- legacy code fields
 
-### current の意味
+### 地域名
+
+`name` はユーザー向け表示名である。
+
+例:
+
+- `川口`
+- `さいたま`
+- `大阪市内`
+- `旅行先`
+
+補足:
+
+- API の地点名や気象庁の予報区域名と完全一致する必要はない
+- Geocoding 候補名や観測地点名とズレてもよい
+- 保存時の表示名は、天気登録画面や `weather_records.location_name_snapshot` で利用される
+
+---
+
+## 座標正本
+
+### current の正本候補
+
+Open-Meteo 移行後の主軸として、以下を扱う。
+
+- `latitude`
+- `longitude`
+- `timezone`
+
+意味:
+
+- Open-Meteo Forecast / Historical の取得に使う
+- `timezone` は daily 集計と日付境界に影響する
+- 日本国内利用では通常 `Asia/Tokyo`
+
+### current 方針
+
+- DB 上は nullable
+- 新規作成時は UI 上で設定を促す
+- 既存地域は未設定を許容する
+- 座標未設定の場合、Open-Meteo forecast / historical は使えない
+- Geocoding API の候補選択で自動反映できる
+- 手入力は fallback として残す
+
+### 入力ルール
+
+current の validation 前提:
+
+- `latitude`: `-90..90`
+- `longitude`: `-180..180`
+- `latitude` と `longitude` は原則セット
+- `timezone`: IANA timezone 形式を想定
+
+補足:
+
+- UI では `timezone` の初期値を `Asia/Tokyo` に寄せる
+- backend は `timezone = null` を受ける
+
+---
+
+## Open-Meteo Geocoding API
+
+### current
+
+current の通常導線:
+
+1. 地域名を入力
+2. Geocoding API で候補検索
+3. 候補を表示
+4. 候補選択で `latitude / longitude / timezone` をフォームへ反映
+
+候補選択時の current ルール:
+
+- 地域名が空なら候補 `name` を入れる
+- 地域名が入力済みなら上書きしない
+- `latitude / longitude / timezone` は候補値で更新する
+- 手入力 fallback は残す
+- Geocoding result の詳細は DB 保存しない
+
+現在の実装メモ:
+
+- BFF route:
+  - `/api/settings/weather-locations/geocode`
+- provider:
+  - Open-Meteo Geocoding API
+
+### planned
+
+将来、必要なら以下の保存を再検討する。
+
+- `geocoding_provider`
+- `geocoding_place_id`
+- `country`
+- `admin1`
+- `admin2`
+
+ただし current では、`user_weather_locations` 自体の正本はあくまで
 
 - `name`
-  - ユーザー向け表示名
-  - 例: `川口`, `さいたま`, `大阪市内`
-- `forecast_area_code`
-  - 予報取得 API 用コードとして使っている
-  - MVP では `weather.tsukumijima.net` の city code 前提
-- `latitude` / `longitude`
-  - 実績取得や位置ベース処理を想定した nullable 項目
+- `latitude`
+- `longitude`
 - `timezone`
-  - Open-Meteo の daily 集計と日付境界に関わる nullable 項目
-  - 日本国内利用では通常 `Asia/Tokyo`
 
-### current の課題
+とする。
 
-- `forecast_area_code` が表示用地域コードなのか取得用コードなのか曖昧
-- 現行の選択肢には、将来的な JMA `class10` 相当と `office code` 相当が混在しうる
-- weather.tsukumijima.net 前提のコード設計をそのまま JMA へ持ち込むと意味が崩れる
+---
+
+## デフォルト地域
+
+### current
+
+- `is_default`
+
+意味:
+
+- 0 件または 1 件
+- 天気登録画面の初期選択候補
+- 複数保存済み地域の中で、よく使う地域を表す
+
+補足:
+
+- デフォルト地域は、天気取得の唯一の対象ではない
+- 日付や外出先に応じて、別の保存済み地域を選択できる
+
+---
+
+## 保存済み地域と今回だけの地域
+
+### 保存済み地域
+
+- `user_weather_locations` に保存する
+- Open-Meteo 取得に使える
+- デフォルト化できる
+- 繰り返し使う地域向け
+
+### 今回だけの地域
+
+- `user_weather_locations` に保存しない
+- `weather_records.location_id = null`
+- `weather_records.location_name_snapshot` に保存する
+- Open-Meteo 取得対象外
+- 手入力向き
+
+補足:
+
+- 旅行先・一時的な外出先などに使う
+- API 取得したい場合は、保存済み地域として登録する
+
+---
+
+## legacy code fields
+
+current では以下を legacy / fallback / import-export 互換用として残す。
+
+### `forecast_area_code`
+
+- `weather.tsukumijima.net` 用 legacy code
+- current では主入力ではない
+- forecast fallback / 旧 backup 互換用
+- 将来的に削除候補
+
+### `jma_forecast_region_code`
+
+- JMA forecast JSON PoC 用 legacy code
+- current では主入力ではない
+- Open-Meteo 以降は fallback / history 用
+
+### `jma_forecast_office_code`
+
+- JMA forecast JSON の取得用 office code
+- PoC / fallback 用 legacy
+- current では主入力ではない
+
+### `observation_station_code`
+
+- JMA latest CSV PoC 用 legacy code
+- current の本命ではない
+- Open-Meteo Historical により観測所コード依存は避ける方針
+
+### `observation_station_name`
+
+- `observation_station_code` の補助表示
+- legacy
+
+### 共通方針
+
+- すぐ削除しない
+- import / export 互換のため当面残す
+- 通常 UI の主入力からは段階的に外す
+- 利用状況を見て削除を再判断する
+
+---
+
+## import / export 影響
+
+### current
+
+current の weather location backup / restore は、少なくとも以下を roundtrip 対象にする。
+
+- `name`
+- `latitude`
+- `longitude`
+- `timezone`
+- `is_default`
+- `display_order`
+- legacy code fields
+
+### 旧 backup 互換
+
+- 座標系がない場合は未設定で復元する
+- Open-Meteo 取得は未設定扱いになる
+- legacy code fields は当面受ける
+
+### validation
+
+- `latitude`: `-90..90`
+- `longitude`: `-180..180`
+- `latitude / longitude` は原則セット
+- `timezone`: IANA timezone 形式を想定
+
+詳細は [import-export](../import-export.md) を参照する。
 
 ---
 
 ## planned
 
-### 推奨カラム
+### legacy 削除方針
 
-将来の正本設計では、JMA 用に役割を分ける。
-
-- `jma_forecast_region_code`
-- `jma_forecast_office_code`
-
-### 役割
-
-- `jma_forecast_region_code`
-  - ユーザーが設定 UI で選ぶ予報区域コード
-  - 第一候補は `class10`
-  - 一次細分区域がない地域では `office code` 自体を許容する
-- `jma_forecast_office_code`
-  - `forecast/{office_code}.json` を取得するためのコード
-  - `area.json` から region の親を解決して保持する
-
-### 想定する最終形
+将来的には、`user_weather_locations` の正本を次へ寄せる。
 
 - `name`
-- `jma_forecast_region_code` nullable
-- `jma_forecast_office_code` nullable
-- `latitude` nullable
-- `longitude` nullable
+- `latitude`
+- `longitude`
+- `timezone`
 - `is_default`
 - `display_order`
 
-### UI 方針
+legacy code fields は:
 
-- 設定画面では引き続き `予報区域` という表現でよい
-- ユーザーにはコード値を見せず、地域名ベースの選択肢を見せる
-- ユーザーが選ぶのは `region`
-- 実際の取得時に backend が `office code` を使う
+- fallback の実利用がなくなった段階
+- import / export 互換の方針が固まった段階
 
-### 地域名と予報区域名のズレ
+で削除を再判断する。
 
-生活上の地域名と予報区域名は一致しない場合がある。
+### 今後の整理候補
 
-例:
-
-- 表示名: `川口`
-- 予報区域: `埼玉県南部`
-
-このズレは異常ではなく、気象庁予報の粒度によるものとして扱う。
+- Geocoding result の詳細保存を行うか
+- `timezone` を将来 `NOT NULL` に寄せるか
+- 座標 snapshot を `weather_records` 側へ持つか
+- fallback provider をどこまで残すか
 
 ---
 
-## forecast_area_code の扱い
+## 参照先
 
-### legacy
-
-`forecast_area_code` は当面残すが、legacy 扱いにする。
-
-- 既存 UI
-- 既存 API
-- 既存 backup / restore
-- 既存 `weather_records.forecast_area_code_snapshot`
-
-との互換のために維持する。
-
-### 移行中の読み替え
-
-JMA へ切り替える初期段階では、既存 `forecast_area_code` を以下のように扱う。
-
-- `class10` 相当なら `jma_forecast_region_code` とみなし、親 `office code` を解決する
-- `office code` 相当なら `jma_forecast_office_code` とみなし、必要に応じて region 相当値を補う
-
-### 重要な整理
-
-- `forecast_area_code` は最終的な正本カラムではない
-- 新設計では `forecast_area_code` に tsukumijima city code と JMA code を混在させない
+- 天気取得 API 詳細:
+  - [weather fetching](../wears/weather-fetching.md)
+- `weather_records` の保存方針:
+  - [weather records](../wears/weather-records.md)
+- 天気機能全体の現在地:
+  - [weather current status](../wears/weather-current-status.md)
+- Open-Meteo 移行検討:
+  - [weather-open-meteo-redesign.md](../wears/weather-open-meteo-redesign.md)
+- backup / restore:
+  - [import-export](../import-export.md)
 
 ---
 
-## 実績取得との関係
+## pending / 要再判断
 
-予報と実績ではコード体系が異なる前提にする。
-
-共存させたい情報:
-
-- 地域表示名
-- `jma_forecast_region_code`
-- `jma_forecast_office_code`
-- 実績用観測所コード
-- `latitude`
-- `longitude`
-
-今回は予報側のみを設計対象とし、観測所コードは将来追加でよい。
-
----
-
-## 要再判断
-
-- `jma_forecast_region_code` を常に `class10` に寄せるか
-- `forecast_area_code` からの自動移行ロジックを DB 保存時に持つか、取得時 resolver に寄せるか
-- 地域設定 UI で `川口 -> 埼玉県南部` のようなズレ説明をどこまで出すか
-
----
-
-## 変更時の影響先
-
-- `user_weather_locations`
-- 地域設定 UI
-- import / export
-- forecast fetch service
-- `weather_records` の snapshot 設計
-
-
----
-
-## 2026-05-02 implementation note
-
-### current
-
-- `user_weather_locations` には以下を保持している。
-  - `forecast_area_code` nullable
-  - `jma_forecast_region_code` nullable
-  - `jma_forecast_office_code` nullable
-  - `observation_station_code` nullable
-  - `observation_station_name` nullable
-- JMA 予報区域は current 実装で利用している。
-- 観測地点は select と static definition で保持している。
-
-## 2026-05-03 Open-Meteo redesign note
-
-### planned
-
-- 地域設定の正本は将来的に `latitude` / `longitude` / `timezone` へ寄せる。
-- `forecast_area_code` / `jma_forecast_region_code` / `jma_forecast_office_code` / `observation_station_code` は legacy 扱いとする。
-- 地域設定 UI は Open-Meteo Geocoding API 検索を主導線にする。
-
-## 2026-05-03 coordinate-primary direction note
-
-### planned
-
-- `user_weather_locations` の正本候補は以下とする。
-  - `name`
-  - `latitude`
-  - `longitude`
-  - `timezone`
-  - `is_default`
-  - `display_order`
-- existing table を維持し、v2 テーブルは作らない。
-- legacy code は当面残す。
-
-## 2026-05-03 coordinate groundwork implementation note
-
-### current
-
-- `user_weather_locations` に Open-Meteo 用の位置情報として以下を持たせている。
-  - `latitude`
-  - `longitude`
-  - `timezone`
-- latitude / longitude は片方だけ保存できない。
-- timezone は nullable だが、UI では `Asia/Tokyo` を初期値にしている。
-- legacy 項目は以下を維持している。
-  - `forecast_area_code`
-  - `jma_forecast_region_code`
-  - `jma_forecast_office_code`
-  - `observation_station_code`
-  - `observation_station_name`
-
-### planned
-
-- 地域 location 検索は Geocoding API 経由で通常導線に寄せる。
-- Open-Meteo 用 location を current の主入力へ移していく。
-
-## 2026-05-03 geocoding implementation note
-
-### current
-
-- 地域設定では Open-Meteo Geocoding API を使った `地域を検索` 導線を追加している。
-- BFF は `/api/settings/weather-locations/geocode` を使う。
-- 候補選択で緯度 / 経度 / タイムゾーンをフォームへ反映する。
+- Geocoding result のどこまでを保存対象に広げるか
+- legacy code fields をいつ UI 主導線から外し切るか
+- 旧 backup 互換をどの期間維持するか

@@ -52,6 +52,7 @@ Open-Meteo forecast / historical、provider 優先順位、legacy fallback、日
 - 取得結果はフォーム反映のみ
 - 保存時に、フォーム上の最終値を `weather_records` へ保存する
 - precipitation 系は current では DB 保存しない
+- `user_weather_locations` の座標正本、Geocoding、legacy code fields の正本は [weather locations](../settings/weather-locations.md)
 - `weather_records` の保存方針、source metadata、snapshot planned の正本は [weather-records.md](./weather-records.md)
 
 ---

@@ -19,6 +19,7 @@ Web UI:
 補足:
 
 - `weather_records` 自体の保存方針や source metadata の意味は [wears/weather-records.md](./wears/weather-records.md) を正本とする
+- `user_weather_locations` の座標正本や legacy code fields の意味は [settings/weather-locations.md](./settings/weather-locations.md) を正本とする
 
 ---
 
