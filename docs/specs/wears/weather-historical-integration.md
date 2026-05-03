@@ -131,3 +131,17 @@
 - Open-Meteo historical の daily 値を前提に observed 補助を安定させる
 - 予報値と実績値の snapshot 分離は将来検討する
 - JMA latest CSV PoC は本線採用せず、legacy PoC として扱う
+
+---
+
+## 2026-05-03 historical date guidance note
+
+### planned
+
+- historical / observed 導線は `過去日` を主対象とする
+- `今日` の historical は、取得できても未確定値を含む可能性があるため注意文を付ける
+- `未来日` では historical を基本的に disabled とする
+- historical セクションの補足文候補:
+  - `実績: 過去日の履歴データを取得します。`
+  - `今日の実績は未確定の値を含む場合があります。必要に応じて翌日以降に再取得してください。`
+  - `過去日は実績データの取得を推奨します。`

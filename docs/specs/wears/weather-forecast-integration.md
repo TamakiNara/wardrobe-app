@@ -422,3 +422,16 @@ JMA forecast JSON を使う場合の `source_name` は以下を推奨する。
 
 - Open-Meteo の hourly data を使う複合天気推定は、必要になった段階で別途検討する
 - JMA forecast JSON と tsukumijima は fallback として当面残しつつ、順次 legacy 側へ寄せる
+
+---
+
+## 2026-05-03 forecast date guidance note
+
+### planned
+
+- forecast 導線は `未来日` と `今日` を主対象とする
+- `過去日` では historical 導線を優先するため、forecast は disabled または補助扱いに寄せる
+- forecast セクションの補足文候補:
+  - `予報: これからの天気を取得します。`
+  - `未来日のため、実績データはまだ取得できません。`
+  - `今日は予報取得を優先できます。`
