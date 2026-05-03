@@ -16,6 +16,10 @@ Web UI:
 - `weather_locations`
 - `weather_records`
 
+補足:
+
+- `weather_records` 自体の保存方針や source metadata の意味は [wears/weather-records.md](./wears/weather-records.md) を正本とする
+
 ---
 
 ## current
