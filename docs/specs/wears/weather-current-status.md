@@ -302,3 +302,33 @@
 - source 履歴を JSON snapshot に留めるか、別テーブル化するか。
 - precipitation 系を最終保存値へ昇格させるか、snapshot 専用に留めるか。
 - UI で forecast / observed の差分をどこまで見せるか。
+## 2026-05-03 calendar weather status note
+
+### current
+
+- `weather_records` は current では最終保存値を持つ正本であり、予報値 / 実績値 / 手入力値の snapshot 分離はまだ行わない。
+- `is_user_edited` は current では持たない。何を編集したら user edited とみなすかが曖昧であり、正確な判定には取得時 snapshot または field-level diff が必要になるため。
+- カレンダー用の weather status は、まず `none` / `forecast` / `observed` / `manual` の 4 区分で整理する。
+- `forecast` は `source_type = forecast_api`、`observed` は `source_type = historical_api`、`manual` は `source_type = manual` を基準に判定する。
+- `manual` は internal status としては `manual` のまま残しつつ、カレンダー上の見え方は `observed` 寄せにしてよい。
+- カレンダーセルでは source 状態アイコンを主にするのではなく、まず `weather_code` に対応する天気アイコンを主表示とする。
+- source 状態はアイコン差し替えではなく色で表す。第一候補は `forecast = sky / blue`、`observed = emerald / green`、`manual = observed 寄せまたは slate 寄り`。
+- `CloudAlert` や `CloudCheck` のような状態アイコンを主アイコンにする案は採用しない。カレンダーでは「その日どんな天気だったか」を優先して見せる。
+- カレンダーセルの表示順の第一候補は `天気アイコン -> 着用履歴 marker -> 振り返り CircleCheck` とする。
+- `CircleCheck` は振り返り状態として維持し、天気実績の emerald と意味が混ざらないよう muted blue / slate 系も候補にする。
+- 日付詳細モーダルでは、カレンダーより詳しく `天気アイコン / 天気名 / source status バッジ / 最高気温 / 最低気温` を表示する。
+- `source status` はカレンダーでは色で表し、日付詳細モーダルでは `予報` / `実績` / `手入力` のバッジで言語化する。
+- 月単位の未完了件数サマリは current では入れない。外出しなかった日まで入力必須に見えやすく、記録を強制する印象が強いため。
+
+### planned
+
+- カレンダー API に日単位の weather status summary を追加する場合は、`weather_status` / `weather_code` / `has_weather` のような read model を第一候補にする。
+- カレンダーセルへの天気アイコン表示は、source 状態の色付けと着用履歴 / 振り返り marker の優先順位を含めて実装後に目視確認する。
+- 日付詳細モーダルでは、必要に応じて取得元や取得日時を小さく補足表示する。
+- 将来 snapshot を持つ場合に、`is_user_edited` や field-level diff を再検討する。
+
+### pending / 要再判断
+
+- カレンダーセルの並び順は `天気 -> 着用履歴 -> 振り返り` を第一候補とするが、`着用履歴 -> 天気 -> 振り返り` との比較は実装後の目視確認で最終判断する。
+- `manual` の色を `observed` と同一にするか、slate 寄りで少し分けるかは実装時に再判断する。
+- `source` や取得日時をカレンダーセルにどこまで出すかは、情報過多にならない範囲で再判断する。

@@ -1402,3 +1402,21 @@ validation 方針:
 - `cloudy_with_occasional_rain` や `sunny_with_occasional_rain` は雨を含んでいても、主天気を自動で `rain` に寄せません。
 - 実際に雨に当たったかどうかは将来の `was_exposed_to_rain` で扱う候補です。
 - MVP の weather_code には `thunder` / `fog` / `windy` / `storm` を入れず、`other` とメモで逃がします。
+## 2026-05-03 calendar weather status note
+
+### current
+
+- カレンダー上の weather status は、まず `none` / `forecast` / `observed` / `manual` に整理する。
+- `manual` はユーザーが確認して保存した値として、カレンダー上の見え方は `observed` 寄せでもよい。
+- 振り返りの `CircleCheck` は weather status とは別概念であり、天気アイコンより後段の marker として扱う。
+- 月単位の未完了件数サマリは current では入れない。記録を強制する印象が強く、外出しなかった日まで入力必須に見えやすいため。
+
+### planned
+
+- `was_exposed_to_rain` などのフィードバックを導入しても、weather status そのものと体験フィードバックは分離して扱う。
+- カレンダーセルや日付詳細モーダルでは、天気状態と振り返り状態を別レイヤーで見せる。
+
+### pending / 要再判断
+
+- 振り返り marker の色を天気実績の emerald と分けるため、muted blue / slate 系へ寄せるか。
+- 将来の月次サマリを着用履歴がある日に限定して再検討するか。
