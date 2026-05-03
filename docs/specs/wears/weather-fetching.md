@@ -9,8 +9,6 @@ Open-Meteo forecast / historical、provider 優先順位、legacy fallback、日
 - [weather-records.md](./weather-records.md)
 - [weather locations](../settings/weather-locations.md)
 - [weather-open-meteo-redesign.md](./weather-open-meteo-redesign.md)
-- [weather-forecast-integration.md](./weather-forecast-integration.md)
-- [weather-historical-integration.md](./weather-historical-integration.md)
 
 ---
 
@@ -84,7 +82,7 @@ Open-Meteo forecast / historical、provider 優先順位、legacy fallback、日
 補足:
 
 - JMA latest CSV PoC は current 本線に戻さない
-- JMA latest CSV / 観測所コードの経緯は [weather-historical-integration.md](./weather-historical-integration.md) に残す
+- JMA latest CSV / 観測所コードの経緯は [weather-open-meteo-redesign.md](./weather-open-meteo-redesign.md) に残す
 
 ---
 
@@ -137,19 +135,19 @@ WMO から app `weather_code` への代表的な変換:
 
 - forecast の fallback / legacy provider
 - 日本語天気文正規化の知見は残す
-- 詳細は [weather-forecast-integration.md](./weather-forecast-integration.md)
+- 詳細は [weather-open-meteo-redesign.md](./weather-open-meteo-redesign.md)
 
 ### tsukumijima
 
 - forecast の fallback / legacy provider
 - 既存 `forecast_area_code` を使う
-- 詳細は [weather-forecast-integration.md](./weather-forecast-integration.md)
+- 詳細は [weather-open-meteo-redesign.md](./weather-open-meteo-redesign.md)
 
 ### JMA latest CSV PoC
 
 - observed の本線採用はしない
 - legacy PoC / history として残す
-- 詳細は [weather-historical-integration.md](./weather-historical-integration.md)
+- 詳細は [weather-open-meteo-redesign.md](./weather-open-meteo-redesign.md)
 
 ---
 

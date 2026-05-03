@@ -41,8 +41,7 @@
 
 legacy / history の詳細:
 
-- [weather-forecast-integration.md](./weather-forecast-integration.md)
-- [weather-historical-integration.md](./weather-historical-integration.md)
+- [weather-open-meteo-redesign.md](./weather-open-meteo-redesign.md)
 
 ---
 
@@ -59,11 +58,7 @@ legacy / history の詳細:
 - [import-export](../import-export.md)
   - backup / restore
 - [weather-open-meteo-redesign.md](./weather-open-meteo-redesign.md)
-  - Open-Meteo 移行検討メモ
-- [weather-forecast-integration.md](./weather-forecast-integration.md)
-  - JMA forecast JSON / tsukumijima history
-- [weather-historical-integration.md](./weather-historical-integration.md)
-  - JMA latest CSV / 観測所 history
+  - Open-Meteo 移行検討・旧 API 検討メモ
 - [weather-docs-reorganization.md](./weather-docs-reorganization.md)
   - docs 再編メモ
 

@@ -31,11 +31,7 @@
 - [wear logs: weather fetching](./wears/weather-fetching.md)
   - Open-Meteo forecast / historical と fallback
 - [wear logs: Open-Meteo redesign note](./wears/weather-open-meteo-redesign.md)
-  - Open-Meteo 移行検討メモ
-- [wear logs: forecast integration legacy note](./wears/weather-forecast-integration.md)
-  - JMA forecast JSON / tsukumijima legacy メモ
-- [wear logs: historical integration legacy note](./wears/weather-historical-integration.md)
-  - JMA latest CSV / 観測所 legacy メモ
+  - Open-Meteo 移行検討・旧API検討メモ
 
 ## settings
 

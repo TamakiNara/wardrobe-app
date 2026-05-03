@@ -15,8 +15,6 @@
 
 - [weather-current-status.md](./weather-current-status.md)
 - [weather-records.md](./weather-records.md)
-- [weather-forecast-integration.md](./weather-forecast-integration.md)
-- [weather-historical-integration.md](./weather-historical-integration.md)
 - [weather-open-meteo-redesign.md](./weather-open-meteo-redesign.md)
 - [weather-locations.md](../settings/weather-locations.md)
 - [weather-and-feedback.md](../recommendation/weather-and-feedback.md)
