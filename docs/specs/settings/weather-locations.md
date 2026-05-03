@@ -167,107 +167,63 @@ JMA へ切り替える初期段階では、既存 `forecast_area_code` を以下
 
 ### current
 
-- `user_weather_locations` は以下を保持できる
+- `user_weather_locations` には以下を保持している。
   - `forecast_area_code` nullable
   - `jma_forecast_region_code` nullable
   - `jma_forecast_office_code` nullable
-- 地域設定 UI の主入力は `JMA予報区域`
-- `forecast_area_code` は weather.tsukumijima.net 用の legacy code として保持するが、通常 UI の入力欄には出さない
-- legacy `forecast_area_code` だけが残っている地域は、補助表示で `旧API用コードあり` として扱う
-
-### planned
-
-- forecast 取得側は、`jma_forecast_region_code` / `jma_forecast_office_code` が両方ある場合に JMA forecast JSON を優先する
-- JMA コードがなく legacy `forecast_area_code` がある地域は、段階移行中の fallback として tsukumijima を使う
-
----
+  - `observation_station_code` nullable
+  - `observation_station_name` nullable
+- JMA 予報区域は current 実装で利用している。
+- 観測地点は select と static definition で保持している。
 
 ## 2026-05-03 Open-Meteo redesign note
 
 ### planned
 
-- 地域設定の正本は、将来的に `latitude` / `longitude` / `timezone` へ寄せる
-- `forecast_area_code` / `jma_forecast_region_code` / `jma_forecast_office_code` / `observation_station_code` は段階移行中の legacy 候補として扱う
-- 地域登録 UI は Open-Meteo Geocoding API による候補検索を第一候補に再設計する
-- 詳細は [weather-open-meteo-redesign.md](../wears/weather-open-meteo-redesign.md) を参照する
----
+- 地域設定の正本は将来的に `latitude` / `longitude` / `timezone` へ寄せる。
+- `forecast_area_code` / `jma_forecast_region_code` / `jma_forecast_office_code` / `observation_station_code` は legacy 扱いとする。
+- 地域設定 UI は Open-Meteo Geocoding API 検索を主導線にする。
 
 ## 2026-05-03 coordinate-primary direction note
 
 ### planned
 
-- `user_weather_locations` の正本は、将来的に以下へ寄せる
+- `user_weather_locations` の正本候補は以下とする。
   - `name`
   - `latitude`
   - `longitude`
   - `timezone`
   - `is_default`
   - `display_order`
-- DB 設計は既存テーブル維持案を採用し、新テーブルへの作り直しは行わない
-- 新規作成時は `latitude` / `longitude` / `timezone` を UI 上必須にする方向で整理する
-- 既存地域は未設定を許容し、編集時や Open-Meteo 取得時に設定を促す
-- `timezone` は daily 値の日付境界と集計基準に関わるため、座標と同格の正本項目として扱う
-- 日本国内利用では `Asia/Tokyo` を基本値とし、将来は Geocoding API が返す timezone を保存する
-
-### 地域設定 UI の将来方針
-
-- 最終形の本命は Open-Meteo Geocoding API による候補検索 UI
-- 短期代替は主要地点 static list とする
-- 緯度経度の手入力は開発用または fallback だけに留め、通常ユーザー向けの主導線にはしない
-
-### legacy カラム
-
-- 以下は当面 legacy / fallback / import 互換として残す
-  - `forecast_area_code`
-  - `jma_forecast_region_code`
-  - `jma_forecast_office_code`
-  - `observation_station_code`
-  - `observation_station_name`
-- 通常 UI の主入力からは段階的に外す
-- Open-Meteo 移行後、利用状況を見て削除時期を判断する
----
+- existing table を維持し、v2 テーブルは作らない。
+- legacy code は当面残す。
 
 ## 2026-05-03 coordinate groundwork implementation note
 
 ### current
 
-- user_weather_locations は次の座標系カラムを保持できる
-  - latitude
-  - longitude
-  - timezone
-- DB 上は既存地域互換のため nullable のまま維持する
-- 地域設定 UI では、手入力 fallback として 緯度 / 経度 / タイムゾーン を確認・編集できる
-- timezone は Open-Meteo の daily 集計と日付境界に関わるため、日本国内では Asia/Tokyo を基本値として案内する
+- `user_weather_locations` に Open-Meteo 用の位置情報として以下を持たせている。
+  - `latitude`
+  - `longitude`
+  - `timezone`
+- latitude / longitude は片方だけ保存できない。
+- timezone は nullable だが、UI では `Asia/Tokyo` を初期値にしている。
+- legacy 項目は以下を維持している。
+  - `forecast_area_code`
+  - `jma_forecast_region_code`
+  - `jma_forecast_office_code`
+  - `observation_station_code`
+  - `observation_station_name`
 
 ### planned
 
-- 新規地域の主入力は最終的に Open-Meteo Geocoding API による候補検索へ寄せる
-- latitude / longitude / timezone は Open-Meteo forecast / historical の正本として使う
-- forecast_area_code / jma_forecast_region_code / jma_forecast_office_code / observation_station_code / observation_station_name は legacy / fallback / import-export 互換として当面残す
-
----
+- 地域 location 検索は Geocoding API 経由で通常導線に寄せる。
+- Open-Meteo 用 location を current の主入力へ移していく。
 
 ## 2026-05-03 geocoding implementation note
 
 ### current
 
-- 地域設定画面には Open-Meteo Geocoding API を使った `地域を検索` 導線がある
-- 検索は `/api/settings/weather-locations/geocode` 経由で行う
-- 候補選択で以下を自動反映する
-  - latitude
-  - longitude
-  - timezone
-- 候補の name は、地域名が空欄のときだけ自動反映する
-- 地域名が入力済みのときは、latitude / longitude / timezone だけ更新する
-- 緯度 / 経度 / タイムゾーンの手入力欄は fallback として残す
-- Geocoding API が失敗しても、手入力で設定を続けられる
-
-### planned
-
-- Geocoding 検索結果そのものは、今回は DB 保存しない
-- 将来保存を検討する候補:
-  - geocoding_provider
-  - geocoding_place_id
-  - country
-  - admin1
-  - admin2
+- 地域設定では Open-Meteo Geocoding API を使った `地域を検索` 導線を追加している。
+- BFF は `/api/settings/weather-locations/geocode` を使う。
+- 候補選択で緯度 / 経度 / タイムゾーンをフォームへ反映する。

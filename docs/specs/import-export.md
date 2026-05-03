@@ -108,52 +108,37 @@ Web UI:
 
 ### current
 
-- `weather_locations` の export / import は以下を含む
+- `weather_locations` の export / import は以下を含んでいる。
   - `forecast_area_code`
   - `jma_forecast_region_code`
   - `jma_forecast_office_code`
-- 旧 backup に `forecast_area_code` だけがある場合も、そのまま復元できる
-
-### planned
-
-- `forecast_area_code` から JMA コードへの自動変換はまだ行わない
-- forecast source を JMA 優先へ切り替えても、import / export では legacy `forecast_area_code` を引き続き保持する
-
----
+  - `observation_station_code`
+  - `observation_station_name`
+- old backup でも legacy code を復元できる。
 
 ## 2026-05-03 Open-Meteo redesign note
 
 ### planned
 
-- `weather_locations` の正本は将来的に `latitude` / `longitude` / `timezone` へ寄せることを第一候補とする
-- `forecast_area_code` / `jma_forecast_region_code` / `jma_forecast_office_code` / `observation_station_code` / `observation_station_name` は、段階移行中は legacy restore 互換のため残す
-- Open-Meteo 移行後も旧 backup 互換は維持する前提で設計する
-- 詳細は [wears/weather-open-meteo-redesign.md](./wears/weather-open-meteo-redesign.md) を参照する
----
+- `weather_locations` の正本は将来的に `latitude` / `longitude` / `timezone` を中心にする。
+- `forecast_area_code` / `jma_forecast_region_code` / `jma_forecast_office_code` / `observation_station_code` / `observation_station_name` は legacy restore 用に当面残す。
+- Open-Meteo 用の backup / restore 互換を整える。
 
 ## 2026-05-03 coordinate-primary direction note
 
 ### planned
 
-- `latitude` / `longitude` / `timezone` は将来的に weather location backup / restore の正本とする
-- 旧 backup にこれらが無い場合は未設定のまま復元し、Open-Meteo 取得は未設定扱いにする
-- import validation 候補は以下
-  - `latitude`: `-90..90`
-  - `longitude`: `-180..180`
-  - `timezone`: IANA timezone 文字列
-- legacy カラムは当面 restore 対象に残し、削除時には旧形式 import fallback を再検討する
----
+- `latitude` / `longitude` / `timezone` を今後の weather location backup / restore 正本にする。
+- 旧 backup に座標がなくても、未設定のまま Open-Meteo 非対応地域として復元できるようにする。
+- import validation 候補は以下とする。
+  - latitude range
+  - longitude range
+  - timezone string
 
 ## 2026-05-03 coordinate groundwork implementation note
 
 ### current
 
-- weather location の import / export は latitude / longitude / 	imezone を含めて roundtrip できる
-- 旧 backup に 	imezone がない場合は 
-ull のまま復元する
-- latitude / longitude はセットで扱い、片方だけの payload は validation error にする
-
-### planned
-
-- Open-Meteo 移行後は latitude / longitude / 	imezone を weather location backup / restore の正本とする
-- orecast_area_code / jma_forecast_region_code / jma_forecast_office_code / observation_station_code / observation_station_name は旧形式 restore 互換のため当面残す
+- weather location の import / export は `latitude` / `longitude` / `timezone` を roundtrip できる。
+- 旧 backup に `timezone` がなくても `null` として復元できる。
+- latitude / longitude は片方だけの payload を validation error にする。

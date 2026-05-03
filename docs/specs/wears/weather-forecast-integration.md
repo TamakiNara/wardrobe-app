@@ -302,136 +302,98 @@ JMA forecast JSON を使う場合の `source_name` は以下を推奨する。
 
 ### current
 
-- backend には `FetchJmaWeatherForecastService` の PoC がある
-- `user_weather_locations` は `jma_forecast_region_code` / `jma_forecast_office_code` を保存できる
-- `POST /api/weather-records/forecast` は JMA コードがある地域で `jma_forecast_json` を優先し、JMA 未設定かつ legacy `forecast_area_code` がある地域では `tsukumijima` fallback を使う
-- JMA コードが片方だけの地域と、JMA / legacy の両方がない地域は forecast 取得不可とする
+- `user_weather_locations` に `jma_forecast_region_code` / `jma_forecast_office_code` を保持している。
+- `POST /api/weather-records/forecast` は、JMA code がある場合に `jma_forecast_json` を使い、JMA 未設定で legacy `forecast_area_code` がある場合は `tsukumijima` fallback を使う。
+- JMA code がなくても JMA / legacy のどちらかがあれば fallback で forecast を取得できる。
 
 ### planned
 
-- forecast endpoint は今後、JMA コードがある場合に `jma_forecast_json` を優先する
-- `forecast_area_code` は fallback / import 互換の legacy code として段階的に後退させる
-
-
----
+- JMA forecast JSON は primary ではなく fallback 扱いへ寄せていく。
+- `forecast_area_code` は legacy fallback 用として当面維持する。
 
 ## 2026-05-02 weather text normalization note
 
 ### current
 
-- `weather_code` は簡易表示 / アイコン / 分析用の正規化値
-- `raw_weather_text` は取得元の詳細表記を確認するための表示用文字列
-- JMA の時間帯入り天気文は、既存 `weather_code` に安全に寄せられるものだけ正規化する
-- 表示用 `raw_weather_text` は全角スペースを半角化し、連続スペースを 1 つにまとめて trim する
-- 時間帯や補足表現を挿んでも既存 code に安全に寄せられるものは吸収する
-  - `晴れ 夜のはじめ頃 くもり`
-  - `晴れ 夕方 から くもり`
-  - `くもり 昼過ぎ から 晴れ`
-  - `くもり 夕方 から 雨`
-  - `雨 昼過ぎ から くもり`
-- `晴れ 一時 雨` / `くもり 一時 雨` は既存の `with_occasional_rain` 系へ寄せる
+- `weather_code` は簡易表示 / アイコン / 検索 / 分析用の正規化値である。
+- `raw_weather_text` は取得元の詳細表記として扱い、今回は DB 保存しない。
+- JMA の時間帯入り天気文は、既存 `weather_code` に安全に寄せられる範囲だけ正規化する。
+- 表示時は全角スペースを半角スペースへ変換し、連続スペースを詰める。
 
-### other のまま残す表記
+### pending / 要再判断
 
-- 雨を含む複合の雷表記
-- 雨を含む複合の霧表記
-- 雨を含む複合の強風表記
-- 荒天
-- 雨か雪
-- 雪時々雨
-- 雪混じり複合天気
-
-### planned
-
-- 実データで頻出する JMA 表記を見ながら、既存 `weather_code` に安全に寄せられるものだけ追加する
-- `raw_weather_text` は将来的に source_payload や raw code 保存と合わせて見直す余地を残す
----
+- 実データの頻出表現を見ながら、JMA 天気文の変換ルールをどこまで増やすかを判断する。
+- 将来的に `raw_weather_text` や `source_payload` を保存するかは別途検討する。
 
 ## 2026-05-02 weather icon adjustment note
 
 ### current
 
-- `weather_code` は簡易表示と分析用の正規化値のままとし、icon 名は DB へ保存しない
-- `cloudy` は weather_code 名と Lucide `Cloud` の組み合わせを維持し、dev preview 側で icon 名も並記して混同を避ける
-- `snow` は単独天気として `Snowflake` を優先し、`CloudSnow` は雪混じりや fallback 側の候補として扱う
-- `thunder` / `fog` / `windy` は current の weather_code とし、Lucide `CloudLightning` / `CloudFog` / `Wind` を割り当てる
-- 雨系では `CloudRain` / `CloudSunRain` などのメインアイコンを「天気そのもの」、`Umbrella` を「雨対策の補助」として分けて描画する
-- `Umbrella` は blue / sky 系トーンで表示し、雨アイコンと意味を揃えつつ補助表示であることを維持する
+- `weather_code` とアイコンは定義から導出し、icon 名は DB 保存しない。
+- `cloudy` は weather_code として維持し、Lucide `Cloud` を対応させる。
+- `snow` は単独天気として `Snowflake` を優先し、`CloudSnow` は fallback とする。
+- 雨系では `Umbrella` を補助アイコンとして使い、雨対策が必要かもしれないことを示す。
 
 ### pending / 要再判断
 
-- `雨か雪` / `雪時々雨` / `くもり一時雪` / `晴れ一時雪` は、無理に既存 weather_code へ寄せず候補 code として別枠整理する
-- 候補 icon 例: `rain_or_snow` は `CloudSnow` または `Snowflake + Umbrella`、`snow_with_occasional_rain` / `cloudy_with_occasional_snow` は `CloudSnow`
-- `storm` / 荒天は current では `other` または注意情報側として扱う候補にとどめる
-
----
+- 雨か雪 / 雪時々雨 / 霧 / 強風 / 荒天などの複合天気を current の `weather_code` に含めるかは後続判断とする。
+- `rain_or_snow` / `snow_with_occasional_rain` / `cloudy_with_occasional_snow` / `sunny_with_occasional_snow` は候補止まり。
 
 ## 2026-05-03 Open-Meteo redesign note
 
 ### planned
 
-- JMA forecast JSON は current 実装として残しつつ、本命候補は Open-Meteo JMA forecast API へ切り替える方向で再設計する
-- forecast provider の再設計メモは [weather-open-meteo-redesign.md](./weather-open-meteo-redesign.md) を参照する
-- `jma_forecast_region_code` / `jma_forecast_office_code` は当面 legacy 候補として保持し、将来的には `latitude` / `longitude` / `timezone` 正本へ寄せる
----
+- JMA forecast JSON は current 実装として残しつつ、provider の本命は Open-Meteo JMA forecast API へ寄せる。
+- forecast provider 再設計の詳細は [weather-open-meteo-redesign.md](./weather-open-meteo-redesign.md) に寄せる。
+- `jma_forecast_region_code` / `jma_forecast_office_code` は legacy とし、将来的には `latitude` / `longitude` / `timezone` を正本とする。
 
 ## 2026-05-03 coordinate-primary direction note
 
 ### current
 
-- 地域設定画面には Open-Meteo Geocoding API を使った候補検索があり、forecast 用 location の `latitude` / `longitude` / `timezone` を自動反映できる
-- Geocoding 検索に失敗した場合も、座標とタイムゾーンは手入力 fallback で設定を継続できる
+- 地域設定では Open-Meteo Geocoding API による地点検索を追加し、forecast 用 location の `latitude` / `longitude` / `timezone` を設定できる。
+- Geocoding が使えない場合は手入力を fallback として残す。
 
 ### planned
 
-- Open-Meteo forecast では、`location` の `latitude` / `longitude` / `timezone` を正本入力にする
-- `POST /api/weather-records/forecast` は、将来的に `weather_date` と `location_id` を受け取り、location の座標情報から `open_meteo_jma_forecast` を呼ぶ形へ寄せる
-- JMA forecast JSON と `forecast_area_code` は current / legacy として当面並走する
-
----
+- forecast endpoint の provider 選択は、location の座標がある場合に Open-Meteo を優先する。
+- JMA / legacy code は fallback 用として段階的に縮退させる。
 
 ## 2026-05-03 Open-Meteo forecast implementation note
 
 ### current
 
-- `POST /api/weather-records/forecast` は location の `latitude` / `longitude` がある場合に Open-Meteo forecast を優先する
-- Open-Meteo forecast では [https://api.open-meteo.com/v1/jma](https://api.open-meteo.com/v1/jma) を使い、daily の `weather_code` / `temperature_2m_max` / `temperature_2m_min` / `precipitation_sum` / `rain_sum` / `snowfall_sum` を取得する
-- Open-Meteo weather code は app `weather_code` へ代表天気として正規化する
-- `raw_weather_text` は Open-Meteo では使わず、`raw_weather_code` を response で返す
-- `precipitation` / `rain_sum` / `snowfall_sum` は参考値として response に含めるが、今回は保存しない
-- 座標がない地域では `jma_forecast_json`、それもない場合は `tsukumijima` fallback を維持する
+- `POST /api/weather-records/forecast` は location の `latitude` / `longitude` がある場合に Open-Meteo forecast を使う。
+- Open-Meteo forecast は [https://api.open-meteo.com/v1/jma](https://api.open-meteo.com/v1/jma) を使い、daily の `weather_code` / `temperature_2m_max` / `temperature_2m_min` / `precipitation_sum` / `rain_sum` / `snowfall_sum` を取得する。
+- Open-Meteo weather code は app `weather_code` に変換して使う。
+- JMA code がある場合は `jma_forecast_json` を fallback に残し、legacy `forecast_area_code` がある場合は `tsukumijima` を fallback に残す。
 
 ### planned
 
-- `then` / `with_occasional` の複合天気は、必要になったら hourly data を使った推定を検討する
-- `has_rain_possibility` は app `weather_code` を基本にしつつ、precipitation probability などの補助指標も将来検討する
-
----
+- Open-Meteo の hourly `precipitation_probability` や `weather_code` を使って、将来的に `then` / `with_occasional` を推定する。
+- `precipitation_amount` などの保存カラム追加は将来候補に留める。
 
 ## 2026-05-03 Open-Meteo forecast PoC note
 
 ### current
 
-- forecast 取得では `POST /api/weather-records/forecast` が、`latitude` / `longitude` を持つ地域に対して Open-Meteo を優先する
-- Open-Meteo forecast の `source_name` は `open_meteo_jma_forecast`
-- Open-Meteo では日本語の天気文を返さないため、`raw_weather_text` は `null` のまま扱う
-- 代わりに `raw_weather_code` を response に含め、画面では `取得元: Open-Meteo` / `取得した天気コード` を補足表示する
-- `precipitation` / `rain_sum` / `snowfall_sum` は参考値として返すが、今回は DB 保存しない
+- forecast PoC では `POST /api/weather-records/forecast` が `latitude` / `longitude` を使って Open-Meteo を優先する。
+- Open-Meteo forecast の `source_name` は `open_meteo_jma_forecast`。
+- Open-Meteo では日本語天気文がないため、`raw_weather_text` は `null` とする。
+- `precipitation` / `rain_sum` / `snowfall_sum` は response と参考表示に含めるが、DB 保存はしない。
 
 ### planned
 
-- Open-Meteo の hourly data を使う複合天気推定は、必要になった段階で別途検討する
-- JMA forecast JSON と tsukumijima は fallback として当面残しつつ、順次 legacy 側へ寄せる
-
----
+- Open-Meteo forecast の補助値をどう画面に見せるかは今後の調整対象とする。
+- daily と hourly のどちらを主に使うかは実データを見ながら詰める。
 
 ## 2026-05-03 forecast date guidance note
 
 ### planned
 
-- forecast 導線は `未来日` と `今日` を主対象とする
-- `過去日` では historical 導線を優先するため、forecast は disabled または補助扱いに寄せる
-- forecast セクションの補足文候補:
-  - `予報: これからの天気を取得します。`
-  - `未来日のため、実績データはまだ取得できません。`
-  - `今日は予報取得を優先できます。`
+- forecast は `未来日` と `今日` を主対象とする。
+- `過去日` では historical 取得を優先し、forecast は disabled または補助扱いに寄せる。
+- forecast 取得セクションの UI 方針は以下とする。
+  - 未来日: `予報を取得` を主ボタンにする。
+  - 今日: `予報を取得` を主ボタンにしつつ、historical は注意付きで併記する。
+  - 過去日: `実績を取得` を主ボタンにし、forecast は控えめにする。

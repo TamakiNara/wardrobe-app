@@ -201,103 +201,85 @@
 
 ### current
 
-- `snow` のメインアイコンは `Snowflake` を優先し、`CloudSnow` は fallback 側に回す
-- `thunder` / `fog` / `windy` を current の `weather_code` とし、Lucide `CloudLightning` / `CloudFog` / `Wind` を割り当てる
-- 雨系ではメインアイコンを「天気そのもの」、傘アイコンを「雨対策が必要かもしれない」補助表示として分けて扱う
-- `Umbrella` は雨系メインアイコンと近い blue / sky 系トーンの補助色で表示する
-- `/dev/weather-preview` は weather_code / icon / JMA 正規化の目視確認用ページとして使い、通常ナビには出さない
+- `snow` のメインアイコンは `Snowflake` を優先し、`CloudSnow` は fallback 側へ回す。
+- `thunder` / `fog` / `windy` は current の `weather_code` として扱い、Lucide `CloudLightning` / `CloudFog` / `Wind` を割り当てる。
+- 雨系では `Umbrella` を補助アイコンとして使い、雨対策が必要かもしれないことを示す。
+- `/dev/weather-preview` は weather_code / icon / JMA 正規化の目視確認用ページとして使い、通常導線には載せない。
 
 ### pending / 要再判断
 
-- `rain_or_snow` / `snow_with_occasional_rain` / `cloudy_with_occasional_snow` / `sunny_with_occasional_snow` などの雨雪混在・雪混じり天気は、実データ頻度を見て weather_code 候補として別途整理する
-- `storm` / 荒天は current には入れず、注意情報として分けるか weather_code 候補として追加するかを再判断する
-- 最高 / 最低気温に `Thermometer` を付ける案は、情報過多を避けるため今回は見送りとする
-
----
+- `rain_or_snow` / `snow_with_occasional_rain` / `cloudy_with_occasional_snow` / `sunny_with_occasional_snow` は候補止まり。
+- `storm` / 荒天は current の `weather_code` には入れず、注意情報として分けるかを後続で再判断する。
+- 最高 / 最低気温に `Thermometer` を付ける案は、情報量を増やしすぎるため今回は見送っている。
 
 ## 2026-05-03 Open-Meteo redesign note
 
-- JMA forecast JSON + 気象庁最新 CSV を本命にする案は、コード体系と地点対応の複雑さが大きいため再検討に入った
-- 次段の本命候補は Open-Meteo JMA forecast / historical API とする
-- 再設計メモは [weather-open-meteo-redesign.md](./weather-open-meteo-redesign.md) を参照する
-- current 実装の JMA forecast JSON / tsukumijima fallback / JMA latest CSV PoC は、当面 current または legacy PoC として扱う
----
+### planned
+
+- JMA forecast JSON と最新 CSV を組み合わせる案は、本命候補から外す。
+- 今後の本命は Open-Meteo JMA forecast / historical API とする。
+- provider 再設計の全体方針は [weather-open-meteo-redesign.md](./weather-open-meteo-redesign.md) に集約する。
 
 ## 2026-05-03 coordinate-primary direction note
 
 ### planned
 
-- Open-Meteo 移行後の地域設定正本は `latitude` / `longitude` / `timezone` を中心に整理する
-- `forecast_area_code` / `jma_*` / `observation_station_*` は current または legacy PoC として当面併存しうる
-- 地域登録 UI は最終的に Geocoding API 検索へ寄せ、短期は static list を検討する
----
+- Open-Meteo 移行後の地域設定正本は `latitude` / `longitude` / `timezone` に寄せる。
+- `forecast_area_code` / `jma_*` / `observation_station_*` は current 実装や legacy PoC の互換用として残す。
+- 地域設定 UI は最終的に Geocoding API を主導線とし、static list や手入力は fallback として扱う。
 
 ## 2026-05-03 coordinate groundwork implementation note
 
 ### current
 
-- 地域設定は JMA 系の legacy カラムに加えて、latitude / longitude / timezone を保持できる
-- latitude / longitude はセットで扱い、片方だけの保存はしない
-- timezone は Open-Meteo の daily 集計と日付境界に関わるため、国内利用では Asia/Tokyo を基準に案内する
+- 地域設定では JMA 系 legacy 項目を維持したまま、`latitude` / `longitude` / `timezone` を保存できる。
+- latitude / longitude は片方だけ保存できないようにしている。
+- timezone は Open-Meteo の daily 集計と日付境界に関わるため、初期値は `Asia/Tokyo` を基本とする。
 
 ### planned
 
-- Open-Meteo forecast / historical の本実装では、weather location の正本を latitude / longitude / timezone に寄せる
-- JMA forecast JSON / tsukumijima fallback / JMA latest CSV PoC は current または legacy の知見として残しつつ、主経路からは段階的に外す
-
----
+- latitude / longitude / timezone を持つ地域を Open-Meteo 取得の主導線に寄せる。
+- Geocoding API による地点検索と自動反映を通常導線にする。
 
 ## 2026-05-03 Open-Meteo forecast PoC note
 
 ### current
 
-- 天気登録画面の 天気を取得 は、保存済み地域に `latitude` / `longitude` がある場合は Open-Meteo forecast を優先する
-- Open-Meteo forecast の source は `source_type = forecast_api` / `source_name = open_meteo_jma_forecast`
-- `weather_code` / 最高気温 / 最低気温はフォームへ反映する
-- `precipitation` / `rain_sum` / `snowfall_sum` は参考値表示のみで、今回は DB 保存しない
-- `raw_weather_text` は Open-Meteo では使わず、画面では Open-Meteo / weather code / 降水量参考値を補足表示する
+- 天気登録画面の `予報を取得` は、保存済み地域に `latitude` / `longitude` がある場合は Open-Meteo forecast を優先する。
+- Open-Meteo forecast の source は `source_type = forecast_api` / `source_name = open_meteo_jma_forecast`。
+- `weather_code` / 最高気温 / 最低気温をフォームへ反映する。
+- `precipitation` / `rain_sum` / `snowfall_sum` は参考値表示のみで、今回は DB 保存しない。
+- `raw_weather_text` は Open-Meteo では使わず、代わりに `raw_weather_code` を補足表示に使う。
 
 ### planned
 
-- Open-Meteo historical PoC を追加し、forecast と同じ `latitude` / `longitude` / `timezone` を observed 側でも使う
-- JMA forecast JSON / tsukumijima fallback は当面残しつつ、順次 legacy 側へ寄せる
----
+- Open-Meteo forecast の hourly data を使い、必要なら将来的に `then` / `with_occasional` を推定する。
+- forecast 取得結果と historical 取得結果の UI をもう少し明確に整理する。
 
 ## 2026-05-03 Open-Meteo historical PoC status note
 
 ### current
 
-- 天気登録画面の `実績を取得` は、保存済み地域に `latitude` / `longitude` がある場合に Open-Meteo Historical を使う
-- 実績取得では `weather_code` / `最高気温` / `最低気温` / `source_type` / `source_name` / `source_fetched_at` をフォームへ反映する
-- `precipitation` / `rain_sum` / `snowfall_sum` / `precipitation_hours` は参考値として画面表示するが、保存はしない
-- `source_name = open_meteo_historical`
-- `latitude` / `longitude` がない地域では observed 取得不可とする
+- 天気登録画面の `実績を取得` は、保存済み地域に `latitude` / `longitude` がある場合は Open-Meteo Historical を使う。
+- 取得時は `weather_code` / 最高気温 / 最低気温 / `source_type` / `source_name` / `source_fetched_at` をフォームへ反映する。
+- `precipitation` / `rain_sum` / `snowfall_sum` / `precipitation_hours` は参考値として表示する。
+- JMA latest CSV PoC は current 本線に戻さず、Open-Meteo historical を優先する。
 
 ### planned
 
-- Open-Meteo forecast / historical の両方を `latitude` / `longitude` / `timezone` 正本へ寄せる
-- precipitation 系や snapshot 分離は要再判断として残す
-
----
+- 予報値と実績値を weather_record 上でどう分離するかは、snapshot 設計を含めて後続で整理する。
+- `precipitation_amount` などの保存は将来候補として別途検討する。
 
 ## 2026-05-03 weather fetch date-based UI note
 
 ### current
 
-- 天気登録画面には `天気データを取得` セクションがあり、`予報を取得` と `実績を取得` の 2 操作を同じまとまりで提供している
-- どちらの取得も自動保存はせず、フォーム反映後にユーザー確認のうえで保存する
-- 保存時の `source_type` / `source_name` は、最後にフォームへ反映した取得元を表す current 設計である
+- 天気登録画面の `天気データを取得` セクションには、`予報を取得` と `実績を取得` の 2 ボタンを並べている。
+- 取得結果はどちらもフォーム反映のみで、自動保存はしない。
+- 保存時の `source_type` / `source_name` は、最後にフォームへ反映した取得元を表す current 設計のまま。
 
 ### planned
 
-- 対象日付を `未来日` / `今日` / `過去日` に分け、取得ボタンの強調・disabled・補足文を出し分ける
-- 推奨 UI 方針は、両方のボタンを残しつつ主導線だけを日付ごとに変える案 B とする
-- 未来日では `予報を取得` を主ボタンにし、`実績を取得` は disabled とする
-- 今日では `予報を取得` を主ボタンにし、`実績を取得` は有効のまま注意文を付ける
-- 過去日では `実績を取得` を主ボタンにし、`予報を取得` は disabled または補助扱いに寄せる
-
-### pending / 要再判断
-
-- `今日` の historical 値をどこまで UI 上で「未確定値」と明示するか
-- 過去日の `予報を取得` を完全 disabled にするか、取得範囲次第で補助操作として残すか
-- 取得可能範囲の厳密な日数を UI 文言へ固定で書くか、MVP では一般表現に留めるか
+- 未来日 / 今日 / 過去日で、どちらを主導線にするかを日付別に出し分ける。
+- 今日の historical は未確定値を含む可能性があるため、注意文を追加する。
+- 過去日の forecast は控えめ表示または無効化し、実績取得を主導線に寄せる。
