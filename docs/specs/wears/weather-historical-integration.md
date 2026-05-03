@@ -111,3 +111,23 @@
 - Open-Meteo historical では、`location` の `latitude` / `longitude` / `timezone` を forecast と共通の正本入力にする
 - `POST /api/weather-records/observed` は、将来的に `weather_date` と `location_id` を受け取り、location の座標情報から `open_meteo_historical` を呼ぶ形へ寄せる
 - `observation_station_code` / `observation_station_name` は current / legacy PoC として当面保持する
+---
+
+## 2026-05-03 Open-Meteo historical implementation note
+
+### current
+
+- historical / observed の本命 PoC は Open-Meteo Historical API を使う
+- 対象 endpoint は `POST /api/weather-records/observed`
+- location の `latitude` / `longitude` / `timezone` を使い、対象日の daily data を取得する
+- `weather_code` は Open-Meteo / WMO weather code から app `weather_code` へ変換する
+- `temperature_2m_max` / `temperature_2m_min` / `precipitation_sum` / `rain_sum` / `snowfall_sum` / `precipitation_hours` をフォーム反映用に返す
+- `source_type = historical_api` / `source_name = open_meteo_historical`
+- 取得結果はフォーム反映のみで、自動保存しない
+- `precipitation` 系は参考表示のみで、今回は DB 保存しない
+
+### planned
+
+- Open-Meteo historical の daily 値を前提に observed 補助を安定させる
+- 予報値と実績値の snapshot 分離は将来検討する
+- JMA latest CSV PoC は本線採用せず、legacy PoC として扱う

@@ -1917,7 +1917,9 @@ paths:
       summary: 保存済み地域の予報を取得してフォーム反映用データを返す
       description: |
         保存済み地域の provider 設定を backend 側で自動判定し、
-        JMA コードがあれば JMA forecast JSON、なければ legacy `forecast_area_code` による
+        `latitude` / `longitude` があれば Open-Meteo forecast を優先する。
+        座標がなく JMA コードがあれば JMA forecast JSON、
+        それもなければ legacy `forecast_area_code` による
         weather.tsukumijima.net fallback を使って forecast を取得する。
         対象日付と一致する forecast を `weather_code` と気温へ正規化して返す。
         取得結果はフォーム反映のみで、自動保存は行わない。
@@ -1940,6 +1942,37 @@ paths:
                 $ref: "#/components/schemas/WeatherForecastResponse"
         "422":
           description: バリデーションエラーまたは対象日不一致
+        "502":
+          description: 外部 API 通信失敗
+
+  /api/weather-records/observed:
+    post:
+      tags:
+        - Wear Logs
+      summary: 保存済み地域の実績相当データを取得してフォーム反映用データを返す
+      description: |
+        保存済み地域の `latitude` / `longitude` / `timezone` を使って
+        Open-Meteo Historical API から対象日付の daily data を取得する。
+        `weather_code`、最高気温、最低気温、降水量系をフォーム反映用に返す。
+        取得結果はフォーム反映のみで、自動保存は行わない。
+      operationId: fetchWeatherRecordObserved
+      parameters:
+        - $ref: "#/components/parameters/XCsrfTokenHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WeatherObservedRequest"
+      responses:
+        "200":
+          description: 取得成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WeatherObservedResponse"
+        "422":
+          description: バリデーションエラーまたは位置情報不足
         "502":
           description: 外部 API 通信失敗
 
@@ -5332,7 +5365,8 @@ components:
           nullable: true
           description: |
             手入力のみの場合は `manual`、予報取得結果を反映して保存する場合は
-            `open_meteo_jma_forecast` / `jma_forecast_json` / `tsukumijima`。
+            `open_meteo_jma_forecast` / `open_meteo_historical` /
+            `jma_forecast_json` / `tsukumijima`。
         source_fetched_at:
           type: string
           format: date-time
@@ -5351,7 +5385,7 @@ components:
           format: date
         location_id:
           type: integer
-          description: JMA コードまたは legacy forecast_area_code を持つ保存済み地域 ID
+          description: Open-Meteo 用の位置情報または fallback 用予報設定を持つ保存済み地域 ID
 
     WeatherForecast:
       type: object
@@ -5424,6 +5458,101 @@ components:
           properties:
             forecast:
               $ref: "#/components/schemas/WeatherForecast"
+
+    WeatherObservedRequest:
+      type: object
+      required:
+        - weather_date
+        - location_id
+      properties:
+        weather_date:
+          type: string
+          format: date
+        location_id:
+          type: integer
+          description: Open-Meteo Historical を利用する保存済み地域 ID
+
+    WeatherObserved:
+      type: object
+      required:
+        - weather_date
+        - location_id
+        - location_name
+        - weather_code
+        - source_type
+        - source_name
+        - source_fetched_at
+      properties:
+        weather_date:
+          type: string
+          format: date
+        location_id:
+          type: integer
+        location_name:
+          type: string
+        forecast_area_code:
+          type: string
+          nullable: true
+          description: legacy forecast_area_code の snapshot。Open-Meteo 取得では null の場合がある。
+        weather_code:
+          $ref: "#/components/schemas/WeatherCode"
+        raw_weather_code:
+          type: integer
+          nullable: true
+          description: Open-Meteo / WMO weather code
+        temperature_high:
+          type: number
+          format: float
+          nullable: true
+        temperature_low:
+          type: number
+          format: float
+          nullable: true
+        precipitation:
+          type: number
+          format: float
+          nullable: true
+          description: 日降水量の参考値。今回は DB 保存しない。
+        rain_sum:
+          type: number
+          format: float
+          nullable: true
+          description: 日雨量の参考値。今回は DB 保存しない。
+        snowfall_sum:
+          type: number
+          format: float
+          nullable: true
+          description: 日降雪量の参考値。今回は DB 保存しない。
+        precipitation_hours:
+          type: number
+          format: float
+          nullable: true
+          description: 降水時間の参考値。今回は DB 保存しない。
+        source_type:
+          type: string
+          example: historical_api
+        source_name:
+          type: string
+          description: Open-Meteo Historical 取得時は open_meteo_historical
+          example: open_meteo_historical
+        source_fetched_at:
+          type: string
+          format: date-time
+          nullable: true
+        raw_telop:
+          type: string
+          nullable: true
+          description: Open-Meteo Historical では通常 null
+
+    WeatherObservedResponse:
+      allOf:
+        - $ref: "#/components/schemas/MessageOnlyResponse"
+        - type: object
+          required:
+            - observed
+          properties:
+            observed:
+              $ref: "#/components/schemas/WeatherObserved"
 
     WeatherRecordMutationResponse:
       allOf:

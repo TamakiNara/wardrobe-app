@@ -61,6 +61,11 @@ export type WeatherForecastRequestPayload = {
   location_id: number;
 };
 
+export type WeatherObservedRequestPayload = {
+  weather_date: string;
+  location_id: number;
+};
+
 export type WeatherForecast = {
   weather_date: string;
   location_id: number;
@@ -82,4 +87,28 @@ export type WeatherForecast = {
 export type WeatherForecastResponse = {
   message: string;
   forecast: WeatherForecast;
+};
+
+export type WeatherObserved = {
+  weather_date: string;
+  location_id: number;
+  location_name: string;
+  forecast_area_code: string | null;
+  weather_code: WeatherCode;
+  raw_weather_code: number | null;
+  temperature_high: number | null;
+  temperature_low: number | null;
+  precipitation: number | null;
+  rain_sum: number | null;
+  snowfall_sum: number | null;
+  precipitation_hours: number | null;
+  source_type: "historical_api";
+  source_name: string;
+  source_fetched_at: string;
+  raw_telop: string | null;
+};
+
+export type WeatherObservedResponse = {
+  message: string;
+  observed: WeatherObserved;
 };

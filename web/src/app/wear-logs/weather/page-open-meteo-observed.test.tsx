@@ -25,7 +25,7 @@ vi.mock("next/link", () => ({
 vi.mock("next/navigation", () => ({
   useRouter: () => routerMock,
   useSearchParams: () => ({
-    get: (key: string) => (key === "date" ? "2026-05-01" : null),
+    get: (key: string) => (key === "date" ? "2026-05-02" : null),
   }),
 }));
 
@@ -44,18 +44,18 @@ vi.mock("@/lib/api/weather", () => ({
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
-describe("WearLogWeatherPage Open-Meteo forecast integration", () => {
+describe("WearLogWeatherPage Open-Meteo historical integration", () => {
   let container: HTMLDivElement;
   let root: Root;
 
-  const openMeteoLocation: UserWeatherLocationRecord = {
+  const locationWithCoordinates: UserWeatherLocationRecord = {
     id: 1,
-    name: "川口 Open-Meteo",
+    name: "川口",
     forecast_area_code: null,
     jma_forecast_region_code: null,
     jma_forecast_office_code: null,
-    latitude: 35.8617,
-    longitude: 139.6455,
+    latitude: 35.8077,
+    longitude: 139.7241,
     timezone: "Asia/Tokyo",
     is_default: true,
     display_order: 1,
@@ -63,24 +63,9 @@ describe("WearLogWeatherPage Open-Meteo forecast integration", () => {
     updated_at: null,
   };
 
-  const legacyLocation: UserWeatherLocationRecord = {
+  const locationWithoutCoordinates: UserWeatherLocationRecord = {
     id: 2,
-    name: "川口 legacy",
-    forecast_area_code: "110010",
-    jma_forecast_region_code: null,
-    jma_forecast_office_code: null,
-    latitude: null,
-    longitude: null,
-    timezone: null,
-    is_default: true,
-    display_order: 1,
-    created_at: null,
-    updated_at: null,
-  };
-
-  const emptyLocation: UserWeatherLocationRecord = {
-    id: 3,
-    name: "未設定",
+    name: "位置情報なし",
     forecast_area_code: null,
     jma_forecast_region_code: null,
     jma_forecast_office_code: null,
@@ -109,7 +94,7 @@ describe("WearLogWeatherPage Open-Meteo forecast integration", () => {
     vi.restoreAllMocks();
     pushMock.mockReset();
     fetchUserWeatherLocationsMock.mockResolvedValue({
-      locations: [openMeteoLocation],
+      locations: [locationWithCoordinates],
     });
     fetchWeatherRecordsByDateMock.mockResolvedValue({
       weatherRecords: [] satisfies WeatherRecord[],
@@ -132,7 +117,7 @@ describe("WearLogWeatherPage Open-Meteo forecast integration", () => {
     container.remove();
   });
 
-  it("予報取得・実績取得ボタンが同じ取得セクションに表示される", async () => {
+  it("latitude / longitude がある地域では実績を取得ボタンが有効になる", async () => {
     const { default: WearLogWeatherPage } = await import("./page");
 
     await act(async () => {
@@ -140,21 +125,61 @@ describe("WearLogWeatherPage Open-Meteo forecast integration", () => {
       await waitForEffects();
     });
 
-    const fetchButton = getButtonByText("予報を取得") as HTMLButtonElement;
     const observedButton = getButtonByText("実績を取得") as HTMLButtonElement;
-
-    expect(fetchButton.disabled).toBe(false);
     expect(observedButton.disabled).toBe(false);
-    expect(container.textContent).toContain("天気データを取得");
   });
 
-  it("Open-Meteo forecast の取得成功メッセージを表示し、保存時は登録メッセージを表示する", async () => {
-    fetchWeatherForecastMock.mockResolvedValue({
+  it("位置情報がない地域では実績取得が disabled になる", async () => {
+    fetchUserWeatherLocationsMock.mockResolvedValue({
+      locations: [locationWithoutCoordinates],
+    });
+
+    const { default: WearLogWeatherPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(WearLogWeatherPage));
+      await waitForEffects();
+    });
+
+    const observedButton = getButtonByText("実績を取得") as HTMLButtonElement;
+    expect(observedButton.disabled).toBe(true);
+    expect(container.textContent).toContain("実績取得:");
+    expect(container.textContent).toContain(
+      "位置情報を設定すると、実績を取得できます。",
+    );
+  });
+
+  it("今回だけの地域では実績取得が disabled になる", async () => {
+    const { default: WearLogWeatherPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(WearLogWeatherPage));
+      await waitForEffects();
+    });
+
+    const tabs = Array.from(
+      container.querySelectorAll('button[role="tab"]'),
+    ) as HTMLButtonElement[];
+
+    await act(async () => {
+      tabs[1]?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    const observedButton = getButtonByText("実績を取得") as HTMLButtonElement;
+    expect(observedButton.disabled).toBe(true);
+    expect(container.textContent).toContain(
+      "今回だけの地域では実績取得は使えません。",
+    );
+  });
+
+  it("Open-Meteo Historical の結果をフォームへ反映し、実績取得メッセージと保存メッセージを分けて表示する", async () => {
+    fetchWeatherObservedMock.mockResolvedValue({
       message: "fetched",
-      forecast: {
-        weather_date: "2026-05-01",
+      observed: {
+        weather_date: "2026-05-02",
         location_id: 1,
-        location_name: "川口 Open-Meteo",
+        location_name: "川口",
         forecast_area_code: null,
         weather_code: "rain",
         raw_weather_code: 61,
@@ -163,9 +188,10 @@ describe("WearLogWeatherPage Open-Meteo forecast integration", () => {
         precipitation: 3.2,
         rain_sum: 3.2,
         snowfall_sum: 0,
-        source_type: "forecast_api",
-        source_name: "open_meteo_jma_forecast",
-        source_fetched_at: "2026-05-01T10:00:00+09:00",
+        precipitation_hours: 4,
+        source_type: "historical_api",
+        source_name: "open_meteo_historical",
+        source_fetched_at: "2026-05-03T10:00:00+09:00",
         raw_telop: null,
       },
     });
@@ -173,18 +199,18 @@ describe("WearLogWeatherPage Open-Meteo forecast integration", () => {
       message: "created",
       weatherRecord: {
         id: 1,
-        weather_date: "2026-05-01",
+        weather_date: "2026-05-02",
         location_id: 1,
-        location_name: "川口 Open-Meteo",
-        location_name_snapshot: "川口 Open-Meteo",
+        location_name: "川口",
+        location_name_snapshot: "川口",
         forecast_area_code_snapshot: null,
         weather_code: "rain",
         temperature_high: 22.1,
         temperature_low: 13.4,
         memo: null,
-        source_type: "forecast_api",
-        source_name: "open_meteo_jma_forecast",
-        source_fetched_at: "2026-05-01T10:00:00+09:00",
+        source_type: "historical_api",
+        source_name: "open_meteo_historical",
+        source_fetched_at: "2026-05-03T10:00:00+09:00",
         created_at: null,
         updated_at: null,
       },
@@ -198,14 +224,14 @@ describe("WearLogWeatherPage Open-Meteo forecast integration", () => {
     });
 
     await act(async () => {
-      getButtonByText("予報を取得")!.dispatchEvent(
+      getButtonByText("実績を取得")!.dispatchEvent(
         new MouseEvent("click", { bubbles: true }),
       );
       await waitForEffects();
     });
 
     expect(container.textContent).toContain(
-      "予報データを取得しました。内容を確認して保存してください。",
+      "実績データを取得しました。内容を確認して保存してください。",
     );
     expect(
       (container.querySelector("#temperature-high") as HTMLInputElement).value,
@@ -213,15 +239,18 @@ describe("WearLogWeatherPage Open-Meteo forecast integration", () => {
     expect(
       (container.querySelector("#temperature-low") as HTMLInputElement).value,
     ).toBe("13.4");
-    expect(container.textContent).toContain("Open-Meteo");
+    expect(container.textContent).toContain("Open-Meteo Historical");
     expect(container.textContent).toContain("61");
-    expect(container.textContent).toContain("降水量の参考値");
-    expect(container.textContent).toContain("3.2 mm");
+    expect(container.textContent).toContain("実績の降水参考値");
+    expect(container.textContent).toContain("4 時間");
+
+    const submitButton = container.querySelector(
+      'button[type="submit"]',
+    ) as HTMLButtonElement | null;
+    expect(submitButton).not.toBeNull();
 
     await act(async () => {
-      (
-        container.querySelector('button[type="submit"]') as HTMLButtonElement
-      ).dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      submitButton!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
       await waitForEffects();
     });
 
@@ -231,43 +260,30 @@ describe("WearLogWeatherPage Open-Meteo forecast integration", () => {
         weather_code: "rain",
         temperature_high: 22.1,
         temperature_low: 13.4,
-        source_type: "forecast_api",
-        source_name: "open_meteo_jma_forecast",
-        source_fetched_at: "2026-05-01T10:00:00+09:00",
+        source_type: "historical_api",
+        source_name: "open_meteo_historical",
+        source_fetched_at: "2026-05-03T10:00:00+09:00",
       }),
     );
-  });
-
-  it("legacy forecast_area_code だけの地域でも fallback として予報取得できる", async () => {
-    fetchUserWeatherLocationsMock.mockResolvedValue({
-      locations: [legacyLocation],
-    });
-
-    const { default: WearLogWeatherPage } = await import("./page");
-
-    await act(async () => {
-      root.render(React.createElement(WearLogWeatherPage));
-      await waitForEffects();
-    });
-
-    const fetchButton = getButtonByText("予報を取得") as HTMLButtonElement;
-    expect(fetchButton.disabled).toBe(false);
-  });
-
-  it("位置情報も予報区域もない地域では予報取得が disabled になる", async () => {
-    fetchUserWeatherLocationsMock.mockResolvedValue({
-      locations: [emptyLocation],
-    });
-
-    const { default: WearLogWeatherPage } = await import("./page");
-
-    await act(async () => {
-      root.render(React.createElement(WearLogWeatherPage));
-      await waitForEffects();
-    });
-
-    const fetchButton = getButtonByText("予報を取得") as HTMLButtonElement;
-    expect(fetchButton.disabled).toBe(true);
-    expect(container.textContent).toContain("予報取得:");
+    expect(createWeatherRecordMock).toHaveBeenCalledWith(
+      expect.not.objectContaining({
+        precipitation: expect.anything(),
+      }),
+    );
+    expect(createWeatherRecordMock).toHaveBeenCalledWith(
+      expect.not.objectContaining({
+        rain_sum: expect.anything(),
+      }),
+    );
+    expect(createWeatherRecordMock).toHaveBeenCalledWith(
+      expect.not.objectContaining({
+        snowfall_sum: expect.anything(),
+      }),
+    );
+    expect(createWeatherRecordMock).toHaveBeenCalledWith(
+      expect.not.objectContaining({
+        precipitation_hours: expect.anything(),
+      }),
+    );
   });
 });

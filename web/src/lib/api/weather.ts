@@ -2,6 +2,8 @@ import { apiFetch } from "@/lib/api/client";
 import type {
   WeatherForecastRequestPayload,
   WeatherForecastResponse,
+  WeatherObservedRequestPayload,
+  WeatherObservedResponse,
   WeatherRecordMutationResponse,
   WeatherRecordsResponse,
   WeatherRecordUpsertPayload,
@@ -31,6 +33,18 @@ export async function fetchWeatherForecast(
   payload: WeatherForecastRequestPayload,
 ): Promise<WeatherForecastResponse> {
   return apiFetch<WeatherForecastResponse>("/api/weather-records/forecast", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function fetchWeatherObserved(
+  payload: WeatherObservedRequestPayload,
+): Promise<WeatherObservedResponse> {
+  return apiFetch<WeatherObservedResponse>("/api/weather-records/observed", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

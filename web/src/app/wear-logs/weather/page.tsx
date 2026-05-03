@@ -16,6 +16,7 @@ import {
   createWeatherRecord,
   deleteWeatherRecord,
   fetchWeatherForecast,
+  fetchWeatherObserved,
   fetchWeatherRecordsByDate,
   updateWeatherRecord,
 } from "@/lib/api/weather";
@@ -25,6 +26,7 @@ import type { UserWeatherLocationRecord } from "@/types/settings";
 import type {
   WeatherCode,
   WeatherForecast,
+  WeatherObserved,
   WeatherRecord,
   WeatherRecordUpsertPayload,
 } from "@/types/weather";
@@ -166,6 +168,22 @@ function getOpenMeteoAwareForecastDisabledReason(
   return "位置情報または予報区域を設定すると、天気を取得できます。";
 }
 
+function getObservedDisabledReason(location: UserWeatherLocationRecord | null) {
+  if (location === null) {
+    return "地域を選択すると実績を取得できます。";
+  }
+
+  if (hasOpenMeteoCoordinates(location)) {
+    return null;
+  }
+
+  if (hasIncompleteOpenMeteoCoordinates(location)) {
+    return "位置情報の設定が不完全です。地域設定を確認してください。";
+  }
+
+  return "位置情報を設定すると、実績を取得できます。";
+}
+
 function WearLogWeatherPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -193,11 +211,13 @@ function WearLogWeatherPageContent() {
   const [temperatureHigh, setTemperatureHigh] = useState("");
   const [temperatureLow, setTemperatureLow] = useState("");
   const [memo, setMemo] = useState("");
-  const [pageMessage, setPageMessage] = useState<string | null>(null);
+  const [saveMessage, setSaveMessage] = useState<string | null>(null);
+  const [fetchMessage, setFetchMessage] = useState<string | null>(null);
   const [pageError, setPageError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [fetchingForecast, setFetchingForecast] = useState(false);
+  const [fetchingObserved, setFetchingObserved] = useState(false);
   const [sourceType, setSourceType] = useState<
     "manual" | "forecast_api" | "historical_api"
   >("manual");
@@ -217,6 +237,22 @@ function WearLogWeatherPageContent() {
   const [forecastSnowfallSum, setForecastSnowfallSum] = useState<number | null>(
     null,
   );
+  const [observedSourceName, setObservedSourceName] = useState<string | null>(
+    null,
+  );
+  const [observedRawWeatherCode, setObservedRawWeatherCode] = useState<
+    number | null
+  >(null);
+  const [observedPrecipitation, setObservedPrecipitation] = useState<
+    number | null
+  >(null);
+  const [observedRainSum, setObservedRainSum] = useState<number | null>(null);
+  const [observedSnowfallSum, setObservedSnowfallSum] = useState<number | null>(
+    null,
+  );
+  const [observedPrecipitationHours, setObservedPrecipitationHours] = useState<
+    number | null
+  >(null);
 
   const selectedRecord = useMemo(
     () =>
@@ -243,8 +279,18 @@ function WearLogWeatherPageContent() {
     return getOpenMeteoAwareForecastDisabledReason(selectedLocation);
   }, [locationMode, selectedLocation]);
 
+  const observedButtonDisabledReason = useMemo(() => {
+    if (locationMode === "temporary") {
+      return "今回だけの地域では実績取得は使えません。";
+    }
+
+    return getObservedDisabledReason(selectedLocation);
+  }, [locationMode, selectedLocation]);
+
   const canFetchForecast =
     validDate !== null && forecastButtonDisabledReason === null;
+  const canFetchObserved =
+    validDate !== null && observedButtonDisabledReason === null;
   const showMissingForecastTemperatureMessage =
     forecastSourceName !== null &&
     temperatureHigh.trim() === "" &&
@@ -255,6 +301,13 @@ function WearLogWeatherPageContent() {
     forecastPrecipitation !== null ||
     forecastRainSum !== null ||
     forecastSnowfallSum !== null;
+  const showOpenMeteoObservedSummary =
+    observedSourceName === "open_meteo_historical";
+  const hasObservedPrecipitationDetails =
+    observedPrecipitation !== null ||
+    observedRainSum !== null ||
+    observedSnowfallSum !== null ||
+    observedPrecipitationHours !== null;
 
   const resetDraft = useCallback(
     (
@@ -276,6 +329,12 @@ function WearLogWeatherPageContent() {
       setForecastPrecipitation(null);
       setForecastRainSum(null);
       setForecastSnowfallSum(null);
+      setObservedSourceName(null);
+      setObservedRawWeatherCode(null);
+      setObservedPrecipitation(null);
+      setObservedRainSum(null);
+      setObservedSnowfallSum(null);
+      setObservedPrecipitationHours(null);
 
       if (nextMode === "temporary") {
         setTemporaryLocationName("");
@@ -320,6 +379,12 @@ function WearLogWeatherPageContent() {
     setForecastPrecipitation(null);
     setForecastRainSum(null);
     setForecastSnowfallSum(null);
+    setObservedSourceName(null);
+    setObservedRawWeatherCode(null);
+    setObservedPrecipitation(null);
+    setObservedRainSum(null);
+    setObservedSnowfallSum(null);
+    setObservedPrecipitationHours(null);
   }, []);
 
   const applyForecastToForm = useCallback((forecast: WeatherForecast) => {
@@ -341,6 +406,39 @@ function WearLogWeatherPageContent() {
     setForecastPrecipitation(forecast.precipitation);
     setForecastRainSum(forecast.rain_sum);
     setForecastSnowfallSum(forecast.snowfall_sum);
+    setObservedSourceName(null);
+    setObservedRawWeatherCode(null);
+    setObservedPrecipitation(null);
+    setObservedRainSum(null);
+    setObservedSnowfallSum(null);
+    setObservedPrecipitationHours(null);
+  }, []);
+
+  const applyObservedToForm = useCallback((observed: WeatherObserved) => {
+    setWeatherCode(observed.weather_code);
+    setTemperatureHigh(
+      observed.temperature_high === null
+        ? ""
+        : String(observed.temperature_high),
+    );
+    setTemperatureLow(
+      observed.temperature_low === null ? "" : String(observed.temperature_low),
+    );
+    setSourceType(observed.source_type);
+    setSourceName(observed.source_name);
+    setSourceFetchedAt(observed.source_fetched_at);
+    setForecastRawTelop(null);
+    setForecastSourceName(null);
+    setForecastRawWeatherCode(null);
+    setForecastPrecipitation(null);
+    setForecastRainSum(null);
+    setForecastSnowfallSum(null);
+    setObservedSourceName(observed.source_name);
+    setObservedRawWeatherCode(observed.raw_weather_code);
+    setObservedPrecipitation(observed.precipitation);
+    setObservedRainSum(observed.rain_sum);
+    setObservedSnowfallSum(observed.snowfall_sum);
+    setObservedPrecipitationHours(observed.precipitation_hours);
   }, []);
 
   const loadPage = useCallback(async () => {
@@ -423,7 +521,8 @@ function WearLogWeatherPageContent() {
       return;
     }
 
-    setPageMessage(null);
+    setSaveMessage(null);
+    setFetchMessage(null);
     setPageError(null);
     setSaving(true);
 
@@ -446,10 +545,10 @@ function WearLogWeatherPageContent() {
     try {
       if (selectedRecord) {
         await updateWeatherRecord(selectedRecord.id, payload);
-        setPageMessage("天気情報を更新しました。");
+        setSaveMessage("天気情報を更新しました。");
       } else {
         await createWeatherRecord(payload);
-        setPageMessage("天気情報を登録しました。");
+        setSaveMessage("天気情報を登録しました。");
       }
 
       const nextLocationsResponse = await fetchUserWeatherLocations();
@@ -498,13 +597,14 @@ function WearLogWeatherPageContent() {
       return;
     }
 
-    setPageMessage(null);
+    setSaveMessage(null);
+    setFetchMessage(null);
     setPageError(null);
     setDeletingId(record.id);
 
     try {
       await deleteWeatherRecord(record.id);
-      setPageMessage("天気情報を削除しました。");
+      setSaveMessage("天気情報を削除しました。");
       const nextLocations = sortLocations(locations);
       setRecords((current) =>
         current.filter((currentRecord) => currentRecord.id !== record.id),
@@ -538,7 +638,8 @@ function WearLogWeatherPageContent() {
       return;
     }
 
-    setPageMessage(null);
+    setSaveMessage(null);
+    setFetchMessage(null);
     setPageError(null);
     setFetchingForecast(true);
 
@@ -549,8 +650,8 @@ function WearLogWeatherPageContent() {
       });
 
       applyForecastToForm(response.forecast);
-      setPageMessage(
-        "天気情報を取得しました。内容を確認して保存してください。",
+      setFetchMessage(
+        "予報データを取得しました。内容を確認して保存してください。",
       );
     } catch (error) {
       if (error instanceof ApiClientError) {
@@ -569,6 +670,53 @@ function WearLogWeatherPageContent() {
       }
     } finally {
       setFetchingForecast(false);
+    }
+  }
+
+  async function handleFetchObserved() {
+    if (
+      !validDate ||
+      !canFetchObserved ||
+      selectedLocationId === null ||
+      fetchingObserved
+    ) {
+      return;
+    }
+
+    setSaveMessage(null);
+    setFetchMessage(null);
+    setPageError(null);
+    setFetchingObserved(true);
+
+    try {
+      const response = await fetchWeatherObserved({
+        weather_date: validDate,
+        location_id: selectedLocationId,
+      });
+
+      applyObservedToForm(response.observed);
+      setFetchMessage(
+        "実績データを取得しました。内容を確認して保存してください。",
+      );
+    } catch (error) {
+      if (error instanceof ApiClientError) {
+        setPageError(
+          getFirstValidationMessage(error.data, [
+            "location_id",
+            "weather_date",
+          ]) ??
+            getUserFacingSubmitErrorMessage(
+              error.data,
+              "実績データを取得できませんでした。時間をおいて再度お試しください。",
+            ),
+        );
+      } else {
+        setPageError(
+          "実績データを取得できませんでした。時間をおいて再度お試しください。",
+        );
+      }
+    } finally {
+      setFetchingObserved(false);
     }
   }
 
@@ -622,9 +770,9 @@ function WearLogWeatherPageContent() {
                 </Link>
               </div>
 
-              {pageMessage ? (
+              {saveMessage ? (
                 <p className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-                  {pageMessage}
+                  {saveMessage}
                 </p>
               ) : null}
 
@@ -650,43 +798,78 @@ function WearLogWeatherPageContent() {
                     普段使う地域は保存できます。旅行先などは今回だけ入力できます。
                   </p>
 
-                  <div className="rounded-xl border border-sky-100 bg-sky-50/70 px-4 py-3">
-                    <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                      <div className="space-y-1">
-                        <p className="text-sm font-medium text-sky-950">
-                          予報APIからフォームへ反映
-                        </p>
-                        <p className="text-sm text-sky-900/80">
-                          保存済み地域の位置情報または予報区域を使って天気を取得します。取得しても自動保存はされません。
-                        </p>
+                  <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-gray-900">
+                        天気データを取得
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        保存済み地域の設定を使って、予報または実績をフォームに反映できます。取得しても自動保存はされません。
+                      </p>
+                      <div className="flex flex-col gap-2 text-xs text-gray-500 md:flex-row md:gap-4">
+                        <p>予報: これからの天気を取得します。</p>
+                        <p>実績: 過去日の履歴データを取得します。</p>
                       </div>
+                    </div>
+                    <div className="mt-4 flex flex-col gap-3 md:flex-row md:flex-wrap">
                       <button
                         type="button"
                         onClick={() => void handleFetchForecast()}
                         disabled={!canFetchForecast || fetchingForecast}
                         className="inline-flex items-center justify-center rounded-lg border border-sky-200 bg-white px-4 py-2 text-sm font-medium text-sky-700 transition hover:bg-sky-50 disabled:cursor-not-allowed disabled:border-sky-100 disabled:text-sky-300"
                       >
-                        {fetchingForecast ? "取得中…" : "天気を取得"}
+                        {fetchingForecast ? "取得中…" : "予報を取得"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void handleFetchObserved()}
+                        disabled={!canFetchObserved || fetchingObserved}
+                        className="inline-flex items-center justify-center rounded-lg border border-emerald-200 bg-white px-4 py-2 text-sm font-medium text-emerald-700 transition hover:bg-emerald-50 disabled:cursor-not-allowed disabled:border-emerald-100 disabled:text-emerald-300"
+                      >
+                        {fetchingObserved ? "取得中…" : "実績を取得"}
                       </button>
                     </div>
-                    {forecastButtonDisabledReason ? (
-                      <p className="mt-2 text-xs text-sky-900/70">
-                        {forecastButtonDisabledReason}
-                        {locationMode === "saved" &&
-                        selectedLocationId !== null &&
-                        forecastButtonDisabledReason !== null ? (
-                          <>
-                            {" "}
-                            <Link
-                              href="/settings/weather-locations"
-                              className="font-medium text-sky-700 underline"
-                            >
-                              地域設定へ
-                            </Link>
-                          </>
-                        ) : null}
+                    {fetchMessage ? (
+                      <p className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+                        {fetchMessage}
                       </p>
                     ) : null}
+                    <div className="mt-3 space-y-2 text-xs">
+                      {forecastButtonDisabledReason ? (
+                        <p className="text-sky-900/70">
+                          予報取得: {forecastButtonDisabledReason}
+                          {locationMode === "saved" &&
+                          selectedLocationId !== null ? (
+                            <>
+                              {" "}
+                              <Link
+                                href="/settings/weather-locations"
+                                className="font-medium text-sky-700 underline"
+                              >
+                                地域設定へ
+                              </Link>
+                            </>
+                          ) : null}
+                        </p>
+                      ) : null}
+                      {observedButtonDisabledReason ? (
+                        <p className="text-emerald-900/70">
+                          実績取得: {observedButtonDisabledReason}
+                          {locationMode === "saved" &&
+                          selectedLocationId !== null ? (
+                            <>
+                              {" "}
+                              <Link
+                                href="/settings/weather-locations"
+                                className="font-medium text-emerald-700 underline"
+                              >
+                                地域設定へ
+                              </Link>
+                            </>
+                          ) : null}
+                        </p>
+                      ) : null}
+                    </div>
                   </div>
 
                   <div className="space-y-0">
@@ -923,6 +1106,58 @@ function WearLogWeatherPageContent() {
                     </div>
                     <p className="mt-2 text-xs text-sky-800">
                       参考値として表示しています。今回は保存しません。
+                    </p>
+                  </div>
+                ) : null}
+
+                {showOpenMeteoObservedSummary ? (
+                  <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+                    <p>
+                      取得元:{" "}
+                      <span className="font-medium">Open-Meteo Historical</span>
+                    </p>
+                    {observedRawWeatherCode !== null ? (
+                      <p className="mt-1">
+                        取得した天気コード:{" "}
+                        <span className="font-medium">
+                          {observedRawWeatherCode}
+                        </span>
+                      </p>
+                    ) : null}
+                  </div>
+                ) : null}
+
+                {hasObservedPrecipitationDetails ? (
+                  <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+                    <p className="font-medium">実績の降水参考値</p>
+                    <p className="mt-2 leading-6">
+                      降水量{" "}
+                      <span className="font-medium">
+                        {observedPrecipitation === null
+                          ? "未取得"
+                          : `${observedPrecipitation} mm`}
+                      </span>
+                      {" / "}雨量{" "}
+                      <span className="font-medium">
+                        {observedRainSum === null
+                          ? "未取得"
+                          : `${observedRainSum} mm`}
+                      </span>
+                      {" / "}降雪量{" "}
+                      <span className="font-medium">
+                        {observedSnowfallSum === null
+                          ? "未取得"
+                          : `${observedSnowfallSum} cm`}
+                      </span>
+                      {" / "}降水時間{" "}
+                      <span className="font-medium">
+                        {observedPrecipitationHours === null
+                          ? "未取得"
+                          : `${observedPrecipitationHours} 時間`}
+                      </span>
+                    </p>
+                    <p className="mt-2 text-xs text-emerald-800">
+                      参考表示のみで、今回は保存されません。
                     </p>
                   </div>
                 ) : null}

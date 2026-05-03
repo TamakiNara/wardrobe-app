@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\UserWeatherLocation;
 use App\Models\WeatherRecord;
 use App\Services\Weather\FetchJmaWeatherForecastService;
+use App\Services\Weather\FetchOpenMeteoHistoricalWeatherService;
 use App\Services\Weather\FetchOpenMeteoWeatherForecastService;
 use App\Services\Weather\FetchWeatherForecastException;
 use App\Services\Weather\FetchWeatherForecastService;
@@ -22,6 +23,7 @@ class WeatherRecordController extends Controller
         private readonly FetchWeatherForecastService $tsukumijimaForecastService,
         private readonly FetchJmaWeatherForecastService $jmaForecastService,
         private readonly FetchOpenMeteoWeatherForecastService $openMeteoForecastService,
+        private readonly FetchOpenMeteoHistoricalWeatherService $openMeteoHistoricalService,
     ) {}
 
     public function index(Request $request): JsonResponse
@@ -76,6 +78,33 @@ class WeatherRecordController extends Controller
         return response()->json([
             'message' => 'fetched',
             'forecast' => $forecast,
+        ]);
+    }
+
+    public function observed(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'weather_date' => ['required', 'date'],
+            'location_id' => ['required', 'integer'],
+        ]);
+
+        try {
+            $observed = $this->fetchObservedForLocation(
+                $request->user()->id,
+                (int) $validated['location_id'],
+                $validated['weather_date'],
+            );
+        } catch (ValidationException $exception) {
+            throw $exception;
+        } catch (FetchWeatherForecastException $exception) {
+            return response()->json([
+                'message' => $exception->getMessage(),
+            ], 502);
+        }
+
+        return response()->json([
+            'message' => 'fetched',
+            'observed' => $observed,
         ]);
     }
 
@@ -192,6 +221,74 @@ class WeatherRecordController extends Controller
 
         throw ValidationException::withMessages([
             'location_id' => '予報区域の設定がありません。地域設定を確認してください。',
+        ]);
+    }
+
+    /**
+     * @return array{
+     *     weather_date: string,
+     *     location_id: int,
+     *     location_name: string,
+     *     forecast_area_code: string|null,
+     *     weather_code: string,
+     *     raw_weather_code: int|null,
+     *     temperature_high: int|float|null,
+     *     temperature_low: int|float|null,
+     *     precipitation: float|null,
+     *     rain_sum: float|null,
+     *     snowfall_sum: float|null,
+     *     precipitation_hours: float|null,
+     *     source_type: string,
+     *     source_name: string,
+     *     source_fetched_at: string,
+     *     raw_telop: string|null
+     * }
+     */
+    private function fetchObservedForLocation(int $userId, int $locationId, string $weatherDate): array
+    {
+        $location = $this->resolveOwnedLocation($userId, $locationId);
+        $legacyForecastAreaCode = $this->normalizeLocationCode($location->forecast_area_code);
+        $latitude = $location->latitude;
+        $longitude = $location->longitude;
+        $hasOpenMeteoCoordinates = $latitude !== null && $longitude !== null;
+        $hasIncompleteOpenMeteoCoordinates = ($latitude !== null) xor ($longitude !== null);
+
+        if ($hasOpenMeteoCoordinates) {
+            $observed = $this->openMeteoHistoricalService->fetch(
+                (float) $latitude,
+                (float) $longitude,
+                $location->timezone,
+                $weatherDate,
+            );
+
+            return [
+                'weather_date' => $observed['weather_date'],
+                'location_id' => $location->id,
+                'location_name' => $location->name,
+                'forecast_area_code' => $legacyForecastAreaCode,
+                'weather_code' => $observed['weather_code'],
+                'raw_weather_code' => $observed['raw_weather_code'],
+                'temperature_high' => $observed['temperature_high'],
+                'temperature_low' => $observed['temperature_low'],
+                'precipitation' => $observed['precipitation'],
+                'rain_sum' => $observed['rain_sum'],
+                'snowfall_sum' => $observed['snowfall_sum'],
+                'precipitation_hours' => $observed['precipitation_hours'],
+                'source_type' => $observed['source_type'],
+                'source_name' => $observed['source_name'],
+                'source_fetched_at' => $observed['source_fetched_at'],
+                'raw_telop' => $observed['raw_weather_text'],
+            ];
+        }
+
+        if ($hasIncompleteOpenMeteoCoordinates) {
+            throw ValidationException::withMessages([
+                'location_id' => '位置情報の設定が不完全です。地域設定を確認してください。',
+            ]);
+        }
+
+        throw ValidationException::withMessages([
+            'location_id' => '位置情報を設定すると、実績を取得できます。',
         ]);
     }
 

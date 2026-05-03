@@ -261,3 +261,19 @@
 
 - Open-Meteo historical PoC を追加し、forecast と同じ `latitude` / `longitude` / `timezone` を observed 側でも使う
 - JMA forecast JSON / tsukumijima fallback は当面残しつつ、順次 legacy 側へ寄せる
+---
+
+## 2026-05-03 Open-Meteo historical PoC status note
+
+### current
+
+- 天気登録画面の `実績を取得` は、保存済み地域に `latitude` / `longitude` がある場合に Open-Meteo Historical を使う
+- 実績取得では `weather_code` / `最高気温` / `最低気温` / `source_type` / `source_name` / `source_fetched_at` をフォームへ反映する
+- `precipitation` / `rain_sum` / `snowfall_sum` / `precipitation_hours` は参考値として画面表示するが、保存はしない
+- `source_name = open_meteo_historical`
+- `latitude` / `longitude` がない地域では observed 取得不可とする
+
+### planned
+
+- Open-Meteo forecast / historical の両方を `latitude` / `longitude` / `timezone` 正本へ寄せる
+- precipitation 系や snapshot 分離は要再判断として残す
