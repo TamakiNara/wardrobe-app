@@ -16,6 +16,7 @@ const fetchWeatherObservedMock = vi.fn();
 const createWeatherRecordMock = vi.fn();
 const updateWeatherRecordMock = vi.fn();
 const deleteWeatherRecordMock = vi.fn();
+let mockDate = "2026-05-01";
 
 vi.mock("next/link", () => ({
   default: ({ children, href, ...props }: React.ComponentProps<"a">) =>
@@ -25,7 +26,7 @@ vi.mock("next/link", () => ({
 vi.mock("next/navigation", () => ({
   useRouter: () => routerMock,
   useSearchParams: () => ({
-    get: (key: string) => (key === "date" ? "2026-05-01" : null),
+    get: (key: string) => (key === "date" ? mockDate : null),
   }),
 }));
 
@@ -95,7 +96,7 @@ describe("WearLogWeatherPage Open-Meteo forecast integration", () => {
 
   async function waitForEffects() {
     await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      await Promise.resolve();
     });
   }
 
@@ -107,6 +108,9 @@ describe("WearLogWeatherPage Open-Meteo forecast integration", () => {
 
   beforeEach(() => {
     vi.restoreAllMocks();
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-05-03T09:00:00+09:00"));
+    mockDate = "2026-05-01";
     pushMock.mockReset();
     fetchUserWeatherLocationsMock.mockResolvedValue({
       locations: [openMeteoLocation],
@@ -130,9 +134,54 @@ describe("WearLogWeatherPage Open-Meteo forecast integration", () => {
       root.unmount();
     });
     container.remove();
+    vi.useRealTimers();
   });
 
-  it("予報取得・実績取得ボタンが同じ取得セクションに表示される", async () => {
+  it("過去日では実績取得を主導線にし、予報取得を disabled にする", async () => {
+    const { default: WearLogWeatherPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(WearLogWeatherPage));
+      await waitForEffects();
+    });
+
+    const fetchButton = getButtonByText("予報を取得") as HTMLButtonElement;
+    const observedButton = getButtonByText("実績を取得") as HTMLButtonElement;
+
+    expect(fetchButton.disabled).toBe(true);
+    expect(observedButton.disabled).toBe(false);
+    expect(container.textContent).toContain("天気データを取得");
+    expect(container.textContent).toContain(
+      "過去日は実績データの取得を推奨します。",
+    );
+    expect(fetchButton.className).toContain("disabled:border-sky-100");
+    expect(observedButton.className).toContain("bg-emerald-600");
+  });
+
+  it("未来日では予報取得を主導線にし、実績取得を disabled にする", async () => {
+    mockDate = "2026-05-04";
+
+    const { default: WearLogWeatherPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(WearLogWeatherPage));
+      await waitForEffects();
+    });
+
+    const fetchButton = getButtonByText("予報を取得") as HTMLButtonElement;
+    const observedButton = getButtonByText("実績を取得") as HTMLButtonElement;
+
+    expect(fetchButton.disabled).toBe(false);
+    expect(observedButton.disabled).toBe(true);
+    expect(container.textContent).toContain(
+      "未来日のため、実績データはまだ取得できません。",
+    );
+    expect(fetchButton.className).toContain("bg-sky-600");
+  });
+
+  it("今日では予報取得と実績取得を両方使え、実績の注意文を表示する", async () => {
+    mockDate = "2026-05-03";
+
     const { default: WearLogWeatherPage } = await import("./page");
 
     await act(async () => {
@@ -145,14 +194,18 @@ describe("WearLogWeatherPage Open-Meteo forecast integration", () => {
 
     expect(fetchButton.disabled).toBe(false);
     expect(observedButton.disabled).toBe(false);
-    expect(container.textContent).toContain("天気データを取得");
+    expect(container.textContent).toContain(
+      "今日の実績は未確定の値を含む場合があります。必要に応じて翌日以降に再取得してください。",
+    );
+    expect(fetchButton.className).toContain("bg-sky-600");
   });
 
   it("Open-Meteo forecast の取得成功メッセージを表示し、保存時は登録メッセージを表示する", async () => {
+    mockDate = "2026-05-03";
     fetchWeatherForecastMock.mockResolvedValue({
       message: "fetched",
       forecast: {
-        weather_date: "2026-05-01",
+        weather_date: "2026-05-03",
         location_id: 1,
         location_name: "川口 Open-Meteo",
         forecast_area_code: null,
@@ -165,7 +218,7 @@ describe("WearLogWeatherPage Open-Meteo forecast integration", () => {
         snowfall_sum: 0,
         source_type: "forecast_api",
         source_name: "open_meteo_jma_forecast",
-        source_fetched_at: "2026-05-01T10:00:00+09:00",
+        source_fetched_at: "2026-05-03T10:00:00+09:00",
         raw_telop: null,
       },
     });
@@ -173,7 +226,7 @@ describe("WearLogWeatherPage Open-Meteo forecast integration", () => {
       message: "created",
       weatherRecord: {
         id: 1,
-        weather_date: "2026-05-01",
+        weather_date: "2026-05-03",
         location_id: 1,
         location_name: "川口 Open-Meteo",
         location_name_snapshot: "川口 Open-Meteo",
@@ -184,7 +237,7 @@ describe("WearLogWeatherPage Open-Meteo forecast integration", () => {
         memo: null,
         source_type: "forecast_api",
         source_name: "open_meteo_jma_forecast",
-        source_fetched_at: "2026-05-01T10:00:00+09:00",
+        source_fetched_at: "2026-05-03T10:00:00+09:00",
         created_at: null,
         updated_at: null,
       },
@@ -233,12 +286,13 @@ describe("WearLogWeatherPage Open-Meteo forecast integration", () => {
         temperature_low: 13.4,
         source_type: "forecast_api",
         source_name: "open_meteo_jma_forecast",
-        source_fetched_at: "2026-05-01T10:00:00+09:00",
+        source_fetched_at: "2026-05-03T10:00:00+09:00",
       }),
     );
   });
 
   it("legacy forecast_area_code だけの地域でも fallback として予報取得できる", async () => {
+    mockDate = "2026-05-03";
     fetchUserWeatherLocationsMock.mockResolvedValue({
       locations: [legacyLocation],
     });
@@ -255,6 +309,7 @@ describe("WearLogWeatherPage Open-Meteo forecast integration", () => {
   });
 
   it("位置情報も予報区域もない地域では予報取得が disabled になる", async () => {
+    mockDate = "2026-05-03";
     fetchUserWeatherLocationsMock.mockResolvedValue({
       locations: [emptyLocation],
     });
@@ -269,5 +324,8 @@ describe("WearLogWeatherPage Open-Meteo forecast integration", () => {
     const fetchButton = getButtonByText("予報を取得") as HTMLButtonElement;
     expect(fetchButton.disabled).toBe(true);
     expect(container.textContent).toContain("予報取得:");
+    expect(container.textContent).toContain(
+      "位置情報または予報区域を設定すると、天気を取得できます。",
+    );
   });
 });

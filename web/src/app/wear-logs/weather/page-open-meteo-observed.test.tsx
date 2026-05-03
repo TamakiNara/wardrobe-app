@@ -16,6 +16,7 @@ const fetchWeatherObservedMock = vi.fn();
 const createWeatherRecordMock = vi.fn();
 const updateWeatherRecordMock = vi.fn();
 const deleteWeatherRecordMock = vi.fn();
+let mockDate = "2026-05-02";
 
 vi.mock("next/link", () => ({
   default: ({ children, href, ...props }: React.ComponentProps<"a">) =>
@@ -25,7 +26,7 @@ vi.mock("next/link", () => ({
 vi.mock("next/navigation", () => ({
   useRouter: () => routerMock,
   useSearchParams: () => ({
-    get: (key: string) => (key === "date" ? "2026-05-02" : null),
+    get: (key: string) => (key === "date" ? mockDate : null),
   }),
 }));
 
@@ -80,7 +81,7 @@ describe("WearLogWeatherPage Open-Meteo historical integration", () => {
 
   async function waitForEffects() {
     await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      await Promise.resolve();
     });
   }
 
@@ -92,6 +93,9 @@ describe("WearLogWeatherPage Open-Meteo historical integration", () => {
 
   beforeEach(() => {
     vi.restoreAllMocks();
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-05-03T09:00:00+09:00"));
+    mockDate = "2026-05-02";
     pushMock.mockReset();
     fetchUserWeatherLocationsMock.mockResolvedValue({
       locations: [locationWithCoordinates],
@@ -115,9 +119,10 @@ describe("WearLogWeatherPage Open-Meteo historical integration", () => {
       root.unmount();
     });
     container.remove();
+    vi.useRealTimers();
   });
 
-  it("latitude / longitude がある地域では実績を取得ボタンが有効になる", async () => {
+  it("過去日では実績を取得ボタンが有効で主導線になる", async () => {
     const { default: WearLogWeatherPage } = await import("./page");
 
     await act(async () => {
@@ -127,9 +132,48 @@ describe("WearLogWeatherPage Open-Meteo historical integration", () => {
 
     const observedButton = getButtonByText("実績を取得") as HTMLButtonElement;
     expect(observedButton.disabled).toBe(false);
+    expect(observedButton.className).toContain("bg-emerald-600");
+    expect(container.textContent).toContain(
+      "過去日は実績データの取得を推奨します。",
+    );
+  });
+
+  it("今日では実績を取得ボタンは有効だが未確定注意文を表示する", async () => {
+    mockDate = "2026-05-03";
+
+    const { default: WearLogWeatherPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(WearLogWeatherPage));
+      await waitForEffects();
+    });
+
+    const observedButton = getButtonByText("実績を取得") as HTMLButtonElement;
+    expect(observedButton.disabled).toBe(false);
+    expect(container.textContent).toContain(
+      "今日の実績は未確定の値を含む場合があります。必要に応じて翌日以降に再取得してください。",
+    );
+  });
+
+  it("未来日では実績を取得ボタンが disabled になる", async () => {
+    mockDate = "2026-05-04";
+
+    const { default: WearLogWeatherPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(WearLogWeatherPage));
+      await waitForEffects();
+    });
+
+    const observedButton = getButtonByText("実績を取得") as HTMLButtonElement;
+    expect(observedButton.disabled).toBe(true);
+    expect(container.textContent).toContain(
+      "未来日のため、実績データはまだ取得できません。",
+    );
   });
 
   it("位置情報がない地域では実績取得が disabled になる", async () => {
+    mockDate = "2026-05-03";
     fetchUserWeatherLocationsMock.mockResolvedValue({
       locations: [locationWithoutCoordinates],
     });
@@ -150,6 +194,7 @@ describe("WearLogWeatherPage Open-Meteo historical integration", () => {
   });
 
   it("今回だけの地域では実績取得が disabled になる", async () => {
+    mockDate = "2026-05-03";
     const { default: WearLogWeatherPage } = await import("./page");
 
     await act(async () => {
@@ -170,6 +215,11 @@ describe("WearLogWeatherPage Open-Meteo historical integration", () => {
     expect(observedButton.disabled).toBe(true);
     expect(container.textContent).toContain(
       "今回だけの地域では実績取得は使えません。",
+    );
+    const forecastButton = getButtonByText("予報を取得") as HTMLButtonElement;
+    expect(forecastButton.disabled).toBe(true);
+    expect(container.textContent).toContain(
+      "今回だけの地域では天気取得は使えません。",
     );
   });
 

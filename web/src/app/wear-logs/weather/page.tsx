@@ -76,6 +76,49 @@ function formatWeatherPageTitle(date: string) {
   return `${formatJapaneseDate(date)}の天気`;
 }
 
+type WeatherDateKind = "future" | "today" | "past";
+
+function formatDateInTimeZoneYmd(date: Date, timeZone: string) {
+  const formatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+
+  const parts = formatter.formatToParts(date);
+  const year = parts.find((part) => part.type === "year")?.value;
+  const month = parts.find((part) => part.type === "month")?.value;
+  const day = parts.find((part) => part.type === "day")?.value;
+
+  if (!year || !month || !day) {
+    throw new Error("Failed to format date");
+  }
+
+  return `${year}-${month}-${day}`;
+}
+
+function getWeatherDateKind(
+  weatherDate: string | null,
+  timeZone = "Asia/Tokyo",
+): WeatherDateKind | null {
+  if (!weatherDate) {
+    return null;
+  }
+
+  const today = formatDateInTimeZoneYmd(new Date(), timeZone);
+
+  if (weatherDate > today) {
+    return "future";
+  }
+
+  if (weatherDate < today) {
+    return "past";
+  }
+
+  return "today";
+}
+
 function sortLocations(locations: UserWeatherLocationRecord[]) {
   return [...locations].sort((a, b) => {
     if (a.is_default !== b.is_default) {
@@ -184,6 +227,22 @@ function getObservedDisabledReason(location: UserWeatherLocationRecord | null) {
   return "位置情報を設定すると、実績を取得できます。";
 }
 
+function getDateBasedFetchGuidance(dateKind: WeatherDateKind | null) {
+  if (dateKind === "future") {
+    return "未来日のため、実績データはまだ取得できません。";
+  }
+
+  if (dateKind === "today") {
+    return "今日の実績は未確定の値を含む場合があります。必要に応じて翌日以降に再取得してください。";
+  }
+
+  if (dateKind === "past") {
+    return "過去日は実績データの取得を推奨します。";
+  }
+
+  return null;
+}
+
 function WearLogWeatherPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -270,22 +329,34 @@ function WearLogWeatherPageContent() {
           null),
     [locations, selectedLocationId],
   );
+  const weatherDateKind = useMemo(
+    () => getWeatherDateKind(validDate),
+    [validDate],
+  );
 
   const forecastButtonDisabledReason = useMemo(() => {
     if (locationMode === "temporary") {
       return "今回だけの地域では天気取得は使えません。";
     }
 
+    if (weatherDateKind === "past") {
+      return "過去日は実績データの取得を推奨します。";
+    }
+
     return getOpenMeteoAwareForecastDisabledReason(selectedLocation);
-  }, [locationMode, selectedLocation]);
+  }, [locationMode, selectedLocation, weatherDateKind]);
 
   const observedButtonDisabledReason = useMemo(() => {
     if (locationMode === "temporary") {
       return "今回だけの地域では実績取得は使えません。";
     }
 
+    if (weatherDateKind === "future") {
+      return "未来日のため、実績データはまだ取得できません。";
+    }
+
     return getObservedDisabledReason(selectedLocation);
-  }, [locationMode, selectedLocation]);
+  }, [locationMode, selectedLocation, weatherDateKind]);
 
   const canFetchForecast =
     validDate !== null && forecastButtonDisabledReason === null;
@@ -308,6 +379,10 @@ function WearLogWeatherPageContent() {
     observedRainSum !== null ||
     observedSnowfallSum !== null ||
     observedPrecipitationHours !== null;
+  const dateBasedFetchGuidance = getDateBasedFetchGuidance(weatherDateKind);
+  const forecastIsPrimary =
+    weatherDateKind === "future" || weatherDateKind === "today";
+  const observedIsPrimary = weatherDateKind === "past";
 
   const resetDraft = useCallback(
     (
@@ -810,13 +885,22 @@ function WearLogWeatherPageContent() {
                         <p>予報: これからの天気を取得します。</p>
                         <p>実績: 過去日の履歴データを取得します。</p>
                       </div>
+                      {dateBasedFetchGuidance ? (
+                        <p className="text-xs text-gray-600">
+                          {dateBasedFetchGuidance}
+                        </p>
+                      ) : null}
                     </div>
                     <div className="mt-4 flex flex-col gap-3 md:flex-row md:flex-wrap">
                       <button
                         type="button"
                         onClick={() => void handleFetchForecast()}
                         disabled={!canFetchForecast || fetchingForecast}
-                        className="inline-flex items-center justify-center rounded-lg border border-sky-200 bg-white px-4 py-2 text-sm font-medium text-sky-700 transition hover:bg-sky-50 disabled:cursor-not-allowed disabled:border-sky-100 disabled:text-sky-300"
+                        className={`inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed ${
+                          forecastIsPrimary
+                            ? "border border-sky-600 bg-sky-600 text-white hover:bg-sky-700 disabled:border-sky-200 disabled:bg-sky-100 disabled:text-sky-400"
+                            : "border border-sky-200 bg-white text-sky-700 hover:bg-sky-50 disabled:border-sky-100 disabled:text-sky-300"
+                        }`}
                       >
                         {fetchingForecast ? "取得中…" : "予報を取得"}
                       </button>
@@ -824,7 +908,11 @@ function WearLogWeatherPageContent() {
                         type="button"
                         onClick={() => void handleFetchObserved()}
                         disabled={!canFetchObserved || fetchingObserved}
-                        className="inline-flex items-center justify-center rounded-lg border border-emerald-200 bg-white px-4 py-2 text-sm font-medium text-emerald-700 transition hover:bg-emerald-50 disabled:cursor-not-allowed disabled:border-emerald-100 disabled:text-emerald-300"
+                        className={`inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed ${
+                          observedIsPrimary
+                            ? "border border-emerald-600 bg-emerald-600 text-white hover:bg-emerald-700 disabled:border-emerald-200 disabled:bg-emerald-100 disabled:text-emerald-400"
+                            : "border border-emerald-200 bg-white text-emerald-700 hover:bg-emerald-50 disabled:border-emerald-100 disabled:text-emerald-300"
+                        }`}
                       >
                         {fetchingObserved ? "取得中…" : "実績を取得"}
                       </button>
