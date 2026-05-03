@@ -11,6 +11,7 @@ import {
 } from "@/lib/weather/labels";
 import {
   normalizeWeatherPreviewText,
+  OPEN_METEO_WEATHER_PREVIEW_SAMPLES,
   WEATHER_PREVIEW_SAMPLES,
 } from "@/lib/weather/weather-preview-samples";
 import {
@@ -84,8 +85,8 @@ export default function WeatherPreviewPage() {
             </h1>
             <p className="max-w-3xl text-sm leading-6 text-slate-600">
               このページは開発確認用です。通常ナビには出さず、現在の
-              weather_code 定義、表示名、Lucide アイコン、雨可能性、JMA
-              天気文サンプルの正規化結果をまとめて確認します。
+              weather_code 定義、Open-Meteo WMO code 変換、legacy / fallback の
+              JMA 天気文変換結果をまとめて確認します。
             </p>
           </div>
         </section>
@@ -195,11 +196,123 @@ export default function WeatherPreviewPage() {
         <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
           <div className="mb-4 space-y-1">
             <h2 className="text-xl font-semibold text-slate-900">
-              JMA天気文 正規化確認
+              Open-Meteo WMO code 変換
             </h2>
             <p className="text-sm text-slate-600">
-              backend
-              の正規化テストで確認しているサンプルを、画面表示用に一覧化しています。
+              現在の本線で使う Open-Meteo / WMO weather code が、app の
+              weather_code とアイコン表示へどう寄るかを確認します。
+            </p>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-slate-200 text-sm">
+              <thead>
+                <tr className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
+                  <th className="px-3 py-3">WMO code</th>
+                  <th className="px-3 py-3">Open-Meteo上の意味</th>
+                  <th className="px-3 py-3">weather_code</th>
+                  <th className="px-3 py-3">表示名</th>
+                  <th className="px-3 py-3">アイコン / icon 名</th>
+                  <th className="px-3 py-3">has_rain_possibility</th>
+                  <th className="px-3 py-3">備考</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {OPEN_METEO_WEATHER_PREVIEW_SAMPLES.map((sample) => {
+                  const definition = getWeatherCodeDefinition(
+                    sample.weatherCode,
+                  );
+                  const rainPossibility = hasWeatherRainPossibility(
+                    sample.weatherCode,
+                  );
+
+                  return (
+                    <tr
+                      key={`${sample.wmoCode}-${sample.weatherCode}`}
+                      className={
+                        sample.weatherCode === "other"
+                          ? "bg-red-50/60"
+                          : rainPossibility
+                            ? "bg-amber-50/40"
+                            : "bg-white"
+                      }
+                    >
+                      <td className="px-3 py-3 font-mono text-xs text-slate-700">
+                        {sample.wmoCode}
+                      </td>
+                      <td className="px-3 py-3">{sample.meaning}</td>
+                      <td className="px-3 py-3 font-mono text-xs text-slate-700">
+                        {sample.weatherCode}
+                      </td>
+                      <td className="px-3 py-3">
+                        {getWeatherCodeLabel(sample.weatherCode)}
+                      </td>
+                      <td className="px-3 py-3">
+                        <div className="flex items-center gap-3">
+                          <WeatherIconCell
+                            iconName={definition.icon}
+                            dataAttribute="data-sample-main-icon"
+                            toneClassName={getWeatherMainIconToneClassName(
+                              sample.weatherCode,
+                            )}
+                          />
+                          {definition.accessoryIcon ? (
+                            <WeatherIconCell
+                              iconName={definition.accessoryIcon}
+                              dataAttribute="data-sample-accessory-icon"
+                              toneClassName={
+                                WEATHER_ACCESSORY_ICON_TONE_CLASS_NAME
+                              }
+                            />
+                          ) : null}
+                        </div>
+                      </td>
+                      <td className="px-3 py-3">
+                        <div className="flex items-center gap-2">
+                          <InfoChip tone={rainPossibility ? "amber" : "slate"}>
+                            {rainPossibility ? "true" : "false"}
+                          </InfoChip>
+                          {sample.weatherCode === "other" ? (
+                            <InfoChip tone="red">other</InfoChip>
+                          ) : null}
+                          <span className="text-xs text-slate-500">
+                            {getWeatherPrimaryWeather(sample.weatherCode)}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-3 py-3 text-xs text-slate-600">
+                        {sample.wmoCode === 1 ? (
+                          <span>Mainly clear は sunny に寄せる</span>
+                        ) : sample.wmoCode === 2 ? (
+                          <span>Partly cloudy は cloudy に寄せる</span>
+                        ) : sample.wmoCode === 51 ? (
+                          <span>drizzle は rain に寄せる</span>
+                        ) : sample.wmoCode === 77 ? (
+                          <span>snow grains は snow に寄せる</span>
+                        ) : sample.wmoCode === 96 || sample.wmoCode === 99 ? (
+                          <span>
+                            hail 付き thunderstorm も thunder に寄せる
+                          </span>
+                        ) : (
+                          <span>-</span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="mb-4 space-y-1">
+            <h2 className="text-xl font-semibold text-slate-900">
+              JMA天気文 変換（legacy / fallback）
+            </h2>
+            <p className="text-sm text-slate-600">
+              JMA forecast JSON / tsukumijima fallback
+              で使う天気文の正規化確認です。Open-Meteo
+              移行後は補助的な確認用途として残します。
             </p>
           </div>
           <div className="overflow-x-auto">

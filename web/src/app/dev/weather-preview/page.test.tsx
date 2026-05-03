@@ -28,14 +28,15 @@ vi.mock("lucide-react", () => {
 });
 
 describe("WeatherPreviewPage", () => {
-  it("weather_code 一覧と JMA 正規化サンプルを表示できる", async () => {
+  it("weather_code 一覧と Open-Meteo / JMA 変換セクションを表示できる", async () => {
     const { default: WeatherPreviewPage } = await import("./page");
     const markup = renderToStaticMarkup(
       React.createElement(WeatherPreviewPage),
     );
 
     expect(markup).toContain("weather_code 一覧");
-    expect(markup).toContain("JMA天気文 正規化確認");
+    expect(markup).toContain("Open-Meteo WMO code 変換");
+    expect(markup).toContain("JMA天気文 変換（legacy / fallback）");
     expect(markup).toContain("sunny_then_cloudy");
     expect(markup).toContain("雷");
     expect(markup).toContain("thunder");
@@ -43,7 +44,27 @@ describe("WeatherPreviewPage", () => {
     expect(markup).toContain("windy");
   });
 
-  it("晴れ 夜のはじめ頃 くもり を sunny_then_cloudy として表示する", async () => {
+  it("Open-Meteo WMO code を app weather_code に変換して表示する", async () => {
+    const { default: WeatherPreviewPage } = await import("./page");
+    const markup = renderToStaticMarkup(
+      React.createElement(WeatherPreviewPage),
+    );
+
+    expect(markup).toContain("Clear sky");
+    expect(markup).toContain("Mainly clear");
+    expect(markup).toContain("Partly cloudy");
+    expect(markup).toContain("Thunderstorm");
+    expect(markup).toContain(">0<");
+    expect(markup).toContain(">2<");
+    expect(markup).toContain(">61<");
+    expect(markup).toContain(">95<");
+    expect(markup).toContain("sunny");
+    expect(markup).toContain("cloudy");
+    expect(markup).toContain("rain");
+    expect(markup).toContain("thunder");
+  });
+
+  it("JMA 天気文 legacy セクションで 晴れ 夜のはじめ頃 くもり を sunny_then_cloudy として表示する", async () => {
     const { default: WeatherPreviewPage } = await import("./page");
     const markup = renderToStaticMarkup(
       React.createElement(WeatherPreviewPage),

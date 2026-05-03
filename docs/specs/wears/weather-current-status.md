@@ -204,7 +204,7 @@
 - `snow` のメインアイコンは `Snowflake` を優先し、`CloudSnow` は fallback 側へ回す。
 - `thunder` / `fog` / `windy` は current の `weather_code` として扱い、Lucide `CloudLightning` / `CloudFog` / `Wind` を割り当てる。
 - 雨系では `Umbrella` を補助アイコンとして使い、雨対策が必要かもしれないことを示す。
-- `/dev/weather-preview` は weather_code / icon / JMA 正規化の目視確認用ページとして使い、通常導線には載せない。
+- `/dev/weather-preview` は weather_code / icon / Open-Meteo WMO code 変換 / JMA 正規化の目視確認用ページとして使い、通常導線には載せない。
 
 ### pending / 要再判断
 

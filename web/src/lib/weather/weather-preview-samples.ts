@@ -1,7 +1,17 @@
 import type { WeatherCode } from "@/types/weather";
+import {
+  normalizeOpenMeteoWeatherCodeToWeatherCode,
+  OPEN_METEO_WMO_MEANINGS,
+} from "./open-meteo-weather-code";
 
 export type WeatherPreviewSample = {
   rawWeatherText: string;
+  weatherCode: WeatherCode;
+};
+
+export type OpenMeteoWeatherPreviewSample = {
+  wmoCode: number;
+  meaning: string;
   weatherCode: WeatherCode;
 };
 
@@ -46,6 +56,13 @@ export const WEATHER_PREVIEW_SAMPLES: readonly WeatherPreviewSample[] = [
   { rawWeatherText: "くもり一時雪", weatherCode: "other" },
   { rawWeatherText: "晴れ一時雪", weatherCode: "other" },
 ] as const;
+
+export const OPEN_METEO_WEATHER_PREVIEW_SAMPLES: readonly OpenMeteoWeatherPreviewSample[] =
+  OPEN_METEO_WMO_MEANINGS.map((entry) => ({
+    wmoCode: entry.code,
+    meaning: entry.meaning,
+    weatherCode: normalizeOpenMeteoWeatherCodeToWeatherCode(entry.code),
+  }));
 
 export function normalizeWeatherPreviewText(text: string): string {
   return text
