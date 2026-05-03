@@ -387,3 +387,38 @@ JMA forecast JSON を使う場合の `source_name` は以下を推奨する。
 - Open-Meteo forecast では、`location` の `latitude` / `longitude` / `timezone` を正本入力にする
 - `POST /api/weather-records/forecast` は、将来的に `weather_date` と `location_id` を受け取り、location の座標情報から `open_meteo_jma_forecast` を呼ぶ形へ寄せる
 - JMA forecast JSON と `forecast_area_code` は current / legacy として当面並走する
+
+---
+
+## 2026-05-03 Open-Meteo forecast implementation note
+
+### current
+
+- `POST /api/weather-records/forecast` は location の `latitude` / `longitude` がある場合に Open-Meteo forecast を優先する
+- Open-Meteo forecast では [https://api.open-meteo.com/v1/jma](https://api.open-meteo.com/v1/jma) を使い、daily の `weather_code` / `temperature_2m_max` / `temperature_2m_min` / `precipitation_sum` / `rain_sum` / `snowfall_sum` を取得する
+- Open-Meteo weather code は app `weather_code` へ代表天気として正規化する
+- `raw_weather_text` は Open-Meteo では使わず、`raw_weather_code` を response で返す
+- `precipitation` / `rain_sum` / `snowfall_sum` は参考値として response に含めるが、今回は保存しない
+- 座標がない地域では `jma_forecast_json`、それもない場合は `tsukumijima` fallback を維持する
+
+### planned
+
+- `then` / `with_occasional` の複合天気は、必要になったら hourly data を使った推定を検討する
+- `has_rain_possibility` は app `weather_code` を基本にしつつ、precipitation probability などの補助指標も将来検討する
+
+---
+
+## 2026-05-03 Open-Meteo forecast PoC note
+
+### current
+
+- forecast 取得では `POST /api/weather-records/forecast` が、`latitude` / `longitude` を持つ地域に対して Open-Meteo を優先する
+- Open-Meteo forecast の `source_name` は `open_meteo_jma_forecast`
+- Open-Meteo では日本語の天気文を返さないため、`raw_weather_text` は `null` のまま扱う
+- 代わりに `raw_weather_code` を response に含め、画面では `取得元: Open-Meteo` / `取得した天気コード` を補足表示する
+- `precipitation` / `rain_sum` / `snowfall_sum` は参考値として返すが、今回は DB 保存しない
+
+### planned
+
+- Open-Meteo の hourly data を使う複合天気推定は、必要になった段階で別途検討する
+- JMA forecast JSON と tsukumijima は fallback として当面残しつつ、順次 legacy 側へ寄せる

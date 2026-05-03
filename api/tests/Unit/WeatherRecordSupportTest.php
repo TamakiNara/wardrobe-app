@@ -8,6 +8,12 @@ use PHPUnit\Framework\TestCase;
 
 class WeatherRecordSupportTest extends TestCase
 {
+    #[DataProvider('openMeteoWeatherCodeProvider')]
+    public function test_open_meteo_weather_code_is_normalized_to_app_weather_code(mixed $weatherCode, string $expected): void
+    {
+        $this->assertSame($expected, WeatherRecordSupport::normalizeOpenMeteoWeatherCodeToWeatherCode($weatherCode));
+    }
+
     #[DataProvider('weatherTextProvider')]
     public function test_weather_text_is_normalized_to_weather_code(string $weatherText, string $expected): void
     {
@@ -68,6 +74,34 @@ class WeatherRecordSupportTest extends TestCase
             'other_with_cloudy_and_thunder' => ['くもり時々雷', 'other'],
             'other_with_fog_and_rain' => ['霧一時雨', 'other'],
             'other_with_windy_and_rain' => ['強風を伴う雨', 'other'],
+        ];
+    }
+
+    /**
+     * @return array<string, array{0: mixed, 1: string}>
+     */
+    public static function openMeteoWeatherCodeProvider(): array
+    {
+        return [
+            'clear_sky' => [0, 'sunny'],
+            'mainly_clear' => [1, 'sunny'],
+            'partly_cloudy' => [2, 'cloudy'],
+            'overcast' => [3, 'cloudy'],
+            'fog' => [45, 'fog'],
+            'depositing_rime_fog' => [48, 'fog'],
+            'drizzle' => [53, 'rain'],
+            'freezing_drizzle' => [57, 'rain'],
+            'rain' => [63, 'rain'],
+            'freezing_rain' => [67, 'rain'],
+            'snow' => [73, 'snow'],
+            'snow_grains' => [77, 'snow'],
+            'rain_showers' => [81, 'rain'],
+            'snow_showers' => [86, 'snow'],
+            'thunderstorm' => [95, 'thunder'],
+            'thunderstorm_with_hail' => [99, 'thunder'],
+            'numeric_string' => ['61', 'rain'],
+            'unknown' => [999, 'other'],
+            'non_numeric' => ['x', 'other'],
         ];
     }
 }

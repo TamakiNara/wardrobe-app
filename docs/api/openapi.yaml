@@ -5332,7 +5332,7 @@ components:
           nullable: true
           description: |
             手入力のみの場合は `manual`、予報取得結果を反映して保存する場合は
-            `tsukumijima` または `jma_forecast_json`。
+            `open_meteo_jma_forecast` / `jma_forecast_json` / `tsukumijima`。
         source_fetched_at:
           type: string
           format: date-time
@@ -5377,26 +5377,43 @@ components:
           description: weather.tsukumijima.net fallback 用の legacy city code。JMA 取得時は null を返してよい。
         weather_code:
           $ref: "#/components/schemas/WeatherCode"
-        temperature_high:
+        raw_weather_code:
           type: integer
+          nullable: true
+          description: Open-Meteo forecast 取得時の元 WMO weather code。JMA / tsukumijima fallback では null。
+        temperature_high:
+          type: number
           nullable: true
         temperature_low:
-          type: integer
+          type: number
           nullable: true
+        precipitation:
+          type: number
+          nullable: true
+          description: Open-Meteo daily precipitation_sum の参考値。今回は DB 保存しない。
+        rain_sum:
+          type: number
+          nullable: true
+          description: Open-Meteo daily rain_sum の参考値。今回は DB 保存しない。
+        snowfall_sum:
+          type: number
+          nullable: true
+          description: Open-Meteo daily snowfall_sum の参考値。今回は DB 保存しない。
         source_type:
           type: string
           enum: [forecast_api]
         source_name:
           type: string
-          description: manual / tsukumijima / jma_forecast_json などの source 名
-          example: jma_forecast_json
+          description: open_meteo_jma_forecast / jma_forecast_json / tsukumijima などの source 名
+          example: open_meteo_jma_forecast
         source_fetched_at:
           type: string
           format: date-time
+          nullable: true
         raw_telop:
           type: string
           nullable: true
-          description: 変換元 telop。DB 保存はしない。frontend では `other` になった理由を確認できるよう取得後表示してよい。
+          description: 変換元 telop / weather text。DB 保存はしない。Open-Meteo では通常 null。
 
     WeatherForecastResponse:
       allOf:

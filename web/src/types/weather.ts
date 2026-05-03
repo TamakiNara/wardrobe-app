@@ -67,8 +67,12 @@ export type WeatherForecast = {
   location_name: string;
   forecast_area_code: string | null;
   weather_code: WeatherCode;
+  raw_weather_code: number | null;
   temperature_high: number | null;
   temperature_low: number | null;
+  precipitation: number | null;
+  rain_sum: number | null;
+  snowfall_sum: number | null;
   source_type: "forecast_api";
   source_name: string;
   source_fetched_at: string;

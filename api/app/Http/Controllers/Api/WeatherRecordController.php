@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\UserWeatherLocation;
 use App\Models\WeatherRecord;
 use App\Services\Weather\FetchJmaWeatherForecastService;
+use App\Services\Weather\FetchOpenMeteoWeatherForecastService;
 use App\Services\Weather\FetchWeatherForecastException;
 use App\Services\Weather\FetchWeatherForecastService;
 use App\Support\WeatherRecordPayloadBuilder;
@@ -20,6 +21,7 @@ class WeatherRecordController extends Controller
     public function __construct(
         private readonly FetchWeatherForecastService $tsukumijimaForecastService,
         private readonly FetchJmaWeatherForecastService $jmaForecastService,
+        private readonly FetchOpenMeteoWeatherForecastService $openMeteoForecastService,
     ) {}
 
     public function index(Request $request): JsonResponse
@@ -84,8 +86,12 @@ class WeatherRecordController extends Controller
      *     location_name: string,
      *     forecast_area_code: string|null,
      *     weather_code: string,
-     *     temperature_high: int|null,
-     *     temperature_low: int|null,
+     *     raw_weather_code: int|null,
+     *     temperature_high: int|float|null,
+     *     temperature_low: int|float|null,
+     *     precipitation: float|null,
+     *     rain_sum: float|null,
+     *     snowfall_sum: float|null,
      *     source_type: string,
      *     source_name: string,
      *     source_fetched_at: string,
@@ -98,11 +104,42 @@ class WeatherRecordController extends Controller
         $legacyForecastAreaCode = $this->normalizeLocationCode($location->forecast_area_code);
         $jmaRegionCode = $this->normalizeLocationCode($location->jma_forecast_region_code);
         $jmaOfficeCode = $this->normalizeLocationCode($location->jma_forecast_office_code);
+        $latitude = $location->latitude;
+        $longitude = $location->longitude;
+        $hasOpenMeteoCoordinates = $latitude !== null && $longitude !== null;
+        $hasIncompleteOpenMeteoCoordinates = ($latitude !== null) xor ($longitude !== null);
 
         if (($jmaRegionCode === null) xor ($jmaOfficeCode === null)) {
             throw ValidationException::withMessages([
                 'location_id' => 'JMA予報区域の設定が不完全です。地域設定を確認してください。',
             ]);
+        }
+
+        if ($hasOpenMeteoCoordinates) {
+            $forecast = $this->openMeteoForecastService->fetch(
+                (float) $latitude,
+                (float) $longitude,
+                $location->timezone,
+                $weatherDate,
+            );
+
+            return [
+                'weather_date' => $forecast['weather_date'],
+                'location_id' => $location->id,
+                'location_name' => $location->name,
+                'forecast_area_code' => $legacyForecastAreaCode,
+                'weather_code' => $forecast['weather_code'],
+                'raw_weather_code' => $forecast['raw_weather_code'],
+                'temperature_high' => $forecast['temperature_high'],
+                'temperature_low' => $forecast['temperature_low'],
+                'precipitation' => $forecast['precipitation'],
+                'rain_sum' => $forecast['rain_sum'],
+                'snowfall_sum' => $forecast['snowfall_sum'],
+                'source_type' => $forecast['source_type'],
+                'source_name' => $forecast['source_name'],
+                'source_fetched_at' => $forecast['source_fetched_at'],
+                'raw_telop' => $forecast['raw_weather_text'],
+            ];
         }
 
         if ($jmaRegionCode !== null && $jmaOfficeCode !== null) {
@@ -118,8 +155,12 @@ class WeatherRecordController extends Controller
                 'location_name' => $location->name,
                 'forecast_area_code' => $legacyForecastAreaCode,
                 'weather_code' => $forecast['weather_code'],
+                'raw_weather_code' => null,
                 'temperature_high' => $forecast['temperature_high'],
                 'temperature_low' => $forecast['temperature_low'],
+                'precipitation' => null,
+                'rain_sum' => null,
+                'snowfall_sum' => null,
                 'source_type' => $forecast['source_type'],
                 'source_name' => $forecast['source_name'],
                 'source_fetched_at' => $forecast['source_fetched_at'],
@@ -128,11 +169,25 @@ class WeatherRecordController extends Controller
         }
 
         if ($legacyForecastAreaCode !== null) {
-            return $this->tsukumijimaForecastService->fetch(
+            $forecast = $this->tsukumijimaForecastService->fetch(
                 $userId,
                 $locationId,
                 $weatherDate,
             );
+
+            return [
+                ...$forecast,
+                'raw_weather_code' => null,
+                'precipitation' => null,
+                'rain_sum' => null,
+                'snowfall_sum' => null,
+            ];
+        }
+
+        if ($hasIncompleteOpenMeteoCoordinates) {
+            throw ValidationException::withMessages([
+                'location_id' => '位置情報の設定が不完全です。地域設定を確認してください。',
+            ]);
         }
 
         throw ValidationException::withMessages([

@@ -244,3 +244,20 @@
 
 - Open-Meteo forecast / historical の本実装では、weather location の正本を latitude / longitude / timezone に寄せる
 - JMA forecast JSON / tsukumijima fallback / JMA latest CSV PoC は current または legacy の知見として残しつつ、主経路からは段階的に外す
+
+---
+
+## 2026-05-03 Open-Meteo forecast PoC note
+
+### current
+
+- 天気登録画面の 天気を取得 は、保存済み地域に `latitude` / `longitude` がある場合は Open-Meteo forecast を優先する
+- Open-Meteo forecast の source は `source_type = forecast_api` / `source_name = open_meteo_jma_forecast`
+- `weather_code` / 最高気温 / 最低気温はフォームへ反映する
+- `precipitation` / `rain_sum` / `snowfall_sum` は参考値表示のみで、今回は DB 保存しない
+- `raw_weather_text` は Open-Meteo では使わず、画面では Open-Meteo / weather code / 降水量参考値を補足表示する
+
+### planned
+
+- Open-Meteo historical PoC を追加し、forecast と同じ `latitude` / `longitude` / `timezone` を observed 側でも使う
+- JMA forecast JSON / tsukumijima fallback は当面残しつつ、順次 legacy 側へ寄せる

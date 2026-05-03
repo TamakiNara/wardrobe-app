@@ -34,9 +34,19 @@ describe("/api/weather-records/forecast route", () => {
             forecast: {
               weather_date: "2026-05-01",
               location_id: 1,
+              location_name: "川口",
+              forecast_area_code: null,
               weather_code: "cloudy_then_rain",
+              raw_weather_code: 61,
               temperature_high: 22,
               temperature_low: 13,
+              precipitation: 3.2,
+              rain_sum: 3.2,
+              snowfall_sum: 0,
+              source_type: "forecast_api",
+              source_name: "open_meteo_jma_forecast",
+              source_fetched_at: "2026-05-01T10:00:00+09:00",
+              raw_telop: null,
             },
           }),
           {
@@ -74,7 +84,10 @@ describe("/api/weather-records/forecast route", () => {
       }),
     );
     expect(json.forecast.weather_code).toBe("cloudy_then_rain");
+    expect(json.forecast.raw_weather_code).toBe(61);
     expect(json.forecast.temperature_high).toBe(22);
     expect(json.forecast.temperature_low).toBe(13);
+    expect(json.forecast.precipitation).toBe(3.2);
+    expect(json.forecast.source_name).toBe("open_meteo_jma_forecast");
   });
 });

@@ -107,6 +107,19 @@ function hasLegacyForecastCode(location: UserWeatherLocationRecord | null) {
   return Boolean(location?.forecast_area_code?.trim());
 }
 
+function hasOpenMeteoCoordinates(location: UserWeatherLocationRecord | null) {
+  return location?.latitude !== null && location?.longitude !== null;
+}
+
+function hasIncompleteOpenMeteoCoordinates(
+  location: UserWeatherLocationRecord | null,
+) {
+  const hasLatitude = location?.latitude !== null;
+  const hasLongitude = location?.longitude !== null;
+
+  return hasLatitude !== hasLongitude;
+}
+
 function getForecastDisabledReason(location: UserWeatherLocationRecord | null) {
   if (location === null) {
     return "地域を選択すると天気を取得できます。";
@@ -121,6 +134,36 @@ function getForecastDisabledReason(location: UserWeatherLocationRecord | null) {
   }
 
   return "予報区域を設定すると、天気を取得できます。";
+}
+
+function getOpenMeteoAwareForecastDisabledReason(
+  location: UserWeatherLocationRecord | null,
+) {
+  if (location === null) {
+    return getForecastDisabledReason(location);
+  }
+
+  if (hasOpenMeteoCoordinates(location)) {
+    return null;
+  }
+
+  if (hasIncompleteOpenMeteoCoordinates(location)) {
+    if (hasJmaForecastCodes(location) || hasLegacyForecastCode(location)) {
+      return null;
+    }
+
+    return "位置情報の設定が不完全です。地域設定を確認してください。";
+  }
+
+  if (hasIncompleteJmaForecastCodes(location)) {
+    return getForecastDisabledReason(location);
+  }
+
+  if (hasJmaForecastCodes(location) || hasLegacyForecastCode(location)) {
+    return null;
+  }
+
+  return "位置情報または予報区域を設定すると、天気を取得できます。";
 }
 
 function WearLogWeatherPageContent() {
@@ -161,6 +204,19 @@ function WearLogWeatherPageContent() {
   const [sourceName, setSourceName] = useState("manual");
   const [sourceFetchedAt, setSourceFetchedAt] = useState<string | null>(null);
   const [forecastRawTelop, setForecastRawTelop] = useState<string | null>(null);
+  const [forecastSourceName, setForecastSourceName] = useState<string | null>(
+    null,
+  );
+  const [forecastRawWeatherCode, setForecastRawWeatherCode] = useState<
+    number | null
+  >(null);
+  const [forecastPrecipitation, setForecastPrecipitation] = useState<
+    number | null
+  >(null);
+  const [forecastRainSum, setForecastRainSum] = useState<number | null>(null);
+  const [forecastSnowfallSum, setForecastSnowfallSum] = useState<number | null>(
+    null,
+  );
 
   const selectedRecord = useMemo(
     () =>
@@ -184,15 +240,21 @@ function WearLogWeatherPageContent() {
       return "今回だけの地域では天気取得は使えません。";
     }
 
-    return getForecastDisabledReason(selectedLocation);
+    return getOpenMeteoAwareForecastDisabledReason(selectedLocation);
   }, [locationMode, selectedLocation]);
 
   const canFetchForecast =
     validDate !== null && forecastButtonDisabledReason === null;
   const showMissingForecastTemperatureMessage =
-    forecastRawTelop !== null &&
+    forecastSourceName !== null &&
     temperatureHigh.trim() === "" &&
     temperatureLow.trim() === "";
+  const showOpenMeteoForecastSummary =
+    forecastSourceName === "open_meteo_jma_forecast";
+  const hasForecastPrecipitationDetails =
+    forecastPrecipitation !== null ||
+    forecastRainSum !== null ||
+    forecastSnowfallSum !== null;
 
   const resetDraft = useCallback(
     (
@@ -209,6 +271,11 @@ function WearLogWeatherPageContent() {
       setSourceName("manual");
       setSourceFetchedAt(null);
       setForecastRawTelop(null);
+      setForecastSourceName(null);
+      setForecastRawWeatherCode(null);
+      setForecastPrecipitation(null);
+      setForecastRainSum(null);
+      setForecastSnowfallSum(null);
 
       if (nextMode === "temporary") {
         setTemporaryLocationName("");
@@ -248,6 +315,11 @@ function WearLogWeatherPageContent() {
     setSourceName(record.source_name);
     setSourceFetchedAt(record.source_fetched_at);
     setForecastRawTelop(null);
+    setForecastSourceName(null);
+    setForecastRawWeatherCode(null);
+    setForecastPrecipitation(null);
+    setForecastRainSum(null);
+    setForecastSnowfallSum(null);
   }, []);
 
   const applyForecastToForm = useCallback((forecast: WeatherForecast) => {
@@ -264,6 +336,11 @@ function WearLogWeatherPageContent() {
     setSourceName(forecast.source_name);
     setSourceFetchedAt(forecast.source_fetched_at);
     setForecastRawTelop(forecast.raw_telop);
+    setForecastSourceName(forecast.source_name);
+    setForecastRawWeatherCode(forecast.raw_weather_code);
+    setForecastPrecipitation(forecast.precipitation);
+    setForecastRainSum(forecast.rain_sum);
+    setForecastSnowfallSum(forecast.snowfall_sum);
   }, []);
 
   const loadPage = useCallback(async () => {
@@ -580,7 +657,7 @@ function WearLogWeatherPageContent() {
                           予報APIからフォームへ反映
                         </p>
                         <p className="text-sm text-sky-900/80">
-                          保存済み地域と予報API用地域コードがある場合のみ使えます。取得しても自動保存はされません。
+                          保存済み地域の位置情報または予報区域を使って天気を取得します。取得しても自動保存はされません。
                         </p>
                       </div>
                       <button
@@ -796,6 +873,57 @@ function WearLogWeatherPageContent() {
                         に変換できなかったため、「その他」として反映しています。
                       </p>
                     ) : null}
+                  </div>
+                ) : null}
+
+                {showOpenMeteoForecastSummary ? (
+                  <div className="rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-900">
+                    <p>
+                      取得元: <span className="font-medium">Open-Meteo</span>
+                    </p>
+                    {forecastRawWeatherCode !== null ? (
+                      <p className="mt-1">
+                        取得した天気コード:{" "}
+                        <span className="font-medium">
+                          {forecastRawWeatherCode}
+                        </span>
+                      </p>
+                    ) : null}
+                  </div>
+                ) : null}
+
+                {hasForecastPrecipitationDetails ? (
+                  <div className="rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-900">
+                    <p className="font-medium">降水量の参考値</p>
+                    <div className="mt-2 grid gap-2 md:grid-cols-3">
+                      <p>
+                        降水量:{" "}
+                        <span className="font-medium">
+                          {forecastPrecipitation === null
+                            ? "未取得"
+                            : `${forecastPrecipitation} mm`}
+                        </span>
+                      </p>
+                      <p>
+                        雨量:{" "}
+                        <span className="font-medium">
+                          {forecastRainSum === null
+                            ? "未取得"
+                            : `${forecastRainSum} mm`}
+                        </span>
+                      </p>
+                      <p>
+                        降雪量:{" "}
+                        <span className="font-medium">
+                          {forecastSnowfallSum === null
+                            ? "未取得"
+                            : `${forecastSnowfallSum} cm`}
+                        </span>
+                      </p>
+                    </div>
+                    <p className="mt-2 text-xs text-sky-800">
+                      参考値として表示しています。今回は保存しません。
+                    </p>
                   </div>
                 ) : null}
 

@@ -206,6 +206,29 @@ class WeatherRecordSupport
         return self::normalizeWeatherTextToWeatherCode($telop);
     }
 
+    public static function normalizeOpenMeteoWeatherCodeToWeatherCode(mixed $weatherCode): string
+    {
+        if (is_string($weatherCode) && is_numeric($weatherCode)) {
+            $weatherCode = (int) $weatherCode;
+        }
+
+        if (! is_int($weatherCode)) {
+            return 'other';
+        }
+
+        return match ($weatherCode) {
+            0, 1 => 'sunny',
+            2, 3 => 'cloudy',
+            45, 48 => 'fog',
+            51, 53, 55, 56, 57,
+            61, 63, 65, 66, 67,
+            80, 81, 82 => 'rain',
+            71, 73, 75, 77, 85, 86 => 'snow',
+            95, 96, 99 => 'thunder',
+            default => 'other',
+        };
+    }
+
     public static function normalizeWeatherTextForDisplay(?string $weatherText): ?string
     {
         if (! is_string($weatherText)) {
