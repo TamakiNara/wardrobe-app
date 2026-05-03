@@ -32,6 +32,10 @@
   - Open-Meteo forecast / historical と fallback
 - [wear logs: Open-Meteo redesign note](./wears/weather-open-meteo-redesign.md)
   - Open-Meteo 移行検討・旧API検討メモ
+- [wear logs: weather docs reorganization note](./wears/weather-docs-reorganization.md)
+  - 天気 docs 再編メモ
+- [shared: import-export](./import-export.md)
+  - 天気データを含む backup / restore
 
 ## settings
 
