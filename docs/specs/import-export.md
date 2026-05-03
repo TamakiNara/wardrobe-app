@@ -129,3 +129,16 @@ Web UI:
 - `forecast_area_code` / `jma_forecast_region_code` / `jma_forecast_office_code` / `observation_station_code` / `observation_station_name` は、段階移行中は legacy restore 互換のため残す
 - Open-Meteo 移行後も旧 backup 互換は維持する前提で設計する
 - 詳細は [wears/weather-open-meteo-redesign.md](./wears/weather-open-meteo-redesign.md) を参照する
+---
+
+## 2026-05-03 coordinate-primary direction note
+
+### planned
+
+- `latitude` / `longitude` / `timezone` は将来的に weather location backup / restore の正本とする
+- 旧 backup にこれらが無い場合は未設定のまま復元し、Open-Meteo 取得は未設定扱いにする
+- import validation 候補は以下
+  - `latitude`: `-90..90`
+  - `longitude`: `-180..180`
+  - `timezone`: IANA timezone 文字列
+- legacy カラムは当面 restore 対象に残し、削除時には旧形式 import fallback を再検討する

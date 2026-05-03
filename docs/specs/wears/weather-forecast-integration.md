@@ -373,3 +373,12 @@ JMA forecast JSON を使う場合の `source_name` は以下を推奨する。
 - JMA forecast JSON は current 実装として残しつつ、本命候補は Open-Meteo JMA forecast API へ切り替える方向で再設計する
 - forecast provider の再設計メモは [weather-open-meteo-redesign.md](./weather-open-meteo-redesign.md) を参照する
 - `jma_forecast_region_code` / `jma_forecast_office_code` は当面 legacy 候補として保持し、将来的には `latitude` / `longitude` / `timezone` 正本へ寄せる
+---
+
+## 2026-05-03 coordinate-primary direction note
+
+### planned
+
+- Open-Meteo forecast では、`location` の `latitude` / `longitude` / `timezone` を正本入力にする
+- `POST /api/weather-records/forecast` は、将来的に `weather_date` と `location_id` を受け取り、location の座標情報から `open_meteo_jma_forecast` を呼ぶ形へ寄せる
+- JMA forecast JSON と `forecast_area_code` は current / legacy として当面並走する

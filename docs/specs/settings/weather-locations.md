@@ -186,3 +186,38 @@ JMA へ切り替える初期段階では、既存 `forecast_area_code` を以下
 - `forecast_area_code` / `jma_forecast_region_code` / `jma_forecast_office_code` / `observation_station_code` は段階移行中の legacy 候補として扱う
 - 地域登録 UI は Open-Meteo Geocoding API による候補検索を第一候補に再設計する
 - 詳細は [weather-open-meteo-redesign.md](../wears/weather-open-meteo-redesign.md) を参照する
+---
+
+## 2026-05-03 coordinate-primary direction note
+
+### planned
+
+- `user_weather_locations` の正本は、将来的に以下へ寄せる
+  - `name`
+  - `latitude`
+  - `longitude`
+  - `timezone`
+  - `is_default`
+  - `display_order`
+- DB 設計は既存テーブル維持案を採用し、新テーブルへの作り直しは行わない
+- 新規作成時は `latitude` / `longitude` / `timezone` を UI 上必須にする方向で整理する
+- 既存地域は未設定を許容し、編集時や Open-Meteo 取得時に設定を促す
+- `timezone` は daily 値の日付境界と集計基準に関わるため、座標と同格の正本項目として扱う
+- 日本国内利用では `Asia/Tokyo` を基本値とし、将来は Geocoding API が返す timezone を保存する
+
+### 地域設定 UI の将来方針
+
+- 最終形の本命は Open-Meteo Geocoding API による候補検索 UI
+- 短期代替は主要地点 static list とする
+- 緯度経度の手入力は開発用または fallback だけに留め、通常ユーザー向けの主導線にはしない
+
+### legacy カラム
+
+- 以下は当面 legacy / fallback / import 互換として残す
+  - `forecast_area_code`
+  - `jma_forecast_region_code`
+  - `jma_forecast_office_code`
+  - `observation_station_code`
+  - `observation_station_name`
+- 通常 UI の主入力からは段階的に外す
+- Open-Meteo 移行後、利用状況を見て削除時期を判断する

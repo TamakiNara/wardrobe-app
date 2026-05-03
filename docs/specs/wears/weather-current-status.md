@@ -217,3 +217,12 @@
 - 次段の本命候補は Open-Meteo JMA forecast / historical API とする
 - 再設計メモは [weather-open-meteo-redesign.md](./weather-open-meteo-redesign.md) を参照する
 - current 実装の JMA forecast JSON / tsukumijima fallback / JMA latest CSV PoC は、当面 current または legacy PoC として扱う
+---
+
+## 2026-05-03 coordinate-primary direction note
+
+### planned
+
+- Open-Meteo 移行後の地域設定正本は `latitude` / `longitude` / `timezone` を中心に整理する
+- `forecast_area_code` / `jma_*` / `observation_station_*` は current または legacy PoC として当面併存しうる
+- 地域登録 UI は最終的に Geocoding API 検索へ寄せ、短期は static list を検討する
