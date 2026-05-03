@@ -533,7 +533,7 @@ function SettingsWeatherLocationsPageContent() {
 
         <SettingsPageHeader
           title="天気の地域設定"
-          description="天気取得で使う地域名と予報区域を管理します。よく使う地域やデフォルト地域をここで設定できます。"
+          description="天気取得で使う地域名や位置情報を管理します。よく使う地域やデフォルト地域をここで設定できます。"
           backHref="/settings"
         />
 
@@ -553,7 +553,7 @@ function SettingsWeatherLocationsPageContent() {
           <div>
             <h2 className="text-lg font-semibold text-gray-900">地域を追加</h2>
             <p className="mt-2 text-sm text-gray-600">
-              地域名は自分が分かりやすい名前です。天気取得には予報区域を使います。
+              地域名は自分が分かりやすい名前です。位置情報を設定すると、より正確に天気を取得しやすくなります。
             </p>
             <p className="mt-1 text-sm text-gray-600">
               市区町村名と予報区域名は一致しない場合があります。
