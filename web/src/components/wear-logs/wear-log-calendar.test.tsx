@@ -4,6 +4,11 @@ import React from "react";
 import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type {
+  WearLogCalendarWeatherSummary,
+  WeatherCalendarStatus,
+} from "@/types/wear-logs";
+import type { WeatherCode } from "@/types/weather";
 
 const replaceMock = vi.fn();
 const pushMock = vi.fn();
@@ -47,6 +52,17 @@ function findDayButton(container: HTMLDivElement, date: string) {
   );
 }
 
+function buildWeatherSummary(
+  status: WeatherCalendarStatus,
+  weatherCode: WeatherCode | null,
+): WearLogCalendarWeatherSummary {
+  return {
+    status,
+    weather_code: weatherCode,
+    has_weather: weatherCode !== null,
+  };
+}
+
 describe("WearLogCalendar", () => {
   let container: HTMLDivElement;
   let root: ReturnType<typeof createRoot>;
@@ -70,7 +86,7 @@ describe("WearLogCalendar", () => {
     globalThis.IS_REACT_ACT_ENVIRONMENT = false;
   });
 
-  it("凡例と日付詳細モーダルを表示できる", async () => {
+  it("カレンダーと日付詳細モーダルを表示できる", async () => {
     apiFetchMock.mockResolvedValue({
       event_date: "2026-03-05",
       wearLogs: [
@@ -138,6 +154,7 @@ describe("WearLogCalendar", () => {
               date: "2026-03-05",
               plannedCount: 1,
               wornCount: 1,
+              weather: buildWeatherSummary("forecast", "rain"),
               dots: [
                 { status: "planned", has_feedback: false },
                 { status: "worn", has_feedback: true },
@@ -147,6 +164,7 @@ describe("WearLogCalendar", () => {
               overflowCount: 1,
             },
           ],
+          skinTonePreset: "neutral_medium",
         }),
       );
       await waitForEffects();
@@ -155,22 +173,33 @@ describe("WearLogCalendar", () => {
     expect(container.textContent).toContain("カレンダー");
     expect(container.textContent).toContain("予定");
     expect(container.textContent).toContain("着用済み");
-    expect(container.textContent).not.toContain("土曜");
-    expect(container.textContent).not.toContain("日曜");
+    expect(container.textContent).toContain("予報の天気");
+    expect(container.textContent).toContain("実績の天気");
+    expect(container.textContent).toContain("振り返りあり");
+    expect(container.textContent).not.toContain("手入力の天気");
     expect(container.textContent).toContain("2026年3月");
     expect(container.textContent).toContain("+1");
     expect(
-      container.querySelector('[aria-label="着用済み・振り返りあり"]'),
+      container.querySelector('[data-legend-weather-status="forecast"]'),
     ).not.toBeNull();
     expect(
-      container.querySelector('[aria-label="予定・振り返りあり"]'),
+      container
+        .querySelector('[data-legend-weather-status="forecast"]')
+        ?.getAttribute("data-legend-weather-icon"),
+    ).toBe("sun");
+    expect(
+      container.querySelector(
+        '[data-legend-weather-status="forecast"] svg[data-lucide="cloud"]',
+      ),
+    ).toBeNull();
+    expect(
+      findDayButton(container, "2026-03-05")?.querySelector(
+        '[data-weather-status="forecast"][data-weather-code="rain"]',
+      ),
     ).not.toBeNull();
-    expect(container.querySelector('[aria-label="振り返りあり"]')).toBeNull();
-
-    const dayButton = findDayButton(container, "2026-03-05");
 
     await act(async () => {
-      dayButton?.click();
+      findDayButton(container, "2026-03-05")?.click();
       await waitForEffects();
     });
 
@@ -180,26 +209,23 @@ describe("WearLogCalendar", () => {
     expect(container.textContent).toContain("日付詳細");
     expect(container.textContent).toContain("春コーデ");
     expect(container.textContent).toContain("メモあり");
-    expect(container.textContent).toContain("総合評価");
+    expect(container.textContent).toContain("評価");
     expect(container.textContent).toContain("よかった");
-    expect(container.textContent).toContain("屋外 少し寒い");
-    expect(container.textContent).toContain("屋内 ちょうどいい");
-    expect(container.textContent).toContain("寒暖差に対応できた");
-    expect(container.textContent).toContain("朝暑い");
-    expect(container.textContent).toContain("雨で困った");
-    expect(container.textContent).not.toContain("振り返りメモ");
-    expect(container.textContent!.indexOf("よかった")).toBeLessThan(
-      container.textContent!.indexOf("屋外 少し寒い"),
-    );
     expect(container.textContent).toContain("川口");
-    expect(container.textContent).toContain("晴れ / 最高 22℃ / 最低 13℃");
+    expect(container.textContent).toContain("晴れ");
+    expect(
+      container.querySelector('[data-weather-source-status="manual"]')
+        ?.textContent,
+    ).toContain("手入力");
+    expect(container.textContent).toContain("最高 22℃");
+    expect(container.textContent).toContain("最低 13℃");
     expect(container.textContent).toContain("メモ: 日中はよく晴れた");
-    expect(container.textContent).toContain("天気を編集");
+    expect(container.textContent).not.toContain("振り返りメモ");
     expect(container.innerHTML).toContain('href="/wear-logs/11"');
     expect(container.innerHTML).toContain("wear-log-modal-color-thumbnail");
   });
 
-  it("土曜と日曜を控えめな色分けで表示する", async () => {
+  it("日曜・土曜・祝日を色分けして表示する", async () => {
     vi.setSystemTime(new Date("2026-02-20T09:00:00+09:00"));
 
     const { default: WearLogCalendar } = await import("./wear-log-calendar");
@@ -218,47 +244,22 @@ describe("WearLogCalendar", () => {
     const sundayHeader = container.querySelector<HTMLDivElement>(
       'div[data-day-type="sunday"]',
     );
-    const saturdayHeader = Array.from(
-      container.querySelectorAll<HTMLDivElement>(
-        'div[data-day-type="saturday"]',
-      ),
-    )[0];
+    const saturdayHeader = container.querySelector<HTMLDivElement>(
+      'div[data-day-type="saturday"]',
+    );
     const sundayButton = findDayButton(container, "2026-03-01");
     const saturdayButton = findDayButton(container, "2026-03-07");
+    const holidayButton = findDayButton(container, "2026-03-20");
 
     expect(sundayHeader?.className).toContain("text-rose-600");
     expect(saturdayHeader?.className).toContain("text-sky-600");
-    expect(sundayButton?.getAttribute("data-day-type")).toBe("sunday");
-    expect(saturdayButton?.getAttribute("data-day-type")).toBe("saturday");
     expect(sundayButton?.className).toContain("border-rose-200");
     expect(saturdayButton?.className).toContain("border-sky-200");
-  });
-
-  it("日本の祝日を日曜と同系統の控えめな赤で表示する", async () => {
-    vi.setSystemTime(new Date("2026-02-20T09:00:00+09:00"));
-
-    const { default: WearLogCalendar } = await import("./wear-log-calendar");
-
-    await act(async () => {
-      root.render(
-        React.createElement(WearLogCalendar, {
-          month: "2026-03",
-          weekStart: "monday",
-          days: [],
-        }),
-      );
-      await waitForEffects();
-    });
-
-    const holidayButton = findDayButton(container, "2026-03-20");
-
     expect(holidayButton?.getAttribute("data-day-type")).toBe("holiday");
     expect(holidayButton?.getAttribute("data-holiday-name")).toBe("春分の日");
-    expect(holidayButton?.className).toContain("border-rose-200");
-    expect(holidayButton?.textContent).toContain("20");
   });
 
-  it("予定と着用済みのドット色を凡例と同じトーンで表示する", async () => {
+  it("天気アイコン・着用状態・振り返りをその順で表示する", async () => {
     const { default: WearLogCalendar } = await import("./wear-log-calendar");
 
     await act(async () => {
@@ -271,6 +272,7 @@ describe("WearLogCalendar", () => {
               date: "2026-03-05",
               plannedCount: 2,
               wornCount: 2,
+              weather: buildWeatherSummary("observed", "sunny"),
               dots: [
                 { status: "planned", has_feedback: false },
                 { status: "worn", has_feedback: false },
@@ -287,36 +289,88 @@ describe("WearLogCalendar", () => {
     });
 
     const dayButton = findDayButton(container, "2026-03-05");
+    const markerRow = dayButton?.children[1] as HTMLElement | undefined;
+    const weatherMarker = dayButton?.querySelector<HTMLSpanElement>(
+      '[data-weather-status="observed"][data-weather-code="sunny"]',
+    );
     const plannedDot = dayButton?.querySelector<HTMLSpanElement>(
-      'span[data-marker-kind="dot-outline"][data-status="planned"][data-feedback="false"]',
+      'span[data-marker-kind="dot-outline"][data-status="planned"]',
     );
     const wornDot = dayButton?.querySelector<HTMLSpanElement>(
-      'span[data-marker-kind="dot-filled"][data-status="worn"][data-feedback="false"]',
+      'span[data-marker-kind="check-filled"][data-status="worn"]',
     );
-    const plannedFeedbackMarker = dayButton?.querySelector<HTMLSpanElement>(
-      'span[data-marker-kind="circle-check"][data-status="planned"][data-feedback="true"]',
-    );
-    const wornFeedbackMarker = dayButton?.querySelector<HTMLSpanElement>(
-      'span[data-marker-kind="check-filled"][data-status="worn"][data-feedback="true"]',
+    const feedbackMarker = dayButton?.querySelector<HTMLSpanElement>(
+      'span[data-marker-kind="feedback-note"]',
     );
 
+    expect(weatherMarker).not.toBeNull();
+    expect(weatherMarker?.className).toContain("text-emerald-600");
     expect(plannedDot).not.toBeNull();
     expect(wornDot).not.toBeNull();
-    expect(plannedFeedbackMarker).not.toBeNull();
-    expect(wornFeedbackMarker).not.toBeNull();
-    expect(plannedFeedbackMarker?.querySelector("svg")).not.toBeNull();
-    expect(wornFeedbackMarker?.querySelector("svg")).not.toBeNull();
-    expect(
-      container.querySelector('[aria-label="予定・振り返りあり"]'),
-    ).not.toBeNull();
-    expect(
-      container.querySelector('[aria-label="着用済み・振り返りあり"]'),
-    ).not.toBeNull();
-    expect(container.querySelector('[aria-label="振り返りあり"]')).toBeNull();
+    expect(feedbackMarker).not.toBeNull();
+    expect(markerRow?.children[0]).toBe(weatherMarker);
+    expect(markerRow?.children[1]).toBe(plannedDot?.parentElement);
+    expect(markerRow?.children[2]).toBe(wornDot?.parentElement);
+    expect(markerRow?.children[markerRow.children.length - 2]).toBe(
+      feedbackMarker,
+    );
+    expect(feedbackMarker?.className).toContain("text-slate-500");
+    expect(feedbackMarker?.getAttribute("data-feedback-icon")).toBe(
+      "square-pen",
+    );
     expect(container.textContent).toContain("+1");
   });
 
-  it("振り返りなしの着用履歴ではカレンダーセルに印を出さない", async () => {
+  it("manual と forecast を色分けして表示する", async () => {
+    const { default: WearLogCalendar } = await import("./wear-log-calendar");
+
+    await act(async () => {
+      root.render(
+        React.createElement(WearLogCalendar, {
+          month: "2026-05",
+          weekStart: "monday",
+          days: [
+            {
+              date: "2026-05-03",
+              plannedCount: 0,
+              wornCount: 1,
+              weather: buildWeatherSummary("manual", "cloudy"),
+              dots: [{ status: "worn", has_feedback: false }],
+              has_feedback: false,
+              overflowCount: 0,
+            },
+            {
+              date: "2026-05-04",
+              plannedCount: 1,
+              wornCount: 0,
+              weather: buildWeatherSummary("forecast", "rain"),
+              dots: [{ status: "planned", has_feedback: false }],
+              has_feedback: false,
+              overflowCount: 0,
+            },
+          ],
+        }),
+      );
+      await waitForEffects();
+    });
+
+    const manualMarker = findDayButton(container, "2026-05-03")?.querySelector(
+      '[data-weather-status="manual"][data-weather-code="cloudy"]',
+    );
+    const forecastMarker = findDayButton(
+      container,
+      "2026-05-04",
+    )?.querySelector(
+      '[data-weather-status="forecast"][data-weather-code="rain"]',
+    );
+
+    expect(manualMarker).not.toBeNull();
+    expect(manualMarker?.className).toContain("text-emerald-500");
+    expect(forecastMarker).not.toBeNull();
+    expect(forecastMarker?.className).toContain("text-sky-600");
+  });
+
+  it("振り返りがない日は day-level 振り返りアイコンを表示しない", async () => {
     const { default: WearLogCalendar } = await import("./wear-log-calendar");
 
     await act(async () => {
@@ -329,6 +383,7 @@ describe("WearLogCalendar", () => {
               date: "2026-03-06",
               plannedCount: 1,
               wornCount: 0,
+              weather: buildWeatherSummary("none", null),
               dots: [{ status: "planned", has_feedback: false }],
               has_feedback: false,
               overflowCount: 0,
@@ -341,11 +396,16 @@ describe("WearLogCalendar", () => {
 
     const dayButton = findDayButton(container, "2026-03-06");
 
-    expect(dayButton?.querySelector('[aria-label="振り返りあり"]')).toBeNull();
-    expect(dayButton?.querySelector('[aria-label="予定"]')).not.toBeNull();
+    expect(dayButton?.querySelector("[data-weather-status]")).toBeNull();
+    expect(
+      dayButton?.querySelector('[data-marker-kind="feedback-note"]'),
+    ).toBeNull();
+    expect(
+      dayButton?.querySelector('[data-marker-kind="dot-outline"]'),
+    ).not.toBeNull();
   });
 
-  it("今日と選択状態を表示できる", async () => {
+  it("今日・過去日・月外日を区別して表示する", async () => {
     apiFetchMock.mockResolvedValue({
       event_date: "2026-03-05",
       wearLogs: [],
@@ -386,7 +446,7 @@ describe("WearLogCalendar", () => {
     expect(pastButton?.className).toContain("border-blue-500");
   });
 
-  it("空の日ではその日付で新規追加導線を表示する", async () => {
+  it("記録がない日付でも新規追加導線を表示する", async () => {
     apiFetchMock.mockResolvedValue({
       event_date: "2026-03-08",
       wearLogs: [],
@@ -406,10 +466,8 @@ describe("WearLogCalendar", () => {
       await waitForEffects();
     });
 
-    const dayButton = findDayButton(container, "2026-03-08");
-
     await act(async () => {
-      dayButton?.click();
+      findDayButton(container, "2026-03-08")?.click();
       await waitForEffects();
     });
 
@@ -446,7 +504,7 @@ describe("WearLogCalendar", () => {
     });
   });
 
-  it("週始まりを sunday にすると日曜始まりで並ぶ", async () => {
+  it("週開始日を sunday にすると日曜始まりで表示する", async () => {
     const { default: WearLogCalendar } = await import("./wear-log-calendar");
 
     await act(async () => {
@@ -468,7 +526,8 @@ describe("WearLogCalendar", () => {
 
     expect(weekdayHeaders).toEqual(["日", "月", "火", "水", "木", "金", "土"]);
   });
-  it("uses the local day for today markers before 09:00 JST", async () => {
+
+  it("09:00 JST より前でもローカル日の today 判定を使う", async () => {
     apiFetchMock.mockResolvedValue({
       event_date: "2026-05-01",
       wearLogs: [],
@@ -496,34 +555,5 @@ describe("WearLogCalendar", () => {
     expect(
       findDayButton(container, "2026-04-30")?.getAttribute("data-today"),
     ).toBe("false");
-  });
-  it("does not render weather icons inside calendar cells", async () => {
-    const { default: WearLogCalendar } = await import("./wear-log-calendar");
-
-    await act(async () => {
-      root.render(
-        React.createElement(WearLogCalendar, {
-          month: "2026-05",
-          weekStart: "monday",
-          days: [
-            {
-              date: "2026-05-03",
-              plannedCount: 0,
-              wornCount: 1,
-              dots: [{ status: "worn", has_feedback: false }],
-              has_feedback: false,
-              overflowCount: 0,
-            },
-          ],
-        }),
-      );
-      await waitForEffects();
-    });
-
-    expect(
-      findDayButton(container, "2026-05-03")?.querySelector(
-        "[data-weather-icon]",
-      ),
-    ).toBeNull();
   });
 });

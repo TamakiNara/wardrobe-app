@@ -15,13 +15,20 @@
 - `weather_records` は current では最終保存値を持つ
 - `weather_code` / icon / `/dev/weather-preview` がある
 - 取得は自動保存せず、フォーム反映のみ
-- カレンダー weather status は planned
+- カレンダー weather status を表示し、`none / forecast / observed / manual` を区別できる
+- カレンダーでは天気アイコンを主表示にし、source 状態は色で表す
+- カレンダー凡例では `Sun` を代表アイコンにして、予報 / 実績 / 振り返りありを説明する
+- `manual` はカレンダーセルでは observed 寄せで扱い、凡例には出さない
+- 振り返りありは slate / neutral 系の書き込みアイコンで補助表示する
+- 日付詳細モーダルでは、天気ごとに `予報 / 実績 / 手入力` の status バッジを表示する
+- `manual` は表示上 observed 寄せで扱う
+- `is_user_edited` は current では入れない
+- 月単位の未完了サマリは current では入れない
 
 ---
 
 ## planned summary
 
-- カレンダー weather status 表示
 - `forecast_snapshot / observed_snapshot`
 - precipitation 保存
 - hourly から複合天気を推定するか再判断
@@ -66,9 +73,8 @@ legacy / history の詳細:
 
 ## 推奨実装順
 
-1. カレンダー weather status 表示
-2. 日付詳細モーダルの天気状態バッジ
-3. precipitation 保存方針の再判断
-4. snapshot PoC の要否判断
-5. legacy fallback の利用状況確認
-6. hourly を使った天気表現の改善検討
+1. 日付詳細モーダルの天気状態バッジ
+2. precipitation 保存方針の再判断
+3. snapshot PoC の要否判断
+4. legacy fallback の利用状況確認
+5. hourly を使った天気表現の改善検討

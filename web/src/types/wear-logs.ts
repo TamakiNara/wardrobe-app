@@ -141,10 +141,19 @@ export type WearLogCalendarDot = {
   has_feedback: boolean;
 };
 
+export type WeatherCalendarStatus = "none" | "forecast" | "observed" | "manual";
+
+export type WearLogCalendarWeatherSummary = {
+  status: WeatherCalendarStatus;
+  weather_code: import("@/types/weather").WeatherCode | null;
+  has_weather: boolean;
+};
+
 export type WearLogCalendarDaySummary = {
   date: string;
   plannedCount: number;
   wornCount: number;
+  weather: WearLogCalendarWeatherSummary;
   has_feedback: boolean;
   dots: WearLogCalendarDot[];
   overflowCount: number;

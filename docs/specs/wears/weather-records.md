@@ -314,7 +314,7 @@ current では DB 保存しない。
 
 ## カレンダー weather status との関係
 
-将来のカレンダー表示では、`weather_records` から weather status を導出する想定である。
+current では、`weather_records` から日単位の weather status を導出してカレンダーセルに表示する。
 
 候補:
 
@@ -329,11 +329,26 @@ current では DB 保存しない。
 - `source_type = historical_api` -> `observed`
 - `source_type = manual` -> `manual`
 
+同日に複数の `weather_records` がある場合の代表 status 優先順位:
+
+- `observed`
+- `manual`
+- `forecast`
+- `none`
+
+同じ status が複数ある場合は、current では暫定で `id` が小さい record を代表にする。  
+default location や `display_order` を使った優先付けは要再判断とする。
+
 表示方針の前提:
 
 - カレンダー上の主アイコンは `weather_code` から出す
 - source 状態は色やバッジで表す
+- 凡例では `Sun` を代表アイコンにして、予報 / 実績 / 振り返りありの色の意味を説明する
 - `manual` は内部分類として残しつつ、表示上は observed 寄せで扱ってよい
+- day-level の振り返り有無は `CircleCheck` ではなく、slate / neutral 系の書き込みアイコンで区別する
+- 日付詳細モーダルでは `手入力` を source status バッジで確認できるようにする
+- `is_user_edited` は current では導入しない
+- 月単位の未完了サマリは current では導入しない
 
 詳細表示の方針は [weather-current-status.md](./weather-current-status.md) を参照する。
 

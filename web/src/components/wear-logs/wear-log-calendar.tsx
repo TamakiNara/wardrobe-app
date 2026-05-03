@@ -1,13 +1,15 @@
 "use client";
 
-import { Check, CircleCheck } from "lucide-react";
+import { Check, SquarePen } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import WeatherGlyph from "@/components/weather/weather-glyph";
 import WeatherRecordSummary from "@/components/weather/weather-record-summary";
 import WearLogModalColorThumbnail from "@/components/wear-logs/wear-log-modal-color-thumbnail";
 import { ApiClientError, apiFetch } from "@/lib/api/client";
 import { formatLocalDateYmd } from "@/lib/date/local-date";
+import { getWeatherCodeDefinition } from "@/lib/weather/weather-code-definitions";
 import { getJapaneseHoliday } from "@/lib/wear-logs/japanese-holidays";
 import {
   getWearLogFeedbackSummaryTags,
@@ -22,6 +24,7 @@ import type { SkinTonePreset } from "@/types/settings";
 import type {
   WearLogByDateResponse,
   WearLogCalendarDaySummary,
+  WeatherCalendarStatus,
 } from "@/types/wear-logs";
 
 type WearLogCalendarProps = {
@@ -278,6 +281,8 @@ function buildWearLogModalFeedbackSummary(
   };
 }
 
+// 旧来の combined marker 実装。差分確認用に当面残す。
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function renderWearLogCalendarMarker(
   dot: WearLogCalendarDaySummary["dots"][number],
 ) {
@@ -353,10 +358,106 @@ function renderWearLogCalendarMarker(
       className="inline-flex h-4 w-4 shrink-0 items-center justify-center text-blue-600"
       data-status={dot.status}
       data-feedback="true"
-      data-marker-kind="circle-check"
+      data-marker-kind="feedback-note-legacy"
       aria-label={ariaLabel}
     >
-      <CircleCheck className="h-4 w-4" strokeWidth={2.35} />
+      <SquarePen className="h-3.5 w-3.5" strokeWidth={2.2} />
+    </span>
+  );
+}
+
+function getCalendarWeatherIconToneClassName(
+  status: WeatherCalendarStatus,
+): string {
+  switch (status) {
+    case "forecast":
+      return "text-sky-600";
+    case "observed":
+      return "text-emerald-600";
+    case "manual":
+      return "text-emerald-500";
+    default:
+      return "text-gray-300";
+  }
+}
+
+function getCalendarWeatherStatusLabel(status: WeatherCalendarStatus): string {
+  switch (status) {
+    case "forecast":
+      return "予報";
+    case "observed":
+      return "実績";
+    case "manual":
+      return "手入力";
+    default:
+      return "未登録";
+  }
+}
+
+function getCalendarWeatherStatusBadgeClassName(
+  status: WeatherCalendarStatus,
+): string {
+  switch (status) {
+    case "forecast":
+      return "border-sky-200 bg-sky-50 text-sky-700";
+    case "observed":
+      return "border-emerald-200 bg-emerald-50 text-emerald-700";
+    case "manual":
+      return "border-emerald-200 bg-emerald-50 text-emerald-600";
+    default:
+      return "border-gray-200 bg-gray-50 text-gray-600";
+  }
+}
+
+function getCalendarWeatherStatusFromSourceType(
+  sourceType: WearLogByDateResponse["weatherRecords"][number]["source_type"],
+): Exclude<WeatherCalendarStatus, "none"> {
+  switch (sourceType) {
+    case "forecast_api":
+      return "forecast";
+    case "historical_api":
+      return "observed";
+    case "manual":
+    default:
+      return "manual";
+  }
+}
+
+function renderWearLogCalendarStatusMarker(
+  dot: WearLogCalendarDaySummary["dots"][number],
+) {
+  const ariaLabel = dot.status === "worn" ? "着用済み" : "予定";
+
+  if (dot.status !== "worn") {
+    return (
+      <span
+        className="inline-flex h-3.5 w-3.5 shrink-0 items-center justify-center text-blue-300"
+        data-status={dot.status}
+        data-marker-kind="dot-outline"
+        aria-label={ariaLabel}
+      >
+        <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" aria-hidden="true">
+          <circle
+            cx="8"
+            cy="8"
+            r="5.25"
+            fill="white"
+            stroke="currentColor"
+            strokeWidth="1.5"
+          />
+        </svg>
+      </span>
+    );
+  }
+
+  return (
+    <span
+      className="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white"
+      data-status={dot.status}
+      data-marker-kind="check-filled"
+      aria-label={ariaLabel}
+    >
+      <Check className="h-3 w-3" strokeWidth={2.8} />
     </span>
   );
 }
@@ -478,8 +579,43 @@ export default function WearLogCalendar({
             <span>予定</span>
           </div>
           <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5">
-            <span className="h-3.5 w-3.5 rounded-full bg-blue-600" />
+            <span className="inline-flex h-3.5 w-3.5 items-center justify-center rounded-full bg-blue-600 text-white">
+              <Check className="h-2.5 w-2.5" strokeWidth={2.8} />
+            </span>
             <span>着用済み</span>
+          </div>
+          <div className="inline-flex items-center gap-2 rounded-full border border-sky-200 bg-sky-50 px-3 py-1.5">
+            <span
+              className="inline-flex h-4 w-4 items-center justify-center text-sky-600"
+              data-legend-weather-status="forecast"
+              data-legend-weather-icon="sun"
+              aria-hidden="true"
+            >
+              <WeatherGlyph name="Sun" className="h-3.5 w-3.5" />
+            </span>
+            <span>予報の天気</span>
+          </div>
+          <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5">
+            <span
+              className="inline-flex h-4 w-4 items-center justify-center text-emerald-600"
+              data-legend-weather-status="observed"
+              data-legend-weather-icon="sun"
+              aria-hidden="true"
+            >
+              <WeatherGlyph name="Sun" className="h-3.5 w-3.5" />
+            </span>
+            <span>実績の天気</span>
+          </div>
+          <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5">
+            <span
+              className="inline-flex h-4 w-4 items-center justify-center text-slate-500"
+              data-legend-weather-status="feedback"
+              data-legend-weather-icon="square-pen"
+              aria-hidden="true"
+            >
+              <SquarePen className="h-3.5 w-3.5" strokeWidth={2.2} />
+            </span>
+            <span>振り返りあり</span>
           </div>
         </div>
 
@@ -542,14 +678,51 @@ export default function WearLogCalendar({
                     <span className={dayNumberClassName}>{cell.dayNumber}</span>
                   </div>
 
-                  <div className="mt-6 flex min-h-3 items-center gap-1">
+                  <div className="mt-6 flex min-h-4 items-center gap-1">
                     {summary ? (
                       <>
+                        {summary.weather.has_weather &&
+                        summary.weather.weather_code ? (
+                          <span
+                            className={`inline-flex h-4 w-4 shrink-0 items-center justify-center ${getCalendarWeatherIconToneClassName(
+                              summary.weather.status,
+                            )}`}
+                            data-weather-status={summary.weather.status}
+                            data-weather-code={summary.weather.weather_code}
+                            aria-label={`天気: ${
+                              getWeatherCodeDefinition(
+                                summary.weather.weather_code,
+                              ).label
+                            }（${getCalendarWeatherStatusLabel(summary.weather.status)}）`}
+                          >
+                            <WeatherGlyph
+                              name={
+                                getWeatherCodeDefinition(
+                                  summary.weather.weather_code,
+                                ).icon
+                              }
+                              className="h-3.5 w-3.5"
+                            />
+                          </span>
+                        ) : null}
                         {summary.dots.map((dot, index) => (
                           <span key={`${cell.date}-${dot.status}-${index}`}>
-                            {renderWearLogCalendarMarker(dot)}
+                            {renderWearLogCalendarStatusMarker(dot)}
                           </span>
                         ))}
+                        {summary.has_feedback ? (
+                          <span
+                            className="inline-flex h-4 w-4 shrink-0 items-center justify-center text-slate-500"
+                            data-marker-kind="feedback-note"
+                            data-feedback-icon="square-pen"
+                            aria-label="振り返りあり"
+                          >
+                            <SquarePen
+                              className="h-3.5 w-3.5"
+                              strokeWidth={2.2}
+                            />
+                          </span>
+                        ) : null}
                         {summary.overflowCount > 0 ? (
                           <span className="text-[11px] font-medium text-gray-500">
                             +{summary.overflowCount}
@@ -626,9 +799,25 @@ export default function WearLogCalendar({
                             key={record.id}
                             className="rounded-xl border border-gray-200 bg-white px-3 py-3"
                           >
-                            <p className="text-sm font-medium text-gray-900">
-                              {record.location_name}
-                            </p>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <p className="text-sm font-medium text-gray-900">
+                                {record.location_name}
+                              </p>
+                              <span
+                                className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-medium ${getCalendarWeatherStatusBadgeClassName(
+                                  getCalendarWeatherStatusFromSourceType(
+                                    record.source_type,
+                                  ),
+                                )}`}
+                                data-weather-source-status={record.source_type}
+                              >
+                                {getCalendarWeatherStatusLabel(
+                                  getCalendarWeatherStatusFromSourceType(
+                                    record.source_type,
+                                  ),
+                                )}
+                              </span>
+                            </div>
                             <WeatherRecordSummary record={record} />
                             {(record.memo ?? "").trim() !== "" ? (
                               <p className="mt-1 text-sm text-gray-500">

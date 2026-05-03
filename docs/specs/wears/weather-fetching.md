@@ -50,6 +50,10 @@ Open-Meteo forecast / historical、provider 優先順位、legacy fallback、日
 - 取得結果はフォーム反映のみ
 - 保存時に、フォーム上の最終値を `weather_records` へ保存する
 - precipitation 系は current では DB 保存しない
+- カレンダー表示では `weather_records.source_type` から `none / forecast / observed / manual` の weather status を導出する
+- カレンダーセルでは天気アイコンを主表示にし、source 状態は色で表す
+- カレンダー凡例では `Sun` を代表アイコンにして、予報 / 実績 / 手入力 / 振り返りありを説明する
+- 日付詳細モーダルでは、天気ごとに `予報 / 実績 / 手入力` の status バッジを表示する
 - `user_weather_locations` の座標正本、Geocoding、legacy code fields の正本は [weather locations](../settings/weather-locations.md)
 - `weather_records` の保存方針、source metadata、snapshot planned の正本は [weather-records.md](./weather-records.md)
 

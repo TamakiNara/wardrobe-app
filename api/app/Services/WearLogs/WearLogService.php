@@ -110,11 +110,38 @@ class WearLogService
                 'feedback_memo',
             ]);
 
+        $weatherRecords = WeatherRecord::query()
+            ->where('user_id', $user->id)
+            ->whereBetween('weather_date', [$startOfMonth->format('Y-m-d'), $endOfMonth->format('Y-m-d')])
+            ->orderBy('weather_date')
+            ->orderBy('id')
+            ->get([
+                'id',
+                'weather_date',
+                'weather_code',
+                'source_type',
+            ]);
+
+        $wearLogsByDate = $wearLogs
+            ->groupBy(fn (WearLog $wearLog) => $wearLog->event_date?->format('Y-m-d'));
+        $weatherRecordsByDate = $weatherRecords
+            ->groupBy(fn (WeatherRecord $record) => $record->weather_date?->format('Y-m-d'));
+        $dates = $wearLogsByDate
+            ->keys()
+            ->merge($weatherRecordsByDate->keys())
+            ->filter(fn ($date) => is_string($date) && $date !== '')
+            ->unique()
+            ->sort()
+            ->values();
+
         return [
             'month' => $startOfMonth->format('Y-m'),
-            'days' => $wearLogs
-                ->groupBy(fn (WearLog $wearLog) => $wearLog->event_date?->format('Y-m-d'))
-                ->map(fn (Collection $entries, string $date) => WearLogPayloadBuilder::buildCalendarDaySummary($date, $entries))
+            'days' => $dates
+                ->map(fn (string $date) => WearLogPayloadBuilder::buildCalendarDaySummary(
+                    $date,
+                    $wearLogsByDate->get($date, collect()),
+                    $weatherRecordsByDate->get($date, collect())
+                ))
                 ->values()
                 ->all(),
         ];

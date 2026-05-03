@@ -7,6 +7,87 @@ use App\Models\WeatherRecord;
 
 class WearLogPayloadBuilder
 {
+    private static function weatherCalendarStatusFromSourceType(?string $sourceType): string
+    {
+        return match ($sourceType) {
+            'forecast_api' => 'forecast',
+            'historical_api' => 'observed',
+            'manual' => 'manual',
+            default => 'manual',
+        };
+    }
+
+    private static function weatherCalendarStatusPriority(string $status): int
+    {
+        return match ($status) {
+            'observed' => 0,
+            'manual' => 1,
+            'forecast' => 2,
+            default => 3,
+        };
+    }
+
+    /**
+     * @param  iterable<WeatherRecord>  $weatherRecords
+     * @return array{
+     *     status: string,
+     *     weather_code: string|null,
+     *     has_weather: bool
+     * }
+     */
+    private static function buildCalendarWeatherSummary(iterable $weatherRecords): array
+    {
+        $records = collect($weatherRecords)
+            ->filter(fn ($record) => $record instanceof WeatherRecord)
+            ->values();
+
+        if ($records->isEmpty()) {
+            return [
+                'status' => 'none',
+                'weather_code' => null,
+                'has_weather' => false,
+            ];
+        }
+
+        /** @var WeatherRecord|null $representative */
+        $representative = $records->reduce(
+            function (?WeatherRecord $selected, WeatherRecord $record): WeatherRecord {
+                if ($selected === null) {
+                    return $record;
+                }
+
+                $selectedStatus = self::weatherCalendarStatusFromSourceType($selected->source_type);
+                $recordStatus = self::weatherCalendarStatusFromSourceType($record->source_type);
+                $selectedPriority = self::weatherCalendarStatusPriority($selectedStatus);
+                $recordPriority = self::weatherCalendarStatusPriority($recordStatus);
+
+                if ($recordPriority < $selectedPriority) {
+                    return $record;
+                }
+
+                if ($recordPriority > $selectedPriority) {
+                    return $selected;
+                }
+
+                return $record->id < $selected->id ? $record : $selected;
+            }
+        );
+
+        if (! $representative instanceof WeatherRecord) {
+            return [
+                'status' => 'none',
+                'weather_code' => null,
+                'has_weather' => false,
+            ];
+        }
+
+        return [
+            'status' => self::weatherCalendarStatusFromSourceType($representative->source_type),
+            'weather_code' => $representative->weather_code,
+            'has_weather' => true,
+        ];
+    }
+
     private static function hasFeedback(WearLog $wearLog): bool
     {
         return $wearLog->overall_rating !== null
@@ -41,14 +122,19 @@ class WearLogPayloadBuilder
         ];
     }
 
-    public static function buildCalendarDaySummary(string $date, iterable $wearLogs): array
-    {
+    public static function buildCalendarDaySummary(
+        string $date,
+        iterable $wearLogs,
+        iterable $weatherRecords = []
+    ): array {
         $entries = collect($wearLogs)->values();
+        $weatherSummary = self::buildCalendarWeatherSummary($weatherRecords);
 
         return [
             'date' => $date,
             'plannedCount' => $entries->where('status', 'planned')->count(),
             'wornCount' => $entries->where('status', 'worn')->count(),
+            'weather' => $weatherSummary,
             'has_feedback' => $entries->contains(fn (WearLog $wearLog) => self::hasFeedback($wearLog)),
             'dots' => $entries
                 ->take(3)
