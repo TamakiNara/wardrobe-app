@@ -19,6 +19,8 @@
 `weather_records` は、日付 x 地域の天気情報をアプリ内で扱うための保存先である。  
 current では「ユーザーが確認して保存した最終表示値」を持ち、予報取得値・実績取得値・手入力値の厳密な履歴までは保持しない。
 
+着用時の体感や評価そのものは `weather_records` ではなく [weather and feedback](../recommendation/weather-and-feedback.md) 側で扱う。
+
 この docs では以下を扱う。
 
 - `weather_records` の責務

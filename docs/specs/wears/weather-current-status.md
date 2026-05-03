@@ -23,6 +23,7 @@
 - `weather_records` を正本として、日付 x 地域の天気を登録する
 - 予報取得・実績取得はフォーム反映のみで、自動保存はしない
 - 保存時に、ユーザーが確認した最終値を `weather_records` へ保存する
+- 着用時の体感や振り返りは [weather and feedback](../recommendation/weather-and-feedback.md) を正本とする
 
 ### 取得系
 
