@@ -283,3 +283,22 @@
 
 - 今日の historical は未確定値を含む可能性があるため、注意文を追加する。
 - 過去日の forecast は控えめ表示または無効化し、実績取得を主導線に寄せる。
+## 2026-05-03 weather record source redesign note
+
+### current
+
+- `weather_records` は current では最終保存値の正本であり、予報値・実績値・手入力値を最終的に 1 record へまとめて持つ。
+- `source_type` / `source_name` / `source_fetched_at` は record 全体の厳密な由来ではなく、最後にフォームへ反映した取得元を表す。
+- precipitation 系や raw 値は current では参考表示に留め、DB 保存しない。
+
+### planned
+
+- 中期的には `forecast_snapshot` / `observed_snapshot` のような snapshot 構造で、最終保存値と取得時データを分ける案を本命候補とする。
+- snapshot に `raw_weather_code` / `raw_weather_text` / precipitation 系 / source metadata をまとめて保持できるようにする。
+- 予報値と実績値の差分表示や、おすすめ機能への利用は snapshot 整理後に広げる。
+
+### pending / 要再判断
+
+- source 履歴を JSON snapshot に留めるか、別テーブル化するか。
+- precipitation 系を最終保存値へ昇格させるか、snapshot 専用に留めるか。
+- UI で forecast / observed の差分をどこまで見せるか。

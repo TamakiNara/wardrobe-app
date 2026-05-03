@@ -142,3 +142,28 @@ Web UI:
 - weather location の import / export は `latitude` / `longitude` / `timezone` を roundtrip できる。
 - 旧 backup に `timezone` がなくても `null` として復元できる。
 - latitude / longitude は片方だけの payload を validation error にする。
+## 2026-05-03 weather record source redesign note
+
+### current
+
+- `weather_records` の export / import は current では最終保存値だけを対象にする。
+- `source_type` / `source_name` / `source_fetched_at` も current の record 値として roundtrip する。
+- precipitation 系、`raw_weather_code`、`raw_weather_text` は export / import 対象に含めない。
+
+### planned
+
+- `forecast_snapshot` / `observed_snapshot` を採用する場合は、backup / restore 対象に含める。
+- snapshot を含める場合は JSON schema version を持つ前提で validation を設計する。
+- `source_name` allow-list には current の
+  - `manual`
+  - `open_meteo_jma_forecast`
+  - `open_meteo_historical`
+  - `jma_forecast_json`
+  - `tsukumijima`
+  を含める想定で整理する。
+
+### pending / 要再判断
+
+- snapshot JSON を export にそのまま含めるか、正規化して別構造へ展開するか。
+- legacy backup との互換をどの版まで維持するか。
+- source 履歴を別テーブル化した場合の backup 粒度とデータサイズ。
