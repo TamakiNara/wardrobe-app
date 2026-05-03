@@ -1,5 +1,9 @@
 # Open-Meteo JMA API 再設計メモ
 
+このファイルは Open-Meteo 移行検討の経緯メモです。  
+current の API取得仕様は [weather-fetching.md](./weather-fetching.md) を正本とします。
+
+
 最終更新: 2026-05-03
 
 ## 目的
