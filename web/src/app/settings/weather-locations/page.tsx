@@ -50,6 +50,34 @@ function sortLocations(locations: UserWeatherLocationRecord[]) {
   });
 }
 
+function formatCoordinateField(value: number | null) {
+  if (value === null || Number.isNaN(value)) {
+    return "";
+  }
+
+  return String(value);
+}
+
+function buildCoordinatePayload(
+  latitudeText: string,
+  longitudeText: string,
+  timezoneText: string,
+) {
+  const normalizedLatitude = latitudeText.trim();
+  const normalizedLongitude = longitudeText.trim();
+  const normalizedTimezone = timezoneText.trim();
+
+  return {
+    latitude:
+      normalizedLatitude === "" ? null : Number.parseFloat(normalizedLatitude),
+    longitude:
+      normalizedLongitude === ""
+        ? null
+        : Number.parseFloat(normalizedLongitude),
+    timezone: normalizedTimezone === "" ? null : normalizedTimezone,
+  };
+}
+
 function SettingsWeatherLocationsPageContent() {
   const EditIcon = settingsActionIcons.edit;
   const router = useRouter();
@@ -62,11 +90,17 @@ function SettingsWeatherLocationsPageContent() {
   const [listError, setListError] = useState<string | null>(null);
   const [newName, setNewName] = useState("");
   const [newJmaRegionCode, setNewJmaRegionCode] = useState("");
+  const [newLatitude, setNewLatitude] = useState("");
+  const [newLongitude, setNewLongitude] = useState("");
+  const [newTimezone, setNewTimezone] = useState("Asia/Tokyo");
   const [newIsDefault, setNewIsDefault] = useState(false);
   const [adding, setAdding] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editName, setEditName] = useState("");
   const [editJmaRegionCode, setEditJmaRegionCode] = useState("");
+  const [editLatitude, setEditLatitude] = useState("");
+  const [editLongitude, setEditLongitude] = useState("");
+  const [editTimezone, setEditTimezone] = useState("Asia/Tokyo");
   const [editIsDefault, setEditIsDefault] = useState(false);
   const [updatingId, setUpdatingId] = useState<number | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
@@ -167,11 +201,15 @@ function SettingsWeatherLocationsPageContent() {
       await createUserWeatherLocation({
         name: newName,
         ...buildJmaSelectionPayload(newJmaRegionCode),
+        ...buildCoordinatePayload(newLatitude, newLongitude, newTimezone),
         is_default: newIsDefault,
       });
       await refreshLocations();
       setNewName("");
       setNewJmaRegionCode("");
+      setNewLatitude("");
+      setNewLongitude("");
+      setNewTimezone("Asia/Tokyo");
       setNewIsDefault(false);
       setFormMessage("地域を追加しました。");
     } catch (error) {
@@ -181,6 +219,9 @@ function SettingsWeatherLocationsPageContent() {
             "name",
             "jma_forecast_region_code",
             "jma_forecast_office_code",
+            "latitude",
+            "longitude",
+            "timezone",
           ]) ??
             getUserFacingSubmitErrorMessage(
               error.data,
@@ -202,6 +243,9 @@ function SettingsWeatherLocationsPageContent() {
     setEditingId(location.id);
     setEditName(location.name);
     setEditJmaRegionCode(location.jma_forecast_region_code ?? "");
+    setEditLatitude(formatCoordinateField(location.latitude));
+    setEditLongitude(formatCoordinateField(location.longitude));
+    setEditTimezone(location.timezone ?? "Asia/Tokyo");
     setEditIsDefault(location.is_default);
   }
 
@@ -215,6 +259,7 @@ function SettingsWeatherLocationsPageContent() {
       await updateUserWeatherLocation(locationId, {
         name: editName,
         ...buildJmaSelectionPayload(editJmaRegionCode),
+        ...buildCoordinatePayload(editLatitude, editLongitude, editTimezone),
         is_default: editIsDefault,
       });
       await refreshLocations();
@@ -227,6 +272,9 @@ function SettingsWeatherLocationsPageContent() {
             "name",
             "jma_forecast_region_code",
             "jma_forecast_office_code",
+            "latitude",
+            "longitude",
+            "timezone",
           ]) ??
             getUserFacingSubmitErrorMessage(
               error.data,
@@ -400,6 +448,72 @@ function SettingsWeatherLocationsPageContent() {
                 予報取得には気象庁の予報区域を使います。旧API用コードは新規入力では使いません。
               </p>
             </div>
+
+            <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-4">
+              <div className="space-y-1">
+                <h3 className="text-sm font-semibold text-slate-900">
+                  Open-Meteo 用の位置情報
+                </h3>
+                <p className="text-xs text-slate-600">
+                  Open-Meteo で天気を取得するための位置情報です。
+                </p>
+                <p className="text-xs text-slate-600">
+                  日本国内では通常 Asia/Tokyo を使います。
+                </p>
+              </div>
+
+              <div className="mt-4 grid gap-4 md:grid-cols-3">
+                <div>
+                  <label
+                    htmlFor="new-weather-location-latitude"
+                    className="mb-1 block text-sm font-medium text-gray-700"
+                  >
+                    緯度
+                  </label>
+                  <input
+                    id="new-weather-location-latitude"
+                    value={newLatitude}
+                    onChange={(event) => setNewLatitude(event.target.value)}
+                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                    placeholder="例: 35.8617"
+                    inputMode="decimal"
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="new-weather-location-longitude"
+                    className="mb-1 block text-sm font-medium text-gray-700"
+                  >
+                    経度
+                  </label>
+                  <input
+                    id="new-weather-location-longitude"
+                    value={newLongitude}
+                    onChange={(event) => setNewLongitude(event.target.value)}
+                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                    placeholder="例: 139.6455"
+                    inputMode="decimal"
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="new-weather-location-timezone"
+                    className="mb-1 block text-sm font-medium text-gray-700"
+                  >
+                    タイムゾーン
+                  </label>
+                  <input
+                    id="new-weather-location-timezone"
+                    value={newTimezone}
+                    onChange={(event) => setNewTimezone(event.target.value)}
+                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                    placeholder="Asia/Tokyo"
+                  />
+                </div>
+              </div>
+            </div>
           </div>
 
           <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -496,6 +610,78 @@ function SettingsWeatherLocationsPageContent() {
                               地域名と予報区域名は一致しない場合があります。
                             </p>
                           </div>
+
+                          <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-4">
+                            <div className="space-y-1">
+                              <h4 className="text-sm font-semibold text-slate-900">
+                                Open-Meteo 用の位置情報
+                              </h4>
+                              <p className="text-xs text-slate-600">
+                                Open-Meteo で天気を取得するための位置情報です。
+                              </p>
+                              <p className="text-xs text-slate-600">
+                                日本国内では通常 Asia/Tokyo を使います。
+                              </p>
+                            </div>
+
+                            <div className="mt-4 grid gap-4 md:grid-cols-3">
+                              <div>
+                                <label
+                                  htmlFor={`edit-weather-location-latitude-${location.id}`}
+                                  className="mb-1 block text-sm font-medium text-gray-700"
+                                >
+                                  緯度
+                                </label>
+                                <input
+                                  id={`edit-weather-location-latitude-${location.id}`}
+                                  value={editLatitude}
+                                  onChange={(event) =>
+                                    setEditLatitude(event.target.value)
+                                  }
+                                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                  placeholder="例: 35.8617"
+                                  inputMode="decimal"
+                                />
+                              </div>
+
+                              <div>
+                                <label
+                                  htmlFor={`edit-weather-location-longitude-${location.id}`}
+                                  className="mb-1 block text-sm font-medium text-gray-700"
+                                >
+                                  経度
+                                </label>
+                                <input
+                                  id={`edit-weather-location-longitude-${location.id}`}
+                                  value={editLongitude}
+                                  onChange={(event) =>
+                                    setEditLongitude(event.target.value)
+                                  }
+                                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                  placeholder="例: 139.6455"
+                                  inputMode="decimal"
+                                />
+                              </div>
+
+                              <div>
+                                <label
+                                  htmlFor={`edit-weather-location-timezone-${location.id}`}
+                                  className="mb-1 block text-sm font-medium text-gray-700"
+                                >
+                                  タイムゾーン
+                                </label>
+                                <input
+                                  id={`edit-weather-location-timezone-${location.id}`}
+                                  value={editTimezone}
+                                  onChange={(event) =>
+                                    setEditTimezone(event.target.value)
+                                  }
+                                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                  placeholder="Asia/Tokyo"
+                                />
+                              </div>
+                            </div>
+                          </div>
                         </div>
 
                         <label className="inline-flex items-center gap-2 text-sm text-gray-700">
@@ -550,6 +736,16 @@ function SettingsWeatherLocationsPageContent() {
                           <p className="mt-2 text-sm text-gray-600">
                             JMA予報区域:{" "}
                             {selectedArea?.display_name ?? "未設定"}
+                          </p>
+                          <p className="mt-1 text-sm text-gray-600">
+                            座標:{" "}
+                            {location.latitude !== null &&
+                            location.longitude !== null
+                              ? `${location.latitude}, ${location.longitude}`
+                              : "未設定"}
+                          </p>
+                          <p className="mt-1 text-sm text-gray-600">
+                            タイムゾーン: {location.timezone ?? "未設定"}
                           </p>
                           {location.forecast_area_code &&
                           !location.jma_forecast_region_code ? (

@@ -142,3 +142,18 @@ Web UI:
   - `longitude`: `-180..180`
   - `timezone`: IANA timezone 文字列
 - legacy カラムは当面 restore 対象に残し、削除時には旧形式 import fallback を再検討する
+---
+
+## 2026-05-03 coordinate groundwork implementation note
+
+### current
+
+- weather location の import / export は latitude / longitude / 	imezone を含めて roundtrip できる
+- 旧 backup に 	imezone がない場合は 
+ull のまま復元する
+- latitude / longitude はセットで扱い、片方だけの payload は validation error にする
+
+### planned
+
+- Open-Meteo 移行後は latitude / longitude / 	imezone を weather location backup / restore の正本とする
+- orecast_area_code / jma_forecast_region_code / jma_forecast_office_code / observation_station_code / observation_station_name は旧形式 restore 互換のため当面残す

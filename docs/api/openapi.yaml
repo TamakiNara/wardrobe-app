@@ -5073,11 +5073,15 @@ components:
         latitude:
           type: number
           nullable: true
-          description: 将来の過去天気APIや座標ベースAPI向けの緯度。MVPでは任意。
+          description: Open-Meteo 移行後の正本候補となる緯度。forecast / historical API はこの値を基準に扱う。既存地域互換のため当面は nullable。
         longitude:
           type: number
           nullable: true
-          description: 将来の過去天気APIや座標ベースAPI向けの経度。MVPでは任意。
+          description: Open-Meteo 移行後の正本候補となる経度。forecast / historical API はこの値を基準に扱う。既存地域互換のため当面は nullable。
+        timezone:
+          type: string
+          nullable: true
+          description: Open-Meteo の daily 集計と日付境界に関わるタイムゾーン。日本国内では通常 Asia/Tokyo を使う。既存地域互換のため当面は nullable。
         is_default:
           type: boolean
         display_order:
@@ -5122,9 +5126,15 @@ components:
         latitude:
           type: number
           nullable: true
+          description: Open-Meteo forecast / historical 用の緯度。longitude とセットで扱う。
         longitude:
           type: number
           nullable: true
+          description: Open-Meteo forecast / historical 用の経度。latitude とセットで扱う。
+        timezone:
+          type: string
+          nullable: true
+          description: Open-Meteo の daily 集計基準になるタイムゾーン。日本国内では通常 Asia/Tokyo。
         is_default:
           type: boolean
         display_order:

@@ -65,6 +65,7 @@ class WeatherLocationController extends Controller
                 'jma_forecast_office_code' => $validated['jma_forecast_office_code'] ?? null,
                 'latitude' => $validated['latitude'] ?? null,
                 'longitude' => $validated['longitude'] ?? null,
+                'timezone' => $validated['timezone'] ?? null,
                 'is_default' => $isDefault,
                 'display_order' => $displayOrder,
             ]);
@@ -152,6 +153,7 @@ class WeatherLocationController extends Controller
             'jma_forecast_office_code' => ['sometimes', 'nullable', 'string', 'max:50'],
             'latitude' => ['sometimes', 'nullable', 'numeric', 'between:-90,90'],
             'longitude' => ['sometimes', 'nullable', 'numeric', 'between:-180,180'],
+            'timezone' => ['sometimes', 'nullable', 'string', 'max:100', 'timezone'],
             'is_default' => ['sometimes', 'boolean'],
             'display_order' => ['sometimes', 'integer', 'min:1'],
         ];
@@ -173,6 +175,25 @@ class WeatherLocationController extends Controller
             $validated['jma_forecast_office_code'] = JmaForecastAreaCodeSupport::normalizeCode(
                 $validated['jma_forecast_office_code'] ?? null,
             );
+        }
+
+        $latitudeProvided = array_key_exists('latitude', $validated);
+        $longitudeProvided = array_key_exists('longitude', $validated);
+        $latitude = $validated['latitude'] ?? null;
+        $longitude = $validated['longitude'] ?? null;
+
+        if ($latitudeProvided xor $longitudeProvided) {
+            throw ValidationException::withMessages([
+                'latitude' => '緯度と経度はセットで入力してください。',
+                'longitude' => '緯度と経度はセットで入力してください。',
+            ]);
+        }
+
+        if (($latitude === null) xor ($longitude === null)) {
+            throw ValidationException::withMessages([
+                'latitude' => '緯度と経度はセットで入力してください。',
+                'longitude' => '緯度と経度はセットで入力してください。',
+            ]);
         }
 
         return $validated;

@@ -221,3 +221,22 @@ JMA へ切り替える初期段階では、既存 `forecast_area_code` を以下
   - `observation_station_name`
 - 通常 UI の主入力からは段階的に外す
 - Open-Meteo 移行後、利用状況を見て削除時期を判断する
+---
+
+## 2026-05-03 coordinate groundwork implementation note
+
+### current
+
+- user_weather_locations は次の座標系カラムを保持できる
+  - latitude
+  - longitude
+  - 	imezone
+- DB 上は既存地域互換のため nullable のまま維持する
+- 地域設定 UI では、手入力 fallback として 緯度 / 経度 / タイムゾーン を確認・編集できる
+- 	imezone は Open-Meteo の daily 集計と日付境界に関わるため、日本国内では Asia/Tokyo を基本値として案内する
+
+### planned
+
+- 新規地域の主入力は最終的に Open-Meteo Geocoding API による候補検索へ寄せる
+- latitude / longitude / 	imezone は Open-Meteo forecast / historical の正本として使う
+- orecast_area_code / jma_forecast_region_code / jma_forecast_office_code / observation_station_code / observation_station_name は legacy / fallback / import-export 互換として当面残す

@@ -294,8 +294,9 @@ class ImportExportEndpointsTest extends TestCase
             'forecast_area_code' => '110000',
             'jma_forecast_region_code' => '110010',
             'jma_forecast_office_code' => '110000',
-            'latitude' => null,
-            'longitude' => null,
+            'latitude' => 35.8617,
+            'longitude' => 139.6455,
+            'timezone' => 'Asia/Tokyo',
             'is_default' => true,
             'display_order' => 1,
         ]);
@@ -378,6 +379,9 @@ class ImportExportEndpointsTest extends TestCase
             ->assertJsonPath('weather_locations.0.name', '川口')
             ->assertJsonPath('weather_locations.0.jma_forecast_region_code', '110010')
             ->assertJsonPath('weather_locations.0.jma_forecast_office_code', '110000')
+            ->assertJsonPath('weather_locations.0.latitude', 35.8617)
+            ->assertJsonPath('weather_locations.0.longitude', 139.6455)
+            ->assertJsonPath('weather_locations.0.timezone', 'Asia/Tokyo')
             ->assertJsonPath('weather_records.0.weather_code', 'sunny')
             ->assertJsonPath('weather_records.0.location_name_snapshot', '川口')
             ->assertJsonPath('weather_records.1.location_id', null)
@@ -528,6 +532,9 @@ class ImportExportEndpointsTest extends TestCase
         $this->assertTrue($importedWeatherLocation->is_default);
         $this->assertSame('110010', $importedWeatherLocation->jma_forecast_region_code);
         $this->assertSame('110000', $importedWeatherLocation->jma_forecast_office_code);
+        $this->assertSame('35.8617', (string) $importedWeatherLocation->latitude);
+        $this->assertSame('139.6455', (string) $importedWeatherLocation->longitude);
+        $this->assertSame('Asia/Tokyo', $importedWeatherLocation->timezone);
         $this->assertSame('sunny', $importedWeatherRecord->weather_code);
         $this->assertSame('川口', $importedWeatherRecord->location_name_snapshot);
         $this->assertSame('110000', $importedWeatherRecord->forecast_area_code_snapshot);
@@ -1752,5 +1759,41 @@ class ImportExportEndpointsTest extends TestCase
             'weather_date' => '2026-05-12',
             'weather_code' => 'windy',
         ]);
+    }
+
+    public function test_import_accepts_legacy_weather_location_payload_without_timezone(): void
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->create();
+        $this->createCategory('tops_shirt_blouse', 'tops', 'シャツ・ブラウス');
+        $this->seedExportSourceData($user);
+
+        $this->actingAs($user, 'web');
+
+        $exportPayload = $this->getJson('/api/export', [
+            'Accept' => 'application/json',
+        ])->assertOk()->json();
+
+        unset($exportPayload['weather_locations'][0]['timezone']);
+
+        WeatherRecord::query()->delete();
+        UserWeatherLocation::query()->delete();
+
+        $token = $this->issueCsrfToken();
+
+        $this->postJson('/api/import', $exportPayload, [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ])->assertOk();
+
+        $importedWeatherLocation = UserWeatherLocation::query()
+            ->where('user_id', $user->id)
+            ->where('name', '川口')
+            ->sole();
+
+        $this->assertNull($importedWeatherLocation->timezone);
+        $this->assertSame('35.8617', (string) $importedWeatherLocation->latitude);
+        $this->assertSame('139.6455', (string) $importedWeatherLocation->longitude);
     }
 }

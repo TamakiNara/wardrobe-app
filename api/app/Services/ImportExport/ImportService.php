@@ -210,6 +210,7 @@ class ImportService
                         'jma_forecast_office_code' => $locationPayload['jma_forecast_office_code'] ?? null,
                         'latitude' => $locationPayload['latitude'] ?? null,
                         'longitude' => $locationPayload['longitude'] ?? null,
+                        'timezone' => $locationPayload['timezone'] ?? null,
                         'is_default' => $locationPayload['is_default'] ?? false,
                         'display_order' => $locationPayload['display_order'] ?? 1,
                     ]);

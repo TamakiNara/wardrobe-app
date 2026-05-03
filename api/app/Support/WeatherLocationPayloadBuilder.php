@@ -16,6 +16,7 @@ class WeatherLocationPayloadBuilder
             'jma_forecast_office_code' => $location->jma_forecast_office_code,
             'latitude' => $location->latitude,
             'longitude' => $location->longitude,
+            'timezone' => $location->timezone,
             'is_default' => $location->is_default,
             'display_order' => $location->display_order,
             'created_at' => $location->created_at?->toISOString(),

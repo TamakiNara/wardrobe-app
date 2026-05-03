@@ -66,8 +66,9 @@ describe("SettingsWeatherLocationsPage", () => {
           forecast_area_code: "110010",
           jma_forecast_region_code: "110010",
           jma_forecast_office_code: "110000",
-          latitude: null,
-          longitude: null,
+          latitude: 35.8617,
+          longitude: 139.6455,
+          timezone: "Asia/Tokyo",
           is_default: true,
           display_order: 1,
           created_at: null,
@@ -81,6 +82,7 @@ describe("SettingsWeatherLocationsPage", () => {
           jma_forecast_office_code: null,
           latitude: null,
           longitude: null,
+          timezone: null,
           is_default: false,
           display_order: 2,
           created_at: null,
@@ -102,7 +104,7 @@ describe("SettingsWeatherLocationsPage", () => {
     globalThis.IS_REACT_ACT_ENVIRONMENT = false;
   });
 
-  it("JMA予報区域の select を表示できる", async () => {
+  it("JMA予報区域と座標入力欄を表示できる", async () => {
     const { default: SettingsWeatherLocationsPage } = await import("./page");
 
     await act(async () => {
@@ -112,8 +114,18 @@ describe("SettingsWeatherLocationsPage", () => {
 
     expect(container.textContent).toContain("天気の地域設定");
     expect(container.textContent).toContain("JMA予報区域");
+    expect(container.textContent).toContain("Open-Meteo 用の位置情報");
     expect(
       container.querySelector("#new-weather-location-jma-region"),
+    ).not.toBeNull();
+    expect(
+      container.querySelector("#new-weather-location-latitude"),
+    ).not.toBeNull();
+    expect(
+      container.querySelector("#new-weather-location-longitude"),
+    ).not.toBeNull();
+    expect(
+      container.querySelector("#new-weather-location-timezone"),
     ).not.toBeNull();
     expect(
       container.querySelector("#new-weather-location-forecast-area"),
@@ -121,7 +133,7 @@ describe("SettingsWeatherLocationsPage", () => {
     expect(container.textContent).toContain("旧API用コードあり");
   });
 
-  it("JMA予報区域を選んで地域を追加できる", async () => {
+  it("JMA予報区域と座標を選んで地域を追加できる", async () => {
     const { default: SettingsWeatherLocationsPage } = await import("./page");
 
     await act(async () => {
@@ -138,6 +150,15 @@ describe("SettingsWeatherLocationsPage", () => {
     const jmaRegionSelect = container.querySelector<HTMLSelectElement>(
       "#new-weather-location-jma-region",
     );
+    const latitudeInput = container.querySelector<HTMLInputElement>(
+      "#new-weather-location-latitude",
+    );
+    const longitudeInput = container.querySelector<HTMLInputElement>(
+      "#new-weather-location-longitude",
+    );
+    const timezoneInput = container.querySelector<HTMLInputElement>(
+      "#new-weather-location-timezone",
+    );
     const addButton = Array.from(
       container.querySelectorAll<HTMLButtonElement>("button"),
     ).find((button) => button.textContent?.includes("地域を追加"));
@@ -145,6 +166,9 @@ describe("SettingsWeatherLocationsPage", () => {
     await act(async () => {
       setInputValue(nameInput!, "職場");
       setSelectValue(jmaRegionSelect!, "130010");
+      setInputValue(latitudeInput!, "35.6895");
+      setInputValue(longitudeInput!, "139.6917");
+      setInputValue(timezoneInput!, "Asia/Tokyo");
       defaultCheckbox!.click();
       await waitForEffects();
     });
@@ -158,11 +182,14 @@ describe("SettingsWeatherLocationsPage", () => {
       name: "職場",
       jma_forecast_region_code: "130010",
       jma_forecast_office_code: "130000",
+      latitude: 35.6895,
+      longitude: 139.6917,
+      timezone: "Asia/Tokyo",
       is_default: true,
     });
   });
 
-  it("既存の JMAコードを復元して更新できる", async () => {
+  it("既存の座標とタイムゾーンを復元して編集できる", async () => {
     const { default: SettingsWeatherLocationsPage } = await import("./page");
 
     await act(async () => {
@@ -185,15 +212,30 @@ describe("SettingsWeatherLocationsPage", () => {
     const editJmaRegionSelect = container.querySelector<HTMLSelectElement>(
       "#edit-weather-location-jma-region-1",
     );
+    const editLatitudeInput = container.querySelector<HTMLInputElement>(
+      "#edit-weather-location-latitude-1",
+    );
+    const editLongitudeInput = container.querySelector<HTMLInputElement>(
+      "#edit-weather-location-longitude-1",
+    );
+    const editTimezoneInput = container.querySelector<HTMLInputElement>(
+      "#edit-weather-location-timezone-1",
+    );
     const saveButton = Array.from(
       container.querySelectorAll<HTMLButtonElement>("button"),
     ).find((button) => button.textContent?.includes("更新"));
 
     expect(editJmaRegionSelect?.value).toBe("110010");
+    expect(editLatitudeInput?.value).toBe("35.8617");
+    expect(editLongitudeInput?.value).toBe("139.6455");
+    expect(editTimezoneInput?.value).toBe("Asia/Tokyo");
 
     await act(async () => {
-      setInputValue(editNameInput!, "川口（自宅）");
+      setInputValue(editNameInput!, "川口（更新）");
       setSelectValue(editJmaRegionSelect!, "140010");
+      setInputValue(editLatitudeInput!, "35.4437");
+      setInputValue(editLongitudeInput!, "139.6380");
+      setInputValue(editTimezoneInput!, "Asia/Tokyo");
       await waitForEffects();
     });
 
@@ -203,14 +245,17 @@ describe("SettingsWeatherLocationsPage", () => {
     });
 
     expect(updateUserWeatherLocationMock).toHaveBeenCalledWith(1, {
-      name: "川口（自宅）",
+      name: "川口（更新）",
       jma_forecast_region_code: "140010",
       jma_forecast_office_code: "140000",
+      latitude: 35.4437,
+      longitude: 139.638,
+      timezone: "Asia/Tokyo",
       is_default: true,
     });
   });
 
-  it("JMAコードを未設定へ戻せる", async () => {
+  it("JMA予報区域と座標を未設定に戻せる", async () => {
     const { default: SettingsWeatherLocationsPage } = await import("./page");
 
     await act(async () => {
@@ -230,12 +275,24 @@ describe("SettingsWeatherLocationsPage", () => {
     const editJmaRegionSelect = container.querySelector<HTMLSelectElement>(
       "#edit-weather-location-jma-region-1",
     );
+    const editLatitudeInput = container.querySelector<HTMLInputElement>(
+      "#edit-weather-location-latitude-1",
+    );
+    const editLongitudeInput = container.querySelector<HTMLInputElement>(
+      "#edit-weather-location-longitude-1",
+    );
+    const editTimezoneInput = container.querySelector<HTMLInputElement>(
+      "#edit-weather-location-timezone-1",
+    );
     const saveButton = Array.from(
       container.querySelectorAll<HTMLButtonElement>("button"),
     ).find((button) => button.textContent?.includes("更新"));
 
     await act(async () => {
       setSelectValue(editJmaRegionSelect!, "");
+      setInputValue(editLatitudeInput!, "");
+      setInputValue(editLongitudeInput!, "");
+      setInputValue(editTimezoneInput!, "");
       await waitForEffects();
     });
 
@@ -248,6 +305,9 @@ describe("SettingsWeatherLocationsPage", () => {
       name: "川口",
       jma_forecast_region_code: null,
       jma_forecast_office_code: null,
+      latitude: null,
+      longitude: null,
+      timezone: null,
       is_default: true,
     });
   });

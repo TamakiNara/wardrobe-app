@@ -19,6 +19,7 @@ class UserWeatherLocation extends Model
         'jma_forecast_office_code',
         'latitude',
         'longitude',
+        'timezone',
         'is_default',
         'display_order',
     ];

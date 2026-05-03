@@ -89,6 +89,7 @@ export type UserWeatherLocationRecord = {
   jma_forecast_office_code: string | null;
   latitude: number | null;
   longitude: number | null;
+  timezone: string | null;
   is_default: boolean;
   display_order: number;
   created_at: string | null;
@@ -106,6 +107,7 @@ export type CreateUserWeatherLocationPayload = {
   jma_forecast_office_code?: string | null;
   latitude?: number | null;
   longitude?: number | null;
+  timezone?: string | null;
   is_default?: boolean;
   display_order?: number;
 };
@@ -117,6 +119,7 @@ export type UpdateUserWeatherLocationPayload = {
   jma_forecast_office_code?: string | null;
   latitude?: number | null;
   longitude?: number | null;
+  timezone?: string | null;
   is_default?: boolean;
   display_order?: number;
 };

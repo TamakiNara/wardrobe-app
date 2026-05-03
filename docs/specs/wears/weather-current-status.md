@@ -226,3 +226,17 @@
 - Open-Meteo 移行後の地域設定正本は `latitude` / `longitude` / `timezone` を中心に整理する
 - `forecast_area_code` / `jma_*` / `observation_station_*` は current または legacy PoC として当面併存しうる
 - 地域登録 UI は最終的に Geocoding API 検索へ寄せ、短期は static list を検討する
+---
+
+## 2026-05-03 coordinate groundwork implementation note
+
+### current
+
+- 地域設定は JMA 系の legacy カラムに加えて、latitude / longitude / 	imezone を保持できる
+- latitude / longitude はセットで扱い、片方だけの保存はしない
+- 	imezone は Open-Meteo の daily 集計と日付境界に関わるため、国内利用では Asia/Tokyo を基準に案内する
+
+### planned
+
+- Open-Meteo forecast / historical の本実装では、weather location の正本を latitude / longitude / 	imezone に寄せる
+- JMA forecast JSON / tsukumijima fallback / JMA latest CSV PoC は current または legacy の知見として残しつつ、主経路からは段階的に外す

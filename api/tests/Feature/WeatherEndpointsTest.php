@@ -32,6 +32,9 @@ class WeatherEndpointsTest extends TestCase
             'forecast_area_code' => '110000',
             'jma_forecast_region_code' => '110010',
             'jma_forecast_office_code' => '110000',
+            'latitude' => 35.8617,
+            'longitude' => 139.6455,
+            'timezone' => 'Asia/Tokyo',
         ], [
             'Accept' => 'application/json',
             'X-CSRF-TOKEN' => $token,
@@ -41,6 +44,9 @@ class WeatherEndpointsTest extends TestCase
             ->assertJsonPath('location.name', '川口')
             ->assertJsonPath('location.jma_forecast_region_code', '110010')
             ->assertJsonPath('location.jma_forecast_office_code', '110000')
+            ->assertJsonPath('location.latitude', 35.8617)
+            ->assertJsonPath('location.longitude', 139.6455)
+            ->assertJsonPath('location.timezone', 'Asia/Tokyo')
             ->assertJsonPath('location.is_default', true)
             ->assertJsonPath('location.display_order', 1);
 
@@ -51,6 +57,7 @@ class WeatherEndpointsTest extends TestCase
             'forecast_area_code' => '130010',
             'jma_forecast_region_code' => '130010',
             'jma_forecast_office_code' => '130000',
+            'timezone' => 'Asia/Tokyo',
             'is_default' => true,
         ], [
             'Accept' => 'application/json',
@@ -61,6 +68,7 @@ class WeatherEndpointsTest extends TestCase
             ->assertJsonPath('location.name', '東京23区')
             ->assertJsonPath('location.jma_forecast_region_code', '130010')
             ->assertJsonPath('location.jma_forecast_office_code', '130000')
+            ->assertJsonPath('location.timezone', 'Asia/Tokyo')
             ->assertJsonPath('location.is_default', true)
             ->assertJsonPath('location.display_order', 2);
 
@@ -205,6 +213,74 @@ class WeatherEndpointsTest extends TestCase
                 'jma_forecast_region_code',
                 'jma_forecast_office_code',
             ]);
+    }
+
+    public function test_weather_location_rejects_out_of_range_coordinates_and_coordinate_pairs(): void
+    {
+        $user = User::factory()->create();
+        $token = $this->issueCsrfToken();
+
+        $this->actingAs($user, 'web');
+
+        $invalidLatitudeResponse = $this->postJson('/api/settings/weather-locations', [
+            'name' => '川口',
+            'latitude' => 91,
+            'longitude' => 139.6455,
+            'timezone' => 'Asia/Tokyo',
+        ], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $invalidLatitudeResponse->assertStatus(422)
+            ->assertJsonValidationErrors(['latitude']);
+
+        $invalidLongitudeResponse = $this->postJson('/api/settings/weather-locations', [
+            'name' => '川口',
+            'latitude' => 35.8617,
+            'longitude' => 181,
+            'timezone' => 'Asia/Tokyo',
+        ], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $invalidLongitudeResponse->assertStatus(422)
+            ->assertJsonValidationErrors(['longitude']);
+
+        $missingPairResponse = $this->postJson('/api/settings/weather-locations', [
+            'name' => '川口',
+            'latitude' => 35.8617,
+            'timezone' => 'Asia/Tokyo',
+        ], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $missingPairResponse->assertStatus(422)
+            ->assertJsonValidationErrors(['latitude', 'longitude']);
+    }
+
+    public function test_weather_location_accepts_missing_timezone_for_existing_style_payloads(): void
+    {
+        $user = User::factory()->create();
+        $token = $this->issueCsrfToken();
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/settings/weather-locations', [
+            'name' => '川口',
+            'latitude' => 35.8617,
+            'longitude' => 139.6455,
+        ], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('location.latitude', 35.8617)
+            ->assertJsonPath('location.longitude', 139.6455)
+            ->assertJsonPath('location.timezone', null);
     }
 
     public function test_weather_records_can_be_created_listed_updated_and_deduplicated(): void

@@ -329,6 +329,7 @@ class ImportExportValidationSupport
             'jma_forecast_office_code' => ['nullable', 'string', 'max:50'],
             'latitude' => ['nullable', 'numeric', 'between:-90,90'],
             'longitude' => ['nullable', 'numeric', 'between:-180,180'],
+            'timezone' => ['nullable', 'string', 'max:100', 'timezone'],
             'is_default' => ['nullable', 'boolean'],
             'display_order' => ['nullable', 'integer', 'min:1'],
         ])->validate();
@@ -344,6 +345,16 @@ class ImportExportValidationSupport
         $validated['jma_forecast_office_code'] = JmaForecastAreaCodeSupport::normalizeCode(
             $validated['jma_forecast_office_code'] ?? null,
         );
+
+        $latitude = $validated['latitude'] ?? null;
+        $longitude = $validated['longitude'] ?? null;
+
+        if (($latitude === null) xor ($longitude === null)) {
+            throw ValidationException::withMessages([
+                'latitude' => '緯度と経度はセットで入力してください。',
+                'longitude' => '緯度と経度はセットで入力してください。',
+            ]);
+        }
 
         return $validated;
     }
