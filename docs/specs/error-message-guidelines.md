@@ -114,6 +114,40 @@
 - 保存失敗や通信失敗は、画面上部のバナーまたはフォーム直上でまとめて案内する
 - ログイン切れは、再ログインへ誘導するバナーを優先し、トースト単体では済ませない
 
+---
+
+## 長いフォームの送信エラー
+
+縦に長い登録 / 編集フォームでは、field-level error だけに頼ると、送信ボタン付近から見てエラー位置が分かりづらくなる。
+
+### 基本方針
+
+- 送信失敗時は、フォーム上部または送信ボタン付近に error summary を表示する
+- error summary では概要文と、修正が必要な項目メッセージ一覧をまとめて案内する
+- field-level error は従来どおり各項目の近くに表示する
+- 長いフォームでは、error summary と field-level error を併用する
+
+### 可能なら行うこと
+
+- 最初のエラー項目へ自動スクロールする
+- 該当 input / select / textarea へ focus する
+- error summary に `role="alert"` と `aria-live` を付ける
+
+### current
+
+- 購入検討フォームで先行対応する
+- 送信失敗時にフォーム上部へ error summary を出し、最初のエラー項目へスクロールと focus を行う
+
+### planned
+
+- item form
+- outfit form
+- wear log form
+- weather form
+- settings form
+
+上記の長いフォームにも、同じ error summary と誘導方針を段階的に適用する
+
 ## 今後の決めごと
 
 - 各画面で実際に出すメッセージ文言の確定

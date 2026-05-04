@@ -143,6 +143,8 @@ const PURCHASE_CANDIDATE_IMAGE_DELETE_ERROR_MESSAGE =
   "画像の削除に失敗しました。時間をおいて再度お試しください。";
 const PURCHASE_CANDIDATE_VALIDATION_SUMMARY_MESSAGE =
   "入力内容を確認してください。";
+const PURCHASE_CANDIDATE_VALIDATION_SUMMARY_DESCRIPTION =
+  "未入力または修正が必要な項目があります。";
 
 class UserFacingFormError extends Error {
   constructor(message: string) {
@@ -452,6 +454,8 @@ export default function PurchaseCandidateForm({
 }: PurchaseCandidateFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const formRef = useRef<HTMLFormElement | null>(null);
+  const validationSummaryRef = useRef<HTMLElement | null>(null);
   const source = searchParams.get("source");
   const requestedDraftSourceKind: DraftSourceKind | null =
     source === "duplicate" || source === "color-variant" ? source : null;
@@ -563,6 +567,7 @@ export default function PurchaseCandidateForm({
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showValidationSummary, setShowValidationSummary] = useState(false);
   const isPurchasedLocked = mode === "edit" && status === "purchased";
   const isDuplicateDraftSource = mode === "create" && draftSourceKind !== null;
   const isColorVariantDraftSource =
@@ -857,7 +862,69 @@ export default function PurchaseCandidateForm({
   );
   const hasInheritedImages =
     isDuplicateDraftSource && displayedImages.length > 0;
-  const submitMessage = submitError ?? submitSuccess;
+  const validationSummaryMessages = useMemo(
+    () => Array.from(new Set(Object.values(errors).filter(Boolean))),
+    [errors],
+  );
+  const shouldShowValidationSummary =
+    showValidationSummary && validationSummaryMessages.length > 0;
+  const submitMessage =
+    submitSuccess ?? (!shouldShowValidationSummary ? submitError : null);
+
+  function resolveFirstErrorSelector(errorKey: string): string | null {
+    switch (errorKey) {
+      case "name":
+        return "#name";
+      case "brand_name":
+        return "#brand-name";
+      case "category_group_id":
+        return "#category_group_id";
+      case "category_id":
+        return "#category_id";
+      case "shape":
+        return "#shape";
+      case "colors":
+        return '[data-error-anchor="main-color"]';
+      case "main_color_custom_label":
+        return "#main_color_custom_label";
+      case "sub_color":
+        return '[data-error-anchor="sub-color"]';
+      default:
+        return null;
+    }
+  }
+
+  function focusFirstErrorField(nextErrors: Record<string, string>) {
+    const form = formRef.current;
+    if (!form || Object.keys(nextErrors).length === 0) {
+      return;
+    }
+
+    window.setTimeout(() => {
+      const firstErrorElement =
+        Object.keys(nextErrors)
+          .map((errorKey) => {
+            const selector = resolveFirstErrorSelector(errorKey);
+            return selector ? form.querySelector<HTMLElement>(selector) : null;
+          })
+          .find((element): element is HTMLElement => element !== null) ??
+        form.querySelector<HTMLElement>('[aria-invalid="true"]') ??
+        validationSummaryRef.current;
+
+      if (!firstErrorElement) {
+        return;
+      }
+
+      firstErrorElement.scrollIntoView({
+        block: "center",
+        behavior: "smooth",
+      });
+
+      if (typeof firstErrorElement.focus === "function") {
+        firstErrorElement.focus({ preventScroll: true });
+      }
+    }, 0);
+  }
 
   function resetSpecFormState() {
     setTopsSleeve("");
@@ -1615,7 +1682,11 @@ export default function PurchaseCandidateForm({
       nextErrors.name = "名前を入力してください。";
     }
 
-    if (!isPurchasedLocked && !categoryId) {
+    if (!isPurchasedLocked && !categoryGroupId) {
+      nextErrors.category_group_id = "カテゴリを選択してください。";
+    }
+
+    if (!isPurchasedLocked && categoryGroupId && !categoryId) {
       nextErrors.category_id = "種類を選択してください。";
     }
 
@@ -1662,7 +1733,7 @@ export default function PurchaseCandidateForm({
     }
 
     setErrors(nextErrors);
-    return Object.keys(nextErrors).length === 0;
+    return nextErrors;
   }
 
   async function uploadPendingImages(targetCandidateId: number) {
@@ -1707,8 +1778,12 @@ export default function PurchaseCandidateForm({
     setInitializationSuccess(null);
     setSubmitError(null);
     setSubmitSuccess(null);
+    setShowValidationSummary(false);
 
-    if (!validateForm()) {
+    const nextErrors = validateForm();
+    if (Object.keys(nextErrors).length > 0) {
+      setShowValidationSummary(true);
+      focusFirstErrorField(nextErrors);
       return;
     }
 
@@ -1731,6 +1806,7 @@ export default function PurchaseCandidateForm({
       const data = await response.json().catch(() => null);
 
       if (response.status === 401) {
+        setShowValidationSummary(false);
         setSubmitError("セッションが切れました。再度ログインしてください。");
         window.setTimeout(() => router.push("/login"), 800);
         return;
@@ -1740,8 +1816,10 @@ export default function PurchaseCandidateForm({
         const flattenedErrors = flattenValidationErrors(data);
         if (Object.keys(flattenedErrors).length > 0) {
           setErrors(flattenedErrors);
-          setSubmitError(PURCHASE_CANDIDATE_VALIDATION_SUMMARY_MESSAGE);
+          setShowValidationSummary(true);
+          focusFirstErrorField(flattenedErrors);
         } else {
+          setShowValidationSummary(false);
           setSubmitError(
             getUserFacingSubmitErrorMessage(
               data,
@@ -1760,6 +1838,8 @@ export default function PurchaseCandidateForm({
         await uploadPendingImages(nextCandidate.id);
       }
 
+      setShowValidationSummary(false);
+      setErrors({});
       setSubmitSuccess(
         mode === "edit" ? "更新に成功しました。" : "登録に成功しました。",
       );
@@ -1772,6 +1852,7 @@ export default function PurchaseCandidateForm({
         router.refresh();
       }, 800);
     } catch (error) {
+      setShowValidationSummary(false);
       setSubmitError(
         error instanceof UserFacingFormError
           ? error.message
@@ -1869,12 +1950,44 @@ export default function PurchaseCandidateForm({
 
   return (
     <form
+      ref={formRef}
       onSubmit={handleSubmit}
       className="grid gap-6 lg:grid-cols-2 lg:items-start lg:gap-5"
     >
       {initializationError ? (
         <section className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 lg:col-span-2">
           {initializationError}
+        </section>
+      ) : null}
+      {shouldShowValidationSummary ? (
+        <section
+          ref={validationSummaryRef}
+          tabIndex={-1}
+          role="alert"
+          aria-live="polite"
+          className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 shadow-sm lg:col-span-2"
+        >
+          <div className="flex items-start gap-2">
+            <TriangleAlert
+              className="mt-0.5 h-4 w-4 shrink-0"
+              aria-hidden="true"
+            />
+            <div className="space-y-2">
+              <div className="space-y-1">
+                <p className="font-medium">
+                  {PURCHASE_CANDIDATE_VALIDATION_SUMMARY_MESSAGE}
+                </p>
+                <p>{PURCHASE_CANDIDATE_VALIDATION_SUMMARY_DESCRIPTION}</p>
+              </div>
+              <ul className="space-y-1 pl-4">
+                {validationSummaryMessages.map((message) => (
+                  <li key={message} className="list-disc">
+                    {message}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
         </section>
       ) : null}
       {initializationSuccess ? (
@@ -1957,13 +2070,17 @@ export default function PurchaseCandidateForm({
             value={name}
             onChange={(event) => setName(event.target.value)}
             disabled={isPurchasedLocked}
+            aria-invalid={errors.name ? "true" : "false"}
+            aria-describedby={errors.name ? "name_error" : undefined}
             className={getFormControlClassName({
               invalid: Boolean(errors.name),
               disabled: isPurchasedLocked,
             })}
           />
           {errors.name && (
-            <p className="mt-2 text-sm text-red-600">{errors.name}</p>
+            <p id="name_error" className="mt-2 text-sm text-red-600">
+              {errors.name}
+            </p>
           )}
         </div>
 
@@ -2311,7 +2428,12 @@ export default function PurchaseCandidateForm({
                 resetSpecFormState();
               }}
               disabled={isPurchasedLocked}
+              aria-invalid={errors.category_group_id ? "true" : "false"}
+              aria-describedby={
+                errors.category_group_id ? "category_group_id_error" : undefined
+              }
               className={getFormControlClassName({
+                invalid: Boolean(errors.category_group_id),
                 disabled: isPurchasedLocked,
               })}
             >
@@ -2322,6 +2444,14 @@ export default function PurchaseCandidateForm({
                 </option>
               ))}
             </select>
+            {errors.category_group_id && (
+              <p
+                id="category_group_id_error"
+                className="mt-2 text-sm text-red-600"
+              >
+                {errors.category_group_id}
+              </p>
+            )}
           </div>
 
           {categoryGroupId ? (
@@ -2686,6 +2816,8 @@ export default function PurchaseCandidateForm({
         ) : null}
         <div className="grid gap-4 md:grid-cols-2">
           <div
+            data-error-anchor="main-color"
+            tabIndex={-1}
             className={
               isColorVariantDraftSource
                 ? "rounded-xl border border-sky-200 bg-sky-50/40 p-3"
@@ -2772,7 +2904,7 @@ export default function PurchaseCandidateForm({
               </div>
             </div>
           </div>
-          <div>
+          <div data-error-anchor="sub-color" tabIndex={-1}>
             <FieldLabel label="サブカラー" />
             <div className="space-y-3">
               <label className="flex items-center gap-2 text-sm text-gray-700">

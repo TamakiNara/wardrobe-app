@@ -17,6 +17,7 @@ const fetchCategoryGroupsMock = vi.fn();
 const fetchCategoryVisibilitySettingsMock = vi.fn();
 const fetchUserBrandsMock = vi.fn();
 const fetchMock = vi.fn();
+const scrollIntoViewMock = vi.fn();
 let searchParamsValue = "";
 
 vi.mock("next/link", () => ({
@@ -91,6 +92,10 @@ describe("購入検討フォーム", () => {
     document.body.appendChild(container);
     root = createRoot(container);
     vi.stubGlobal("fetch", fetchMock);
+    Object.defineProperty(HTMLElement.prototype, "scrollIntoView", {
+      configurable: true,
+      value: scrollIntoViewMock,
+    });
 
     fetchCategoryGroupsMock.mockResolvedValue([
       {
@@ -2166,7 +2171,98 @@ describe("購入検討フォーム", () => {
     });
 
     expect(container.textContent).toContain("入力内容を確認してください。");
+    expect(container.textContent).toContain(
+      "未入力または修正が必要な項目があります。",
+    );
     expect(container.textContent).toContain("名前を入力してください。");
+  });
+
+  it("必須項目エラー時に summary を表示し、最初のエラー欄へスクロールして focus する", async () => {
+    await renderForm();
+
+    const form = container.querySelector("form") as HTMLFormElement;
+
+    await act(async () => {
+      form.dispatchEvent(
+        new Event("submit", { bubbles: true, cancelable: true }),
+      );
+      await Promise.resolve();
+    });
+
+    await act(async () => {
+      await new Promise((resolve) => window.setTimeout(resolve, 0));
+    });
+
+    expect(container.textContent).toContain("入力内容を確認してください。");
+    expect(container.textContent).toContain(
+      "未入力または修正が必要な項目があります。",
+    );
+    expect(container.textContent).toContain("名前を入力してください。");
+    expect(container.textContent).toContain("カテゴリを選択してください。");
+    expect(container.textContent).toContain("メインカラーを選択してください。");
+    const categoryGroupSelect = getCategoryGroupSelect();
+    const categoryGroupError = container.querySelector(
+      "#category_group_id_error",
+    ) as HTMLParagraphElement | null;
+    expect(categoryGroupSelect.getAttribute("aria-invalid")).toBe("true");
+    expect(categoryGroupSelect.getAttribute("aria-describedby")).toBe(
+      "category_group_id_error",
+    );
+    expect(categoryGroupError?.textContent).toContain(
+      "カテゴリを選択してください。",
+    );
+    expect(scrollIntoViewMock).toHaveBeenCalled();
+    expect(document.activeElement?.id).toBe("name");
+  });
+
+  it("正常送信時は error summary を表示しない", async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 201,
+      json: async () => ({
+        purchaseCandidate: { id: 9 },
+      }),
+    });
+
+    await renderForm();
+
+    const form = container.querySelector("form") as HTMLFormElement;
+    const nameInput = container.querySelector("#name") as HTMLInputElement;
+    const mainColorToggle = container.querySelector<HTMLInputElement>(
+      'input[aria-label="メインカラーをカラーコードで入力"]',
+    );
+    const mainColorCodeInput = () =>
+      container.querySelector<HTMLInputElement>(
+        'input[aria-label="メインカラーコード"]',
+      );
+
+    await act(async () => {
+      form.dispatchEvent(
+        new Event("submit", { bubbles: true, cancelable: true }),
+      );
+      await Promise.resolve();
+    });
+
+    expect(container.textContent).toContain("入力内容を確認してください。");
+
+    await act(async () => {
+      setNativeValue(nameInput, "正常送信テスト");
+      await setCategorySelection("outerwear", "outerwear_coat");
+      setNativeValue(getShapeSelect() as HTMLSelectElement, "trench");
+      mainColorToggle?.click();
+      await Promise.resolve();
+    });
+
+    await act(async () => {
+      setNativeValue(mainColorCodeInput() as HTMLInputElement, "#112233");
+      form.dispatchEvent(
+        new Event("submit", { bubbles: true, cancelable: true }),
+      );
+      await Promise.resolve();
+    });
+
+    expect(container.textContent).not.toContain("入力内容を確認してください。");
+    expect(container.textContent).toContain("登録に成功しました。");
   });
 
   it("画像エラーの raw message を表示しない", async () => {
@@ -3166,7 +3262,22 @@ describe("購入検討フォーム", () => {
 
     const categoryField =
       container.querySelector("#category_id")?.parentElement;
+    const categorySelect = container.querySelector(
+      "#category_id",
+    ) as HTMLSelectElement | null;
+    const categoryError = container.querySelector(
+      "#category_id_error",
+    ) as HTMLParagraphElement | null;
+
+    expect(categorySelect?.getAttribute("aria-invalid")).toBe("true");
+    expect(categorySelect?.getAttribute("aria-describedby")).toBe(
+      "category_id_error",
+    );
+    expect(categoryError?.textContent).toContain("種類を選択してください。");
     expect(categoryField?.textContent).toContain("種類を選択してください。");
+    expect(categoryField?.textContent).not.toContain(
+      "カテゴリを選択してください。",
+    );
     expect(categoryField?.textContent).not.toContain(
       "メインカラーを選択してください。",
     );
