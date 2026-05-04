@@ -266,8 +266,21 @@ export default async function UnderwearPurchaseCandidatesPage({
   const purchaseCandidateGroups = buildPurchaseCandidateListGroups(
     data.purchaseCandidateEntries,
   );
+  const hasExplicitFilters = Boolean(
+    keyword || status || priority || category || subcategory || brand || sort,
+  );
   const shouldShowFilteredEmptyState =
     data.meta.totalAll > 0 && purchaseCandidateGroups.length === 0;
+  const filteredEmptyTitle =
+    status === "purchased"
+      ? "購入済みの候補はありません"
+      : status === "dropped"
+        ? "見送りの候補はありません"
+        : "条件に一致する購入検討がありません";
+  const filteredEmptyDescription =
+    !hasExplicitFilters && status === ""
+      ? "購入前の候補はありません。購入済みや見送りは状態から確認できます。"
+      : "条件を変えて試してください。";
   const detailQueryString = new URLSearchParams({
     return_to: "/purchase-candidates/underwear",
     return_label: "アンダーウェア購入検討一覧",
@@ -284,7 +297,7 @@ export default async function UnderwearPurchaseCandidatesPage({
           ]}
           eyebrow="購入検討管理"
           title="アンダーウェア購入検討一覧"
-          description="通常の購入検討一覧とは分けて、下着類の購入検討だけをまとめて管理します。"
+          description="購入前の下着候補をまとめて確認できます。購入済みや見送りは状態から切り替えて確認できます。"
           actions={
             <>
               <Link
@@ -338,10 +351,10 @@ export default async function UnderwearPurchaseCandidatesPage({
         ) : shouldShowFilteredEmptyState ? (
           <section className="rounded-2xl border border-dashed border-gray-300 bg-white p-10 text-center shadow-sm">
             <h2 className="text-lg font-semibold text-gray-900">
-              条件に一致する購入検討がありません
+              {filteredEmptyTitle}
             </h2>
             <p className="mt-2 text-sm text-gray-600">
-              条件を変えて試してください。
+              {filteredEmptyDescription}
             </p>
           </section>
         ) : (

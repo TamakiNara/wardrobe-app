@@ -1244,6 +1244,8 @@ purchase candidate の spec 必須/任意ルールは、最終的に item 側の
 - `purchased` / `dropped` はフィルタで見られるようにする
 - `purchased` は item 化済み履歴であり、後から candidate を更新しても item 正本へは反映しない
 - 初期一覧では `considering / on_hold` を主表示でよい
+- 初期一覧で `status` 未指定の場合は `considering / on_hold` を表示し、`purchased / dropped` は初期表示から外す
+- `purchased / dropped` は状態フィルタで明示的に選んだときだけ一覧に出す
 
 ### DELETE との違い
 
@@ -1458,6 +1460,7 @@ candidate 側でも、編集画面と duplicate / color-variant draft で `sort_
 - other は検索対象に含めるが、UI 上は候補の最後に置く
 - backend では category / subcategory を category master の `category_id` へ解決して絞り込む
 - category / subcategory / brand / sort / keyword / status / priority / page は URL query と同期する
+- 状態フィルタの空欄は「購入前」を意味し、backend query では `considering / on_hold` を既定値として扱う
 - keyword / brand は debounce 付き即時反映、select 系は即時反映とする
 - page 以外の条件変更時は page を 1 に戻す
 - 個別解除と全体の条件クリア導線を用意する

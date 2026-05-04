@@ -175,6 +175,24 @@ describe("PurchaseCandidateListFilters", () => {
     );
   });
 
+  it("状態フィルタの初期値は購入前ラベルを表示する", async () => {
+    const { default: PurchaseCandidateListFilters } =
+      await import("./purchase-candidate-list-filters");
+
+    await act(async () => {
+      root.render(
+        React.createElement(PurchaseCandidateListFilters, defaultProps),
+      );
+      await waitForEffects();
+    });
+
+    const statusSelect = container.querySelector<HTMLSelectElement>(
+      "#purchase-candidate-status",
+    );
+
+    expect(statusSelect?.options[0]?.textContent).toBe("購入前");
+  });
+
   it("category 変更時は subcategory と page を落とす", async () => {
     searchParamsValue = "category=outerwear&subcategory=coat&page=3";
     const { default: PurchaseCandidateListFilters } =

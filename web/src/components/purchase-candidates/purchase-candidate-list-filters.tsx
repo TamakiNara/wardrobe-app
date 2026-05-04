@@ -348,7 +348,7 @@ export default function PurchaseCandidateListFilters({
             onChange={(e) => updateQuery({ status: e.target.value })}
             className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
           >
-            <option value="">すべて</option>
+            <option value="">購入前</option>
             {Object.entries(PURCHASE_CANDIDATE_STATUS_LABELS).map(
               ([value, label]) => (
                 <option key={value} value={value}>

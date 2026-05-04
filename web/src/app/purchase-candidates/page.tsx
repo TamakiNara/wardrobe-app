@@ -264,8 +264,21 @@ export default async function PurchaseCandidatesPage({
   const purchaseCandidateGroups = buildPurchaseCandidateListGroups(
     data.purchaseCandidateEntries,
   );
+  const hasExplicitFilters = Boolean(
+    keyword || status || priority || category || subcategory || brand || sort,
+  );
   const shouldShowFilteredEmptyState =
     data.meta.totalAll > 0 && purchaseCandidateGroups.length === 0;
+  const filteredEmptyTitle =
+    status === "purchased"
+      ? "購入済みの候補はありません"
+      : status === "dropped"
+        ? "見送りの候補はありません"
+        : "条件に一致する購入検討がありません";
+  const filteredEmptyDescription =
+    !hasExplicitFilters && status === ""
+      ? "購入前の候補はありません。購入済みや見送りは状態から確認できます。"
+      : "条件を変えて試してください。";
 
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">
@@ -277,7 +290,7 @@ export default async function PurchaseCandidatesPage({
           ]}
           eyebrow="購入検討管理"
           title="購入検討一覧"
-          description="検討中・保留中・購入済み・見送りの候補をまとめて確認します。"
+          description="購入前の候補を中心に確認できます。購入済みや見送りは状態から切り替えて確認できます。"
           actions={
             <>
               <Link
@@ -332,10 +345,10 @@ export default async function PurchaseCandidatesPage({
         ) : shouldShowFilteredEmptyState ? (
           <section className="rounded-2xl border border-dashed border-gray-300 bg-white p-10 text-center shadow-sm">
             <h2 className="text-lg font-semibold text-gray-900">
-              条件に一致する購入検討がありません
+              {filteredEmptyTitle}
             </h2>
             <p className="mt-2 text-sm text-gray-600">
-              条件を変えてお試しください。
+              {filteredEmptyDescription}
             </p>
           </section>
         ) : (

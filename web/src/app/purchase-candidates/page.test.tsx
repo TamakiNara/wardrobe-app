@@ -196,7 +196,7 @@ describe("PurchaseCandidatesPage", () => {
     expect(markup).toContain("購入検討管理");
     expect(markup).toContain("購入検討一覧");
     expect(markup).toContain(
-      "検討中・保留中・購入済み・見送りの候補をまとめて確認します。",
+      "購入前の候補を中心に確認できます。購入済みや見送りは状態から切り替えて確認できます。",
     );
     expect(markup).toContain('href="/purchase-candidates/new"');
     expect(markup).toContain("購入検討を追加");
@@ -302,7 +302,7 @@ describe("PurchaseCandidatesPage", () => {
     expect(markup).toContain("購入検討管理");
     expect(markup).toContain("購入検討一覧");
     expect(markup).toContain(
-      "検討中・保留中・購入済み・見送りの候補をまとめて確認します。",
+      "購入前の候補を中心に確認できます。購入済みや見送りは状態から切り替えて確認できます。",
     );
     expect(markup).toContain('href="/purchase-candidates/new"');
     expect(markup).toContain("購入検討を追加");
@@ -558,8 +558,35 @@ describe("PurchaseCandidatesPage", () => {
     );
 
     expect(markup).toContain("条件に一致する購入検討がありません");
-    expect(markup).toContain("条件を変えてお試しください。");
+    expect(markup).toContain("条件を変えて試してください。");
     expect(markup).toContain('value="候補ブランド"');
+  });
+
+  it("購入前候補が空のときは購入済みや見送りの確認導線を表示する", async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        purchaseCandidates: [],
+        availableBrands: [],
+        meta: {
+          total: 0,
+          totalAll: 2,
+          page: 1,
+          lastPage: 1,
+        },
+      }),
+    });
+    mockCategoryGroupsResponse();
+    mockBrandOptionsResponse();
+
+    const { default: PurchaseCandidatesPage } = await import("./page");
+    const markup = renderToStaticMarkup(
+      await PurchaseCandidatesPage({ searchParams: Promise.resolve({}) }),
+    );
+
+    expect(markup).toContain("購入前の候補はありません。");
+    expect(markup).toContain("購入済みや見送りは状態から確認できます。");
   });
 
   it("一覧 filter に現在の query 値を渡せる", async () => {

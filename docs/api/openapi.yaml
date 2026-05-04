@@ -1381,7 +1381,9 @@ paths:
         - Purchase Candidates
       summary: 購入候補一覧取得
       description: |
-        considering / on_hold / purchased / dropped の purchase candidate を返す。
+        purchase candidate 一覧を返す。
+        `status` 未指定の初期一覧では `considering / on_hold` の購入前候補を返し、
+        `purchased / dropped` は状態フィルタで明示的に選んだときだけ返す。
         top-level category `underwear` は通常一覧では返さず、
         アンダーウェア専用一覧では `storage=underwear` を使う。
         一覧の正本 payload は purchaseCandidateEntries と meta.total / totalAll / page / lastPage。

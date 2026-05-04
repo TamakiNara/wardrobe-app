@@ -232,6 +232,84 @@ class PurchaseCandidateEndpointsTest extends TestCase
             ]);
     }
 
+    public function test_get_purchase_candidates_defaults_to_pre_purchase_statuses(): void
+    {
+        $user = User::factory()->create();
+
+        $consideringCandidate = $this->createCandidate($user, [
+            'name' => '検討中コート',
+            'status' => 'considering',
+        ]);
+        $onHoldCandidate = $this->createCandidate($user, [
+            'name' => '保留中シャツ',
+            'status' => 'on_hold',
+        ]);
+        $this->createCandidate($user, [
+            'name' => '購入済みバッグ',
+            'status' => 'purchased',
+        ]);
+        $this->createCandidate($user, [
+            'name' => '見送りニット',
+            'status' => 'dropped',
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->getJson('/api/purchase-candidates', [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonCount(2, 'purchaseCandidateEntries')
+            ->assertJsonFragment([
+                'id' => $consideringCandidate->id,
+                'status' => 'considering',
+            ])
+            ->assertJsonFragment([
+                'id' => $onHoldCandidate->id,
+                'status' => 'on_hold',
+            ])
+            ->assertJsonMissing([
+                'name' => '購入済みバッグ',
+            ])
+            ->assertJsonMissing([
+                'name' => '見送りニット',
+            ])
+            ->assertJsonPath('meta.total', 2)
+            ->assertJsonPath('meta.totalAll', 4);
+    }
+
+    public function test_get_purchase_candidates_can_filter_only_purchased_status(): void
+    {
+        $user = User::factory()->create();
+
+        $this->createCandidate($user, [
+            'name' => '検討中コート',
+            'status' => 'considering',
+        ]);
+        $purchasedCandidate = $this->createCandidate($user, [
+            'name' => '購入済みバッグ',
+            'status' => 'purchased',
+        ]);
+        $this->createCandidate($user, [
+            'name' => '見送りニット',
+            'status' => 'dropped',
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->getJson('/api/purchase-candidates?status=purchased', [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonCount(1, 'purchaseCandidateEntries')
+            ->assertJsonPath('purchaseCandidateEntries.0.candidate.id', $purchasedCandidate->id)
+            ->assertJsonPath('purchaseCandidateEntries.0.candidate.status', 'purchased')
+            ->assertJsonPath('meta.total', 1)
+            ->assertJsonPath('meta.totalAll', 3);
+    }
+
     public function test_get_purchase_candidates_applies_filters_sort_and_pagination(): void
     {
         $user = User::factory()->create();

@@ -12,6 +12,8 @@ class PurchaseCandidatesIndexQuery
 {
     private const STORAGE_UNDERWEAR = 'underwear';
 
+    private const DEFAULT_LIST_STATUSES = ['considering', 'on_hold'];
+
     public static function build(User $user, Request $request): array
     {
         $keyword = trim((string) $request->query('keyword', ''));
@@ -269,6 +271,8 @@ class PurchaseCandidatesIndexQuery
 
         if ($status !== '') {
             $query->where('status', $status);
+        } else {
+            $query->whereIn('status', self::DEFAULT_LIST_STATUSES);
         }
 
         if ($priority !== '') {
