@@ -21,6 +21,8 @@
 - 天気登録画面の取得結果では `代表天気` と `朝 / 昼 / 夜` を補足表示し、raw weather code は通常 UI で前面に出さない
 - カレンダー weather status を表示し、`none / forecast / observed / manual` を区別できる
 - カレンダーでは天気アイコンを主表示にし、source 状態は色で表す
+- 日付詳細モーダルでは、その日の `weather_records` をすべて表示し、`予報 / 実績 / 手入力` は source status バッジで確認する
+- カレンダーは概要表示、日付詳細モーダルは source status を言葉で確認する詳細表示、と役割を分ける
 - カレンダー凡例では `Sun` を代表アイコンにして、予報 / 実績 / 振り返りありを説明する
 - `manual` はカレンダーセルでは observed 寄せで扱い、凡例には出さない
 - 振り返りありは slate / neutral 系の書き込みアイコンで補助表示する
@@ -81,8 +83,7 @@ legacy / history の詳細:
 
 ## 推奨実装順
 
-1. 日付詳細モーダルの天気状態バッジ
-2. precipitation 保存方針の再判断
-3. snapshot PoC の要否判断
-4. legacy fallback の利用状況確認
-5. hourly を使った天気表現の改善検討
+1. precipitation 保存方針の再判断
+2. snapshot PoC の要否判断
+3. legacy fallback の利用状況確認
+4. hourly を使った天気表現の改善検討

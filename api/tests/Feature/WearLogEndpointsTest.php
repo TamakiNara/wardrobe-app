@@ -784,6 +784,80 @@ class WearLogEndpointsTest extends TestCase
             ->assertJsonPath('weatherRecords.0.memo', '日中はよく晴れた');
     }
 
+    public function test_get_wear_logs_by_date_returns_weather_records_in_calendar_priority_order(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user, 'web');
+
+        $defaultLocation = UserWeatherLocation::query()->create([
+            'user_id' => $user->id,
+            'name' => '川口',
+            'is_default' => true,
+            'display_order' => 2,
+        ]);
+        $secondaryLocation = UserWeatherLocation::query()->create([
+            'user_id' => $user->id,
+            'name' => 'さいたま',
+            'is_default' => false,
+            'display_order' => 1,
+        ]);
+
+        WeatherRecord::query()->create([
+            'user_id' => $user->id,
+            'weather_date' => '2026-03-06',
+            'location_id' => $secondaryLocation->id,
+            'location_name_snapshot' => 'さいたま',
+            'forecast_area_code_snapshot' => null,
+            'weather_code' => 'cloudy',
+            'temperature_high' => 23.0,
+            'temperature_low' => 13.0,
+            'memo' => null,
+            'source_type' => 'forecast_api',
+            'source_name' => 'open_meteo_jma_forecast',
+            'source_fetched_at' => '2026-03-06T06:00:00Z',
+        ]);
+        WeatherRecord::query()->create([
+            'user_id' => $user->id,
+            'weather_date' => '2026-03-06',
+            'location_id' => null,
+            'location_name_snapshot' => '秋田',
+            'forecast_area_code_snapshot' => null,
+            'weather_code' => 'sunny',
+            'temperature_high' => null,
+            'temperature_low' => null,
+            'memo' => null,
+            'source_type' => 'manual',
+            'source_name' => 'manual',
+            'source_fetched_at' => null,
+        ]);
+        WeatherRecord::query()->create([
+            'user_id' => $user->id,
+            'weather_date' => '2026-03-06',
+            'location_id' => $defaultLocation->id,
+            'location_name_snapshot' => '川口',
+            'forecast_area_code_snapshot' => null,
+            'weather_code' => 'sunny',
+            'temperature_high' => 25.0,
+            'temperature_low' => 14.0,
+            'memo' => '日差しが強かった',
+            'source_type' => 'historical_api',
+            'source_name' => 'open_meteo_historical',
+            'source_fetched_at' => '2026-03-07T06:00:00Z',
+        ]);
+
+        $response = $this->getJson('/api/wear-logs/by-date?event_date=2026-03-06', [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('weatherRecords.0.location_name', '川口')
+            ->assertJsonPath('weatherRecords.0.source_type', 'historical_api')
+            ->assertJsonPath('weatherRecords.1.location_name', '秋田')
+            ->assertJsonPath('weatherRecords.1.source_type', 'manual')
+            ->assertJsonPath('weatherRecords.2.location_name', 'さいたま')
+            ->assertJsonPath('weatherRecords.2.source_type', 'forecast_api');
+    }
+
     public function test_get_wear_logs_by_date_returns_422_when_event_date_is_invalid(): void
     {
         $user = User::factory()->create();

@@ -799,26 +799,45 @@ export default function WearLogCalendar({
                             key={record.id}
                             className="rounded-xl border border-gray-200 bg-white px-3 py-3"
                           >
-                            <div className="flex flex-wrap items-center gap-2">
-                              <p className="text-sm font-medium text-gray-900">
-                                {record.location_name}
-                              </p>
-                              <span
-                                className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-medium ${getCalendarWeatherStatusBadgeClassName(
-                                  getCalendarWeatherStatusFromSourceType(
-                                    record.source_type,
-                                  ),
-                                )}`}
-                                data-weather-source-status={record.source_type}
-                              >
-                                {getCalendarWeatherStatusLabel(
-                                  getCalendarWeatherStatusFromSourceType(
-                                    record.source_type,
-                                  ),
+                            <div className="flex flex-wrap items-start justify-between gap-3">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <p className="text-sm font-medium text-gray-900">
+                                  {record.location_name}
+                                </p>
+                                <span
+                                  className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-medium ${getCalendarWeatherStatusBadgeClassName(
+                                    getCalendarWeatherStatusFromSourceType(
+                                      record.source_type,
+                                    ),
+                                  )}`}
+                                  data-weather-source-status={
+                                    record.source_type
+                                  }
+                                >
+                                  {getCalendarWeatherStatusLabel(
+                                    getCalendarWeatherStatusFromSourceType(
+                                      record.source_type,
+                                    ),
+                                  )}
+                                </span>
+                              </div>
+                              <Link
+                                href={buildWeatherHref(
+                                  selectedDate,
+                                  pathname,
+                                  searchParams,
                                 )}
-                              </span>
+                                className="text-xs font-medium text-blue-600 hover:underline"
+                              >
+                                編集
+                              </Link>
                             </div>
-                            <WeatherRecordSummary record={record} />
+                            <div className="mt-2">
+                              <WeatherRecordSummary
+                                record={record}
+                                summaryClassName="text-sm text-gray-600"
+                              />
+                            </div>
                             {(record.memo ?? "").trim() !== "" ? (
                               <p className="mt-1 text-sm text-gray-500">
                                 メモ: {record.memo}

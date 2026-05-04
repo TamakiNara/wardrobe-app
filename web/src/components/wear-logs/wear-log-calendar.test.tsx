@@ -225,6 +225,140 @@ describe("WearLogCalendar", () => {
     expect(container.innerHTML).toContain("wear-log-modal-color-thumbnail");
   });
 
+  it("日付詳細モーダルで複数天気のバッジと内容を確認できる", async () => {
+    apiFetchMock.mockResolvedValue({
+      event_date: "2026-03-06",
+      wearLogs: [
+        {
+          id: 21,
+          status: "worn",
+          event_date: "2026-03-06",
+          display_order: 1,
+          source_outfit_name: "通勤コーデ",
+          items_count: 1,
+          memo: null,
+          outdoor_temperature_feel: null,
+          indoor_temperature_feel: null,
+          overall_rating: null,
+          feedback_tags: [],
+          feedback_memo: null,
+          thumbnail_items: [
+            {
+              source_item_id: 1,
+              category: "tops",
+              colors: [{ role: "main", hex: "#ffffff", label: "白" }],
+            },
+          ],
+        },
+      ],
+      weatherRecords: [
+        {
+          id: 42,
+          weather_date: "2026-03-06",
+          location_id: 1,
+          location_name: "川口",
+          location_name_snapshot: "川口",
+          forecast_area_code_snapshot: null,
+          weather_code: "sunny",
+          temperature_high: 25,
+          temperature_low: 14,
+          memo: "日差しが強かった",
+          source_type: "historical_api",
+          source_name: "open_meteo_historical",
+          source_fetched_at: "2026-03-07T06:00:00Z",
+          created_at: "2026-03-07T06:00:00Z",
+          updated_at: "2026-03-07T06:00:00Z",
+        },
+        {
+          id: 43,
+          weather_date: "2026-03-06",
+          location_id: null,
+          location_name: "秋田",
+          location_name_snapshot: "秋田",
+          forecast_area_code_snapshot: null,
+          weather_code: "sunny",
+          temperature_high: null,
+          temperature_low: null,
+          memo: null,
+          source_type: "manual",
+          source_name: "manual",
+          source_fetched_at: null,
+          created_at: "2026-03-06T08:00:00Z",
+          updated_at: "2026-03-06T08:00:00Z",
+        },
+        {
+          id: 41,
+          weather_date: "2026-03-06",
+          location_id: 2,
+          location_name: "さいたま",
+          location_name_snapshot: "さいたま",
+          forecast_area_code_snapshot: null,
+          weather_code: "cloudy",
+          temperature_high: 23,
+          temperature_low: 13,
+          memo: null,
+          source_type: "forecast_api",
+          source_name: "open_meteo_jma_forecast",
+          source_fetched_at: "2026-03-06T06:00:00Z",
+          created_at: "2026-03-06T06:00:00Z",
+          updated_at: "2026-03-06T06:00:00Z",
+        },
+      ],
+    });
+
+    const { default: WearLogCalendar } = await import("./wear-log-calendar");
+
+    await act(async () => {
+      root.render(
+        React.createElement(WearLogCalendar, {
+          month: "2026-03",
+          weekStart: "monday",
+          days: [
+            {
+              date: "2026-03-06",
+              plannedCount: 0,
+              wornCount: 1,
+              weather: buildWeatherSummary("observed", "sunny"),
+              dots: [{ status: "worn", has_feedback: false }],
+              has_feedback: false,
+              overflowCount: 0,
+            },
+          ],
+        }),
+      );
+      await waitForEffects();
+    });
+
+    await act(async () => {
+      findDayButton(container, "2026-03-06")?.click();
+      await waitForEffects();
+    });
+
+    const statusBadges = Array.from(
+      container.querySelectorAll("[data-weather-source-status]"),
+    ).map((element) => element.textContent?.trim());
+
+    expect(statusBadges).toEqual(["実績", "手入力", "予報"]);
+    expect(container.textContent).toContain("この日の天気");
+    expect(container.textContent).toContain("さいたま");
+    expect(container.textContent).toContain("川口");
+    expect(container.textContent).toContain("秋田");
+    expect(container.textContent).toContain("最高 23℃");
+    expect(container.textContent).toContain("最低 13℃");
+    expect(container.textContent).toContain("最高 25℃");
+    expect(container.textContent).toContain("最低 14℃");
+    expect(container.textContent).toContain("メモ: 日差しが強かった");
+    expect(
+      container.querySelectorAll('a[href*="/wear-logs/weather?"]').length,
+    ).toBe(4);
+
+    const modalText = container.textContent ?? "";
+    expect(modalText.indexOf("川口")).toBeLessThan(modalText.indexOf("秋田"));
+    expect(modalText.indexOf("秋田")).toBeLessThan(
+      modalText.indexOf("さいたま"),
+    );
+  });
+
   it("日曜・土曜・祝日を色分けして表示する", async () => {
     vi.setSystemTime(new Date("2026-02-20T09:00:00+09:00"));
 

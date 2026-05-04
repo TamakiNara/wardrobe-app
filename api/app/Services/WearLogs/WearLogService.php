@@ -356,13 +356,31 @@ class WearLogService
             ->whereDate('weather_date', $eventDate)
             ->with('location')
             ->get()
-            ->sortBy(
-                fn (WeatherRecord $record) => sprintf(
-                    '%010d-%010d',
-                    $record->location?->display_order ?? PHP_INT_MAX,
-                    $record->id,
-                )
-            )
+            ->sortBy(fn (WeatherRecord $record) => $this->weatherRecordDetailSortKey($record))
             ->values();
+    }
+
+    private function weatherRecordStatusPriority(WeatherRecord $record): int
+    {
+        return match ($record->source_type) {
+            'historical_api' => 0,
+            'manual' => 1,
+            'forecast_api' => 2,
+            default => 3,
+        };
+    }
+
+    /**
+     * @return array{int, int, int, int, int}
+     */
+    private function weatherRecordDetailSortKey(WeatherRecord $record): array
+    {
+        return [
+            $this->weatherRecordStatusPriority($record),
+            $record->location_id === null ? 1 : 0,
+            $record->location?->is_default ? 0 : 1,
+            $record->location?->display_order ?? PHP_INT_MAX,
+            $record->id,
+        ];
     }
 }
