@@ -36,17 +36,43 @@ class WeatherLocationController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $locations = UserWeatherLocation::query()
-            ->where('user_id', $request->user()->id)
-            ->orderByDesc('is_default')
-            ->orderBy('display_order')
-            ->orderBy('id')
-            ->get();
+        return response()->json([
+            'locations' => $this->buildOrderedLocationPayloads($request->user()->id),
+        ]);
+    }
+
+    public function reorder(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'location_ids' => ['required', 'array', 'min:1'],
+            'location_ids.*' => ['integer', 'distinct'],
+        ]);
+
+        $userId = $request->user()->id;
+        $locationIds = array_map('intval', $validated['location_ids']);
+        $existingIds = UserWeatherLocation::query()
+            ->where('user_id', $userId)
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+
+        sort($locationIds);
+        $sortedExistingIds = $existingIds;
+        sort($sortedExistingIds);
+
+        if ($locationIds !== $sortedExistingIds) {
+            throw ValidationException::withMessages([
+                'location_ids' => '地域一覧の並び順が不正です。最新の一覧を読み込み直してから、もう一度並び替えてください。',
+            ]);
+        }
+
+        DB::transaction(function () use ($request, $validated) {
+            $this->syncDisplayOrderForUser($request->user()->id, $validated['location_ids']);
+        });
 
         return response()->json([
-            'locations' => $locations
-                ->map(fn (UserWeatherLocation $location) => WeatherLocationPayloadBuilder::build($location))
-                ->all(),
+            'message' => 'reordered',
+            'locations' => $this->buildOrderedLocationPayloads($userId),
         ]);
     }
 
@@ -142,6 +168,7 @@ class WeatherLocationController extends Controller
             $wasDefault = $location->is_default;
 
             $location->delete();
+            $this->compactDisplayOrderForUser($userId);
 
             if (! $wasDefault) {
                 return;
@@ -163,6 +190,47 @@ class WeatherLocationController extends Controller
         return response()->json([
             'message' => 'deleted',
         ]);
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function buildOrderedLocationPayloads(int $userId): array
+    {
+        return UserWeatherLocation::query()
+            ->where('user_id', $userId)
+            ->orderBy('display_order')
+            ->orderBy('id')
+            ->get()
+            ->map(fn (UserWeatherLocation $location) => WeatherLocationPayloadBuilder::build($location))
+            ->all();
+    }
+
+    /**
+     * @param  array<int, int|string>  $locationIds
+     */
+    private function syncDisplayOrderForUser(int $userId, array $locationIds): void
+    {
+        foreach (array_values($locationIds) as $index => $locationId) {
+            UserWeatherLocation::query()
+                ->where('user_id', $userId)
+                ->whereKey((int) $locationId)
+                ->update([
+                    'display_order' => $index + 1,
+                ]);
+        }
+    }
+
+    private function compactDisplayOrderForUser(int $userId): void
+    {
+        $orderedIds = UserWeatherLocation::query()
+            ->where('user_id', $userId)
+            ->orderBy('display_order')
+            ->orderBy('id')
+            ->pluck('id')
+            ->all();
+
+        $this->syncDisplayOrderForUser($userId, $orderedIds);
     }
 
     private function validatePayload(Request $request, bool $partial): array

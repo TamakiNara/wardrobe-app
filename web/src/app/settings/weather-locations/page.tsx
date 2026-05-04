@@ -20,6 +20,7 @@ import {
   createUserWeatherLocation,
   deleteUserWeatherLocation,
   fetchUserWeatherLocations,
+  reorderUserWeatherLocations,
   searchWeatherLocationGeocode,
   updateUserWeatherLocation,
 } from "@/lib/api/settings";
@@ -42,10 +43,6 @@ function getFirstValidationMessage(data: unknown, keys: string[]) {
 
 function sortLocations(locations: UserWeatherLocationRecord[]) {
   return [...locations].sort((a, b) => {
-    if (a.is_default !== b.is_default) {
-      return a.is_default ? -1 : 1;
-    }
-
     if (a.display_order !== b.display_order) {
       return a.display_order - b.display_order;
     }
@@ -94,6 +91,8 @@ function buildGeocodeResultKey(result: WeatherLocationGeocodeResult) {
 
 function SettingsWeatherLocationsPageContent() {
   const EditIcon = settingsActionIcons.edit;
+  const MoveUpIcon = settingsActionIcons.moveUp;
+  const MoveDownIcon = settingsActionIcons.moveDown;
   const router = useRouter();
   const [locations, setLocations] = useState<UserWeatherLocationRecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -144,6 +143,7 @@ function SettingsWeatherLocationsPageContent() {
   const [editIsDefault, setEditIsDefault] = useState(false);
   const [updatingId, setUpdatingId] = useState<number | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [reorderingId, setReorderingId] = useState<number | null>(null);
 
   const loadLocations = useCallback(async () => {
     const response = await fetchUserWeatherLocations();
@@ -198,6 +198,8 @@ function SettingsWeatherLocationsPageContent() {
   );
   const successMessage = formMessage ?? listMessage;
   const errorMessage = formError ?? listError;
+  const isListActionPending =
+    updatingId !== null || deletingId !== null || reorderingId !== null;
 
   function resetMessages() {
     setFormMessage(null);
@@ -437,7 +439,7 @@ function SettingsWeatherLocationsPageContent() {
   }
 
   async function handleMakeDefault(location: UserWeatherLocationRecord) {
-    if (updatingId !== null || location.is_default) return;
+    if (isListActionPending || location.is_default) return;
 
     resetMessages();
     setUpdatingId(location.id);
@@ -467,7 +469,7 @@ function SettingsWeatherLocationsPageContent() {
   }
 
   async function handleDeleteLocation(location: UserWeatherLocationRecord) {
-    if (deletingId !== null) return;
+    if (deletingId !== null || reorderingId !== null) return;
 
     const confirmed = window.confirm(
       `「${location.name}」を削除しますか？既存の天気記録で使っている地域は削除できません。`,
@@ -497,6 +499,59 @@ function SettingsWeatherLocationsPageContent() {
       }
     } finally {
       setDeletingId(null);
+    }
+  }
+
+  async function handleMoveLocation(
+    locationId: number,
+    direction: "up" | "down",
+  ) {
+    if (reorderingId !== null) return;
+
+    const currentIndex = sortedLocations.findIndex(
+      (location) => location.id === locationId,
+    );
+
+    if (currentIndex < 0) return;
+
+    const targetIndex =
+      direction === "up" ? currentIndex - 1 : currentIndex + 1;
+
+    if (targetIndex < 0 || targetIndex >= sortedLocations.length) {
+      return;
+    }
+
+    const nextLocationIds = sortedLocations.map((location) => location.id);
+    [nextLocationIds[currentIndex], nextLocationIds[targetIndex]] = [
+      nextLocationIds[targetIndex],
+      nextLocationIds[currentIndex],
+    ];
+
+    resetMessages();
+    setReorderingId(locationId);
+
+    try {
+      await reorderUserWeatherLocations({
+        location_ids: nextLocationIds,
+      });
+      await refreshLocations();
+      setListMessage("地域の表示順を更新しました。");
+    } catch (error) {
+      if (error instanceof ApiClientError) {
+        setListError(
+          getFirstValidationMessage(error.data, ["location_ids"]) ??
+            getUserFacingSubmitErrorMessage(
+              error.data,
+              "地域の並び替えに失敗しました。時間をおいて再度お試しください。",
+            ),
+        );
+      } else {
+        setListError(
+          "地域の並び替えに失敗しました。時間をおいて再度お試しください。",
+        );
+      }
+    } finally {
+      setReorderingId(null);
     }
   }
 
@@ -815,7 +870,10 @@ function SettingsWeatherLocationsPageContent() {
             </div>
           ) : (
             <div className="mt-6 space-y-3">
-              {sortedLocations.map((location) => {
+              <p className="text-xs text-gray-500">
+                上にある地域ほど一覧で先に表示され、カレンダーの代表天気でも優先されます。デフォルト地域が最優先され、同条件では表示順が上の地域を優先します。
+              </p>
+              {sortedLocations.map((location, index) => {
                 const isEditing = editingId === location.id;
                 const selectedArea = findJmaForecastAreaByRegionCode(
                   location.jma_forecast_region_code,
@@ -824,6 +882,7 @@ function SettingsWeatherLocationsPageContent() {
                 return (
                   <article
                     key={location.id}
+                    data-testid={`weather-location-card-${location.id}`}
                     className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-4"
                   >
                     {isEditing ? (
@@ -1121,11 +1180,38 @@ function SettingsWeatherLocationsPageContent() {
                         </div>
 
                         <div className="flex flex-wrap items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleMoveLocation(location.id, "up")
+                            }
+                            disabled={index === 0 || isListActionPending}
+                            aria-label={`${location.name} を上へ移動`}
+                            data-testid={`weather-location-move-up-${location.id}`}
+                            className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white p-2 text-gray-600 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:border-gray-200 disabled:text-gray-400"
+                          >
+                            <MoveUpIcon className="h-4 w-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleMoveLocation(location.id, "down")
+                            }
+                            disabled={
+                              index === sortedLocations.length - 1 ||
+                              isListActionPending
+                            }
+                            aria-label={`${location.name} を下へ移動`}
+                            data-testid={`weather-location-move-down-${location.id}`}
+                            className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white p-2 text-gray-600 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:border-gray-200 disabled:text-gray-400"
+                          >
+                            <MoveDownIcon className="h-4 w-4" />
+                          </button>
                           {!location.is_default ? (
                             <button
                               type="button"
                               onClick={() => handleMakeDefault(location)}
-                              disabled={updatingId === location.id}
+                              disabled={isListActionPending}
                               className="rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm font-medium text-blue-700 transition hover:bg-blue-50 disabled:cursor-not-allowed disabled:border-gray-200 disabled:text-gray-400"
                             >
                               デフォルトにする
@@ -1135,7 +1221,8 @@ function SettingsWeatherLocationsPageContent() {
                           <button
                             type="button"
                             onClick={() => startEditingLocation(location)}
-                            className="inline-flex items-center gap-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
+                            disabled={isListActionPending}
+                            className="inline-flex items-center gap-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:border-gray-200 disabled:text-gray-400"
                           >
                             <EditIcon className="h-4 w-4" />
                             編集
@@ -1144,7 +1231,10 @@ function SettingsWeatherLocationsPageContent() {
                           <button
                             type="button"
                             onClick={() => handleDeleteLocation(location)}
-                            disabled={deletingId === location.id}
+                            disabled={
+                              deletingId === location.id ||
+                              reorderingId !== null
+                            }
                             className="rounded-lg border border-red-200 bg-white px-3 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:border-gray-200 disabled:text-gray-400"
                           >
                             {deletingId === location.id ? "削除中..." : "削除"}

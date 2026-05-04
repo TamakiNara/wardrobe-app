@@ -284,6 +284,7 @@ Route::prefix('api')->middleware(['web'])->group(function () {
         Route::get('/weather-locations/geocode', 'geocode');
         Route::get('/settings/weather-locations', 'index');
         Route::post('/settings/weather-locations', 'store');
+        Route::post('/settings/weather-locations/reorder', 'reorder');
         Route::patch('/settings/weather-locations/{id}', 'update');
         Route::delete('/settings/weather-locations/{id}', 'destroy');
     });

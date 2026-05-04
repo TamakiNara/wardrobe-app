@@ -110,6 +110,118 @@ class WeatherEndpointsTest extends TestCase
 
         $secondLocation->refresh();
         $this->assertTrue($secondLocation->is_default);
+        $this->assertSame(1, $secondLocation->display_order);
+    }
+
+    public function test_weather_locations_can_be_reordered_by_full_location_id_list(): void
+    {
+        $user = User::factory()->create();
+        $token = $this->issueCsrfToken();
+
+        $firstLocation = UserWeatherLocation::query()->create([
+            'user_id' => $user->id,
+            'name' => '川口',
+            'latitude' => 35.8617,
+            'longitude' => 139.6455,
+            'timezone' => 'Asia/Tokyo',
+            'is_default' => true,
+            'display_order' => 1,
+        ]);
+        $secondLocation = UserWeatherLocation::query()->create([
+            'user_id' => $user->id,
+            'name' => '東京23区',
+            'latitude' => 35.6764,
+            'longitude' => 139.6500,
+            'timezone' => 'Asia/Tokyo',
+            'is_default' => false,
+            'display_order' => 2,
+        ]);
+        $thirdLocation = UserWeatherLocation::query()->create([
+            'user_id' => $user->id,
+            'name' => '横浜',
+            'latitude' => 35.4437,
+            'longitude' => 139.6380,
+            'timezone' => 'Asia/Tokyo',
+            'is_default' => false,
+            'display_order' => 3,
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/settings/weather-locations/reorder', [
+            'location_ids' => [$thirdLocation->id, $firstLocation->id, $secondLocation->id],
+        ], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('message', 'reordered')
+            ->assertJsonPath('locations.0.id', $thirdLocation->id)
+            ->assertJsonPath('locations.0.display_order', 1)
+            ->assertJsonPath('locations.1.id', $firstLocation->id)
+            ->assertJsonPath('locations.1.display_order', 2)
+            ->assertJsonPath('locations.2.id', $secondLocation->id)
+            ->assertJsonPath('locations.2.display_order', 3);
+
+        $firstLocation->refresh();
+        $secondLocation->refresh();
+        $thirdLocation->refresh();
+
+        $this->assertSame(2, $firstLocation->display_order);
+        $this->assertSame(3, $secondLocation->display_order);
+        $this->assertSame(1, $thirdLocation->display_order);
+    }
+
+    public function test_weather_location_reorder_rejects_duplicate_or_other_user_ids(): void
+    {
+        $user = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $token = $this->issueCsrfToken();
+
+        $firstLocation = UserWeatherLocation::query()->create([
+            'user_id' => $user->id,
+            'name' => '川口',
+            'is_default' => true,
+            'display_order' => 1,
+        ]);
+        $secondLocation = UserWeatherLocation::query()->create([
+            'user_id' => $user->id,
+            'name' => '東京23区',
+            'is_default' => false,
+            'display_order' => 2,
+        ]);
+        $otherLocation = UserWeatherLocation::query()->create([
+            'user_id' => $otherUser->id,
+            'name' => '秋田',
+            'is_default' => true,
+            'display_order' => 1,
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $duplicateResponse = $this->postJson('/api/settings/weather-locations/reorder', [
+            'location_ids' => [$firstLocation->id, $firstLocation->id],
+        ], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $duplicateResponse->assertStatus(422)
+            ->assertJsonValidationErrors(['location_ids.1']);
+
+        $otherUserResponse = $this->postJson('/api/settings/weather-locations/reorder', [
+            'location_ids' => [$firstLocation->id, $otherLocation->id],
+        ], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $otherUserResponse->assertStatus(422)
+            ->assertJsonValidationErrors(['location_ids']);
+
+        $secondLocation->refresh();
+        $this->assertSame(2, $secondLocation->display_order);
     }
 
     public function test_weather_location_with_records_cannot_be_deleted(): void

@@ -11,6 +11,7 @@ const searchWeatherLocationGeocodeMock = vi.fn();
 const createUserWeatherLocationMock = vi.fn();
 const updateUserWeatherLocationMock = vi.fn();
 const deleteUserWeatherLocationMock = vi.fn();
+const reorderUserWeatherLocationsMock = vi.fn();
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: pushMock }),
@@ -22,6 +23,7 @@ vi.mock("@/lib/api/settings", () => ({
   createUserWeatherLocation: createUserWeatherLocationMock,
   updateUserWeatherLocation: updateUserWeatherLocationMock,
   deleteUserWeatherLocation: deleteUserWeatherLocationMock,
+  reorderUserWeatherLocations: reorderUserWeatherLocationsMock,
 }));
 
 async function waitForEffects() {
@@ -108,6 +110,39 @@ describe("SettingsWeatherLocationsPage", () => {
     createUserWeatherLocationMock.mockResolvedValue({});
     updateUserWeatherLocationMock.mockResolvedValue({});
     deleteUserWeatherLocationMock.mockResolvedValue({});
+    reorderUserWeatherLocationsMock.mockResolvedValue({
+      message: "reordered",
+      locations: [
+        {
+          id: 1,
+          name: "川口",
+          forecast_area_code: "110010",
+          jma_forecast_region_code: "110010",
+          jma_forecast_office_code: "110000",
+          latitude: 35.8617,
+          longitude: 139.6455,
+          timezone: "Asia/Tokyo",
+          is_default: true,
+          display_order: 1,
+          created_at: null,
+          updated_at: null,
+        },
+        {
+          id: 2,
+          name: "東京23区",
+          forecast_area_code: "130010",
+          jma_forecast_region_code: null,
+          jma_forecast_office_code: null,
+          latitude: null,
+          longitude: null,
+          timezone: null,
+          is_default: false,
+          display_order: 2,
+          created_at: null,
+          updated_at: null,
+        },
+      ],
+    });
     pushMock.mockReset();
   });
 
@@ -551,5 +586,120 @@ describe("SettingsWeatherLocationsPage", () => {
 
     expect(deleteUserWeatherLocationMock).toHaveBeenCalledWith(1);
     confirmMock.mockRestore();
+  });
+  it("上下ボタンで表示順を更新できる", async () => {
+    reorderUserWeatherLocationsMock.mockResolvedValueOnce({
+      message: "reordered",
+      locations: [
+        {
+          id: 2,
+          name: "東京23区",
+          forecast_area_code: "130010",
+          jma_forecast_region_code: null,
+          jma_forecast_office_code: null,
+          latitude: null,
+          longitude: null,
+          timezone: null,
+          is_default: false,
+          display_order: 1,
+          created_at: null,
+          updated_at: null,
+        },
+        {
+          id: 1,
+          name: "川口",
+          forecast_area_code: "110010",
+          jma_forecast_region_code: "110010",
+          jma_forecast_office_code: "110000",
+          latitude: 35.8617,
+          longitude: 139.6455,
+          timezone: "Asia/Tokyo",
+          is_default: true,
+          display_order: 2,
+          created_at: null,
+          updated_at: null,
+        },
+      ],
+    });
+
+    const { default: SettingsWeatherLocationsPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(SettingsWeatherLocationsPage));
+      await waitForEffects();
+    });
+
+    const moveUpFirst = container.querySelector<HTMLButtonElement>(
+      '[data-testid="weather-location-move-up-1"]',
+    );
+    const moveDownFirst = container.querySelector<HTMLButtonElement>(
+      '[data-testid="weather-location-move-down-1"]',
+    );
+    const moveDownSecond = container.querySelector<HTMLButtonElement>(
+      '[data-testid="weather-location-move-down-2"]',
+    );
+
+    expect(moveUpFirst?.disabled).toBe(true);
+    expect(moveDownFirst?.disabled).toBe(false);
+    expect(moveDownSecond?.disabled).toBe(true);
+
+    fetchUserWeatherLocationsMock.mockResolvedValue({
+      locations: [
+        {
+          id: 2,
+          name: "東京23区",
+          forecast_area_code: "130010",
+          jma_forecast_region_code: null,
+          jma_forecast_office_code: null,
+          latitude: null,
+          longitude: null,
+          timezone: null,
+          is_default: false,
+          display_order: 1,
+          created_at: null,
+          updated_at: null,
+        },
+        {
+          id: 1,
+          name: "川口",
+          forecast_area_code: "110010",
+          jma_forecast_region_code: "110010",
+          jma_forecast_office_code: "110000",
+          latitude: 35.8617,
+          longitude: 139.6455,
+          timezone: "Asia/Tokyo",
+          is_default: true,
+          display_order: 2,
+          created_at: null,
+          updated_at: null,
+        },
+      ],
+    });
+
+    await act(async () => {
+      moveDownFirst?.click();
+      await waitForEffects();
+    });
+
+    await act(async () => {
+      await waitForEffects();
+    });
+
+    expect(reorderUserWeatherLocationsMock).toHaveBeenCalledWith({
+      location_ids: [2, 1],
+    });
+    expect(container.textContent).toContain("地域の表示順を更新しました。");
+    await act(async () => {
+      await waitForEffects();
+      await waitForEffects();
+    });
+
+    expect(
+      Array.from(
+        container.querySelectorAll<HTMLElement>(
+          '[data-testid^="weather-location-card-"]',
+        ),
+      ).map((element) => element.dataset.testid),
+    ).toEqual(["weather-location-card-2", "weather-location-card-1"]);
   });
 });

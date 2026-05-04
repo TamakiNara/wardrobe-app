@@ -4,6 +4,7 @@ import type {
   CreateUserBrandPayload,
   CreateUserTpoPayload,
   CreateUserWeatherLocationPayload,
+  ReorderUserWeatherLocationsPayload,
   UpdateUserPreferencesPayload,
   UpdateUserBrandPayload,
   UpdateUserTpoPayload,
@@ -17,6 +18,7 @@ import type {
   UserTposResponse,
   UserWeatherLocationRecord,
   UserWeatherLocationsResponse,
+  UserWeatherLocationsReorderResponse,
 } from "@/types/settings";
 
 export async function fetchCategoryVisibilitySettings(): Promise<CategoryVisibilitySettings> {
@@ -212,6 +214,21 @@ export async function deleteUserWeatherLocation(
     `/api/settings/weather-locations/${locationId}`,
     {
       method: "DELETE",
+    },
+  );
+}
+
+export async function reorderUserWeatherLocations(
+  payload: ReorderUserWeatherLocationsPayload,
+): Promise<UserWeatherLocationsReorderResponse> {
+  return apiFetch<UserWeatherLocationsReorderResponse>(
+    "/api/settings/weather-locations/reorder",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
     },
   );
 }

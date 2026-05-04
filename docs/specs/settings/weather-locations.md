@@ -25,6 +25,7 @@ current では Open-Meteo 移行を前提に、`latitude / longitude / timezone`
 - `latitude / longitude / timezone`
 - Open-Meteo Geocoding API
 - デフォルト地域
+- `display_order`
 - 今回だけの地域との違い
 - legacy code fields
 - import / export 影響
@@ -182,6 +183,32 @@ current の通常導線:
 
 - デフォルト地域は、天気取得の唯一の対象ではない
 - 日付や外出先に応じて、別の保存済み地域を選択できる
+
+---
+
+## 表示順
+
+### current
+
+- `display_order`
+
+意味:
+
+- 地域設定画面の保存済み地域一覧の表示順
+- 値が小さいほど上に表示する
+- カレンダー代表天気の tie-breaker に使う
+
+current の代表順:
+
+1. default location
+2. `display_order` が小さい保存済み地域
+3. `id` が小さい weather record
+
+補足:
+
+- デフォルト地域が最優先で、表示順はその次に使う
+- 地域設定画面では `上へ` / `下へ` による並び替えを行える
+- `location_id = null` の今回だけの地域は default location にならず、同じ status 内では保存済み地域より後で扱う
 
 ---
 

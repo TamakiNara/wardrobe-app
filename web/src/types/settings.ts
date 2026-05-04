@@ -100,6 +100,15 @@ export type UserWeatherLocationsResponse = {
   locations: UserWeatherLocationRecord[];
 };
 
+export type ReorderUserWeatherLocationsPayload = {
+  location_ids: number[];
+};
+
+export type UserWeatherLocationsReorderResponse = {
+  message: string;
+  locations: UserWeatherLocationRecord[];
+};
+
 export type WeatherLocationGeocodeResult = {
   name: string;
   admin1: string | null;

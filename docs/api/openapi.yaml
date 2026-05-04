@@ -1815,6 +1815,33 @@ paths:
               schema:
                 $ref: "#/components/schemas/MessageOnlyResponse"
 
+  /api/settings/weather-locations/reorder:
+    post:
+      tags:
+        - Settings
+      summary: 天気登録で使う地域の表示順を更新
+      description: |
+        保存済み地域の表示順を一括で更新する。
+        地域設定画面の一覧順だけでなく、カレンダー代表天気の tie-breaker に使う `display_order` もこの順で更新する。
+      operationId: reorderWeatherLocations
+      parameters:
+        - $ref: "#/components/parameters/XCsrfTokenHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WeatherLocationReorderRequest"
+      responses:
+        "200":
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WeatherLocationsReorderResponse"
+        "422":
+          description: バリデーションエラー
+
   /api/settings/weather-locations/{id}:
     patch:
       tags:
@@ -5254,6 +5281,19 @@ components:
           type: integer
           minimum: 1
 
+    WeatherLocationReorderRequest:
+      type: object
+      required:
+        - location_ids
+      properties:
+        location_ids:
+          type: array
+          description: 保存済み地域の並び順を表す location id 一覧。自分の地域を重複なく全件含める。
+          minItems: 1
+          items:
+            type: integer
+            minimum: 1
+
     WeatherLocationMutationResponse:
       allOf:
         - $ref: "#/components/schemas/MessageOnlyResponse"
@@ -5263,6 +5303,18 @@ components:
           properties:
             location:
               $ref: "#/components/schemas/WeatherLocationRecord"
+
+    WeatherLocationsReorderResponse:
+      allOf:
+        - $ref: "#/components/schemas/MessageOnlyResponse"
+        - type: object
+          required:
+            - locations
+          properties:
+            locations:
+              type: array
+              items:
+                $ref: "#/components/schemas/WeatherLocationRecord"
 
     WeatherRecord:
       type: object
