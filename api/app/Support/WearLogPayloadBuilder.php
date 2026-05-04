@@ -27,6 +27,18 @@ class WearLogPayloadBuilder
         };
     }
 
+    private static function weatherCalendarLocationPriority(WeatherRecord $record): array
+    {
+        $location = $record->location;
+
+        return [
+            $record->location_id === null ? 1 : 0,
+            $location?->is_default ? 0 : 1,
+            $location?->display_order ?? PHP_INT_MAX,
+            $record->id,
+        ];
+    }
+
     /**
      * @param  iterable<WeatherRecord>  $weatherRecords
      * @return array{
@@ -69,7 +81,10 @@ class WearLogPayloadBuilder
                     return $selected;
                 }
 
-                return $record->id < $selected->id ? $record : $selected;
+                $selectedLocationPriority = self::weatherCalendarLocationPriority($selected);
+                $recordLocationPriority = self::weatherCalendarLocationPriority($record);
+
+                return $recordLocationPriority < $selectedLocationPriority ? $record : $selected;
             }
         );
 

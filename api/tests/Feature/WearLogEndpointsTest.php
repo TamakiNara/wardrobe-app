@@ -493,14 +493,39 @@ class WearLogEndpointsTest extends TestCase
             ->assertJsonCount(0, 'days.0.dots');
     }
 
-    public function test_get_wear_log_calendar_uses_lower_id_when_weather_status_priority_is_tied(): void
+    public function test_get_wear_log_calendar_prefers_default_location_then_display_order_then_lower_id_when_weather_status_priority_is_tied(): void
     {
         $user = User::factory()->create();
 
-        $firstForecast = WeatherRecord::query()->create([
+        $defaultLocation = UserWeatherLocation::query()->create([
+            'user_id' => $user->id,
+            'name' => '川口',
+            'is_default' => true,
+            'display_order' => 3,
+        ]);
+        $earlierDisplayOrderLocation = UserWeatherLocation::query()->create([
+            'user_id' => $user->id,
+            'name' => 'さいたま',
+            'is_default' => false,
+            'display_order' => 1,
+        ]);
+        $laterDisplayOrderLocation = UserWeatherLocation::query()->create([
+            'user_id' => $user->id,
+            'name' => '東京',
+            'is_default' => false,
+            'display_order' => 5,
+        ]);
+        $sameDisplayOrderLocation = UserWeatherLocation::query()->create([
+            'user_id' => $user->id,
+            'name' => '横浜',
+            'is_default' => false,
+            'display_order' => 5,
+        ]);
+
+        $defaultForecast = WeatherRecord::query()->create([
             'user_id' => $user->id,
             'weather_date' => '2026-03-13',
-            'location_id' => null,
+            'location_id' => $defaultLocation->id,
             'location_name_snapshot' => '川口',
             'forecast_area_code_snapshot' => null,
             'weather_code' => 'cloudy',
@@ -511,8 +536,7 @@ class WearLogEndpointsTest extends TestCase
             'source_name' => 'open_meteo_jma_forecast',
             'source_fetched_at' => '2026-03-12T20:00:00+09:00',
         ]);
-
-        $laterForecast = WeatherRecord::query()->create([
+        $travelForecast = WeatherRecord::query()->create([
             'user_id' => $user->id,
             'weather_date' => '2026-03-13',
             'location_id' => null,
@@ -527,7 +551,82 @@ class WearLogEndpointsTest extends TestCase
             'source_fetched_at' => '2026-03-12T21:00:00+09:00',
         ]);
 
-        $this->assertTrue($firstForecast->id < $laterForecast->id);
+        $this->assertTrue($defaultForecast->id < $travelForecast->id);
+
+        $earlierDisplayForecast = WeatherRecord::query()->create([
+            'user_id' => $user->id,
+            'weather_date' => '2026-03-14',
+            'location_id' => $earlierDisplayOrderLocation->id,
+            'location_name_snapshot' => 'さいたま',
+            'forecast_area_code_snapshot' => null,
+            'weather_code' => 'rain',
+            'temperature_high' => 15.0,
+            'temperature_low' => 8.0,
+            'memo' => null,
+            'source_type' => 'forecast_api',
+            'source_name' => 'open_meteo_jma_forecast',
+            'source_fetched_at' => '2026-03-13T20:00:00+09:00',
+        ]);
+        $laterDisplayForecast = WeatherRecord::query()->create([
+            'user_id' => $user->id,
+            'weather_date' => '2026-03-14',
+            'location_id' => $laterDisplayOrderLocation->id,
+            'location_name_snapshot' => '東京',
+            'forecast_area_code_snapshot' => null,
+            'weather_code' => 'sunny',
+            'temperature_high' => 17.0,
+            'temperature_low' => 9.0,
+            'memo' => null,
+            'source_type' => 'forecast_api',
+            'source_name' => 'open_meteo_jma_forecast',
+            'source_fetched_at' => '2026-03-13T21:00:00+09:00',
+        ]);
+
+        $lowerIdForecast = WeatherRecord::query()->create([
+            'user_id' => $user->id,
+            'weather_date' => '2026-03-15',
+            'location_id' => $laterDisplayOrderLocation->id,
+            'location_name_snapshot' => '東京',
+            'forecast_area_code_snapshot' => null,
+            'weather_code' => 'fog',
+            'temperature_high' => 14.0,
+            'temperature_low' => 6.0,
+            'memo' => null,
+            'source_type' => 'forecast_api',
+            'source_name' => 'open_meteo_jma_forecast',
+            'source_fetched_at' => '2026-03-14T20:00:00+09:00',
+        ]);
+        $higherIdForecast = WeatherRecord::query()->create([
+            'user_id' => $user->id,
+            'weather_date' => '2026-03-15',
+            'location_id' => $sameDisplayOrderLocation->id,
+            'location_name_snapshot' => '横浜',
+            'forecast_area_code_snapshot' => null,
+            'weather_code' => 'snow',
+            'temperature_high' => 3.0,
+            'temperature_low' => -1.0,
+            'memo' => null,
+            'source_type' => 'forecast_api',
+            'source_name' => 'open_meteo_jma_forecast',
+            'source_fetched_at' => '2026-03-14T21:00:00+09:00',
+        ]);
+
+        $travelOnlyForecast = WeatherRecord::query()->create([
+            'user_id' => $user->id,
+            'weather_date' => '2026-03-16',
+            'location_id' => null,
+            'location_name_snapshot' => '旅行先',
+            'forecast_area_code_snapshot' => null,
+            'weather_code' => 'windy',
+            'temperature_high' => 19.0,
+            'temperature_low' => 11.0,
+            'memo' => null,
+            'source_type' => 'forecast_api',
+            'source_name' => 'open_meteo_jma_forecast',
+            'source_fetched_at' => '2026-03-15T20:00:00+09:00',
+        ]);
+
+        $this->assertTrue($lowerIdForecast->id < $higherIdForecast->id);
 
         $this->actingAs($user, 'web');
 
@@ -536,11 +635,23 @@ class WearLogEndpointsTest extends TestCase
         ]);
 
         $response->assertOk()
-            ->assertJsonCount(1, 'days')
+            ->assertJsonCount(4, 'days')
             ->assertJsonPath('days.0.date', '2026-03-13')
             ->assertJsonPath('days.0.weather.status', 'forecast')
             ->assertJsonPath('days.0.weather.weather_code', 'cloudy')
-            ->assertJsonPath('days.0.weather.has_weather', true);
+            ->assertJsonPath('days.0.weather.has_weather', true)
+            ->assertJsonPath('days.1.date', '2026-03-14')
+            ->assertJsonPath('days.1.weather.status', 'forecast')
+            ->assertJsonPath('days.1.weather.weather_code', 'rain')
+            ->assertJsonPath('days.1.weather.has_weather', true)
+            ->assertJsonPath('days.2.date', '2026-03-15')
+            ->assertJsonPath('days.2.weather.status', 'forecast')
+            ->assertJsonPath('days.2.weather.weather_code', 'fog')
+            ->assertJsonPath('days.2.weather.has_weather', true)
+            ->assertJsonPath('days.3.date', '2026-03-16')
+            ->assertJsonPath('days.3.weather.status', 'forecast')
+            ->assertJsonPath('days.3.weather.weather_code', 'windy')
+            ->assertJsonPath('days.3.weather.has_weather', true);
     }
 
     public function test_get_wear_log_calendar_returns_422_when_month_is_invalid(): void

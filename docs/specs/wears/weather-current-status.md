@@ -20,6 +20,7 @@
 - カレンダー凡例では `Sun` を代表アイコンにして、予報 / 実績 / 振り返りありを説明する
 - `manual` はカレンダーセルでは observed 寄せで扱い、凡例には出さない
 - 振り返りありは slate / neutral 系の書き込みアイコンで補助表示する
+- 同日に複数地域の天気がある場合は、status 優先の上で default location、次に `display_order`、最後に `id` 順で代表天気を選ぶ
 - 日付詳細モーダルでは、天気ごとに `予報 / 実績 / 手入力` の status バッジを表示する
 - `manual` は表示上 observed 寄せで扱う
 - `is_user_edited` は current では入れない

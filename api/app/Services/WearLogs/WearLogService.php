@@ -113,11 +113,13 @@ class WearLogService
         $weatherRecords = WeatherRecord::query()
             ->where('user_id', $user->id)
             ->whereBetween('weather_date', [$startOfMonth->format('Y-m-d'), $endOfMonth->format('Y-m-d')])
+            ->with(['location:id,is_default,display_order'])
             ->orderBy('weather_date')
             ->orderBy('id')
             ->get([
                 'id',
                 'weather_date',
+                'location_id',
                 'weather_code',
                 'source_type',
             ]);
