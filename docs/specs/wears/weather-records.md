@@ -102,6 +102,7 @@ current の caveat:
 - そのため、深夜から早朝だけ雨で日中はくもりから晴れだった日でも、`weather_code = rain` になって服装アプリ上は不自然な場合がある
 - current の `weather_code` は、forecast / historical の両方で活動時間帯ベース代表天気への移行を始めている
 - `time_block_weather` と `has_rain_in_time_blocks` は current では response / UI 補足表示のみで、`weather_records` には保存しない
+- 取得結果 UI では `代表天気` と `朝 / 昼 / 夜` を確認できるが、保存されるのは代表天気だけである
 
 `weather_code` は app 内部の正規化天気コードである。
 
@@ -116,6 +117,7 @@ current の caveat:
 
 - Open-Meteo WMO code や JMA 天気文から変換して保存する
 - 詳細な取得元表記や raw 値そのものは保存しない
+- `raw_weather_code` は current では通常 UI に常時表示せず、必要なら開発確認用の補助情報として扱う
 - enum は OpenAPI / frontend / backend validation と整合している必要がある
 
 変換ルールの正本:
@@ -232,6 +234,7 @@ current で想定する `source_name`:
 - forecast / observed 取得時の補助表示
 - 保存 payload には含めない
 - `weather_records` の直カラムにも保存しない
+- 取得結果画面では `降水参考` として軽く表示し、`参考値です。保存はまだ行いません。` と案内する
 
 ### planned
 

@@ -287,9 +287,7 @@ function WearLogWeatherPageContent() {
   const [forecastSourceName, setForecastSourceName] = useState<string | null>(
     null,
   );
-  const [forecastRawWeatherCode, setForecastRawWeatherCode] = useState<
-    number | null
-  >(null);
+  const [, setForecastRawWeatherCode] = useState<number | null>(null);
   const [forecastPrecipitation, setForecastPrecipitation] = useState<
     number | null
   >(null);
@@ -308,9 +306,7 @@ function WearLogWeatherPageContent() {
   const [observedSourceName, setObservedSourceName] = useState<string | null>(
     null,
   );
-  const [observedRawWeatherCode, setObservedRawWeatherCode] = useState<
-    number | null
-  >(null);
+  const [, setObservedRawWeatherCode] = useState<number | null>(null);
   const [observedPrecipitation, setObservedPrecipitation] = useState<
     number | null
   >(null);
@@ -1183,28 +1179,20 @@ function WearLogWeatherPageContent() {
                 ) : null}
 
                 {showOpenMeteoForecastSummary ? (
-                  <div className="rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-900">
-                    <p>
-                      取得元: <span className="font-medium">Open-Meteo</span>
+                  <div className="rounded-lg border border-sky-200 bg-sky-50/80 px-4 py-3 text-sm text-slate-900">
+                    <p className="text-sm font-medium text-sky-900">
+                      取得した予報
                     </p>
-                    {forecastRawWeatherCode !== null ? (
-                      <p className="mt-1">
-                        取得した天気コード:{" "}
+                    <div className="mt-2 space-y-1">
+                      <p>
+                        代表天気:{" "}
                         <span className="font-medium">
-                          {forecastRawWeatherCode}
+                          {getWeatherCodeLabel(weatherCode)}
                         </span>
                       </p>
-                    ) : null}
-                    {hasForecastTimeBlockWeather ? (
-                      <div className="mt-2 rounded-lg border border-sky-100 bg-white/70 px-3 py-2">
-                        <p>
-                          代表:{" "}
-                          <span className="font-medium">
-                            {getWeatherCodeLabel(weatherCode)}
-                          </span>
-                        </p>
-                        <p className="mt-1">
-                          朝:{" "}
+                      {hasForecastTimeBlockWeather ? (
+                        <p className="leading-6">
+                          時間帯: 朝{" "}
                           <span className="font-medium">
                             {forecastTimeBlockWeather?.morning
                               ? getWeatherCodeLabel(
@@ -1212,7 +1200,7 @@ function WearLogWeatherPageContent() {
                                 )
                               : "未取得"}
                           </span>
-                          {" / "}昼:{" "}
+                          {" / "}昼{" "}
                           <span className="font-medium">
                             {forecastTimeBlockWeather?.daytime
                               ? getWeatherCodeLabel(
@@ -1220,7 +1208,7 @@ function WearLogWeatherPageContent() {
                                 )
                               : "未取得"}
                           </span>
-                          {" / "}夜:{" "}
+                          {" / "}夜{" "}
                           <span className="font-medium">
                             {forecastTimeBlockWeather?.night
                               ? getWeatherCodeLabel(
@@ -1229,109 +1217,104 @@ function WearLogWeatherPageContent() {
                               : "未取得"}
                           </span>
                         </p>
-                        {forecastHasRainInTimeBlocks ? (
-                          <p className="mt-1 text-xs text-sky-800">
-                            雨の可能性あり
-                          </p>
-                        ) : null}
-                      </div>
-                    ) : null}
+                      ) : null}
+                      {forecastHasRainInTimeBlocks ? (
+                        <p className="text-xs text-sky-800">
+                          雨の可能性があります
+                        </p>
+                      ) : null}
+                    </div>
+                    <p className="mt-2 text-xs text-slate-600">
+                      取得元: Open-Meteo Forecast
+                    </p>
                   </div>
                 ) : null}
 
                 {hasForecastPrecipitationDetails ? (
-                  <div className="rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-900">
-                    <p className="font-medium">降水量の参考値</p>
-                    <div className="mt-2 grid gap-2 md:grid-cols-3">
-                      <p>
-                        降水量:{" "}
-                        <span className="font-medium">
-                          {forecastPrecipitation === null
-                            ? "未取得"
-                            : `${forecastPrecipitation} mm`}
-                        </span>
-                      </p>
-                      <p>
-                        雨量:{" "}
-                        <span className="font-medium">
-                          {forecastRainSum === null
-                            ? "未取得"
-                            : `${forecastRainSum} mm`}
-                        </span>
-                      </p>
-                      <p>
-                        降雪量:{" "}
-                        <span className="font-medium">
-                          {forecastSnowfallSum === null
-                            ? "未取得"
-                            : `${forecastSnowfallSum} cm`}
-                        </span>
-                      </p>
-                    </div>
-                    <p className="mt-2 text-xs text-sky-800">
-                      参考値として表示しています。今回は保存しません。
+                  <div className="rounded-lg border border-sky-200 bg-sky-50/80 px-4 py-3 text-sm text-slate-800">
+                    <p className="font-medium text-slate-900">降水参考</p>
+                    <p className="mt-1 leading-6">
+                      降水量{" "}
+                      <span className="font-medium">
+                        {forecastPrecipitation === null
+                          ? "未取得"
+                          : `${forecastPrecipitation} mm`}
+                      </span>
+                      {" / "}雨量{" "}
+                      <span className="font-medium">
+                        {forecastRainSum === null
+                          ? "未取得"
+                          : `${forecastRainSum} mm`}
+                      </span>
+                      {" / "}降雪量{" "}
+                      <span className="font-medium">
+                        {forecastSnowfallSum === null
+                          ? "未取得"
+                          : `${forecastSnowfallSum} cm`}
+                      </span>
+                    </p>
+                    <p className="mt-1 text-xs text-slate-600">
+                      参考値です。保存はまだ行いません。
                     </p>
                   </div>
                 ) : null}
 
                 {showOpenMeteoObservedSummary ? (
-                  <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
-                    <p>
-                      取得元:{" "}
-                      <span className="font-medium">Open-Meteo Historical</span>
+                  <div className="rounded-lg border border-emerald-200 bg-emerald-50/80 px-4 py-3 text-sm text-slate-900">
+                    <p className="text-sm font-medium text-emerald-900">
+                      取得した実績
                     </p>
-                    <p className="mt-1">
-                      代表:{" "}
-                      <span className="font-medium">
-                        {getWeatherCodeLabel(weatherCode)}
-                      </span>
-                    </p>
-                    {hasObservedTimeBlockWeather ? (
-                      <p className="mt-1 leading-6">
-                        朝{" "}
+                    <div className="mt-2 space-y-1">
+                      <p>
+                        代表天気:{" "}
                         <span className="font-medium">
-                          {observedTimeBlockWeather?.morning
-                            ? getWeatherCodeLabel(
-                                observedTimeBlockWeather.morning,
-                              )
-                            : "未取得"}
-                        </span>
-                        {" / "}昼{" "}
-                        <span className="font-medium">
-                          {observedTimeBlockWeather?.daytime
-                            ? getWeatherCodeLabel(
-                                observedTimeBlockWeather.daytime,
-                              )
-                            : "未取得"}
-                        </span>
-                        {" / "}夜{" "}
-                        <span className="font-medium">
-                          {observedTimeBlockWeather?.night
-                            ? getWeatherCodeLabel(
-                                observedTimeBlockWeather.night,
-                              )
-                            : "未取得"}
+                          {getWeatherCodeLabel(weatherCode)}
                         </span>
                       </p>
-                    ) : null}
-                    {observedHasRainInTimeBlocks ? (
-                      <p className="mt-1 text-emerald-800">雨の可能性あり</p>
-                    ) : null}
-                    {observedRawWeatherCode !== null ? (
-                      <p className="mt-1">
-                        取得した天気コード:{" "}
-                        <span className="font-medium">
-                          {observedRawWeatherCode}
-                        </span>
-                      </p>
-                    ) : null}
+                      {hasObservedTimeBlockWeather ? (
+                        <p className="leading-6">
+                          時間帯: 朝{" "}
+                          <span className="font-medium">
+                            {observedTimeBlockWeather?.morning
+                              ? getWeatherCodeLabel(
+                                  observedTimeBlockWeather.morning,
+                                )
+                              : "未取得"}
+                          </span>
+                          {" / "}昼{" "}
+                          <span className="font-medium">
+                            {observedTimeBlockWeather?.daytime
+                              ? getWeatherCodeLabel(
+                                  observedTimeBlockWeather.daytime,
+                                )
+                              : "未取得"}
+                          </span>
+                          {" / "}夜{" "}
+                          <span className="font-medium">
+                            {observedTimeBlockWeather?.night
+                              ? getWeatherCodeLabel(
+                                  observedTimeBlockWeather.night,
+                                )
+                              : "未取得"}
+                          </span>
+                        </p>
+                      ) : null}
+                      {observedHasRainInTimeBlocks ? (
+                        <p className="text-xs text-emerald-800">
+                          雨の可能性があります
+                        </p>
+                      ) : null}
+                    </div>
+                    <p className="mt-2 text-xs text-slate-600">
+                      取得元: Open-Meteo Historical
+                    </p>
                   </div>
                 ) : null}
 
                 {hasObservedPrecipitationDetails ? (
-                  <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
-                    <p className="font-medium">実績の降水参考値</p>
-                    <p className="mt-2 leading-6">
+                  <div className="rounded-lg border border-emerald-200 bg-emerald-50/80 px-4 py-3 text-sm text-slate-800">
+                    <p className="font-medium text-slate-900">降水参考</p>
+                    <p className="mt-1 leading-6">
                       降水量{" "}
                       <span className="font-medium">
                         {observedPrecipitation === null
@@ -1357,8 +1340,8 @@ function WearLogWeatherPageContent() {
                           : `${observedPrecipitationHours} 時間`}
                       </span>
                     </p>
-                    <p className="mt-2 text-xs text-emerald-800">
-                      参考表示のみで、今回は保存されません。
+                    <p className="mt-1 text-xs text-slate-600">
+                      参考値です。保存はまだ行いません。
                     </p>
                   </div>
                 ) : null}

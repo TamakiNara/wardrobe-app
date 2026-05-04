@@ -295,15 +295,20 @@ describe("WearLogWeatherPage Open-Meteo historical integration", () => {
     expect(
       (container.querySelector("#temperature-low") as HTMLInputElement).value,
     ).toBe("13.4");
+    expect(container.textContent).toContain("取得した実績");
     expect(container.textContent).toContain("Open-Meteo Historical");
-    expect(container.textContent).toContain("代表:");
+    expect(container.textContent).toContain("代表天気:");
+    expect(container.textContent).toContain("時間帯:");
     expect(container.textContent).toContain("朝 雨");
     expect(container.textContent).toContain("昼 くもり");
     expect(container.textContent).toContain("夜 晴れ");
-    expect(container.textContent).toContain("雨の可能性あり");
-    expect(container.textContent).toContain("61");
-    expect(container.textContent).toContain("実績の降水参考値");
+    expect(container.textContent).toContain("雨の可能性があります");
+    expect(container.textContent).not.toContain("取得した天気コード");
+    expect(container.textContent).toContain("降水参考");
     expect(container.textContent).toContain("4 時間");
+    expect(container.textContent).toContain(
+      "参考値です。保存はまだ行いません。",
+    );
 
     const submitButton = container.querySelector(
       'button[type="submit"]',

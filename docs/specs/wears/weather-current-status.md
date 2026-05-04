@@ -18,6 +18,7 @@
 - `weather_code` / icon / `/dev/weather-preview` がある
 - 取得は自動保存せず、フォーム反映のみ
 - `time_block_weather` / `has_rain_in_time_blocks` は current では response / UI 補足のみで、保存しない
+- 天気登録画面の取得結果では `代表天気` と `朝 / 昼 / 夜` を補足表示し、raw weather code は通常 UI で前面に出さない
 - カレンダー weather status を表示し、`none / forecast / observed / manual` を区別できる
 - カレンダーでは天気アイコンを主表示にし、source 状態は色で表す
 - カレンダー凡例では `Sun` を代表アイコンにして、予報 / 実績 / 振り返りありを説明する

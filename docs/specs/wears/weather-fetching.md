@@ -20,6 +20,7 @@ Open-Meteo forecast / historical、provider 優先順位、legacy fallback、日
 - hourly から `朝 6:00-10:00` / `昼 10:00-17:00` / `夜 17:00-22:00` の天気を算出する
 - `weather_records.weather_code` に相当する代表天気は `daytime -> morning -> night -> daily` の順で決める
 - `time_block_weather` と `has_rain_in_time_blocks` は response / UI 補足表示のみで、current では保存しない
+- 取得結果表示では `代表天気` と `時間帯: 朝 / 昼 / 夜` を主に見せ、raw weather code は通常 UI で前面に出さない
 
 - endpoint:
   - `POST /api/weather-records/forecast`
@@ -32,7 +33,7 @@ Open-Meteo forecast / historical、provider 優先順位、legacy fallback、日
   - daily `weather_code` を代表天気として使う
   - `temperature_2m_max` / `temperature_2m_min` を最高気温 / 最低気温として使う
   - `precipitation` / `rain_sum` / `snowfall_sum` は参考値として扱う
-- `raw_weather_text` は使わず、必要なら `raw_weather_code` を補助表示に使う
+- `raw_weather_text` は使わず、`raw_weather_code` は current では開発確認用の補助情報に留める
 
 ### observed / historical
 
@@ -40,6 +41,7 @@ Open-Meteo forecast / historical、provider 優先順位、legacy fallback、日
 - hourly から `朝 6:00-10:00` / `昼 10:00-17:00` / `夜 17:00-22:00` の天気を算出する
 - `weather_records.weather_code` に相当する代表天気は `daytime -> morning -> night -> daily` の順で決める
 - `time_block_weather` と `has_rain_in_time_blocks` は response / UI 補足表示のみで、current では保存しない
+- 取得結果表示では `代表天気` と `時間帯: 朝 / 昼 / 夜` を主に見せ、raw weather code は通常 UI で前面に出さない
 - endpoint:
   - `POST /api/weather-records/observed`
 - source:
@@ -59,6 +61,7 @@ Open-Meteo forecast / historical、provider 優先順位、legacy fallback、日
 - 取得結果はフォーム反映のみ
 - 保存時に、フォーム上の最終値を `weather_records` へ保存する
 - precipitation 系は current では DB 保存しない
+- 降水量系は取得結果 UI で参考表示のみ行い、保存 payload には含めない
 - カレンダー表示では `weather_records.source_type` から `none / forecast / observed / manual` の weather status を導出する
 - カレンダーセルでは天気アイコンを主表示にし、source 状態は色で表す
 - カレンダー凡例では `Sun` を代表アイコンにして、予報 / 実績 / 手入力 / 振り返りありを説明する
