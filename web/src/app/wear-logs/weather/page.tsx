@@ -2,7 +2,14 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import {
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { FormPageHeader } from "@/components/shared/form-page-header";
 import WeatherRecordSummary from "@/components/weather/weather-record-summary";
 import { ApiClientError } from "@/lib/api/client";
@@ -131,6 +138,17 @@ function sortLocations(locations: UserWeatherLocationRecord[]) {
 
     return a.id - b.id;
   });
+}
+
+function findSavedLocationRecord(
+  records: WeatherRecord[],
+  locationId: number | null,
+) {
+  if (locationId === null) {
+    return null;
+  }
+
+  return records.find((record) => record.location_id === locationId) ?? null;
 }
 
 function hasJmaForecastCodes(location: UserWeatherLocationRecord | null) {
@@ -283,6 +301,8 @@ function WearLogWeatherPageContent() {
   >("manual");
   const [sourceName, setSourceName] = useState("manual");
   const [sourceFetchedAt, setSourceFetchedAt] = useState<string | null>(null);
+  const locationsRef = useRef<UserWeatherLocationRecord[]>([]);
+  const locationModeRef = useRef<"saved" | "temporary">("saved");
   const [forecastRawTelop, setForecastRawTelop] = useState<string | null>(null);
   const [forecastSourceName, setForecastSourceName] = useState<string | null>(
     null,
@@ -334,6 +354,17 @@ function WearLogWeatherPageContent() {
           null),
     [locations, selectedLocationId],
   );
+  const selectedSavedLocationRecord = useMemo(
+    () => findSavedLocationRecord(records, selectedLocationId),
+    [records, selectedLocationId],
+  );
+  const activeRecord = useMemo(() => {
+    if (locationMode === "saved") {
+      return selectedSavedLocationRecord;
+    }
+
+    return selectedRecord;
+  }, [locationMode, selectedRecord, selectedSavedLocationRecord]);
   const weatherDateKind = useMemo(
     () => getWeatherDateKind(validDate),
     [validDate],
@@ -399,11 +430,22 @@ function WearLogWeatherPageContent() {
     weatherDateKind === "future" || weatherDateKind === "today";
   const observedIsPrimary = weatherDateKind === "past";
 
+  useEffect(() => {
+    locationsRef.current = locations;
+  }, [locations]);
+
+  useEffect(() => {
+    locationModeRef.current = locationMode;
+  }, [locationMode]);
+
   const resetDraft = useCallback(
     (
-      nextLocations: UserWeatherLocationRecord[] = locations,
-      nextMode: "saved" | "temporary" = locationMode,
+      nextLocations?: UserWeatherLocationRecord[],
+      nextMode?: "saved" | "temporary",
     ) => {
+      const resolvedLocations = nextLocations ?? locationsRef.current;
+      const resolvedMode = nextMode ?? locationModeRef.current;
+
       setEditingRecordId(null);
       setWeatherCode("sunny");
       setTemperatureHigh("");
@@ -430,17 +472,17 @@ function WearLogWeatherPageContent() {
       setObservedSnowfallSum(null);
       setObservedPrecipitationHours(null);
 
-      if (nextMode === "temporary") {
+      if (resolvedMode === "temporary") {
         setTemporaryLocationName("");
       } else {
         const defaultLocation =
-          nextLocations.find((location) => location.is_default) ??
-          nextLocations[0] ??
+          resolvedLocations.find((location) => location.is_default) ??
+          resolvedLocations[0] ??
           null;
         setSelectedLocationId(defaultLocation?.id ?? null);
       }
     },
-    [locationMode, locations],
+    [],
   );
 
   const applyRecordToForm = useCallback((record: WeatherRecord) => {
@@ -560,29 +602,35 @@ function WearLogWeatherPageContent() {
     ]);
 
     const nextLocations = sortLocations(locationsResponse.locations);
+    const nextRecords = recordsResponse.weatherRecords;
     setLocations(nextLocations);
-    setRecords(recordsResponse.weatherRecords);
+    setRecords(nextRecords);
 
     const defaultLocation =
       nextLocations.find((location) => location.is_default) ??
       nextLocations[0] ??
       null;
+    const nextSelectedLocationId = defaultLocation?.id ?? null;
+    const matchedRecord = findSavedLocationRecord(
+      nextRecords,
+      nextSelectedLocationId,
+    );
 
-    setSelectedLocationId((current) => {
-      if (
-        current !== null &&
-        nextLocations.some((location) => location.id === current)
-      ) {
-        return current;
-      }
-
-      return defaultLocation?.id ?? null;
-    });
+    if (matchedRecord) {
+      applyRecordToForm(matchedRecord);
+      return;
+    }
 
     if (defaultLocation === null) {
       setLocationMode("temporary");
+      resetDraft(nextLocations, "temporary");
+      return;
     }
-  }, [validDate]);
+
+    setLocationMode("saved");
+    resetDraft(nextLocations, "saved");
+    setSelectedLocationId(nextSelectedLocationId);
+  }, [applyRecordToForm, resetDraft, validDate]);
 
   useEffect(() => {
     let active = true;
@@ -649,8 +697,8 @@ function WearLogWeatherPageContent() {
     };
 
     try {
-      if (selectedRecord) {
-        await updateWeatherRecord(selectedRecord.id, payload);
+      if (activeRecord) {
+        await updateWeatherRecord(activeRecord.id, payload);
         setSaveMessage("天気情報を更新しました。");
       } else {
         await createWeatherRecord(payload);
@@ -660,10 +708,23 @@ function WearLogWeatherPageContent() {
       const nextLocationsResponse = await fetchUserWeatherLocations();
       const nextRecordsResponse = await fetchWeatherRecordsByDate(validDate);
       const nextLocations = sortLocations(nextLocationsResponse.locations);
+      const nextRecords = nextRecordsResponse.weatherRecords;
+      const preferredRecord =
+        locationMode === "saved"
+          ? findSavedLocationRecord(nextRecords, selectedLocationId)
+          : activeRecord === null
+            ? null
+            : (nextRecords.find((record) => record.id === activeRecord.id) ??
+              null);
 
       setLocations(nextLocations);
-      setRecords(nextRecordsResponse.weatherRecords);
-      resetDraft(nextLocations);
+      setRecords(nextRecords);
+
+      if (preferredRecord) {
+        applyRecordToForm(preferredRecord);
+      } else {
+        resetDraft(nextLocations);
+      }
     } catch (error) {
       if (error instanceof ApiClientError) {
         setPageError(
@@ -862,10 +923,12 @@ function WearLogWeatherPageContent() {
               <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
                 <div>
                   <h2 className="text-lg font-semibold text-gray-900">
-                    天気を登録
+                    {activeRecord ? "天気を更新" : "天気を登録"}
                   </h2>
                   <p className="mt-2 text-sm text-gray-600">
-                    同じ日付に複数地域の天気を登録できます。
+                    {activeRecord
+                      ? "選択中の地域に登録済みの天気を更新できます。"
+                      : "同じ日付に複数地域の天気を登録できます。"}
                   </p>
                 </div>
                 <Link
@@ -1426,15 +1489,15 @@ function WearLogWeatherPageContent() {
                     }
                     className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300"
                   >
-                    {selectedRecord ? "天気を更新" : "天気を登録"}
+                    {activeRecord ? "天気を更新" : "天気を登録"}
                   </button>
 
-                  {selectedRecord ? (
+                  {activeRecord ? (
                     <>
                       <button
                         type="button"
-                        disabled={deletingId === selectedRecord.id}
-                        onClick={() => void handleDelete(selectedRecord)}
+                        disabled={deletingId === activeRecord.id}
+                        onClick={() => void handleDelete(activeRecord)}
                         className="inline-flex items-center justify-center rounded-lg border border-red-200 px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         削除
@@ -1470,7 +1533,7 @@ function WearLogWeatherPageContent() {
                     <div
                       key={record.id}
                       className={`rounded-xl border px-4 py-3 ${
-                        selectedRecord?.id === record.id
+                        activeRecord?.id === record.id
                           ? "border-blue-300 bg-blue-50/60"
                           : "border-gray-200 bg-gray-50"
                       }`}
@@ -1492,7 +1555,7 @@ function WearLogWeatherPageContent() {
                           onClick={() => applyRecordToForm(record)}
                           className="text-sm font-medium text-blue-600 hover:underline"
                         >
-                          {selectedRecord?.id === record.id
+                          {activeRecord?.id === record.id
                             ? "編集中"
                             : "この天気を編集"}
                         </button>

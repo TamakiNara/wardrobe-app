@@ -317,6 +317,114 @@ describe("WearLogWeatherPage Open-Meteo forecast integration", () => {
     );
   });
 
+  it("同じ日付・同じ保存済み地域に既存天気がある場合は更新モードになる", async () => {
+    mockDate = "2026-05-03";
+    fetchWeatherRecordsByDateMock.mockResolvedValue({
+      weatherRecords: [
+        {
+          id: 9,
+          weather_date: "2026-05-03",
+          location_id: 1,
+          location_name: "川口 Open-Meteo",
+          location_name_snapshot: "川口 Open-Meteo",
+          forecast_area_code_snapshot: null,
+          weather_code: "rain",
+          temperature_high: 25.8,
+          temperature_low: 14.2,
+          memo: "既存の記録",
+          source_type: "historical_api",
+          source_name: "open_meteo_historical",
+          source_fetched_at: "2026-05-03T08:00:00+09:00",
+          created_at: null,
+          updated_at: null,
+        },
+      ] satisfies WeatherRecord[],
+    });
+    fetchWeatherForecastMock.mockResolvedValue({
+      message: "fetched",
+      forecast: {
+        weather_date: "2026-05-03",
+        location_id: 1,
+        location_name: "川口 Open-Meteo",
+        forecast_area_code: null,
+        weather_code: "cloudy",
+        raw_weather_code: 61,
+        temperature_high: 22.1,
+        temperature_low: 13.4,
+        precipitation: 3.2,
+        rain_sum: 3.2,
+        snowfall_sum: 0,
+        time_block_weather: {
+          morning: "rain",
+          daytime: "cloudy",
+          night: "sunny",
+        },
+        has_rain_in_time_blocks: true,
+        source_type: "forecast_api",
+        source_name: "open_meteo_jma_forecast",
+        source_fetched_at: "2026-05-03T10:00:00+09:00",
+        raw_telop: null,
+      },
+    });
+    updateWeatherRecordMock.mockResolvedValue({
+      message: "updated",
+      weatherRecord: {
+        id: 9,
+        weather_date: "2026-05-03",
+        location_id: 1,
+        location_name: "川口 Open-Meteo",
+        location_name_snapshot: "川口 Open-Meteo",
+        forecast_area_code_snapshot: null,
+        weather_code: "cloudy",
+        temperature_high: 22.1,
+        temperature_low: 13.4,
+        memo: "既存の記録",
+        source_type: "forecast_api",
+        source_name: "open_meteo_jma_forecast",
+        source_fetched_at: "2026-05-03T10:00:00+09:00",
+        created_at: null,
+        updated_at: null,
+      },
+    });
+
+    const { default: WearLogWeatherPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(WearLogWeatherPage));
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain("天気を更新");
+    expect(container.textContent).toContain("既存の記録");
+
+    await act(async () => {
+      getButtonByText("予報を取得")!.dispatchEvent(
+        new MouseEvent("click", { bubbles: true }),
+      );
+      await waitForEffects();
+    });
+
+    await act(async () => {
+      (
+        container.querySelector('button[type="submit"]') as HTMLButtonElement
+      ).dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    expect(updateWeatherRecordMock).toHaveBeenCalledWith(
+      9,
+      expect.objectContaining({
+        weather_code: "cloudy",
+        temperature_high: 22.1,
+        temperature_low: 13.4,
+        source_type: "forecast_api",
+        source_name: "open_meteo_jma_forecast",
+      }),
+    );
+    expect(createWeatherRecordMock).not.toHaveBeenCalled();
+    expect(container.textContent).toContain("天気情報を更新しました。");
+  });
+
   it("legacy forecast_area_code だけの地域でも fallback として予報取得できる", async () => {
     mockDate = "2026-05-03";
     fetchUserWeatherLocationsMock.mockResolvedValue({
