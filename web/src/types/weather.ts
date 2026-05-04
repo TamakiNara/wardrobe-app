@@ -110,6 +110,8 @@ export type WeatherObserved = {
   rain_sum: number | null;
   snowfall_sum: number | null;
   precipitation_hours: number | null;
+  time_block_weather: WeatherTimeBlockWeather | null;
+  has_rain_in_time_blocks: boolean;
   source_type: "historical_api";
   source_name: string;
   source_fetched_at: string;

@@ -36,6 +36,10 @@ Open-Meteo forecast / historical、provider 優先順位、legacy fallback、日
 
 ### observed / historical
 
+- current PoC では Open-Meteo Historical の daily に加えて `hourly=weather_code,precipitation` を取得する
+- hourly から `朝 6:00-10:00` / `昼 10:00-17:00` / `夜 17:00-22:00` の天気を算出する
+- `weather_records.weather_code` に相当する代表天気は `daytime -> morning -> night -> daily` の順で決める
+- `time_block_weather` と `has_rain_in_time_blocks` は response / UI 補足表示のみで、current では保存しない
 - endpoint:
   - `POST /api/weather-records/observed`
 - source:
@@ -172,6 +176,7 @@ WMO から app `weather_code` への代表的な変換:
 ## planned
 
 - Open-Meteo hourly を使って、活動時間帯ベースの代表天気を算出する
+- forecast / historical の両方で同じ helper を使い、朝 / 昼 / 夜と代表天気の算出を共通化する
 - 第一候補の活動時間帯は `7:00-22:00`
 - 代替案として、朝 / 昼 / 夜の分割集計も比較する
 - user setting 化は要再判断とし、まずは固定時間帯での PoC を優先する

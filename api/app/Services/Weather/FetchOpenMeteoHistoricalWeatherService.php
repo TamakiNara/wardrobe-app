@@ -2,6 +2,7 @@
 
 namespace App\Services\Weather;
 
+use App\Support\OpenMeteoRepresentativeWeatherSupport;
 use App\Support\WeatherRecordSupport;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Client\Factory as HttpFactory;
@@ -25,6 +26,12 @@ class FetchOpenMeteoHistoricalWeatherService
      *     rain_sum: float|null,
      *     snowfall_sum: float|null,
      *     precipitation_hours: float|null,
+     *     time_block_weather: array{
+     *         morning: string|null,
+     *         daytime: string|null,
+     *         night: string|null
+     *     }|null,
+     *     has_rain_in_time_blocks: bool,
      *     source_type: string,
      *     source_name: string,
      *     source_fetched_at: string,
@@ -57,6 +64,10 @@ class FetchOpenMeteoHistoricalWeatherService
                         'rain_sum',
                         'snowfall_sum',
                         'precipitation_hours',
+                    ]),
+                    'hourly' => implode(',', [
+                        'weather_code',
+                        'precipitation',
                     ]),
                 ])
                 ->throw();
@@ -99,10 +110,16 @@ class FetchOpenMeteoHistoricalWeatherService
         }
 
         $rawWeatherCode = $this->normalizeIntValue($daily['weather_code'][$index] ?? null);
+        $dailyWeatherCode = WeatherRecordSupport::normalizeOpenMeteoWeatherCodeToWeatherCode($rawWeatherCode);
+        $hourlySummary = OpenMeteoRepresentativeWeatherSupport::summarizeHourlyWeather(
+            is_array($payload['hourly'] ?? null) ? $payload['hourly'] : [],
+            $weatherDate,
+            $dailyWeatherCode,
+        );
 
         return [
             'weather_date' => $weatherDate,
-            'weather_code' => WeatherRecordSupport::normalizeOpenMeteoWeatherCodeToWeatherCode($rawWeatherCode),
+            'weather_code' => $hourlySummary['representative_weather_code'] ?? $dailyWeatherCode,
             'raw_weather_code' => $rawWeatherCode,
             'temperature_high' => $this->normalizeFloatValue($daily['temperature_2m_max'][$index] ?? null),
             'temperature_low' => $this->normalizeFloatValue($daily['temperature_2m_min'][$index] ?? null),
@@ -110,6 +127,8 @@ class FetchOpenMeteoHistoricalWeatherService
             'rain_sum' => $this->normalizeFloatValue($daily['rain_sum'][$index] ?? null),
             'snowfall_sum' => $this->normalizeFloatValue($daily['snowfall_sum'][$index] ?? null),
             'precipitation_hours' => $this->normalizeFloatValue($daily['precipitation_hours'][$index] ?? null),
+            'time_block_weather' => $hourlySummary['time_block_weather'],
+            'has_rain_in_time_blocks' => $hourlySummary['has_rain_in_time_blocks'],
             'source_type' => 'historical_api',
             'source_name' => 'open_meteo_historical',
             'source_fetched_at' => CarbonImmutable::now()->toIso8601String(),

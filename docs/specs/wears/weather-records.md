@@ -98,10 +98,10 @@ current で保持している location snapshot は次。
 
 current の caveat:
 
-- historical は current でも daily `weather_code` をそのまま `weather_records.weather_code` に入れる暫定運用
-- forecast は current PoC として hourly から朝 / 昼 / 夜を算出し、`daytime -> morning -> night -> daily` の順で代表天気を決める
+- forecast / historical は current PoC として hourly から朝 / 昼 / 夜を算出し、`daytime -> morning -> night -> daily` の順で代表天気を決める
 - そのため、深夜から早朝だけ雨で日中はくもりから晴れだった日でも、`weather_code = rain` になって服装アプリ上は不自然な場合がある
-- current の `weather_code` は、まだ forecast / historical で完全には揃っておらず、活動時間帯ベース代表天気への移行途中にある
+- current の `weather_code` は、forecast / historical の両方で活動時間帯ベース代表天気への移行を始めている
+- `time_block_weather` と `has_rain_in_time_blocks` は current では response / UI 補足表示のみで、`weather_records` には保存しない
 
 `weather_code` は app 内部の正規化天気コードである。
 
@@ -292,6 +292,8 @@ current では DB 保存しない。
 保存候補:
 
 - `weather_code`
+- `time_block_weather`
+- `has_rain_in_time_blocks`
 - `temperature_high`
 - `temperature_low`
 - `precipitation`
@@ -306,6 +308,8 @@ current では DB 保存しない。
 保存候補:
 
 - `weather_code`
+- `time_block_weather`
+- `has_rain_in_time_blocks`
 - `temperature_high`
 - `temperature_low`
 - `precipitation`

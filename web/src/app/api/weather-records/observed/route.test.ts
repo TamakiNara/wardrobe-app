@@ -36,7 +36,7 @@ describe("/api/weather-records/observed route", () => {
               location_id: 1,
               location_name: "川口",
               forecast_area_code: null,
-              weather_code: "rain",
+              weather_code: "cloudy",
               raw_weather_code: 61,
               temperature_high: 22.1,
               temperature_low: 13.4,
@@ -44,6 +44,12 @@ describe("/api/weather-records/observed route", () => {
               rain_sum: 3.2,
               snowfall_sum: 0,
               precipitation_hours: 4,
+              time_block_weather: {
+                morning: "rain",
+                daytime: "cloudy",
+                night: "sunny",
+              },
+              has_rain_in_time_blocks: true,
               source_type: "historical_api",
               source_name: "open_meteo_historical",
               source_fetched_at: "2026-05-03T10:00:00+09:00",
@@ -84,10 +90,16 @@ describe("/api/weather-records/observed route", () => {
         method: "POST",
       }),
     );
-    expect(json.observed.weather_code).toBe("rain");
+    expect(json.observed.weather_code).toBe("cloudy");
     expect(json.observed.raw_weather_code).toBe(61);
     expect(json.observed.precipitation).toBe(3.2);
     expect(json.observed.precipitation_hours).toBe(4);
+    expect(json.observed.time_block_weather).toEqual({
+      morning: "rain",
+      daytime: "cloudy",
+      night: "sunny",
+    });
+    expect(json.observed.has_rain_in_time_blocks).toBe(true);
     expect(json.observed.source_name).toBe("open_meteo_historical");
   });
 });

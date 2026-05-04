@@ -33,6 +33,17 @@ class OpenMeteoObservedEndpointTest extends TestCase
                     'snowfall_sum' => [0.0],
                     'precipitation_hours' => [4.0],
                 ],
+                'hourly' => [
+                    'time' => [
+                        '2026-05-02T02:00',
+                        '2026-05-02T03:00',
+                        '2026-05-02T10:00',
+                        '2026-05-02T11:00',
+                        '2026-05-02T17:00',
+                    ],
+                    'weather_code' => [61, 61, 3, 3, 0],
+                    'precipitation' => [2.0, 1.5, 0.0, 0.0, 0.0],
+                ],
             ], 200),
         ]);
 
@@ -63,7 +74,7 @@ class OpenMeteoObservedEndpointTest extends TestCase
 
         $response->assertOk()
             ->assertJsonPath('observed.location_name', '川口 observed')
-            ->assertJsonPath('observed.weather_code', 'rain')
+            ->assertJsonPath('observed.weather_code', 'cloudy')
             ->assertJsonPath('observed.raw_weather_code', 61)
             ->assertJsonPath('observed.temperature_high', 22.1)
             ->assertJsonPath('observed.temperature_low', 13.4)
@@ -71,6 +82,10 @@ class OpenMeteoObservedEndpointTest extends TestCase
             ->assertJsonPath('observed.rain_sum', 3.2)
             ->assertJsonPath('observed.snowfall_sum', 0)
             ->assertJsonPath('observed.precipitation_hours', 4)
+            ->assertJsonPath('observed.time_block_weather.morning', null)
+            ->assertJsonPath('observed.time_block_weather.daytime', 'cloudy')
+            ->assertJsonPath('observed.time_block_weather.night', 'sunny')
+            ->assertJsonPath('observed.has_rain_in_time_blocks', false)
             ->assertJsonPath('observed.source_type', 'historical_api')
             ->assertJsonPath('observed.source_name', 'open_meteo_historical')
             ->assertJsonPath('observed.raw_telop', null);

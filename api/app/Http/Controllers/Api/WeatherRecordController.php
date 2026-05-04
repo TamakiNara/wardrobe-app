@@ -250,6 +250,12 @@ class WeatherRecordController extends Controller
      *     rain_sum: float|null,
      *     snowfall_sum: float|null,
      *     precipitation_hours: float|null,
+     *     time_block_weather: array{
+     *         morning: string|null,
+     *         daytime: string|null,
+     *         night: string|null
+     *     }|null,
+     *     has_rain_in_time_blocks: bool,
      *     source_type: string,
      *     source_name: string,
      *     source_fetched_at: string,
@@ -286,6 +292,8 @@ class WeatherRecordController extends Controller
                 'rain_sum' => $observed['rain_sum'],
                 'snowfall_sum' => $observed['snowfall_sum'],
                 'precipitation_hours' => $observed['precipitation_hours'],
+                'time_block_weather' => $observed['time_block_weather'],
+                'has_rain_in_time_blocks' => $observed['has_rain_in_time_blocks'],
                 'source_type' => $observed['source_type'],
                 'source_name' => $observed['source_name'],
                 'source_fetched_at' => $observed['source_fetched_at'],

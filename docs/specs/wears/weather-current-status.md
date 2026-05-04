@@ -7,8 +7,7 @@
 
 ## current summary
 
-- current の代表天気は Open-Meteo daily `weather_code` を暫定利用している
-- forecast PoC では hourly から朝 / 昼 / 夜を算出し、昼を基本に代表天気を決める補足ロジックを入れている
+- current の代表天気は、Forecast / Historical ともに Open-Meteo hourly を使った `朝 / 昼 / 夜` 補足と `daytime -> morning -> night -> daily` の順で決める PoC を進めている
 
 - 手動天気登録がある
 - 地域設定は `latitude / longitude / timezone` を Open-Meteo 向け正本へ移行中
@@ -18,6 +17,7 @@
 - `weather_records` は current では最終保存値を持つ
 - `weather_code` / icon / `/dev/weather-preview` がある
 - 取得は自動保存せず、フォーム反映のみ
+- `time_block_weather` / `has_rain_in_time_blocks` は current では response / UI 補足のみで、保存しない
 - カレンダー weather status を表示し、`none / forecast / observed / manual` を区別できる
 - カレンダーでは天気アイコンを主表示にし、source 状態は色で表す
 - カレンダー凡例では `Sun` を代表アイコンにして、予報 / 実績 / 振り返りありを説明する
@@ -33,9 +33,8 @@
 
 ## planned summary
 
-- hourly から活動時間帯ベースの代表天気を算出するか再検討
-- 朝 / 昼 / 夜の天気を先に算出し、そのうえで代表天気を決める案を比較する
-- 第一候補は「昼を基本にし、雨対策は `has_rain_possibility` 側へ分ける」方針
+- 朝 / 昼 / 夜の算出ロジックを Historical まで広げたうえで、長期的に固定時間帯のままにするか user setting 化するか再検討する
+- 第一候補は「昼を基本にし、雨対策は `has_rain_possibility` 側へ分ける」方針を維持する
 
 - `forecast_snapshot / observed_snapshot`
 - precipitation 保存

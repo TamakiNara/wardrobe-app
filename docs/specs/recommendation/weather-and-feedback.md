@@ -149,7 +149,7 @@ current:
 
 - `has_rain_possibility` は weather 側で使う
 - weather 側の `weather_code` は current では daily 集計由来の暫定値であり、活動時間帯の代表天気とは限らない
-- forecast PoC では `has_rain_in_time_blocks` を response / UI 補足として返し、朝 / 昼 / 夜のどこかに rain / thunder があるかを確認できる
+- forecast / historical PoC では `has_rain_in_time_blocks` を response / UI 補足として返し、朝 / 昼 / 夜のどこかに rain / thunder があるかを確認できる
 - `was_exposed_to_rain` は未実装
 
 planned:

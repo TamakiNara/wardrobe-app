@@ -29,6 +29,7 @@ import type {
   WeatherObserved,
   WeatherRecord,
   WeatherRecordUpsertPayload,
+  WeatherTimeBlockWeather,
 } from "@/types/weather";
 
 const WEATHER_OPTIONS: WeatherCode[] = WEATHER_CODE_DEFINITIONS.map(
@@ -296,12 +297,13 @@ function WearLogWeatherPageContent() {
   const [forecastSnowfallSum, setForecastSnowfallSum] = useState<number | null>(
     null,
   );
-  const [forecastTimeBlockWeather, setForecastTimeBlockWeather] = useState<{
-    morning: WeatherCode | null;
-    daytime: WeatherCode | null;
-    night: WeatherCode | null;
-  } | null>(null);
+  const [forecastTimeBlockWeather, setForecastTimeBlockWeather] =
+    useState<WeatherTimeBlockWeather | null>(null);
   const [forecastHasRainInTimeBlocks, setForecastHasRainInTimeBlocks] =
+    useState(false);
+  const [observedTimeBlockWeather, setObservedTimeBlockWeather] =
+    useState<WeatherTimeBlockWeather | null>(null);
+  const [observedHasRainInTimeBlocks, setObservedHasRainInTimeBlocks] =
     useState(false);
   const [observedSourceName, setObservedSourceName] = useState<string | null>(
     null,
@@ -386,6 +388,11 @@ function WearLogWeatherPageContent() {
   );
   const showOpenMeteoObservedSummary =
     observedSourceName === "open_meteo_historical";
+  const hasObservedTimeBlockWeather = Boolean(
+    observedTimeBlockWeather?.morning ??
+    observedTimeBlockWeather?.daytime ??
+    observedTimeBlockWeather?.night,
+  );
   const hasObservedPrecipitationDetails =
     observedPrecipitation !== null ||
     observedRainSum !== null ||
@@ -419,6 +426,8 @@ function WearLogWeatherPageContent() {
       setForecastTimeBlockWeather(null);
       setForecastHasRainInTimeBlocks(false);
       setObservedSourceName(null);
+      setObservedTimeBlockWeather(null);
+      setObservedHasRainInTimeBlocks(false);
       setObservedRawWeatherCode(null);
       setObservedPrecipitation(null);
       setObservedRainSum(null);
@@ -471,6 +480,8 @@ function WearLogWeatherPageContent() {
     setForecastTimeBlockWeather(null);
     setForecastHasRainInTimeBlocks(false);
     setObservedSourceName(null);
+    setObservedTimeBlockWeather(null);
+    setObservedHasRainInTimeBlocks(false);
     setObservedRawWeatherCode(null);
     setObservedPrecipitation(null);
     setObservedRainSum(null);
@@ -500,6 +511,8 @@ function WearLogWeatherPageContent() {
     setForecastTimeBlockWeather(forecast.time_block_weather ?? null);
     setForecastHasRainInTimeBlocks(forecast.has_rain_in_time_blocks ?? false);
     setObservedSourceName(null);
+    setObservedTimeBlockWeather(null);
+    setObservedHasRainInTimeBlocks(false);
     setObservedRawWeatherCode(null);
     setObservedPrecipitation(null);
     setObservedRainSum(null);
@@ -529,6 +542,8 @@ function WearLogWeatherPageContent() {
     setForecastTimeBlockWeather(null);
     setForecastHasRainInTimeBlocks(false);
     setObservedSourceName(observed.source_name);
+    setObservedTimeBlockWeather(observed.time_block_weather ?? null);
+    setObservedHasRainInTimeBlocks(observed.has_rain_in_time_blocks ?? false);
     setObservedRawWeatherCode(observed.raw_weather_code);
     setObservedPrecipitation(observed.precipitation);
     setObservedRainSum(observed.rain_sum);
@@ -1265,6 +1280,43 @@ function WearLogWeatherPageContent() {
                       取得元:{" "}
                       <span className="font-medium">Open-Meteo Historical</span>
                     </p>
+                    <p className="mt-1">
+                      代表:{" "}
+                      <span className="font-medium">
+                        {getWeatherCodeLabel(weatherCode)}
+                      </span>
+                    </p>
+                    {hasObservedTimeBlockWeather ? (
+                      <p className="mt-1 leading-6">
+                        朝{" "}
+                        <span className="font-medium">
+                          {observedTimeBlockWeather?.morning
+                            ? getWeatherCodeLabel(
+                                observedTimeBlockWeather.morning,
+                              )
+                            : "未取得"}
+                        </span>
+                        {" / "}昼{" "}
+                        <span className="font-medium">
+                          {observedTimeBlockWeather?.daytime
+                            ? getWeatherCodeLabel(
+                                observedTimeBlockWeather.daytime,
+                              )
+                            : "未取得"}
+                        </span>
+                        {" / "}夜{" "}
+                        <span className="font-medium">
+                          {observedTimeBlockWeather?.night
+                            ? getWeatherCodeLabel(
+                                observedTimeBlockWeather.night,
+                              )
+                            : "未取得"}
+                        </span>
+                      </p>
+                    ) : null}
+                    {observedHasRainInTimeBlocks ? (
+                      <p className="mt-1 text-emerald-800">雨の可能性あり</p>
+                    ) : null}
                     {observedRawWeatherCode !== null ? (
                       <p className="mt-1">
                         取得した天気コード:{" "}

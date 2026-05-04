@@ -231,7 +231,7 @@ describe("WearLogWeatherPage Open-Meteo historical integration", () => {
         location_id: 1,
         location_name: "川口",
         forecast_area_code: null,
-        weather_code: "rain",
+        weather_code: "cloudy",
         raw_weather_code: 61,
         temperature_high: 22.1,
         temperature_low: 13.4,
@@ -239,6 +239,12 @@ describe("WearLogWeatherPage Open-Meteo historical integration", () => {
         rain_sum: 3.2,
         snowfall_sum: 0,
         precipitation_hours: 4,
+        time_block_weather: {
+          morning: "rain",
+          daytime: "cloudy",
+          night: "sunny",
+        },
+        has_rain_in_time_blocks: true,
         source_type: "historical_api",
         source_name: "open_meteo_historical",
         source_fetched_at: "2026-05-03T10:00:00+09:00",
@@ -254,7 +260,7 @@ describe("WearLogWeatherPage Open-Meteo historical integration", () => {
         location_name: "川口",
         location_name_snapshot: "川口",
         forecast_area_code_snapshot: null,
-        weather_code: "rain",
+        weather_code: "cloudy",
         temperature_high: 22.1,
         temperature_low: 13.4,
         memo: null,
@@ -290,6 +296,11 @@ describe("WearLogWeatherPage Open-Meteo historical integration", () => {
       (container.querySelector("#temperature-low") as HTMLInputElement).value,
     ).toBe("13.4");
     expect(container.textContent).toContain("Open-Meteo Historical");
+    expect(container.textContent).toContain("代表:");
+    expect(container.textContent).toContain("朝 雨");
+    expect(container.textContent).toContain("昼 くもり");
+    expect(container.textContent).toContain("夜 晴れ");
+    expect(container.textContent).toContain("雨の可能性あり");
     expect(container.textContent).toContain("61");
     expect(container.textContent).toContain("実績の降水参考値");
     expect(container.textContent).toContain("4 時間");
@@ -307,7 +318,7 @@ describe("WearLogWeatherPage Open-Meteo historical integration", () => {
     expect(container.textContent).toContain("天気情報を登録しました。");
     expect(createWeatherRecordMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        weather_code: "rain",
+        weather_code: "cloudy",
         temperature_high: 22.1,
         temperature_low: 13.4,
         source_type: "historical_api",
@@ -333,6 +344,16 @@ describe("WearLogWeatherPage Open-Meteo historical integration", () => {
     expect(createWeatherRecordMock).toHaveBeenCalledWith(
       expect.not.objectContaining({
         precipitation_hours: expect.anything(),
+      }),
+    );
+    expect(createWeatherRecordMock).toHaveBeenCalledWith(
+      expect.not.objectContaining({
+        time_block_weather: expect.anything(),
+      }),
+    );
+    expect(createWeatherRecordMock).toHaveBeenCalledWith(
+      expect.not.objectContaining({
+        has_rain_in_time_blocks: expect.anything(),
       }),
     );
   });
