@@ -97,6 +97,11 @@ import {
   PURCHASE_CANDIDATE_STATUS_LABELS,
 } from "@/lib/purchase-candidates/labels";
 import {
+  formatPurchaseCandidateDateTime,
+  hasPurchaseCandidateDateTimeValue,
+  normalizePurchaseCandidateDateTimeValue,
+} from "@/lib/purchase-candidates/date-time";
+import {
   clearPurchaseCandidateDuplicatePayload,
   ensurePurchaseCandidateDuplicateName,
   loadPurchaseCandidateDuplicatePayload,
@@ -362,21 +367,6 @@ function hasPurchaseCandidateSizeCandidateInput(params: {
 
 function isValidHexColor(value: string): boolean {
   return /^#[0-9A-Fa-f]{6}$/.test(value.trim());
-}
-
-function toDateTimeLocalValue(value: string | null): string {
-  if (!value) {
-    return "";
-  }
-
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return "";
-  }
-
-  const offsetMinutes = date.getTimezoneOffset();
-  const localDate = new Date(date.getTime() - offsetMinutes * 60 * 1000);
-  return localDate.toISOString().slice(0, 16);
 }
 
 function getDateInputValue(value: string): string {
@@ -1006,8 +996,12 @@ export default function PurchaseCandidateForm({
           setSalePrice(
             candidate.sale_price === null ? "" : String(candidate.sale_price),
           );
-          setSaleEndsAt(toDateTimeLocalValue(candidate.sale_ends_at));
-          setDiscountEndsAt(toDateTimeLocalValue(candidate.discount_ends_at));
+          setSaleEndsAt(
+            normalizePurchaseCandidateDateTimeValue(candidate.sale_ends_at),
+          );
+          setDiscountEndsAt(
+            normalizePurchaseCandidateDateTimeValue(candidate.discount_ends_at),
+          );
           setPurchaseUrl(candidate.purchase_url ?? "");
           setWantedReason(candidate.wanted_reason ?? "");
           setMemo(candidate.memo ?? "");
@@ -1173,8 +1167,12 @@ export default function PurchaseCandidateForm({
     setPrice(payload.price === null ? "" : String(payload.price));
     setReleaseDate(payload.release_date ?? "");
     setSalePrice(payload.sale_price === null ? "" : String(payload.sale_price));
-    setSaleEndsAt(toDateTimeLocalValue(payload.sale_ends_at));
-    setDiscountEndsAt(toDateTimeLocalValue(payload.discount_ends_at));
+    setSaleEndsAt(
+      normalizePurchaseCandidateDateTimeValue(payload.sale_ends_at),
+    );
+    setDiscountEndsAt(
+      normalizePurchaseCandidateDateTimeValue(payload.discount_ends_at),
+    );
     setPurchaseUrl(payload.purchase_url ?? "");
     setWantedReason(payload.wanted_reason ?? "");
     setMemo(payload.memo ?? "");
@@ -2135,6 +2133,12 @@ export default function PurchaseCandidateForm({
                 })}
               />
             </div>
+            {hasPurchaseCandidateDateTimeValue(discountEndsAt) ? (
+              <p className="mt-2 text-xs text-gray-500">
+                設定中:{" "}
+                {formatPurchaseCandidateDateTime(discountEndsAt, "preview")}
+              </p>
+            ) : null}
           </div>
 
           <div
@@ -2252,6 +2256,11 @@ export default function PurchaseCandidateForm({
                 })}
               />
             </div>
+            {hasPurchaseCandidateDateTimeValue(saleEndsAt) ? (
+              <p className="mt-2 text-xs text-gray-500">
+                設定中: {formatPurchaseCandidateDateTime(saleEndsAt, "preview")}
+              </p>
+            ) : null}
           </div>
         </div>
 
@@ -2327,6 +2336,10 @@ export default function PurchaseCandidateForm({
                   resetSpecFormState();
                 }}
                 disabled={isPurchasedLocked}
+                aria-invalid={errors.category_id ? "true" : "false"}
+                aria-describedby={
+                  errors.category_id ? "category_id_error" : undefined
+                }
                 className={getFormControlClassName({
                   invalid: Boolean(errors.category_id),
                   disabled: isPurchasedLocked,
@@ -2340,7 +2353,7 @@ export default function PurchaseCandidateForm({
                 ))}
               </select>
               {errors.category_id && (
-                <p className="mt-2 text-sm text-red-600">
+                <p id="category_id_error" className="mt-2 text-sm text-red-600">
                   {errors.category_id}
                 </p>
               )}

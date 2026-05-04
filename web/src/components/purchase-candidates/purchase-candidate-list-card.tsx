@@ -12,6 +12,7 @@ import {
   PURCHASE_CANDIDATE_PRIORITY_LABELS,
   PURCHASE_CANDIDATE_STATUS_LABELS,
 } from "@/lib/purchase-candidates/labels";
+import { formatPurchaseCandidateDateTime } from "@/lib/purchase-candidates/date-time";
 import type {
   PurchaseCandidateColor,
   PurchaseCandidateImageRecord,
@@ -370,12 +371,10 @@ export default function PurchaseCandidateListCard({
                 <div className="flex items-center justify-between gap-3">
                   <span>セール終了日</span>
                   <span className="font-medium text-rose-700">
-                    {new Intl.DateTimeFormat("ja-JP", {
-                      month: "2-digit",
-                      day: "2-digit",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    }).format(new Date(selectedCandidate.discount_ends_at))}
+                    {formatPurchaseCandidateDateTime(
+                      selectedCandidate.discount_ends_at,
+                      "short",
+                    )}
                   </span>
                 </div>
               ) : (

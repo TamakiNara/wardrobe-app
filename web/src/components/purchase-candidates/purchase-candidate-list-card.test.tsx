@@ -576,4 +576,24 @@ describe("PurchaseCandidateListCard", () => {
 
     expect(container.textContent).toContain("スカート / ナロー");
   });
+  it("セール終了日時を日本時間のまま一覧表示する", async () => {
+    const { default: PurchaseCandidateListCard } =
+      await import("./purchase-candidate-list-card");
+
+    await act(async () => {
+      root.render(
+        React.createElement(PurchaseCandidateListCard, {
+          candidates: [
+            buildCandidate({
+              id: 60,
+              sale_price: 7800,
+              discount_ends_at: "2026-05-07T23:59",
+            }),
+          ],
+        }),
+      );
+    });
+
+    expect(container.textContent).toContain("05/07 23:59");
+  });
 });

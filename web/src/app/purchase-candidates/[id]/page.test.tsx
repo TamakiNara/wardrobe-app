@@ -1022,4 +1022,62 @@ describe("購入検討詳細画面", () => {
     expect(markup).toContain("裾スリット");
     expect(markup).toContain("24cm");
   });
+  it("期限系日時を日本時間のまま詳細表示する", async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        purchaseCandidate: {
+          id: 40,
+          status: "considering",
+          priority: "medium",
+          name: "期限表示確認",
+          category_id: "outerwear_coat",
+          shape: null,
+          category_name: "コート",
+          brand_name: "Brand",
+          price: 12000,
+          release_date: "2026-05-01",
+          sale_price: 9800,
+          sale_ends_at: "2026-05-07T23:59",
+          discount_ends_at: "2026-05-06T09:15",
+          purchase_url: null,
+          memo: null,
+          wanted_reason: null,
+          size_gender: null,
+          size_label: null,
+          size_note: null,
+          size_details: null,
+          alternate_size_label: null,
+          alternate_size_note: null,
+          alternate_size_details: null,
+          spec: null,
+          is_rain_ok: false,
+          sheerness: null,
+          group_id: null,
+          group_order: null,
+          group_candidates: [],
+          converted_item_id: null,
+          converted_at: null,
+          colors: [],
+          seasons: [],
+          tpos: [],
+          materials: [],
+          images: [],
+          created_at: "2026-05-01T10:00:00+09:00",
+          updated_at: "2026-05-01T10:00:00+09:00",
+        },
+      }),
+    });
+
+    const { default: PurchaseCandidateDetailPage } = await import("./page");
+    const markup = renderToStaticMarkup(
+      await PurchaseCandidateDetailPage({
+        params: Promise.resolve({ id: "40" }),
+      }),
+    );
+
+    expect(markup).toContain("2026/05/07 23:59");
+    expect(markup).toContain("2026/05/06 09:15");
+  });
 });

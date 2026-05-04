@@ -5,10 +5,23 @@ namespace App\Support;
 use App\Models\PurchaseCandidate;
 use App\Models\PurchaseCandidateImage;
 use App\Models\PurchaseCandidateMaterial;
+use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\Storage;
 
 class PurchaseCandidatePayloadBuilder
 {
+    private static function formatCandidateDateTime(?CarbonInterface $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        return $value
+            ->avoidMutation()
+            ->setTimezone(config('app.timezone', 'Asia/Tokyo'))
+            ->format('Y-m-d\TH:i');
+    }
+
     private static function normalizeSelectedSize(?string $selectedSize): ?string
     {
         return match ($selectedSize) {
@@ -145,8 +158,8 @@ class PurchaseCandidatePayloadBuilder
             'price' => $candidate->price,
             'release_date' => $candidate->release_date?->toDateString(),
             'sale_price' => $candidate->sale_price,
-            'sale_ends_at' => $candidate->sale_ends_at?->toISOString(),
-            'discount_ends_at' => $candidate->discount_ends_at?->toISOString(),
+            'sale_ends_at' => self::formatCandidateDateTime($candidate->sale_ends_at),
+            'discount_ends_at' => self::formatCandidateDateTime($candidate->discount_ends_at),
             'purchase_url' => $candidate->purchase_url,
             'group_id' => $candidate->group_id,
             'group_order' => $candidate->group_order,
@@ -184,8 +197,8 @@ class PurchaseCandidatePayloadBuilder
             'price' => $candidate->price,
             'release_date' => $candidate->release_date?->toDateString(),
             'sale_price' => $candidate->sale_price,
-            'sale_ends_at' => $candidate->sale_ends_at?->toISOString(),
-            'discount_ends_at' => $candidate->discount_ends_at?->toISOString(),
+            'sale_ends_at' => self::formatCandidateDateTime($candidate->sale_ends_at),
+            'discount_ends_at' => self::formatCandidateDateTime($candidate->discount_ends_at),
             'purchase_url' => $candidate->purchase_url,
             'memo' => $candidate->memo,
             'wanted_reason' => $candidate->wanted_reason,
@@ -265,8 +278,8 @@ class PurchaseCandidatePayloadBuilder
             'price' => $candidate->price,
             'release_date' => $candidate->release_date?->toDateString(),
             'sale_price' => $candidate->sale_price,
-            'sale_ends_at' => $candidate->sale_ends_at?->toISOString(),
-            'discount_ends_at' => $candidate->discount_ends_at?->toISOString(),
+            'sale_ends_at' => self::formatCandidateDateTime($candidate->sale_ends_at),
+            'discount_ends_at' => self::formatCandidateDateTime($candidate->discount_ends_at),
             'purchase_url' => $candidate->purchase_url,
             'memo' => $candidate->memo,
             'size_gender' => $candidate->size_gender,
@@ -320,8 +333,8 @@ class PurchaseCandidatePayloadBuilder
             'price' => $candidate->price,
             'release_date' => $candidate->release_date?->toDateString(),
             'sale_price' => $candidate->sale_price,
-            'sale_ends_at' => $candidate->sale_ends_at?->toISOString(),
-            'discount_ends_at' => $candidate->discount_ends_at?->toISOString(),
+            'sale_ends_at' => self::formatCandidateDateTime($candidate->sale_ends_at),
+            'discount_ends_at' => self::formatCandidateDateTime($candidate->discount_ends_at),
             'purchase_url' => $candidate->purchase_url,
             'memo' => $candidate->memo,
             'wanted_reason' => $candidate->wanted_reason,
@@ -447,8 +460,8 @@ class PurchaseCandidatePayloadBuilder
                 'price' => $groupCandidate->price,
                 'release_date' => $groupCandidate->release_date?->toDateString(),
                 'sale_price' => $groupCandidate->sale_price,
-                'sale_ends_at' => $groupCandidate->sale_ends_at?->toISOString(),
-                'discount_ends_at' => $groupCandidate->discount_ends_at?->toISOString(),
+                'sale_ends_at' => self::formatCandidateDateTime($groupCandidate->sale_ends_at),
+                'discount_ends_at' => self::formatCandidateDateTime($groupCandidate->discount_ends_at),
                 'group_order' => $groupCandidate->group_order,
                 'is_current' => $groupCandidate->id === $candidate->id,
                 'colors' => $groupCandidate->colors

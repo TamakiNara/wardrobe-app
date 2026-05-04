@@ -3150,4 +3150,106 @@ describe("購入検討フォーム", () => {
       container.querySelector<HTMLInputElement>("#alternate_size_label")?.value,
     ).toBe("L");
   });
+  it("種類エラーとメインカラーエラーを別の欄に表示する", async () => {
+    await renderForm();
+
+    const nameInput = container.querySelector("#name") as HTMLInputElement;
+    const form = container.querySelector("form") as HTMLFormElement;
+
+    await act(async () => {
+      setNativeValue(nameInput, "エラー表示確認");
+      setNativeValue(getCategoryGroupSelect(), "tops");
+      form.dispatchEvent(
+        new Event("submit", { bubbles: true, cancelable: true }),
+      );
+    });
+
+    const categoryField =
+      container.querySelector("#category_id")?.parentElement;
+    expect(categoryField?.textContent).toContain("種類を選択してください。");
+    expect(categoryField?.textContent).not.toContain(
+      "メインカラーを選択してください。",
+    );
+
+    const colorSection = Array.from(
+      container.querySelectorAll<HTMLElement>("section"),
+    ).find((section) => section.textContent?.includes("メインカラー"));
+    expect(colorSection?.textContent).toContain(
+      "メインカラーを選択してください。",
+    );
+  });
+
+  it("編集時に sale / discount の日時を日本時間のまま表示し、確認用プレビューを出す", async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        purchaseCandidate: {
+          id: 31,
+          status: "considering",
+          priority: "medium",
+          name: "日時表示確認",
+          category_id: "outerwear_coat",
+          category_name: "コート",
+          brand_name: "Brand",
+          price: 12000,
+          sale_price: 9800,
+          sale_ends_at: "2026-05-07T23:59",
+          discount_ends_at: "2026-05-06T09:15",
+          purchase_url: null,
+          memo: "",
+          wanted_reason: "",
+          size_gender: "women",
+          size_label: "M",
+          size_note: "",
+          size_details: null,
+          alternate_size_label: null,
+          alternate_size_note: null,
+          alternate_size_details: null,
+          spec: null,
+          is_rain_ok: false,
+          sheerness: null,
+          group_id: null,
+          group_order: null,
+          group_candidates: [],
+          converted_item_id: null,
+          converted_at: null,
+          colors: [
+            {
+              role: "main",
+              mode: "preset",
+              value: "navy",
+              hex: "#1F3A5F",
+              label: "ネイビー",
+            },
+          ],
+          seasons: [],
+          tpos: [],
+          materials: [],
+          images: [],
+          created_at: "2026-05-01T10:00:00+09:00",
+          updated_at: "2026-05-01T10:00:00+09:00",
+        },
+      }),
+    });
+
+    await renderForm({ mode: "edit", candidateId: "31" });
+
+    expect(
+      container.querySelector<HTMLInputElement>("#sale_ends_at_date")?.value,
+    ).toBe("2026-05-07");
+    expect(
+      container.querySelector<HTMLInputElement>("#sale_ends_at_time")?.value,
+    ).toBe("23:59");
+    expect(
+      container.querySelector<HTMLInputElement>("#discount_ends_at_date")
+        ?.value,
+    ).toBe("2026-05-06");
+    expect(
+      container.querySelector<HTMLInputElement>("#discount_ends_at_time")
+        ?.value,
+    ).toBe("09:15");
+    expect(container.textContent).toContain("設定中: 2026年5月7日 23:59");
+    expect(container.textContent).toContain("設定中: 2026年5月6日 09:15");
+  });
 });

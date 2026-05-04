@@ -1585,6 +1585,8 @@ candidate 側でも、編集画面と duplicate / color-variant draft で `sort_
 - `sale_ends_at` / `discount_ends_at` の時刻入力は、日付未選択時は無効にする
 - 編集 / duplicate / color-variant draft では、既存の `sale_ends_at` / `discount_ends_at` 時刻を維持する
 - `sale_ends_at` / `discount_ends_at` はリセットボタンで空に戻せるようにし、保存時は `null` 相当で送る
+- `sale_ends_at` / `discount_ends_at` は UI / API ともに `YYYY-MM-DDTHH:mm` 形式のローカル日時として扱い、日本時間で入力した値をそのまま再表示する
+- 一覧 / 詳細 / 編集では、保存済みの期限系日時を日本時間の壁時計時刻として表示し、UTC 変換で 9 時間ずれないことを優先する
 - `purchased` の candidate では `memo` / `wanted_reason` / `priority` / `release_date` / `sale_price` / `sale_ends_at` / `discount_ends_at` / `purchase_url` を編集可とし、その他の項目は編集不可とする
 - `purchased` 後も画像追加 / 削除は画像 API で扱える
 
@@ -1674,8 +1676,8 @@ candidate 側でも、編集画面と duplicate / color-variant draft で `sort_
 - `price`: nullable / numeric / min 0
 - `release_date`: nullable / date
 - `sale_price`: nullable / integer / min 0
-- `sale_ends_at`: nullable / date
-- `discount_ends_at`: nullable / date
+- `sale_ends_at`: nullable / ローカル日時文字列 (`YYYY-MM-DDTHH:mm`)
+- `discount_ends_at`: nullable / ローカル日時文字列 (`YYYY-MM-DDTHH:mm`)
 - `purchase_url`: nullable / URL
 - `wanted_reason`: nullable / length 制限
 - `size_gender`: nullable / 許可値のみ

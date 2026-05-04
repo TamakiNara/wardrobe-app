@@ -634,8 +634,8 @@ class PurchaseCandidateEndpointsTest extends TestCase
             ->assertJsonPath('purchaseCandidate.category_id', 'pants_pants')
             ->assertJsonPath('purchaseCandidate.release_date', '2026-03-20')
             ->assertJsonPath('purchaseCandidate.sale_price', 8800)
-            ->assertJsonPath('purchaseCandidate.sale_ends_at', '2026-04-30T18:00:00.000000Z')
-            ->assertJsonPath('purchaseCandidate.discount_ends_at', '2026-03-31T18:00:00.000000Z')
+            ->assertJsonPath('purchaseCandidate.sale_ends_at', '2026-04-30T18:00')
+            ->assertJsonPath('purchaseCandidate.discount_ends_at', '2026-03-31T18:00')
             ->assertJsonPath('purchaseCandidate.sheerness', 'slight')
             ->assertJsonPath('purchaseCandidate.size_details.structured.shoulder_width.value', 41.5)
             ->assertJsonPath('purchaseCandidate.size_details.custom_fields.0.label', '裄丈')
@@ -1152,8 +1152,8 @@ class PurchaseCandidateEndpointsTest extends TestCase
             ->assertJsonPath('purchaseCandidate.category_id', 'tops_knit_sweater')
             ->assertJsonPath('purchaseCandidate.release_date', '2026-04-01')
             ->assertJsonPath('purchaseCandidate.sale_price', 9800)
-            ->assertJsonPath('purchaseCandidate.sale_ends_at', '2026-04-30T12:00:00.000000Z')
-            ->assertJsonPath('purchaseCandidate.discount_ends_at', '2026-04-15T12:00:00.000000Z')
+            ->assertJsonPath('purchaseCandidate.sale_ends_at', '2026-04-30T12:00')
+            ->assertJsonPath('purchaseCandidate.discount_ends_at', '2026-04-15T12:00')
             ->assertJsonPath('purchaseCandidate.sheerness', 'high')
             ->assertJsonPath('purchaseCandidate.size_details.structured.body_length.value', 68)
             ->assertJsonPath('purchaseCandidate.colors.0.value', 'gray')
@@ -1325,8 +1325,8 @@ class PurchaseCandidateEndpointsTest extends TestCase
             'price' => $candidate->price,
             'release_date' => $candidate->release_date?->toDateString(),
             'sale_price' => $candidate->sale_price,
-            'sale_ends_at' => $candidate->sale_ends_at?->toIso8601String(),
-            'discount_ends_at' => $candidate->discount_ends_at?->toIso8601String(),
+            'sale_ends_at' => $candidate->sale_ends_at?->format('Y-m-d\TH:i'),
+            'discount_ends_at' => $candidate->discount_ends_at?->format('Y-m-d\TH:i'),
             'purchase_url' => $candidate->purchase_url,
             'memo' => $candidate->memo,
             'wanted_reason' => $candidate->wanted_reason,

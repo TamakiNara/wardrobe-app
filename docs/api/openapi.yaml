@@ -4397,10 +4397,14 @@ components:
           description: セール時の参考価格。candidate 専用で、item 側には保存しない。
         sale_ends_at:
           type: string
-          format: date-time
           nullable: true
-          example: 2026-03-31T18:00:00+09:00
-          description: セール終了予定日時。candidate 専用で、item-draft には含めない。
+          example: 2026-03-31T18:00
+          description: セール終了予定日時。Asia/Tokyo のローカル日時を `YYYY-MM-DDTHH:mm` 形式で扱う。candidate 専用で、item-draft には含めない。
+        discount_ends_at:
+          type: string
+          nullable: true
+          example: 2026-03-25T12:00
+          description: 値引き終了予定日時。Asia/Tokyo のローカル日時を `YYYY-MM-DDTHH:mm` 形式で扱う。candidate 専用で、item-draft には含めない。
         purchase_url:
           type: string
           nullable: true
@@ -4594,8 +4598,12 @@ components:
           minimum: 0
         sale_ends_at:
           type: string
-          format: date-time
           nullable: true
+          description: Asia/Tokyo のローカル日時を `YYYY-MM-DDTHH:mm` 形式で送る。
+        discount_ends_at:
+          type: string
+          nullable: true
+          description: Asia/Tokyo のローカル日時を `YYYY-MM-DDTHH:mm` 形式で送る。
         purchase_url:
           type: string
           nullable: true
@@ -4735,8 +4743,12 @@ components:
           example: 12800
         sale_ends_at:
           type: string
-          format: date-time
           nullable: true
+          example: 2026-03-31T18:00
+        discount_ends_at:
+          type: string
+          nullable: true
+          example: 2026-03-25T12:00
         purchase_url:
           type: string
           nullable: true

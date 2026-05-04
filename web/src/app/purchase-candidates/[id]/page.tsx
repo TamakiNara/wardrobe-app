@@ -29,6 +29,7 @@ import {
   PURCHASE_CANDIDATE_PRIORITY_LABELS,
   PURCHASE_CANDIDATE_STATUS_LABELS,
 } from "@/lib/purchase-candidates/labels";
+import { formatPurchaseCandidateDateTime } from "@/lib/purchase-candidates/date-time";
 import { getPurchaseCandidateSizeOptions } from "@/lib/purchase-candidates/size-comparison";
 import { fetchLaravelWithCookie } from "@/lib/server/laravel";
 import type { ItemRecord } from "@/types/items";
@@ -48,17 +49,7 @@ function formatPrice(price: number | null): string {
 }
 
 function formatDateTime(value: string | null): string {
-  if (!value) {
-    return "未設定";
-  }
-
-  return new Intl.DateTimeFormat("ja-JP", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(new Date(value));
+  return formatPurchaseCandidateDateTime(value, "long");
 }
 
 function formatDate(value: string | null): string {
