@@ -2,6 +2,7 @@
 
 namespace App\Services\Weather;
 
+use App\Support\OpenMeteoRepresentativeWeatherSupport;
 use App\Support\WeatherRecordSupport;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Client\Factory as HttpFactory;
@@ -24,6 +25,12 @@ class FetchOpenMeteoWeatherForecastService
      *     precipitation: float|null,
      *     rain_sum: float|null,
      *     snowfall_sum: float|null,
+     *     time_block_weather: array{
+     *         morning: string|null,
+     *         daytime: string|null,
+     *         night: string|null
+     *     },
+     *     has_rain_in_time_blocks: bool,
      *     source_type: string,
      *     source_name: string,
      *     source_fetched_at: string,
@@ -55,6 +62,10 @@ class FetchOpenMeteoWeatherForecastService
                         'precipitation_sum',
                         'rain_sum',
                         'snowfall_sum',
+                    ]),
+                    'hourly' => implode(',', [
+                        'weather_code',
+                        'precipitation',
                     ]),
                 ])
                 ->throw();
@@ -97,16 +108,24 @@ class FetchOpenMeteoWeatherForecastService
         }
 
         $rawWeatherCode = $this->normalizeIntValue($daily['weather_code'][$index] ?? null);
+        $dailyWeatherCode = WeatherRecordSupport::normalizeOpenMeteoWeatherCodeToWeatherCode($rawWeatherCode);
+        $hourlySummary = OpenMeteoRepresentativeWeatherSupport::summarizeHourlyWeather(
+            is_array($payload['hourly'] ?? null) ? $payload['hourly'] : [],
+            $weatherDate,
+            $dailyWeatherCode,
+        );
 
         return [
             'weather_date' => $weatherDate,
-            'weather_code' => WeatherRecordSupport::normalizeOpenMeteoWeatherCodeToWeatherCode($rawWeatherCode),
+            'weather_code' => $hourlySummary['representative_weather_code'] ?? $dailyWeatherCode,
             'raw_weather_code' => $rawWeatherCode,
             'temperature_high' => $this->normalizeFloatValue($daily['temperature_2m_max'][$index] ?? null),
             'temperature_low' => $this->normalizeFloatValue($daily['temperature_2m_min'][$index] ?? null),
             'precipitation' => $this->normalizeFloatValue($daily['precipitation_sum'][$index] ?? null),
             'rain_sum' => $this->normalizeFloatValue($daily['rain_sum'][$index] ?? null),
             'snowfall_sum' => $this->normalizeFloatValue($daily['snowfall_sum'][$index] ?? null),
+            'time_block_weather' => $hourlySummary['time_block_weather'],
+            'has_rain_in_time_blocks' => $hourlySummary['has_rain_in_time_blocks'],
             'source_type' => 'forecast_api',
             'source_name' => 'open_meteo_jma_forecast',
             'source_fetched_at' => CarbonImmutable::now()->toIso8601String(),

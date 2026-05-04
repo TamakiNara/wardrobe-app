@@ -209,13 +209,19 @@ describe("WearLogWeatherPage Open-Meteo forecast integration", () => {
         location_id: 1,
         location_name: "川口 Open-Meteo",
         forecast_area_code: null,
-        weather_code: "rain",
+        weather_code: "cloudy",
         raw_weather_code: 61,
         temperature_high: 22.1,
         temperature_low: 13.4,
         precipitation: 3.2,
         rain_sum: 3.2,
         snowfall_sum: 0,
+        time_block_weather: {
+          morning: "rain",
+          daytime: "cloudy",
+          night: "sunny",
+        },
+        has_rain_in_time_blocks: true,
         source_type: "forecast_api",
         source_name: "open_meteo_jma_forecast",
         source_fetched_at: "2026-05-03T10:00:00+09:00",
@@ -231,7 +237,7 @@ describe("WearLogWeatherPage Open-Meteo forecast integration", () => {
         location_name: "川口 Open-Meteo",
         location_name_snapshot: "川口 Open-Meteo",
         forecast_area_code_snapshot: null,
-        weather_code: "rain",
+        weather_code: "cloudy",
         temperature_high: 22.1,
         temperature_low: 13.4,
         memo: null,
@@ -268,6 +274,11 @@ describe("WearLogWeatherPage Open-Meteo forecast integration", () => {
     ).toBe("13.4");
     expect(container.textContent).toContain("Open-Meteo");
     expect(container.textContent).toContain("61");
+    expect(container.textContent).toContain("代表:");
+    expect(container.textContent).toContain("朝:");
+    expect(container.textContent).toContain("昼:");
+    expect(container.textContent).toContain("夜:");
+    expect(container.textContent).toContain("雨の可能性あり");
     expect(container.textContent).toContain("降水量の参考値");
     expect(container.textContent).toContain("3.2 mm");
 
@@ -281,12 +292,22 @@ describe("WearLogWeatherPage Open-Meteo forecast integration", () => {
     expect(container.textContent).toContain("天気情報を登録しました。");
     expect(createWeatherRecordMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        weather_code: "rain",
+        weather_code: "cloudy",
         temperature_high: 22.1,
         temperature_low: 13.4,
         source_type: "forecast_api",
         source_name: "open_meteo_jma_forecast",
         source_fetched_at: "2026-05-03T10:00:00+09:00",
+      }),
+    );
+    expect(createWeatherRecordMock).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        time_block_weather: expect.anything(),
+      }),
+    );
+    expect(createWeatherRecordMock).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        has_rain_in_time_blocks: expect.anything(),
       }),
     );
   });

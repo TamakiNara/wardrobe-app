@@ -66,6 +66,12 @@ export type WeatherObservedRequestPayload = {
   location_id: number;
 };
 
+export type WeatherTimeBlockWeather = {
+  morning: WeatherCode | null;
+  daytime: WeatherCode | null;
+  night: WeatherCode | null;
+};
+
 export type WeatherForecast = {
   weather_date: string;
   location_id: number;
@@ -78,6 +84,8 @@ export type WeatherForecast = {
   precipitation: number | null;
   rain_sum: number | null;
   snowfall_sum: number | null;
+  time_block_weather: WeatherTimeBlockWeather | null;
+  has_rain_in_time_blocks: boolean;
   source_type: "forecast_api";
   source_name: string;
   source_fetched_at: string;

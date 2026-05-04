@@ -296,6 +296,13 @@ function WearLogWeatherPageContent() {
   const [forecastSnowfallSum, setForecastSnowfallSum] = useState<number | null>(
     null,
   );
+  const [forecastTimeBlockWeather, setForecastTimeBlockWeather] = useState<{
+    morning: WeatherCode | null;
+    daytime: WeatherCode | null;
+    night: WeatherCode | null;
+  } | null>(null);
+  const [forecastHasRainInTimeBlocks, setForecastHasRainInTimeBlocks] =
+    useState(false);
   const [observedSourceName, setObservedSourceName] = useState<string | null>(
     null,
   );
@@ -372,6 +379,11 @@ function WearLogWeatherPageContent() {
     forecastPrecipitation !== null ||
     forecastRainSum !== null ||
     forecastSnowfallSum !== null;
+  const hasForecastTimeBlockWeather = Boolean(
+    forecastTimeBlockWeather?.morning ??
+    forecastTimeBlockWeather?.daytime ??
+    forecastTimeBlockWeather?.night,
+  );
   const showOpenMeteoObservedSummary =
     observedSourceName === "open_meteo_historical";
   const hasObservedPrecipitationDetails =
@@ -404,6 +416,8 @@ function WearLogWeatherPageContent() {
       setForecastPrecipitation(null);
       setForecastRainSum(null);
       setForecastSnowfallSum(null);
+      setForecastTimeBlockWeather(null);
+      setForecastHasRainInTimeBlocks(false);
       setObservedSourceName(null);
       setObservedRawWeatherCode(null);
       setObservedPrecipitation(null);
@@ -454,6 +468,8 @@ function WearLogWeatherPageContent() {
     setForecastPrecipitation(null);
     setForecastRainSum(null);
     setForecastSnowfallSum(null);
+    setForecastTimeBlockWeather(null);
+    setForecastHasRainInTimeBlocks(false);
     setObservedSourceName(null);
     setObservedRawWeatherCode(null);
     setObservedPrecipitation(null);
@@ -481,6 +497,8 @@ function WearLogWeatherPageContent() {
     setForecastPrecipitation(forecast.precipitation);
     setForecastRainSum(forecast.rain_sum);
     setForecastSnowfallSum(forecast.snowfall_sum);
+    setForecastTimeBlockWeather(forecast.time_block_weather ?? null);
+    setForecastHasRainInTimeBlocks(forecast.has_rain_in_time_blocks ?? false);
     setObservedSourceName(null);
     setObservedRawWeatherCode(null);
     setObservedPrecipitation(null);
@@ -508,6 +526,8 @@ function WearLogWeatherPageContent() {
     setForecastPrecipitation(null);
     setForecastRainSum(null);
     setForecastSnowfallSum(null);
+    setForecastTimeBlockWeather(null);
+    setForecastHasRainInTimeBlocks(false);
     setObservedSourceName(observed.source_name);
     setObservedRawWeatherCode(observed.raw_weather_code);
     setObservedPrecipitation(observed.precipitation);
@@ -1159,6 +1179,47 @@ function WearLogWeatherPageContent() {
                           {forecastRawWeatherCode}
                         </span>
                       </p>
+                    ) : null}
+                    {hasForecastTimeBlockWeather ? (
+                      <div className="mt-2 rounded-lg border border-sky-100 bg-white/70 px-3 py-2">
+                        <p>
+                          代表:{" "}
+                          <span className="font-medium">
+                            {getWeatherCodeLabel(weatherCode)}
+                          </span>
+                        </p>
+                        <p className="mt-1">
+                          朝:{" "}
+                          <span className="font-medium">
+                            {forecastTimeBlockWeather?.morning
+                              ? getWeatherCodeLabel(
+                                  forecastTimeBlockWeather.morning,
+                                )
+                              : "未取得"}
+                          </span>
+                          {" / "}昼:{" "}
+                          <span className="font-medium">
+                            {forecastTimeBlockWeather?.daytime
+                              ? getWeatherCodeLabel(
+                                  forecastTimeBlockWeather.daytime,
+                                )
+                              : "未取得"}
+                          </span>
+                          {" / "}夜:{" "}
+                          <span className="font-medium">
+                            {forecastTimeBlockWeather?.night
+                              ? getWeatherCodeLabel(
+                                  forecastTimeBlockWeather.night,
+                                )
+                              : "未取得"}
+                          </span>
+                        </p>
+                        {forecastHasRainInTimeBlocks ? (
+                          <p className="mt-1 text-xs text-sky-800">
+                            雨の可能性あり
+                          </p>
+                        ) : null}
+                      </div>
                     ) : null}
                   </div>
                 ) : null}

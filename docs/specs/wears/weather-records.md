@@ -98,9 +98,10 @@ current で保持している location snapshot は次。
 
 current の caveat:
 
-- Open-Meteo forecast / historical では daily `weather_code` をそのまま `weather_records.weather_code` に入れる暫定運用
+- historical は current でも daily `weather_code` をそのまま `weather_records.weather_code` に入れる暫定運用
+- forecast は current PoC として hourly から朝 / 昼 / 夜を算出し、`daytime -> morning -> night -> daily` の順で代表天気を決める
 - そのため、深夜から早朝だけ雨で日中はくもりから晴れだった日でも、`weather_code = rain` になって服装アプリ上は不自然な場合がある
-- current の `weather_code` は「日全体の代表天気」であり、「活動時間帯の代表天気」ではない
+- current の `weather_code` は、まだ forecast / historical で完全には揃っておらず、活動時間帯ベース代表天気への移行途中にある
 
 `weather_code` は app 内部の正規化天気コードである。
 

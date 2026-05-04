@@ -121,6 +121,12 @@ class WeatherRecordController extends Controller
      *     precipitation: float|null,
      *     rain_sum: float|null,
      *     snowfall_sum: float|null,
+     *     time_block_weather: array{
+     *         morning: string|null,
+     *         daytime: string|null,
+     *         night: string|null
+     *     }|null,
+     *     has_rain_in_time_blocks: bool,
      *     source_type: string,
      *     source_name: string,
      *     source_fetched_at: string,
@@ -164,6 +170,8 @@ class WeatherRecordController extends Controller
                 'precipitation' => $forecast['precipitation'],
                 'rain_sum' => $forecast['rain_sum'],
                 'snowfall_sum' => $forecast['snowfall_sum'],
+                'time_block_weather' => $forecast['time_block_weather'],
+                'has_rain_in_time_blocks' => $forecast['has_rain_in_time_blocks'],
                 'source_type' => $forecast['source_type'],
                 'source_name' => $forecast['source_name'],
                 'source_fetched_at' => $forecast['source_fetched_at'],
@@ -190,6 +198,8 @@ class WeatherRecordController extends Controller
                 'precipitation' => null,
                 'rain_sum' => null,
                 'snowfall_sum' => null,
+                'time_block_weather' => null,
+                'has_rain_in_time_blocks' => false,
                 'source_type' => $forecast['source_type'],
                 'source_name' => $forecast['source_name'],
                 'source_fetched_at' => $forecast['source_fetched_at'],
@@ -210,6 +220,8 @@ class WeatherRecordController extends Controller
                 'precipitation' => null,
                 'rain_sum' => null,
                 'snowfall_sum' => null,
+                'time_block_weather' => null,
+                'has_rain_in_time_blocks' => false,
             ];
         }
 

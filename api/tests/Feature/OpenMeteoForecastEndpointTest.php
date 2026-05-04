@@ -32,6 +32,17 @@ class OpenMeteoForecastEndpointTest extends TestCase
                     'rain_sum' => [3.2],
                     'snowfall_sum' => [0.0],
                 ],
+                'hourly' => [
+                    'time' => [
+                        '2026-05-02T02:00',
+                        '2026-05-02T03:00',
+                        '2026-05-02T10:00',
+                        '2026-05-02T11:00',
+                        '2026-05-02T17:00',
+                    ],
+                    'weather_code' => [61, 61, 3, 3, 0],
+                    'precipitation' => [2.0, 1.5, 0.0, 0.0, 0.0],
+                ],
             ], 200),
             'https://www.jma.go.jp/*' => Http::response([], 500),
             'https://weather.tsukumijima.net/*' => Http::response([], 500),
@@ -64,13 +75,17 @@ class OpenMeteoForecastEndpointTest extends TestCase
 
         $response->assertOk()
             ->assertJsonPath('forecast.location_name', '川口 Open-Meteo')
-            ->assertJsonPath('forecast.weather_code', 'rain')
+            ->assertJsonPath('forecast.weather_code', 'cloudy')
             ->assertJsonPath('forecast.raw_weather_code', 61)
             ->assertJsonPath('forecast.temperature_high', 22.1)
             ->assertJsonPath('forecast.temperature_low', 13.4)
             ->assertJsonPath('forecast.precipitation', 3.2)
             ->assertJsonPath('forecast.rain_sum', 3.2)
             ->assertJsonPath('forecast.snowfall_sum', 0)
+            ->assertJsonPath('forecast.time_block_weather.morning', null)
+            ->assertJsonPath('forecast.time_block_weather.daytime', 'cloudy')
+            ->assertJsonPath('forecast.time_block_weather.night', 'sunny')
+            ->assertJsonPath('forecast.has_rain_in_time_blocks', false)
             ->assertJsonPath('forecast.source_name', 'open_meteo_jma_forecast')
             ->assertJsonPath('forecast.raw_telop', null);
 

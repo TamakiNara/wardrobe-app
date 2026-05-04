@@ -5485,6 +5485,23 @@ components:
           type: number
           nullable: true
           description: Open-Meteo daily snowfall_sum の参考値。今回は DB 保存しない。
+        time_block_weather:
+          type: object
+          nullable: true
+          description: Forecast PoC の時間帯別代表天気。current では response / UI 補足表示のみで、DB 保存しない。
+          properties:
+            morning:
+              type: string
+              nullable: true
+            daytime:
+              type: string
+              nullable: true
+            night:
+              type: string
+              nullable: true
+        has_rain_in_time_blocks:
+          type: boolean
+          description: 朝 / 昼 / 夜のどこかで rain / thunder 系があり、雨対策が必要かもしれないことを示す補助値。DB 保存しない。
         source_type:
           type: string
           enum: [forecast_api]

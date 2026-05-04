@@ -8,6 +8,7 @@
 ## current summary
 
 - current の代表天気は Open-Meteo daily `weather_code` を暫定利用している
+- forecast PoC では hourly から朝 / 昼 / 夜を算出し、昼を基本に代表天気を決める補足ロジックを入れている
 
 - 手動天気登録がある
 - 地域設定は `latitude / longitude / timezone` を Open-Meteo 向け正本へ移行中

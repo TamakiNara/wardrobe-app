@@ -23,6 +23,18 @@ class FetchOpenMeteoWeatherForecastServiceTest extends TestCase
                     'rain_sum' => [3.2],
                     'snowfall_sum' => [0.0],
                 ],
+                'hourly' => [
+                    'time' => [
+                        '2026-05-02T06:00',
+                        '2026-05-02T07:00',
+                        '2026-05-02T10:00',
+                        '2026-05-02T11:00',
+                        '2026-05-02T17:00',
+                        '2026-05-02T18:00',
+                    ],
+                    'weather_code' => [61, 61, 3, 3, 0, 0],
+                    'precipitation' => [1.0, 0.8, 0.0, 0.0, 0.0, 0.0],
+                ],
             ], 200),
         ]);
 
@@ -30,13 +42,19 @@ class FetchOpenMeteoWeatherForecastServiceTest extends TestCase
         $forecast = $service->fetch(35.8617, 139.6455, 'Asia/Tokyo', '2026-05-02');
 
         $this->assertSame('2026-05-02', $forecast['weather_date']);
-        $this->assertSame('rain', $forecast['weather_code']);
+        $this->assertSame('cloudy', $forecast['weather_code']);
         $this->assertSame(61, $forecast['raw_weather_code']);
         $this->assertSame(22.1, $forecast['temperature_high']);
         $this->assertSame(13.4, $forecast['temperature_low']);
         $this->assertSame(3.2, $forecast['precipitation']);
         $this->assertSame(3.2, $forecast['rain_sum']);
         $this->assertSame(0.0, $forecast['snowfall_sum']);
+        $this->assertSame([
+            'morning' => 'rain',
+            'daytime' => 'cloudy',
+            'night' => 'sunny',
+        ], $forecast['time_block_weather']);
+        $this->assertTrue($forecast['has_rain_in_time_blocks']);
         $this->assertSame('forecast_api', $forecast['source_type']);
         $this->assertSame('open_meteo_jma_forecast', $forecast['source_name']);
         $this->assertNull($forecast['raw_weather_text']);
@@ -55,6 +73,11 @@ class FetchOpenMeteoWeatherForecastServiceTest extends TestCase
                     'rain_sum' => [0.0],
                     'snowfall_sum' => [0.0],
                 ],
+                'hourly' => [
+                    'time' => ['2026-05-02T10:00'],
+                    'weather_code' => [0],
+                    'precipitation' => [0.0],
+                ],
             ], 200),
         ]);
 
@@ -63,7 +86,8 @@ class FetchOpenMeteoWeatherForecastServiceTest extends TestCase
 
         Http::assertSent(function ($request): bool {
             return str_starts_with($request->url(), 'https://api.open-meteo.com/v1/jma')
-                && str_contains($request->url(), 'timezone=Asia%2FTokyo');
+                && str_contains($request->url(), 'timezone=Asia%2FTokyo')
+                && str_contains($request->url(), 'hourly=weather_code%2Cprecipitation');
         });
     }
 
@@ -80,6 +104,11 @@ class FetchOpenMeteoWeatherForecastServiceTest extends TestCase
                     'rain_sum' => [null],
                     'snowfall_sum' => [null],
                 ],
+                'hourly' => [
+                    'time' => ['2026-05-02T10:00'],
+                    'weather_code' => [3],
+                    'precipitation' => [0.0],
+                ],
             ], 200),
         ]);
 
@@ -90,6 +119,63 @@ class FetchOpenMeteoWeatherForecastServiceTest extends TestCase
         $this->assertNull($forecast['precipitation']);
         $this->assertNull($forecast['rain_sum']);
         $this->assertNull($forecast['snowfall_sum']);
+    }
+
+    public function test_open_meteo_forecast_uses_morning_when_daytime_block_is_missing(): void
+    {
+        Http::fake([
+            'https://api.open-meteo.com/v1/jma*' => Http::response([
+                'daily' => [
+                    'time' => ['2026-05-02'],
+                    'weather_code' => [0],
+                    'temperature_2m_max' => [20.0],
+                    'temperature_2m_min' => [10.0],
+                    'precipitation_sum' => [0.0],
+                    'rain_sum' => [0.0],
+                    'snowfall_sum' => [0.0],
+                ],
+                'hourly' => [
+                    'time' => ['2026-05-02T06:00', '2026-05-02T07:00'],
+                    'weather_code' => [61, 61],
+                    'precipitation' => [1.1, 0.7],
+                ],
+            ], 200),
+        ]);
+
+        $service = $this->app->make(FetchOpenMeteoWeatherForecastService::class);
+        $forecast = $service->fetch(35.8617, 139.6455, 'Asia/Tokyo', '2026-05-02');
+
+        $this->assertSame('rain', $forecast['weather_code']);
+        $this->assertSame('rain', $forecast['time_block_weather']['morning']);
+        $this->assertNull($forecast['time_block_weather']['daytime']);
+    }
+
+    public function test_open_meteo_forecast_falls_back_to_daily_weather_code_when_hourly_data_is_missing(): void
+    {
+        Http::fake([
+            'https://api.open-meteo.com/v1/jma*' => Http::response([
+                'daily' => [
+                    'time' => ['2026-05-02'],
+                    'weather_code' => [3],
+                    'temperature_2m_max' => [19.0],
+                    'temperature_2m_min' => [11.0],
+                    'precipitation_sum' => [0.0],
+                    'rain_sum' => [0.0],
+                    'snowfall_sum' => [0.0],
+                ],
+            ], 200),
+        ]);
+
+        $service = $this->app->make(FetchOpenMeteoWeatherForecastService::class);
+        $forecast = $service->fetch(35.8617, 139.6455, 'Asia/Tokyo', '2026-05-02');
+
+        $this->assertSame('cloudy', $forecast['weather_code']);
+        $this->assertSame([
+            'morning' => null,
+            'daytime' => null,
+            'night' => null,
+        ], $forecast['time_block_weather']);
+        $this->assertFalse($forecast['has_rain_in_time_blocks']);
     }
 
     public function test_open_meteo_forecast_throws_validation_error_when_date_is_missing(): void

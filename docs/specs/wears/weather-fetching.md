@@ -16,6 +16,11 @@ Open-Meteo forecast / historical、provider 優先順位、legacy fallback、日
 
 ### forecast
 
+- current PoC では Open-Meteo forecast の daily に加えて `hourly=weather_code,precipitation` を取得する
+- hourly から `朝 6:00-10:00` / `昼 10:00-17:00` / `夜 17:00-22:00` の天気を算出する
+- `weather_records.weather_code` に相当する代表天気は `daytime -> morning -> night -> daily` の順で決める
+- `time_block_weather` と `has_rain_in_time_blocks` は response / UI 補足表示のみで、current では保存しない
+
 - endpoint:
   - `POST /api/weather-records/forecast`
 - source:
