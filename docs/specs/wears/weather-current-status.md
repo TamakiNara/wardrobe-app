@@ -33,6 +33,8 @@
 ## planned summary
 
 - hourly から活動時間帯ベースの代表天気を算出するか再検討
+- 朝 / 昼 / 夜の天気を先に算出し、そのうえで代表天気を決める案を比較する
+- 第一候補は「昼を基本にし、雨対策は `has_rain_possibility` 側へ分ける」方針
 
 - `forecast_snapshot / observed_snapshot`
 - precipitation 保存

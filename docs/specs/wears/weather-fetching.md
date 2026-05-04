@@ -174,6 +174,11 @@ WMO から app `weather_code` への代表的な変換:
 - forecast / historical で同じ代表天気ロジックを使い、source の違いだけを分ける
 - `has_rain_possibility` は weather_code 由来を維持しつつ、将来は hourly 降水や降水量も補助情報として使う余地を残す
 - `was_exposed_to_rain` は wear log feedback 側の体験データとして扱い、weather side から自動確定しない
+- 朝 / 昼 / 夜の候補時間帯は、第一候補として `朝 6:00-10:00` / `昼 10:00-17:00` / `夜 17:00-22:00`
+- `0:00-6:00` の深夜帯は、服装判断からは基本除外する
+- 各時間帯の代表天気は、単純な最頻値ではなく「時間帯内の最多傾向を基本にしつつ、snow / thunder と一定以上の rain を優先する」方針を第一候補にする
+- `weather_records.weather_code` に入れる代表天気は、昼の天気を基本にしつつ、雨 / 雪 / 雷は `has_rain_possibility` 側へ反映する案を第一候補にする
+- これは「代表天気」と「雨対策の必要性」を分ける案であり、服装アプリの体感に最も寄せやすい
 
 - Open-Meteo hourly を使った複合天気推定
 - precipitation 系を DB 保存するかの再判断

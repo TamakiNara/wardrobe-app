@@ -156,6 +156,8 @@ planned:
 - `was_exposed_to_rain` を wear log feedback 側で扱う
 - `weather_records` の source や降水量だけから自動判定しない
 - `has_rain_possibility` は、将来は活動時間帯ベースの代表 `weather_code` と hourly 降水情報の両方を見て再設計する余地を残す
+- 朝 / 昼 / 夜のどこかで rain / thunder が出た場合に `has_rain_possibility = true` とする案を第一候補にする
+- `precipitation_probability` や `precipitation_sum` は、representative `weather_code` を補助する情報として併用候補にする
 
 ---
 
