@@ -7,6 +7,8 @@
 
 ## current summary
 
+- current の代表天気は Open-Meteo daily `weather_code` を暫定利用している
+
 - 手動天気登録がある
 - 地域設定は `latitude / longitude / timezone` を Open-Meteo 向け正本へ移行中
 - Open-Meteo Geocoding API で位置情報を設定できる
@@ -29,6 +31,8 @@
 ---
 
 ## planned summary
+
+- hourly から活動時間帯ベースの代表天気を算出するか再検討
 
 - `forecast_snapshot / observed_snapshot`
 - precipitation 保存

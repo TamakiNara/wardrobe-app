@@ -133,6 +133,15 @@ WMO から app `weather_code` への代表的な変換:
 
 ---
 
+### daily `weather_code` の限界
+
+- current では Open-Meteo daily の `weather_code` をそのまま代表天気として使う暫定運用
+- これは「日全体の代表天気」であり、服装アプリで見たい活動時間帯の天気とずれる場合がある
+- 深夜から早朝だけ雨で、日中はくもりから晴れだった日でも、daily 集計では `rain` に寄ることがある
+- この限界は forecast / historical の両方で同様に起こりうる
+
+---
+
 ## legacy
 
 ### JMA forecast JSON
@@ -156,6 +165,15 @@ WMO から app `weather_code` への代表的な変換:
 ---
 
 ## planned
+
+- Open-Meteo hourly を使って、活動時間帯ベースの代表天気を算出する
+- 第一候補の活動時間帯は `7:00-22:00`
+- 代替案として、朝 / 昼 / 夜の分割集計も比較する
+- user setting 化は要再判断とし、まずは固定時間帯での PoC を優先する
+- 深夜だけ雨だった日は、weather_code を日中中心の `cloudy` や `sunny` 寄りにしつつ、`precipitation` / `rain_sum` は別軸で扱う
+- forecast / historical で同じ代表天気ロジックを使い、source の違いだけを分ける
+- `has_rain_possibility` は weather_code 由来を維持しつつ、将来は hourly 降水や降水量も補助情報として使う余地を残す
+- `was_exposed_to_rain` は wear log feedback 側の体験データとして扱い、weather side から自動確定しない
 
 - Open-Meteo hourly を使った複合天気推定
 - precipitation 系を DB 保存するかの再判断

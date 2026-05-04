@@ -148,12 +148,14 @@ current の前提:
 current:
 
 - `has_rain_possibility` は weather 側で使う
+- weather 側の `weather_code` は current では daily 集計由来の暫定値であり、活動時間帯の代表天気とは限らない
 - `was_exposed_to_rain` は未実装
 
 planned:
 
 - `was_exposed_to_rain` を wear log feedback 側で扱う
 - `weather_records` の source や降水量だけから自動判定しない
+- `has_rain_possibility` は、将来は活動時間帯ベースの代表 `weather_code` と hourly 降水情報の両方を見て再設計する余地を残す
 
 ---
 

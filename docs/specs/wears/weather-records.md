@@ -96,6 +96,12 @@ current で保持している location snapshot は次。
 
 ### `weather_code`
 
+current の caveat:
+
+- Open-Meteo forecast / historical では daily `weather_code` をそのまま `weather_records.weather_code` に入れる暫定運用
+- そのため、深夜から早朝だけ雨で日中はくもりから晴れだった日でも、`weather_code = rain` になって服装アプリ上は不自然な場合がある
+- current の `weather_code` は「日全体の代表天気」であり、「活動時間帯の代表天気」ではない
+
 `weather_code` は app 内部の正規化天気コードである。
 
 役割:
@@ -117,6 +123,14 @@ current で保持している location snapshot は次。
   - [weather-fetching.md](./weather-fetching.md)
 - weather icon / preview:
   - [weather-current-status.md](./weather-current-status.md)
+
+planned:
+
+- `weather_records.weather_code` は、将来は hourly を使った活動時間帯ベースの代表天気へ寄せる第一候補
+- 第一候補の活動時間帯は `7:00-22:00`
+- 代替案として、朝 / 昼 / 夜の分割集計や user setting 化を比較する
+- 深夜だけ雨だった日は、`weather_code` を日中中心の `cloudy` や `sunny` 寄りにしつつ、降水量系は別軸で扱う
+- forecast / observed で同じ代表天気算出ロジックを使う前提で設計する
 
 ### 気温
 
