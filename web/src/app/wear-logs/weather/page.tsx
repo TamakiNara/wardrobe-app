@@ -898,7 +898,7 @@ function WearLogWeatherPageContent() {
           ]}
           eyebrow="天気登録"
           title={validDate ? formatWeatherPageTitle(validDate) : "天気"}
-          description="日付ごとの天気を地域別に登録できます。予報APIからフォームへ反映してから保存することもできます。"
+          description="日付ごとの天気を地域別に登録できます。取得結果をフォームに反映してから保存することもできます。"
           actions={
             <Link
               href={returnHref}
@@ -928,7 +928,7 @@ function WearLogWeatherPageContent() {
                   <p className="mt-2 text-sm text-gray-600">
                     {activeRecord
                       ? "選択中の地域に登録済みの天気を更新できます。"
-                      : "同じ日付に複数地域の天気を登録できます。"}
+                      : "同じ日付でも、地域ごとに別の天気を登録できます。"}
                   </p>
                 </div>
                 <Link

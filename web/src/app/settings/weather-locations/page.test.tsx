@@ -184,7 +184,7 @@ describe("SettingsWeatherLocationsPage", () => {
     expect(
       container.querySelector("#new-weather-location-forecast-area"),
     ).toBeNull();
-    expect(container.textContent).toContain("旧API用コードあり");
+    expect(container.textContent).toContain("補助コードあり");
   });
 
   it("検索結果を選ぶと緯度・経度・タイムゾーンを反映できる", async () => {

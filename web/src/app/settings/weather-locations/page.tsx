@@ -1152,8 +1152,8 @@ function SettingsWeatherLocationsPageContent() {
                             ) : null}
                             {location.forecast_area_code &&
                             !location.jma_forecast_region_code ? (
-                              <span className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700">
-                                旧API用コードあり
+                              <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-600">
+                                補助コードあり
                               </span>
                             ) : null}
                           </div>
@@ -1173,8 +1173,9 @@ function SettingsWeatherLocationsPageContent() {
                           </p>
                           {location.forecast_area_code &&
                           !location.jma_forecast_region_code ? (
-                            <p className="mt-1 text-xs text-amber-700">
-                              旧予報コード設定あり。JMA予報区域を設定すると、今後の取得切替に使えます。
+                            <p className="mt-1 text-xs text-slate-500">
+                              補助コードが設定されています。必要に応じて
+                              JMA予報区域を追加できます。
                             </p>
                           ) : null}
                         </div>
