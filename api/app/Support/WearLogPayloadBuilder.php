@@ -180,6 +180,7 @@ class WearLogPayloadBuilder
             'indoor_temperature_feel' => $wearLog->indoor_temperature_feel,
             'overall_rating' => $wearLog->overall_rating,
             'feedback_tags' => $wearLog->feedback_tags,
+            'feedback_memo' => $wearLog->feedback_memo,
             'thumbnail_items' => $wearLog->wearLogItems
                 ->sortBy('sort_order')
                 ->values()

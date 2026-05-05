@@ -687,6 +687,7 @@ class WearLogEndpointsTest extends TestCase
             'outdoor_temperature_feel' => 'slightly_cold',
             'indoor_temperature_feel' => 'comfortable',
             'overall_rating' => 'good',
+            'feedback_memo' => '室内は少し寒かった',
             'feedback_tags' => ['temperature_gap_ready', 'morning_hot', 'rain_problem'],
         ]);
         $later->wearLogItems()->createMany([
@@ -772,6 +773,7 @@ class WearLogEndpointsTest extends TestCase
             ->assertJsonPath('wearLogs.1.outdoor_temperature_feel', 'slightly_cold')
             ->assertJsonPath('wearLogs.1.indoor_temperature_feel', 'comfortable')
             ->assertJsonPath('wearLogs.1.overall_rating', 'good')
+            ->assertJsonPath('wearLogs.1.feedback_memo', '室内は少し寒かった')
             ->assertJsonPath('wearLogs.1.feedback_tags.0', 'temperature_gap_ready')
             ->assertJsonPath('wearLogs.1.feedback_tags.1', 'morning_hot')
             ->assertJsonCount(2, 'wearLogs.1.thumbnail_items')

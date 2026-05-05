@@ -176,6 +176,7 @@ export type WearLogByDateItem = {
   indoor_temperature_feel: WearLogTemperatureFeel | null;
   overall_rating: WearLogOverallRating | null;
   feedback_tags: WearLogFeedbackTag[] | null;
+  feedback_memo: string | null;
   thumbnail_items: WearLogThumbnailItem[];
 };
 
