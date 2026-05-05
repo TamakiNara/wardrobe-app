@@ -16,6 +16,7 @@ function createItem(overrides: Partial<ItemRecord> = {}): ItemRecord {
     subcategory: "skirt",
     shape: "narrow",
     size_label: "M",
+    size_note: null,
     size_details: {
       structured: {
         waist: { value: 64 },
@@ -142,6 +143,7 @@ describe("PurchaseCandidateSizeComparison", () => {
     setup(
       <PurchaseCandidateSizeComparison
         candidate={createCandidate({
+          size_note: "ややゆったり",
           size_details: {
             structured: {
               waist: { value: 66 },
@@ -161,6 +163,7 @@ describe("PurchaseCandidateSizeComparison", () => {
             id: 1,
             name: "手持ちA",
             size_label: "M",
+            size_note: "ちょうどよい",
             size_details: {
               structured: {
                 waist: { value: 64 },
@@ -173,6 +176,7 @@ describe("PurchaseCandidateSizeComparison", () => {
             id: 2,
             name: "手持ちB",
             size_label: "L",
+            size_note: "丈がやや長い",
             subcategory: "other",
             shape: "",
             size_details: {
@@ -193,6 +197,10 @@ describe("PurchaseCandidateSizeComparison", () => {
     expect(container.textContent).toContain("未設定");
     expect(container.textContent).not.toContain("差分");
     expect(container.textContent).toContain("手持ち（M）");
+    expect(container.textContent).toContain("M のサイズ感メモ");
+    expect(container.textContent).toContain("ややゆったり");
+    expect(container.textContent).toContain("比較対象のサイズ感メモ");
+    expect(container.textContent).toContain("ちょうどよい");
 
     const select = container.querySelector<HTMLSelectElement>(
       "#purchase-candidate-size-comparison-item",
@@ -212,6 +220,7 @@ describe("PurchaseCandidateSizeComparison", () => {
 
     expect(container.textContent).toContain("手持ち（L）");
     expect(container.textContent).toContain("24cm");
+    expect(container.textContent).toContain("丈がやや長い");
   });
 
   it("複数サイズ候補がある場合は両方のサイズ列を並べて表示する", () => {
@@ -243,5 +252,19 @@ describe("PurchaseCandidateSizeComparison", () => {
     expect(container.textContent).toContain("手持ち（M）");
     expect(container.textContent).toContain("66cm");
     expect(container.textContent).toContain("70cm");
+  });
+
+  it("両方にサイズ感メモがない場合はメモ欄を表示しない", () => {
+    setup(
+      <PurchaseCandidateSizeComparison
+        candidate={createCandidate()}
+        resolvedCategory="skirts"
+        resolvedSubcategory="skirt"
+        resolvedShape="narrow"
+        items={[createItem()]}
+      />,
+    );
+
+    expect(container.textContent).not.toContain("サイズ感メモ");
   });
 });

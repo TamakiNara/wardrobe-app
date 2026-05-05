@@ -69,6 +69,15 @@ export default function PurchaseCandidateSizeComparison({
 
   const itemSizeLabel =
     selectedComparisonOption?.item.size_label?.trim() || "未設定";
+  const candidateNotes = sizeOptions
+    .map((option) => ({
+      key: option.key,
+      label: option.label?.trim() || option.optionLabel,
+      note: option.note?.trim() || "",
+    }))
+    .filter((option) => option.note !== "");
+  const itemSizeNote = selectedComparisonOption?.item.size_note?.trim() || "";
+  const hasAnySizeNotes = candidateNotes.length > 0 || itemSizeNote !== "";
 
   return (
     <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
@@ -148,6 +157,34 @@ export default function PurchaseCandidateSizeComparison({
               </tbody>
             </table>
           </div>
+
+          {hasAnySizeNotes ? (
+            <div className="grid gap-3 md:grid-cols-2">
+              {candidateNotes.map((option) => (
+                <div
+                  key={option.key}
+                  className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3"
+                >
+                  <p className="text-xs font-medium text-slate-500">
+                    {option.label} のサイズ感メモ
+                  </p>
+                  <p className="mt-1 whitespace-pre-wrap text-sm text-slate-700">
+                    {option.note}
+                  </p>
+                </div>
+              ))}
+              {itemSizeNote !== "" ? (
+                <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                  <p className="text-xs font-medium text-slate-500">
+                    比較対象のサイズ感メモ
+                  </p>
+                  <p className="mt-1 whitespace-pre-wrap text-sm text-slate-700">
+                    {itemSizeNote}
+                  </p>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
         </div>
       )}
     </section>

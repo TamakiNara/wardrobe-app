@@ -20,6 +20,7 @@ type ComparisonItemLike = Pick<
   | "subcategory"
   | "shape"
   | "size_label"
+  | "size_note"
   | "size_details"
 >;
 
