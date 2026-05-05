@@ -1,4 +1,5 @@
-﻿import Link from "next/link";
+import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { buildPageMetadata } from "@/lib/metadata";
 import ItemCareStatusAction from "@/components/items/item-care-status-action";
@@ -46,18 +47,29 @@ import { fetchLaravelWithCookie } from "@/lib/server/laravel";
 import type { ItemRecord } from "@/types/items";
 import type { SkinTonePreset } from "@/types/settings";
 
-export const metadata = buildPageMetadata("アイテム詳細");
+const fallbackMetadata = buildPageMetadata("アイテム詳細");
 
 type ItemGroupItem = NonNullable<ItemRecord["group_items"]>[number];
 
-async function getItem(id: string): Promise<ItemRecord> {
+async function fetchItemDetail(
+  id: string,
+): Promise<{ status: number; item: ItemRecord | null }> {
   const res = await fetchLaravelWithCookie(`/api/items/${id}`);
+  const data = await res.json().catch(() => null);
 
-  if (res.status === 401) redirect("/login");
-  if (!res.ok) redirect("/items");
+  return {
+    status: res.status,
+    item: res.ok ? ((data?.item as ItemRecord | undefined) ?? null) : null,
+  };
+}
 
-  const data = await res.json();
-  return data.item;
+async function getItem(id: string): Promise<ItemRecord> {
+  const result = await fetchItemDetail(id);
+
+  if (result.status === 401) redirect("/login");
+  if (!result.item) redirect("/items");
+
+  return result.item;
 }
 
 async function getSkinTonePreset(): Promise<SkinTonePreset> {
@@ -169,6 +181,22 @@ function resolveGroupItemColorLabel(item: ItemGroupItem) {
   }
 
   return color.custom_label?.trim() || color.label || item.name || "色未設定";
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const result = await fetchItemDetail(id);
+  const itemName = result.item?.name?.trim();
+
+  if (!itemName) {
+    return fallbackMetadata;
+  }
+
+  return buildPageMetadata(`${itemName} | アイテム`);
 }
 
 export default async function ItemPage({

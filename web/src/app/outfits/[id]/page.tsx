@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { buildPageMetadata } from "@/lib/metadata";
@@ -12,7 +13,7 @@ import { fetchLaravelWithCookie } from "@/lib/server/laravel";
 import type { ItemFormColor, ItemSpec } from "@/types/items";
 import type { SkinTonePreset } from "@/types/settings";
 
-export const metadata = buildPageMetadata("コーディネート詳細");
+const fallbackMetadata = buildPageMetadata("コーディネート詳細");
 
 type OutfitItem = {
   id: number;
@@ -42,19 +43,30 @@ type Outfit = {
   outfitItems?: OutfitItem[];
 };
 
-async function getOutfit(id: string): Promise<Outfit> {
+async function fetchOutfitDetail(
+  id: string,
+): Promise<{ status: number; outfit: Outfit | null }> {
   const res = await fetchLaravelWithCookie(`/api/outfits/${id}`);
+  const data = await res.json().catch(() => null);
 
-  if (res.status === 401) {
+  return {
+    status: res.status,
+    outfit: res.ok ? ((data?.outfit as Outfit | undefined) ?? null) : null,
+  };
+}
+
+async function getOutfit(id: string): Promise<Outfit> {
+  const result = await fetchOutfitDetail(id);
+
+  if (result.status === 401) {
     redirect("/login");
   }
 
-  if (!res.ok) {
+  if (!result.outfit) {
     redirect("/outfits");
   }
 
-  const data = await res.json();
-  return data.outfit;
+  return result.outfit;
 }
 
 async function getSkinTonePreset(): Promise<SkinTonePreset> {
@@ -92,6 +104,22 @@ function resolveOutfitItemColorLabel(color?: ItemFormColor) {
   const trimmedLabel = color?.label?.trim();
 
   return trimmedCustomLabel || trimmedLabel || "カスタムカラー";
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const result = await fetchOutfitDetail(id);
+  const outfitName = result.outfit?.name?.trim();
+
+  if (!outfitName) {
+    return fallbackMetadata;
+  }
+
+  return buildPageMetadata(`${outfitName} | コーディネート`);
 }
 
 export default async function OutfitDetailPage({

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { buildPageMetadata } from "@/lib/metadata";
@@ -41,7 +42,7 @@ import type {
   PurchaseCandidateStatus,
 } from "@/types/purchase-candidates";
 
-export const metadata = buildPageMetadata("購入検討詳細");
+const fallbackMetadata = buildPageMetadata("購入検討詳細");
 
 function formatPrice(price: number | null): string {
   if (price === null) {
@@ -228,21 +229,53 @@ function PurchaseCandidateGroupNavigation({
   );
 }
 
-async function getPurchaseCandidate(id: string) {
+async function fetchPurchaseCandidateDetail(id: string): Promise<{
+  status: number;
+  purchaseCandidate:
+    | PurchaseCandidateDetailResponse["purchaseCandidate"]
+    | null;
+}> {
   const response = await fetchLaravelWithCookie(
     `/api/purchase-candidates/${id}`,
   );
+  const data = (await response
+    .json()
+    .catch(() => null)) as PurchaseCandidateDetailResponse | null;
 
-  if (response.status === 401) {
+  return {
+    status: response.status,
+    purchaseCandidate: response.ok ? (data?.purchaseCandidate ?? null) : null,
+  };
+}
+
+async function getPurchaseCandidate(id: string) {
+  const result = await fetchPurchaseCandidateDetail(id);
+
+  if (result.status === 401) {
     redirect("/login");
   }
 
-  if (!response.ok) {
+  if (!result.purchaseCandidate) {
     redirect("/purchase-candidates");
   }
 
-  const data = (await response.json()) as PurchaseCandidateDetailResponse;
-  return data.purchaseCandidate;
+  return result.purchaseCandidate;
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const result = await fetchPurchaseCandidateDetail(id);
+  const candidateName = result.purchaseCandidate?.name?.trim();
+
+  if (!candidateName) {
+    return fallbackMetadata;
+  }
+
+  return buildPageMetadata(`${candidateName} | 購入検討`);
 }
 
 async function getComparableItems(category?: string | null) {

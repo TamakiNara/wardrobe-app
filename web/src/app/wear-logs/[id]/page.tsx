@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { buildPageMetadata } from "@/lib/metadata";
@@ -17,7 +18,7 @@ import {
 } from "@/lib/wear-logs/labels";
 import type { WearLogRecord } from "@/types/wear-logs";
 
-export const metadata = buildPageMetadata("着用履歴詳細");
+const fallbackMetadata = buildPageMetadata("着用履歴詳細");
 
 function getItemSourceTypeLabel(itemSourceType: "outfit" | "manual"): string {
   return itemSourceType === "outfit" ? "コーディネート由来" : "手動追加";
@@ -38,19 +39,58 @@ function getTodayYmd(): string {
   return `${year}-${month}-${day}`;
 }
 
-async function getWearLog(id: string): Promise<WearLogRecord> {
-  const response = await fetchLaravelWithCookie(`/api/wear-logs/${id}`);
+function formatWearLogTitleDate(value: string): string {
+  const [year, month, day] = value.split("-");
 
-  if (response.status === 401) {
+  if (!year || !month || !day) {
+    return "着用履歴詳細";
+  }
+
+  return `${Number(year)}年${Number(month)}月${Number(day)}日の着用履歴`;
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const result = await fetchWearLogDetail(id);
+  const eventDate = result.wearLog?.event_date;
+
+  if (!eventDate) {
+    return fallbackMetadata;
+  }
+
+  return buildPageMetadata(formatWearLogTitleDate(eventDate));
+}
+
+async function fetchWearLogDetail(
+  id: string,
+): Promise<{ status: number; wearLog: WearLogRecord | null }> {
+  const response = await fetchLaravelWithCookie(`/api/wear-logs/${id}`);
+  const data = await response.json().catch(() => null);
+
+  return {
+    status: response.status,
+    wearLog: response.ok
+      ? ((data?.wearLog as WearLogRecord | undefined) ?? null)
+      : null,
+  };
+}
+
+async function getWearLog(id: string): Promise<WearLogRecord> {
+  const result = await fetchWearLogDetail(id);
+
+  if (result.status === 401) {
     redirect("/login");
   }
 
-  if (!response.ok) {
+  if (!result.wearLog) {
     redirect("/wear-logs");
   }
 
-  const data = await response.json();
-  return data.wearLog as WearLogRecord;
+  return result.wearLog;
 }
 
 export default async function WearLogDetailPage({
