@@ -622,7 +622,8 @@ describe("編集画面", () => {
     );
     expect(materialInput?.value).toBe("綿");
     expect(container.textContent).toContain("分類");
-    expect(container.textContent).toContain("色とプレビュー");
+    expect(container.textContent).toContain("色");
+    expect(container.textContent).not.toContain("色とプレビュー");
     expect(container.textContent).toContain("利用条件・特性");
     expect(container.textContent).toContain("サイズ");
     expect(container.textContent).toContain("購入・補足");
@@ -631,6 +632,7 @@ describe("編集画面", () => {
     const pageShell = container.querySelector("main > div.mx-auto");
     expect(pageShell?.className).toContain("max-w-6xl");
     expect(container.textContent).toContain("メインカラー");
+    expect(container.textContent).not.toContain("選択中の色");
     expect(container.textContent).toContain("ブランド候補にも追加する");
     expect(container.textContent?.match(/必須/g)?.length).toBe(3);
     expect(

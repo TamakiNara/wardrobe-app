@@ -45,7 +45,6 @@ import {
 } from "@/lib/master-data/item-colors";
 import FieldLabel from "@/components/forms/field-label";
 import BrandNameField from "@/components/items/brand-name-field";
-import ColorChip from "@/components/items/color-chip";
 import ColorSelect from "@/components/items/color-select";
 import ItemImageUploader from "@/components/items/item-image-uploader";
 import ItemClassificationGroup from "@/components/items/item-classification-group";
@@ -1370,28 +1369,7 @@ export default function EditItemPage({
         }
       : undefined,
   };
-  const previewSummary =
-    selectedMainColor || selectedSubColor ? (
-      <div className="rounded-xl border border-gray-200 bg-gray-50 p-3">
-        <p className="mb-2 text-sm font-medium text-gray-700">選択中の色</p>
-        <div className="flex flex-wrap gap-2">
-          {selectedMainColor && (
-            <ColorChip
-              label={mainColorCustomLabel.trim() || selectedMainColor.label}
-              hex={selectedMainColor.hex}
-              tone="main"
-            />
-          )}
-          {selectedSubColor && (
-            <ColorChip
-              label={selectedSubColor.label}
-              hex={selectedSubColor.hex}
-              tone="sub"
-            />
-          )}
-        </div>
-      </div>
-    ) : null;
+  const previewSummary = null;
   const shouldShowDetailsSection =
     isTopsCategory || isBottomsSpecVisible || isLegwearCoverageSelectVisible;
 
@@ -2009,7 +1987,7 @@ export default function EditItemPage({
               ) : null}
             </ItemClassificationGroup>
 
-            <ItemFormSection title="色とプレビュー">
+            <ItemFormSection title="色">
               <div className="grid gap-6 md:grid-cols-2">
                 <div className="space-y-3" data-error-key="mainColor">
                   <FieldLabel
@@ -2149,33 +2127,6 @@ export default function EditItemPage({
                 </div>
               </div>
 
-              <div className="xl:hidden">
-                <ItemFormPreviewPanel
-                  compact
-                  showHeader={false}
-                  summary={previewSummary}
-                  preview={
-                    <ItemPreviewCard
-                      name={name}
-                      category={category}
-                      subcategory={subcategory}
-                      shape={shape}
-                      mainColorHex={selectedMainColor?.hex}
-                      mainColorLabel={selectedMainColor?.label}
-                      mainColorCustomLabel={mainColorCustomLabel}
-                      subColorHex={selectedSubColor?.hex}
-                      subColorLabel={selectedSubColor?.label}
-                      topsSpec={previewTopsSpec}
-                      topsSpecRaw={previewTopsSpecRaw}
-                      spec={previewSpec}
-                      images={itemImages}
-                      skinTonePreset={skinTonePreset}
-                      compact
-                      showDebugDetails={false}
-                    />
-                  }
-                />
-              </div>
               {errors.main_color_custom_label && (
                 <p className="text-sm text-red-600">
                   {errors.main_color_custom_label}
