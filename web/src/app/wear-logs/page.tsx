@@ -231,14 +231,18 @@ export default async function WearLogsPage({
   const resolvedSearchParams = await searchParams;
   const selectedMonth = normalizeMonth(resolvedSearchParams.month);
   const currentView = normalizeView(resolvedSearchParams.view);
-  const [viewData, preferences] = await Promise.all([
+  const [calendarData, wearLogsData, preferences] =
     currentView === "calendar"
-      ? getWearLogCalendar(resolvedSearchParams, selectedMonth)
-      : getWearLogs(resolvedSearchParams),
-    getWearLogThumbnailPreferences(),
-  ]);
-  const wearLogsData = currentView === "list" ? viewData : null;
-  const calendarData = currentView === "calendar" ? viewData : null;
+      ? await Promise.all([
+          getWearLogCalendar(resolvedSearchParams, selectedMonth),
+          Promise.resolve<WearLogsResponse | null>(null),
+          getWearLogThumbnailPreferences(),
+        ])
+      : await Promise.all([
+          Promise.resolve<WearLogCalendarResponse | null>(null),
+          getWearLogs(resolvedSearchParams),
+          getWearLogThumbnailPreferences(),
+        ]);
   const flashMessage =
     resolvedSearchParams.message === "deleted"
       ? "着用履歴を削除しました。"
