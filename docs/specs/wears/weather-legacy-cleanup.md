@@ -327,6 +327,8 @@ current の本線:
 - `forecast_area_code` を通常 UI の主導線からさらに外す
 - JMA code fields も「fallback 用設定」として折りたたむ
 - 天気登録画面の地域選択で legacy code を前面に出しすぎない
+- 地域設定画面では `latitude / longitude / timezone` を主表示にし、legacy code fields は `補助コード（旧API・fallback用）` として補助表示へ寄せる
+- 一覧カードでは `補助コードあり` と詳細開閉だけを残し、JMA code や旧予報コードは必要時のみ確認できるようにする
 
 ### Phase B: runtime fallback の利用状況確認
 

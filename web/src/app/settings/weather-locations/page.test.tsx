@@ -154,7 +154,7 @@ describe("SettingsWeatherLocationsPage", () => {
     globalThis.IS_REACT_ACT_ENVIRONMENT = false;
   });
 
-  it("JMA予報区域と geocoding 検索欄と座標入力欄を表示できる", async () => {
+  it("位置情報を主表示しつつ補助コードを控えめに表示できる", async () => {
     const { default: SettingsWeatherLocationsPage } = await import("./page");
 
     await act(async () => {
@@ -163,12 +163,9 @@ describe("SettingsWeatherLocationsPage", () => {
     });
 
     expect(container.textContent).toContain("天気の地域設定");
-    expect(container.textContent).toContain("JMA予報区域");
     expect(container.textContent).toContain("Open-Meteo 用の位置情報");
+    expect(container.textContent).toContain("補助コード（旧API・fallback用）");
     expect(container.textContent).toContain("地域を検索");
-    expect(
-      container.querySelector("#new-weather-location-jma-region"),
-    ).not.toBeNull();
     expect(
       container.querySelector("#new-weather-location-geocode-query"),
     ).not.toBeNull();
@@ -184,7 +181,41 @@ describe("SettingsWeatherLocationsPage", () => {
     expect(
       container.querySelector("#new-weather-location-forecast-area"),
     ).toBeNull();
+    expect(
+      container.querySelector("#new-weather-location-jma-region"),
+    ).toBeNull();
     expect(container.textContent).toContain("補助コードあり");
+  });
+
+  it("一覧カードの補助コード詳細を開閉できる", async () => {
+    const { default: SettingsWeatherLocationsPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(SettingsWeatherLocationsPage));
+      await waitForEffects();
+    });
+
+    expect(
+      container.querySelector(
+        '[data-testid="weather-location-legacy-details-2"]',
+      ),
+    ).toBeNull();
+
+    const toggleButton = container.querySelector<HTMLButtonElement>(
+      '[data-testid="weather-location-legacy-toggle-2"]',
+    );
+
+    await act(async () => {
+      toggleButton?.click();
+      await waitForEffects();
+    });
+
+    expect(
+      container.querySelector(
+        '[data-testid="weather-location-legacy-details-2"]',
+      ),
+    ).not.toBeNull();
+    expect(container.textContent).toContain("旧予報コード: 130010");
   });
 
   it("検索結果を選ぶと緯度・経度・タイムゾーンを反映できる", async () => {
@@ -401,9 +432,6 @@ describe("SettingsWeatherLocationsPage", () => {
     const defaultCheckbox = container.querySelector<HTMLInputElement>(
       'input[type="checkbox"]',
     );
-    const jmaRegionSelect = container.querySelector<HTMLSelectElement>(
-      "#new-weather-location-jma-region",
-    );
     const latitudeInput = container.querySelector<HTMLInputElement>(
       "#new-weather-location-latitude",
     );
@@ -416,6 +444,18 @@ describe("SettingsWeatherLocationsPage", () => {
     const addButton = Array.from(
       container.querySelectorAll<HTMLButtonElement>("button"),
     ).find((button) => button.textContent?.includes("地域を追加"));
+    const legacyToggle = container.querySelector<HTMLButtonElement>(
+      '[data-testid="new-weather-location-legacy-toggle"]',
+    );
+
+    await act(async () => {
+      legacyToggle?.click();
+      await waitForEffects();
+    });
+
+    const jmaRegionSelect = container.querySelector<HTMLSelectElement>(
+      "#new-weather-location-jma-region",
+    );
 
     await act(async () => {
       setInputValue(nameInput!, "新宿");
@@ -459,6 +499,12 @@ describe("SettingsWeatherLocationsPage", () => {
       editButton?.click();
       await waitForEffects();
     });
+
+    expect(
+      container.querySelector(
+        '[data-testid="edit-weather-location-legacy-fields-1"]',
+      ),
+    ).not.toBeNull();
 
     const editNameInput = container.querySelector<HTMLInputElement>(
       "#edit-weather-location-name-1",

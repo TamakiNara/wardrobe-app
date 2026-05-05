@@ -299,6 +299,14 @@ current の weather location backup / restore は、少なくとも以下を rou
 - Open-Meteo 取得は未設定扱いになる
 - legacy code fields は当面受ける
 
+### Phase A
+
+- current の主入力は `latitude / longitude / timezone`
+- 地域設定画面では Geocoding と位置情報を主表示にする
+- legacy code fields は `補助コード（旧API・fallback用）` として折りたたみ表示へ寄せる
+- 一覧カードでは `補助コードあり` 程度に留め、必要時だけ詳細を開ける
+- 既存値・保存 payload・import / export 互換は維持する
+
 ### validation
 
 - `latitude`: `-90..90`
