@@ -787,7 +787,7 @@ export default function WearLogCalendar({
                         className="text-sm font-medium text-blue-600 hover:underline"
                       >
                         {dayDetails.weatherRecords.length > 0
-                          ? "天気を編集"
+                          ? "この日の天気を編集"
                           : "天気を登録"}
                       </Link>
                     </div>
@@ -799,7 +799,7 @@ export default function WearLogCalendar({
                             key={record.id}
                             className="rounded-xl border border-gray-200 bg-white px-3 py-3"
                           >
-                            <div className="flex flex-wrap items-start justify-between gap-3">
+                            <div className="flex flex-wrap items-start gap-3">
                               <div className="flex flex-wrap items-center gap-2">
                                 <p className="text-sm font-medium text-gray-900">
                                   {record.location_name}
@@ -821,16 +821,6 @@ export default function WearLogCalendar({
                                   )}
                                 </span>
                               </div>
-                              <Link
-                                href={buildWeatherHref(
-                                  selectedDate,
-                                  pathname,
-                                  searchParams,
-                                )}
-                                className="text-xs font-medium text-blue-600 hover:underline"
-                              >
-                                編集
-                              </Link>
                             </div>
                             <div className="mt-2">
                               <WeatherRecordSummary

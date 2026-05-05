@@ -351,7 +351,12 @@ describe("WearLogCalendar", () => {
     expect(container.textContent).toContain("メモ: 日差しが強かった");
     expect(
       container.querySelectorAll('a[href*="/wear-logs/weather?"]').length,
-    ).toBe(4);
+    ).toBe(1);
+    expect(container.textContent).toContain("この日の天気を編集");
+    expect(container.textContent).not.toContain("この天気を編集");
+    expect(container.innerHTML).not.toContain(">天気を編集<");
+    expect(container.innerHTML).not.toContain(">この天気を編集<");
+    expect(container.innerHTML).not.toContain(">編集<");
 
     const modalText = container.textContent ?? "";
     expect(modalText.indexOf("川口")).toBeLessThan(modalText.indexOf("秋田"));
