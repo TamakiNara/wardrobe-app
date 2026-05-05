@@ -76,6 +76,8 @@ legacy / history の詳細:
   - backup / restore
 - [weather-open-meteo-redesign.md](./weather-open-meteo-redesign.md)
   - Open-Meteo 移行検討・旧 API 検討メモ
+- [weather-legacy-cleanup.md](./weather-legacy-cleanup.md)
+  - legacy API / fallback / code fields の棚卸しメモ
 - [weather-docs-reorganization.md](./weather-docs-reorganization.md)
   - docs 再編メモ
 
