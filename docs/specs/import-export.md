@@ -69,6 +69,21 @@ roundtrip の期待値:
 3. import / restore する
 4. 詳細 / 編集画面で `2026-05-07T23:59` として再表示される
 
+### purchase_candidates の size_details
+
+購入検討の `size_details` / `alternate_size_details` は、item 側と共通の `structured + custom_fields` 構造を使う。
+
+current:
+
+- structured template の追加だけなら、backup / restore の schema は基本維持できる
+- `size_details` のデータ構造が変わらない限り、大きな import / export 変更は不要
+- 既存 `custom_fields` を structured へ自動移行しない前提なら、旧 backup 互換は保ちやすい
+
+要再判断:
+
+- 将来、自由項目の alias 変換や migration を導入する場合は import / export 方針の再整理が必要
+- structured template 追加時に旧 backup の自由項目をどこまで補助変換するかは別途判断する
+
 ### weather_locations の roundtrip 対象
 
 current の `user_weather_locations` では、少なくとも以下を export / import 対象に含める。

@@ -1879,6 +1879,112 @@ candidate 側でも、編集画面と duplicate / color-variant draft で `sort_
 
 ---
 
+## 実寸 template 昇格方針
+
+current:
+
+- `size_details` は item / purchase candidate で共通構造を使う
+- `size_details` は `structured` と `custom_fields` に分かれる
+- `structured` は canonical key ベースの固定実寸で、category / shape ごとに field group を切り替える
+- `custom_fields` は label ベースの自由項目で、表記ゆれの影響を受けやすい
+- 実寸 template の正本は frontend の static 定義 `web/src/lib/items/size-details.ts` にある
+- purchase candidate から item 化する際も `size_details` はそのまま引き継ぐ
+
+structured template に昇格してよい候補:
+
+- 複数の購入検討で繰り返し使われている
+- item 側でも使い回されやすい
+- サイズ比較で意味がある
+- category / shape ごとに意味が安定している
+- EC サイト由来で出現頻度が高い
+- 表記ゆれを canonical label に寄せやすい
+- 将来の検索・比較・統計に使いたい
+
+structured template に昇格しない方がよい候補:
+
+- 商品固有すぎる項目
+- 同名でもカテゴリごとに意味がぶれる項目
+- 一度しか使わないメモ寄りの寸法
+- 比較表示に載せても判断材料になりにくい項目
+- canonical label を決めにくい項目
+
+表記ゆれ:
+
+- 初期は既存自由項目を自動変換しない
+- 既存 `custom_fields` はそのまま残す
+- structured template 追加は今後の入力候補にだけ効かせる
+- `着丈 / 総丈 / 丈 / 身丈` のような表記ゆれは、カテゴリ文脈なしに一律変換しない
+- canonical label を決めてから static template に追加する
+- alias 辞書を将来的に作る余地はあるが、current では未導入とする
+
+item 側との整合:
+
+- purchase candidate と item は `size_details` の構造を共有する
+- structured template 追加は item / purchase candidate 共通にするのが基本である
+- 購入検討だけで一時的に使う項目は `custom_fields` のままでもよい
+- item 側でも長期利用・比較に使う項目を structured 化する
+
+実装案の比較:
+
+- 案A: static template に手動追加
+  - 現行設計に最も合う
+  - 安全
+  - 実装が軽い
+  - テストしやすい
+  - MVP 向き
+  - 第一候補
+- 案B: よく使う自由項目を自動集計して候補表示
+  - 実データに追従しやすい
+  - 表記ゆれ、ユーザー単位、候補管理が重い
+  - planned 向き
+- 案C: 管理画面で template を編集可能にする
+  - 柔軟
+  - UI / 保存設計 / import-export まで広がる
+  - 現時点では重い
+  - 将来候補
+
+推奨:
+
+- まずは案Aを採用する
+- 既存自由項目を migration や自動変換で structured へ寄せるのではなく、shared static template を段階的に増やす
+
+初期 template 追加候補:
+
+- トップス
+  - 既存にある: `肩幅` / `身幅` / `着丈` / `袖丈` / `首周り` / `袖幅` / `袖口幅`
+  - 追加候補: `裄丈` / `バスト`
+- ボトムス
+  - 既存確認対象: `ウエスト` / `ヒップ` / `股上` / `股下` / `わたり幅` / `裾幅` / `総丈` / `スカート丈`
+  - 多くは既存 structured にあるため、現時点の追加候補は少なめ
+- ワンピース
+  - 再判断候補: `ウエスト` / `ヒップ` / `裾幅` / `袖丈`
+- 靴
+  - structured group を作るなら有力候補: `ヒール高` / `筒丈` / `筒周り` / `足囲`
+- バッグ
+  - 既存にある: `高さ` / `幅` / `マチ`
+  - 追加候補: `持ち手` / `ショルダー長さ`
+
+UI への影響:
+
+- structured field を増やすと入力欄が増える
+- 現状でもサイズ・実寸フォームは重くなりやすい
+- 無制限に追加せず、category / shape ごとに本当に必要な項目だけ増やす
+- 現在の「範囲入力は必要時だけ開く」方針と組み合わせて運用する
+- 追加後に重くなる場合は、表示優先度や折りたたみの再検討が必要になる
+
+実装する場合の次ステップ:
+
+1. 既存 structured field と追加候補の重複を確認する
+2. canonical label を決める
+3. category / shape group ごとの追加対象を決める
+4. `web/src/lib/items/size-details.ts` の static template に追加する
+5. item 登録 / 編集 / purchase candidate 登録 / 編集で表示確認する
+6. size comparison に自然に載るか確認する
+7. docs を更新する
+8. 必要なら alias 補助や頻出自由項目集計を planned 化する
+
+---
+
 ## 複数サイズ候補
 
 current:
