@@ -184,11 +184,11 @@ export default function PurchaseCandidateSizeComparison({
           </div>
 
           {hasAnySizeNotes ? (
-            <div className="grid gap-3 md:grid-cols-2">
+            <div className="space-y-3">
               {candidateNotes.map((option) => (
                 <div
                   key={option.key}
-                  className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3"
                 >
                   <p className="text-xs font-medium text-slate-500">
                     {option.label}
@@ -199,7 +199,7 @@ export default function PurchaseCandidateSizeComparison({
                 </div>
               ))}
               {itemSizeNote !== "" ? (
-                <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                <div className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
                   <p className="text-xs font-medium text-slate-500">
                     {itemSizeNoteHeading}
                   </p>
