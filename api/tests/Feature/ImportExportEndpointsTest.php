@@ -375,6 +375,8 @@ class ImportExportEndpointsTest extends TestCase
             ->assertJsonPath('purchase_candidates.0.sheerness', 'slight')
             ->assertJsonPath('purchase_candidates.0.shape', 'blouse')
             ->assertJsonPath('purchase_candidates.0.name', '購入候補シャツ')
+            ->assertJsonPath('purchase_candidates.0.sale_ends_at', '2026-05-20T12:00')
+            ->assertJsonPath('purchase_candidates.0.discount_ends_at', '2026-05-01T12:00')
             ->assertJsonPath('outfits.0.name', '通勤コーデ')
             ->assertJsonPath('weather_locations.0.name', '川口')
             ->assertJsonPath('weather_locations.0.jma_forecast_region_code', '110010')
@@ -528,6 +530,8 @@ class ImportExportEndpointsTest extends TestCase
         $this->assertSame('blouse', $importedCandidate->shape);
         $this->assertSame('麻', $importedCandidate->materials->first()?->material_name);
         $this->assertSame($importedItem->id, $importedCandidate->converted_item_id);
+        $this->assertSame('2026-05-20 12:00:00', $importedCandidate->sale_ends_at?->format('Y-m-d H:i:s'));
+        $this->assertSame('2026-05-01 12:00:00', $importedCandidate->discount_ends_at?->format('Y-m-d H:i:s'));
         $this->assertSame($importedItem->id, $importedOutfit->outfitItems->first()?->item_id);
         $this->assertTrue($importedWeatherLocation->is_default);
         $this->assertSame('110010', $importedWeatherLocation->jma_forecast_region_code);
@@ -578,6 +582,8 @@ class ImportExportEndpointsTest extends TestCase
             'Accept' => 'application/json',
         ])->assertOk()
             ->assertJsonPath('purchaseCandidate.name', '購入候補シャツ')
+            ->assertJsonPath('purchaseCandidate.sale_ends_at', '2026-05-20T12:00')
+            ->assertJsonPath('purchaseCandidate.discount_ends_at', '2026-05-01T12:00')
             ->assertJsonPath('purchaseCandidate.images.0.original_filename', 'source-candidate.png')
             ->assertJsonPath('purchaseCandidate.sheerness', 'slight')
             ->assertJsonPath('purchaseCandidate.spec.tops.sleeve', 'long');
@@ -1634,6 +1640,88 @@ class ImportExportEndpointsTest extends TestCase
         $this->assertSame('ジャスト', $importedCandidate->alternate_size_note);
         $this->assertSame(64, data_get($importedCandidate->alternate_size_details, 'structured.body_length.value'));
         $this->assertSame('裄丈', data_get($importedCandidate->alternate_size_details, 'custom_fields.0.label'));
+    }
+
+    public function test_import_accepts_legacy_purchase_candidate_deadline_iso_strings(): void
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->create();
+        $this->createCategory('tops_shirt_blouse', 'tops', 'シャツ・ブラウス');
+        $this->seedExportSourceData($user);
+
+        $this->actingAs($user, 'web');
+
+        $exportPayload = $this->getJson('/api/export', [
+            'Accept' => 'application/json',
+        ])->assertOk()->json();
+
+        $exportPayload['purchase_candidates'][0]['sale_ends_at'] = '2026-05-07T14:59:00.000000Z';
+        $exportPayload['purchase_candidates'][0]['discount_ends_at'] = '2026-05-08T08:59:00+09:00';
+
+        PurchaseCandidate::query()->delete();
+
+        $token = $this->issueCsrfToken();
+
+        $this->postJson('/api/import', $exportPayload, [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ])->assertOk();
+
+        $importedCandidate = PurchaseCandidate::query()
+            ->where('user_id', $user->id)
+            ->where('name', '購入候補シャツ')
+            ->sole();
+
+        $this->assertSame('2026-05-07 23:59:00', $importedCandidate->sale_ends_at?->format('Y-m-d H:i:s'));
+        $this->assertSame('2026-05-08 08:59:00', $importedCandidate->discount_ends_at?->format('Y-m-d H:i:s'));
+
+        $this->getJson("/api/purchase-candidates/{$importedCandidate->id}", [
+            'Accept' => 'application/json',
+        ])->assertOk()
+            ->assertJsonPath('purchaseCandidate.sale_ends_at', '2026-05-07T23:59')
+            ->assertJsonPath('purchaseCandidate.discount_ends_at', '2026-05-08T08:59');
+    }
+
+    public function test_import_roundtrip_preserves_purchase_candidate_local_deadline_strings(): void
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->create();
+        $this->createCategory('tops_shirt_blouse', 'tops', 'シャツ・ブラウス');
+        $this->seedExportSourceData($user);
+
+        $this->actingAs($user, 'web');
+
+        $exportPayload = $this->getJson('/api/export', [
+            'Accept' => 'application/json',
+        ])->assertOk()->json();
+
+        $exportPayload['purchase_candidates'][0]['sale_ends_at'] = '2026-05-07T23:59';
+        $exportPayload['purchase_candidates'][0]['discount_ends_at'] = '2026-05-08T08:59';
+
+        PurchaseCandidate::query()->delete();
+
+        $token = $this->issueCsrfToken();
+
+        $this->postJson('/api/import', $exportPayload, [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ])->assertOk();
+
+        $importedCandidate = PurchaseCandidate::query()
+            ->where('user_id', $user->id)
+            ->where('name', '購入候補シャツ')
+            ->sole();
+
+        $this->assertSame('2026-05-07 23:59:00', $importedCandidate->sale_ends_at?->format('Y-m-d H:i:s'));
+        $this->assertSame('2026-05-08 08:59:00', $importedCandidate->discount_ends_at?->format('Y-m-d H:i:s'));
+
+        $this->getJson("/api/purchase-candidates/{$importedCandidate->id}", [
+            'Accept' => 'application/json',
+        ])->assertOk()
+            ->assertJsonPath('purchaseCandidate.sale_ends_at', '2026-05-07T23:59')
+            ->assertJsonPath('purchaseCandidate.discount_ends_at', '2026-05-08T08:59');
     }
 
     public function test_import_accepts_legacy_weather_condition_field(): void

@@ -1590,6 +1590,8 @@ candidate 側でも、編集画面と duplicate / color-variant draft で `sort_
 - `sale_ends_at` / `discount_ends_at` はリセットボタンで空に戻せるようにし、保存時は `null` 相当で送る
 - `sale_ends_at` / `discount_ends_at` は UI / API ともに `YYYY-MM-DDTHH:mm` 形式のローカル日時として扱い、日本時間で入力した値をそのまま再表示する
 - 一覧 / 詳細 / 編集では、保存済みの期限系日時を日本時間の壁時計時刻として表示し、UTC 変換で 9 時間ずれないことを優先する
+- backup / restore でも `sale_ends_at` / `discount_ends_at` は `YYYY-MM-DDTHH:mm` を正本とし、timezone なしの Asia/Tokyo ローカル日時として roundtrip する
+- 旧 backup に timezone 付き ISO 文字列が入っている場合は legacy 互換として受け、restore 時に Asia/Tokyo の `YYYY-MM-DDTHH:mm` へ正規化する
 - `purchased` の candidate では `memo` / `wanted_reason` / `priority` / `release_date` / `sale_price` / `sale_ends_at` / `discount_ends_at` / `purchase_url` を編集可とし、その他の項目は編集不可とする
 - `purchased` 後も画像追加 / 削除は画像 API で扱える
 

@@ -21,9 +21,21 @@ use App\Support\ItemSpecPayloadSupport;
 use App\Support\ItemSubcategorySupport;
 use App\Support\WeatherLocationPayloadBuilder;
 use App\Support\WeatherRecordPayloadBuilder;
+use Carbon\CarbonInterface;
 
 class ExportService
 {
+    private function formatTokyoLocalDateTime(?CarbonInterface $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        return $value
+            ->avoidMutation()
+            ->format('Y-m-d\TH:i');
+    }
+
     public function export(User $user): array
     {
         return [
@@ -177,8 +189,8 @@ class ExportService
             'price' => $candidate->price,
             'release_date' => $candidate->release_date?->toDateString(),
             'sale_price' => $candidate->sale_price,
-            'sale_ends_at' => $candidate->sale_ends_at?->toISOString(),
-            'discount_ends_at' => $candidate->discount_ends_at?->toISOString(),
+            'sale_ends_at' => $this->formatTokyoLocalDateTime($candidate->sale_ends_at),
+            'discount_ends_at' => $this->formatTokyoLocalDateTime($candidate->discount_ends_at),
             'purchase_url' => $candidate->purchase_url,
             'memo' => $candidate->memo,
             'wanted_reason' => $candidate->wanted_reason,

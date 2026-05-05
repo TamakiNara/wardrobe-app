@@ -22,6 +22,7 @@ use App\Support\ImportExportValidationSupport;
 use App\Support\ItemSubcategorySupport;
 use App\Support\SkinTonePresetSupport;
 use App\Support\TpoSelectionResolver;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -32,6 +33,43 @@ class ImportService
         private readonly PurchaseCandidateService $purchaseCandidateService,
         private readonly UserTpoService $userTpoService,
     ) {}
+
+    private function normalizePurchaseCandidateLocalDateTime(mixed $value): ?string
+    {
+        if (! is_string($value)) {
+            return null;
+        }
+
+        $trimmed = trim($value);
+        if ($trimmed === '') {
+            return null;
+        }
+
+        if (preg_match('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/', $trimmed) === 1) {
+            return $trimmed;
+        }
+
+        return CarbonImmutable::parse($trimmed)
+            ->setTimezone('Asia/Tokyo')
+            ->format('Y-m-d\TH:i');
+    }
+
+    /**
+     * @param  array<string, mixed>  $candidatePayload
+     * @return array<string, mixed>
+     */
+    private function normalizeImportedPurchaseCandidatePayload(array $candidatePayload): array
+    {
+        foreach (['sale_ends_at', 'discount_ends_at'] as $field) {
+            if (array_key_exists($field, $candidatePayload)) {
+                $candidatePayload[$field] = $this->normalizePurchaseCandidateLocalDateTime(
+                    $candidatePayload[$field]
+                );
+            }
+        }
+
+        return $candidatePayload;
+    }
 
     /**
      * @param  array<string, mixed>  $payload
@@ -220,6 +258,8 @@ class ImportService
 
                 $groupIdMap = [];
                 foreach ($validatedCandidates as $candidatePayload) {
+                    $candidatePayload = $this->normalizeImportedPurchaseCandidatePayload($candidatePayload);
+
                     $candidate = $this->purchaseCandidateService->store($user, array_merge($candidatePayload, [
                         'duplicate_images' => [],
                     ]));

@@ -32,6 +32,43 @@ weather 関連でここで扱うデータ:
 
 ## current
 
+### purchase_candidates の期限系日時
+
+購入検討の `sale_ends_at` / `discount_ends_at` は、通常 UI / 通常 API と同じく backup / restore でも **Asia/Tokyo のローカル日時文字列** を正本とする。
+
+current 正本形式:
+
+- `YYYY-MM-DDTHH:mm`
+- timezone なし
+- 画面で入力・確認する壁時計時刻をそのまま roundtrip する
+
+例:
+
+```json
+{
+  "sale_ends_at": "2026-05-07T23:59",
+  "discount_ends_at": "2026-05-07T23:59"
+}
+```
+
+export 方針:
+
+- DB 上の日時は export 時に `YYYY-MM-DDTHH:mm` へ整形する
+- `2026-05-07T14:59:00.000000Z` や `2026-05-08T08:59:00+09:00` のような timezone 付き ISO 文字列は current export では使わない
+
+import 方針:
+
+- current 形式として `YYYY-MM-DDTHH:mm` を受ける
+- 旧 backup 互換として timezone 付き ISO 文字列も受けてよい
+- timezone 付き ISO を受けた場合は、restore 時に Asia/Tokyo の `YYYY-MM-DDTHH:mm` へ正規化する
+
+roundtrip の期待値:
+
+1. 通常 UI で `2026-05-07T23:59` を保存する
+2. backup を export する
+3. import / restore する
+4. 詳細 / 編集画面で `2026-05-07T23:59` として再表示される
+
 ### weather_locations の roundtrip 対象
 
 current の `user_weather_locations` では、少なくとも以下を export / import 対象に含める。
