@@ -77,8 +77,8 @@ function hasAnySizeDetails(sizeDetails: unknown) {
   const normalized = normalizeItemSizeDetails(sizeDetails);
   const hasStructured = Boolean(
     normalized?.structured &&
-    Object.keys(normalized.structured).some(
-      (fieldName) => normalized.structured?.[fieldName] !== undefined,
+    Object.values(normalized.structured).some(
+      (fieldValue) => fieldValue !== undefined,
     ),
   );
   const hasCustom = Boolean(normalized?.custom_fields?.length);
