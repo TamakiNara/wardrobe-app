@@ -2912,6 +2912,10 @@ class ItemsEndpointsTest extends TestCase
         Storage::fake('public');
 
         $user = User::factory()->create();
+        $workTpo = $this->createUserTpo($user, [
+            'name' => '仕事',
+            'sort_order' => 1,
+        ]);
         $group = ItemGroup::query()->create([
             'user_id' => $user->id,
         ]);
@@ -2926,6 +2930,8 @@ class ItemsEndpointsTest extends TestCase
             'brand_name' => 'Source Brand',
             'is_rain_ok' => true,
             'sheerness' => 'slight',
+            'tpos' => [],
+            'tpo_ids' => [$workTpo->id],
         ]);
         $item->materials()->createMany($this->buildMaterialsPayload());
 
@@ -2952,6 +2958,7 @@ class ItemsEndpointsTest extends TestCase
             ->assertJsonPath('item.purchased_at', '2026-04-20')
             ->assertJsonPath('item.images.0.path', 'items/source/source.png')
             ->assertJsonPath('item.colors.0.value', 'white')
+            ->assertJsonPath('item.tpo_ids.0', $workTpo->id)
             ->assertJsonMissingPath('item.group_id')
             ->assertJsonMissingPath('item.group_order')
             ->assertJsonMissingPath('item.care_status')
@@ -2965,12 +2972,22 @@ class ItemsEndpointsTest extends TestCase
         Storage::fake('public');
 
         $user = User::factory()->create();
+        $workTpo = $this->createUserTpo($user, [
+            'name' => '仕事',
+            'sort_order' => 1,
+        ]);
+        $holidayTpo = $this->createUserTpo($user, [
+            'name' => '休日',
+            'sort_order' => 2,
+        ]);
         $item = $this->createItem($user, [
             'status' => 'disposed',
             'price' => 9900,
             'purchase_url' => 'https://example.test/items/source-variant',
             'memo' => 'variant memo',
             'purchased_at' => '2026-04-18',
+            'tpos' => [],
+            'tpo_ids' => [$workTpo->id, $holidayTpo->id],
         ]);
 
         Storage::disk('public')->put('items/source/variant.png', 'variant-image');
@@ -2995,6 +3012,8 @@ class ItemsEndpointsTest extends TestCase
             ->assertJsonPath('item.memo', 'variant memo')
             ->assertJsonPath('item.images.0.path', 'items/source/variant.png')
             ->assertJsonCount(0, 'item.colors')
+            ->assertJsonPath('item.tpo_ids.0', $workTpo->id)
+            ->assertJsonPath('item.tpo_ids.1', $holidayTpo->id)
             ->assertJsonMissingPath('item.group_id')
             ->assertJsonMissingPath('item.group_order')
             ->assertJsonMissingPath('item.care_status');

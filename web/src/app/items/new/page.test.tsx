@@ -3426,7 +3426,7 @@ describe("新規登録画面", () => {
         ],
         seasons: ["spring"],
         tpos: ["office"],
-        tpo_ids: [],
+        tpo_ids: [1],
         materials: [],
         spec: null,
         images: [],
@@ -3465,6 +3465,9 @@ describe("新規登録画面", () => {
     const memoInput = container.querySelector<HTMLTextAreaElement>("#memo");
     const purchaseUrlInput =
       container.querySelector<HTMLInputElement>("#purchase-url");
+    const workTpoButton = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button"),
+    ).find((button) => button.textContent?.includes("仕事"));
     const form = container.querySelector("form");
     const inheritedHintIcons = container.querySelectorAll(
       '[aria-label="元データから引き継いだため確認してください"]',
@@ -3474,6 +3477,7 @@ describe("新規登録画面", () => {
     expect(priceInput?.value).toBe("12000");
     expect(purchasedAtInput?.value).toBe("2026-05-01");
     expect(memoInput?.value).toBe("duplicate memo");
+    expect(workTpoButton?.getAttribute("aria-pressed")).toBe("true");
     expect(inheritedHintIcons).toHaveLength(3);
     expect(priceInput?.closest(".rounded-xl")?.className).toContain(
       "bg-amber-50",
@@ -3501,6 +3505,7 @@ describe("新規登録画面", () => {
     const [, requestInit] = fetchMock.mock.calls[0];
     const payload = JSON.parse(requestInit.body as string);
     expect(payload.variant_source_item_id).toBe(5);
+    expect(payload.tpo_ids).toEqual([1]);
   });
 
   it("color-variant 起点では色を空にし、値がある項目だけ注意表示する", async () => {
@@ -3527,7 +3532,7 @@ describe("新規登録画面", () => {
         colors: [],
         seasons: ["spring"],
         tpos: ["office"],
-        tpo_ids: [],
+        tpo_ids: [1, 2],
         materials: [],
         spec: null,
         images: [
@@ -3570,6 +3575,12 @@ describe("新規登録画面", () => {
     const mainColorCustomLabel = container.querySelector<HTMLInputElement>(
       "#main_color_custom_label",
     );
+    const workTpoButton = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button"),
+    ).find((button) => button.textContent?.includes("仕事"));
+    const holidayTpoButton = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button"),
+    ).find((button) => button.textContent?.includes("休日"));
     const inheritedHintIcons = container.querySelectorAll(
       '[aria-label="元データから引き継いだため確認してください"]',
     );
@@ -3577,6 +3588,8 @@ describe("新規登録画面", () => {
     expect(mainColorCustomLabel?.value).toBe("");
     expect(mainColorCustomLabel?.disabled).toBe(true);
     expect(memoInput?.value).toBe("");
+    expect(workTpoButton?.getAttribute("aria-pressed")).toBe("true");
+    expect(holidayTpoButton?.getAttribute("aria-pressed")).toBe("true");
     expect(
       container.querySelector('[data-error-key="mainColor"]')?.className,
     ).toContain("border-sky-200");

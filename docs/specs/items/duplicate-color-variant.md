@@ -178,7 +178,8 @@ item 詳細画面から行う「複製」「色違い追加」の仕様を整理
 - size_details
 - materials
 - seasons
-- tpos
+- tpo_ids
+- tpos（表示名の互換値。current の新規 form 初期選択は `tpo_ids` を正本として復元する）
 - sheerness
 - is_rain_ok
 - purchase_url

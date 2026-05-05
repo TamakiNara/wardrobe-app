@@ -522,6 +522,7 @@ export default function NewItemPage() {
       colors: ItemFormColor[];
       seasons: string[];
       tpos: string[];
+      tpoIds?: number[];
       materials: CreateItemPayload["materials"];
       spec?: CreateItemPayload["spec"];
     }) => {
@@ -612,7 +613,7 @@ export default function NewItemPage() {
       );
       setSelectedSeasons(draft.seasons);
       setDraftTpoNames(draft.tpos);
-      setSelectedTpoIds([]);
+      setSelectedTpoIds(draft.tpoIds ?? []);
       setMaterialRows(buildEditableItemMaterials(draft.materials ?? []));
       applyDraftColors(draft.colors);
     },
@@ -702,6 +703,7 @@ export default function NewItemPage() {
       colors: draft.colors,
       seasons: draft.seasons,
       tpos: draft.tpos ?? [],
+      tpoIds: draft.tpo_ids ?? [],
       materials: draft.materials ?? [],
       spec: draft.spec ?? null,
     });
