@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { buildPageMetadata } from "@/lib/metadata";
 import PurchaseCandidateListCard from "@/components/purchase-candidates/purchase-candidate-list-card";
 import PurchaseCandidateListFilters from "@/components/purchase-candidates/purchase-candidate-list-filters";
 import { IndexPageHeader } from "@/components/shared/index-page-header";
@@ -13,6 +14,8 @@ import type {
   PurchaseCandidatesResponse,
 } from "@/types/purchase-candidates";
 import type { UserBrandRecord } from "@/types/settings";
+
+export const metadata = buildPageMetadata("下着の購入検討一覧");
 
 type PurchaseCandidatesPageSearchParams = Record<
   string,

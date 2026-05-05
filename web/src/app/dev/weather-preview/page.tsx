@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { buildPageMetadata } from "@/lib/metadata";
 import WeatherGlyph from "@/components/weather/weather-glyph";
 import {
   getWeatherCodeDefinition,
@@ -18,6 +19,8 @@ import {
   getWeatherMainIconToneClassName,
   WEATHER_ACCESSORY_ICON_TONE_CLASS_NAME,
 } from "@/lib/weather/weather-visuals";
+
+export const metadata = buildPageMetadata("天気表示プレビュー");
 
 function InfoChip({
   children,
@@ -172,10 +175,6 @@ export default function WeatherPreviewPage() {
                         </div>
                       ) : definition.code === "cloudy" ? (
                         <span>weather_code は cloudy、アイコン名は Cloud</span>
-                      ) : definition.code === "thunder" ? (
-                        <span>
-                          雷は thunder として分け、CloudLightning を優先
-                        </span>
                       ) : definition.code === "fog" ? (
                         <span>霧は fog として分け、CloudFog を使う</span>
                       ) : definition.code === "windy" ? (

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { buildPageMetadata } from "@/lib/metadata";
 import PurchaseCandidateColorVariantAction from "@/components/purchase-candidates/purchase-candidate-color-variant-action";
 import PurchaseCandidateDetailImages from "@/components/purchase-candidates/purchase-candidate-detail-images";
 import PurchaseCandidateDuplicateAction from "@/components/purchase-candidates/purchase-candidate-duplicate-action";
@@ -40,6 +41,8 @@ import type {
   PurchaseCandidateStatus,
 } from "@/types/purchase-candidates";
 
+export const metadata = buildPageMetadata("購入検討詳細");
+
 function formatPrice(price: number | null): string {
   if (price === null) {
     return "未設定";
@@ -48,11 +51,11 @@ function formatPrice(price: number | null): string {
   return `${price.toLocaleString("ja-JP")}円`;
 }
 
-function formatDateTime(value: string | null): string {
+function formatDateTime(value: string | null | undefined): string {
   return formatPurchaseCandidateDateTime(value, "long");
 }
 
-function formatDate(value: string | null): string {
+function formatDate(value: string | null | undefined): string {
   if (!value) {
     return "未設定";
   }

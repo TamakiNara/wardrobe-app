@@ -1,5 +1,6 @@
 ﻿import Link from "next/link";
 import { redirect } from "next/navigation";
+import { buildPageMetadata } from "@/lib/metadata";
 import ItemCareStatusAction from "@/components/items/item-care-status-action";
 import ItemDuplicateActions from "@/components/items/item-duplicate-actions";
 import ItemStatusAction from "@/components/items/item-status-action";
@@ -44,6 +45,10 @@ import {
 import { fetchLaravelWithCookie } from "@/lib/server/laravel";
 import type { ItemRecord } from "@/types/items";
 import type { SkinTonePreset } from "@/types/settings";
+
+export const metadata = buildPageMetadata("アイテム詳細");
+
+type ItemGroupItem = NonNullable<ItemRecord["group_items"]>[number];
 
 async function getItem(id: string): Promise<ItemRecord> {
   const res = await fetchLaravelWithCookie(`/api/items/${id}`);
@@ -152,11 +157,11 @@ function getItemGroupStatusBadgeClass(status: ItemRecord["status"]): string {
   return "border-slate-200 bg-slate-50 text-slate-500";
 }
 
-function resolveGroupItemColor(item: ItemRecord["group_items"][number]) {
+function resolveGroupItemColor(item: ItemGroupItem) {
   return item.colors.find((color) => color.role === "main") ?? item.colors[0];
 }
 
-function resolveGroupItemColorLabel(item: ItemRecord["group_items"][number]) {
+function resolveGroupItemColorLabel(item: ItemGroupItem) {
   const color = resolveGroupItemColor(item);
 
   if (!color) {

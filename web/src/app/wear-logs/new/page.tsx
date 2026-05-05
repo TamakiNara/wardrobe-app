@@ -1,8 +1,11 @@
 import Link from "next/link";
+import { buildPageMetadata } from "@/lib/metadata";
 import WearLogForm from "@/components/wear-logs/wear-log-form";
 import { FormPageHeader } from "@/components/shared/form-page-header";
 import { fetchLaravelWithCookie } from "@/lib/server/laravel";
 import { redirect } from "next/navigation";
+
+export const metadata = buildPageMetadata("着用履歴登録");
 
 type PreferencesResponse = {
   preferences?: {

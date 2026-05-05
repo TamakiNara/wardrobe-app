@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { buildPageMetadata } from "@/lib/metadata";
 import DeleteOutfitButton from "@/components/outfits/delete-outfit-button";
 import OutfitColorThumbnail from "@/components/outfits/outfit-color-thumbnail";
 import OutfitDuplicateAction from "@/components/outfits/outfit-duplicate-action";
@@ -10,6 +11,8 @@ import { DEFAULT_SKIN_TONE_PRESET } from "@/lib/master-data/skin-tone-presets";
 import { fetchLaravelWithCookie } from "@/lib/server/laravel";
 import type { ItemFormColor, ItemSpec } from "@/types/items";
 import type { SkinTonePreset } from "@/types/settings";
+
+export const metadata = buildPageMetadata("コーディネート詳細");
 
 type OutfitItem = {
   id: number;

@@ -1,8 +1,11 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { buildPageMetadata } from "@/lib/metadata";
 import InvalidOutfitsList from "@/components/outfits/invalid-outfits-list";
 import { OutfitsPageHeader } from "@/components/outfits/outfits-page-header";
 import { fetchLaravelWithCookie } from "@/lib/server/laravel";
+
+export const metadata = buildPageMetadata("無効なコーディネート");
 
 type Outfit = {
   id: number;

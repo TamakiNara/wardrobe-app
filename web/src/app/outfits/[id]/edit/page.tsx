@@ -31,7 +31,7 @@ import type { CreateOutfitPayload } from "@/types/outfits";
 import type { ItemRecord } from "@/types/items";
 import { SEASON_OPTIONS } from "@/lib/master-data/item-attributes";
 import { mapPreferenceSeasonToFilterValue } from "@/lib/settings/preferences";
-import type { UserTpoRecord } from "@/types/settings";
+import type { UserPreferencesResponse, UserTpoRecord } from "@/types/settings";
 
 type Item = ItemRecord;
 
@@ -119,7 +119,17 @@ export default function EditOutfitPage({
           fetchAllPaginatedCandidates<Item, "items">("/api/items", "items"),
           fetchCategoryVisibilitySettings().catch(() => null),
           fetchUserTpos(true).catch(() => ({ tpos: [] as UserTpoRecord[] })),
-          fetchUserPreferences().catch(() => ({ preferences: {} })),
+          fetchUserPreferences().catch(
+            (): UserPreferencesResponse =>
+              ({
+                preferences: {
+                  currentSeason: null,
+                  defaultWearLogStatus: null,
+                  calendarWeekStart: null,
+                  skinTonePreset: "neutral_medium",
+                },
+              }) satisfies UserPreferencesResponse,
+          ),
         ]);
 
         if (outfitRes.status === 401 || itemsResponse.status === 401) {
@@ -591,7 +601,7 @@ export default function EditOutfitPage({
                   tpo={itemFilterTpo}
                   categoryOptions={itemCategoryOptions}
                   brandOptions={itemBrandOptions}
-                  seasonOptions={SEASON_OPTIONS}
+                  seasonOptions={[...SEASON_OPTIONS]}
                   tpoOptions={itemTpoFilterOptions}
                   onKeywordChange={setItemFilterKeyword}
                   onBrandChange={setItemFilterBrand}

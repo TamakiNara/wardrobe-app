@@ -1,6 +1,9 @@
 import Link from "next/link";
+import { buildPageMetadata } from "@/lib/metadata";
 import PurchaseCandidateForm from "@/components/purchase-candidates/purchase-candidate-form";
 import { FormPageHeader } from "@/components/shared/form-page-header";
+
+export const metadata = buildPageMetadata("購入検討登録");
 
 type NewPurchaseCandidatePageSearchParams = Record<
   string,

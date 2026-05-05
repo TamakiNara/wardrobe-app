@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { buildPageMetadata } from "@/lib/metadata";
 import { IndexPageHeader } from "@/components/shared/index-page-header";
 import WearLogCalendar from "@/components/wear-logs/wear-log-calendar";
 import WearLogColorThumbnail from "@/components/wear-logs/wear-log-color-thumbnail";
@@ -18,6 +19,8 @@ import type {
   WearLogCalendarResponse,
   WearLogsResponse,
 } from "@/types/wear-logs";
+
+export const metadata = buildPageMetadata("着用履歴カレンダー");
 
 type WearLogsPageSearchParams = Record<string, string | string[] | undefined>;
 type WearLogsView = "calendar" | "list";

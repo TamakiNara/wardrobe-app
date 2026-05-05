@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { buildPageMetadata } from "@/lib/metadata";
 import { OutfitsPageHeader } from "@/components/outfits/outfits-page-header";
 import OutfitsList from "@/components/outfits/outfits-list";
 import { DEFAULT_SKIN_TONE_PRESET } from "@/lib/master-data/skin-tone-presets";
@@ -7,6 +8,8 @@ import { mapPreferenceSeasonToFilterValue } from "@/lib/settings/preferences";
 import { fetchLaravelWithCookie } from "@/lib/server/laravel";
 import type { ItemSpec } from "@/types/items";
 import type { SkinTonePreset } from "@/types/settings";
+
+export const metadata = buildPageMetadata("コーディネート一覧");
 
 type OutfitItem = {
   id: number;

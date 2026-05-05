@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { buildPageMetadata } from "@/lib/metadata";
 import WeatherRecordSummary from "@/components/weather/weather-record-summary";
 import DeleteWearLogButton from "@/components/wear-logs/delete-wear-log-button";
 import WearLogStatusAction from "@/components/wear-logs/wear-log-status-action";
@@ -15,6 +16,8 @@ import {
   splitWearLogFeedbackTags,
 } from "@/lib/wear-logs/labels";
 import type { WearLogRecord } from "@/types/wear-logs";
+
+export const metadata = buildPageMetadata("着用履歴詳細");
 
 function getItemSourceTypeLabel(itemSourceType: "outfit" | "manual"): string {
   return itemSourceType === "outfit" ? "コーディネート由来" : "手動追加";

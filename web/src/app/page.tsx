@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { buildPageMetadata } from "@/lib/metadata";
 import {
   CalendarDays,
   LogIn,
@@ -12,6 +13,8 @@ import {
 import LogoutButton from "@/components/auth/logout-button";
 import { fetchAuthenticatedUser } from "@/lib/server/auth";
 import { fetchHomeSummary } from "@/lib/server/home-summary";
+
+export const metadata = buildPageMetadata("ホーム", "ホーム画面です。");
 
 export default async function Home() {
   const user = await fetchAuthenticatedUser();

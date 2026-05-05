@@ -1,7 +1,10 @@
 import Link from "next/link";
+import { buildPageMetadata } from "@/lib/metadata";
 import DeleteWearLogButton from "@/components/wear-logs/delete-wear-log-button";
 import WearLogForm from "@/components/wear-logs/wear-log-form";
 import { FormPageHeader } from "@/components/shared/form-page-header";
+
+export const metadata = buildPageMetadata("着用履歴編集");
 
 export default async function EditWearLogPage({
   params,

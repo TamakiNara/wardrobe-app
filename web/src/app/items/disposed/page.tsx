@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { buildPageMetadata } from "@/lib/metadata";
 import ItemThumbnailPreview from "@/components/items/item-thumbnail-preview";
 import { ItemsPageHeader } from "@/components/items/items-page-header";
 import { resolveCurrentItemCategoryValue } from "@/lib/api/categories";
@@ -16,6 +17,8 @@ import {
 import { fetchLaravelWithCookie } from "@/lib/server/laravel";
 import type { ItemRecord } from "@/types/items";
 import type { SkinTonePreset } from "@/types/settings";
+
+export const metadata = buildPageMetadata("処分済みアイテム");
 
 type DisposedItemsPageSearchParams = Record<
   string,

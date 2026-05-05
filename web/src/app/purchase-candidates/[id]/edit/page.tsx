@@ -1,7 +1,10 @@
 import Link from "next/link";
+import { buildPageMetadata } from "@/lib/metadata";
 import DeletePurchaseCandidateButton from "@/components/purchase-candidates/delete-purchase-candidate-button";
 import PurchaseCandidateForm from "@/components/purchase-candidates/purchase-candidate-form";
 import { FormPageHeader } from "@/components/shared/form-page-header";
+
+export const metadata = buildPageMetadata("購入検討編集");
 
 export default async function EditPurchaseCandidatePage({
   params,

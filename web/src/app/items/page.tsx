@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { buildPageMetadata } from "@/lib/metadata";
 import { ItemsPageHeader } from "@/components/items/items-page-header";
 import { UnderwearIcon } from "@/components/shared/underwear-icon";
 import ItemsList from "@/components/items/items-list";
@@ -10,6 +11,8 @@ import { mapPreferenceSeasonToFilterValue } from "@/lib/settings/preferences";
 import type { CategoryGroupRecord, CategoryOption } from "@/types/categories";
 import type { ItemRecord } from "@/types/items";
 import type { SkinTonePreset } from "@/types/settings";
+
+export const metadata = buildPageMetadata("アイテム一覧");
 
 type ItemsPageSearchParams = Record<string, string | string[] | undefined>;
 
