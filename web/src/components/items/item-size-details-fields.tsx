@@ -10,7 +10,10 @@ import type {
   EditableSizeDetailValue,
   StructuredSizeFieldDefinition,
 } from "@/lib/items/size-details";
-import { formatSizeDetailValue } from "@/lib/items/size-details";
+import {
+  formatSizeDetailValue,
+  normalizeEditableSizeDetailValue,
+} from "@/lib/items/size-details";
 import type {
   ItemSizeDetailValue,
   StructuredSizeFieldName,
@@ -75,9 +78,13 @@ export default function ItemSizeDetailsFields({
           return null;
         }
 
-        const formattedValue = formatSizeDetailValue(
-          fieldValue as ItemSizeDetailValue,
-        );
+        const normalizedFieldValue =
+          normalizeEditableSizeDetailValue(fieldValue);
+        if (!normalizedFieldValue) {
+          return null;
+        }
+
+        const formattedValue = formatSizeDetailValue(normalizedFieldValue);
         if (!formattedValue) {
           return null;
         }

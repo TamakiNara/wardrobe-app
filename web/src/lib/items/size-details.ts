@@ -352,11 +352,15 @@ export function formatSizeDetailValue(value: ItemSizeDetailValue | number) {
     return "";
   }
 
+  const minValue = normalizedValue.min ?? null;
+  const maxValue = normalizedValue.max ?? null;
+  const primaryValue = normalizedValue.value ?? null;
+
   const valueText =
-    normalizedValue.min !== null || normalizedValue.max !== null
-      ? buildRangeText(normalizedValue.min, normalizedValue.max)
-      : normalizedValue.value !== null
-        ? `${formatSizeDetailNumber(normalizedValue.value)}cm`
+    minValue !== null || maxValue !== null
+      ? buildRangeText(minValue, maxValue)
+      : primaryValue !== null
+        ? `${formatSizeDetailNumber(primaryValue)}cm`
         : "";
 
   if (!valueText) {
@@ -518,7 +522,7 @@ function normalizeSizeDetailValue(value: unknown): ItemSizeDetailValue | null {
   };
 }
 
-function normalizeEditableSizeDetailValue(
+export function normalizeEditableSizeDetailValue(
   value?: EditableSizeDetailValue | null,
 ): ItemSizeDetailValue | null {
   if (!value) {
