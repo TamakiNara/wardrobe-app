@@ -72,6 +72,8 @@ describe("ItemCareStatusAction", () => {
       await waitForEffects();
     });
 
+    expect(container.textContent).toContain("クリーニングに出す");
+
     const button = container.querySelector("button");
 
     await act(async () => {
@@ -121,6 +123,8 @@ describe("ItemCareStatusAction", () => {
       );
       await waitForEffects();
     });
+
+    expect(container.textContent).toContain("解除する");
 
     const button = container.querySelector("button");
 

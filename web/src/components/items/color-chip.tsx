@@ -3,6 +3,8 @@ type ColorChipProps = {
   hex: string;
   tone?: "main" | "sub";
   supportingLabel?: string;
+  showSupportingLabel?: boolean;
+  showHex?: boolean;
 };
 
 export default function ColorChip({
@@ -10,6 +12,8 @@ export default function ColorChip({
   hex,
   tone = "main",
   supportingLabel,
+  showSupportingLabel = true,
+  showHex = true,
 }: ColorChipProps) {
   return (
     <div
@@ -27,12 +31,21 @@ export default function ColorChip({
         <span className="block truncate text-sm font-medium text-gray-800">
           {label}
         </span>
-        <span className="block text-xs text-gray-500">
-          {supportingLabel ?? (tone === "main" ? "メインカラー" : "サブカラー")}
-          <span className="ml-2 font-mono text-gray-400">
-            {hex.toUpperCase()}
+        {showSupportingLabel || showHex ? (
+          <span className="block text-xs text-gray-500">
+            {showSupportingLabel
+              ? (supportingLabel ??
+                (tone === "main" ? "メインカラー" : "サブカラー"))
+              : null}
+            {showHex ? (
+              <span
+                className={`${showSupportingLabel ? "ml-2 " : ""}font-mono text-gray-400`}
+              >
+                {hex.toUpperCase()}
+              </span>
+            ) : null}
           </span>
-        </span>
+        ) : null}
       </span>
     </div>
   );

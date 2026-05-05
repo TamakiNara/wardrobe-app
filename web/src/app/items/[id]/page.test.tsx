@@ -146,7 +146,7 @@ describe("アイテム詳細画面", () => {
       }),
     );
 
-    expect(markup).toContain("アイテム管理");
+    expect(markup).toContain("アイテム詳細");
     expect(markup).toContain("レインコート");
     expect(markup).toContain("Sample Brand");
     expect(markup).toContain("19,800円");
@@ -157,14 +157,18 @@ describe("アイテム詳細画面", () => {
     expect(markup).toContain("購入後メモ");
     expect(markup).toContain("対応");
     expect(markup).toContain("クリーニング中");
-    expect(markup).toContain("画像 / プレビュー");
+    expect(markup).toContain("画像");
+    expect(markup).toContain("プレビュー");
+    expect(markup).not.toContain("代表画像プレビュー");
+    expect(markup).not.toContain("代表画像を確認できます。");
     expect(markup).toContain("基本情報");
     expect(markup).toContain("分類");
     expect(markup).toContain("色 / 利用条件・特性");
+    expect(markup).not.toContain(">カラー<");
     expect(markup).toContain("サイズ・実寸");
     expect(markup).toContain("購入情報");
     expect(markup).toContain("補足情報");
-    expect(markup).toContain("状態操作");
+    expect(markup).toContain("状態管理");
     expect(markup).toContain("所持状態");
     expect(markup).toContain("ケア状態");
     expect(markup).toContain("透け感");
@@ -182,11 +186,15 @@ describe("アイテム詳細画面", () => {
     expect(markup).toContain("クロップド丈");
     expect(markup).toContain("タイツ");
     expect(markup).toContain("素材・混率");
-    expect(markup).toContain("本体： 綿 80%、ポリエステル 20%");
-    expect(markup).toContain("裏地： ポリエステル 100%");
+    expect(markup).toContain("本体: 綿 80%、ポリエステル 20%");
+    expect(markup).toContain("裏地: ポリエステル 100%");
     expect(markup).not.toContain("購入・サイズ情報");
     expect(markup).toContain("coat.png");
+    expect(markup.match(/>プレビュー</g)?.length ?? 0).toBe(1);
     expect(markup.indexOf(">duplicate-actions<")).toBeLessThan(
+      markup.indexOf(">status-action<"),
+    );
+    expect(markup.indexOf("coat.png")).toBeLessThan(
       markup.indexOf(">status-action<"),
     );
     expect(markup.indexOf(">編集<")).toBeLessThan(
@@ -309,7 +317,7 @@ describe("アイテム詳細画面", () => {
       }),
     );
 
-    expect(markup).toContain("同じ商品の色違い");
+    expect(markup).toContain("色違いの候補");
     expect(markup).toContain("アイテムを選ぶと別の詳細へ移動します。");
     expect(markup).toContain("色違い 2件");
     expect(markup).toContain("ネイビーTシャツ");
@@ -384,7 +392,7 @@ describe("アイテム詳細画面", () => {
     expect(markup).toContain("カテゴリ");
     expect(markup).toContain("コート");
     expect(markup).toContain("トレンチコート");
-    expect(markup).not.toContain("仕様・属性");
+    expect(markup).not.toContain("詳細・特性");
   });
 
   it("active な underwear item はアンダーウェア一覧へ戻る", async () => {
@@ -788,8 +796,10 @@ describe("アイテム詳細画面", () => {
       }),
     );
 
-    expect(markup).toContain("色名");
     expect(markup).toContain("64 BLUE");
+    expect(markup).not.toContain("カスタムカラー");
+    expect(markup).toContain("メインカラー");
+    expect(markup).not.toContain("サブカラー");
   });
 
   it("dress の固定実寸を詳細画面で表示する", async () => {
