@@ -24,7 +24,16 @@ function createItem(overrides: Partial<ItemRecord> = {}): ItemRecord {
         skirt_length: { value: 83.5 },
       },
     },
-    colors: [],
+    colors: [
+      {
+        role: "main",
+        mode: "preset",
+        value: "black",
+        hex: "#111111",
+        label: "ブラック",
+        custom_label: null,
+      },
+    ],
     seasons: [],
     tpos: [],
     ...overrides,
@@ -171,6 +180,16 @@ describe("PurchaseCandidateSizeComparison", () => {
                 skirt_length: { value: 83.5 },
               },
             },
+            colors: [
+              {
+                role: "main",
+                mode: "custom",
+                value: "#000000",
+                hex: "#000000",
+                label: "カスタムカラー",
+                custom_label: "ブラック",
+              },
+            ],
           }),
           createItem({
             id: 2,
@@ -184,6 +203,39 @@ describe("PurchaseCandidateSizeComparison", () => {
                 { label: "裾スリット", value: 24, sort_order: 1 },
               ],
             },
+            colors: [
+              {
+                role: "main",
+                mode: "preset",
+                value: "ivory",
+                hex: "#f6f1e7",
+                label: "アイボリー",
+                custom_label: null,
+              },
+            ],
+          }),
+          createItem({
+            id: 3,
+            name: "別カテゴリアイテム",
+            category: "tops",
+            subcategory: "blouse",
+            shape: "shirt",
+            size_label: "M",
+            size_details: {
+              structured: {
+                shoulder_width: { value: 38 },
+              },
+            },
+            colors: [
+              {
+                role: "main",
+                mode: "preset",
+                value: "navy",
+                hex: "#223355",
+                label: "ネイビー",
+                custom_label: null,
+              },
+            ],
           }),
         ]}
       />,
@@ -197,17 +249,22 @@ describe("PurchaseCandidateSizeComparison", () => {
     expect(container.textContent).toContain("未設定");
     expect(container.textContent).not.toContain("差分");
     expect(container.textContent).toContain("手持ち（M）");
-    expect(container.textContent).toContain("M のサイズ感メモ");
+    expect(container.textContent).toContain("購入検討側 M のサイズ感メモ");
     expect(container.textContent).toContain("ややゆったり");
-    expect(container.textContent).toContain("比較対象のサイズ感メモ");
+    expect(container.textContent).toContain(
+      "手持ちアイテム 手持ちA（M）のサイズ感メモ",
+    );
     expect(container.textContent).toContain("ちょうどよい");
 
     const select = container.querySelector<HTMLSelectElement>(
       "#purchase-candidate-size-comparison-item",
     );
     expect(select).not.toBeNull();
-    expect(select?.textContent).toContain("手持ちA");
-    expect(select?.textContent).toContain("手持ちB");
+    expect(select?.options[0]?.textContent).toBe("手持ちA（ブラック）");
+    expect(select?.options[1]?.textContent).toBe("手持ちB（アイボリー）");
+    expect(select?.options[2]?.textContent).toBe(
+      "別カテゴリアイテム（ネイビー）",
+    );
 
     act(() => {
       if (!select) {
@@ -221,6 +278,9 @@ describe("PurchaseCandidateSizeComparison", () => {
     expect(container.textContent).toContain("手持ち（L）");
     expect(container.textContent).toContain("24cm");
     expect(container.textContent).toContain("丈がやや長い");
+    expect(container.textContent).toContain(
+      "手持ちアイテム 手持ちB（L）のサイズ感メモ",
+    );
   });
 
   it("複数サイズ候補がある場合は両方のサイズ列を並べて表示する", () => {

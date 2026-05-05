@@ -22,6 +22,7 @@ type ComparisonItemLike = Pick<
   | "size_label"
   | "size_note"
   | "size_details"
+  | "colors"
 >;
 
 type ComparisonCandidateLike = Pick<
@@ -100,7 +101,14 @@ function hasAnySizeCandidateContent(option: {
 }
 
 function buildItemOptionLabel(item: ComparisonItemLike) {
-  return item.name?.trim() || `アイテム #${item.id}`;
+  const baseLabel = item.name?.trim() || `アイテム #${item.id}`;
+  const mainColor = item.colors.find((color) => color.role === "main");
+  const colorLabel =
+    mainColor?.custom_label?.trim() ||
+    mainColor?.label?.trim() ||
+    (mainColor?.hex ? "カスタムカラー" : "");
+
+  return colorLabel !== "" ? `${baseLabel}（${colorLabel}）` : baseLabel;
 }
 
 function buildSizeOptionLabel(
@@ -169,8 +177,14 @@ export function getPurchaseCandidateComparisonOptions(
   return items
     .filter((item) => item.status === "active")
     .filter((item) => hasAnySizeDetails(item.size_details))
-    .filter((item) => !category || item.category === category)
     .sort((left, right) => {
+      const leftCategoryScore = category && left.category === category ? 0 : 1;
+      const rightCategoryScore =
+        category && right.category === category ? 0 : 1;
+      if (leftCategoryScore !== rightCategoryScore) {
+        return leftCategoryScore - rightCategoryScore;
+      }
+
       const leftSubcategoryScore = left.subcategory === subcategory ? 0 : 1;
       const rightSubcategoryScore = right.subcategory === subcategory ? 0 : 1;
       if (leftSubcategoryScore !== rightSubcategoryScore) {

@@ -416,14 +416,17 @@ Phase 3:
 
 ### 手持ち item とのサイズ比較
 
-- 詳細画面では、同じカテゴリの active な手持ち item から比較対象を選べる
-- 比較候補は `size_details.structured` または `size_details.custom_fields` を持つ item のみに限定する
-- 候補順は `同一 category` を前提に、`同一 subcategory` を優先し、さらに `同一 shape` を優先する
+- 詳細画面では、`size_details.structured` または `size_details.custom_fields` を持つ active な手持ち item を比較候補に出せる
+- 比較候補は `同一 category` を最優先に、さらに `同一 subcategory`、`同一 shape` の順で上位表示する
+- `同一 category` 以外の item も完全除外はせず、関連度の低い候補として後ろに並べてよい
 - 初期実装では比較対象 item_id は保存しない
 - 比較表は `項目 / 購入検討 / 手持ち` の 3 列とする
 - fixed size key を先に表示し、その後に `custom_fields` を表示する
 - 同名の自由実寸が両方にある場合は 1 行にまとめ、片方だけにある項目はもう片方を `未設定` とする
+- 比較対象 select の表示名には、main color の表示名を補助的に含めてよい
+  - 表示優先順位は `custom_label -> label -> カスタムカラー`
 - 比較表の直下では、購入検討側の `size_note` と比較対象 item 側の `size_note` を `サイズ感メモ` として補助表示してよい
+- 見出しは、購入検討側 / 手持ち item 側のどちらのメモか分かる文言にする
 - 片方だけメモがある場合は、ある方だけ表示する
 - 両方ともメモがない場合は、サイズ感メモ欄自体を表示しない
 - 購入検討側に fixed / free のどちらの実寸もない場合は、比較表の代わりに実寸入力を促す empty state を表示する

@@ -69,10 +69,35 @@ export default function PurchaseCandidateSizeComparison({
 
   const itemSizeLabel =
     selectedComparisonOption?.item.size_label?.trim() || "未設定";
+  const itemSizeNoteHeading = useMemo(() => {
+    if (!selectedComparisonOption) {
+      return "手持ちアイテムのサイズ感メモ";
+    }
+
+    const itemName = selectedComparisonOption.item.name?.trim() || "";
+    const sizeLabel = selectedComparisonOption.item.size_label?.trim() || "";
+
+    if (itemName !== "" && sizeLabel !== "") {
+      return `手持ちアイテム ${itemName}（${sizeLabel}）のサイズ感メモ`;
+    }
+
+    if (itemName !== "") {
+      return `手持ちアイテム ${itemName} のサイズ感メモ`;
+    }
+
+    if (sizeLabel !== "") {
+      return `手持ちアイテム ${sizeLabel} のサイズ感メモ`;
+    }
+
+    return "手持ちアイテムのサイズ感メモ";
+  }, [selectedComparisonOption]);
   const candidateNotes = sizeOptions
     .map((option) => ({
       key: option.key,
-      label: option.label?.trim() || option.optionLabel,
+      label:
+        option.label?.trim() !== ""
+          ? `購入検討側 ${option.label?.trim()} のサイズ感メモ`
+          : `購入検討側 ${option.optionLabel} のサイズ感メモ`,
       note: option.note?.trim() || "",
     }))
     .filter((option) => option.note !== "");
@@ -166,7 +191,7 @@ export default function PurchaseCandidateSizeComparison({
                   className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3"
                 >
                   <p className="text-xs font-medium text-slate-500">
-                    {option.label} のサイズ感メモ
+                    {option.label}
                   </p>
                   <p className="mt-1 whitespace-pre-wrap text-sm text-slate-700">
                     {option.note}
@@ -176,7 +201,7 @@ export default function PurchaseCandidateSizeComparison({
               {itemSizeNote !== "" ? (
                 <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
                   <p className="text-xs font-medium text-slate-500">
-                    比較対象のサイズ感メモ
+                    {itemSizeNoteHeading}
                   </p>
                   <p className="mt-1 whitespace-pre-wrap text-sm text-slate-700">
                     {itemSizeNote}

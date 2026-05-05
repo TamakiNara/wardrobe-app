@@ -111,7 +111,7 @@ describe("size-comparison", () => {
     ]);
   });
 
-  it("自由実寸だけある item も候補に含め、subcategory / shape 一致を優先する", () => {
+  it("自由実寸だけある item も候補に含め、category / subcategory / shape 一致を優先する", () => {
     const candidate = {
       ...createCandidate(),
       resolvedCategory: "skirts",
@@ -155,7 +155,7 @@ describe("size-comparison", () => {
       }),
     ]);
 
-    expect(options.map((option) => option.item.id)).toEqual([4, 3, 2, 5]);
+    expect(options.map((option) => option.item.id)).toEqual([4, 3, 2, 5, 7]);
   });
 
   it("複数サイズ候補ぶんの比較行をまとめて組み立てる", () => {
