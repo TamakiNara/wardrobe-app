@@ -216,6 +216,12 @@ planned:
 
 - 自由記述の補助メモ
 - 分析の主軸は固定選択肢とし、メモは補助に留める
+- `wear_logs.memo` とは用途を分ける
+- `wear_logs.memo`
+  - その日の予定・状況・事実メモ
+- `feedback_memo`
+  - 実際に着てみた後の感想・改善メモ
+- 雨に関する具体的な感想も、当面は `feedback_tags` や `feedback_memo` で補足する
 
 ---
 

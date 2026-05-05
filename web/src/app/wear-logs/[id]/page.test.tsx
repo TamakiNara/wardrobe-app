@@ -115,6 +115,9 @@ describe("WearLogDetailPage", () => {
     expect(markup).toContain("朝暑い");
     expect(markup).toContain("色合わせが微妙だった");
     expect(markup).toContain("気分と合わなかった");
+    expect(markup).toContain("着用メモ");
+    expect(markup).toContain("朝は少し肌寒かった");
+    expect(markup).toContain("振り返りメモ");
     expect(markup).toContain("この日の天気");
     expect(markup).toContain("川口");
     expect(markup).toContain("晴れ / 最高 22℃ / 最低 13℃");

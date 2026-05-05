@@ -192,7 +192,7 @@ export default async function WearLogDetailPage({
                 </dd>
               </div>
               <div>
-                <dt className="text-sm font-medium text-gray-700">メモ</dt>
+                <dt className="text-sm font-medium text-gray-700">着用メモ</dt>
                 <dd className="mt-1 text-sm text-gray-600">
                   {wearLog.memo || "未記録"}
                 </dd>

@@ -208,6 +208,7 @@ describe("WearLogCalendar", () => {
     );
     expect(container.textContent).toContain("日付詳細");
     expect(container.textContent).toContain("春コーデ");
+    expect(container.textContent).toContain("着用メモ");
     expect(container.textContent).toContain("メモあり");
     expect(container.textContent).toContain("評価");
     expect(container.textContent).toContain("よかった");
@@ -220,7 +221,7 @@ describe("WearLogCalendar", () => {
     expect(container.textContent).toContain("最高 22℃");
     expect(container.textContent).toContain("最低 13℃");
     expect(container.textContent).toContain("メモ: 日中はよく晴れた");
-    expect(container.textContent).not.toContain("振り返りメモ");
+    expect(container.textContent).toContain("振り返りメモ");
     expect(container.innerHTML).toContain('href="/wear-logs/11"');
     expect(container.innerHTML).toContain("wear-log-modal-color-thumbnail");
   });

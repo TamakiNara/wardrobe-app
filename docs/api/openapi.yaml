@@ -3802,6 +3802,9 @@ components:
           type: string
           nullable: true
           example: 雨だったので1枚追加
+          description: |
+            着用メモ。
+            その日の予定・状況・事実メモを残す欄です。
         outdoor_temperature_feel:
           allOf:
             - $ref: "#/components/schemas/WearLogTemperatureFeel"
@@ -3824,6 +3827,9 @@ components:
         feedback_memo:
           type: string
           nullable: true
+          description: |
+            振り返りメモ。
+            feedback_tags だけでは表しきれない体感・評価・改善メモを残します。
         items:
           type: array
           description: |
@@ -3875,6 +3881,9 @@ components:
           type: string
           nullable: true
           example: 雨だったので上着追加
+          description: |
+            着用メモ。
+            その日の予定・状況・事実メモを残す欄です。
         overall_rating:
           allOf:
             - $ref: "#/components/schemas/WearLogOverallRating"
@@ -4043,6 +4052,9 @@ components:
         feedback_memo:
           type: string
           nullable: true
+          description: |
+            振り返りメモ。
+            feedback_tags だけでは表しきれない体感・評価・改善メモを残します。
         items:
           type: array
           items:

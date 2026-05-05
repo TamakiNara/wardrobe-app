@@ -167,6 +167,7 @@ describe("WearLogForm", () => {
     expect(container.textContent).toContain("気になったこと");
     expect(container.textContent).toContain("TPO・見た目");
     expect(container.textContent).toContain("振り返りメモ");
+    expect(container.textContent).toContain("着用メモ");
     expect(container.textContent).toContain("寒暖差に対応できた");
     expect(container.textContent).toContain("合っていた");
     expect(container.textContent).toContain("ちょうどいい");
@@ -426,7 +427,7 @@ describe("WearLogForm", () => {
     ).toContain("普通");
     expect(
       container.querySelector<HTMLTextAreaElement>(
-        'textarea[placeholder="気になったことや、次回の参考にしたいことを残せます。"]',
+        'textarea[placeholder="例: 室内は少し寒かった、色合わせがよかった"]',
       )?.value,
     ).toBe("朝は少し寒かった");
   });
@@ -1273,7 +1274,7 @@ describe("WearLogForm", () => {
       '[data-testid="overall-rating"]',
     );
     const feedbackMemoField = container.querySelector<HTMLTextAreaElement>(
-      'textarea[placeholder="気になったことや、次回の参考にしたいことを残せます。"]',
+      'textarea[placeholder="例: 室内は少し寒かった、色合わせがよかった"]',
     );
     const form = container.querySelector("form");
     const positiveButtons = Array.from(
@@ -1285,6 +1286,7 @@ describe("WearLogForm", () => {
     expect(container.textContent).toContain("気になったこと");
     expect(container.textContent).toContain("TPO・見た目");
     expect(container.textContent).toContain("振り返りメモ");
+    expect(container.textContent).toContain("着用メモ");
     expect(container.textContent).toContain("寒暖差に対応できた");
     expect(container.textContent).toContain("合っていた");
     expect(container.textContent).not.toContain("湿気で不快");

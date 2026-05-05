@@ -914,9 +914,14 @@ export default function WearLogCalendar({
                           </p>
 
                           {wearLog.memo ? (
-                            <p className="mt-2 line-clamp-2 text-sm text-gray-600">
-                              {wearLog.memo}
-                            </p>
+                            <div className="mt-2">
+                              <p className="text-xs font-medium text-gray-500">
+                                着用メモ
+                              </p>
+                              <p className="mt-1 line-clamp-2 text-sm text-gray-600">
+                                {wearLog.memo}
+                              </p>
+                            </div>
                           ) : null}
 
                           {shouldShowFeedbackSummary ? (
@@ -952,6 +957,17 @@ export default function WearLogCalendar({
                                   ))}
                                 </div>
                               ) : null}
+                            </div>
+                          ) : null}
+
+                          {(wearLog.feedback_memo ?? "").trim() !== "" ? (
+                            <div className="mt-3">
+                              <p className="text-xs font-medium text-gray-500">
+                                振り返りメモ
+                              </p>
+                              <p className="mt-1 line-clamp-2 text-sm text-gray-600">
+                                {wearLog.feedback_memo}
+                              </p>
                             </div>
                           ) : null}
 

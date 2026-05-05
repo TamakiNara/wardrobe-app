@@ -1822,24 +1822,28 @@ export default function WearLogForm({
         <div className="space-y-2">
           <FieldLabel as="div" label="振り返りメモ" />
           <p className="text-xs text-gray-500">
-            選択肢だけでは残しきれないことを自由に書けます。
+            実際に着て感じたことをメモできます。
           </p>
           <textarea
             rows={4}
             value={feedbackMemo}
             onChange={(event) => setFeedbackMemo(event.target.value)}
-            placeholder="気になったことや、次回の参考にしたいことを残せます。"
+            placeholder="例: 室内は少し寒かった、色合わせがよかった"
             className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
           />
         </div>
       </section>
 
       <section className="space-y-4 scroll-mt-24" data-error-key="memo">
-        <h2 className="text-lg font-semibold text-gray-900">メモ</h2>
+        <h2 className="text-lg font-semibold text-gray-900">着用メモ</h2>
+        <p className="text-xs text-gray-500">
+          予定やその日の状況をメモできます。
+        </p>
         <textarea
           rows={3}
           value={memo}
           onChange={(event) => setMemo(event.target.value)}
+          placeholder="例: 出社日、外回りあり、夜に食事"
           className={`w-full rounded-lg bg-white px-4 py-3 text-gray-900 outline-none transition focus:ring-2 ${
             errors.memo
               ? "border border-red-300 focus:border-red-500 focus:ring-red-100"
