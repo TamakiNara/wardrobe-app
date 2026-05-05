@@ -8,7 +8,7 @@ import { EntityDetailHeader } from "@/components/shared/entity-detail-header";
 import { isItemVisibleByCategorySettings } from "@/lib/api/categories";
 import { DEFAULT_SKIN_TONE_PRESET } from "@/lib/master-data/skin-tone-presets";
 import { fetchLaravelWithCookie } from "@/lib/server/laravel";
-import type { ItemSpec } from "@/types/items";
+import type { ItemFormColor, ItemSpec } from "@/types/items";
 import type { SkinTonePreset } from "@/types/settings";
 
 type OutfitItem = {
@@ -20,13 +20,7 @@ type OutfitItem = {
     name: string | null;
     category: string;
     shape: string;
-    colors: {
-      role: "main" | "sub";
-      mode: "preset" | "custom";
-      value: string;
-      hex: string;
-      label: string;
-    }[];
+    colors: ItemFormColor[];
     spec?: ItemSpec | null;
     status: "active" | "disposed";
     seasons: string[];
@@ -88,6 +82,13 @@ async function getCategoryVisibilitySettings(): Promise<string[] | null> {
 
   const data = await res.json().catch(() => null);
   return data?.visibleCategoryIds ?? null;
+}
+
+function resolveOutfitItemColorLabel(color?: ItemFormColor) {
+  const trimmedCustomLabel = color?.custom_label?.trim();
+  const trimmedLabel = color?.label?.trim();
+
+  return trimmedCustomLabel || trimmedLabel || "カスタムカラー";
 }
 
 export default async function OutfitDetailPage({
@@ -293,6 +294,8 @@ export default async function OutfitDetailPage({
                 const item = outfitItem.item;
                 const mainColor = item.colors.find((c) => c.role === "main");
                 const subColor = item.colors.find((c) => c.role === "sub");
+                const mainColorLabel = resolveOutfitItemColorLabel(mainColor);
+                const subColorLabel = resolveOutfitItemColorLabel(subColor);
 
                 return (
                   <article
@@ -333,7 +336,7 @@ export default async function OutfitDetailPage({
                             className="h-4 w-4 rounded-full border border-gray-300"
                             style={{ backgroundColor: mainColor.hex }}
                           />
-                          {mainColor.label}
+                          {mainColorLabel}
                         </span>
                       )}
                       {subColor && (
@@ -342,7 +345,7 @@ export default async function OutfitDetailPage({
                             className="h-4 w-4 rounded-full border border-gray-300"
                             style={{ backgroundColor: subColor.hex }}
                           />
-                          {subColor.label}
+                          {subColorLabel}
                         </span>
                       )}
                     </div>

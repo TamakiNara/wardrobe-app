@@ -318,4 +318,217 @@ describe("OutfitDetailPage", () => {
     expect(markup).toContain("outfit-color-thumbnail");
     expect(markup).toContain("lower-body-preview-svg");
   });
+  it("custom label がある色は fallback ではなく登録済み名を表示する", async () => {
+    fetchMock
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          outfit: {
+            id: 13,
+            status: "active",
+            name: "custom-color outfit",
+            memo: null,
+            seasons: [],
+            tpos: [],
+            outfitItems: [
+              {
+                id: 1,
+                item_id: 2,
+                sort_order: 1,
+                item: {
+                  id: 2,
+                  name: "custom color item",
+                  status: "active",
+                  category: "tops",
+                  shape: "tshirt",
+                  colors: [
+                    {
+                      role: "main",
+                      mode: "custom",
+                      value: "#7E5BEF",
+                      hex: "#7E5BEF",
+                      label: "カスタムカラー",
+                      custom_label: "青みラベンダー",
+                    },
+                  ],
+                  spec: null,
+                  seasons: [],
+                  tpos: [],
+                },
+              },
+            ],
+          },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          visibleCategoryIds: null,
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          preferences: {
+            skinTonePreset: "neutral_medium",
+          },
+        }),
+      });
+
+    const { default: OutfitDetailPage } = await import("./page");
+    const markup = renderToStaticMarkup(
+      await OutfitDetailPage({
+        params: Promise.resolve({ id: "13" }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+
+    expect(markup).toContain("青みラベンダー");
+    expect(markup).not.toContain(">カスタムカラー<");
+  });
+
+  it("定義済みカラーは登録済みの色名をそのまま表示する", async () => {
+    fetchMock
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          outfit: {
+            id: 14,
+            status: "active",
+            name: "preset-color outfit",
+            memo: null,
+            seasons: [],
+            tpos: [],
+            outfitItems: [
+              {
+                id: 1,
+                item_id: 2,
+                sort_order: 1,
+                item: {
+                  id: 2,
+                  name: "preset color item",
+                  status: "active",
+                  category: "tops",
+                  shape: "tshirt",
+                  colors: [
+                    {
+                      role: "main",
+                      mode: "preset",
+                      value: "navy",
+                      hex: "#1F3A5F",
+                      label: "ネイビー",
+                    },
+                  ],
+                  spec: null,
+                  seasons: [],
+                  tpos: [],
+                },
+              },
+            ],
+          },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          visibleCategoryIds: null,
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          preferences: {
+            skinTonePreset: "neutral_medium",
+          },
+        }),
+      });
+
+    const { default: OutfitDetailPage } = await import("./page");
+    const markup = renderToStaticMarkup(
+      await OutfitDetailPage({
+        params: Promise.resolve({ id: "14" }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+
+    expect(markup).toContain("ネイビー");
+    expect(markup).not.toContain(">カスタムカラー<");
+  });
+
+  it("表示名が取れない場合だけ カスタムカラー に fallback する", async () => {
+    fetchMock
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          outfit: {
+            id: 15,
+            status: "active",
+            name: "hex-only outfit",
+            memo: null,
+            seasons: [],
+            tpos: [],
+            outfitItems: [
+              {
+                id: 1,
+                item_id: 2,
+                sort_order: 1,
+                item: {
+                  id: 2,
+                  name: "hex only item",
+                  status: "active",
+                  category: "tops",
+                  shape: "tshirt",
+                  colors: [
+                    {
+                      role: "main",
+                      mode: "custom",
+                      value: "#7E5BEF",
+                      hex: "#7E5BEF",
+                      label: "",
+                      custom_label: null,
+                    },
+                  ],
+                  spec: null,
+                  seasons: [],
+                  tpos: [],
+                },
+              },
+            ],
+          },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          visibleCategoryIds: null,
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          preferences: {
+            skinTonePreset: "neutral_medium",
+          },
+        }),
+      });
+
+    const { default: OutfitDetailPage } = await import("./page");
+    const markup = renderToStaticMarkup(
+      await OutfitDetailPage({
+        params: Promise.resolve({ id: "15" }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+
+    expect(markup).toContain("カスタムカラー");
+  });
 });
