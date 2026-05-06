@@ -129,7 +129,7 @@ current の caveat:
 
 変換ルールの正本:
 
-- Open-Meteo / fallback provider の取得仕様:
+- Open-Meteo / legacy history provider の取得仕様:
   - [weather-fetching.md](./weather-fetching.md)
 - weather icon / preview:
   - [weather-current-status.md](./weather-current-status.md)
@@ -182,6 +182,11 @@ current で想定する `source_name`:
 - `open_meteo_historical`
 - `jma_forecast_json`
 - `tsukumijima`
+
+補足:
+
+- current の新規 forecast 取得で発生する `source_name` は `open_meteo_jma_forecast`
+- `jma_forecast_json` / `tsukumijima` は過去履歴や import / export 互換として残る legacy source
 
 `source_type` の代表例:
 
@@ -275,7 +280,7 @@ current では DB 保存しない。
 
 - Open-Meteo:
   - `raw_weather_code`
-- JMA / tsukumijima fallback:
+- JMA / tsukumijima legacy history:
   - `raw_weather_text`
   - `raw_telop`
 

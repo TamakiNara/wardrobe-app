@@ -1945,14 +1945,13 @@ paths:
         - Wear Logs
       summary: 保存済み地域の予報を取得してフォーム反映用データを返す
       description: |
-        保存済み地域の provider 設定を backend 側で自動判定し、
-        `latitude` / `longitude` があれば Open-Meteo forecast を優先する。
-        座標がなく JMA コードがあれば JMA forecast JSON、
-        それもなければ legacy `forecast_area_code` による
-        weather.tsukumijima.net fallback を使って forecast を取得する。
+        保存済み地域の `latitude` / `longitude` / `timezone` を使って
+        Open-Meteo forecast を取得する。
+        current の runtime forecast provider は Open-Meteo のみで、
+        JMA forecast JSON / weather.tsukumijima.net fallback は使わない。
         対象日付と一致する forecast を `weather_code` と気温へ正規化して返す。
         取得結果はフォーム反映のみで、自動保存は行わない。
-        今回だけの地域は対象外で、JMA / legacy のどちらの予報コードもない地域は取得不可。
+        今回だけの地域は対象外で、位置情報がない保存済み地域では取得できない。
       operationId: fetchWeatherRecordForecast
       parameters:
         - $ref: "#/components/parameters/XCsrfTokenHeader"
@@ -5187,16 +5186,16 @@ components:
         forecast_area_code:
           type: string
           nullable: true
-          description: weather.tsukumijima.net 用の legacy 予報コード。既存データ互換と fallback 用に当面維持する。通常 UI の主入力では扱わない。
+          description: weather.tsukumijima.net 用の legacy 予報コード。current の runtime forecast では使わず、既存データ互換と backup / restore 互換のため当面維持する。通常 UI の主入力では扱わない。
           deprecated: true
         jma_forecast_region_code:
           type: string
           nullable: true
-          description: ユーザーが選ぶ JMA 予報区域コード。基本は class10 相当で、分割がない地域では office code 相当を許容する。
+          description: ユーザーが選ぶ JMA 予報区域コード。current の runtime forecast では使わず、旧 backup 互換や履歴保持のため残す。
         jma_forecast_office_code:
           type: string
           nullable: true
-          description: "`https://www.jma.go.jp/bosai/forecast/data/forecast/{code}.json` の `{code}` に使う JMA 府県予報区コード。"
+          description: "`jma_forecast_region_code` に対応する JMA 府県予報区コード。current の runtime forecast では使わず、旧 backup 互換や履歴保持のため残す。"
         latitude:
           type: number
           nullable: true
@@ -5279,16 +5278,16 @@ components:
         forecast_area_code:
           type: string
           nullable: true
-          description: weather.tsukumijima.net 用の legacy 予報コード。新規 UI の主入力では使わず、既存データ互換と fallback 用に当面維持する。
+          description: weather.tsukumijima.net 用の legacy 予報コード。新規 UI の主入力では使わず、既存データ互換と backup / restore 互換のため当面維持する。
           deprecated: true
         jma_forecast_region_code:
           type: string
           nullable: true
-          description: ユーザーが選ぶ JMA 予報区域コード。通常 UI では `JMA予報区域` select から設定する。
+          description: ユーザーが選ぶ JMA 予報区域コード。通常 UI では `JMA予報区域` select から設定できるが、current の runtime forecast では使わない。
         jma_forecast_office_code:
           type: string
           nullable: true
-          description: "`jma_forecast_region_code` に対応する JMA 府県予報区コード。forecast JSON の取得 URL に使う。"
+          description: "`jma_forecast_region_code` に対応する JMA 府県予報区コード。current の runtime forecast では使わず、旧 backup 互換や履歴保持のため残す。"
         latitude:
           type: number
           nullable: true
@@ -5369,7 +5368,7 @@ components:
         forecast_area_code_snapshot:
           type: string
           nullable: true
-          description: 保存時点の予報API用地域コード snapshot。MVPでは weather.tsukumijima.net の city code を主対象とする。
+          description: 保存時点の legacy 予報API用地域コード snapshot。過去履歴と backup / restore 互換のため当面維持する。
         weather_code:
           $ref: "#/components/schemas/WeatherCode"
         temperature_high:
@@ -5445,6 +5444,8 @@ components:
             手入力のみの場合は `manual`、予報取得結果を反映して保存する場合は
             `open_meteo_jma_forecast` / `open_meteo_historical` /
             `jma_forecast_json` / `tsukumijima`。
+            current の新規 forecast 取得で発生するのは `open_meteo_jma_forecast` で、
+            `jma_forecast_json` / `tsukumijima` は legacy 履歴互換用に残す。
         source_fetched_at:
           type: string
           format: date-time
@@ -5486,13 +5487,13 @@ components:
         forecast_area_code:
           type: string
           nullable: true
-          description: weather.tsukumijima.net fallback 用の legacy city code。JMA 取得時は null を返してよい。
+          description: legacy forecast_area_code。current の runtime forecast は Open-Meteo のみで、既存履歴や互換のため返す場合がある。
         weather_code:
           $ref: "#/components/schemas/WeatherCode"
         raw_weather_code:
           type: integer
           nullable: true
-          description: Open-Meteo forecast 取得時の元 WMO weather code。JMA / tsukumijima fallback では null。
+          description: Open-Meteo forecast 取得時の元 WMO weather code。legacy record や互換データでは null の場合がある。
         temperature_high:
           type: number
           nullable: true
@@ -5533,7 +5534,7 @@ components:
           enum: [forecast_api]
         source_name:
           type: string
-          description: open_meteo_jma_forecast / jma_forecast_json / tsukumijima などの source 名
+          description: open_meteo_jma_forecast / jma_forecast_json / tsukumijima などの source 名。current の新規 forecast 取得では open_meteo_jma_forecast を使い、他は legacy history source として残す。
           example: open_meteo_jma_forecast
         source_fetched_at:
           type: string
@@ -5588,7 +5589,7 @@ components:
         forecast_area_code:
           type: string
           nullable: true
-          description: legacy forecast_area_code の snapshot。Open-Meteo 取得では null の場合がある。
+          description: legacy forecast_area_code の snapshot。過去履歴や backup / restore 互換のため残し、Open-Meteo 取得では null の場合がある。
         weather_code:
           $ref: "#/components/schemas/WeatherCode"
         raw_weather_code:

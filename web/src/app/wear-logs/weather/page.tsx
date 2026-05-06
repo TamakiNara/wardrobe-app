@@ -151,26 +151,6 @@ function findSavedLocationRecord(
   return records.find((record) => record.location_id === locationId) ?? null;
 }
 
-function hasJmaForecastCodes(location: UserWeatherLocationRecord | null) {
-  return Boolean(
-    location?.jma_forecast_region_code?.trim() &&
-    location?.jma_forecast_office_code?.trim(),
-  );
-}
-
-function hasIncompleteJmaForecastCodes(
-  location: UserWeatherLocationRecord | null,
-) {
-  const hasRegionCode = Boolean(location?.jma_forecast_region_code?.trim());
-  const hasOfficeCode = Boolean(location?.jma_forecast_office_code?.trim());
-
-  return hasRegionCode !== hasOfficeCode;
-}
-
-function hasLegacyForecastCode(location: UserWeatherLocationRecord | null) {
-  return Boolean(location?.forecast_area_code?.trim());
-}
-
 function hasOpenMeteoCoordinates(location: UserWeatherLocationRecord | null) {
   return location?.latitude !== null && location?.longitude !== null;
 }
@@ -189,45 +169,15 @@ function getForecastDisabledReason(location: UserWeatherLocationRecord | null) {
     return "地域を選択すると天気を取得できます。";
   }
 
-  if (hasIncompleteJmaForecastCodes(location)) {
-    return "JMA予報区域の設定が不完全です。地域設定を確認してください。";
-  }
-
-  if (hasJmaForecastCodes(location) || hasLegacyForecastCode(location)) {
-    return null;
-  }
-
-  return "予報区域を設定すると、天気を取得できます。";
-}
-
-function getOpenMeteoAwareForecastDisabledReason(
-  location: UserWeatherLocationRecord | null,
-) {
-  if (location === null) {
-    return getForecastDisabledReason(location);
-  }
-
   if (hasOpenMeteoCoordinates(location)) {
     return null;
   }
 
   if (hasIncompleteOpenMeteoCoordinates(location)) {
-    if (hasJmaForecastCodes(location) || hasLegacyForecastCode(location)) {
-      return null;
-    }
-
     return "位置情報の設定が不完全です。地域設定を確認してください。";
   }
 
-  if (hasIncompleteJmaForecastCodes(location)) {
-    return getForecastDisabledReason(location);
-  }
-
-  if (hasJmaForecastCodes(location) || hasLegacyForecastCode(location)) {
-    return null;
-  }
-
-  return "位置情報または予報区域を設定すると、天気を取得できます。";
+  return "位置情報を設定すると、天気を取得できます。";
 }
 
 function getObservedDisabledReason(location: UserWeatherLocationRecord | null) {
@@ -379,7 +329,7 @@ function WearLogWeatherPageContent() {
       return "過去日は実績データの取得を推奨します。";
     }
 
-    return getOpenMeteoAwareForecastDisabledReason(selectedLocation);
+    return getForecastDisabledReason(selectedLocation);
   }, [locationMode, selectedLocation, weatherDateKind]);
 
   const observedButtonDisabledReason = useMemo(() => {

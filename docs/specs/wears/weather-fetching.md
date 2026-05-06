@@ -1,7 +1,7 @@
 # Weather Fetching Specification
 
 天気取得 API の current 正本です。  
-Open-Meteo forecast / historical、provider 優先順位、legacy fallback、日付に応じた取得 UI の方針をここにまとめます。
+Open-Meteo forecast / historical、provider 選択、legacy history、日付に応じた取得 UI の方針をここにまとめます。
 
 関連 docs:
 
@@ -71,20 +71,14 @@ Open-Meteo forecast / historical、provider 優先順位、legacy fallback、日
 
 ---
 
-## provider fallback
+## provider selection
 
 ### forecast
 
 1. `latitude / longitude` がある場合:
    - Open-Meteo Forecast を使う
    - `source_name = open_meteo_jma_forecast`
-2. `latitude / longitude` がなく、JMA forecast code がある場合:
-   - JMA forecast JSON fallback
-   - `source_name = jma_forecast_json`
-3. `forecast_area_code` がある場合:
-   - tsukumijima fallback
-   - `source_name = tsukumijima`
-4. どれもない場合:
+2. `latitude / longitude` がない場合:
    - 取得不可
 
 ### observed
@@ -158,14 +152,15 @@ WMO から app `weather_code` への代表的な変換:
 
 ### JMA forecast JSON
 
-- forecast の fallback / legacy provider
+- forecast runtime fallback としては使わない
+- 過去 record の `source_name` や import / export 互換のため、legacy history として扱う
 - 日本語天気文正規化の知見は残す
 - 詳細は [weather-open-meteo-redesign.md](./weather-open-meteo-redesign.md)
 
 ### tsukumijima
 
-- forecast の fallback / legacy provider
-- 既存 `forecast_area_code` を使う
+- forecast runtime fallback としては使わない
+- 既存 `forecast_area_code` と過去 record の `source_name` を扱う legacy history として残す
 - 詳細は [weather-open-meteo-redesign.md](./weather-open-meteo-redesign.md)
 
 ### JMA latest CSV PoC

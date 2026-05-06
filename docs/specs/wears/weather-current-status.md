@@ -12,7 +12,7 @@
 - 手動天気登録がある
 - 地域設定は `latitude / longitude / timezone` を Open-Meteo 向け正本へ移行中
 - Open-Meteo Geocoding API で位置情報を設定できる
-- 予報取得は Open-Meteo Forecast が本線
+- 予報取得は Open-Meteo Forecast のみ
 - 実績取得は Open-Meteo Historical が本線
 - `weather_records` は current では最終保存値を持つ
 - `weather_code` / icon / `/dev/weather-preview` がある
@@ -49,8 +49,8 @@
 
 ## legacy / history
 
-- JMA forecast JSON
-- tsukumijima fallback
+- JMA forecast JSON（legacy history / backup 互換）
+- tsukumijima（legacy history / backup 互換）
 - JMA latest CSV PoC
 - `forecast_area_code`
 - JMA code fields
@@ -87,5 +87,5 @@ legacy / history の詳細:
 
 1. precipitation 保存方針の再判断
 2. snapshot PoC の要否判断
-3. legacy fallback の利用状況確認
+3. legacy code / history 互換の整理
 4. hourly を使った天気表現の改善検討

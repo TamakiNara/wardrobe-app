@@ -238,25 +238,25 @@ current の代表順:
 
 ## legacy code fields
 
-current では以下を legacy / fallback / import-export 互換用として残す。
+current では以下を legacy / import-export 互換用として残す。
 
 ### `forecast_area_code`
 
 - `weather.tsukumijima.net` 用 legacy code
 - current では主入力ではない
-- forecast fallback / 旧 backup 互換用
+- 旧 backup 互換や過去履歴参照用
 - 将来的に削除候補
 
 ### `jma_forecast_region_code`
 
 - JMA forecast JSON PoC 用 legacy code
 - current では主入力ではない
-- Open-Meteo 以降は fallback / history 用
+- Open-Meteo 以降は runtime forecast では使わず、history / 旧 backup 互換用
 
 ### `jma_forecast_office_code`
 
 - JMA forecast JSON の取得用 office code
-- PoC / fallback 用 legacy
+- PoC / legacy 互換用
 - current では主入力ではない
 
 ### `observation_station_code`
@@ -306,6 +306,13 @@ current の weather location backup / restore は、少なくとも以下を rou
 - legacy code fields は `補助コード（旧API・fallback用）` として折りたたみ表示へ寄せる
 - 一覧カードでは `補助コードあり` 程度に留め、必要時だけ詳細を開ける
 - 既存値・保存 payload・import / export 互換は維持する
+
+### Phase C
+
+- forecast runtime provider は Open-Meteo Forecast のみ
+- forecast 取得には `latitude / longitude / timezone` を使う
+- legacy code fields は current の forecast runtime では使わない
+- 補助コード section は旧 backup 互換や履歴保持のため残す
 
 ### validation
 

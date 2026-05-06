@@ -835,8 +835,9 @@ function SettingsWeatherLocationsPageContent() {
                     補助コード（旧API・fallback用）
                   </h3>
                   <p className="text-xs text-slate-600">
-                    通常は設定不要です。位置情報が使えない場合の fallback
-                    や旧backup互換のために残しています。
+                    現在の天気取得では位置情報を使います。補助コードは新規
+                    forecast
+                    取得には使わず、旧backup互換や履歴保持のために残しています。
                   </p>
                 </div>
                 <button
@@ -868,8 +869,8 @@ function SettingsWeatherLocationsPageContent() {
                     setNewJmaRegionCode,
                   )}
                   <p className="mt-2 text-xs text-slate-500">
-                    Open-Meteo
-                    の位置情報が使えない場合にだけ参照する補助設定です。
+                    現在の新規 forecast
+                    取得には使いません。旧backup互換や履歴保持のための補助設定です。
                   </p>
                 </div>
               ) : null}
@@ -1150,8 +1151,9 @@ function SettingsWeatherLocationsPageContent() {
                                   補助コード（旧API・fallback用）
                                 </h4>
                                 <p className="text-xs text-slate-600">
-                                  通常は設定不要です。位置情報が使えない場合の
-                                  fallback や旧backup互換のために残しています。
+                                  現在の天気取得では位置情報を使います。補助コードは新規
+                                  forecast
+                                  取得には使わず、旧backup互換や履歴保持のために残しています。
                                 </p>
                               </div>
                               <button
@@ -1185,8 +1187,8 @@ function SettingsWeatherLocationsPageContent() {
                                   setEditJmaRegionCode,
                                 )}
                                 <p className="mt-2 text-xs text-slate-500">
-                                  Open-Meteo
-                                  の位置情報が使えない場合にだけ参照する補助設定です。
+                                  現在の新規 forecast
+                                  取得には使いません。旧backup互換や履歴保持のための補助設定です。
                                 </p>
                               </div>
                             ) : null}
