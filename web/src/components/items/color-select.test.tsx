@@ -51,6 +51,7 @@ describe("ColorSelect", () => {
     );
 
     expect(dropdown).not.toBeUndefined();
+    expect(dropdown?.className).toContain("z-[60]");
     expect(container.textContent).toContain("#ECECEC");
     expect(container.textContent).toContain("ホワイト");
   });

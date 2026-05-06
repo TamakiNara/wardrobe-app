@@ -36,10 +36,10 @@ export default function GlobalBottomNav() {
   return (
     <nav
       aria-label="グローバルナビゲーション"
-      className="fixed right-0 bottom-0 left-0 z-50"
+      className="pointer-events-none fixed right-0 bottom-0 left-0 z-50"
     >
-      <div className="mx-auto max-w-screen-sm px-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)]">
-        <div className="grid h-16 grid-cols-6 rounded-2xl border border-gray-200 bg-white/95 p-1 shadow-lg shadow-gray-200/70 backdrop-blur">
+      <div className="pointer-events-none mx-auto max-w-screen-sm px-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)]">
+        <div className="pointer-events-auto grid h-16 grid-cols-6 rounded-2xl border border-gray-200 bg-white/95 p-1 shadow-lg shadow-gray-200/70 backdrop-blur">
           {globalNavItems.map((item) => {
             const isActive = activeItem?.key === item.key;
             const Icon = navIcons[item.key];

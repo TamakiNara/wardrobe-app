@@ -89,7 +89,7 @@ export default function ColorSelect({
       </button>
 
       {open && !disabled && (
-        <div className="absolute left-0 z-20 mt-2 max-h-96 w-[min(22rem,calc(100vw-2rem))] min-w-full max-w-[calc(100vw-2rem)] overflow-y-auto rounded-xl border border-gray-200 bg-white p-2 shadow-lg">
+        <div className="absolute left-0 z-[60] mt-2 max-h-96 w-[min(22rem,calc(100vw-2rem))] min-w-full max-w-[calc(100vw-2rem)] overflow-y-auto rounded-xl border border-gray-200 bg-white p-2 shadow-lg">
           {emptyOptionLabel && (
             <button
               type="button"

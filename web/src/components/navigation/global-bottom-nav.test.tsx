@@ -87,4 +87,22 @@ describe("GlobalBottomNav", () => {
       expect(activeLink?.textContent).toContain("着用履歴");
     }
   });
+  it("fixed 余白は pointer-events を持たず、ナビ本体だけ押せる", async () => {
+    usePathnameMock.mockReturnValue("/items");
+
+    const { default: GlobalBottomNav } = await import("./global-bottom-nav");
+
+    await act(async () => {
+      root.render(React.createElement(GlobalBottomNav));
+    });
+
+    const nav = container.querySelector("nav");
+    const wrappers = container.querySelectorAll("div");
+    const outerWrapper = wrappers[0];
+    const card = wrappers[1];
+
+    expect(nav?.className).toContain("pointer-events-none");
+    expect(outerWrapper?.className).toContain("pointer-events-none");
+    expect(card?.className).toContain("pointer-events-auto");
+  });
 });
