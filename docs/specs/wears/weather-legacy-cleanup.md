@@ -377,3 +377,192 @@ current の本線:
 - まだ current runtime fallback に使われているものがある
 - import / export 互換と履歴 source の扱いが残っている
 - 観測所コード系は docs 上の整理不足があり、先に current 実装との整合確認が必要
+
+---
+
+## Phase B: runtime fallback 利用状況確認
+
+### 確認日
+
+- 2026-05-06
+
+### 現在の forecast provider 優先順位
+
+current code の優先順位は次のとおり。
+
+1. `latitude / longitude` が両方ある
+   - Open-Meteo Forecast
+   - `source_name = open_meteo_jma_forecast`
+2. `latitude / longitude` がなく、`jma_forecast_region_code` と `jma_forecast_office_code` が両方ある
+   - JMA forecast JSON fallback
+   - `source_name = jma_forecast_json`
+3. 上記がなく、`forecast_area_code` がある
+   - weather.tsukumijima.net fallback
+   - `source_name = tsukumijima`
+4. どれもない
+   - forecast 取得不可
+
+根拠:
+
+- `api/app/Http/Controllers/Api/WeatherRecordController.php`
+- `web/src/app/wear-logs/weather/page.tsx`
+
+補足:
+
+- `latitude` / `longitude` が片方だけの不完全状態は、fallback に進まず validation error とする
+- observed / historical は Open-Meteo Historical のみで、JMA / tsukumijima fallback はない
+
+### 座標未設定地域の扱い
+
+current UI と runtime の整理:
+
+- 地域設定の通常導線は Geocoding と `latitude / longitude / timezone`
+- 新規作成 UI では位置情報が主入力
+- 既存地域には座標未設定が残りうる
+- 座標未設定でも JMA code pair があれば JMA forecast JSON fallback で forecast 取得可能
+- 座標未設定でも `forecast_area_code` があれば tsukumijima fallback で forecast 取得可能
+- 座標未設定かつ legacy code なしなら forecast は取得不可
+- 座標未設定かつ legacy code ありの地域は、Phase A 以降は通常 UI では補助コード表示から確認する
+
+observed について:
+
+- 座標未設定では取得不可
+- legacy code があっても observed fallback はない
+
+### local DB / seed / test fixture 上の残存状況
+
+#### local DB 読み取り結果
+
+`user_weather_locations` の local 件数確認結果:
+
+- 総件数: 3
+- `latitude / longitude` 未設定: 2
+- 座標なし + JMA code pair あり: 1
+- 座標なし + `forecast_area_code` のみ: 1
+- 座標も legacy code もない地域: 0
+- default location で座標未設定: 0
+
+読み取り方法:
+
+- local DB を read-only で集計
+- 実装変更はなし
+
+補足:
+
+- 座標なし + JMA code pair あり 1 件と、座標なし + `forecast_area_code` のみ 1 件は、実運用データではなく実機確認用の local DB データとみなしてよい
+- これらは削除、または Geocoding 済みの座標付きデータへ更新できる前提
+- そのため、local DB の残存 2 件自体は Phase C を止める本質的な blocker ではない
+- ただし、Phase C へ進む前には local DB / seed / test fixture の fallback 前提データを再確認する
+
+#### seed / fixture / test 上の残存
+
+current test / fixture でも fallback 前提の地域が明示的に残っている。
+
+- JMA only location
+  - `api/tests/Feature/OpenMeteoForecastEndpointTest.php`
+  - `web/src/app/wear-logs/weather/page.test.tsx`
+- legacy `forecast_area_code` only location
+  - `api/tests/Feature/OpenMeteoForecastEndpointTest.php`
+  - `api/tests/Feature/WeatherEndpointsTest.php`
+  - `web/src/app/wear-logs/weather/page.test.tsx`
+
+結論:
+
+- local DB にも test にも、fallback を実際に通る地域データが残っている
+- Phase C へ進む前に「runtime ではもう不要」と断定できる状態ではない
+
+### fallback がまだ必要そうなケース
+
+- 旧 backup / 手作業登録 / 古い既存地域で、座標未設定の location が残っている
+- `jma_forecast_region_code / jma_forecast_office_code` はあるが Geocoding し直していない
+- `forecast_area_code` だけを持つ既存 region を restore した
+- 座標未設定地域でも forecast だけは使いたい
+- import / export で legacy code fields を roundtrip している
+
+### fallback が不要に近い理由
+
+- 新規作成 UI は `latitude / longitude / timezone` を主導線としている
+- forecast / historical の current 本線は Open-Meteo に寄っている
+- observed は既に Open-Meteo 座標必須で、JMA / tsukumijima は使えない
+- legacy code fields は Phase A で補助表示へ寄せた
+- Open-Meteo Geocoding が current の location 設定導線として成立している
+
+### test 上の残存状況
+
+runtime fallback の回帰 test として残っているもの:
+
+- `api/tests/Feature/FetchJmaWeatherForecastServiceTest.php`
+  - JMA forecast JSON service の単体確認
+- `api/tests/Feature/OpenMeteoForecastEndpointTest.php`
+  - Open-Meteo 優先
+  - JMA fallback
+  - tsukumijima fallback
+- `api/tests/Feature/WeatherEndpointsTest.php`
+  - weather location CRUD による legacy code field roundtrip
+  - forecast endpoint の fallback 経路
+- `web/src/app/wear-logs/weather/page.test.tsx`
+  - disabled 条件
+  - JMA / tsukumijima の source 保存
+- `web/src/app/settings/weather-locations/page.test.tsx`
+  - legacy code field を持つ location fixture
+
+整理:
+
+- これらは current fallback を守る回帰 test としてまだ意味がある
+- Phase C で fallback 削除に進む場合は、service test / endpoint test / frontend disabled 条件 test をまとめて見直す必要がある
+
+### OpenAPI / import-export 互換の影響
+
+OpenAPI:
+
+- `forecast_area_code`
+  - deprecated 扱いだが schema に残る
+- `jma_forecast_region_code`
+  - request / response schema に残る
+- `jma_forecast_office_code`
+  - request / response schema に残る
+- forecast endpoint description に provider fallback 順序が記載されている
+- `forecast_area_code_snapshot`
+  - weather record schema に残る
+- `source_name`
+  - `jma_forecast_json` / `tsukumijima` を許容している
+
+import / export:
+
+- weather location backup に legacy code fields を含む
+- restore で `forecast_area_code` / JMA code fields を受ける
+- weather record 側も `forecast_area_code_snapshot` を roundtrip している
+
+結論:
+
+- runtime fallback を削除するだけでなく、OpenAPI / import-export / source 履歴互換の整理が必要
+
+### Phase C へ進める条件
+
+- 既存 location の座標設定が完了している
+- local DB / 実運用 DB で fallback 対象地域がなくなった、または確認用データだけだと切り分けられている
+- 新規作成では座標設定が常に主導線として使われる
+- import / export の旧形式受け入れ方針が決まっている
+- `source_name = jma_forecast_json / tsukumijima` の履歴互換をどう扱うか決まっている
+- JMA / tsukumijima fallback 回帰 test を不要化できる
+- OpenAPI と docs で legacy code fields を deprecated / planned removal として寄せられる
+
+### Phase B 時点の判断
+
+- Phase C にはまだ進めない
+
+理由:
+
+- local DB の fallback 対象 2 件は実機確認用データで、削除または座標付きへの更新が可能
+- したがって local DB 残存は本質的 blocker ではない
+- 一方で current test は runtime fallback を正面から守っている
+- OpenAPI に legacy provider / legacy code field が残っている
+- import / export と source 履歴互換の整理が未了
+
+### local DB クリーンアップ後に再確認する項目
+
+- 座標未設定 location 件数
+- JMA fallback 対象件数
+- tsukumijima fallback 対象件数
+- default location が座標未設定になっていないこと
+- seed / fixture / test に fallback 前提データが残っていないか、または history / 回帰 test として残す理由が明確か
