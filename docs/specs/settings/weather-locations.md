@@ -321,6 +321,15 @@ current の weather location backup / restore は、少なくとも以下を rou
 - `forecast_area_code` / `jma_forecast_region_code` / `jma_forecast_office_code` は current forecast runtime では未使用
 - API response / OpenAPI からいつ外すかは Phase D で再判断する
 
+### Phase D-1
+
+- 新規作成フォームでは legacy 補助コードを通常導線に表示しない
+- 編集フォームでは、既存値がある location に限って確認用に表示する
+- 編集フォームの補助コードは、現在の forecast 取得には使わない read-only 情報として扱う
+- 一覧カードでは位置情報を主表示にし、legacy 値は詳細表示時のみ確認する
+- DB / API / import-export の legacy fields は保持したまま、通常 UI からだけ距離を置く
+- Phase D-2 以降で API response や export から外すかを再判断する
+
 ### validation
 
 - `latitude`: `-90..90`

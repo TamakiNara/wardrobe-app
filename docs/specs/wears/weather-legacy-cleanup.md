@@ -1129,6 +1129,14 @@ Phase D の判断候補:
 - import では旧 backup を受ける
 - export で出し続けるかは要判断
 
+Phase D-1 current:
+
+- 新規作成フォームでは legacy 補助コードを通常導線に表示しない
+- 編集フォームでは、既存値がある location に限って補助コードの存在を控えめに表示する
+- 編集フォームでは詳細を開いた場合だけ legacy 値を read-only で確認できる
+- 一覧カードでは位置情報を主表示にし、legacy 値は詳細表示時のみ確認する
+- この段階では DB / API / import-export の legacy fields は削除しない
+
 中期:
 
 - API response から legacy fields を外すか検討

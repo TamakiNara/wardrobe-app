@@ -14,7 +14,6 @@ import { settingsActionIcons } from "@/lib/icons/settings-icons";
 import {
   buildJmaForecastAreaOptionsWithFallback,
   findJmaForecastAreaByRegionCode,
-  groupJmaForecastAreasByOffice,
 } from "@/lib/weather/jma-forecast-areas";
 import {
   createUserWeatherLocation,
@@ -128,7 +127,6 @@ function SettingsWeatherLocationsPageContent() {
     null,
   );
   const [newIsDefault, setNewIsDefault] = useState(false);
-  const [showNewLegacyFields, setShowNewLegacyFields] = useState(false);
   const [adding, setAdding] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editName, setEditName] = useState("");
@@ -204,10 +202,6 @@ function SettingsWeatherLocationsPageContent() {
         })),
       ]),
     [editJmaRegionCode, locations, newJmaRegionCode],
-  );
-  const jmaForecastAreaGroups = useMemo(
-    () => groupJmaForecastAreasByOffice(jmaForecastAreaOptions),
-    [jmaForecastAreaOptions],
   );
   const successMessage = formMessage ?? listMessage;
   const errorMessage = formError ?? listError;
@@ -365,7 +359,6 @@ function SettingsWeatherLocationsPageContent() {
       setNewSelectedGeocodeKey(null);
       setNewGeocodeMessage(null);
       setNewIsDefault(false);
-      setShowNewLegacyFields(false);
       setFormMessage("地域を追加しました。");
     } catch (error) {
       if (error instanceof ApiClientError) {
@@ -408,7 +401,7 @@ function SettingsWeatherLocationsPageContent() {
     setEditSelectedGeocodeKey(null);
     setEditGeocodeMessage(null);
     setEditIsDefault(location.is_default);
-    setShowEditLegacyFields(hasLegacyCodeFields(location));
+    setShowEditLegacyFields(false);
   }
 
   function toggleLegacyDetails(locationId: number) {
@@ -576,32 +569,6 @@ function SettingsWeatherLocationsPageContent() {
     } finally {
       setReorderingId(null);
     }
-  }
-
-  function renderJmaForecastAreaSelect(
-    id: string,
-    value: string,
-    onChange: (nextValue: string) => void,
-  ) {
-    return (
-      <select
-        id={id}
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-      >
-        <option value="">未設定</option>
-        {jmaForecastAreaGroups.map((group) => (
-          <optgroup key={group.office_name} label={group.office_name}>
-            {group.areas.map((area) => (
-              <option key={area.region_code} value={area.region_code}>
-                {area.display_name}
-              </option>
-            ))}
-          </optgroup>
-        ))}
-      </select>
-    );
   }
 
   return (
@@ -826,54 +793,6 @@ function SettingsWeatherLocationsPageContent() {
                   />
                 </div>
               </div>
-            </div>
-
-            <div className="rounded-xl border border-dashed border-slate-200 bg-white px-4 py-4">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                <div className="space-y-1">
-                  <h3 className="text-sm font-semibold text-slate-900">
-                    補助コード（旧API・fallback用）
-                  </h3>
-                  <p className="text-xs text-slate-600">
-                    現在の天気取得では位置情報を使います。補助コードは新規
-                    forecast
-                    取得には使わず、旧backup互換や履歴保持のために残しています。
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  data-testid="new-weather-location-legacy-toggle"
-                  onClick={() => setShowNewLegacyFields((current) => !current)}
-                  className="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-700 transition hover:bg-slate-50"
-                >
-                  {showNewLegacyFields
-                    ? "補助コードを閉じる"
-                    : "補助コードを表示"}
-                </button>
-              </div>
-
-              {showNewLegacyFields ? (
-                <div
-                  data-testid="new-weather-location-legacy-fields"
-                  className="mt-4"
-                >
-                  <label
-                    htmlFor="new-weather-location-jma-region"
-                    className="mb-1 block text-sm font-medium text-gray-700"
-                  >
-                    JMA予報区域
-                  </label>
-                  {renderJmaForecastAreaSelect(
-                    "new-weather-location-jma-region",
-                    newJmaRegionCode,
-                    setNewJmaRegionCode,
-                  )}
-                  <p className="mt-2 text-xs text-slate-500">
-                    現在の新規 forecast
-                    取得には使いません。旧backup互換や履歴保持のための補助設定です。
-                  </p>
-                </div>
-              ) : null}
             </div>
           </div>
 
@@ -1144,55 +1063,61 @@ function SettingsWeatherLocationsPageContent() {
                             </div>
                           </div>
 
-                          <div className="rounded-xl border border-dashed border-slate-200 bg-white px-4 py-4">
-                            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                              <div className="space-y-1">
-                                <h4 className="text-sm font-semibold text-slate-900">
-                                  補助コード（旧API・fallback用）
-                                </h4>
-                                <p className="text-xs text-slate-600">
-                                  現在の天気取得では位置情報を使います。補助コードは新規
-                                  forecast
-                                  取得には使わず、旧backup互換や履歴保持のために残しています。
-                                </p>
-                              </div>
-                              <button
-                                type="button"
-                                data-testid={`edit-weather-location-legacy-toggle-${location.id}`}
-                                onClick={() =>
-                                  setShowEditLegacyFields((current) => !current)
-                                }
-                                className="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-700 transition hover:bg-slate-50"
-                              >
-                                {showEditLegacyFields
-                                  ? "補助コードを閉じる"
-                                  : "補助コードを表示"}
-                              </button>
-                            </div>
-
-                            {showEditLegacyFields ? (
-                              <div
-                                data-testid={`edit-weather-location-legacy-fields-${location.id}`}
-                                className="mt-4"
-                              >
-                                <label
-                                  htmlFor={`edit-weather-location-jma-region-${location.id}`}
-                                  className="mb-1 block text-sm font-medium text-gray-700"
+                          {hasLegacyCodeFields(location) ? (
+                            <div className="rounded-xl border border-dashed border-slate-200 bg-white px-4 py-4">
+                              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                                <div className="space-y-1">
+                                  <p className="text-sm font-medium text-slate-700">
+                                    補助コードが保存されています
+                                  </p>
+                                  <p className="text-xs text-slate-500">
+                                    現在の天気取得では位置情報を使います。補助コードは旧データ互換のため保持しています。
+                                  </p>
+                                </div>
+                                <button
+                                  type="button"
+                                  data-testid={`edit-weather-location-legacy-toggle-${location.id}`}
+                                  onClick={() =>
+                                    setShowEditLegacyFields(
+                                      (current) => !current,
+                                    )
+                                  }
+                                  className="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-700 transition hover:bg-slate-50"
                                 >
-                                  JMA予報区域
-                                </label>
-                                {renderJmaForecastAreaSelect(
-                                  `edit-weather-location-jma-region-${location.id}`,
-                                  editJmaRegionCode,
-                                  setEditJmaRegionCode,
-                                )}
-                                <p className="mt-2 text-xs text-slate-500">
-                                  現在の新規 forecast
-                                  取得には使いません。旧backup互換や履歴保持のための補助設定です。
-                                </p>
+                                  {showEditLegacyFields
+                                    ? "詳細を閉じる"
+                                    : "詳細を表示"}
+                                </button>
                               </div>
-                            ) : null}
-                          </div>
+
+                              {showEditLegacyFields ? (
+                                <div
+                                  data-testid={`edit-weather-location-legacy-fields-${location.id}`}
+                                  className="mt-4 rounded-lg border border-slate-200 bg-slate-50 px-3 py-3 text-xs text-slate-600"
+                                >
+                                  <p>
+                                    JMA予報区域:{" "}
+                                    {selectedArea?.display_name ?? "未設定"}
+                                  </p>
+                                  <p className="mt-1">
+                                    JMA取得用コード:{" "}
+                                    {location.jma_forecast_region_code &&
+                                    location.jma_forecast_office_code
+                                      ? `${location.jma_forecast_region_code} / ${location.jma_forecast_office_code}`
+                                      : "未設定"}
+                                  </p>
+                                  <p className="mt-1">
+                                    旧予報コード:{" "}
+                                    {location.forecast_area_code ?? "未設定"}
+                                  </p>
+                                  <p className="mt-2 text-slate-500">
+                                    現在の新規 forecast
+                                    取得には使いません。旧データ互換や履歴保持のため保持しています。
+                                  </p>
+                                </div>
+                              ) : null}
+                            </div>
+                          ) : null}
                         </div>
 
                         <label className="inline-flex items-center gap-2 text-sm text-gray-700">
@@ -1237,11 +1162,6 @@ function SettingsWeatherLocationsPageContent() {
                                 デフォルト
                               </span>
                             ) : null}
-                            {hasLegacyCodeFields(location) ? (
-                              <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-600">
-                                補助コードあり
-                              </span>
-                            ) : null}
                           </div>
                           <p className="mt-2 text-sm text-gray-600">
                             座標:{" "}
@@ -1255,6 +1175,9 @@ function SettingsWeatherLocationsPageContent() {
                           </p>
                           {hasLegacyCodeFields(location) ? (
                             <div className="mt-2 space-y-2">
+                              <p className="text-xs text-slate-500">
+                                補助コードが保存されています
+                              </p>
                               <button
                                 type="button"
                                 data-testid={`weather-location-legacy-toggle-${location.id}`}
