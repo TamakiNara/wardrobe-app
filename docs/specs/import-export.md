@@ -307,6 +307,34 @@ current の推奨:
 
 ---
 
+## Phase D-2 current
+
+### weather_locations
+
+current では、`weather_locations` の export は Open-Meteo 前提の current 形式へ寄せる。
+
+- export から外す
+  - `forecast_area_code`
+  - `jma_forecast_region_code`
+  - `jma_forecast_office_code`
+- import は旧 backup 互換として引き続き受ける
+- そのため、weather location の import / export は意図的に非対称になる
+- DB column / 通常 API request / response / OpenAPI schema は Phase D-2 ではまだ削除しない
+
+### weather_records
+
+weather record 側の legacy 履歴情報は、Phase D-2 では引き続き export / import に残す。
+
+- `forecast_area_code_snapshot`
+  - 過去 record の履歴 snapshot として維持する
+- `source_name = jma_forecast_json / tsukumijima`
+  - legacy history source として維持する
+
+整理:
+
+- 非対称にするのは location legacy field だけ
+- weather record の履歴 snapshot / source は、roundtrip と履歴保全を優先して維持する
+
 ## pending / 要再判断
 
 - snapshot JSON を export にそのまま含めるか、正規化して別構造へ展開するか

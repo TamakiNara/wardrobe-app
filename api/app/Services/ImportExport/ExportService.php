@@ -112,7 +112,7 @@ class ExportService
                 ->orderBy('display_order')
                 ->orderBy('id')
                 ->get()
-                ->map(fn (UserWeatherLocation $location) => WeatherLocationPayloadBuilder::build($location))
+                ->map(fn (UserWeatherLocation $location) => WeatherLocationPayloadBuilder::buildForExport($location))
                 ->all(),
             'weather_records' => WeatherRecord::query()
                 ->where('user_id', $user->id)

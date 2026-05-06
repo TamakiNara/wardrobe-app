@@ -379,11 +379,11 @@ class ImportExportEndpointsTest extends TestCase
             ->assertJsonPath('purchase_candidates.0.discount_ends_at', '2026-05-01T12:00')
             ->assertJsonPath('outfits.0.name', '通勤コーデ')
             ->assertJsonPath('weather_locations.0.name', '川口')
-            ->assertJsonPath('weather_locations.0.jma_forecast_region_code', '110010')
-            ->assertJsonPath('weather_locations.0.jma_forecast_office_code', '110000')
             ->assertJsonPath('weather_locations.0.latitude', 35.8617)
             ->assertJsonPath('weather_locations.0.longitude', 139.6455)
             ->assertJsonPath('weather_locations.0.timezone', 'Asia/Tokyo')
+            ->assertJsonPath('weather_locations.0.is_default', true)
+            ->assertJsonPath('weather_locations.0.display_order', 1)
             ->assertJsonPath('weather_records.0.weather_code', 'sunny')
             ->assertJsonPath('weather_records.0.location_name_snapshot', '川口')
             ->assertJsonPath('weather_records.1.location_id', null)
@@ -391,6 +391,12 @@ class ImportExportEndpointsTest extends TestCase
             ->assertJsonPath('items.0.colors.0.custom_label', '00 WHITE')
             ->assertJsonPath('items.0.images.0.content_base64', self::PNG_BASE64)
             ->assertJsonPath('purchase_candidates.0.images.0.content_base64', self::PNG_BASE64);
+
+        $firstWeatherLocation = $response->json('weather_locations.0');
+        $this->assertIsArray($firstWeatherLocation);
+        $this->assertArrayNotHasKey('forecast_area_code', $firstWeatherLocation);
+        $this->assertArrayNotHasKey('jma_forecast_region_code', $firstWeatherLocation);
+        $this->assertArrayNotHasKey('jma_forecast_office_code', $firstWeatherLocation);
     }
 
     public function test_import_recreates_items_purchase_candidates_outfits_and_restores_images(): void
@@ -534,8 +540,9 @@ class ImportExportEndpointsTest extends TestCase
         $this->assertSame('2026-05-01 12:00:00', $importedCandidate->discount_ends_at?->format('Y-m-d H:i:s'));
         $this->assertSame($importedItem->id, $importedOutfit->outfitItems->first()?->item_id);
         $this->assertTrue($importedWeatherLocation->is_default);
-        $this->assertSame('110010', $importedWeatherLocation->jma_forecast_region_code);
-        $this->assertSame('110000', $importedWeatherLocation->jma_forecast_office_code);
+        $this->assertNull($importedWeatherLocation->forecast_area_code);
+        $this->assertNull($importedWeatherLocation->jma_forecast_region_code);
+        $this->assertNull($importedWeatherLocation->jma_forecast_office_code);
         $this->assertSame('35.8617', (string) $importedWeatherLocation->latitude);
         $this->assertSame('139.6455', (string) $importedWeatherLocation->longitude);
         $this->assertSame('Asia/Tokyo', $importedWeatherLocation->timezone);
@@ -1883,5 +1890,53 @@ class ImportExportEndpointsTest extends TestCase
         $this->assertNull($importedWeatherLocation->timezone);
         $this->assertSame('35.8617', (string) $importedWeatherLocation->latitude);
         $this->assertSame('139.6455', (string) $importedWeatherLocation->longitude);
+    }
+
+    public function test_import_restores_legacy_weather_location_fields_but_export_omits_them(): void
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->create();
+        $this->createCategory('tops_shirt_blouse', 'tops', 'シャツ・ブラウス');
+        $this->seedExportSourceData($user);
+
+        $this->actingAs($user, 'web');
+
+        $exportPayload = $this->getJson('/api/export', [
+            'Accept' => 'application/json',
+        ])->assertOk()->json();
+
+        $exportPayload['weather_locations'][0]['forecast_area_code'] = '110000';
+        $exportPayload['weather_locations'][0]['jma_forecast_region_code'] = '110010';
+        $exportPayload['weather_locations'][0]['jma_forecast_office_code'] = '110000';
+
+        WeatherRecord::query()->delete();
+        UserWeatherLocation::query()->delete();
+
+        $token = $this->issueCsrfToken();
+
+        $this->postJson('/api/import', $exportPayload, [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ])->assertOk();
+
+        $importedWeatherLocation = UserWeatherLocation::query()
+            ->where('user_id', $user->id)
+            ->where('name', '川口')
+            ->sole();
+
+        $this->assertSame('110000', $importedWeatherLocation->forecast_area_code);
+        $this->assertSame('110010', $importedWeatherLocation->jma_forecast_region_code);
+        $this->assertSame('110000', $importedWeatherLocation->jma_forecast_office_code);
+
+        $reExportPayload = $this->getJson('/api/export', [
+            'Accept' => 'application/json',
+        ])->assertOk()->json();
+
+        $reExportedWeatherLocation = $reExportPayload['weather_locations'][0] ?? null;
+        $this->assertIsArray($reExportedWeatherLocation);
+        $this->assertArrayNotHasKey('forecast_area_code', $reExportedWeatherLocation);
+        $this->assertArrayNotHasKey('jma_forecast_region_code', $reExportedWeatherLocation);
+        $this->assertArrayNotHasKey('jma_forecast_office_code', $reExportedWeatherLocation);
     }
 }

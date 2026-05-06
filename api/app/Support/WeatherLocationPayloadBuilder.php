@@ -23,4 +23,19 @@ class WeatherLocationPayloadBuilder
             'updated_at' => $location->updated_at?->toISOString(),
         ];
     }
+
+    public static function buildForExport(UserWeatherLocation $location): array
+    {
+        return [
+            'id' => $location->id,
+            'name' => $location->name,
+            'latitude' => $location->latitude,
+            'longitude' => $location->longitude,
+            'timezone' => $location->timezone,
+            'is_default' => $location->is_default,
+            'display_order' => $location->display_order,
+            'created_at' => $location->created_at?->toISOString(),
+            'updated_at' => $location->updated_at?->toISOString(),
+        ];
+    }
 }

@@ -1188,6 +1188,29 @@ Phase D-2 planning:
 Phase D-2 は、runtime では未使用になった legacy fields を backup / restore でどこまで残すかを決める整理フェーズとする。  
 この段階でも、**実装変更・schema 変更・migration はまだ行わない**。
 
+### Phase D-2 current
+
+weather location の legacy field については、Phase D-2 で次を current とする。
+
+- export から外す
+  - `forecast_area_code`
+  - `jma_forecast_region_code`
+  - `jma_forecast_office_code`
+- import は旧 backup 互換として引き続き受ける
+- そのため、weather location の import / export は意図的に非対称になる
+
+一方で、weather record 側の履歴情報は Phase D-2 では維持する。
+
+- `forecast_area_code_snapshot`
+  - 過去 record の履歴 snapshot として export / import に残す
+- `source_name = jma_forecast_json / tsukumijima`
+  - legacy history source として export / import に残す
+
+補足:
+
+- DB column / 通常 API request / response / OpenAPI schema は Phase D-2 ではまだ削除しない
+- Phase E 以降で DB column 削除や export の最終縮小を再判断する
+
 #### 比較する案
 
 ##### 案A: import / export とも legacy fields を維持
