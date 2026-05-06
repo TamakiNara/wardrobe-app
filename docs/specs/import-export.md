@@ -114,6 +114,15 @@ legacy / fallback / 旧互換として当面残すもの:
 - Phase C 以降、runtime forecast fallback は使わず、legacy code fields は backup / restore 互換と履歴保持のために残す
 - Phase D では、import は受けるが export は出さない段階案を比較対象にする
 
+Phase D-2 での推奨仮説:
+
+- `forecast_area_code`
+- `jma_forecast_region_code`
+- `jma_forecast_office_code`
+
+は、runtime でも通常 UI でも未使用になった段階で、**import では受けるが export では出さない** 方向を第一候補にする。  
+理由は、旧 backup restore は維持しつつ、新しく作る backup を current の位置情報正本へ寄せやすいため。
+
 ### weather_locations の validation
 
 - `latitude`
@@ -226,6 +235,12 @@ weather 関連の restore 順序は、少なくとも次を推奨する。
 - `forecast_area_code_snapshot` は legacy snapshot として当面受ける
 - `source_name = tsukumijima` や `source_name = jma_forecast_json` は履歴としてそのまま保持する
 - `source_name` の違いだけで既存レコードを書き換えない
+
+Phase D-2 の推奨仮説:
+
+- `forecast_area_code_snapshot` は、location legacy field とは分けて扱う
+- これは過去 weather record の履歴 snapshot なので、Phase D-2 では export / import とも維持寄りで考える
+- `source_name = tsukumijima / jma_forecast_json` も同様に、履歴互換として export / import に残す
 
 ---
 

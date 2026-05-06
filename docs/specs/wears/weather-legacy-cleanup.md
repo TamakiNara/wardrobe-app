@@ -1137,6 +1137,12 @@ Phase D-1 current:
 - 一覧カードでは位置情報を主表示にし、legacy 値は詳細表示時のみ確認する
 - この段階では DB / API / import-export の legacy fields は削除しない
 
+Phase D-2 planning:
+
+- runtime では未使用になった legacy fields を、backup / restore でどこまで残すか判断する
+- 特に `export から外し、import だけ受ける` 非対称案を比較対象にする
+- `source_name` の legacy 履歴互換は location field と切り分けて扱う
+
 中期:
 
 - API response から legacy fields を外すか検討
@@ -1176,6 +1182,151 @@ Phase D-1 current:
 5. OpenAPI に deprecated / legacy の説明を強める
 6. `JmaForecastAreaCodeSupport` を request / import validator だけに残すか再判断する
 7. Phase E の migration 条件を決める
+
+### Phase D-2: export / import legacy field 整理方針
+
+Phase D-2 は、runtime では未使用になった legacy fields を backup / restore でどこまで残すかを決める整理フェーズとする。  
+この段階でも、**実装変更・schema 変更・migration はまだ行わない**。
+
+#### 比較する案
+
+##### 案A: import / export とも legacy fields を維持
+
+- export にも legacy fields を出し続ける
+- import でも受け続ける
+- 現状維持
+
+長所:
+
+- 最も安全
+- 旧 backup / 新 backup の差が少ない
+- DB columns が残っている間は自然
+
+短所:
+
+- 新しい backup にも使わない legacy fields が残る
+- current 仕様としては重い
+- Phase C / D-1 で UI と runtime を整理したのに、export は古い形を引きずる
+
+##### 案B: import は受けるが、export では出さない
+
+- 旧 backup restore のため import は legacy fields を受ける
+- 新しく作る backup には legacy fields を含めない
+- DB columns はまだ残す
+- runtime では使わない
+
+長所:
+
+- 新しい backup が current 仕様に寄る
+- 旧 backup 互換は残せる
+- migration なしで段階的に縮小できる
+
+短所:
+
+- import / export が非対称になる
+- docs と OpenAPI に明確な説明が必要
+- export から外した後も DB には値が残るため、完全削除ではない
+
+##### 案C: import / export とも削除
+
+- legacy fields を backup / restore 対象から外す
+- 旧 backup 互換も終了する
+
+長所:
+
+- 最もすっきりする
+
+短所:
+
+- 旧 backup を壊す
+- DB columns が残る間は不自然
+- Phase D の時点では早すぎる
+
+#### 推奨案
+
+推奨は **案B**。
+
+理由:
+
+- current の正本はすでに `latitude / longitude / timezone`
+- runtime fallback も UI 主導線も削除済みで、legacy location field を新しい backup にまで残す理由は弱い
+- 旧 backup restore はまだ壊さない方が安全
+- `import だけ legacy を受ける` 形なら、Phase E 以降の column 削除と互換終了を段階的に進めやすい
+
+#### 個別判断
+
+##### weather location legacy fields
+
+対象:
+
+- `forecast_area_code`
+- `jma_forecast_region_code`
+- `jma_forecast_office_code`
+
+推奨:
+
+- export: Phase D-2 の第一候補では外す
+- import: 旧 backup 互換として当面受ける
+
+理由:
+
+- current forecast / observed では使わない
+- UI でも通常導線から外している
+- DB columns はまだ残すが、新しい backup の正本として持ち続ける必要は薄い
+
+##### weather record legacy snapshot
+
+対象:
+
+- `forecast_area_code_snapshot`
+
+推奨:
+
+- Phase D-2 では **export / import とも維持寄り**
+
+理由:
+
+- location legacy field と違い、`weather_records` 側の snapshot は過去履歴保全に近い
+- 既存 record の roundtrip を保つなら、先に外すメリットが小さい
+- 新規保存でほぼ未使用でも、過去 record を export / restore したときの再現性を優先した方が安全
+
+補足:
+
+- `forecast_area_code_snapshot` を export から外す判断は、Phase E 以降で履歴互換終了と一緒に再判断する
+
+##### legacy source_name
+
+対象:
+
+- `jma_forecast_json`
+- `tsukumijima`
+
+推奨:
+
+- Phase D-2 でも export / import に残す
+
+理由:
+
+- これは location の legacy field ではなく、record の履歴由来情報
+- 新規取得では発生しないが、既存 `weather_records` には残りうる
+- import / export で legacy history source として残す方が自然
+
+#### import / export を非対称にする場合の注意点
+
+- docs に `import は旧 backup を受けるが、export は current 形式へ寄せる` と明記する必要がある
+- OpenAPI / backup schema 説明でも legacy field の扱いを current / legacy で書き分ける必要がある
+- restore test は旧形式入力を維持しつつ、新 export test は legacy field なしへ分ける必要がある
+- DB に値が残る期間は、export と DB の内容が一致しないことを前提にした説明が必要
+
+#### 実装する場合の安全な手順
+
+1. docs に Phase D-2 current 方針を明記する
+2. weather location export から legacy fields を外す
+3. import は legacy fields を受け続ける
+4. import / export test を current / legacy で分離する
+5. `forecast_area_code_snapshot` は別判断として維持する
+6. `source_name` の legacy history 互換 test は残す
+7. Phase E で DB columns / snapshot / export 完全縮小を再判断する
 
 ### Phase E 以降に回す課題
 
