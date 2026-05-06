@@ -435,12 +435,20 @@ observed について:
 
 `user_weather_locations` の local 件数確認結果:
 
-- 総件数: 3
-- `latitude / longitude` 未設定: 2
-- 座標なし + JMA code pair あり: 1
-- 座標なし + `forecast_area_code` のみ: 1
-- 座標も legacy code もない地域: 0
-- default location で座標未設定: 0
+- 旧地域データ削除前
+  - 総件数: 3
+  - `latitude / longitude` 未設定: 2
+  - 座標なし + JMA code pair あり: 1
+  - 座標なし + `forecast_area_code` のみ: 1
+  - 座標も legacy code もない地域: 0
+  - default location で座標未設定: 0
+- 旧地域データ削除後
+  - 総件数: 1
+  - `latitude / longitude` 未設定: 0
+  - 座標なし + JMA code pair あり: 0
+  - 座標なし + `forecast_area_code` のみ: 0
+  - 座標も legacy code もない地域: 0
+  - default location で座標未設定: 0
 
 読み取り方法:
 
@@ -449,10 +457,11 @@ observed について:
 
 補足:
 
-- 座標なし + JMA code pair あり 1 件と、座標なし + `forecast_area_code` のみ 1 件は、実運用データではなく実機確認用の local DB データとみなしてよい
-- これらは削除、または Geocoding 済みの座標付きデータへ更新できる前提
-- そのため、local DB の残存 2 件自体は Phase C を止める本質的な blocker ではない
-- ただし、Phase C へ進む前には local DB / seed / test fixture の fallback 前提データを再確認する
+- 座標なし + JMA code pair あり 1 件と、座標なし + `forecast_area_code` のみ 1 件は、実運用データではなく実機確認用の local DB データとして扱ってよい
+- これらの旧地域データは削除済みで、今後は座標付きの `川口` 地域を使う運用に寄せる
+- したがって、local DB 残存データは Phase C を止める本質的な blocker ではない
+- 一方で、runtime fallback 実装・current fallback 回帰 test・OpenAPI・import / export 互換は引き続き Phase C 前の整理対象
+- Phase C へ進む前には、local DB / seed / test fixture に legacy-only location が残っていないか、または回帰 test 用として残す理由が明確かを再確認する
 
 #### seed / fixture / test 上の残存
 
@@ -553,7 +562,7 @@ import / export:
 
 理由:
 
-- local DB の fallback 対象 2 件は実機確認用データで、削除または座標付きへの更新が可能
+- local DB の fallback 対象 2 件は実機確認用データで、現在は削除済み
 - したがって local DB 残存は本質的 blocker ではない
 - 一方で current test は runtime fallback を正面から守っている
 - OpenAPI に legacy provider / legacy code field が残っている
@@ -566,6 +575,14 @@ import / export:
 - tsukumijima fallback 対象件数
 - default location が座標未設定になっていないこと
 - seed / fixture / test に fallback 前提データが残っていないか、または history / 回帰 test として残す理由が明確か
+
+### weather record の location snapshot 補足
+
+- `user_weather_locations.name` は現在の地域設定名
+- `weather_records.location_name_snapshot` は保存時点の地域名
+- 地域マスタを後から改名・削除しても、過去の weather record では保存時点名が表示されることがある
+- したがって、現在の地域設定名と weather record の snapshot 名が異なることはありうる
+- これは過去履歴を保全するための仕様であり、不具合ではない
 
 ---
 

@@ -91,6 +91,13 @@ current で保持している location snapshot は次。
 - `location_name_snapshot` は、その保存時点で画面上に採用した地域名
 - `forecast_area_code_snapshot` は legacy fallback 互換のため当面残す
 
+補足:
+
+- `user_weather_locations.name` は現在の地域設定名であり、`location_name_snapshot` とは用途が異なる
+- 地域マスタを後から改名・削除しても、過去の weather record では保存時点の `location_name_snapshot` を表示する
+- そのため、現在の地域設定名と weather record の snapshot 名が異なることはありうる
+- これは過去履歴を保全するための仕様であり、不具合ではない
+
 `latitude / longitude / timezone` は current では `weather_records` へ snapshot 保存していない。  
 座標正本の詳細は [weather locations](../settings/weather-locations.md) を参照する。
 
