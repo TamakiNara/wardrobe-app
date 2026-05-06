@@ -29,8 +29,11 @@ import {
   flattenValidationErrors,
   getUserFacingSubmitErrorMessage,
 } from "@/lib/api/error-message";
-import { fetchCategoryVisibilitySettings } from "@/lib/api/settings";
-import { SEASON_OPTIONS, TPO_OPTIONS } from "@/lib/master-data/item-attributes";
+import {
+  fetchCategoryVisibilitySettings,
+  fetchUserTpos,
+} from "@/lib/api/settings";
+import { SEASON_OPTIONS } from "@/lib/master-data/item-attributes";
 import {
   BOTTOMS_LENGTH_OPTIONS,
   BOTTOMS_RISE_OPTIONS,
@@ -122,6 +125,7 @@ import type {
   ItemSpec,
   StructuredSizeFieldName,
 } from "@/types/items";
+import type { UserTpoRecord } from "@/types/settings";
 
 type PurchaseCandidateFormProps = {
   mode: "create" | "edit";
@@ -543,6 +547,8 @@ export default function PurchaseCandidateForm({
   const [customSubHex, setCustomSubHex] = useState("#3B82F6");
   const [selectedSeasons, setSelectedSeasons] = useState<string[]>([]);
   const [selectedTpos, setSelectedTpos] = useState<string[]>([]);
+  const [tpoOptions, setTpoOptions] = useState<UserTpoRecord[]>([]);
+  const [tpoLoadError, setTpoLoadError] = useState<string | null>(null);
 
   const [categoryOptions, setCategoryOptions] = useState<
     PurchaseCandidateCategoryOption[]
@@ -870,6 +876,14 @@ export default function PurchaseCandidateForm({
     showValidationSummary && validationSummaryMessages.length > 0;
   const submitMessage =
     submitSuccess ?? (!shouldShowValidationSummary ? submitError : null);
+  const availableTpoOptions = useMemo(() => {
+    const optionNames = tpoOptions.map((tpo) => tpo.name);
+    const additionalSelectedNames = selectedTpos.filter(
+      (tpo) => tpo.trim() !== "" && !optionNames.includes(tpo),
+    );
+
+    return [...optionNames, ...additionalSelectedNames];
+  }, [selectedTpos, tpoOptions]);
 
   function resolveFirstErrorSelector(errorKey: string): string | null {
     switch (errorKey) {
@@ -971,12 +985,24 @@ export default function PurchaseCandidateForm({
       try {
         const groups = await fetchCategoryGroups();
         let visibleCategoryIds: string[] | undefined;
+        let nextTpoOptions: UserTpoRecord[] = [];
 
         try {
           const settings = await fetchCategoryVisibilitySettings();
           visibleCategoryIds = settings.visibleCategoryIds;
         } catch {
           visibleCategoryIds = undefined;
+        }
+
+        try {
+          const userTpoResponse = await fetchUserTpos(true);
+          nextTpoOptions = userTpoResponse.tpos;
+          setTpoLoadError(null);
+        } catch {
+          nextTpoOptions = [];
+          setTpoLoadError(
+            "TPO の取得に失敗しました。再読み込みしても改善しない場合は設定を確認してください。",
+          );
         }
 
         const nextCategoryOptions = buildCategoryOptions(
@@ -989,6 +1015,7 @@ export default function PurchaseCandidateForm({
         );
 
         setCategoryOptions(nextCategoryOptions);
+        setTpoOptions(nextTpoOptions);
 
         const resolveInitialCategoryGroupId = () => {
           const normalizedInitialCategoryGroupId =
@@ -3009,7 +3036,7 @@ export default function PurchaseCandidateForm({
         <div>
           <p className="mb-2 text-sm font-medium text-gray-700">TPO</p>
           <div className="flex flex-wrap gap-2">
-            {TPO_OPTIONS.map((option) => {
+            {availableTpoOptions.map((option) => {
               const checked = selectedTpos.includes(option);
               return (
                 <button
@@ -3030,6 +3057,13 @@ export default function PurchaseCandidateForm({
                 </button>
               );
             })}
+            {tpoLoadError ? (
+              <p className="w-full text-sm text-red-600">{tpoLoadError}</p>
+            ) : availableTpoOptions.length === 0 ? (
+              <p className="w-full text-sm text-gray-500">
+                有効な TPO はまだありません。設定から追加できます。
+              </p>
+            ) : null}
           </div>
         </div>
 

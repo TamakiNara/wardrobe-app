@@ -371,7 +371,7 @@ paths:
       description: |
         現在のユーザーが持つ TPO 一覧を `sort_order asc` で返す。
         `active_only=1` を指定した場合は active な TPO のみ返す。
-        settings 管理画面の正本とし、item / outfit の新規候補取得にも使う。
+        settings 管理画面の正本とし、item / outfit / purchase candidate の新規候補取得にも使う。
       security:
         - SessionCookieAuth: []
       parameters:

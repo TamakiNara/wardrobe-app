@@ -15,6 +15,7 @@ const routerMock = {
 };
 const fetchCategoryGroupsMock = vi.fn();
 const fetchCategoryVisibilitySettingsMock = vi.fn();
+const fetchUserTposMock = vi.fn();
 const fetchUserBrandsMock = vi.fn();
 const fetchMock = vi.fn();
 const scrollIntoViewMock = vi.fn();
@@ -36,6 +37,7 @@ vi.mock("@/lib/api/categories", () => ({
 
 vi.mock("@/lib/api/settings", () => ({
   fetchCategoryVisibilitySettings: () => fetchCategoryVisibilitySettingsMock(),
+  fetchUserTpos: (...args: unknown[]) => fetchUserTposMock(...args),
   fetchUserBrands: (...args: unknown[]) => fetchUserBrandsMock(...args),
 }));
 
@@ -276,6 +278,13 @@ describe("購入検討フォーム", () => {
         "bags_other",
       ],
     });
+    fetchUserTposMock.mockResolvedValue({
+      tpos: [
+        { id: 1, name: "仕事", sortOrder: 1, isActive: true, isPreset: true },
+        { id: 2, name: "休日", sortOrder: 2, isActive: true, isPreset: true },
+        { id: 3, name: "通勤", sortOrder: 3, isActive: true, isPreset: false },
+      ],
+    });
     fetchUserBrandsMock.mockResolvedValue({ brands: [] });
   });
 
@@ -310,6 +319,125 @@ describe("購入検討フォーム", () => {
       await Promise.resolve();
     });
   }
+
+  it("新規作成ではユーザー設定済みの TPO を表示する", async () => {
+    await renderForm();
+
+    expect(container.textContent).toContain("仕事");
+    expect(container.textContent).toContain("休日");
+    expect(container.textContent).toContain("通勤");
+    expect(container.textContent).not.toContain("フォーマル");
+  });
+
+  it("編集時は既存 TPO をユーザー設定一覧上で初期選択する", async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        purchaseCandidate: {
+          id: 12,
+          status: "considering",
+          priority: "medium",
+          name: "通勤ブラウス",
+          category_id: "tops_shirt_blouse",
+          shape: "shirt",
+          category_name: "シャツ・ブラウス",
+          brand_name: null,
+          price: null,
+          release_date: null,
+          sale_price: null,
+          sale_ends_at: null,
+          discount_ends_at: null,
+          purchase_url: null,
+          memo: null,
+          wanted_reason: null,
+          size_gender: null,
+          size_label: null,
+          size_note: null,
+          size_details: null,
+          alternate_size_label: null,
+          alternate_size_note: null,
+          alternate_size_details: null,
+          spec: null,
+          is_rain_ok: false,
+          sheerness: null,
+          group_id: null,
+          group_order: null,
+          group_candidates: [],
+          converted_item_id: null,
+          converted_at: null,
+          colors: [],
+          seasons: [],
+          tpos: ["通勤"],
+          materials: [],
+          images: [],
+          created_at: null,
+          updated_at: null,
+        },
+      }),
+    });
+
+    await renderForm({ mode: "edit", candidateId: "12" });
+
+    const commutingButton = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button[aria-pressed]"),
+    ).find((button) => button.textContent?.includes("通勤"));
+
+    expect(commutingButton).not.toBeUndefined();
+    expect(commutingButton?.getAttribute("aria-pressed")).toBe("true");
+  });
+
+  it("選択したユーザー設定 TPO を create payload に含める", async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 201,
+      json: async () => ({
+        purchaseCandidate: {
+          id: 12,
+        },
+      }),
+    });
+
+    await renderForm();
+
+    const nameInput = container.querySelector("#name") as HTMLInputElement;
+    const customMainCheckbox = container.querySelector(
+      'input[aria-label="メインカラーをカラーコードで入力"]',
+    ) as HTMLInputElement;
+    const form = container.querySelector("form") as HTMLFormElement;
+    const tpoButton = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button[aria-pressed]"),
+    ).find((button) => button.textContent?.includes("通勤"));
+
+    expect(tpoButton).not.toBeUndefined();
+
+    await act(async () => {
+      setNativeValue(nameInput, "通勤ブラウス");
+      await setCategorySelection("outerwear", "outerwear_coat");
+      setNativeValue(getShapeSelect() as HTMLSelectElement, "trench");
+      customMainCheckbox.click();
+      tpoButton!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+
+    const mainColorCodeInput = container.querySelector(
+      'input[aria-label="メインカラーコード"]',
+    ) as HTMLInputElement;
+
+    await act(async () => {
+      setNativeValue(mainColorCodeInput, "#112233");
+    });
+
+    await act(async () => {
+      form.dispatchEvent(
+        new Event("submit", { bubbles: true, cancelable: true }),
+      );
+    });
+
+    const [, requestInit] = fetchMock.mock.calls[0];
+    const payload = JSON.parse(requestInit.body as string);
+
+    expect(payload.tpos).toEqual(["通勤"]);
+  });
 
   function setNativeValue(
     element: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement,

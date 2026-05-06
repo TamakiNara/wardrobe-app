@@ -68,6 +68,7 @@ duplicate / color-variant の共通概念は `docs/specs/duplicate-color-variant
 - `release_date` / `sale_price` / `sale_ends_at` / `discount_ends_at` は candidate 専用の補助情報として保持する
 - candidate 一覧 / 詳細では sale 情報を補助表示する
 - candidate 複製機能は詳細画面から使い、colors / seasons / tpos / images も引き継ぐ
+- candidate の TPO 選択肢は static preset ではなく settings の user TPO 一覧を正本とし、item 新規 / 編集と同じ取得元を使う
 - candidate の duplicate / color-variant API は draft payload を返すだけで、DB へ新規 candidate を保存しない
 - candidate 複製時の画像は record 共有ではなく、新 candidate 用保存先へ物理コピーする
 - color-variant でも画像を draft に含める
