@@ -4,6 +4,7 @@ import React from "react";
 import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { ApiClientError } from "@/lib/api/client";
 
 const pushMock = vi.fn();
 const fetchUserWeatherLocationsMock = vi.fn();
@@ -631,6 +632,39 @@ describe("SettingsWeatherLocationsPage", () => {
     });
 
     expect(deleteUserWeatherLocationMock).toHaveBeenCalledWith(1);
+    confirmMock.mockRestore();
+  });
+
+  it("使用中の地域は削除不可メッセージを表示する", async () => {
+    const confirmMock = vi.spyOn(window, "confirm").mockReturnValue(true);
+    deleteUserWeatherLocationMock.mockRejectedValueOnce(
+      new ApiClientError(422, {
+        message: "The given data was invalid.",
+        errors: {
+          location: ["この地域は天気記録で使用中のため削除できません。"],
+        },
+      }),
+    );
+
+    const { default: SettingsWeatherLocationsPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(SettingsWeatherLocationsPage));
+      await waitForEffects();
+    });
+
+    const deleteButtons = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button"),
+    ).filter((button) => button.textContent?.includes("削除"));
+
+    await act(async () => {
+      deleteButtons[1]?.click();
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain(
+      "この地域は天気記録で使用中のため削除できません。",
+    );
     confirmMock.mockRestore();
   });
   it("上下ボタンで表示順を更新できる", async () => {

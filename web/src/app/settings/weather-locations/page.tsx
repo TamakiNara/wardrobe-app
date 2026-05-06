@@ -509,10 +509,11 @@ function SettingsWeatherLocationsPageContent() {
     } catch (error) {
       if (error instanceof ApiClientError) {
         setListError(
-          getUserFacingSubmitErrorMessage(
-            error.data,
-            "地域の削除に失敗しました。時間をおいて再度お試しください。",
-          ),
+          getFirstValidationMessage(error.data, ["location"]) ??
+            getUserFacingSubmitErrorMessage(
+              error.data,
+              "地域の削除に失敗しました。時間をおいて再度お試しください。",
+            ),
         );
       } else {
         setListError(
