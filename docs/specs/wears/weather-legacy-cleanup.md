@@ -566,3 +566,285 @@ import / export:
 - tsukumijima fallback 対象件数
 - default location が座標未設定になっていないこと
 - seed / fixture / test に fallback 前提データが残っていないか、または history / 回帰 test として残す理由が明確か
+
+---
+
+## Phase C: runtime fallback 削除計画
+
+### Phase C 後の目標状態
+
+#### forecast
+
+- forecast provider は Open-Meteo Forecast のみ
+- `latitude / longitude / timezone` を forecast 取得の前提にする
+- JMA forecast JSON fallback は使わない
+- `weather.tsukumijima.net` fallback は使わない
+- 座標未設定地域では forecast 取得不可
+
+#### observed / historical
+
+- すでに Open-Meteo Historical のみ
+- 引き続き座標必須
+
+#### 地域設定
+
+- current の正本は `latitude / longitude / timezone`
+- legacy code fields は runtime forecast の主導線から切り離す
+- DB column 削除はまだ行わず、Phase D で再判断する
+
+#### import / export
+
+- Phase C では旧 backup 互換を維持する
+- legacy code fields と `forecast_area_code_snapshot` の roundtrip は残す
+- runtime fallback からは切り離す
+
+### 影響範囲一覧
+
+#### backend runtime
+
+変更対象:
+
+- `api/app/Http/Controllers/Api/WeatherRecordController.php`
+  - forecast provider 自動選択から JMA / tsukumijima 分岐を外す
+  - forecast は Open-Meteo 座標必須に寄せる
+- forecast endpoint validation / error message
+  - legacy code があっても forecast 取得不可になるため文言見直しが必要
+
+削除候補:
+
+- `api/app/Services/Weather/FetchJmaWeatherForecastService.php`
+- `api/app/Services/Weather/FetchWeatherForecastService.php`
+- `api/app/Support/JmaForecastAreaCodeSupport.php`
+
+維持候補:
+
+- `FetchOpenMeteoWeatherForecastService`
+- `FetchOpenMeteoHistoricalWeatherService`
+- legacy code field を保持する model / request / response
+
+#### backend tests
+
+削除または書き換え対象:
+
+- `api/tests/Feature/FetchJmaWeatherForecastServiceTest.php`
+- `api/tests/Feature/OpenMeteoForecastEndpointTest.php` の JMA / tsukumijima fallback success case
+- `api/tests/Feature/WeatherEndpointsTest.php` の fallback 成功経路 test
+
+維持対象:
+
+- Open-Meteo forecast / historical の current test
+- weather location CRUD と legacy code field roundtrip test
+- import / export の legacy field roundtrip test
+
+#### frontend
+
+変更対象:
+
+- `web/src/app/wear-logs/weather/page.tsx`
+  - forecast button enabled / disabled 条件を座標必須へ寄せる
+  - JMA / `forecast_area_code` fallback 前提の説明を外す
+- `web/src/types/weather.ts`
+  - forecast response 内で legacy fallback provider 前提の説明を整理
+
+削除または未使用化候補:
+
+- `hasJmaForecastCodes`
+- `hasIncompleteJmaForecastCodes`
+- `hasLegacyForecastCode`
+- `getForecastDisabledReason` 内の fallback 前提分岐
+
+維持候補:
+
+- 地域設定画面の legacy 補助コード section
+  - Phase C では完全削除せず、必要なら「新規取得には使いません」と補足する
+
+#### docs
+
+更新対象:
+
+- `docs/specs/wears/weather-fetching.md`
+- `docs/specs/wears/weather-current-status.md`
+- `docs/specs/settings/weather-locations.md`
+- `docs/specs/wears/weather-legacy-cleanup.md`
+- `docs/specs/wears/weather-open-meteo-redesign.md`
+- `docs/specs/import-export.md`
+
+#### OpenAPI
+
+変更対象:
+
+- forecast endpoint description
+  - JMA / tsukumijima fallback 記述を外す
+- weather location schema description
+  - legacy code fields の説明を runtime fallback 用から import / export 互換用へ寄せる
+- forecast response / weather record source description
+  - `source_name = jma_forecast_json / tsukumijima` を履歴互換として扱う
+
+#### import / export
+
+維持対象:
+
+- `forecast_area_code`
+- `jma_forecast_region_code`
+- `jma_forecast_office_code`
+- `forecast_area_code_snapshot`
+- 旧 backup restore
+- 過去 `source_name` の履歴互換
+
+Phase C では変更しない:
+
+- backup schema
+- restore validator
+- weather record snapshot 構造
+
+### 案A / B / C の比較
+
+#### 案A: runtime fallback だけ削除し、DB / API legacy fields は残す
+
+内容:
+
+- forecast endpoint は Open-Meteo のみ
+- JMA / tsukumijima service は削除または未使用化
+- legacy code fields は import / export 互換として残す
+- OpenAPI では deprecated / legacy として残す
+
+長所:
+
+- runtime がすっきりする
+- DB migration を避けられる
+- 旧 backup 互換を残しやすい
+- 差分を runtime と docs / OpenAPI に寄せられる
+
+短所:
+
+- legacy fields 自体はしばらく残る
+- API schema は完全には軽くならない
+
+#### 案B: runtime fallback と API legacy fields を同時削除する
+
+内容:
+
+- runtime fallback 削除
+- request / response から legacy fields 削除
+- OpenAPI から削除
+- import / export も新形式へ寄せる
+
+長所:
+
+- API / frontend type がすっきりする
+
+短所:
+
+- 互換影響が大きい
+- restore 互換の整理が重い
+- 一度に差分が大きくなる
+
+#### 案C: runtime fallback / API / DB columns まで一括削除する
+
+内容:
+
+- migration で legacy columns 削除
+- import / export 互換も再設計
+- tests / docs も大幅整理
+
+長所:
+
+- 最終形に近い
+
+短所:
+
+- リスクが最も高い
+- backup 互換を壊しやすい
+- current の段階では過剰
+
+### 推奨案
+
+推奨は案A。
+
+理由:
+
+- current の本質課題は runtime fallback を止めること
+- DB migration を伴わずに forecast provider を Open-Meteo のみに寄せられる
+- import / export 互換と source 履歴互換を別フェーズへ分離できる
+- Phase D で columns / schema 削除を再判断しやすい
+
+### source_name 履歴互換
+
+runtime fallback を削除しても、過去 record の `source_name` は残りうる。
+
+Phase C の扱い:
+
+- `source_name = jma_forecast_json`
+  - 過去履歴表示のため残す
+  - 新規取得では使わない
+- `source_name = tsukumijima`
+  - 過去履歴表示のため残す
+  - 新規取得では使わない
+- import / export
+  - legacy source_name として restore で受ける
+- UI
+  - 必要なら「旧API」など控えめな補足に留める
+
+### import / export 互換の扱い
+
+推奨:
+
+- Phase C では import / export roundtrip は残す
+- `forecast_area_code`
+- `jma_forecast_region_code`
+- `jma_forecast_office_code`
+- `forecast_area_code_snapshot`
+  は backup / restore の互換データとして維持する
+- Phase D で legacy columns 削除可否を再判断する
+
+理由:
+
+- runtime fallback 削除と backup 互換削除を同時にやると差分が大きすぎる
+- 旧 backup をいきなり壊さない方が安全
+
+### frontend UI 方針
+
+推奨:
+
+- forecast button enabled 判定は `latitude / longitude` のみへ変更
+- JMA code pair や `forecast_area_code` だけでは forecast ボタンを有効にしない
+- 地域設定画面の legacy 補助コード section は Phase C では残す
+- ただし補足文は
+  - 「現在は新規 forecast 取得には使いません」
+  - 「旧 backup 互換や履歴保持のため残しています」
+  の方向へ寄せる
+
+### test 方針
+
+Phase C 実装時の整理方針:
+
+- 維持:
+  - Open-Meteo forecast success test
+  - Open-Meteo historical success test
+  - import / export legacy field roundtrip test
+  - legacy source_name import / history test
+- 削除または書き換え:
+  - JMA fallback success test
+  - tsukumijima fallback success test
+  - fallback service 単体 test
+  - frontend の fallback enabled 条件 test
+
+### Phase C 実装手順案
+
+1. forecast endpoint の provider selection を Open-Meteo only にする
+2. forecast validation / error message を座標必須前提へ更新する
+3. frontend の forecast enabled 条件を座標必須へ変更する
+4. JMA / tsukumijima fallback service 呼び出しを削除する
+5. fallback success test を削除または Open-Meteo 前提に書き換える
+6. docs / OpenAPI description を current に合わせて更新する
+7. legacy service classes を削除するか、未使用期間を置いてから削除するか判断する
+8. import / export legacy roundtrip test は維持する
+9. lint / build / backend test / frontend test を通す
+
+### まだ判断が必要な点
+
+- `FetchJmaWeatherForecastService` / `FetchWeatherForecastService` を Phase C で即削除するか、一度未使用化だけに留めるか
+- `JmaForecastAreaCodeSupport` を地域設定 UI の補助入力のために残すか、Phase C で UI ごと縮小するか
+- `source_name = jma_forecast_json / tsukumijima` を UI でどう見せるか
+- legacy code fields を API request / response にいつまで残すか
+- Phase D で DB columns を削除する前に、旧 backup 互換をいつ終了するか
