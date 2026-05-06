@@ -854,3 +854,325 @@ Phase C 実装時の整理方針:
 - `source_name = jma_forecast_json / tsukumijima` を UI でどう見せるか
 - legacy code fields を API request / response にいつまで残すか
 - Phase D で DB columns を削除する前に、旧 backup 互換をいつ終了するか
+
+---
+
+## Phase D: legacy fields 整理計画
+
+Phase D は、Phase C で止めた runtime fallback の次に、
+
+- UI
+- API request / response
+- frontend type
+- OpenAPI
+- import / export
+- DB columns
+
+に残っている legacy field を、どの順で縮小・削除するかを決めるための整理フェーズとする。  
+この段階では、**runtime forecast provider の current は Open-Meteo only のまま維持**しつつ、互換と履歴保持をどこまで残すかを判断する。
+
+### Phase D の目的
+
+- current の主入力と正本を `latitude / longitude / timezone` に固定する
+- runtime で未使用になった legacy location field を、UI / API / OpenAPI / import-export / DB でどう扱うか決める
+- `source_name = jma_forecast_json / tsukumijima` の履歴互換をどこまで残すか決める
+- Phase E 以降で DB migration や互換終了を進めるための前提条件を整理する
+
+### Phase D ではまだやらないこと
+
+- DB migration
+- OpenAPI schema からの削除
+- import / export validator からの削除
+- 旧 backup の restore 非対応化
+- `weather_records` 既存履歴の書き換え
+
+### 現在残っている legacy fields
+
+#### location fields
+
+- `forecast_area_code`
+- `jma_forecast_region_code`
+- `jma_forecast_office_code`
+
+残存場所:
+
+- DB columns
+  - `user_weather_locations`
+- backend request / response
+- frontend type
+- 地域設定 UI の補助コード section
+- OpenAPI schema
+- import / export roundtrip
+
+current の扱い:
+
+- runtime forecast provider selection では未使用
+- UI では主入力ではなく補助コード
+- backup / restore 互換のため残している
+
+#### weather record snapshot
+
+- `forecast_area_code_snapshot`
+
+残存場所:
+
+- DB column
+  - `weather_records`
+- weather record payload / schema
+- import / export roundtrip
+
+current の扱い:
+
+- runtime では使わない
+- 過去履歴の保存時点情報と backup / restore 互換のため残している
+
+#### source history
+
+- `source_name = jma_forecast_json`
+- `source_name = tsukumijima`
+
+残存場所:
+
+- 既存 `weather_records`
+- import / export roundtrip
+- OpenAPI description
+
+current の扱い:
+
+- 新規 forecast 取得では発生しない
+- 履歴表示と restore 互換のため残している
+
+#### helper / validator
+
+- `JmaForecastAreaCodeSupport`
+
+残存場所:
+
+- weather location request validation
+- import / export validation
+- unit test
+
+current の扱い:
+
+- runtime forecast provider では未使用
+- legacy code field をまだ request / import で受けるため残している
+
+### 論点A: legacy location fields
+
+対象:
+
+- `forecast_area_code`
+- `jma_forecast_region_code`
+- `jma_forecast_office_code`
+
+確認結果:
+
+- DB column として残っている
+- API request / response に残っている
+- frontend type に残っている
+- 地域設定 UI に残っている
+- import / export で roundtrip している
+- current runtime forecast では完全に未使用
+
+Phase D の判断候補:
+
+- UI から完全に隠すか
+- API response から外すか
+- API request では当面受けるか
+- import では受けるが export では出さない段階を作るか
+- DB column は Phase D では残し、Phase E 以降で migration 対象にするか
+
+### 論点B: `forecast_area_code_snapshot`
+
+確認結果:
+
+- `weather_records` に残っている
+- 過去 record の履歴と backup / restore 互換で意味がある
+- runtime forecast / observed では使っていない
+
+Phase D の判断候補:
+
+- Phase D では残す
+- 新規保存で null 専用に寄せるかは別途判断
+- 完全削除するなら migration と旧履歴互換終了判断が必要
+
+推奨:
+
+- Phase D では保持
+- Phase E 以降で import / export 互換終了時に再判断
+
+### 論点C: `source_name` 履歴互換
+
+対象:
+
+- `jma_forecast_json`
+- `tsukumijima`
+
+確認結果:
+
+- current の新規取得では発生しない
+- 既存 `weather_records` には残りうる
+- import / export では legacy history source として受ける必要がある
+
+推奨:
+
+- Phase D でも履歴互換は維持
+- UI では必要なら `旧API` として控えめに見せる
+- OpenAPI allow-list / description からはまだ外さない
+- 新規取得 current とは切り分けて説明する
+
+### 論点D: import / export 互換
+
+対象:
+
+- `forecast_area_code`
+- `jma_forecast_region_code`
+- `jma_forecast_office_code`
+- `forecast_area_code_snapshot`
+- legacy `source_name`
+
+段階案:
+
+1. import / export とも維持
+   - 最も安全
+   - current Phase C の延長
+2. import は受けるが export は出さない
+   - 新形式へ寄せやすい
+   - 旧 backup を restore しつつ、新規 export を clean にできる
+3. import / export とも削除
+   - 互換影響が大きい
+4. migration と同時に削除
+   - 最終形には近いが、現在は重い
+
+比較:
+
+- 当面の安全性は 1
+- 段階的な縮小として現実的なのは 2
+- 一気に整理するなら 3 / 4 だが current ではリスクが高い
+
+### 案A / B / C の比較
+
+#### 案A: UI / API から隠し、DB / import 互換は残す
+
+内容:
+
+- UI から legacy 補助コードをさらに隠す
+- 通常 API response からも外す候補
+- DB column は残す
+- import では旧 backup を受ける
+- export は出すか再判断する
+
+長所:
+
+- 通常利用の見通しがよくなる
+- DB migration を避けられる
+- 旧 backup 互換を保ちやすい
+
+短所:
+
+- DB には legacy が残る
+- request / import / DB の三層で完全削除ではない
+
+#### 案B: API / import-export は残し、UI だけ隠す
+
+内容:
+
+- UI からは隠す
+- API / OpenAPI には legacy fields を残す
+- import / export 互換も残す
+
+長所:
+
+- 最も安全
+- 差分が小さい
+
+短所:
+
+- API がすっきりしない
+- Phase C 後の整理としては中途半端
+
+#### 案C: DB column まで削除する
+
+内容:
+
+- migration で legacy columns 削除
+- API / OpenAPI / import-export / frontend type から削除
+
+長所:
+
+- 最終形に近い
+- 保守性は高い
+
+短所:
+
+- 旧 backup 互換が難しい
+- 差分が大きい
+- current では危険
+
+### 推奨案
+
+推奨は **案A**。
+
+理由:
+
+- Phase C 後の短期課題は「runtime で使わないものを通常導線から外す」こと
+- DB migration を伴わずに UI / API の current を軽くできる
+- import / export 互換を当面残しやすい
+- Phase E 以降で DB column 削除を切り離せる
+
+### 推奨方針の仮説
+
+短期:
+
+- UI から legacy 補助コードをさらに隠す
+- 新規 / 編集画面では基本表示しない
+- import では旧 backup を受ける
+- export で出し続けるかは要判断
+
+中期:
+
+- API response から legacy fields を外すか検討
+- OpenAPI では deprecated / legacy 説明を強める
+
+長期:
+
+- DB column 削除は Phase E 以降
+- 旧 backup 互換終了方針を決めてから migration
+
+現時点の判断:
+
+- この仮説は妥当
+- 特に「UI 縮小 → API / OpenAPI 再判断 → DB migration」はリスク分離として自然
+
+### Phase D でやること
+
+- legacy field の残存場所を current / legacy-compatible に整理する
+- UI / API / import-export / DB の削除順を決める
+- `source_name` 履歴互換の扱いを固定する
+- Phase E に回す migration / 互換終了条件を明文化する
+
+### Phase D でやらないこと
+
+- DB migration
+- API schema 削除
+- import / export validator 変更
+- OpenAPI schema 削除
+- legacy source_name allow-list 削除
+
+### Phase D 実装に進む場合の手順
+
+1. weather location UI の legacy 補助コードをさらに隠す方針を確定する
+2. weather location API response から legacy field を外すか判断する
+3. frontend type を current / legacy でどう分けるか決める
+4. import は受けるが export は出さない段階案を採るか判断する
+5. OpenAPI に deprecated / legacy の説明を強める
+6. `JmaForecastAreaCodeSupport` を request / import validator だけに残すか再判断する
+7. Phase E の migration 条件を決める
+
+### Phase E 以降に回す課題
+
+- `user_weather_locations` の legacy columns 削除
+- `weather_records.forecast_area_code_snapshot` の削除可否判断
+- export から legacy fields を外すかどうかの最終判断
+- old backup restore の互換終了時期
+- `source_name = jma_forecast_json / tsukumijima` の allow-list 縮小可否

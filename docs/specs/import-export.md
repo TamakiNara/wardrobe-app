@@ -112,6 +112,7 @@ legacy / fallback / 旧互換として当面残すもの:
 - 旧 backup に座標がない場合は未設定のまま復元する
 - 座標未設定の地域では Open-Meteo forecast / historical は使えない
 - Phase C 以降、runtime forecast fallback は使わず、legacy code fields は backup / restore 互換と履歴保持のために残す
+- Phase D では、import は受けるが export は出さない段階案を比較対象にする
 
 ### weather_locations の validation
 

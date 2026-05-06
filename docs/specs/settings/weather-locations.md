@@ -314,6 +314,13 @@ current の weather location backup / restore は、少なくとも以下を rou
 - legacy code fields は current の forecast runtime では使わない
 - 補助コード section は旧 backup 互換や履歴保持のため残す
 
+### Phase D 検討メモ
+
+- UI から legacy 補助コードをさらに隠す候補がある
+- ただし DB column / import-export 互換はすぐ削除しない
+- `forecast_area_code` / `jma_forecast_region_code` / `jma_forecast_office_code` は current forecast runtime では未使用
+- API response / OpenAPI からいつ外すかは Phase D で再判断する
+
 ### validation
 
 - `latitude`: `-90..90`
