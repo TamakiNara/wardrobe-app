@@ -330,6 +330,13 @@ current の weather location backup / restore は、少なくとも以下を rou
 - DB / API / import-export の legacy fields は保持したまま、通常 UI からだけ距離を置く
 - Phase D-2 以降で API response や export から外すかを再判断する
 
+### Phase D-3 planning
+
+- current では、通常 API response に legacy fields をまだ残している
+- 理由は、既存 legacy 値がある location の read-only 確認 UI を維持するため
+- forecast / observed の current 主導線は `latitude / longitude / timezone` のままで、legacy code は通常操作では使わない
+- API response から外すかどうかは、既存値確認導線が本当に必要かを見てから再判断する
+
 ### validation
 
 - `latitude`: `-90..90`

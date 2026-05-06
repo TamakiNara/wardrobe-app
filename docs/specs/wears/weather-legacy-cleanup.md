@@ -1211,6 +1211,99 @@ weather location の legacy field については、Phase D-2 で次を current 
 - DB column / 通常 API request / response / OpenAPI schema は Phase D-2 ではまだ削除しない
 - Phase E 以降で DB column 削除や export の最終縮小を再判断する
 
+### Phase D-3: 通常 API response の legacy field 整理方針
+
+Phase D-3 は、`weather_locations` の通常 API response / frontend type / OpenAPI に残っている
+
+- `forecast_area_code`
+- `jma_forecast_region_code`
+- `jma_forecast_office_code`
+
+を、いつ current から外すかを整理する設計フェーズとする。  
+この段階では、**実装変更・API 変更・OpenAPI schema 変更・frontend type 変更はまだ行わない**。
+
+#### 比較する案
+
+##### 案A: 通常 API response から外すが、request / import では受ける
+
+長所:
+
+- current API response を Open-Meteo 前提に寄せられる
+- frontend の通常型が軽くなる
+- UI で legacy を前面に出しにくくなる
+
+短所:
+
+- 既存 legacy 値確認 UI を別 API や別 payload に分ける必要が出る
+- request と response が非対称になる
+- current の編集画面で「既存値がある場合のみ read-only 確認」が難しくなる
+
+##### 案B: 通常 API response には残すが、UI では通常利用しない
+
+長所:
+
+- 現状に最も近く安全
+- 既存 legacy 値確認 UI を維持しやすい
+- DB migration 前のつなぎとして自然
+
+短所:
+
+- API schema と frontend type はすっきりしない
+- Phase C / D-1 / D-2 と比べると整理が中途半端に見える
+
+##### 案C: request / response から外し、import だけ受ける
+
+長所:
+
+- 通常 API / frontend をかなり current に寄せられる
+- legacy field を import 互換の内部都合へ閉じ込めやすい
+
+短所:
+
+- 既存 legacy 値を通常 UI で確認できなくなる
+- request validation / OpenAPI / frontend type の差分が大きい
+- DB column が残る間は、通常 API だけ legacy を見せない不一致が強くなる
+
+##### 案D: DB column まで削除する
+
+長所:
+
+- 最終形に最も近い
+- API / frontend / schema をまとめて整理できる
+
+短所:
+
+- migration と旧 backup 互換整理が必要
+- 現時点では Phase E 以降向き
+
+#### 推奨案
+
+Phase D-3 時点の推奨は **案B** とする。
+
+理由:
+
+- current UI では legacy code を通常導線に出していない
+- 一方で、既存値がある location では read-only 確認をまだ維持している
+- export はすでに current 形式へ寄せてあり、API response まで同時に削る必然性はまだ弱い
+- DB columns / import / OpenAPI が残る間は、response だけ先に外すと非対称性が増えやすい
+
+#### Phase D-3 current 方針
+
+- 通常 API response には、当面 legacy fields を残す
+- create / update request も、Phase D-3 ではまだ legacy fields を受ける前提を維持する
+- frontend type も current / legacy-compatible をまだ分けず、既存の互換型を維持する
+- UI では通常利用しないが、既存値確認のために response 上は残す
+- OpenAPI では schema 削除を急がず、deprecated / legacy 説明を強める候補として扱う
+- `JmaForecastAreaCodeSupport` は request / import validator 用として当面残す
+
+#### API response から外す前に判断すべきこと
+
+- 既存 legacy 値確認 UI を今後も残すか
+- read-only 確認を別 API / 別 payload に分離する必要があるか
+- frontend type を current と legacy-compatible で分ける価値があるか
+- OpenAPI で request / response の legacy field をどう書き分けるか
+- `JmaForecastAreaCodeSupport` を UI request から外して import 専用にできるか
+
 #### 比較する案
 
 ##### 案A: import / export とも legacy fields を維持
