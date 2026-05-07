@@ -154,6 +154,113 @@
 
 ---
 
+## MVP 案の比較
+
+### 案A: 最小メモ機能
+
+含める:
+
+- `shopping_memos`
+- `shopping_memo_items`
+- 買い物メモ一覧
+- 買い物メモ詳細
+- 購入検討一覧から複数選択して追加
+- メモから候補を外す
+- 商品小計
+- セール価格 / セール終了日の表示
+
+含めない:
+
+- `shopping_memo_group_adjustments`
+- domain / brand の group 表示
+- 送料
+- クーポン
+- group ごとの調整
+- import / export
+
+長所:
+
+- 実装量が最も軽い
+- DB と API が小さい
+- test しやすい
+
+短所:
+
+- 「ショップ横断で比較する」価値がまだ弱い
+- 買い物メモ固有の見どころが薄く、単なる候補束ねに寄りやすい
+
+### 案B: group 表示まで含める MVP
+
+含める:
+
+- 案A の内容
+- domain / brand / 未分類の自動グループ表示
+- group ごとの小計
+
+含めない:
+
+- `shopping_memo_group_adjustments`
+- 送料
+- クーポン
+- group ごとの調整
+- import / export
+
+長所:
+
+- 「複数候補をまとめて、shop / brand ごとに見る」価値が出る
+- DB は 2 テーブルで済みやすい
+- 将来の送料 / クーポン拡張に繋げやすい
+
+短所:
+
+- 案A より表示ロジックは増える
+- group order や未分類の見せ方を決める必要がある
+
+### 案C: 送料・クーポンまで含める MVP
+
+含める:
+
+- 案B の内容
+- `shopping_memo_group_adjustments`
+- group ごとの送料
+- group ごとのクーポン
+- 調整後合計
+
+長所:
+
+- 当初イメージに近い
+- group 単位の買い物判断まで初回でできる
+
+短所:
+
+- DB / API / UI / test が一気に増える
+- 初回実装としては重い
+- import / export を後で足す場合も整合確認が増える
+
+### 推奨 MVP
+
+推奨は **案B** とする。
+
+理由:
+
+- 「複数候補をまとめる」
+- 「domain / brand 単位で見る」
+- 「商品小計を見る」
+- 「セール期限を確認する」
+
+までできれば、初回でも使う価値が明確である。
+
+一方で、
+
+- `shopping_memo_group_adjustments`
+- 送料
+- クーポン
+- import / export
+
+は、初回から入れると DB / API / UI の重さが増えやすく、後続へ分離しやすい。
+
+---
+
 ## MVP 範囲
 
 ### MVP でやること
@@ -164,9 +271,8 @@
 - 買い物メモ詳細で候補一覧を確認する
 - domain または brand ベースでグループ表示する
 - 商品小計を出す
-- group ごとの送料を手入力する
-- group ごとのクーポン / 割引額を手入力する
-- 全体合計を表示する
+- group ごとの小計を表示する
+- 全体の候補小計を表示する
 - セール終了日が近い候補を目立たせる
 - 購入検討詳細へ遷移できる
 
@@ -177,7 +283,7 @@
 - 購入検討一覧で checkbox 選択
 - 選択数表示
 - `買い物メモへ追加`
-- 既存メモに追加 / 新規メモを作って追加
+- 既存メモに追加
 
 第二候補:
 
@@ -190,11 +296,16 @@
 推奨:
 
 - MVP では **第一候補を必須**
+- 新規メモ作成は先に買い物メモ一覧 / 作成画面で行う
 - 余力があれば **第二候補も追加**
 - 第三候補は planned
 
 ### MVP ではやらないこと
 
+- `shopping_memo_group_adjustments`
+- 送料入力
+- クーポン入力
+- group ごとの調整後合計
 - EC サイト連携
 - 価格の自動取得
 - 在庫の自動確認
@@ -250,7 +361,8 @@ planned 候補:
 
 MVP:
 
-- `quantity` は 1 固定でもよい
+- `quantity` は field を持ってもよいが、初回 UI は 1 固定を第一候補とする
+- `priority` / `memo` は初回実装では未使用でもよい
 - 将来拡張を見越して column を持つ案はあるが、実装時に再判断する
 
 ### shopping_memo_group_adjustments
@@ -281,6 +393,11 @@ MVP:
 - manual key
 
 `display_name_snapshot` は、brand 名変更や domain 解決不能時の履歴表示安定化のために持つ余地がある。
+
+初回実装:
+
+- **作らない**
+- 送料 / クーポン / manual group 調整を入れる段階で追加を再判断する
 
 ---
 
@@ -318,6 +435,21 @@ MVP の第一候補は **自動グループ化** とする。
 
 manual group は planned とする。ただし data model では `manual` を置けるようにしておく案が自然である。
 
+初回実装では、group 情報を DB に保存せず **表示時に導出** する第一候補を採る。
+
+導出ルール:
+
+- `purchase_url` があれば domain
+- URL がなく `brand_id` があれば brand
+- どちらもなければ `未分類`
+
+補足:
+
+- domain は表示時に URL から都度計算する
+- brand 名は purchase candidate response に含まれる `brand_id` と表示名を使う
+- group order は `domain -> brand -> 未分類` を第一候補とし、同種内は表示名順でよい
+- 将来 `shopping_memo_group_adjustments` を追加しても、導出 group を base にして拡張しやすい
+
 理由:
 
 - ネット通販と実店舗用途の両方を最小コストで扱える
@@ -340,15 +472,15 @@ manual group は planned とする。ただし data model では `manual` を置
 
 MVP:
 
-- `quantity = 1` 固定でもよい
+- `quantity = 1` 固定を第一候補とする
 
 ### group subtotal
 
-- `group_subtotal = item_totals + shipping_fee - coupon_discount`
+- 初回は `group_subtotal = item_totals`
 
 ### memo total
 
-- `memo_total = group_subtotal` の合計
+- 初回は `memo_total = group_subtotal` の合計
 
 ### 未設定価格
 
@@ -359,6 +491,7 @@ MVP:
 
 - MVP では **未設定価格は合計に含めない**
 - 代わりに `価格未設定` バッジや summary を表示する
+- 送料 / クーポンは後続に回す
 
 ---
 
@@ -429,7 +562,7 @@ MVP:
 - memo name
 - item count
 - group count
-- subtotal / total
+- subtotal
 - earliest `sale_ends_at`
 - status
 
@@ -442,8 +575,8 @@ MVP:
 - purchase candidate cards
 - `price` / `sale_price`
 - `sale_ends_at` / `discount_ends_at`
-- shipping / coupon input
-- total
+- group subtotal
+- memo subtotal
 - memo
 - candidate detail link
 
@@ -455,8 +588,19 @@ MVP:
 - selected count
 - `買い物メモへ追加`
 - 既存メモに追加
-- 新規メモを作って追加
 - 既に入っている候補の badge / checked 表示
+
+初回実装の第一候補:
+
+- 一覧で checkbox 選択
+- 既存メモへ追加
+- 新規メモ作成は別画面
+
+後回し:
+
+- 新規メモ作成して追加
+- 買い物メモ詳細内で候補検索して追加
+- 購入検討詳細から単体追加
 
 ---
 
@@ -473,12 +617,11 @@ MVP:
 - `DELETE /api/shopping-memos/{id}`
 - `POST /api/shopping-memos/{id}/items`
 - `DELETE /api/shopping-memos/{id}/items/{itemId}`
-- `PATCH /api/shopping-memos/{id}/group-adjustments/{groupKey}`
 
 補足:
 
-- group adjustment は item 追加 API と別でもよい
-- manual group を後回しにする場合、初期は `group-adjustments` を簡略化できる
+- 初回実装では `group-adjustments` API は作らない第一候補とする
+- group は response 側で導出表示する
 
 ---
 
@@ -511,44 +654,53 @@ MVP:
 
 ### 推奨
 
-設計としては **backup / restore 対象にする前提** で進めるのが自然である。
+設計としては **将来 backup / restore 対象にできる形を意識する** のが自然である。
 
-ただし MVP の初回実装に含めるかはスコープ次第で要再判断とする。
+ただし **MVP 初回実装では後回し** を第一候補とする。
 
-含める場合の前提:
+理由:
+
+- 初回の価値はメモ作成・一覧追加・group 表示・小計表示で十分出る
+- import / export を同時に入れると API / test / restore 順序の検討が増える
+- `shopping_memo_group_adjustments` を入れない初回とは分けた方が整理しやすい
+
+将来含める場合の前提:
 
 - restore 順序は `purchase_candidates` の後
 - `shopping_memos`
 - `shopping_memo_items`
-- `shopping_memo_group_adjustments`
+- 後続で必要なら `shopping_memo_group_adjustments`
 
 ---
 
 ## 次に実装する場合のステップ
 
 1. 機能名を `買い物メモ` で確定する
-2. MVP の導線を確定する
-   - 購入検討一覧の複数選択
-   - 詳細から単体追加を含めるか
+2. 初回 MVP を案Bで確定する
 3. DB schema を確定する
    - `shopping_memos`
    - `shopping_memo_items`
-   - `shopping_memo_group_adjustments`
 4. group resolution ルールを確定する
    - domain
    - brand
    - 未分類
-5. 金額計算ロジックを定義する
-6. API 契約を決める
-7. 買い物メモ一覧 / 詳細 / 追加 UI を設計する
-8. import / export を MVP に含めるか判断する
+5. 購入検討一覧からの追加導線を確定する
+   - checkbox 選択
+   - 既存メモへ追加
+6. 金額計算ロジックを定義する
+   - `sale_price ?? price`
+   - group subtotal
+   - memo subtotal
+7. API 契約を決める
+8. 買い物メモ一覧 / 詳細 / 追加 UI を設計する
+9. 後続として `shopping_memo_group_adjustments` / import-export を planned に切り出す
 
 ---
 
 ## 要再判断メモ
 
 - `買い物メモ` と `購入プラン` の最終確定
-- manual group を MVP に入れるか
-- `quantity` を MVP から持つか
+- 詳細から単体追加を MVP に含めるか
+- `quantity` field を初回 schema に持つか
 - `purchased` / `dropped` を合計から除外する基準
-- backup / restore を MVP 初回から含めるか
+- import / export をどのタイミングで入れるか
