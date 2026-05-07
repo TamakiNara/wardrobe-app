@@ -161,7 +161,12 @@ export default async function ShoppingMemosPage({
                   <div className="flex items-start justify-between gap-3">
                     <div className="space-y-2">
                       <h2 className="text-lg font-semibold text-gray-900">
-                        {memo.name}
+                        <Link
+                          href={`/shopping-memos/${memo.id}`}
+                          className="hover:underline"
+                        >
+                          {memo.name}
+                        </Link>
                       </h2>
                       {memo.memo ? (
                         <p className="line-clamp-2 text-sm leading-6 text-gray-600">

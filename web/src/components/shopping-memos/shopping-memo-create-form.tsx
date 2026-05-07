@@ -45,11 +45,11 @@ export default function ShoppingMemoCreateForm({
     setSubmitting(true);
 
     try {
-      await createShoppingMemo({
+      const response = await createShoppingMemo({
         name: name.trim(),
         memo: memo.trim() === "" ? null : memo.trim(),
       });
-      router.push("/shopping-memos?message=created");
+      router.push(`/shopping-memos/${response.shoppingMemo.id}`);
     } catch (error) {
       if (error instanceof ApiClientError) {
         const nextFieldErrors: Record<string, string> = {};

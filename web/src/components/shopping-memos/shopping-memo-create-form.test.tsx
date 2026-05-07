@@ -132,7 +132,7 @@ describe("ShoppingMemoCreateForm", () => {
       name: "今月買う候補",
       memo: "セール終了前に比較",
     });
-    expect(pushMock).toHaveBeenCalledWith("/shopping-memos?message=created");
+    expect(pushMock).toHaveBeenCalledWith("/shopping-memos/11");
   });
 
   it("backend 422 の field error を表示する", async () => {

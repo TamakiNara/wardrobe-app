@@ -1,3 +1,8 @@
+import type {
+  PurchaseCandidatePriority,
+  PurchaseCandidateStatus,
+} from "@/types/purchase-candidates";
+
 export type ShoppingMemoStatus = "draft" | "closed";
 
 export type ShoppingMemoGroupType = "domain" | "brand" | "uncategorized";
@@ -25,13 +30,17 @@ export type ShoppingMemoCreateRequest = {
   memo?: string | null;
 };
 
+export type ShoppingMemoDetailResponse = {
+  shoppingMemo: ShoppingMemoDetail;
+};
+
 export type ShoppingMemoGroupItem = {
   shopping_memo_item_id: number;
   purchase_candidate_id: number;
   name: string;
   brand: string | null;
   purchase_url: string | null;
-  status: string;
+  status: PurchaseCandidateStatus;
   price: number | null;
   sale_price: number | null;
   unit_price: number | null;
@@ -41,7 +50,7 @@ export type ShoppingMemoGroupItem = {
   sale_ends_at: string | null;
   discount_ends_at: string | null;
   memo: string | null;
-  priority: string | null;
+  priority: PurchaseCandidatePriority | null;
   sort_order: number;
 };
 

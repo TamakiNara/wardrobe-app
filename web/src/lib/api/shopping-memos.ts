@@ -1,6 +1,7 @@
 import { apiFetch } from "@/lib/api/client";
 import type {
   ShoppingMemoCreateRequest,
+  ShoppingMemoDetailResponse,
   ShoppingMemoMutationResponse,
   ShoppingMemosListResponse,
 } from "@/types/shopping-memos";
@@ -19,4 +20,10 @@ export async function createShoppingMemo(
     },
     body: JSON.stringify(payload),
   });
+}
+
+export async function fetchShoppingMemoDetail(
+  memoId: number,
+): Promise<ShoppingMemoDetailResponse> {
+  return apiFetch<ShoppingMemoDetailResponse>(`/api/shopping-memos/${memoId}`);
 }

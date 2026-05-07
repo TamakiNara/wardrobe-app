@@ -58,6 +58,7 @@ describe("ShoppingMemosPage", () => {
     expect(markup).toContain("18,420円");
     expect(markup).toContain("価格未設定あり");
     expect(markup).toContain("2026/05/07 23:59");
+    expect(markup).toContain('href="/shopping-memos/1"');
     expect(markup).toContain('href="/shopping-memos/new"');
     expect(markup).toContain("検討中");
   });
