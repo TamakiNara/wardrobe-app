@@ -1312,3 +1312,45 @@ MVP の簡略化方針:
 - docs 内の `brand_id` 前提の案は planned メモとして残すが、current backend は `brand_name` 基準で実装している
 
 ---
+
+## current frontend phase 1 (2026-05-07)
+
+### current
+
+- Next.js frontend の第1段として **一覧画面** と **作成画面** を実装
+- 追加した画面:
+  - `/shopping-memos`
+  - `/shopping-memos/new`
+- 追加した frontend API / BFF:
+  - `GET /api/shopping-memos`
+  - `POST /api/shopping-memos`
+- 一覧画面では current backend の summary response を使って以下を表示する
+  - メモ名
+  - メモ本文（ある場合のみ）
+  - status
+  - item_count
+  - group_count
+  - subtotal
+  - has_price_unset
+  - nearest_deadline
+  - updated_at
+- empty state では `買い物メモを作成` 導線を表示
+- 作成画面では `name` 必須 / `memo` 任意で `POST /api/shopping-memos` を呼ぶ
+- 作成成功後は **詳細画面ではなく一覧画面** (`/shopping-memos?message=created`) に遷移する
+
+### current: navigation
+
+- 通常ナビゲーションにはまだ追加していない
+- 理由:
+  - 詳細画面が未実装
+  - 購入検討一覧からの追加導線も未実装
+  - MVP 第1段では直接アクセス可能なルート追加までに留めるため
+
+### planned next
+
+- `/shopping-memos/[id]` 詳細画面
+- 購入検討一覧からの checkbox 選択 + 既存メモへの追加導線
+- 候補追加 / 削除 UI
+- group 詳細表示の frontend
+
+---
