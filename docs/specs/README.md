@@ -52,6 +52,7 @@
 
 - [color thumbnails](./color-thumbnails.md)
 - [purchase candidates](./purchase-candidates.md)
+- [shopping memos](./shopping-memos.md)
 - [ui: page header guidelines](./ui/page-header-guidelines.md)
 - [planning: next features](./planning/next-features.md)
 - [tags](./tags.md)
