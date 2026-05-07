@@ -1257,3 +1257,58 @@ MVP の簡略化方針:
 - `quantity` field を初回 schema に持つか
 - `purchased` / `dropped` を合計から除外する基準
 - import / export をどのタイミングで入れるか
+
+## current backend foundation (2026-05-07)
+
+### current
+
+- Laravel backend に shopping memo MVP の土台を追加済み
+- migration は `shopping_memos` / `shopping_memo_items` の 2 テーブル
+- backend API は以下を current とする
+  - `GET /api/shopping-memos`
+  - `POST /api/shopping-memos`
+  - `GET /api/shopping-memos/{id}`
+  - `PATCH /api/shopping-memos/{id}`
+  - `DELETE /api/shopping-memos/{id}`
+  - `POST /api/shopping-memos/{id}/items`
+  - `DELETE /api/shopping-memos/{id}/items/{itemId}`
+- add items は partial success を採用し、`added_count` / `skipped_count` / `duplicate_count` / `invalid_status_count` を返す
+- `closed` memo には item 追加不可
+- memo 削除は物理削除、`shopping_memo_items` は cascade 削除
+- `purchase_candidate_id` FK は参照整合優先で `restrictOnDelete` を採用
+
+### current: group resolution
+
+- group は DB 保存せず、detail / list response 生成時に導出する
+- current backend では `brand_id` ではなく **`brand_name`** を使って brand group を解決する
+- ルール:
+  1. `purchase_url` から有効 host を取れれば `domain`
+  2. URL が無効または未設定で `brand_name` があれば `brand`
+  3. どちらもなければ `uncategorized`
+- host は lower-case、`www.` は除外
+- sort order は `domain -> brand -> uncategorized`、同 type 内は display name 昇順
+
+### current: subtotal / deadline
+
+- `unit_price = sale_price ?? price`
+- `line_total = unit_price * quantity`
+- subtotal 対象 status は `considering / on_hold`
+- `purchased / dropped` は detail には残すが subtotal には含めない
+- price 未設定の active item があれば `has_price_unset = true`
+- `nearest_deadline` は active item の `sale_ends_at` / `discount_ends_at` の最短を返す
+- API の datetime は current backend の serialize に合わせて ISO 8601 を返す
+
+### current: ownership / scope
+
+- shopping memo は user scope
+- 他 user の memo は list / detail / update / delete 不可
+- add items でも memo owner と candidate owner の一致が前提
+- 他 user candidate や存在しない candidate は skipped 扱い
+
+### current: MVP scope note
+
+- backend only の土台まで実装済み
+- frontend UI / BFF / import-export / group adjustments / 送料 / クーポンは未実装
+- docs 内の `brand_id` 前提の案は planned メモとして残すが、current backend は `brand_name` 基準で実装している
+
+---

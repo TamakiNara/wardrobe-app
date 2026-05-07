@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\ItemImageController;
 use App\Http\Controllers\Api\ItemStatusController;
 use App\Http\Controllers\Api\PurchaseCandidateController;
 use App\Http\Controllers\Api\SettingsTpoController;
+use App\Http\Controllers\Api\ShoppingMemoController;
 use App\Http\Controllers\Api\WearLogController;
 use App\Http\Controllers\Api\WeatherLocationController;
 use App\Http\Controllers\Api\WeatherRecordController;
@@ -405,6 +406,16 @@ Route::prefix('api')->middleware(['web'])->group(function () {
         Route::post('/purchase-candidates/{id}/images', 'uploadImage');
         Route::delete('/purchase-candidates/{id}/images/{imageId}', 'deleteImage');
         Route::post('/purchase-candidates/{id}/item-draft', 'itemDraft');
+    });
+
+    Route::middleware('auth:web')->controller(ShoppingMemoController::class)->group(function () {
+        Route::get('/shopping-memos', 'index');
+        Route::post('/shopping-memos', 'store');
+        Route::get('/shopping-memos/{id}', 'show');
+        Route::patch('/shopping-memos/{id}', 'update');
+        Route::delete('/shopping-memos/{id}', 'destroy');
+        Route::post('/shopping-memos/{id}/items', 'addItems');
+        Route::delete('/shopping-memos/{id}/items/{itemId}', 'removeItem');
     });
 
     // Outfits

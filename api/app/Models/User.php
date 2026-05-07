@@ -93,4 +93,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(WeatherRecord::class);
     }
+
+    public function shoppingMemos(): HasMany
+    {
+        return $this->hasMany(ShoppingMemo::class);
+    }
 }

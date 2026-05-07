@@ -103,4 +103,9 @@ class PurchaseCandidate extends Model
     {
         return $this->hasMany(PurchaseCandidateMaterial::class);
     }
+
+    public function shoppingMemoItems(): HasMany
+    {
+        return $this->hasMany(ShoppingMemoItem::class);
+    }
 }

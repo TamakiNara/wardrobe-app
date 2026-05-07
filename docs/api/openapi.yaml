@@ -1740,6 +1740,212 @@ paths:
               schema:
                 $ref: "#/components/schemas/ValidationErrorResponse"
 
+  /api/shopping-memos:
+    get:
+      tags:
+        - Shopping Memos
+      summary: 買い物メモ一覧取得
+      description: |
+        買い物メモ一覧を返す。
+        current MVP では subtotal / group_count / nearest_deadline を server 側で集計して返す。
+      security:
+        - SessionCookieAuth: []
+      responses:
+        "200":
+          description: 取得成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShoppingMemoListResponse"
+        "401":
+          description: 未認証
+    post:
+      tags:
+        - Shopping Memos
+      summary: 買い物メモ作成
+      security:
+        - SessionCookieAuth: []
+      parameters:
+        - $ref: "#/components/parameters/XCsrfTokenHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ShoppingMemoCreateRequest"
+      responses:
+        "201":
+          description: 作成成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShoppingMemoMutationResponse"
+        "401":
+          description: 未認証
+        "422":
+          description: バリデーションエラー
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+
+  /api/shopping-memos/{id}:
+    get:
+      tags:
+        - Shopping Memos
+      summary: 買い物メモ詳細取得
+      security:
+        - SessionCookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: 取得成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShoppingMemoDetailResponse"
+        "401":
+          description: 未認証
+        "404":
+          description: 未検出（対象なし・他人データ秘匿を含む）
+    patch:
+      tags:
+        - Shopping Memos
+      summary: 買い物メモ更新
+      security:
+        - SessionCookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - $ref: "#/components/parameters/XCsrfTokenHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ShoppingMemoUpdateRequest"
+      responses:
+        "200":
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShoppingMemoMutationResponse"
+        "401":
+          description: 未認証
+        "404":
+          description: 未検出（対象なし・他人データ秘匿を含む）
+        "422":
+          description: バリデーションエラー
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+    delete:
+      tags:
+        - Shopping Memos
+      summary: 買い物メモ削除
+      security:
+        - SessionCookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - $ref: "#/components/parameters/XCsrfTokenHeader"
+      responses:
+        "200":
+          description: "削除成功。message は `deleted`"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageOnlyResponse"
+        "401":
+          description: 未認証
+        "404":
+          description: 未検出（対象なし・他人データ秘匿を含む）
+
+  /api/shopping-memos/{id}/items:
+    post:
+      tags:
+        - Shopping Memos
+      summary: 買い物メモへ購入候補を追加
+      description: |
+        purchase candidate をまとめて shopping memo へ追加する。
+        current MVP では partial success を採用し、duplicate / invalid status / 他 user candidate / 不存在 candidate は skipped 扱いにする。
+      security:
+        - SessionCookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - $ref: "#/components/parameters/XCsrfTokenHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ShoppingMemoAddItemsRequest"
+      responses:
+        "200":
+          description: 追加結果
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShoppingMemoAddItemsResponse"
+        "401":
+          description: 未認証
+        "404":
+          description: 未検出（対象なし・他人データ秘匿を含む）
+        "422":
+          description: バリデーションエラーまたは closed memo
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+
+  /api/shopping-memos/{id}/items/{itemId}:
+    delete:
+      tags:
+        - Shopping Memos
+      summary: 買い物メモ内の候補を削除
+      security:
+        - SessionCookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - $ref: "#/components/parameters/XCsrfTokenHeader"
+      responses:
+        "200":
+          description: "削除成功。message は `deleted`"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageOnlyResponse"
+        "401":
+          description: 未認証
+        "404":
+          description: 未検出（対象なし・他人データ秘匿を含む）
+
   /api/settings/weather-locations:
     get:
       tags:
@@ -5676,6 +5882,238 @@ components:
           properties:
             weatherRecord:
               $ref: "#/components/schemas/WeatherRecord"
+
+    ShoppingMemoStatus:
+      type: string
+      enum:
+        - draft
+        - closed
+
+    ShoppingMemoSummary:
+      type: object
+      required:
+        - id
+        - name
+        - status
+        - item_count
+        - group_count
+        - subtotal
+        - has_price_unset
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        memo:
+          type: string
+          nullable: true
+        status:
+          $ref: "#/components/schemas/ShoppingMemoStatus"
+        item_count:
+          type: integer
+        group_count:
+          type: integer
+        subtotal:
+          type: integer
+        has_price_unset:
+          type: boolean
+        nearest_deadline:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ShoppingMemoListResponse:
+      type: object
+      required:
+        - shoppingMemos
+      properties:
+        shoppingMemos:
+          type: array
+          items:
+            $ref: "#/components/schemas/ShoppingMemoSummary"
+
+    ShoppingMemoCreateRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          maxLength: 100
+        memo:
+          type: string
+          nullable: true
+
+    ShoppingMemoUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 100
+        memo:
+          type: string
+          nullable: true
+        status:
+          $ref: "#/components/schemas/ShoppingMemoStatus"
+
+    ShoppingMemoDetailItem:
+      type: object
+      required:
+        - shopping_memo_item_id
+        - purchase_candidate_id
+        - name
+        - status
+        - quantity
+        - is_total_included
+        - sort_order
+      properties:
+        shopping_memo_item_id:
+          type: integer
+        purchase_candidate_id:
+          type: integer
+        name:
+          type: string
+        brand:
+          type: string
+          nullable: true
+        purchase_url:
+          type: string
+          nullable: true
+        status:
+          $ref: "#/components/schemas/PurchaseCandidateStatus"
+        price:
+          type: integer
+          nullable: true
+        sale_price:
+          type: integer
+          nullable: true
+        unit_price:
+          type: integer
+          nullable: true
+        quantity:
+          type: integer
+        line_total:
+          type: integer
+          nullable: true
+        is_total_included:
+          type: boolean
+        sale_ends_at:
+          type: string
+          format: date-time
+          nullable: true
+        discount_ends_at:
+          type: string
+          format: date-time
+          nullable: true
+        memo:
+          type: string
+          nullable: true
+        priority:
+          type: integer
+          nullable: true
+        sort_order:
+          type: integer
+
+    ShoppingMemoGroup:
+      type: object
+      required:
+        - type
+        - key
+        - display_name
+        - subtotal
+        - has_price_unset
+        - items
+      properties:
+        type:
+          type: string
+          enum:
+            - domain
+            - brand
+            - uncategorized
+        key:
+          type: string
+        display_name:
+          type: string
+        subtotal:
+          type: integer
+        has_price_unset:
+          type: boolean
+        nearest_deadline:
+          type: string
+          format: date-time
+          nullable: true
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ShoppingMemoDetailItem"
+
+    ShoppingMemoDetail:
+      allOf:
+        - $ref: "#/components/schemas/ShoppingMemoSummary"
+        - type: object
+          required:
+            - groups
+          properties:
+            groups:
+              type: array
+              items:
+                $ref: "#/components/schemas/ShoppingMemoGroup"
+
+    ShoppingMemoDetailResponse:
+      type: object
+      required:
+        - shoppingMemo
+      properties:
+        shoppingMemo:
+          $ref: "#/components/schemas/ShoppingMemoDetail"
+
+    ShoppingMemoMutationResponse:
+      allOf:
+        - $ref: "#/components/schemas/MessageOnlyResponse"
+        - type: object
+          required:
+            - shoppingMemo
+          properties:
+            shoppingMemo:
+              $ref: "#/components/schemas/ShoppingMemoSummary"
+
+    ShoppingMemoAddItemsRequest:
+      type: object
+      required:
+        - purchase_candidate_ids
+      properties:
+        purchase_candidate_ids:
+          type: array
+          minItems: 1
+          items:
+            type: integer
+
+    ShoppingMemoAddItemsResponse:
+      allOf:
+        - $ref: "#/components/schemas/MessageOnlyResponse"
+        - type: object
+          required:
+            - added_count
+            - skipped_count
+            - duplicate_count
+            - invalid_status_count
+          properties:
+            added_count:
+              type: integer
+            skipped_count:
+              type: integer
+            duplicate_count:
+              type: integer
+            invalid_status_count:
+              type: integer
 
   securitySchemes:
     SessionCookieAuth:
