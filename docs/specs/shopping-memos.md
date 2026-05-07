@@ -625,6 +625,559 @@ MVP:
 
 ---
 
+## MVP 初回の DB schema 詳細設計
+
+### shopping_memos
+
+#### fields
+
+- `id`
+- `user_id`
+- `name`
+- `memo`
+- `status`
+- `created_at`
+- `updated_at`
+
+#### 推奨仕様
+
+- `name`
+  - 必須
+  - user ごとの重複は許可
+- `memo`
+  - nullable
+- `status`
+  - `draft | closed`
+  - 初期値は `draft`
+- `closed`
+  - 今回の比較・追加を止めたメモ
+  - 履歴参照はできるが、新規 item 追加は不可を第一候補とする
+- `display_order`
+  - MVP では不要
+- `closed_at`
+  - MVP では不要
+- soft delete
+  - MVP では不要
+
+#### 削除方針
+
+- 物理削除を第一候補とする
+- `shopping_memo_items` は memo 削除時に cascade で削除する案が自然
+- `closed` は論理削除ではなく「運用を閉じる状態」として扱う
+
+### shopping_memo_items
+
+#### fields
+
+- `id`
+- `shopping_memo_id`
+- `purchase_candidate_id`
+- `quantity`
+- `priority`
+- `memo`
+- `sort_order`
+- `created_at`
+- `updated_at`
+
+#### 推奨仕様
+
+- `quantity`
+  - DB には持つ
+  - null 不可
+  - 初期値は `1`
+  - MVP UI では 1 固定
+- `priority`
+  - nullable
+  - MVP では未使用でもよい
+- `memo`
+  - nullable
+  - MVP では未使用でもよい
+- `sort_order`
+  - 持つ
+  - 一覧追加順を維持するために使う第一候補
+- 同一 memo 内の同一 candidate
+  - **一意**
+  - `shopping_memo_id + purchase_candidate_id` unique
+
+#### purchase_candidate 削除時
+
+MVP の第一候補:
+
+- `purchase_candidate_id` は FK で参照整合を維持する
+- 参照中の candidate は削除不可、または先に memo から外す必要がある
+- cascade delete は採らない
+
+理由:
+
+- 買い物メモが purchase candidate の派生比較機能である以上、候補が消えると比較文脈も崩れやすい
+- 初回から snapshot テーブルを足さずに整合を保ちやすい
+
+---
+
+## 制約 / index 案
+
+### shopping_memos
+
+推奨:
+
+- PK: `id`
+- index: `user_id`
+- index: `status`
+- index: `user_id, status`
+- 一覧並びは `updated_at desc` または `created_at desc` を第一候補とする
+
+補足:
+
+- user 単位の一覧取得が主用途なので `user_id` index は必須
+- `user_id + status` は `draft` 一覧や `closed` 一覧を将来出す場合に有効
+
+### shopping_memo_items
+
+推奨:
+
+- PK: `id`
+- index: `shopping_memo_id`
+- index: `purchase_candidate_id`
+- unique: `shopping_memo_id, purchase_candidate_id`
+- index: `shopping_memo_id, sort_order`
+
+補足:
+
+- 詳細画面は memo 単位で取得するので `shopping_memo_id` index は必須
+- `sort_order` は memo 内表示順を安定させるための補助
+
+---
+
+## 権限 / 所有者チェック
+
+- shopping memo は user ごとのデータ
+- 他 user の shopping memo は参照不可
+- 他 user の purchase candidate は追加不可
+- item 追加時は `shopping_memo.user_id === purchase_candidate.user_id` を必須条件にする
+- 更新 / 削除 / item remove 時も user_id を確認する
+
+MVP の第一候補:
+
+- controller / service 層で memo と candidate を user スコープで引く
+- request body の id をそのまま信用しない
+
+---
+
+## purchase candidate status との関係
+
+### 追加時
+
+追加可能:
+
+- `considering`
+- `on_hold`
+
+追加不可:
+
+- `purchased`
+- `dropped`
+
+推奨:
+
+- API 側で `purchased / dropped` を弾く
+- frontend でも追加導線上は選択対象から外す、または選択時に skip 扱いにする
+
+### 追加後に status が変わった場合
+
+- memo 内には残す
+- `purchased` / `dropped` の状態バッジを表示する
+- 小計は **active (`considering` / `on_hold`) のみ含める** を第一候補とする
+- inactive item は `合計対象外` と分かる UI を想定する
+
+---
+
+## group resolution 詳細仕様
+
+### 解決ルール
+
+1. `purchase_url` があり、有効な URL として host を取れる
+   - domain group
+2. URL がない、または無効 URL で `brand_id` がある
+   - brand group
+3. どちらもない
+   - `未分類`
+
+### domain 抽出
+
+推奨:
+
+- helper は purchase candidate 一覧 / 詳細 / 買い物メモ詳細から再利用しやすい場所に置く
+  - 例: `web/src/lib/purchase-candidates/...` か shared util
+- host は lower-case
+- `www.` は除外
+- 無効 URL は `未分類`
+
+例:
+
+- `https://www.uniqlo.com/jp/ja/products/...`
+  - `uniqlo.com`
+- `https://faq.uniqlo.com/...`
+  - `faq.uniqlo.com`
+- `https://www.gu-global.com/jp/ja/...`
+  - `gu-global.com`
+
+補足:
+
+- `www.` だけは表示ノイズなので除外する
+- それ以外の subdomain は別 group として扱う第一候補にする
+
+### brand group 表示名
+
+- purchase candidate response に含まれる brand 表示名を使う
+- brand 名が解決できない場合は `ブランド未設定` ではなく `未分類` に寄せる第一候補にする
+
+### group sort order
+
+推奨:
+
+- `domain`
+- `brand`
+- `uncategorized`
+
+同 type 内:
+
+- display name 昇順
+
+---
+
+## 金額計算仕様
+
+### unit price
+
+- `sale_price` があれば `sale_price`
+- なければ `price`
+- どちらもなければ未設定
+
+### quantity
+
+- DB では null 不可
+- 初期値 1
+- MVP UI では編集不可、1 固定
+
+### line total
+
+- `line_total = unit_price * quantity`
+
+### subtotal
+
+- group subtotal = 合計対象 line_total の合計
+- memo total = group subtotal の合計
+
+### status との関係
+
+推奨:
+
+- `considering / on_hold`
+  - 合計対象
+- `purchased / dropped`
+  - 合計対象外
+  - ただし list には残す
+
+### price unset
+
+- 合計から除外
+- item には `価格未設定` を表示
+- group / memo summary には `未設定あり` を出す第一候補にする
+
+---
+
+## セール期限表示仕様
+
+### 表示対象
+
+- `sale_price`
+- `sale_ends_at`
+- `discount_ends_at`
+
+### セール期限の定義
+
+推奨:
+
+- item ごとの期限表示は
+  - `sale_ends_at`
+  - `discount_ends_at`
+    のうち、存在するものを両方見せてもよい
+- memo summary / list の `nearest_deadline` は
+  - active item の `sale_ends_at` / `discount_ends_at` の最短値
+
+### 表示状態
+
+- 期限切れ
+  - `expired` badge
+- 24 時間以内
+  - warning
+- 3 日以内
+  - caution
+
+詳細なしきい値は実装時に要再判断としつつ、docs ではこの基準を第一候補にする。
+
+---
+
+## API 契約詳細案
+
+名称は `shopping-memos` を第一候補とする。
+
+### GET /api/shopping-memos
+
+用途:
+
+- 買い物メモ一覧
+
+response 候補:
+
+- `id`
+- `name`
+- `memo`
+- `status`
+- `item_count`
+- `group_count`
+- `subtotal`
+- `has_price_unset`
+- `nearest_deadline`
+- `created_at`
+- `updated_at`
+
+補足:
+
+- `group_count` / `subtotal` / `nearest_deadline` は server 側で集計して返す第一候補
+
+### POST /api/shopping-memos
+
+用途:
+
+- 買い物メモ作成
+
+request:
+
+- `name`
+- `memo`
+
+response:
+
+- 作成した memo の summary
+
+validation 第一候補:
+
+- `name`: required, string, max 100
+- `memo`: nullable, string
+
+### GET /api/shopping-memos/{id}
+
+用途:
+
+- 買い物メモ詳細
+
+response 構造候補:
+
+- `id`
+- `name`
+- `memo`
+- `status`
+- `subtotal`
+- `has_price_unset`
+- `nearest_deadline`
+- `groups`
+
+`groups[]` 候補:
+
+- `group_type`
+- `group_key`
+- `display_name`
+- `subtotal`
+- `has_price_unset`
+- `nearest_deadline`
+- `items`
+
+`items[]` 候補:
+
+- `shopping_memo_item_id`
+- `purchase_candidate_id`
+- candidate summary
+  - `name`
+  - `brand`
+  - `status`
+  - `price`
+  - `sale_price`
+  - `sale_ends_at`
+  - `discount_ends_at`
+  - `purchase_url`
+  - `image`
+- derived
+  - `unit_price`
+  - `line_total`
+  - `is_price_unset`
+  - `is_total_included`
+
+### PATCH /api/shopping-memos/{id}
+
+用途:
+
+- メモ名 / memo / status 更新
+
+request:
+
+- `name`
+- `memo`
+- `status`
+
+validation 第一候補:
+
+- `status`: `draft | closed`
+
+### DELETE /api/shopping-memos/{id}
+
+用途:
+
+- 買い物メモ削除
+
+推奨:
+
+- item があっても削除可能
+- memo 削除時に `shopping_memo_items` も削除する
+- 物理削除を第一候補
+
+### POST /api/shopping-memos/{id}/items
+
+用途:
+
+- 購入検討一覧から複数候補を追加
+
+request:
+
+- `purchase_candidate_ids: number[]`
+
+response 候補:
+
+- `added_count`
+- `skipped_count`
+- `duplicate_count`
+- `invalid_status_count`
+- `closed_memo_count`
+
+挙動第一候補:
+
+- duplicate は skip
+- `purchased / dropped` は invalid status として skip
+- 他 user candidate は 404 または権限エラー扱い
+- `closed` memo には追加不可
+
+### DELETE /api/shopping-memos/{id}/items/{itemId}
+
+用途:
+
+- memo から item を外す
+
+推奨:
+
+- path parameter は `shopping_memo_item.id` を使う
+
+理由:
+
+- 同一 candidate が将来別 schema で複数回入る可能性に備えやすい
+- API と DB の責務が明確
+
+---
+
+## frontend 画面 / BFF 案
+
+### 画面候補
+
+- `/shopping-memos`
+  - 買い物メモ一覧
+- `/shopping-memos/new`
+  - 買い物メモ作成
+- `/shopping-memos/[id]`
+  - 買い物メモ詳細
+- 購入検討一覧
+  - checkbox 選択
+  - 既存買い物メモへ追加
+
+### BFF
+
+第一候補:
+
+- 既存 app 構成に合わせて route handler / server action 経由で backend API を呼ぶ
+- ただし MVP では purchase candidate 一覧導線との整合を優先し、既存 BFF パターンに寄せる
+
+---
+
+## 購入検討一覧からの追加導線詳細
+
+推奨:
+
+- checkbox は **選択モード時のみ表示** を第一候補
+- selected count を固定表示
+- `買い物メモへ追加`
+- 追加先は既存メモ選択
+
+MVP の簡略化方針:
+
+- 同一ページ内選択のみ
+- ページまたぎ選択はしない
+- filter / sort 変更時の選択維持はしない第一候補
+- already added は badge や disabled ではなく、追加時に duplicate skip でもよい
+- ただし UX 上は `追加済み` 表示を後続候補として残す
+
+---
+
+## import / export 方針
+
+- MVP 初回では対象外
+- 将来対象にする場合、restore 順序は `purchase_candidates` の後
+- 対象候補:
+  - `shopping_memos`
+  - `shopping_memo_items`
+  - 後続で必要なら `shopping_memo_group_adjustments`
+
+---
+
+## edge cases
+
+- purchase candidate が存在しない
+  - add items API で skip または 404
+- 他 user の purchase candidate
+  - 追加不可
+- `purchased / dropped` を追加しようとした
+  - skip
+- duplicate 追加
+  - skip
+- shopping memo が `closed`
+  - add items 不可
+- 価格未設定
+  - 合計対象外
+- URL 不正
+  - `未分類`
+- brand 未設定
+  - URL がなければ `未分類`
+- candidate が後から削除された
+  - MVP では参照整合を優先し、削除前に memo から外す運用を第一候補
+- memo 削除時
+  - item も一緒に削除
+
+---
+
+## 初回実装順の詳細
+
+1. `shopping_memos` / `shopping_memo_items` schema を確定する
+2. 権限チェック付き CRUD API を作る
+3. add items / remove item API を作る
+4. group resolution helper を作る
+5. subtotal / deadline 集計を作る
+6. 買い物メモ一覧 / 詳細画面を作る
+7. 購入検討一覧の選択モードと追加導線を作る
+8. 後続タスクとして
+   - `shopping_memo_group_adjustments`
+   - 送料 / クーポン
+   - import / export
+     を planned に切り出す
+
+---
+
 ## import / export 影響
 
 ### 候補
