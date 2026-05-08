@@ -249,8 +249,12 @@ describe("ShoppingMemoDetailPage", () => {
     expect(markup).toContain("lg:grid-cols-2");
     expect(markup).toContain('href="/purchase-candidates"');
     expect(markup).toContain('href="/shopping-memos"');
-    expect(markup).toContain('href="/purchase-candidates/101"');
-    expect(markup).toContain('href="/purchase-candidates/103"');
+    expect(markup).toContain(
+      'href="/purchase-candidates/101?from_shopping_memo_id=1"',
+    );
+    expect(markup).toContain(
+      'href="/purchase-candidates/103?from_shopping_memo_id=1"',
+    );
   });
 
   it("item が空なら empty state を表示する", async () => {

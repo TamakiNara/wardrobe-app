@@ -1391,6 +1391,12 @@ MVP の簡略化方針:
 
 - 買い物メモ詳細内の候補追加 / 削除 UI
 
+### current: purchase candidate detail return context
+
+- 買い物メモ詳細から購入検討詳細へ遷移するリンクには `from_shopping_memo_id` を query parameter として付与する
+- 購入検討詳細側では、`from_shopping_memo_id` が数値として解釈できる場合だけ `買い物メモへ戻る` を表示する
+- 通常の購入検討詳細アクセスでは、この戻り導線は表示しない
+
 ---
 
 ## current frontend phase 3 (2026-05-07)

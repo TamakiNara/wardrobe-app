@@ -259,7 +259,7 @@ function renderSummaryCard(memo: ShoppingMemoDetail) {
 
 function renderImageFallback(item: ShoppingMemoGroupItem) {
   return (
-    <div className="flex h-full w-full flex-col items-center justify-center bg-gray-50 px-2 text-center">
+    <div className="flex h-full w-full flex-col items-center justify-center rounded-lg bg-gray-50 px-2 text-center">
       <p className="text-xs font-medium text-gray-500">画像未設定</p>
       <p className="mt-1 line-clamp-2 text-[11px] text-gray-400">
         {item.brand ?? item.name}
@@ -268,7 +268,18 @@ function renderImageFallback(item: ShoppingMemoGroupItem) {
   );
 }
 
-function renderGroupItem(item: ShoppingMemoGroupItem, imageUrl: string | null) {
+function buildPurchaseCandidateDetailHref(
+  purchaseCandidateId: number,
+  shoppingMemoId: number,
+) {
+  return `/purchase-candidates/${purchaseCandidateId}?from_shopping_memo_id=${shoppingMemoId}`;
+}
+
+function renderGroupItem(
+  item: ShoppingMemoGroupItem,
+  imageUrl: string | null,
+  shoppingMemoId: number,
+) {
   const nearestDeadline = resolveNearestItemDeadline(item);
   const nearestDeadlineLabel = formatDateTime(nearestDeadline);
   const hasSalePrice = item.sale_price !== null;
@@ -286,28 +297,39 @@ function renderGroupItem(item: ShoppingMemoGroupItem, imageUrl: string | null) {
       className="border-b border-gray-200/80 pb-4 last:border-b-0 last:pb-0"
     >
       <div className="grid gap-4 md:grid-cols-[6.5rem_minmax(0,1fr)]">
-        <div className="overflow-hidden rounded-xl bg-gray-100">
-          <div className="aspect-square bg-gray-50 p-1">
+        <div className="overflow-hidden rounded-lg">
+          <div className="aspect-square">
             <SafeImage
               src={imageUrl}
               alt={item.name}
-              className="h-full w-full object-contain"
+              className="h-full w-full rounded-lg object-cover"
               fallback={renderImageFallback(item)}
             />
           </div>
         </div>
 
         <div className="space-y-3">
-          <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="space-y-2">
+            <Link
+              href={buildPurchaseCandidateDetailHref(
+                item.purchase_candidate_id,
+                shoppingMemoId,
+              )}
+              className="block text-base font-semibold text-gray-900 hover:underline"
+            >
+              {item.name}
+            </Link>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_8rem] md:items-start">
             <div className="min-w-0 space-y-2">
               <div className="flex flex-wrap items-center gap-2">
-                <Link
-                  href={`/purchase-candidates/${item.purchase_candidate_id}`}
-                  className="text-base font-semibold text-gray-900 hover:underline"
-                >
-                  {item.name}
-                </Link>
                 {renderItemStatusBadge(item.status)}
+                {hasSalePrice ? (
+                  <span className="inline-flex items-center rounded-full border border-rose-200 bg-rose-50 px-2 py-0.5 text-xs font-medium text-rose-700">
+                    セール中
+                  </span>
+                ) : null}
                 {!item.is_total_included ? (
                   <span className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600 ring-1 ring-gray-200">
                     合計対象外
@@ -329,14 +351,9 @@ function renderGroupItem(item: ShoppingMemoGroupItem, imageUrl: string | null) {
               ) : null}
             </div>
 
-            <div className="min-w-[8rem] text-right">
+            <div className="min-w-[8rem] text-right md:justify-self-end md:self-start">
               {item.unit_price !== null ? (
-                <div className="space-y-1.5">
-                  {hasSalePrice ? (
-                    <span className="inline-flex rounded-full border border-rose-200 bg-rose-50 px-2 py-0.5 text-xs font-medium text-rose-700">
-                      セール中
-                    </span>
-                  ) : null}
+                <div className="flex flex-col items-end space-y-1.5">
                   <div className="flex items-end justify-end gap-1">
                     <span
                       className={`text-lg font-semibold leading-none ${
@@ -398,7 +415,10 @@ function renderGroupItem(item: ShoppingMemoGroupItem, imageUrl: string | null) {
               <span className="text-xs text-gray-400">商品ページ未設定</span>
             )}
             <Link
-              href={`/purchase-candidates/${item.purchase_candidate_id}`}
+              href={buildPurchaseCandidateDetailHref(
+                item.purchase_candidate_id,
+                shoppingMemoId,
+              )}
               className="text-sm font-medium text-blue-600 hover:underline"
             >
               購入検討詳細を見る
@@ -413,6 +433,7 @@ function renderGroupItem(item: ShoppingMemoGroupItem, imageUrl: string | null) {
 function renderGroup(
   group: ShoppingMemoGroup,
   itemImages: ShoppingMemoItemImageMap,
+  shoppingMemoId: number,
 ) {
   const shouldShowGroupSubtotal = group.items.length > 1;
 
@@ -436,7 +457,11 @@ function renderGroup(
 
       <div className="mt-5 grid gap-3 lg:grid-cols-2">
         {group.items.map((item) =>
-          renderGroupItem(item, itemImages[item.purchase_candidate_id] ?? null),
+          renderGroupItem(
+            item,
+            itemImages[item.purchase_candidate_id] ?? null,
+            shoppingMemoId,
+          ),
         )}
       </div>
 
@@ -532,7 +557,9 @@ export default async function ShoppingMemoDetailPage({
           </section>
         ) : (
           <div className="space-y-5">
-            {memo.groups.map((group) => renderGroup(group, itemImages))}
+            {memo.groups.map((group) =>
+              renderGroup(group, itemImages, memo.id),
+            )}
           </div>
         )}
       </div>

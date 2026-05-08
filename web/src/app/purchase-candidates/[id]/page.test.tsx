@@ -1080,4 +1080,151 @@ describe("購入検討詳細画面", () => {
     expect(markup).toContain("2026/05/07 23:59");
     expect(markup).toContain("2026/05/06 09:15");
   });
+  it("買い物メモから遷移した場合は買い物メモへ戻るリンクを表示する", async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        purchaseCandidate: {
+          id: 41,
+          status: "considering",
+          priority: "medium",
+          name: "戻り導線確認候補",
+          category_id: "tops_tshirt",
+          category_name: "Tシャツ・カットソー",
+          brand_name: "Brand",
+          price: 3800,
+          sale_price: null,
+          sale_ends_at: null,
+          discount_ends_at: null,
+          purchase_url: null,
+          memo: null,
+          wanted_reason: null,
+          size_gender: null,
+          size_label: null,
+          size_note: null,
+          size_details: null,
+          is_rain_ok: false,
+          converted_item_id: null,
+          converted_at: null,
+          colors: [],
+          seasons: [],
+          tpos: [],
+          materials: [],
+          images: [],
+          created_at: "2026-03-24T10:00:00+09:00",
+          updated_at: "2026-03-24T10:00:00+09:00",
+        },
+      }),
+    });
+
+    const { default: PurchaseCandidateDetailPage } = await import("./page");
+    const markup = renderToStaticMarkup(
+      await PurchaseCandidateDetailPage({
+        params: Promise.resolve({ id: "41" }),
+        searchParams: Promise.resolve({ from_shopping_memo_id: "123" }),
+      }),
+    );
+
+    expect(markup).toContain("買い物メモへ戻る");
+    expect(markup).toContain('href="/shopping-memos/123"');
+  });
+
+  it("買い物メモ戻り query がない通常アクセスでは戻りリンクを表示しない", async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        purchaseCandidate: {
+          id: 42,
+          status: "considering",
+          priority: "medium",
+          name: "通常導線候補",
+          category_id: "tops_tshirt",
+          category_name: "Tシャツ・カットソー",
+          brand_name: "Brand",
+          price: 3800,
+          sale_price: null,
+          sale_ends_at: null,
+          discount_ends_at: null,
+          purchase_url: null,
+          memo: null,
+          wanted_reason: null,
+          size_gender: null,
+          size_label: null,
+          size_note: null,
+          size_details: null,
+          is_rain_ok: false,
+          converted_item_id: null,
+          converted_at: null,
+          colors: [],
+          seasons: [],
+          tpos: [],
+          materials: [],
+          images: [],
+          created_at: "2026-03-24T10:00:00+09:00",
+          updated_at: "2026-03-24T10:00:00+09:00",
+        },
+      }),
+    });
+
+    const { default: PurchaseCandidateDetailPage } = await import("./page");
+    const markup = renderToStaticMarkup(
+      await PurchaseCandidateDetailPage({
+        params: Promise.resolve({ id: "42" }),
+      }),
+    );
+
+    expect(markup).not.toContain("買い物メモへ戻る");
+  });
+
+  it("不正な買い物メモ戻り query では戻りリンクを表示しない", async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        purchaseCandidate: {
+          id: 43,
+          status: "considering",
+          priority: "medium",
+          name: "不正 query 候補",
+          category_id: "tops_tshirt",
+          category_name: "Tシャツ・カットソー",
+          brand_name: "Brand",
+          price: 3800,
+          sale_price: null,
+          sale_ends_at: null,
+          discount_ends_at: null,
+          purchase_url: null,
+          memo: null,
+          wanted_reason: null,
+          size_gender: null,
+          size_label: null,
+          size_note: null,
+          size_details: null,
+          is_rain_ok: false,
+          converted_item_id: null,
+          converted_at: null,
+          colors: [],
+          seasons: [],
+          tpos: [],
+          materials: [],
+          images: [],
+          created_at: "2026-03-24T10:00:00+09:00",
+          updated_at: "2026-03-24T10:00:00+09:00",
+        },
+      }),
+    });
+
+    const { default: PurchaseCandidateDetailPage } = await import("./page");
+    const markup = renderToStaticMarkup(
+      await PurchaseCandidateDetailPage({
+        params: Promise.resolve({ id: "43" }),
+        searchParams: Promise.resolve({ from_shopping_memo_id: "abc" }),
+      }),
+    );
+
+    expect(markup).not.toContain("買い物メモへ戻る");
+    expect(markup).not.toContain('href="/shopping-memos/abc"');
+  });
 });

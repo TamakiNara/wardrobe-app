@@ -324,6 +324,17 @@ export default async function PurchaseCandidateDetailPage({
     typeof resolvedSearchParams.return_label === "string"
       ? resolvedSearchParams.return_label
       : null;
+  const shoppingMemoReturnIdParam =
+    typeof resolvedSearchParams.from_shopping_memo_id === "string"
+      ? resolvedSearchParams.from_shopping_memo_id
+      : null;
+  const shoppingMemoReturnId =
+    shoppingMemoReturnIdParam && /^\d+$/.test(shoppingMemoReturnIdParam)
+      ? shoppingMemoReturnIdParam
+      : null;
+  const shoppingMemoReturnHref = shoppingMemoReturnId
+    ? `/shopping-memos/${shoppingMemoReturnId}`
+    : null;
   const returnTarget = returnToParam
     ? { href: returnToParam, label: returnLabelParam ?? "戻る" }
     : resolvedItemCategory?.category === "underwear"
@@ -338,9 +349,16 @@ export default async function PurchaseCandidateDetailPage({
     return_to: returnTarget.href,
     return_label: returnTarget.label,
   });
+
+  if (shoppingMemoReturnId) {
+    detailQuery.set("from_shopping_memo_id", shoppingMemoReturnId);
+  }
+
   const detailQueryString = shouldPreserveReturnContext
     ? detailQuery.toString()
-    : undefined;
+    : shoppingMemoReturnId
+      ? `from_shopping_memo_id=${shoppingMemoReturnId}`
+      : undefined;
   const editHref = shouldPreserveReturnContext
     ? `/purchase-candidates/${candidate.id}/edit?${detailQuery.toString()}`
     : `/purchase-candidates/${candidate.id}/edit`;
@@ -492,6 +510,16 @@ export default async function PurchaseCandidateDetailPage({
                   className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:text-gray-400 disabled:no-underline"
                 />
               </div>
+              {shoppingMemoReturnHref ? (
+                <div className="flex justify-end">
+                  <Link
+                    href={shoppingMemoReturnHref}
+                    className="inline-flex items-center justify-center rounded-lg border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700 transition hover:bg-blue-100"
+                  >
+                    買い物メモへ戻る
+                  </Link>
+                </div>
+              ) : null}
               <div className="flex justify-end">
                 <Link
                   href={returnTarget.href}
