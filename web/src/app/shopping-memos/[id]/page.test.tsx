@@ -151,6 +151,7 @@ describe("ShoppingMemoDetailPage", () => {
     expect(markup).toContain("価格未設定");
     expect(markup).toContain("購入済み");
     expect(markup).toContain("合計対象外");
+    expect(markup).toContain('href="/purchase-candidates"');
     expect(markup).toContain('href="/shopping-memos"');
     expect(markup).toContain('href="/purchase-candidates/101"');
     expect(markup).toContain('href="/purchase-candidates/103"');

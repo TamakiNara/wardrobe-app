@@ -198,6 +198,7 @@ describe("PurchaseCandidatesPage", () => {
     expect(markup).toContain(
       "購入前の候補を中心に確認できます。購入済みや見送りは状態から切り替えて確認できます。",
     );
+    expect(markup).toContain('href="/shopping-memos"');
     expect(markup).toContain('href="/purchase-candidates/new"');
     expect(markup).toContain("購入検討を追加");
     expect(markup).toContain("購入検討がまだありません");
@@ -304,6 +305,7 @@ describe("PurchaseCandidatesPage", () => {
     expect(markup).toContain(
       "購入前の候補を中心に確認できます。購入済みや見送りは状態から切り替えて確認できます。",
     );
+    expect(markup).toContain('href="/shopping-memos"');
     expect(markup).toContain('href="/purchase-candidates/new"');
     expect(markup).toContain("購入検討を追加");
     expect(markup).toContain("キーワード");

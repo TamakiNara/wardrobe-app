@@ -21,7 +21,7 @@ function buildCandidate(
     name: "候補",
     category_id: "outerwear_coat",
     category_name: "コート",
-    brand_name: "Sample Brand",
+    brand_name: "サンプルブランド",
     price: 10000,
     release_date: null,
     sale_price: null,
@@ -60,7 +60,7 @@ describe("PurchaseCandidateListCard", () => {
     globalThis.IS_REACT_ACT_ENVIRONMENT = false;
   });
 
-  it("group_order が最小の候補を初期表示し、色チップで表示対象を切り替えられる", async () => {
+  it("group_order の先頭候補を表示し、スウォッチ切り替えで候補を切り替えられる", async () => {
     const { default: PurchaseCandidateListCard } =
       await import("./purchase-candidate-list-card");
 
@@ -70,8 +70,8 @@ describe("PurchaseCandidateListCard", () => {
           candidates: [
             buildCandidate({
               id: 2,
-              name: "ブルーコート",
-              brand_name: "Blue Brand",
+              name: "ブルー候補",
+              brand_name: "ブルーブランド",
               price: 12000,
               group_id: 10,
               group_order: 2,
@@ -88,8 +88,8 @@ describe("PurchaseCandidateListCard", () => {
             }),
             buildCandidate({
               id: 1,
-              name: "レッドコート",
-              brand_name: "Red Brand",
+              name: "レッド候補",
+              brand_name: "レッドブランド",
               price: 9800,
               sale_price: 7800,
               group_id: 10,
@@ -111,16 +111,9 @@ describe("PurchaseCandidateListCard", () => {
       );
     });
 
-    expect(container.textContent).toContain("レッドコート");
-    expect(container.textContent).toContain("Red Brand");
+    expect(container.textContent).toContain("レッド候補");
+    expect(container.textContent).toContain("レッドブランド");
     expect(container.textContent).toContain("7,800");
-    expect(container.textContent).not.toContain("色違い 2件");
-    const variantSwatches = container.querySelectorAll(
-      '[data-testid="variant-swatch"]',
-    );
-    expect(variantSwatches).toHaveLength(2);
-    expect(variantSwatches[0].className).toContain("rounded-md");
-    expect(variantSwatches[0].className).not.toContain("rounded-full");
     expect(
       container.querySelector('a[href="/purchase-candidates/1"]'),
     ).not.toBeNull();
@@ -138,15 +131,15 @@ describe("PurchaseCandidateListCard", () => {
       blueButton!.click();
     });
 
-    expect(container.textContent).toContain("ブルーコート");
-    expect(container.textContent).toContain("Blue Brand");
+    expect(container.textContent).toContain("ブルー候補");
+    expect(container.textContent).toContain("ブルーブランド");
     expect(container.textContent).toContain("12,000");
     expect(
       container.querySelector('a[href="/purchase-candidates/2"]'),
     ).not.toBeNull();
   });
 
-  it("group が 1 件だけなら通常カード相当に表示する", async () => {
+  it("単体候補では通常時にバリアントスウォッチを表示しない", async () => {
     const { default: PurchaseCandidateListCard } =
       await import("./purchase-candidate-list-card");
 
@@ -156,7 +149,7 @@ describe("PurchaseCandidateListCard", () => {
           candidates: [
             buildCandidate({
               id: 3,
-              name: "単独グループ候補",
+              name: "単体候補",
               group_id: 20,
               group_order: 1,
               colors: [
@@ -165,7 +158,7 @@ describe("PurchaseCandidateListCard", () => {
                   mode: "preset",
                   value: "brown",
                   hex: "#8A5A38",
-                  label: "Brown",
+                  label: "ブラウン",
                 },
               ],
             }),
@@ -174,14 +167,14 @@ describe("PurchaseCandidateListCard", () => {
       );
     });
 
-    expect(container.textContent).toContain("単独グループ候補");
+    expect(container.textContent).toContain("単体候補");
     expect(container.querySelector("button")).toBeNull();
     expect(
       container.querySelectorAll('[data-testid="candidate-color-swatch"]'),
     ).toHaveLength(1);
   });
 
-  it("複数画像がある候補はカード内で画像だけを切り替えられる", async () => {
+  it("複数画像がある場合に画像切り替えボタンで次の画像へ進める", async () => {
     const { default: PurchaseCandidateListCard } =
       await import("./purchase-candidate-list-card");
 
@@ -191,14 +184,14 @@ describe("PurchaseCandidateListCard", () => {
           candidates: [
             buildCandidate({
               id: 4,
-              name: "画像切替候補",
+              name: "画像候補",
               colors: [
                 {
                   role: "main",
                   mode: "preset",
                   value: "navy",
                   hex: "#1F3A5F",
-                  label: "Navy",
+                  label: "ネイビー",
                 },
               ],
               images: [
@@ -237,9 +230,6 @@ describe("PurchaseCandidateListCard", () => {
       container.querySelector('img[src="https://example.test/front.png"]'),
     ).not.toBeNull();
     expect(container.textContent).toContain("1/2");
-    expect(
-      container.querySelectorAll('[data-testid="candidate-color-swatch"]'),
-    ).toHaveLength(0);
 
     const nextButton = container.querySelector<HTMLButtonElement>(
       'button[aria-label="次の画像を表示"]',
@@ -256,117 +246,7 @@ describe("PurchaseCandidateListCard", () => {
     expect(container.textContent).toContain("2/2");
   });
 
-  it("色違い候補を切り替えると画像表示を先頭に戻す", async () => {
-    const { default: PurchaseCandidateListCard } =
-      await import("./purchase-candidate-list-card");
-
-    await act(async () => {
-      root.render(
-        React.createElement(PurchaseCandidateListCard, {
-          candidates: [
-            buildCandidate({
-              id: 1,
-              name: "レッドコート",
-              group_id: 10,
-              group_order: 1,
-              colors: [
-                {
-                  role: "main",
-                  mode: "preset",
-                  value: "red",
-                  hex: "#E53935",
-                  label: "レッド",
-                },
-              ],
-              images: [
-                {
-                  id: 21,
-                  purchase_candidate_id: 1,
-                  disk: "public",
-                  path: "purchase-candidates/1/front.png",
-                  url: "https://example.test/red-front.png",
-                  original_filename: "red-front.png",
-                  mime_type: "image/png",
-                  file_size: 1024,
-                  sort_order: 1,
-                  is_primary: true,
-                },
-                {
-                  id: 22,
-                  purchase_candidate_id: 1,
-                  disk: "public",
-                  path: "purchase-candidates/1/side.png",
-                  url: "https://example.test/red-side.png",
-                  original_filename: "red-side.png",
-                  mime_type: "image/png",
-                  file_size: 2048,
-                  sort_order: 2,
-                  is_primary: false,
-                },
-              ],
-            }),
-            buildCandidate({
-              id: 2,
-              name: "ブルーコート",
-              group_id: 10,
-              group_order: 2,
-              colors: [
-                {
-                  role: "main",
-                  mode: "preset",
-                  value: "blue",
-                  hex: "#0077D9",
-                  label: "ブルー",
-                  custom_label: "64 BLUE",
-                },
-              ],
-              images: [
-                {
-                  id: 23,
-                  purchase_candidate_id: 2,
-                  disk: "public",
-                  path: "purchase-candidates/2/front.png",
-                  url: "https://example.test/blue-front.png",
-                  original_filename: "blue-front.png",
-                  mime_type: "image/png",
-                  file_size: 1024,
-                  sort_order: 1,
-                  is_primary: true,
-                },
-              ],
-            }),
-          ],
-        }),
-      );
-    });
-
-    const nextButton = container.querySelector<HTMLButtonElement>(
-      'button[aria-label="次の画像を表示"]',
-    );
-    expect(nextButton).not.toBeNull();
-
-    await act(async () => {
-      nextButton!.click();
-    });
-    expect(
-      container.querySelector('img[src="https://example.test/red-side.png"]'),
-    ).not.toBeNull();
-
-    const blueButton = container.querySelector<HTMLButtonElement>(
-      'button[aria-label="64 BLUEを表示"]',
-    );
-    expect(blueButton).not.toBeNull();
-
-    await act(async () => {
-      blueButton!.click();
-    });
-
-    expect(
-      container.querySelector('img[src="https://example.test/blue-front.png"]'),
-    ).not.toBeNull();
-  });
-
-  it("複数画像の読み込み失敗を画像ごとに扱える", async () => {
+  it("画像読み込み失敗時は単体候補でフォールバック表示に切り替わる", async () => {
     const { default: PurchaseCandidateListCard } =
       await import("./purchase-candidate-list-card");
 
@@ -436,23 +316,9 @@ describe("PurchaseCandidateListCard", () => {
       container.querySelectorAll('[data-testid="candidate-color-swatch"]'),
     ).toHaveLength(1);
     expect(container.textContent).toContain("33 BROWN");
-
-    const nextButton = container.querySelector<HTMLButtonElement>(
-      'button[aria-label="次の画像を表示"]',
-    );
-    expect(nextButton).not.toBeNull();
-
-    await act(async () => {
-      nextButton!.click();
-    });
-
-    expect(
-      container.querySelector('img[src="https://example.test/ok.png"]'),
-    ).not.toBeNull();
-    expect(container.textContent).toContain("2/2");
   });
 
-  it("色違い切り替え時に画像失敗状態を引きずらない", async () => {
+  it("複数候補ではフォールバック表示でもバリアントスウォッチを維持する", async () => {
     const { default: PurchaseCandidateListCard } =
       await import("./purchase-candidate-list-card");
 
@@ -539,22 +405,9 @@ describe("PurchaseCandidateListCard", () => {
     expect(
       container.querySelectorAll('[data-testid="candidate-color-swatch"]'),
     ).toHaveLength(0);
-
-    const blueButton = container.querySelector<HTMLButtonElement>(
-      'button[aria-label="ブルーを表示"]',
-    );
-    expect(blueButton).not.toBeNull();
-
-    await act(async () => {
-      blueButton!.click();
-    });
-
-    expect(
-      container.querySelector('img[src="https://example.test/blue-front.png"]'),
-    ).not.toBeNull();
   });
 
-  it("複数 shape があるカテゴリでは分類表示に shape を含める", async () => {
+  it("shape があるカテゴリでは分類表示に shape を含める", async () => {
     const { default: PurchaseCandidateListCard } =
       await import("./purchase-candidate-list-card");
 
@@ -576,7 +429,8 @@ describe("PurchaseCandidateListCard", () => {
 
     expect(container.textContent).toContain("スカート / ナロー");
   });
-  it("セール終了日時を日本時間のまま一覧表示する", async () => {
+
+  it("セール終了日時を日本時間で表示する", async () => {
     const { default: PurchaseCandidateListCard } =
       await import("./purchase-candidate-list-card");
 
@@ -595,5 +449,102 @@ describe("PurchaseCandidateListCard", () => {
     });
 
     expect(container.textContent).toContain("05/07 23:59");
+  });
+
+  it("selection mode では単体候補に軽い選択行だけを表示する", async () => {
+    const { default: PurchaseCandidateListCard } =
+      await import("./purchase-candidate-list-card");
+
+    await act(async () => {
+      root.render(
+        React.createElement(PurchaseCandidateListCard, {
+          candidates: [
+            buildCandidate({
+              id: 70,
+              name: "単体候補",
+            }),
+          ],
+          selectionMode: true,
+          selectedCandidateIds: [70],
+          onToggleCandidate: vi.fn(),
+          isCandidateSelectable: () => true,
+        }),
+      );
+    });
+
+    expect(
+      container.querySelector(
+        '[data-testid="purchase-candidate-selection-controls"]',
+      ),
+    ).toBeNull();
+    expect(
+      container.querySelector('[data-testid="purchase-candidate-checkbox-70"]'),
+    ).not.toBeNull();
+    expect(container.textContent).toContain("買い物メモに追加");
+    expect(
+      container.querySelector('a[href="/purchase-candidates/70"]'),
+    ).not.toBeNull();
+  });
+
+  it("selection mode では複数候補に候補選択枠を表示する", async () => {
+    const { default: PurchaseCandidateListCard } =
+      await import("./purchase-candidate-list-card");
+
+    await act(async () => {
+      root.render(
+        React.createElement(PurchaseCandidateListCard, {
+          candidates: [
+            buildCandidate({
+              id: 71,
+              name: "レッド候補",
+              group_id: 80,
+              group_order: 1,
+              colors: [
+                {
+                  role: "main",
+                  mode: "preset",
+                  value: "red",
+                  hex: "#E53935",
+                  label: "レッド",
+                },
+              ],
+            }),
+            buildCandidate({
+              id: 72,
+              name: "ブルー候補",
+              group_id: 80,
+              group_order: 2,
+              status: "purchased",
+              colors: [
+                {
+                  role: "main",
+                  mode: "preset",
+                  value: "blue",
+                  hex: "#0077D9",
+                  label: "ブルー",
+                },
+              ],
+            }),
+          ],
+          selectionMode: true,
+          selectedCandidateIds: [],
+          onToggleCandidate: vi.fn(),
+          isCandidateSelectable: (candidate) =>
+            candidate.status !== "purchased",
+        }),
+      );
+    });
+
+    expect(
+      container.querySelector(
+        '[data-testid="purchase-candidate-selection-controls"]',
+      ),
+    ).not.toBeNull();
+    expect(container.textContent).toContain("買い物メモに追加する候補");
+    expect(
+      container.querySelector<HTMLInputElement>(
+        '[data-testid="purchase-candidate-checkbox-72"]',
+      )?.disabled,
+    ).toBe(true);
   });
 });

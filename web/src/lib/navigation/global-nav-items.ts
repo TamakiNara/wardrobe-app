@@ -19,6 +19,10 @@ function isNestedPath(pathname: string, prefix: string): boolean {
   return pathname === prefix || pathname.startsWith(`${prefix}/`);
 }
 
+function isShoppingMemoPath(pathname: string): boolean {
+  return isNestedPath(pathname, "/shopping-memos");
+}
+
 export const globalNavItems: GlobalNavItem[] = [
   {
     key: "home",
@@ -42,7 +46,9 @@ export const globalNavItems: GlobalNavItem[] = [
     key: "purchase-candidates",
     label: "購入検討",
     href: "/purchase-candidates",
-    matches: (pathname) => isNestedPath(pathname, "/purchase-candidates"),
+    matches: (pathname) =>
+      isNestedPath(pathname, "/purchase-candidates") ||
+      isShoppingMemoPath(pathname),
   },
   {
     key: "wear-logs",

@@ -12,6 +12,7 @@ export default function NewShoppingMemoPage() {
         <FormPageHeader
           breadcrumbs={[
             { label: "ホーム", href: "/" },
+            { label: "購入検討一覧", href: "/purchase-candidates" },
             { label: "買い物メモ一覧", href: "/shopping-memos" },
             { label: "新規作成" },
           ]}

@@ -1,5 +1,7 @@
 import { apiFetch } from "@/lib/api/client";
 import type {
+  ShoppingMemoAddItemsRequest,
+  ShoppingMemoAddItemsResponse,
   ShoppingMemoCreateRequest,
   ShoppingMemoDetailResponse,
   ShoppingMemoMutationResponse,
@@ -26,4 +28,24 @@ export async function fetchShoppingMemoDetail(
   memoId: number,
 ): Promise<ShoppingMemoDetailResponse> {
   return apiFetch<ShoppingMemoDetailResponse>(`/api/shopping-memos/${memoId}`);
+}
+
+export async function addItemsToShoppingMemo(
+  memoId: number,
+  purchaseCandidateIds: number[],
+): Promise<ShoppingMemoAddItemsResponse> {
+  const payload: ShoppingMemoAddItemsRequest = {
+    purchase_candidate_ids: purchaseCandidateIds,
+  };
+
+  return apiFetch<ShoppingMemoAddItemsResponse>(
+    `/api/shopping-memos/${memoId}/items`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    },
+  );
 }

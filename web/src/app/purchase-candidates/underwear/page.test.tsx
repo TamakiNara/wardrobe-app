@@ -130,6 +130,7 @@ describe("UnderwearPurchaseCandidatesPage", () => {
 
     expect(markup).toContain("アンダーウェア購入検討一覧");
     expect(markup).toContain('href="/purchase-candidates"');
+    expect(markup).toContain('href="/shopping-memos"');
     expect(markup).toContain(
       'href="/purchase-candidates/new?category=underwear&amp;returnTo=%2Fpurchase-candidates%2Funderwear"',
     );

@@ -30,6 +30,17 @@ export type ShoppingMemoCreateRequest = {
   memo?: string | null;
 };
 
+export type ShoppingMemoAddItemsRequest = {
+  purchase_candidate_ids: number[];
+};
+
+export type ShoppingMemoAddItemsResponse = {
+  added_count: number;
+  skipped_count: number;
+  duplicate_count: number;
+  invalid_status_count: number;
+};
+
 export type ShoppingMemoDetailResponse = {
   shoppingMemo: ShoppingMemoDetail;
 };

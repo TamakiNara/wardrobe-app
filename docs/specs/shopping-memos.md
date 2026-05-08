@@ -1114,6 +1114,7 @@ response 候補:
 - selected count を固定表示
 - `買い物メモへ追加`
 - 追加先は既存メモ選択
+- 選択モード中に追加先メモを先に選ぶ
 
 MVP の簡略化方針:
 
@@ -1387,5 +1388,78 @@ MVP の簡略化方針:
 
 ### planned next
 
-- 購入検討一覧からの checkbox 選択 + 既存メモへの追加導線
 - 買い物メモ詳細内の候補追加 / 削除 UI
+
+---
+
+## current frontend phase 3 (2026-05-07)
+
+### current
+
+- Next.js frontend の第3段として **購入検討一覧から既存の買い物メモへ追加する導線** を実装
+- 対象画面:
+  - `/purchase-candidates`
+  - `/purchase-candidates/underwear`
+- 追加した frontend API / BFF:
+  - `POST /api/shopping-memos/[id]/items`
+  - `addItemsToShoppingMemo`
+- 購入検討一覧では通常時のカード一覧を維持しつつ、`選択して追加` ボタンから選択モードに入れる
+- 選択モード時のみ checkbox を表示し、複数候補を同一ページ内で選択できる
+- 選択モード中は、追加先の買い物メモを先に選ぶ
+- 追加ボタンは「追加先メモ選択済み」かつ「1件以上選択済み」のときだけ有効にする
+- 単体候補ではカード全体の情報量を崩さないよう、右側情報欄上部に軽い 1 行 checkbox を表示する
+- 色違い / 複数候補では、どの候補を追加するか分かるように従来どおり候補選択枠を表示する
+- 追加先は **既存の draft 買い物メモのみ**
+- `closed` の買い物メモは追加先に出さない
+- 追加先取得が失敗した場合は `追加先の買い物メモを読み込めませんでした。` を表示する
+- 買い物メモが存在しない場合は、作成案内と `/shopping-memos/new` へのリンクを表示する
+- 追加結果は backend response の集計を使って表示する
+  - `added_count`
+  - `duplicate_count`
+  - `invalid_status_count`
+  - `skipped_count`
+- `purchased / dropped` は checkbox を disabled にして、一覧上でも対象外だと分かるようにする
+- 追加成功後は選択状態を解除し、通常モードへ戻す
+
+### current: selection scope
+
+- 同一ページ内選択のみ
+- ページまたぎ選択はしない
+- filter / sort / pagination 変更時は server rerender により選択解除される前提
+- キャンセル時も選択解除する
+
+### planned next
+
+- 買い物メモ詳細内の候補追加 / 削除 UI
+
+---
+
+## current frontend phase 4 (2026-05-08)
+
+### current
+
+- 購入検討一覧 (`/purchase-candidates`) とアンダーウェア購入検討一覧 (`/purchase-candidates/underwear`) のヘッダーから、`買い物メモを見る` で `/shopping-memos` へ遷移できる
+- 買い物メモ画面
+  - `/shopping-memos`
+  - `/shopping-memos/new`
+  - `/shopping-memos/[id]`
+    は共通 AppShell / bottom nav 配下で扱う
+- 買い物メモ一覧・作成・詳細のパンくずから `/purchase-candidates` へ戻れるようにする
+- bottom nav に `買い物メモ` 項目は追加しない
+- shopping-memos 配下では、bottom nav 上は `購入検討` タブを active 扱いにする
+- 購入検討一覧の買い物メモ追加用 selection UI は次を current とする
+  - 単体候補: 右側情報欄上部に軽い 1 行の選択 UI
+  - 色違い / 複数候補: 候補ごとの選択枠
+  - 画像左上には checkbox を置かない
+
+### current: add destination flow
+
+- MVP current では、選択モード中に追加先メモを先に選ぶ
+- 候補未選択または追加先未選択の間は、追加ボタンを disabled にする
+
+### planned
+
+- 買い物メモ確認用の demo / test seed
+  - 例: `春夏物`
+  - 例: `店舗で見る候補`
+  - domain group と brand fallback group の両方が確認できる候補構成

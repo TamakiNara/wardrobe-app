@@ -22,6 +22,10 @@ import type {
 type PurchaseCandidateListCardProps = {
   candidates: PurchaseCandidateListItem[];
   detailQueryString?: string;
+  selectionMode?: boolean;
+  selectedCandidateIds?: number[];
+  onToggleCandidate?: (candidateId: number) => void;
+  isCandidateSelectable?: (candidate: PurchaseCandidateListItem) => boolean;
 };
 
 function formatPrice(price: number | null): string {
@@ -97,6 +101,10 @@ function resolveCandidateImages(
 export default function PurchaseCandidateListCard({
   candidates,
   detailQueryString,
+  selectionMode = false,
+  selectedCandidateIds = [],
+  onToggleCandidate,
+  isCandidateSelectable,
 }: PurchaseCandidateListCardProps) {
   const sortedCandidates = useMemo(
     () =>
@@ -124,6 +132,8 @@ export default function PurchaseCandidateListCard({
     imageIndex: 0,
   });
   const shouldShowVariants = sortedCandidates.length > 1;
+  const shouldShowBulkSelectionPanel = selectionMode && shouldShowVariants;
+  const shouldShowSingleSelectionToggle = selectionMode && !shouldShowVariants;
 
   if (!selectedCandidate) {
     return null;
@@ -193,6 +203,97 @@ export default function PurchaseCandidateListCard({
       )}
     </div>
   );
+
+  const renderSelectionControls = () => {
+    if (!shouldShowBulkSelectionPanel) {
+      return null;
+    }
+
+    return (
+      <section
+        data-testid="purchase-candidate-selection-controls"
+        className="rounded-xl border border-blue-100 bg-blue-50/70 p-3"
+      >
+        <p className="text-xs font-medium text-gray-700">
+          買い物メモに追加する候補
+        </p>
+        <div className="mt-2 space-y-2">
+          {sortedCandidates.map((candidate) => {
+            const selectable = isCandidateSelectable
+              ? isCandidateSelectable(candidate)
+              : true;
+            const checkboxLabel = shouldShowVariants
+              ? resolveVariantLabel(candidate)
+              : candidate.name;
+
+            return (
+              <label
+                key={candidate.id}
+                className={`flex items-center justify-between gap-3 rounded-lg px-2 py-2 text-sm ${
+                  selectable ? "bg-white/90" : "bg-gray-100 text-gray-500"
+                }`}
+              >
+                <span className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    data-testid={`purchase-candidate-checkbox-${candidate.id}`}
+                    checked={selectedCandidateIds.includes(candidate.id)}
+                    disabled={!selectable}
+                    onChange={() => onToggleCandidate?.(candidate.id)}
+                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="font-medium text-gray-700">
+                    {checkboxLabel}
+                  </span>
+                </span>
+                <span className="text-xs text-gray-500">
+                  {PURCHASE_CANDIDATE_STATUS_LABELS[candidate.status]}
+                  {!selectable ? " / 対象外" : ""}
+                </span>
+              </label>
+            );
+          })}
+        </div>
+      </section>
+    );
+  };
+
+  const renderSingleSelectionToggle = () => {
+    if (!shouldShowSingleSelectionToggle) {
+      return null;
+    }
+
+    const candidate = sortedCandidates[0];
+
+    if (!candidate) {
+      return null;
+    }
+
+    const selectable = isCandidateSelectable
+      ? isCandidateSelectable(candidate)
+      : true;
+
+    return (
+      <label
+        data-testid="purchase-candidate-single-selection-toggle"
+        className={`inline-flex items-center gap-2 self-start rounded-lg border px-3 py-2 text-sm ${
+          selectable
+            ? "border-blue-100 bg-blue-50/70 text-gray-700"
+            : "border-gray-200 bg-gray-100 text-gray-500"
+        }`}
+      >
+        <input
+          type="checkbox"
+          data-testid={`purchase-candidate-checkbox-${candidate.id}`}
+          checked={selectedCandidateIds.includes(candidate.id)}
+          disabled={!selectable}
+          onChange={() => onToggleCandidate?.(candidate.id)}
+          className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+        />
+        <span>{selectable ? "買い物メモに追加" : "対象外"}</span>
+      </label>
+    );
+  };
 
   return (
     <div className="relative h-full pr-1 pb-1">
@@ -292,6 +393,9 @@ export default function PurchaseCandidateListCard({
           data-testid="purchase-candidate-card-content"
           className="flex flex-1 flex-col gap-3 p-3.5 sm:col-start-2 sm:row-span-2 sm:row-start-1 sm:p-4"
         >
+          {renderSingleSelectionToggle()}
+          {renderSelectionControls()}
+
           <div className="flex flex-wrap items-center gap-2">
             <span className="rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
               {PURCHASE_CANDIDATE_STATUS_LABELS[selectedCandidate.status]}

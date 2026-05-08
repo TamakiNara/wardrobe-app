@@ -36,7 +36,7 @@ describe("GlobalBottomNav", () => {
     globalThis.IS_REACT_ACT_ENVIRONMENT = false;
   });
 
-  it("詳細画面でも該当タブをアクティブにする", async () => {
+  it("詳細画面でもアイテムタブを active にする", async () => {
     usePathnameMock.mockReturnValue("/items/42/edit");
 
     const { default: GlobalBottomNav } = await import("./global-bottom-nav");
@@ -51,7 +51,7 @@ describe("GlobalBottomNav", () => {
     expect(activeLink?.textContent).toContain("アイテム");
   });
 
-  it("purchase_candidates 配下では購入検討タブをアクティブにする", async () => {
+  it("purchase-candidates 配下では購入検討タブを active にする", async () => {
     usePathnameMock.mockReturnValue("/purchase-candidates/12/edit");
 
     const { default: GlobalBottomNav } = await import("./global-bottom-nav");
@@ -66,7 +66,22 @@ describe("GlobalBottomNav", () => {
     expect(activeLink?.textContent).toContain("購入検討");
   });
 
-  it("wear logs 配下では一覧・詳細・新規作成・編集のいずれでも着用履歴タブをアクティブにする", async () => {
+  it("shopping-memos 配下では購入検討タブを active にする", async () => {
+    usePathnameMock.mockReturnValue("/shopping-memos/12");
+
+    const { default: GlobalBottomNav } = await import("./global-bottom-nav");
+
+    await act(async () => {
+      root.render(React.createElement(GlobalBottomNav));
+    });
+
+    const activeLink = container.querySelector('[aria-current="page"]');
+
+    expect(activeLink?.getAttribute("href")).toBe("/purchase-candidates");
+    expect(activeLink?.textContent).toContain("購入検討");
+  });
+
+  it("wear logs 配下では一覧・詳細・新規・編集いずれでも着用履歴タブを active にする", async () => {
     const { default: GlobalBottomNav } = await import("./global-bottom-nav");
 
     for (const pathname of [
@@ -87,7 +102,8 @@ describe("GlobalBottomNav", () => {
       expect(activeLink?.textContent).toContain("着用履歴");
     }
   });
-  it("fixed 余白は pointer-events を持たず、ナビ本体だけ押せる", async () => {
+
+  it("fixed 配置は pointer-events を分けて、ナビ本体だけ押せる", async () => {
     usePathnameMock.mockReturnValue("/items");
 
     const { default: GlobalBottomNav } = await import("./global-bottom-nav");

@@ -25,6 +25,7 @@ describe("NewShoppingMemoPage", () => {
 
     expect(markup).toContain("買い物メモを作成");
     expect(markup).toContain("買い物メモ一覧");
+    expect(markup).toContain('href="/purchase-candidates"');
     expect(markup).toContain('href="/shopping-memos"');
     expect(markup).toContain('data-testid="shopping-memo-create-form"');
   });

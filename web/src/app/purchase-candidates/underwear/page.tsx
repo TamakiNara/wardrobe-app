@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { buildPageMetadata } from "@/lib/metadata";
-import PurchaseCandidateListCard from "@/components/purchase-candidates/purchase-candidate-list-card";
+import PurchaseCandidateShoppingMemoBulkAdd from "@/components/purchase-candidates/purchase-candidate-shopping-memo-bulk-add";
 import PurchaseCandidateListFilters from "@/components/purchase-candidates/purchase-candidate-list-filters";
 import { IndexPageHeader } from "@/components/shared/index-page-header";
 import { UnderwearIcon } from "@/components/shared/underwear-icon";
@@ -304,6 +304,12 @@ export default async function UnderwearPurchaseCandidatesPage({
           actions={
             <>
               <Link
+                href="/shopping-memos"
+                className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+              >
+                買い物メモを見る
+              </Link>
+              <Link
                 href="/purchase-candidates"
                 className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
               >
@@ -362,18 +368,10 @@ export default async function UnderwearPurchaseCandidatesPage({
           </section>
         ) : (
           <>
-            <section
-              data-testid="purchase-candidate-card-grid"
-              className="grid gap-4 lg:grid-cols-2"
-            >
-              {purchaseCandidateGroups.map((group) => (
-                <PurchaseCandidateListCard
-                  key={group.key}
-                  candidates={group.candidates}
-                  detailQueryString={detailQueryString}
-                />
-              ))}
-            </section>
+            <PurchaseCandidateShoppingMemoBulkAdd
+              groups={purchaseCandidateGroups}
+              detailQueryString={detailQueryString}
+            />
 
             <section className="flex items-center justify-between rounded-2xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
               {currentPage > 1 ? (
