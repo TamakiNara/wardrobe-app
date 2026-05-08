@@ -152,7 +152,6 @@ export default async function ShoppingMemosPage({
           <section className="grid gap-4 md:grid-cols-2">
             {shoppingMemos.map((memo) => {
               const nearestDeadline = formatDateTime(memo.nearest_deadline);
-              const updatedAt = formatDateTime(memo.updated_at);
 
               return (
                 <article
@@ -205,13 +204,16 @@ export default async function ShoppingMemosPage({
                         <dd>{nearestDeadline}</dd>
                       </div>
                     ) : null}
-                    {updatedAt ? (
-                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                        <dt className="font-medium text-gray-700">更新日時</dt>
-                        <dd>{updatedAt}</dd>
-                      </div>
-                    ) : null}
                   </dl>
+
+                  <div className="mt-4 flex justify-end">
+                    <Link
+                      href={`/shopping-memos/${memo.id}`}
+                      className="text-sm font-medium text-blue-600 hover:underline"
+                    >
+                      詳細を見る
+                    </Link>
+                  </div>
                 </article>
               );
             })}

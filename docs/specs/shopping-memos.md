@@ -1334,7 +1334,8 @@ MVP の簡略化方針:
   - subtotal
   - has_price_unset
   - nearest_deadline
-  - updated_at
+- 一覧カードには `詳細を見る` 導線を表示する
+- 一覧では `updated_at` は表示せず、候補数 / グループ数 / 小計 / 最短期限を優先する
 - empty state では `買い物メモを作成` 導線を表示
 - 作成画面では `name` 必須 / `memo` 任意で `POST /api/shopping-memos` を呼ぶ
 - 作成成功後は **買い物メモ詳細画面** (`/shopping-memos/{id}`) に遷移する
@@ -1378,7 +1379,7 @@ MVP の簡略化方針:
 - group は backend で導出済みの `domain / brand / uncategorized` をそのまま表示する
 - item では価格、セール期限、状態、合計対象外、購入検討詳細へのリンクを表示する
 - item が空の買い物メモでは empty state を表示し、購入検討一覧へのリンクを出す
-- 一覧画面からメモ名リンクで詳細画面へ遷移できる
+- 一覧画面からメモ名リンクと `詳細を見る` で詳細画面へ遷移できる
 - 作成成功後は一覧ではなく **詳細画面** に遷移する
 
 ### current: navigation
