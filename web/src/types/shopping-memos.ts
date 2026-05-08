@@ -41,6 +41,10 @@ export type ShoppingMemoAddItemsResponse = {
   invalid_status_count: number;
 };
 
+export type ShoppingMemoItemMutationResponse = {
+  message: string;
+};
+
 export type ShoppingMemoDetailResponse = {
   shoppingMemo: ShoppingMemoDetail;
 };

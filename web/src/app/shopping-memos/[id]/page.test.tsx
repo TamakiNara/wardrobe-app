@@ -5,10 +5,20 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const redirectMock = vi.fn();
 const notFoundMock = vi.fn();
 const fetchLaravelWithCookieMock = vi.fn();
+const pushMock = vi.fn();
+const refreshMock = vi.fn();
+const replaceMock = vi.fn();
 
 vi.mock("next/navigation", () => ({
   redirect: redirectMock,
   notFound: notFoundMock,
+  useRouter: () => ({
+    push: pushMock,
+    refresh: refreshMock,
+    replace: replaceMock,
+  }),
+  usePathname: () => "/shopping-memos/1",
+  useSearchParams: () => new URLSearchParams(),
 }));
 
 vi.mock("next/link", () => ({
@@ -205,7 +215,10 @@ describe("ShoppingMemoDetailPage", () => {
 
     const { default: ShoppingMemoDetailPage } = await import("./page");
     const markup = renderToStaticMarkup(
-      await ShoppingMemoDetailPage({ params: Promise.resolve({ id: "1" }) }),
+      await ShoppingMemoDetailPage({
+        params: Promise.resolve({ id: "1" }),
+        searchParams: Promise.resolve({}),
+      }),
     );
 
     expect(markup).toContain("春夏セール候補");
@@ -239,7 +252,12 @@ describe("ShoppingMemoDetailPage", () => {
     );
     expect(markup).toContain("Sample Brand");
     expect(markup).toContain("購入検討詳細を見る");
+    expect(markup).toContain('aria-label="買い物メモから外す"');
+    expect(markup).not.toContain(">外す<");
     expect(markup).toContain("商品ページ");
+    expect(markup.indexOf("買い物メモから外す")).toBeLessThan(
+      markup.indexOf("商品ページ"),
+    );
     expect(markup).toContain("https://example.com/101.jpg");
     expect(markup).not.toContain("グループ小計");
     expect(markup).toContain("小計");
@@ -285,11 +303,51 @@ describe("ShoppingMemoDetailPage", () => {
 
     const { default: ShoppingMemoDetailPage } = await import("./page");
     const markup = renderToStaticMarkup(
-      await ShoppingMemoDetailPage({ params: Promise.resolve({ id: "2" }) }),
+      await ShoppingMemoDetailPage({
+        params: Promise.resolve({ id: "2" }),
+        searchParams: Promise.resolve({}),
+      }),
     );
 
     expect(markup).toContain("この買い物メモには、まだ購入候補がありません。");
     expect(markup).toContain("購入検討一覧から候補を追加できます。");
     expect(markup).toContain('href="/purchase-candidates"');
+  });
+
+  it("候補削除後の成功メッセージを表示する", async () => {
+    fetchLaravelWithCookieMock.mockImplementation(async (path: string) => {
+      expect(path).toBe("/api/shopping-memos/2");
+
+      return {
+        status: 200,
+        ok: true,
+        json: async () => ({
+          shoppingMemo: {
+            id: 2,
+            name: "春夏物",
+            memo: null,
+            status: "draft",
+            item_count: 0,
+            group_count: 0,
+            subtotal: 0,
+            has_price_unset: false,
+            nearest_deadline: null,
+            created_at: null,
+            updated_at: null,
+            groups: [],
+          },
+        }),
+      };
+    });
+
+    const { default: ShoppingMemoDetailPage } = await import("./page");
+    const markup = renderToStaticMarkup(
+      await ShoppingMemoDetailPage({
+        params: Promise.resolve({ id: "2" }),
+        searchParams: Promise.resolve({ message: "removed" }),
+      }),
+    );
+
+    expect(markup).toContain("買い物メモから外しました。");
   });
 });

@@ -4,6 +4,7 @@ import type {
   ShoppingMemoAddItemsResponse,
   ShoppingMemoCreateRequest,
   ShoppingMemoDetailResponse,
+  ShoppingMemoItemMutationResponse,
   ShoppingMemoMutationResponse,
   ShoppingMemosListResponse,
 } from "@/types/shopping-memos";
@@ -46,6 +47,18 @@ export async function addItemsToShoppingMemo(
         "Content-Type": "application/json",
       },
       body: JSON.stringify(payload),
+    },
+  );
+}
+
+export async function removeItemFromShoppingMemo(
+  memoId: number,
+  shoppingMemoItemId: number,
+): Promise<ShoppingMemoItemMutationResponse> {
+  return apiFetch<ShoppingMemoItemMutationResponse>(
+    `/api/shopping-memos/${memoId}/items/${shoppingMemoItemId}`,
+    {
+      method: "DELETE",
     },
   );
 }

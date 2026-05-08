@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import SafeImage from "@/components/images/safe-image";
+import ShoppingMemoItemRemoveAction from "@/components/shopping-memos/shopping-memo-item-remove-action";
 import { IndexPageHeader } from "@/components/shared/index-page-header";
 import { PurchaseUrlLink } from "@/components/shared/purchase-url-link";
 import { buildPageMetadata } from "@/lib/metadata";
@@ -275,6 +276,18 @@ function buildPurchaseCandidateDetailHref(
   return `/purchase-candidates/${purchaseCandidateId}?from_shopping_memo_id=${shoppingMemoId}`;
 }
 
+function resolvePageMessage(
+  value: string | string[] | undefined,
+): string | null {
+  const rawValue = Array.isArray(value) ? value[0] : value;
+
+  if (rawValue === "removed") {
+    return "買い物メモから外しました。";
+  }
+
+  return null;
+}
+
 function renderGroupItem(
   item: ShoppingMemoGroupItem,
   imageUrl: string | null,
@@ -309,16 +322,22 @@ function renderGroupItem(
         </div>
 
         <div className="space-y-3">
-          <div className="space-y-2">
+          <div className="flex items-center justify-between gap-3">
             <Link
               href={buildPurchaseCandidateDetailHref(
                 item.purchase_candidate_id,
                 shoppingMemoId,
               )}
-              className="block text-base font-semibold text-gray-900 hover:underline"
+              className="block min-w-0 flex-1 text-base font-semibold text-gray-900 hover:underline"
             >
               {item.name}
             </Link>
+            <div className="shrink-0">
+              <ShoppingMemoItemRemoveAction
+                memoId={shoppingMemoId}
+                shoppingMemoItemId={item.shopping_memo_item_id}
+              />
+            </div>
           </div>
 
           <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_8rem] md:items-start">
@@ -414,15 +433,17 @@ function renderGroupItem(
             ) : (
               <span className="text-xs text-gray-400">商品ページ未設定</span>
             )}
-            <Link
-              href={buildPurchaseCandidateDetailHref(
-                item.purchase_candidate_id,
-                shoppingMemoId,
-              )}
-              className="text-sm font-medium text-blue-600 hover:underline"
-            >
-              購入検討詳細を見る
-            </Link>
+            <div className="ml-auto flex flex-wrap items-center justify-end gap-3">
+              <Link
+                href={buildPurchaseCandidateDetailHref(
+                  item.purchase_candidate_id,
+                  shoppingMemoId,
+                )}
+                className="text-sm font-medium text-blue-600 hover:underline"
+              >
+                購入検討詳細を見る
+              </Link>
+            </div>
           </div>
         </div>
       </div>
@@ -496,10 +517,13 @@ export async function generateMetadata({
 
 export default async function ShoppingMemoDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { id } = await params;
+  const resolvedSearchParams = searchParams ? await searchParams : {};
   const memo = await getShoppingMemoDetail(id);
 
   if (!memo) {
@@ -507,6 +531,7 @@ export default async function ShoppingMemoDetailPage({
   }
 
   const itemImages = await getShoppingMemoItemImages(memo);
+  const pageMessage = resolvePageMessage(resolvedSearchParams.message);
 
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">
@@ -535,6 +560,12 @@ export default async function ShoppingMemoDetailPage({
             </Link>
           }
         />
+
+        {pageMessage ? (
+          <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+            {pageMessage}
+          </div>
+        ) : null}
 
         {renderSummaryCard(memo)}
 

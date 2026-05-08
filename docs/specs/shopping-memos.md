@@ -1470,3 +1470,15 @@ MVP の簡略化方針:
   - 例: `春夏物`
   - 例: `店舗で見る候補`
   - domain group と brand fallback group の両方が確認できる候補構成
+
+## current: remove items from shopping memo detail
+
+- 買い物メモ詳細では、各候補から `メモから外す` を実行できる。
+- この操作は購入検討自体の削除ではなく、買い物メモとの紐づきだけを外す。
+- 実行前に確認を出す。
+  - `この候補を買い物メモから外しますか？`
+  - `購入検討一覧には残ります。`
+- 削除成功後は detail を再取得し、group / subtotal / item_count / nearest_deadline を再計算した表示に更新する。
+- 候補が 0 件になった場合は empty state を表示する。
+- current backend 実装では `closed` memo でも候補を外せる。
+- `closed` memo の編集制御全体は後続タスクとする。

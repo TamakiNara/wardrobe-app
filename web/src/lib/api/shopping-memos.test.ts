@@ -5,6 +5,7 @@ import {
   createShoppingMemo,
   fetchShoppingMemoDetail,
   fetchShoppingMemos,
+  removeItemFromShoppingMemo,
 } from "@/lib/api/shopping-memos";
 
 vi.mock("@/lib/api/client", () => ({
@@ -76,6 +77,18 @@ describe("shopping memos api helpers", () => {
       body: JSON.stringify({
         purchase_candidate_ids: [1, 2, 3],
       }),
+    });
+  });
+
+  it("買い物メモ候補削除時に memo id と item id で DELETE を呼ぶ", async () => {
+    vi.mocked(apiFetch).mockResolvedValueOnce({
+      message: "deleted",
+    });
+
+    await removeItemFromShoppingMemo(5, 18);
+
+    expect(apiFetch).toHaveBeenCalledWith("/api/shopping-memos/5/items/18", {
+      method: "DELETE",
     });
   });
 });
