@@ -36,6 +36,15 @@ weather 関連でここで扱うデータ:
 
 購入検討の `sale_ends_at` / `discount_ends_at` は、通常 UI / 通常 API と同じく backup / restore でも **Asia/Tokyo のローカル日時文字列** を正本とする。
 
+current の意味づけ:
+
+- `sale_ends_at`
+  - UI / docs 上は `販売終了日`
+- `discount_ends_at`
+  - UI / docs 上は `セール終了日`
+
+backup payload では field 名をそのまま使うが、表示名は current UI / docs に合わせる。
+
 current 正本形式:
 
 - `YYYY-MM-DDTHH:mm`

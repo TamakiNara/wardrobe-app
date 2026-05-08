@@ -4618,12 +4618,12 @@ components:
           type: string
           nullable: true
           example: 2026-03-31T18:00
-          description: セール終了予定日時。Asia/Tokyo のローカル日時を `YYYY-MM-DDTHH:mm` 形式で扱う。candidate 専用で、item-draft には含めない。
+          description: 販売終了予定日時。候補として見ている商品や掲載の販売期間が終わる日時を指す。Asia/Tokyo のローカル日時を `YYYY-MM-DDTHH:mm` 形式で扱う。candidate 専用で、item-draft には含めない。
         discount_ends_at:
           type: string
           nullable: true
           example: 2026-03-25T12:00
-          description: 値引き終了予定日時。Asia/Tokyo のローカル日時を `YYYY-MM-DDTHH:mm` 形式で扱う。candidate 専用で、item-draft には含めない。
+          description: セール終了予定日時。`sale_price` とあわせて見る値引き・キャンペーン条件の終了日時を指す。Asia/Tokyo のローカル日時を `YYYY-MM-DDTHH:mm` 形式で扱う。candidate 専用で、item-draft には含めない。
         purchase_url:
           type: string
           nullable: true
@@ -4818,11 +4818,11 @@ components:
         sale_ends_at:
           type: string
           nullable: true
-          description: Asia/Tokyo のローカル日時を `YYYY-MM-DDTHH:mm` 形式で送る。
+          description: 販売終了予定日時。Asia/Tokyo のローカル日時を `YYYY-MM-DDTHH:mm` 形式で送る。
         discount_ends_at:
           type: string
           nullable: true
-          description: Asia/Tokyo のローカル日時を `YYYY-MM-DDTHH:mm` 形式で送る。
+          description: セール終了予定日時。Asia/Tokyo のローカル日時を `YYYY-MM-DDTHH:mm` 形式で送る。
         purchase_url:
           type: string
           nullable: true
@@ -4964,10 +4964,12 @@ components:
           type: string
           nullable: true
           example: 2026-03-31T18:00
+          description: 販売終了予定日時。UI 上は `販売終了日` として扱う。
         discount_ends_at:
           type: string
           nullable: true
           example: 2026-03-25T12:00
+          description: セール終了予定日時。UI 上は `セール終了日` として扱う。
         purchase_url:
           type: string
           nullable: true

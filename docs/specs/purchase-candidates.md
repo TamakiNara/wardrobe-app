@@ -666,6 +666,23 @@ Phase 3:
 - `converted_item_id` / `converted_at` のカラムは 現在の schema に存在する
 - 現時点の実装では、`purchase_candidate_id` 付きの item 作成成功時に自動更新する
 
+### 期限系項目の意味
+
+current では、期限系項目は次の意味で扱う。
+
+- `sale_ends_at`
+  - user-facing label は `販売終了日`
+  - セール価格の終了ではなく、候補として見ている商品や掲載の販売期間が終わる日時として扱う
+- `discount_ends_at`
+  - user-facing label は `セール終了日`
+  - `sale_price` とあわせて見る、値引き・キャンペーン・セール条件の終了日時として扱う
+
+補足:
+
+- current schema には `販売終了日` 専用の別 field はなく、UI 上の `販売終了日` は `sale_ends_at` に対応する
+- current schema には `割引終了日` 専用の別 field もなく、UI 上の `セール終了日` は `discount_ends_at` に対応する
+- field 名は実装都合で英語のまま残っているが、current UI / docs では上記の日本語ラベルを正本とする
+
 ---
 
 ## `items`
@@ -1565,7 +1582,6 @@ candidate 側でも、編集画面と duplicate / color-variant draft で `sort_
   - セール価格
   - 販売終了日
   - セール終了日
-  - セール終了予定
   - 購入 URL
   - wanted_reason
 - 色
@@ -1601,6 +1617,25 @@ candidate 側でも、編集画面と duplicate / color-variant draft で `sort_
 - 旧 backup に timezone 付き ISO 文字列が入っている場合は legacy 互換として受け、restore 時に Asia/Tokyo の `YYYY-MM-DDTHH:mm` へ正規化する
 - `purchased` の candidate では `memo` / `wanted_reason` / `priority` / `release_date` / `sale_price` / `sale_ends_at` / `discount_ends_at` / `purchase_url` を編集可とし、その他の項目は編集不可とする
 - `purchased` 後も画像追加 / 削除は画像 API で扱える
+
+### 期限系表示方針
+
+current の user-facing 文言は次を正本とする。
+
+- `sale_ends_at`:
+  - `販売終了日`
+- `discount_ends_at`:
+  - `セール終了日`
+
+画面ごとの扱い:
+
+- 購入検討一覧
+  - 情報量を抑えるため、期限を出す場合はまず `discount_ends_at` を `セール終了日` として補助表示する
+  - `sale_ends_at` は current 一覧では強く出さない
+- 購入検討詳細
+  - `セール終了日` と `販売終了日` を分けて表示してよい
+- 買い物メモ
+  - 比較しやすさを優先し、`sale_ends_at` / `discount_ends_at` のうち最も近い日時を代表期限 `期限` として扱う
 
 ### `memo` の扱い
 

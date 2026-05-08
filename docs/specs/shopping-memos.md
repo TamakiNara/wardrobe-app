@@ -343,6 +343,8 @@ status:
   - `一番近い期限`
   - `has_price_unset`
 
+`一番近い期限` は、各 item の `sale_ends_at` / `discount_ends_at` のうち最も近い日時を代表期限として集計したものを指す。
+
 ### group 表示
 
 current:
@@ -373,6 +375,15 @@ current:
 - item card は `lg` 以上で 2 列表示
 - `購入検討詳細を見る` を表示する
 - `商品ページ` を表示する
+
+期限の扱い:
+
+- `sale_ends_at`
+  - user-facing では `販売終了日`
+- `discount_ends_at`
+  - user-facing では `セール終了日`
+- 買い物メモ詳細では、比較しやすさを優先して両者を個別表示せず、item ごとに最も近い日時だけを `期限` として表示する
+- 上部 summary の `一番近い期限` も同じ代表期限ロジックを使う
 
 ### 候補をメモから外す
 
@@ -479,7 +490,6 @@ planned:
 - manual group
 - import / export
 - 買い物メモ確認用 seed
-- purchase candidate の `sale_ends_at` / `discount_ends_at` の意味整理
 - 買い物メモ詳細のさらなる表示改善
 
 ## 後続タスク
