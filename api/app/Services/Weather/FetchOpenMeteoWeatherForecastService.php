@@ -7,6 +7,7 @@ use App\Support\WeatherRecordSupport;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Client\Factory as HttpFactory;
 use Illuminate\Http\Client\RequestException;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
 class FetchOpenMeteoWeatherForecastService
@@ -42,8 +43,17 @@ class FetchOpenMeteoWeatherForecastService
         float $longitude,
         ?string $timezone,
         string $weatherDate,
+        array $logContext = [],
     ): array {
+        $startedAt = microtime(true);
         $resolvedTimezone = $this->resolveTimezone($timezone);
+        $baseContext = $this->buildBaseLogContext(
+            $latitude,
+            $longitude,
+            $resolvedTimezone,
+            $weatherDate,
+            $logContext,
+        );
 
         try {
             $response = $this->http
@@ -69,7 +79,16 @@ class FetchOpenMeteoWeatherForecastService
                     ]),
                 ])
                 ->throw();
-        } catch (RequestException) {
+        } catch (RequestException $exception) {
+            Log::warning('weather.forecast.fetch.failed', [
+                ...$baseContext,
+                'result' => 'failed',
+                'http_status' => $exception->response?->status(),
+                'exception_class' => $exception::class,
+                'message' => $exception->getMessage(),
+                'elapsed_ms' => $this->elapsedMilliseconds($startedAt),
+            ]);
+
             throw new FetchWeatherForecastException(
                 'Open-Meteo から天気予報を取得できませんでした。時間をおいて再度お試しください。'
             );
@@ -78,6 +97,13 @@ class FetchOpenMeteoWeatherForecastService
         $payload = $response->json();
 
         if (! is_array($payload)) {
+            Log::warning('weather.forecast.fetch.failed', [
+                ...$baseContext,
+                'result' => 'invalid_response',
+                'reason' => 'payload_not_array',
+                'elapsed_ms' => $this->elapsedMilliseconds($startedAt),
+            ]);
+
             throw new FetchWeatherForecastException(
                 'Open-Meteo の予報レスポンスを解釈できませんでした。'
             );
@@ -86,6 +112,13 @@ class FetchOpenMeteoWeatherForecastService
         $daily = $payload['daily'] ?? null;
 
         if (! is_array($daily)) {
+            Log::warning('weather.forecast.fetch.failed', [
+                ...$baseContext,
+                'result' => 'invalid_response',
+                'reason' => 'missing_daily',
+                'elapsed_ms' => $this->elapsedMilliseconds($startedAt),
+            ]);
+
             throw new FetchWeatherForecastException(
                 'Open-Meteo の daily 予報を取得できませんでした。'
             );
@@ -94,6 +127,13 @@ class FetchOpenMeteoWeatherForecastService
         $time = $daily['time'] ?? null;
 
         if (! is_array($time)) {
+            Log::warning('weather.forecast.fetch.failed', [
+                ...$baseContext,
+                'result' => 'invalid_response',
+                'reason' => 'missing_daily_time',
+                'elapsed_ms' => $this->elapsedMilliseconds($startedAt),
+            ]);
+
             throw new FetchWeatherForecastException(
                 'Open-Meteo の daily 日付を取得できませんでした。'
             );
@@ -102,6 +142,13 @@ class FetchOpenMeteoWeatherForecastService
         $index = array_search($weatherDate, $time, true);
 
         if (! is_int($index)) {
+            Log::warning('weather.forecast.fetch.failed', [
+                ...$baseContext,
+                'result' => 'not_found',
+                'reason' => 'missing_weather_date',
+                'elapsed_ms' => $this->elapsedMilliseconds($startedAt),
+            ]);
+
             throw ValidationException::withMessages([
                 'weather_date' => '指定した日付の Open-Meteo 予報が見つかりませんでした。',
             ]);
@@ -156,5 +203,28 @@ class FetchOpenMeteoWeatherForecastService
         }
 
         return (float) $value;
+    }
+
+    private function buildBaseLogContext(
+        float $latitude,
+        float $longitude,
+        string $timezone,
+        string $weatherDate,
+        array $logContext,
+    ): array {
+        return array_merge([
+            'operation' => 'weather.forecast.fetch.failed',
+            'provider' => 'open_meteo',
+            'source_type' => 'forecast',
+            'weather_date' => $weatherDate,
+            'latitude' => round($latitude, 4),
+            'longitude' => round($longitude, 4),
+            'timezone' => $timezone,
+        ], $logContext);
+    }
+
+    private function elapsedMilliseconds(float $startedAt): int
+    {
+        return (int) round((microtime(true) - $startedAt) * 1000);
     }
 }

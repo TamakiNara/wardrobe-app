@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\UserWeatherLocation;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Tests\TestCase;
 
 class OpenMeteoForecastEndpointTest extends TestCase
@@ -94,6 +95,7 @@ class OpenMeteoForecastEndpointTest extends TestCase
     public function test_weather_forecast_returns_validation_error_when_location_has_no_coordinates(): void
     {
         Http::fake();
+        Log::spy();
 
         $user = User::factory()->create();
         $token = $this->issueCsrfToken();
@@ -124,5 +126,69 @@ class OpenMeteoForecastEndpointTest extends TestCase
             ->assertJsonPath('errors.location_id.0', '位置情報を設定すると、天気を取得できます。');
 
         Http::assertNothingSent();
+
+        Log::shouldHaveReceived('warning')
+            ->withArgs(function (string $message, array $context) use ($user, $location) {
+                return $message === 'weather.forecast.fetch.failed'
+                    && $context['operation'] === 'weather.forecast.fetch.failed'
+                    && $context['user_id'] === $user->id
+                    && $context['provider'] === 'open_meteo'
+                    && $context['source_type'] === 'forecast'
+                    && $context['location_id'] === $location->id
+                    && $context['weather_date'] === '2026-05-02'
+                    && $context['reason'] === 'missing_coordinates';
+            });
+    }
+
+    public function test_weather_forecast_logs_structured_warning_when_upstream_fails(): void
+    {
+        Http::fake([
+            'https://api.open-meteo.com/v1/jma*' => Http::response([], 500),
+        ]);
+        Log::spy();
+
+        $user = User::factory()->create();
+        $token = $this->issueCsrfToken();
+        $location = UserWeatherLocation::query()->create([
+            'user_id' => $user->id,
+            'name' => '川口 Open-Meteo',
+            'forecast_area_code' => '110010',
+            'jma_forecast_region_code' => '110010',
+            'jma_forecast_office_code' => '110000',
+            'latitude' => 35.8617,
+            'longitude' => 139.6455,
+            'timezone' => 'Asia/Tokyo',
+            'is_default' => true,
+            'display_order' => 1,
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson('/api/weather-records/forecast', [
+            'weather_date' => '2026-05-02',
+            'location_id' => $location->id,
+        ], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertStatus(502)
+            ->assertJsonPath('message', 'Open-Meteo から天気予報を取得できませんでした。時間をおいて再度お試しください。');
+
+        Log::shouldHaveReceived('warning')
+            ->withArgs(function (string $message, array $context) use ($user, $location) {
+                return $message === 'weather.forecast.fetch.failed'
+                    && $context['operation'] === 'weather.forecast.fetch.failed'
+                    && $context['user_id'] === $user->id
+                    && $context['provider'] === 'open_meteo'
+                    && $context['source_type'] === 'forecast'
+                    && $context['location_id'] === $location->id
+                    && $context['location_name'] === '川口 Open-Meteo'
+                    && $context['weather_date'] === '2026-05-02'
+                    && $context['result'] === 'failed'
+                    && ($context['http_status'] ?? null) === 500
+                    && array_key_exists('elapsed_ms', $context)
+                    && ! array_key_exists('response', $context);
+            });
     }
 }

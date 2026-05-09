@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\UserWeatherLocation;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Tests\TestCase;
 
 class OpenMeteoObservedEndpointTest extends TestCase
@@ -158,6 +159,7 @@ class OpenMeteoObservedEndpointTest extends TestCase
         Http::fake([
             'https://archive-api.open-meteo.com/v1/archive*' => Http::response([], 500),
         ]);
+        Log::spy();
 
         $user = User::factory()->create();
         $token = $this->issueCsrfToken();
@@ -186,5 +188,19 @@ class OpenMeteoObservedEndpointTest extends TestCase
 
         $response->assertStatus(502)
             ->assertJsonPath('message', 'Open-Meteo Historical から実績データを取得できませんでした。時間をおいて再度お試しください。');
+
+        Log::shouldHaveReceived('warning')
+            ->withArgs(function (string $message, array $context) use ($user, $location) {
+                return $message === 'weather.historical.fetch.failed'
+                    && $context['operation'] === 'weather.historical.fetch.failed'
+                    && $context['user_id'] === $user->id
+                    && $context['provider'] === 'open_meteo'
+                    && $context['source_type'] === 'historical'
+                    && $context['location_id'] === $location->id
+                    && $context['weather_date'] === '2026-05-02'
+                    && $context['result'] === 'failed'
+                    && ($context['http_status'] ?? null) === 500
+                    && array_key_exists('elapsed_ms', $context);
+            });
     }
 }

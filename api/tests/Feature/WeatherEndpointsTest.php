@@ -7,6 +7,7 @@ use App\Models\UserWeatherLocation;
 use App\Models\WeatherRecord;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Tests\TestCase;
 
 class WeatherEndpointsTest extends TestCase
@@ -433,6 +434,7 @@ class WeatherEndpointsTest extends TestCase
         Http::fake([
             'https://geocoding-api.open-meteo.com/v1/search*' => Http::response([], 200),
         ]);
+        Log::spy();
 
         $user = User::factory()->create();
         $this->actingAs($user, 'web');
@@ -445,6 +447,19 @@ class WeatherEndpointsTest extends TestCase
             ->assertExactJson([
                 'results' => [],
             ]);
+
+        Log::shouldHaveReceived('info')
+            ->withArgs(function (string $message, array $context) use ($user) {
+                return $message === 'weather.geocoding.fetch.completed'
+                    && $context['operation'] === 'weather.geocoding.fetch.completed'
+                    && $context['user_id'] === $user->id
+                    && $context['provider'] === 'open_meteo'
+                    && $context['source_type'] === 'geocoding'
+                    && $context['query'] === 'zzzz'
+                    && $context['result'] === 'not_found'
+                    && ($context['result_count'] ?? null) === 0
+                    && ! array_key_exists('response', $context);
+            });
     }
 
     public function test_weather_location_geocode_validates_query_length(): void
@@ -472,6 +487,7 @@ class WeatherEndpointsTest extends TestCase
         Http::fake([
             'https://geocoding-api.open-meteo.com/v1/search*' => Http::response([], 500),
         ]);
+        Log::spy();
 
         $user = User::factory()->create();
         $this->actingAs($user, 'web');
@@ -482,6 +498,20 @@ class WeatherEndpointsTest extends TestCase
 
         $response->assertStatus(502)
             ->assertJsonPath('message', '地域候補の検索に失敗しました。時間をおいて再度お試しください。');
+
+        Log::shouldHaveReceived('warning')
+            ->withArgs(function (string $message, array $context) use ($user) {
+                return $message === 'weather.geocoding.fetch.failed'
+                    && $context['operation'] === 'weather.geocoding.fetch.failed'
+                    && $context['user_id'] === $user->id
+                    && $context['provider'] === 'open_meteo'
+                    && $context['source_type'] === 'geocoding'
+                    && $context['query'] === '川口'
+                    && $context['result'] === 'failed'
+                    && ($context['http_status'] ?? null) === 500
+                    && array_key_exists('elapsed_ms', $context)
+                    && ! array_key_exists('response', $context);
+            });
     }
 
     public function test_weather_records_can_be_created_listed_updated_and_deduplicated(): void

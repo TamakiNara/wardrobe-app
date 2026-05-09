@@ -85,16 +85,19 @@ current:
 
 - weather fetch / geocoding は service / controller がある
 - external API failure 時は 502 で user-facing message を返す
-- ただし catch した `FetchWeatherForecastException` を structured log へ残していない
+- current では weather external API failure の structured log を導入済み
+  - `weather.forecast.fetch.failed`
+  - `weather.historical.fetch.failed`
+  - `weather.geocoding.fetch.completed`
+  - `weather.geocoding.fetch.failed`
+- context は `provider / source_type / user_id / location_id / weather_date / elapsed_ms` を中心に残す
+- raw provider response 全文は残さない
 
 不足:
 
-- provider 名
-- location_id
-- weather_date
-- source_type
-- elapsed_ms
-- failure reason
+- forecast / historical の success log を常時出すかの判断
+- request_id / correlation_id
+- weather 保存処理そのものの info log
 
 ### shopping memo
 
@@ -553,11 +556,11 @@ current:
 
 - Laravel の標準 logging 設定は存在する
 - ただし structured application log は未整備
-- weather / import-export / shopping memo bulk 系で運用確認用の log が不足しやすい
+- import-export と weather external API failure には structured log を導入済み
+- shopping memo bulk 系や item state change は引き続き未整備
 
 ### planned
 
-- weather external API
 - shopping memo bulk add / remove
 - item delete / disposed / reactivate
 

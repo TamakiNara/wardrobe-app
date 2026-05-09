@@ -14,6 +14,7 @@
 - Open-Meteo Geocoding API で位置情報を設定できる
 - 予報取得は Open-Meteo Forecast のみ
 - 実績取得は Open-Meteo Historical が本線
+- Open-Meteo forecast / historical / geocoding failure は current で structured log を残す
 - `weather_records` は current では最終保存値を持つ
 - `weather_code` / icon / `/dev/weather-preview` がある
 - 取得は自動保存せず、フォーム反映のみ

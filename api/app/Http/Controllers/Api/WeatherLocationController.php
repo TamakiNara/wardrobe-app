@@ -24,7 +24,9 @@ class WeatherLocationController extends Controller
         ]);
 
         try {
-            $results = $service->search($validated['query']);
+            $results = $service->search($validated['query'], 10, [
+                'user_id' => $request->user()->id,
+            ]);
         } catch (FetchWeatherForecastException $exception) {
             return response()->json([
                 'message' => $exception->getMessage(),

@@ -13,6 +13,7 @@ use App\Support\WeatherRecordSupport;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
 class WeatherRecordController extends Controller
@@ -144,6 +145,11 @@ class WeatherRecordController extends Controller
                 (float) $longitude,
                 $location->timezone,
                 $weatherDate,
+                [
+                    'user_id' => $userId,
+                    'location_id' => $location->id,
+                    'location_name' => $location->name,
+                ],
             );
 
             return [
@@ -168,10 +174,40 @@ class WeatherRecordController extends Controller
         }
 
         if ($hasIncompleteOpenMeteoCoordinates) {
+            Log::warning('weather.forecast.fetch.failed', [
+                'operation' => 'weather.forecast.fetch.failed',
+                'user_id' => $userId,
+                'provider' => 'open_meteo',
+                'source_type' => 'forecast',
+                'location_id' => $location->id,
+                'location_name' => $location->name,
+                'weather_date' => $weatherDate,
+                'latitude' => $latitude !== null ? round((float) $latitude, 4) : null,
+                'longitude' => $longitude !== null ? round((float) $longitude, 4) : null,
+                'timezone' => $location->timezone,
+                'result' => 'invalid_input',
+                'reason' => 'incomplete_coordinates',
+            ]);
+
             throw ValidationException::withMessages([
                 'location_id' => '位置情報の設定が不完全です。地域設定を確認してください。',
             ]);
         }
+
+        Log::warning('weather.forecast.fetch.failed', [
+            'operation' => 'weather.forecast.fetch.failed',
+            'user_id' => $userId,
+            'provider' => 'open_meteo',
+            'source_type' => 'forecast',
+            'location_id' => $location->id,
+            'location_name' => $location->name,
+            'weather_date' => $weatherDate,
+            'latitude' => null,
+            'longitude' => null,
+            'timezone' => $location->timezone,
+            'result' => 'invalid_input',
+            'reason' => 'missing_coordinates',
+        ]);
 
         throw ValidationException::withMessages([
             'location_id' => '位置情報を設定すると、天気を取得できます。',
@@ -219,6 +255,11 @@ class WeatherRecordController extends Controller
                 (float) $longitude,
                 $location->timezone,
                 $weatherDate,
+                [
+                    'user_id' => $userId,
+                    'location_id' => $location->id,
+                    'location_name' => $location->name,
+                ],
             );
 
             return [
@@ -244,10 +285,40 @@ class WeatherRecordController extends Controller
         }
 
         if ($hasIncompleteOpenMeteoCoordinates) {
+            Log::warning('weather.historical.fetch.failed', [
+                'operation' => 'weather.historical.fetch.failed',
+                'user_id' => $userId,
+                'provider' => 'open_meteo',
+                'source_type' => 'historical',
+                'location_id' => $location->id,
+                'location_name' => $location->name,
+                'weather_date' => $weatherDate,
+                'latitude' => $latitude !== null ? round((float) $latitude, 4) : null,
+                'longitude' => $longitude !== null ? round((float) $longitude, 4) : null,
+                'timezone' => $location->timezone,
+                'result' => 'invalid_input',
+                'reason' => 'incomplete_coordinates',
+            ]);
+
             throw ValidationException::withMessages([
                 'location_id' => '位置情報の設定が不完全です。地域設定を確認してください。',
             ]);
         }
+
+        Log::warning('weather.historical.fetch.failed', [
+            'operation' => 'weather.historical.fetch.failed',
+            'user_id' => $userId,
+            'provider' => 'open_meteo',
+            'source_type' => 'historical',
+            'location_id' => $location->id,
+            'location_name' => $location->name,
+            'weather_date' => $weatherDate,
+            'latitude' => null,
+            'longitude' => null,
+            'timezone' => $location->timezone,
+            'result' => 'invalid_input',
+            'reason' => 'missing_coordinates',
+        ]);
 
         throw ValidationException::withMessages([
             'location_id' => '位置情報を設定すると、実績を取得できます。',
