@@ -427,7 +427,7 @@ current:
 - 送料 / クーポン
 - `shopping_memo_group_adjustments`
 - manual group
-- `sale_ends_at / discount_ends_at` の意味整理後の表示見直し
+- `sale_ends_at / discount_ends_at` internal name 見直し後に必要なら期限表示を再調整する
 - 買い物メモ詳細のさらなる表示改善
 
 ## 後続タスク

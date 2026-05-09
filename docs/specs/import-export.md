@@ -125,6 +125,18 @@ import 方針:
 - 旧 backup 互換として timezone 付き ISO 文字列も受けてよい
 - timezone 付き ISO を受けた場合は、restore 時に Asia/Tokyo の `YYYY-MM-DDTHH:mm` へ正規化する
 
+internal name 見直し方針:
+
+- current backup payload では
+  - `sale_ends_at`
+  - `discount_ends_at`
+    をそのまま使う
+- docs / OpenAPI / UI の意味は別途固定する
+- 将来 rename を行う場合でも、import は legacy field を受けて旧 backup を restore できるようにする
+- export field を rename するかどうかは、rename 実施時点の互換方針として別途判断する
+
+今回は docs 整理のみで、import/export 実装変更は行わない。
+
 roundtrip の期待値:
 
 1. 通常 UI で `2026-05-07T23:59` を保存する

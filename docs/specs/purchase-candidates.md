@@ -683,6 +683,180 @@ current では、期限系項目は次の意味で扱う。
 - current schema には `割引終了日` 専用の別 field もなく、UI 上の `セール終了日` は `discount_ends_at` に対応する
 - field 名は実装都合で英語のまま残っているが、current UI / docs では上記の日本語ラベルを正本とする
 
+### internal name 見直し
+
+#### 問題点
+
+- `sale_ends_at`
+  - field 名だけ見ると「セール終了」に見えやすい
+  - current の user-facing 意味は `販売終了日`
+  - `discount_ends_at` と直感的に逆に見えやすい
+- `discount_ends_at`
+  - current UI では `セール終了日`
+  - `sale_price` と組み合わせると意味は通るが、`sale_ends_at` と並ぶと誤読しやすい
+
+このズレは、今後の実装・レビュー・Codex 作業で次の混乱を起こしやすい。
+
+- field 名だけ見て UI 文言を誤って推測する
+- 通知や期限表示の追加時に、どちらの期限を使うべきか迷う
+- import/export や backup 互換を含む rename 判断が後手に回る
+
+#### rename 候補
+
+`sale_ends_at` 候補:
+
+- `selling_ends_at`
+  - `販売終了日` に最も近い
+  - `*_at` 命名との一貫性も保ちやすい
+  - 第一候補
+- `available_until`
+  - user-facing 意味には近い
+  - ただし既存の `*_at` 命名とは少しズレる
+- `product_available_until`
+  - 意味は明確だが長い
+- `listing_ends_at`
+  - listing 的には分かるが、実店舗候補まで含む汎用名としてはやや狭い
+- `sales_end_at` / `sales_period_ends_at`
+  - `sale` が残るため、current 問題の解消としては弱い
+
+整理:
+
+- 最も自然なのは `selling_ends_at`
+- 次点は `available_until`
+- `sale` を残す rename 候補は採用優先度が低い
+
+`discount_ends_at` 候補:
+
+- `discount_ends_at` のまま
+  - current UI の `セール終了日` と大きく矛盾しない
+  - 影響範囲を増やさずに済む
+- `sale_price_ends_at`
+  - `sale_price` と対応し、意味が明確
+  - rename するなら第一候補
+- `discount_price_ends_at`
+  - 意味は通るがやや冗長
+- `campaign_ends_at`
+  - 割引施策全般には広いが、current UI の `セール終了日` とは完全一致ではない
+
+整理:
+
+- `discount_ends_at` は current のままでも許容しやすい
+- rename するなら `sale_price_ends_at` が有力
+- rename 優先度は `sale_ends_at` より低い
+
+#### 案A / B / C / D の比較
+
+##### 案A: rename せず docs / OpenAPI / UI 文言で固定
+
+- 内容
+  - DB / API field 名は維持する
+  - docs / OpenAPI description / UI 表示名で意味を固定する
+- 長所
+  - 影響範囲が最小
+  - import/export 互換を壊さない
+  - migration 不要
+- 短所
+  - internal name の違和感は残る
+  - field 名だけ見た誤解は完全には防げない
+
+##### 案B: API は維持しつつ helper / domain 名で意味を包む
+
+- 内容
+  - DB / API は `sale_ends_at / discount_ends_at` のまま
+  - helper / selector / payload adapter 上では
+    - `sellingEndsAt`
+    - `salePriceEndsAt`
+      のような意味名を使う
+- 長所
+  - DB / API 互換を保てる
+  - 実装の可読性は改善しやすい
+- 短所
+  - raw field 名と helper 名が併存する
+  - helper 設計ルールが必要
+
+##### 案C: API response に新 field を追加し、旧 field を deprecated
+
+- 内容
+  - 例:
+    - `selling_ends_at`
+    - `sale_price_ends_at`
+      を追加し、旧 field を一定期間残す
+- 長所
+  - API response の意味が明確になる
+  - 段階移行が可能
+- 短所
+  - response が重複する
+  - OpenAPI / frontend type / import/export が複雑になる
+
+##### 案D: DB column / API / import-export まで rename
+
+- 内容
+  - migration で column rename
+  - API request / response も rename
+  - import/export も rename
+  - import では legacy field を受ける
+- 長所
+  - internal / API / docs / UI の意味が一致する
+  - 長期的には最も分かりやすい
+- 短所
+  - 影響範囲が非常に大きい
+  - migration / backup 互換 / tests まで含めて重い
+
+#### 推奨方針
+
+短期:
+
+- 案Aを基本とする
+- DB / API rename は行わず、docs / OpenAPI / UI 文言で意味を固定する
+
+中期:
+
+- helper / domain 名での読み替え需要が増えたら、案Bを局所導入する
+- 優先度が高いのは `sale_ends_at` の読み替え
+
+長期:
+
+- それでも混乱が残る場合のみ、案Cまたは案Dを検討する
+- rename 優先度:
+  1. `sale_ends_at` -> `selling_ends_at`
+  2. `discount_ends_at` -> `sale_price_ends_at`
+
+#### 影響範囲
+
+rename を実施する場合は、少なくとも次に影響する。
+
+- DB migration
+- backend validation
+- backend payload builder
+- backend service / domain logic
+- frontend types
+- frontend form state
+- purchase candidate list / detail
+- shopping memo representative deadline calculation
+- import/export payload
+- OpenAPI
+- backend / frontend tests
+- 既存 backup 互換
+- docs
+
+#### import/export 互換方針
+
+current export/import は次を使う。
+
+- `sale_ends_at`
+- `discount_ends_at`
+
+将来 rename する場合の推奨:
+
+- import
+  - legacy field を受ける
+  - 旧 backup も restore できるようにする
+- export
+  - rename 実施時点での current field に寄せる
+  - migration period だけ旧 field 互換を残すかは別途判断する
+
+今回は docs 整理のみで、field rename / import-export 実装変更は行わない。
+
 ---
 
 ## `items`
