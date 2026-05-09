@@ -32,6 +32,20 @@ weather 関連でここで扱うデータ:
 
 ## current
 
+### shopping_memos は current では対象外
+
+current では、買い物メモの backup / restore はまだ実装していない。
+
+- `shopping_memos` は export 対象外
+- `shopping_memo_items` も export 対象外
+- import / restore でも復元されない
+- `purchase_candidates` は import/export 対象だが、買い物メモは含まれない
+
+理由:
+
+- 買い物メモ機能は MVP 実装を先行しており、import/export は後続タスクに残している
+- `shopping_memo_items` は `purchase_candidate_id` に依存するため、restore 順序を決めずに先に実装すると整合性を壊しやすい
+
 ### purchase_candidates の期限系日時
 
 購入検討の `sale_ends_at` / `discount_ends_at` は、通常 UI / 通常 API と同じく backup / restore でも **Asia/Tokyo のローカル日時文字列** を正本とする。
@@ -254,6 +268,57 @@ Phase D-2 の推奨仮説:
 ---
 
 ## planned
+
+### shopping_memos を import / export 対象にする案
+
+推奨は、`shopping_memos` と `shopping_memo_items` をセットで対象にする案。
+
+比較:
+
+- 案A:
+  - まだ対象外を維持する
+  - 実装は軽いが、backup / restore で買い物メモだけ再現できない
+- 案B:
+  - `shopping_memos` / `shopping_memo_items` を対象にする
+  - restore 順序を `purchase_candidates` の後に置く
+  - 買い物メモの実データ、seed、環境移行と整合しやすい
+- 案C:
+  - `shopping_memos` だけ対象にし、items は対象外
+  - 紐づきが失われるため非推奨
+
+current の第一候補:
+
+- 案B
+
+想定 export 項目:
+
+- `shopping_memos`
+  - `id`
+  - `name`
+  - `memo`
+  - `status`
+  - `created_at`
+  - `updated_at`
+- `shopping_memo_items`
+  - `shopping_memo_id`
+  - `purchase_candidate_id`
+  - `quantity`
+  - `priority`
+  - `memo`
+  - `sort_order`
+
+restore 順序案:
+
+1. `purchase_candidates`
+2. `shopping_memos`
+3. `shopping_memo_items`
+
+restore 方針案:
+
+- old `shopping_memo_id` -> new `shopping_memo_id` の mapping を作る
+- old `purchase_candidate_id` -> new `purchase_candidate_id` の mapping 後に `shopping_memo_items` を復元する
+- 紐づき先 purchase candidate が見つからない item は skip を第一候補にする
+- `shopping_memo_group_adjustments` は未実装なので対象外のままにする
 
 ### snapshot 採用時の import / export
 

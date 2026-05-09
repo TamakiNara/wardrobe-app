@@ -473,14 +473,80 @@ closed memo:
 current:
 
 - MVP 初回では import/export 対象外
+- `shopping_memos` は export されない
+- `shopping_memo_items` も export されない
+- import / restore でも復元されない
+- current の import/export 対象には `purchase_candidates` は含まれるが、買い物メモは含まれない
 
-planned:
+対応案比較:
 
-- 将来対象にする場合、restore 順序は `purchase_candidates` の後
-- 対象候補:
-  - `shopping_memos`
-  - `shopping_memo_items`
-  - 将来 `shopping_memo_group_adjustments`
+### 案A: まだ対象外を維持
+
+- `shopping_memos` / `shopping_memo_items` は import/export 対象外のまま
+- 実装は増えない
+- ただし backup / restore / 環境移行時に買い物メモだけ再現できない
+
+### 案B: `shopping_memos` / `shopping_memo_items` を対象にする
+
+- `shopping_memos` を export / import する
+- `shopping_memo_items` も export / import する
+- `shopping_memo_group_adjustments` は未実装なので対象外のままにする
+- restore 順序は `purchase_candidates` の後にする
+- `shopping_memo_items` は `purchase_candidate_id` に依存するため、candidate 復元後でないと復元できない
+- 買い物メモを backup / restore でき、seed / demo data / 環境移行とも整合しやすい
+
+### 案C: `shopping_memos` だけ対象にし、items は対象外
+
+- メモ本体だけ復元する
+- 紐づきは復元しない
+- 買い物メモの価値が大きく下がるため非推奨
+
+推奨:
+
+- 現時点では案Bを第一候補にする
+- 理由:
+  - 買い物メモは `purchase_candidates` に紐づく実データであり、backup / restore 対象にする方が自然
+  - seed / demo data を追加する場合も、export / import で再現できる方が安全
+  - `shopping_memo_group_adjustments` は未実装なので、今は `shopping_memos` / `shopping_memo_items` までで十分
+
+export 形式案:
+
+- `shopping_memos`
+  - `id`
+  - `name`
+  - `memo`
+  - `status`
+  - `created_at`
+  - `updated_at`
+- `shopping_memo_items`
+  - `shopping_memo_id`
+  - `purchase_candidate_id`
+  - `quantity`
+  - `priority`
+  - `memo`
+  - `sort_order`
+- `user_id` は export しない前提を第一候補にする
+- `shopping_memos.id` は export し、restore 時に old id -> new id mapping を作る
+- `purchase_candidate_id` も restore 時には old candidate id -> new candidate id mapping が必要
+
+restore 順序案:
+
+1. `purchase_candidates`
+2. `shopping_memos`
+3. `shopping_memo_items`
+
+restore 方針案:
+
+- `shopping_memos` を先に復元し、old `shopping_memo_id` -> new `shopping_memo_id` を map する
+- `shopping_memo_items` は shopping memo mapping と purchase candidate mapping の両方が解決できたものだけ復元する
+- 紐づき先 `purchase_candidate` が見つからない item は skip を第一候補にする
+- skip 件数は import counts / warning に反映する案を後続で検討する
+
+seed との関係:
+
+- 買い物メモ seed を追加するなら、import/export 対応後の方が安全
+- local で確認できても backup / restore で再現できない状態は漏れやすい
+- demo / test 用 seed も、将来 export 対象にする前提で設計した方が運用しやすい
 
 ## 未実装 / planned
 
