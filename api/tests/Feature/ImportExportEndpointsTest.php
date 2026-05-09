@@ -18,6 +18,7 @@ use App\Models\UserWeatherLocation;
 use App\Models\WearLog;
 use App\Models\WeatherRecord;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -364,6 +365,7 @@ class ImportExportEndpointsTest extends TestCase
     public function test_export_returns_items_purchase_candidates_outfits_and_embedded_images(): void
     {
         Storage::fake('public');
+        Log::spy();
 
         $user = User::factory()->create();
         $this->createCategory('tops_shirt_blouse', 'tops', 'シャツ・ブラウス');
@@ -433,11 +435,35 @@ class ImportExportEndpointsTest extends TestCase
         $this->assertIsArray($firstShoppingMemo);
         $this->assertArrayNotHasKey('user_id', $firstShoppingMemo);
         $this->assertArrayNotHasKey('shopping_memo_group_adjustments', $response->json());
+
+        Log::shouldHaveReceived('info')
+            ->withArgs(function (string $message, array $context) use ($user) {
+                return $message === 'import_export.export.start'
+                    && $context['operation'] === 'import_export.export.start'
+                    && $context['user_id'] === $user->id
+                    && $context['target'] === 'backup';
+            });
+
+        Log::shouldHaveReceived('info')
+            ->withArgs(function (string $message, array $context) use ($user) {
+                return $message === 'import_export.export.completed'
+                    && $context['operation'] === 'import_export.export.completed'
+                    && $context['user_id'] === $user->id
+                    && $context['result'] === 'success'
+                    && $context['items'] === 1
+                    && $context['purchase_candidates'] === 1
+                    && $context['shopping_memos'] === 1
+                    && $context['shopping_memo_items'] === 1
+                    && $context['weather_locations'] === 1
+                    && $context['weather_records'] === 2
+                    && array_key_exists('elapsed_ms', $context);
+            });
     }
 
     public function test_import_recreates_items_purchase_candidates_outfits_and_restores_images(): void
     {
         Storage::fake('public');
+        Log::spy();
 
         $user = User::factory()->create();
         $this->createCategory('tops_shirt_blouse', 'tops', 'シャツ・ブラウス');
@@ -523,6 +549,32 @@ class ImportExportEndpointsTest extends TestCase
             ->assertJsonPath('counts.wear_logs.total', 1)
             ->assertJsonPath('counts.weather_locations.total', 1)
             ->assertJsonPath('counts.weather_records.total', 2);
+
+        Log::shouldHaveReceived('info')
+            ->withArgs(function (string $message, array $context) use ($user) {
+                return $message === 'import_export.import.start'
+                    && $context['operation'] === 'import_export.import.start'
+                    && $context['user_id'] === $user->id
+                    && $context['target'] === 'backup'
+                    && $context['items'] === 1
+                    && $context['purchase_candidates'] === 1
+                    && $context['shopping_memos'] === 1
+                    && $context['shopping_memo_items'] === 1
+                    && ! array_key_exists('payload', $context);
+            });
+
+        Log::shouldHaveReceived('info')
+            ->withArgs(function (string $message, array $context) use ($user) {
+                return $message === 'import_export.import.completed'
+                    && $context['operation'] === 'import_export.import.completed'
+                    && $context['user_id'] === $user->id
+                    && $context['result'] === 'success'
+                    && $context['items'] === 1
+                    && $context['purchase_candidates'] === 1
+                    && $context['shopping_memos'] === 1
+                    && $context['shopping_memo_items'] === 1
+                    && array_key_exists('elapsed_ms', $context);
+            });
 
         $this->assertDatabaseMissing('items', ['id' => $staleItem->id]);
         $this->assertDatabaseMissing('purchase_candidates', ['id' => $staleCandidate->id]);
@@ -676,6 +728,7 @@ class ImportExportEndpointsTest extends TestCase
     public function test_import_skips_shopping_memo_items_when_purchase_candidate_mapping_is_missing(): void
     {
         Storage::fake('public');
+        Log::spy();
 
         $user = User::factory()->create();
         $this->createCategory('tops_shirt_blouse', 'tops', 'シャツ・ブラウス');
@@ -704,6 +757,23 @@ class ImportExportEndpointsTest extends TestCase
         $this->assertSame(0, ShoppingMemoItem::query()
             ->whereHas('shoppingMemo', fn ($query) => $query->where('user_id', $user->id))
             ->count());
+
+        Log::shouldHaveReceived('warning')
+            ->withArgs(function (string $message, array $context) use ($user) {
+                return $message === 'import_export.import.partial_skipped'
+                    && $context['operation'] === 'import_export.import.partial_skipped'
+                    && $context['user_id'] === $user->id
+                    && $context['target_type'] === 'shopping_memo_items'
+                    && $context['reason'] === 'missing_purchase_candidate'
+                    && $context['skipped_count'] === 1;
+            });
+
+        Log::shouldHaveReceived('info')
+            ->withArgs(function (string $message, array $context) {
+                return $message === 'import_export.import.completed'
+                    && $context['result'] === 'partial_success'
+                    && ($context['skipped_counts']['missing_purchase_candidate'] ?? null) === 1;
+            });
     }
 
     public function test_export_import_roundtrip_handles_legacy_items_without_subcategory(): void

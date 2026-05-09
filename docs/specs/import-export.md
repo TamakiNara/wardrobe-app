@@ -32,6 +32,20 @@ weather 関連でここで扱うデータ:
 
 ## current
 
+### structured logging
+
+- current では import / export に Laravel structured log を入れている
+- operation:
+  - `import_export.export.start`
+  - `import_export.export.completed`
+  - `import_export.export.failed`
+  - `import_export.import.start`
+  - `import_export.import.completed`
+  - `import_export.import.partial_skipped`
+  - `import_export.import.failed`
+- count / skipped count / result は log context に含める
+- raw backup payload や import file 全文は log に出さない
+
 ### shopping_memos
 
 - `shopping_memos` は current の import/export 対象

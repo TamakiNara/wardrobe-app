@@ -26,7 +26,8 @@
   - `config/logging.php`
   - default channel は `stack`
   - `single` / `daily` / `stderr` などの標準 channel は利用可能
-- ただし、**明示的な `Log::info` / `Log::warning` / `Log::error` の structured log はほぼ未実装**
+- ただし、**明示的な `Log::info` / `Log::warning` / `Log::error` の structured log はまだ限定的**
+- current では import / export に初期的な structured log を導入済み
 - current backend は主に
   - validation error を `ValidationException`
   - 想定外例外を Laravel の既定 handler
@@ -60,14 +61,23 @@ current:
 
 - backend service / controller は存在する
 - counts は response に返す
-- ただし開始 / 完了 / partial success / skip 件数を structured log としては残していない
+- 次の operation 名で structured log を出す
+  - `import_export.export.start`
+  - `import_export.export.completed`
+  - `import_export.export.failed`
+  - `import_export.import.start`
+  - `import_export.import.completed`
+  - `import_export.import.partial_skipped`
+  - `import_export.import.failed`
+- export completed では entity count を残す
+- import completed では restored count を残す
+- import の missing relation skip は warning で残す
+- raw payload / import file 全文は残さない
 
-不足:
+残る不足:
 
-- export 開始 / 完了の info log
-- import 開始 / 完了の info log
-- skip 件数 / missing relation の warning log
-- import failure の error log
+- import の skipped count を response にまで広げるかの判断
+- request_id / correlation_id 連携
 
 ### weather
 
@@ -547,7 +557,6 @@ current:
 
 ### planned
 
-- import / export
 - weather external API
 - shopping memo bulk add / remove
 - item delete / disposed / reactivate

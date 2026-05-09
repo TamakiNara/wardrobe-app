@@ -26,6 +26,7 @@ use App\Support\SkinTonePresetSupport;
 use App\Support\TpoSelectionResolver;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
@@ -88,8 +89,9 @@ class ImportService
      *   weather_records: array{total: int}
      * }
      */
-    public function import(User $user, array $payload): array
+    public function import(User $user, array $payload, ?float $startedAt = null): array
     {
+        $importStartedAt = $startedAt ?? microtime(true);
         $validatedUserTpos = $this->validateCollectionPayloads(
             $payload['user_tpos'] ?? [],
             'user_tpos',
@@ -172,6 +174,10 @@ class ImportService
         );
 
         $createdFiles = [];
+        $skipCounts = [
+            'missing_purchase_candidate' => 0,
+            'missing_shopping_memo' => 0,
+        ];
 
         try {
             $counts = DB::transaction(function () use (
@@ -192,6 +198,7 @@ class ImportService
                 $validatedWeatherLocations,
                 $validatedWeatherRecords,
                 &$createdFiles,
+                &$skipCounts,
             ) {
                 WeatherRecord::query()->where('user_id', $user->id)->delete();
                 UserWeatherLocation::query()->where('user_id', $user->id)->delete();
@@ -342,7 +349,15 @@ class ImportService
                     $mappedShoppingMemoId = $shoppingMemoIdMap[$shoppingMemoItemPayload['shopping_memo_id']] ?? null;
                     $mappedPurchaseCandidateId = $candidateIdMap[$shoppingMemoItemPayload['purchase_candidate_id']] ?? null;
 
-                    if (! is_int($mappedShoppingMemoId) || ! is_int($mappedPurchaseCandidateId)) {
+                    if (! is_int($mappedShoppingMemoId)) {
+                        $skipCounts['missing_shopping_memo']++;
+
+                        continue;
+                    }
+
+                    if (! is_int($mappedPurchaseCandidateId)) {
+                        $skipCounts['missing_purchase_candidate']++;
+
                         continue;
                     }
 
@@ -545,7 +560,67 @@ class ImportService
             ...$existingCandidateFiles,
         ]);
 
+        foreach ($skipCounts as $reason => $count) {
+            if ($count < 1) {
+                continue;
+            }
+
+            Log::warning('import_export.import.partial_skipped', [
+                'operation' => 'import_export.import.partial_skipped',
+                'user_id' => $user->id,
+                'result' => 'partial_success',
+                'target_type' => 'shopping_memo_items',
+                'reason' => $reason,
+                'skipped_count' => $count,
+            ]);
+        }
+
+        Log::info('import_export.import.completed', [
+            'operation' => 'import_export.import.completed',
+            'user_id' => $user->id,
+            'result' => array_sum($skipCounts) > 0 ? 'partial_success' : 'success',
+            ...$this->flattenImportCounts($counts),
+            'skipped_counts' => array_filter($skipCounts),
+            'elapsed_ms' => $this->elapsedMilliseconds($importStartedAt),
+        ]);
+
         return $counts;
+    }
+
+    /**
+     * @param  array{
+     *   user_tpos: array{total: int},
+     *   items: array{total: int, visible: int},
+     *   purchase_candidates: array{total: int},
+     *   shopping_memos: array{total: int},
+     *   shopping_memo_items: array{total: int},
+     *   outfits: array{total: int, visible: int},
+     *   wear_logs: array{total: int},
+     *   weather_locations: array{total: int},
+     *   weather_records: array{total: int}
+     * } $counts
+     * @return array<string, int>
+     */
+    private function flattenImportCounts(array $counts): array
+    {
+        return [
+            'user_tpos' => $counts['user_tpos']['total'],
+            'items' => $counts['items']['total'],
+            'items_visible' => $counts['items']['visible'],
+            'purchase_candidates' => $counts['purchase_candidates']['total'],
+            'shopping_memos' => $counts['shopping_memos']['total'],
+            'shopping_memo_items' => $counts['shopping_memo_items']['total'],
+            'outfits' => $counts['outfits']['total'],
+            'outfits_visible' => $counts['outfits']['visible'],
+            'wear_logs' => $counts['wear_logs']['total'],
+            'weather_locations' => $counts['weather_locations']['total'],
+            'weather_records' => $counts['weather_records']['total'],
+        ];
+    }
+
+    private function elapsedMilliseconds(float $startedAt): int
+    {
+        return (int) round((microtime(true) - $startedAt) * 1000);
     }
 
     /**
