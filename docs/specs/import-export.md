@@ -32,6 +32,46 @@ weather 関連でここで扱うデータ:
 
 ## current
 
+### shopping_memos
+
+- `shopping_memos` は current の import/export 対象
+- `shopping_memo_items` も current の import/export 対象
+- `shopping_memo_group_adjustments` は未実装なので対象外
+- restore 順序は `purchase_candidates` の後
+- `shopping_memo_items` は old `shopping_memo_id` と old `purchase_candidate_id` を new id に mapping して復元する
+- mapping できない `purchase_candidate` に紐づく item は skip する
+
+export payload:
+
+- `shopping_memos`
+  - `id`
+  - `name`
+  - `memo`
+  - `status`
+  - `created_at`
+  - `updated_at`
+- `shopping_memo_items`
+  - `shopping_memo_id`
+  - `purchase_candidate_id`
+  - `quantity`
+  - `priority`
+  - `memo`
+  - `sort_order`
+  - `created_at`
+  - `updated_at`
+
+restore 順序:
+
+1. `purchase_candidates`
+2. `shopping_memos`
+3. `shopping_memo_items`
+
+restore 方針:
+
+- `shopping_memos.id` は export 上の old id として保持し、restore 時の memo id mapping に使う
+- `shopping_memo_items` は `shopping_memo_id + purchase_candidate_id` の unique を前提に upsert する
+- 同じ backup を再 import しても unique 制約で落ちないようにする
+
 ### shopping_memos は current では対象外
 
 current では、買い物メモの backup / restore はまだ実装していない。
@@ -268,6 +308,12 @@ Phase D-2 の推奨仮説:
 ---
 
 ## planned
+
+### shopping_memos
+
+- `shopping_memo_group_adjustments` は未実装のため、引き続き import/export 対象外
+- import 結果の skipped count / warning を response に含めるかは後続で再判断する
+- 買い物メモ seed は import/export 対応後に追加する方が安全
 
 ### shopping_memos を import / export 対象にする案
 

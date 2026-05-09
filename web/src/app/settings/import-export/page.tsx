@@ -26,6 +26,10 @@ type SaveFilePickerWindow = Window & {
   }>;
 };
 
+type SaveFileHandle = Awaited<
+  ReturnType<NonNullable<SaveFilePickerWindow["showSaveFilePicker"]>>
+>;
+
 function isSavePickerAbortError(error: unknown): boolean {
   if (error instanceof DOMException) {
     return error.name === "AbortError";
@@ -69,6 +73,26 @@ function buildExportFileName(exportedAt: string) {
   return `wardrobe-export-${normalized}.json`;
 }
 
+function buildPendingExportFileName() {
+  const now = new Date();
+  const formatter = new Intl.DateTimeFormat("sv-SE", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  });
+
+  const normalized = formatter
+    .format(now)
+    .replaceAll(" ", "_")
+    .replaceAll(":", "-");
+
+  return `wardrobe-export-${normalized}.json`;
+}
+
 function ImportExportPageContent() {
   const [exporting, setExporting] = useState(false);
   const [importing, setImporting] = useState(false);
@@ -84,8 +108,19 @@ function ImportExportPageContent() {
     return selectedFile.name;
   }, [selectedFile]);
 
-  async function saveExportBlob(blob: Blob, fileName: string) {
+  async function saveExportBlob(
+    blob: Blob,
+    fileName: string,
+    existingHandle?: SaveFileHandle,
+  ): Promise<"saved" | "download-started"> {
     const filePickerWindow = window as SaveFilePickerWindow;
+
+    if (existingHandle) {
+      const writable = await existingHandle.createWritable();
+      await writable.write(blob);
+      await writable.close();
+      return "saved";
+    }
 
     if (typeof filePickerWindow.showSaveFilePicker === "function") {
       const handle = await filePickerWindow.showSaveFilePicker({
@@ -102,7 +137,7 @@ function ImportExportPageContent() {
       const writable = await handle.createWritable();
       await writable.write(blob);
       await writable.close();
-      return;
+      return "saved";
     }
 
     const url = URL.createObjectURL(blob);
@@ -114,24 +149,49 @@ function ImportExportPageContent() {
     anchor.click();
     document.body.removeChild(anchor);
     URL.revokeObjectURL(url);
+
+    return "download-started";
   }
 
   async function handleExport() {
     if (exporting) return;
+
+    const filePickerWindow = window as SaveFilePickerWindow;
+    let saveHandle: SaveFileHandle | undefined;
 
     setExporting(true);
     setSuccessMessage(null);
     setErrorMessage(null);
 
     try {
+      if (typeof filePickerWindow.showSaveFilePicker === "function") {
+        saveHandle = await filePickerWindow.showSaveFilePicker({
+          suggestedName: buildPendingExportFileName(),
+          types: [
+            {
+              description: "JSON ファイル",
+              accept: {
+                "application/json": [".json"],
+              },
+            },
+          ],
+        });
+      }
+
       const payload = await exportUserData();
       const blob = new Blob([JSON.stringify(payload, null, 2)], {
         type: "application/json",
       });
-      await saveExportBlob(blob, buildExportFileName(payload.exported_at));
+      const exportResult = await saveExportBlob(
+        blob,
+        buildExportFileName(payload.exported_at),
+        saveHandle,
+      );
 
       setSuccessMessage(
-        "バックアップを開始しました。JSON を保存してください。",
+        exportResult === "saved"
+          ? "バックアップファイルを保存しました。"
+          : "バックアップファイルのダウンロードを開始しました。",
       );
     } catch (error) {
       if (isSavePickerAbortError(error)) {

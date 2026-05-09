@@ -6,6 +6,8 @@ use App\Models\Item;
 use App\Models\Outfit;
 use App\Models\PurchaseCandidate;
 use App\Models\PurchaseCandidateGroup;
+use App\Models\ShoppingMemo;
+use App\Models\ShoppingMemoItem;
 use App\Models\User;
 use App\Models\UserBrand;
 use App\Models\UserPreference;
@@ -24,6 +26,7 @@ use App\Support\SkinTonePresetSupport;
 use App\Support\TpoSelectionResolver;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
 class ImportService
@@ -77,6 +80,8 @@ class ImportService
      *   user_tpos: array{total: int},
      *   items: array{total: int, visible: int},
      *   purchase_candidates: array{total: int},
+     *   shopping_memos: array{total: int},
+     *   shopping_memo_items: array{total: int},
      *   outfits: array{total: int, visible: int},
      *   wear_logs: array{total: int},
      *   weather_locations: array{total: int},
@@ -122,6 +127,18 @@ class ImportService
             '購入検討',
             fn ($candidate) => ImportExportValidationSupport::validatePurchaseCandidatePayload((array) $candidate),
         );
+        $validatedShoppingMemos = $this->validateCollectionPayloads(
+            $payload['shopping_memos'] ?? [],
+            'shopping_memos',
+            '買い物メモ',
+            fn ($memo) => $this->validateShoppingMemoPayload((array) $memo),
+        );
+        $validatedShoppingMemoItems = $this->validateCollectionPayloads(
+            $payload['shopping_memo_items'] ?? [],
+            'shopping_memo_items',
+            '買い物メモ候補',
+            fn ($item) => $this->validateShoppingMemoItemPayload((array) $item),
+        );
         $validatedOutfits = $this->validateCollectionPayloads(
             $payload['outfits'] ?? [],
             'outfits',
@@ -161,6 +178,8 @@ class ImportService
                 $user,
                 $validatedItems,
                 $validatedCandidates,
+                $validatedShoppingMemos,
+                $validatedShoppingMemoItems,
                 $validatedOutfits,
                 $validatedWearLogs,
                 $validatedUserTpos,
@@ -178,6 +197,10 @@ class ImportService
                 UserWeatherLocation::query()->where('user_id', $user->id)->delete();
                 WearLog::query()->where('user_id', $user->id)->delete();
                 Outfit::query()->where('user_id', $user->id)->delete();
+                ShoppingMemoItem::query()
+                    ->whereHas('shoppingMemo', fn ($query) => $query->where('user_id', $user->id))
+                    ->delete();
+                ShoppingMemo::query()->where('user_id', $user->id)->delete();
                 PurchaseCandidate::query()->where('user_id', $user->id)->delete();
                 PurchaseCandidateGroup::query()->where('user_id', $user->id)->delete();
                 Item::query()->where('user_id', $user->id)->delete();
@@ -257,6 +280,7 @@ class ImportService
                 }
 
                 $groupIdMap = [];
+                $candidateIdMap = [];
                 foreach ($validatedCandidates as $candidatePayload) {
                     $candidatePayload = $this->normalizeImportedPurchaseCandidatePayload($candidatePayload);
 
@@ -293,6 +317,52 @@ class ImportService
                         is_array($candidatePayload['images'] ?? null) ? $candidatePayload['images'] : [],
                         $createdFiles,
                     );
+
+                    $candidateIdMap[(int) ($candidatePayload['id'] ?? $candidate->id)] = $candidate->id;
+                }
+
+                $shoppingMemoIdMap = [];
+                foreach ($validatedShoppingMemos as $shoppingMemoPayload) {
+                    $shoppingMemo = ShoppingMemo::query()->create([
+                        'user_id' => $user->id,
+                        'name' => $shoppingMemoPayload['name'],
+                        'memo' => $shoppingMemoPayload['memo'] ?? null,
+                        'status' => $shoppingMemoPayload['status'] ?? 'draft',
+                    ]);
+
+                    $shoppingMemo->forceFill([
+                        'created_at' => $shoppingMemoPayload['created_at'] ?? $shoppingMemo->created_at,
+                        'updated_at' => $shoppingMemoPayload['updated_at'] ?? $shoppingMemo->updated_at,
+                    ])->saveQuietly();
+
+                    $shoppingMemoIdMap[(int) ($shoppingMemoPayload['id'] ?? $shoppingMemo->id)] = $shoppingMemo->id;
+                }
+
+                foreach ($validatedShoppingMemoItems as $shoppingMemoItemPayload) {
+                    $mappedShoppingMemoId = $shoppingMemoIdMap[$shoppingMemoItemPayload['shopping_memo_id']] ?? null;
+                    $mappedPurchaseCandidateId = $candidateIdMap[$shoppingMemoItemPayload['purchase_candidate_id']] ?? null;
+
+                    if (! is_int($mappedShoppingMemoId) || ! is_int($mappedPurchaseCandidateId)) {
+                        continue;
+                    }
+
+                    $shoppingMemoItem = ShoppingMemoItem::query()->updateOrCreate(
+                        [
+                            'shopping_memo_id' => $mappedShoppingMemoId,
+                            'purchase_candidate_id' => $mappedPurchaseCandidateId,
+                        ],
+                        [
+                            'quantity' => $shoppingMemoItemPayload['quantity'] ?? 1,
+                            'priority' => $shoppingMemoItemPayload['priority'] ?? null,
+                            'memo' => $shoppingMemoItemPayload['memo'] ?? null,
+                            'sort_order' => $shoppingMemoItemPayload['sort_order'] ?? 0,
+                        ],
+                    );
+
+                    $shoppingMemoItem->forceFill([
+                        'created_at' => $shoppingMemoItemPayload['created_at'] ?? $shoppingMemoItem->created_at,
+                        'updated_at' => $shoppingMemoItemPayload['updated_at'] ?? $shoppingMemoItem->updated_at,
+                    ])->saveQuietly();
                 }
 
                 $outfitIdMap = [];
@@ -439,6 +509,14 @@ class ImportService
                     ],
                     'purchase_candidates' => [
                         'total' => count($validatedCandidates),
+                    ],
+                    'shopping_memos' => [
+                        'total' => count($validatedShoppingMemos),
+                    ],
+                    'shopping_memo_items' => [
+                        'total' => ShoppingMemoItem::query()
+                            ->whereHas('shoppingMemo', fn ($query) => $query->where('user_id', $user->id))
+                            ->count(),
                     ],
                     'outfits' => [
                         'total' => count($validatedOutfits),
@@ -795,5 +873,39 @@ class ImportService
             'owner.user_id' => 'バックアップ所有者',
             default => $field,
         };
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
+    private function validateShoppingMemoPayload(array $payload): array
+    {
+        return Validator::make($payload, [
+            'id' => ['nullable', 'integer'],
+            'name' => ['required', 'string', 'max:100'],
+            'memo' => ['nullable', 'string'],
+            'status' => ['nullable', 'string', 'in:draft,closed'],
+            'created_at' => ['nullable', 'date'],
+            'updated_at' => ['nullable', 'date'],
+        ])->validate();
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
+    private function validateShoppingMemoItemPayload(array $payload): array
+    {
+        return Validator::make($payload, [
+            'shopping_memo_id' => ['required', 'integer'],
+            'purchase_candidate_id' => ['required', 'integer'],
+            'quantity' => ['nullable', 'integer', 'min:1'],
+            'priority' => ['nullable', 'integer'],
+            'memo' => ['nullable', 'string'],
+            'sort_order' => ['nullable', 'integer'],
+            'created_at' => ['nullable', 'date'],
+            'updated_at' => ['nullable', 'date'],
+        ])->validate();
     }
 }

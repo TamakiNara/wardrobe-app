@@ -8,6 +8,8 @@ use App\Models\Item;
 use App\Models\Outfit;
 use App\Models\PurchaseCandidate;
 use App\Models\PurchaseCandidateGroup;
+use App\Models\ShoppingMemo;
+use App\Models\ShoppingMemoItem;
 use App\Models\User;
 use App\Models\UserBrand;
 use App\Models\UserPreference;
@@ -260,6 +262,21 @@ class ImportExportEndpointsTest extends TestCase
             'is_primary' => true,
         ]);
 
+        $shoppingMemo = ShoppingMemo::query()->create([
+            'user_id' => $user->id,
+            'name' => '春夏物',
+            'memo' => '比較用メモ',
+            'status' => 'draft',
+        ]);
+        $shoppingMemoItem = ShoppingMemoItem::query()->create([
+            'shopping_memo_id' => $shoppingMemo->id,
+            'purchase_candidate_id' => $candidate->id,
+            'quantity' => 2,
+            'priority' => 3,
+            'memo' => 'サイズ比較中',
+            'sort_order' => 4,
+        ]);
+
         $outfit = Outfit::query()->create([
             'user_id' => $user->id,
             'status' => 'active',
@@ -334,6 +351,8 @@ class ImportExportEndpointsTest extends TestCase
         return [
             'item' => $item,
             'candidate' => $candidate,
+            'shoppingMemo' => $shoppingMemo,
+            'shoppingMemoItem' => $shoppingMemoItem,
             'outfit' => $outfit,
             'wearLog' => $wearLog,
             'weatherLocation' => $weatherLocation,
@@ -348,7 +367,7 @@ class ImportExportEndpointsTest extends TestCase
 
         $user = User::factory()->create();
         $this->createCategory('tops_shirt_blouse', 'tops', 'シャツ・ブラウス');
-        $this->seedExportSourceData($user);
+        $source = $this->seedExportSourceData($user);
 
         $this->actingAs($user, 'web');
 
@@ -366,6 +385,8 @@ class ImportExportEndpointsTest extends TestCase
             ->assertJsonPath('user_preferences.defaultWearLogStatus', 'planned')
             ->assertJsonCount(1, 'items')
             ->assertJsonCount(1, 'purchase_candidates')
+            ->assertJsonCount(1, 'shopping_memos')
+            ->assertJsonCount(1, 'shopping_memo_items')
             ->assertJsonCount(1, 'outfits')
             ->assertJsonCount(1, 'wear_logs')
             ->assertJsonCount(1, 'weather_locations')
@@ -390,13 +411,28 @@ class ImportExportEndpointsTest extends TestCase
             ->assertJsonPath('weather_records.1.location_name_snapshot', '旅行先')
             ->assertJsonPath('items.0.colors.0.custom_label', '00 WHITE')
             ->assertJsonPath('items.0.images.0.content_base64', self::PNG_BASE64)
-            ->assertJsonPath('purchase_candidates.0.images.0.content_base64', self::PNG_BASE64);
+            ->assertJsonPath('purchase_candidates.0.images.0.content_base64', self::PNG_BASE64)
+            ->assertJsonPath('shopping_memos.0.id', $source['shoppingMemo']->id)
+            ->assertJsonPath('shopping_memos.0.name', '春夏物')
+            ->assertJsonPath('shopping_memos.0.memo', '比較用メモ')
+            ->assertJsonPath('shopping_memos.0.status', 'draft')
+            ->assertJsonPath('shopping_memo_items.0.shopping_memo_id', $source['shoppingMemo']->id)
+            ->assertJsonPath('shopping_memo_items.0.purchase_candidate_id', $source['candidate']->id)
+            ->assertJsonPath('shopping_memo_items.0.quantity', 2)
+            ->assertJsonPath('shopping_memo_items.0.priority', 3)
+            ->assertJsonPath('shopping_memo_items.0.memo', 'サイズ比較中')
+            ->assertJsonPath('shopping_memo_items.0.sort_order', 4);
 
         $firstWeatherLocation = $response->json('weather_locations.0');
         $this->assertIsArray($firstWeatherLocation);
         $this->assertArrayNotHasKey('forecast_area_code', $firstWeatherLocation);
         $this->assertArrayNotHasKey('jma_forecast_region_code', $firstWeatherLocation);
         $this->assertArrayNotHasKey('jma_forecast_office_code', $firstWeatherLocation);
+
+        $firstShoppingMemo = $response->json('shopping_memos.0');
+        $this->assertIsArray($firstShoppingMemo);
+        $this->assertArrayNotHasKey('user_id', $firstShoppingMemo);
+        $this->assertArrayNotHasKey('shopping_memo_group_adjustments', $response->json());
     }
 
     public function test_import_recreates_items_purchase_candidates_outfits_and_restores_images(): void
@@ -480,6 +516,8 @@ class ImportExportEndpointsTest extends TestCase
             ->assertJsonPath('counts.items.total', 1)
             ->assertJsonPath('counts.items.visible', 1)
             ->assertJsonPath('counts.purchase_candidates.total', 1)
+            ->assertJsonPath('counts.shopping_memos.total', 1)
+            ->assertJsonPath('counts.shopping_memo_items.total', 1)
             ->assertJsonPath('counts.outfits.total', 1)
             ->assertJsonPath('counts.outfits.visible', 1)
             ->assertJsonPath('counts.wear_logs.total', 1)
@@ -507,6 +545,15 @@ class ImportExportEndpointsTest extends TestCase
             ->with('outfitItems')
             ->firstOrFail();
 
+        $importedShoppingMemo = ShoppingMemo::query()
+            ->where('user_id', $user->id)
+            ->where('name', '春夏物')
+            ->firstOrFail();
+        $importedShoppingMemoItem = ShoppingMemoItem::query()
+            ->where('shopping_memo_id', $importedShoppingMemo->id)
+            ->where('purchase_candidate_id', $importedCandidate->id)
+            ->firstOrFail();
+
         $importedWeatherLocation = UserWeatherLocation::query()
             ->where('user_id', $user->id)
             ->where('name', '川口')
@@ -526,6 +573,7 @@ class ImportExportEndpointsTest extends TestCase
         $this->assertNotSame($source['item']->id, $importedItem->id);
         $this->assertNotSame($source['candidate']->id, $importedCandidate->id);
         $this->assertNotSame($source['outfit']->id, $importedOutfit->id);
+        $this->assertNotSame($source['shoppingMemo']->id, $importedShoppingMemo->id);
 
         $this->assertSame('shirt', $importedItem->shape);
         $this->assertSame('in_cleaning', $importedItem->care_status);
@@ -538,6 +586,12 @@ class ImportExportEndpointsTest extends TestCase
         $this->assertSame($importedItem->id, $importedCandidate->converted_item_id);
         $this->assertSame('2026-05-20 12:00:00', $importedCandidate->sale_ends_at?->format('Y-m-d H:i:s'));
         $this->assertSame('2026-05-01 12:00:00', $importedCandidate->discount_ends_at?->format('Y-m-d H:i:s'));
+        $this->assertSame('比較用メモ', $importedShoppingMemo->memo);
+        $this->assertSame('draft', $importedShoppingMemo->status);
+        $this->assertSame(2, $importedShoppingMemoItem->quantity);
+        $this->assertSame(3, $importedShoppingMemoItem->priority);
+        $this->assertSame('サイズ比較中', $importedShoppingMemoItem->memo);
+        $this->assertSame(4, $importedShoppingMemoItem->sort_order);
         $this->assertSame($importedItem->id, $importedOutfit->outfitItems->first()?->item_id);
         $this->assertTrue($importedWeatherLocation->is_default);
         $this->assertNull($importedWeatherLocation->forecast_area_code);
@@ -600,6 +654,56 @@ class ImportExportEndpointsTest extends TestCase
         ])->assertOk()
             ->assertJsonPath('outfit.name', '通勤コーデ')
             ->assertJsonPath('outfit.outfit_items.0.item_id', $importedItem->id);
+
+        $secondToken = $this->issueCsrfToken();
+
+        $this->postJson('/api/import', $exportPayload, [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $secondToken,
+        ])->assertOk()
+            ->assertJsonPath('counts.shopping_memos.total', 1)
+            ->assertJsonPath('counts.shopping_memo_items.total', 1);
+
+        $this->assertSame(1, ShoppingMemo::query()
+            ->where('user_id', $user->id)
+            ->where('name', '春夏物')
+            ->count());
+        $this->assertSame(1, ShoppingMemoItem::query()
+            ->whereHas('shoppingMemo', fn ($query) => $query->where('user_id', $user->id))
+            ->count());
+    }
+
+    public function test_import_skips_shopping_memo_items_when_purchase_candidate_mapping_is_missing(): void
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->create();
+        $this->createCategory('tops_shirt_blouse', 'tops', 'シャツ・ブラウス');
+        $this->seedExportSourceData($user);
+
+        $this->actingAs($user, 'web');
+
+        $exportPayload = $this->getJson('/api/export', [
+            'Accept' => 'application/json',
+        ])->assertOk()->json();
+        $exportPayload['purchase_candidates'] = [];
+
+        $token = $this->issueCsrfToken();
+
+        $this->postJson('/api/import', $exportPayload, [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ])->assertOk()
+            ->assertJsonPath('counts.shopping_memos.total', 1)
+            ->assertJsonPath('counts.shopping_memo_items.total', 0);
+
+        $this->assertDatabaseHas('shopping_memos', [
+            'user_id' => $user->id,
+            'name' => '春夏物',
+        ]);
+        $this->assertSame(0, ShoppingMemoItem::query()
+            ->whereHas('shoppingMemo', fn ($query) => $query->where('user_id', $user->id))
+            ->count());
     }
 
     public function test_export_import_roundtrip_handles_legacy_items_without_subcategory(): void
@@ -964,6 +1068,8 @@ class ImportExportEndpointsTest extends TestCase
         $this->assertSame(24, data_get($exportPayload, 'purchase_candidates.0.size_details.structured.rise.value'));
 
         Item::query()->delete();
+        ShoppingMemoItem::query()->delete();
+        ShoppingMemo::query()->delete();
         PurchaseCandidate::query()->delete();
 
         $this->postJson('/api/import', $exportPayload, [
@@ -1629,6 +1735,8 @@ class ImportExportEndpointsTest extends TestCase
         $this->assertSame(64, data_get($exportPayload, 'purchase_candidates.0.alternate_size_details.structured.body_length'));
         $this->assertSame('裄丈', data_get($exportPayload, 'purchase_candidates.0.alternate_size_details.custom_fields.0.label'));
 
+        ShoppingMemoItem::query()->delete();
+        ShoppingMemo::query()->delete();
         PurchaseCandidate::query()->delete();
 
         $importResponse = $this->postJson('/api/import', $exportPayload, [
@@ -1666,6 +1774,8 @@ class ImportExportEndpointsTest extends TestCase
         $exportPayload['purchase_candidates'][0]['sale_ends_at'] = '2026-05-07T14:59:00.000000Z';
         $exportPayload['purchase_candidates'][0]['discount_ends_at'] = '2026-05-08T08:59:00+09:00';
 
+        ShoppingMemoItem::query()->delete();
+        ShoppingMemo::query()->delete();
         PurchaseCandidate::query()->delete();
 
         $token = $this->issueCsrfToken();
@@ -1707,6 +1817,8 @@ class ImportExportEndpointsTest extends TestCase
         $exportPayload['purchase_candidates'][0]['sale_ends_at'] = '2026-05-07T23:59';
         $exportPayload['purchase_candidates'][0]['discount_ends_at'] = '2026-05-08T08:59';
 
+        ShoppingMemoItem::query()->delete();
+        ShoppingMemo::query()->delete();
         PurchaseCandidate::query()->delete();
 
         $token = $this->issueCsrfToken();

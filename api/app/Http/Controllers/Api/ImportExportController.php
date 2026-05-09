@@ -34,6 +34,8 @@ class ImportExportController extends Controller
             'user_preferences' => ['sometimes', 'array'],
             'items' => ['present', 'array'],
             'purchase_candidates' => ['present', 'array'],
+            'shopping_memos' => ['sometimes', 'array'],
+            'shopping_memo_items' => ['sometimes', 'array'],
             'outfits' => ['present', 'array'],
             'wear_logs' => ['present', 'array'],
             'weather_locations' => ['sometimes', 'array'],
@@ -45,6 +47,8 @@ class ImportExportController extends Controller
         $payload = array_merge($validated, [
             'items' => $request->input('items', []),
             'purchase_candidates' => $request->input('purchase_candidates', []),
+            'shopping_memos' => $request->input('shopping_memos', []),
+            'shopping_memo_items' => $request->input('shopping_memo_items', []),
             'outfits' => $request->input('outfits', []),
             'wear_logs' => $request->input('wear_logs', []),
             'weather_locations' => $request->input('weather_locations', []),

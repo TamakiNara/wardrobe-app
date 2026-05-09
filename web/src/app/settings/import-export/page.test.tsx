@@ -191,7 +191,7 @@ describe("ImportExportPage", () => {
     expect(writableCloseMock).toHaveBeenCalledTimes(1);
     expect(createObjectUrlMock).not.toHaveBeenCalled();
     expect(container.textContent).toContain(
-      "バックアップを開始しました。JSON を保存してください。",
+      "バックアップファイルを保存しました。",
     );
   });
 
@@ -221,6 +221,9 @@ describe("ImportExportPage", () => {
     expect(createObjectUrlMock).toHaveBeenCalledTimes(1);
     expect(anchorClickMock).toHaveBeenCalledTimes(1);
     expect(revokeObjectUrlMock).toHaveBeenCalledWith("blob:mock-url");
+    expect(container.textContent).toContain(
+      "バックアップファイルのダウンロードを開始しました。",
+    );
   });
 
   it("保存先選択ダイアログをキャンセルした場合はエラーを表示しない", async () => {
@@ -244,9 +247,15 @@ describe("ImportExportPage", () => {
       await waitForEffects();
     });
 
-    expect(exportUserDataMock).toHaveBeenCalledTimes(1);
+    expect(exportUserDataMock).not.toHaveBeenCalled();
     expect(showSaveFilePickerMock).toHaveBeenCalledTimes(1);
     expect(container.textContent).not.toContain("The user aborted a request.");
+    expect(container.textContent).not.toContain(
+      "バックアップファイルを保存しました。",
+    );
+    expect(container.textContent).not.toContain(
+      "バックアップファイルのダウンロードを開始しました。",
+    );
     expect(container.textContent).not.toContain(
       "インポート・エクスポートの処理に失敗しました。",
     );
@@ -273,11 +282,14 @@ describe("ImportExportPage", () => {
       await waitForEffects();
     });
 
-    expect(exportUserDataMock).toHaveBeenCalledTimes(1);
+    expect(exportUserDataMock).not.toHaveBeenCalled();
     expect(showSaveFilePickerMock).toHaveBeenCalledTimes(1);
     expect(container.textContent).not.toContain("The user aborted a request.");
     expect(container.textContent).not.toContain(
-      "バックアップを作成しました。JSON を保存してください。",
+      "バックアップファイルを保存しました。",
+    );
+    expect(container.textContent).not.toContain(
+      "バックアップファイルのダウンロードを開始しました。",
     );
     expect(container.textContent).not.toContain(
       "インポート・エクスポートの処理に失敗しました。",

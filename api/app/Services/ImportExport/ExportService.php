@@ -7,6 +7,8 @@ use App\Models\ItemMaterial;
 use App\Models\Outfit;
 use App\Models\PurchaseCandidate;
 use App\Models\PurchaseCandidateMaterial;
+use App\Models\ShoppingMemo;
+use App\Models\ShoppingMemoItem;
 use App\Models\User;
 use App\Models\UserBrand;
 use App\Models\UserPreference;
@@ -89,6 +91,20 @@ class ExportService
                 ->orderBy('id')
                 ->get()
                 ->map(fn (PurchaseCandidate $candidate) => $this->buildPurchaseCandidatePayload($candidate))
+                ->all(),
+            'shopping_memos' => ShoppingMemo::query()
+                ->where('user_id', $user->id)
+                ->orderBy('id')
+                ->get()
+                ->map(fn (ShoppingMemo $memo) => $this->buildShoppingMemoPayload($memo))
+                ->all(),
+            'shopping_memo_items' => ShoppingMemoItem::query()
+                ->whereHas('shoppingMemo', fn ($query) => $query->where('user_id', $user->id))
+                ->orderBy('shopping_memo_id')
+                ->orderBy('sort_order')
+                ->orderBy('id')
+                ->get()
+                ->map(fn (ShoppingMemoItem $item) => $this->buildShoppingMemoItemPayload($item))
                 ->all(),
             'outfits' => Outfit::query()
                 ->where('user_id', $user->id)
@@ -261,6 +277,32 @@ class ExportService
                     'sort_order' => $outfitItem->sort_order,
                 ])
                 ->all(),
+        ];
+    }
+
+    private function buildShoppingMemoPayload(ShoppingMemo $memo): array
+    {
+        return [
+            'id' => $memo->id,
+            'name' => $memo->name,
+            'memo' => $memo->memo,
+            'status' => $memo->status,
+            'created_at' => $memo->created_at?->toISOString(),
+            'updated_at' => $memo->updated_at?->toISOString(),
+        ];
+    }
+
+    private function buildShoppingMemoItemPayload(ShoppingMemoItem $item): array
+    {
+        return [
+            'shopping_memo_id' => $item->shopping_memo_id,
+            'purchase_candidate_id' => $item->purchase_candidate_id,
+            'quantity' => $item->quantity,
+            'priority' => $item->priority,
+            'memo' => $item->memo,
+            'sort_order' => $item->sort_order,
+            'created_at' => $item->created_at?->toISOString(),
+            'updated_at' => $item->updated_at?->toISOString(),
         ];
     }
 
