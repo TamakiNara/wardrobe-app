@@ -141,6 +141,14 @@ current API:
 - duplicate / invalid status / skipped を返す
 - remove item の `{itemId}` は `shopping_memo_items.id`
 - すべて ownership check 前提
+- bulk add / remove には Laravel structured log を導入済み
+  - `shopping_memo.items.add.start`
+  - `shopping_memo.items.add.completed`
+  - `shopping_memo.items.add.failed`
+  - `shopping_memo.items.remove.completed`
+  - `shopping_memo.items.remove.failed`
+- log には `result / count / elapsed_ms / shopping_memo_id / shopping_memo_item_id / purchase_candidate_id` を含める
+- shopping memo memo 本文や purchase candidate 名は log に出さない
 
 ## 画面
 

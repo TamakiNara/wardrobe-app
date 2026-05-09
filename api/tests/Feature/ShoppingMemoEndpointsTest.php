@@ -9,6 +9,7 @@ use App\Models\ShoppingMemo;
 use App\Models\ShoppingMemoItem;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Log;
 use Tests\TestCase;
 
 class ShoppingMemoEndpointsTest extends TestCase
@@ -167,6 +168,8 @@ class ShoppingMemoEndpointsTest extends TestCase
 
     public function test_user_can_add_candidates_with_partial_success_counts(): void
     {
+        Log::spy();
+
         $user = User::factory()->create();
         $otherUser = User::factory()->create();
         $memo = $this->createShoppingMemo($user);
@@ -233,10 +236,45 @@ class ShoppingMemoEndpointsTest extends TestCase
             'shopping_memo_id' => $memo->id,
             'purchase_candidate_id' => $otherUserCandidate->id,
         ]);
+
+        Log::shouldHaveReceived('info')
+            ->withArgs(function (string $message, array $context) use ($user, $memo): bool {
+                return $message === 'shopping_memo.items.add.start'
+                    && $context['operation'] === 'shopping_memo.items.add.start'
+                    && $context['user_id'] === $user->id
+                    && $context['shopping_memo_id'] === $memo->id
+                    && $context['requested_count'] === 6
+                    && $context['candidate_ids_count'] === 6
+                    && ! array_key_exists('purchase_candidate_ids', $context)
+                    && ! array_key_exists('candidate_name', $context);
+            })
+            ->once();
+
+        Log::shouldHaveReceived('info')
+            ->withArgs(function (string $message, array $context) use ($user, $memo): bool {
+                return $message === 'shopping_memo.items.add.completed'
+                    && $context['operation'] === 'shopping_memo.items.add.completed'
+                    && $context['user_id'] === $user->id
+                    && $context['shopping_memo_id'] === $memo->id
+                    && $context['result'] === 'partial_success'
+                    && $context['requested_count'] === 6
+                    && $context['candidate_ids_count'] === 6
+                    && $context['added_count'] === 1
+                    && $context['skipped_count'] === 5
+                    && $context['duplicate_count'] === 1
+                    && $context['invalid_status_count'] === 2
+                    && is_int($context['elapsed_ms'])
+                    && ! array_key_exists('purchase_candidate_ids', $context)
+                    && ! array_key_exists('candidate_name', $context)
+                    && ! array_key_exists('memo', $context);
+            })
+            ->once();
     }
 
     public function test_closed_shopping_memo_rejects_item_addition(): void
     {
+        Log::spy();
+
         $user = User::factory()->create();
         $memo = $this->createShoppingMemo($user, [
             'status' => 'closed',
@@ -252,10 +290,16 @@ class ShoppingMemoEndpointsTest extends TestCase
             ])
             ->assertStatus(422)
             ->assertJsonValidationErrors(['shopping_memo']);
+
+        Log::shouldNotHaveReceived('info', function (string $message): bool {
+            return $message === 'shopping_memo.items.add.completed';
+        });
     }
 
     public function test_user_can_remove_owned_shopping_memo_item_only(): void
     {
+        Log::spy();
+
         $user = User::factory()->create();
         $otherUser = User::factory()->create();
         $token = $this->issueCsrfToken();
@@ -287,6 +331,21 @@ class ShoppingMemoEndpointsTest extends TestCase
         $this->assertDatabaseMissing('shopping_memo_items', [
             'id' => $ownedItem->id,
         ]);
+
+        Log::shouldHaveReceived('info')
+            ->withArgs(function (string $message, array $context) use ($user, $ownedMemo, $ownedItem, $ownedCandidate): bool {
+                return $message === 'shopping_memo.items.remove.completed'
+                    && $context['operation'] === 'shopping_memo.items.remove.completed'
+                    && $context['user_id'] === $user->id
+                    && $context['shopping_memo_id'] === $ownedMemo->id
+                    && $context['shopping_memo_item_id'] === $ownedItem->id
+                    && $context['purchase_candidate_id'] === $ownedCandidate->id
+                    && $context['result'] === 'success'
+                    && is_int($context['elapsed_ms'])
+                    && ! array_key_exists('candidate_name', $context)
+                    && ! array_key_exists('memo', $context);
+            })
+            ->once();
 
         $this->actingAs($user, 'web')
             ->withHeader('X-CSRF-TOKEN', $token)

@@ -103,9 +103,20 @@ current:
 
 current:
 
+- bulk add / item remove の structured log を導入済み
+  - `shopping_memo.items.add.start`
+  - `shopping_memo.items.add.completed`
+  - `shopping_memo.items.add.failed`
+  - `shopping_memo.items.remove.completed`
+  - `shopping_memo.items.remove.failed`
+- completed log では `result / requested_count / added_count / skipped_count / duplicate_count / invalid_status_count / elapsed_ms` を残す
+- remove completed log では `shopping_memo_item_id / purchase_candidate_id / elapsed_ms` を残す
+- shopping memo memo 本文や purchase candidate 名は log に出さない
+
 - bulk add / item remove / import-export は機能として存在する
 - user-facing message は返す
-- ただし重要操作の info log は未整備
+- shopping memo については、上記の add/remove structured log を current とする
+- memo delete など一部の重要操作ログはまだ未整備
 
 不足:
 
@@ -557,11 +568,11 @@ current:
 - Laravel の標準 logging 設定は存在する
 - ただし structured application log は未整備
 - import-export と weather external API failure には structured log を導入済み
-- shopping memo bulk 系や item state change は引き続き未整備
+- shopping memo bulk add / item remove にも structured log を導入済み
+- item state change は引き続き未整備
 
 ### planned
 
-- shopping memo bulk add / remove
 - item delete / disposed / reactivate
 
 から順に structured log を入れる
