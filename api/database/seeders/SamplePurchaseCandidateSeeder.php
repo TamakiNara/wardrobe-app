@@ -8,6 +8,7 @@ use App\Models\PurchaseCandidateGroup;
 use App\Models\PurchaseCandidateImage;
 use App\Models\PurchaseCandidateSeason;
 use App\Models\PurchaseCandidateTpo;
+use App\Models\ShoppingMemo;
 use App\Models\User;
 use Database\Seeders\Support\TestSeedUsers;
 use Illuminate\Database\Seeder;
@@ -25,6 +26,7 @@ class SamplePurchaseCandidateSeeder extends Seeder
     {
         $user = User::query()->where('email', TestSeedUsers::STANDARD_EMAIL)->firstOrFail();
 
+        ShoppingMemo::query()->where('user_id', $user->id)->delete();
         PurchaseCandidate::query()->where('user_id', $user->id)->delete();
         PurchaseCandidateGroup::query()->where('user_id', $user->id)->delete();
 
@@ -448,6 +450,7 @@ class SamplePurchaseCandidateSeeder extends Seeder
     {
         $user = User::query()->where('email', TestSeedUsers::LARGE_EMAIL)->firstOrFail();
 
+        ShoppingMemo::query()->where('user_id', $user->id)->delete();
         PurchaseCandidate::query()->where('user_id', $user->id)->delete();
         PurchaseCandidateGroup::query()->where('user_id', $user->id)->delete();
 

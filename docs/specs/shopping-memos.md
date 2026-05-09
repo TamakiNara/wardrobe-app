@@ -314,6 +314,23 @@ seed との関係:
 - 買い物メモ seed は import/export 対応後に追加する方が安全
 - local / backup / restore / 環境移行で同じデータを再現しやすくなる
 
+## demo / test seed
+
+current:
+
+- `standard-user@example.com` に画面確認用の買い物メモ seed を用意する
+- `春夏物`
+  - `draft`
+  - domain group / 価格未設定 / 一番近い期限 / 複数 item group の小計を確認できる
+- `店舗で見る候補`
+  - `draft`
+  - URL なし + `brand_name` ありの brand group を確認できる
+- `見送り済み比較`
+  - `closed`
+  - closed memo の一覧 / 詳細表示と、購入検討一覧の追加先候補に出ないことを確認できる
+- これらの memo は画面確認用の sample data であり、本番仕様そのものではない
+- import/export 対応後の seed として追加し、backup / restore 方針と矛盾しない状態を保つ
+
 ## 未実装 / planned
 
 - 既に買い物メモに追加済みの候補を一覧上でさらに分かりやすくする
@@ -325,7 +342,6 @@ seed との関係:
 - 送料 / クーポン
 - `shopping_memo_group_adjustments`
 - manual group
-- 買い物メモ確認用 seed
 - `sale_ends_at / discount_ends_at` の意味整理後の表示見直し
 - 買い物メモ詳細のさらなる表示改善
 
@@ -335,4 +351,3 @@ seed との関係:
 - 購入検討詳細からの単体追加
 - closed memo 編集制御の整理
 - `shopping_memo_group_adjustments`
-- 買い物メモ確認用 seed
