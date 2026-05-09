@@ -486,6 +486,37 @@ describe("PurchaseCandidateListCard", () => {
     ).not.toBeNull();
   });
 
+  it("selection mode では単体候補が追加済みでも checked のまま操作できる", async () => {
+    const { default: PurchaseCandidateListCard } =
+      await import("./purchase-candidate-list-card");
+
+    await act(async () => {
+      root.render(
+        React.createElement(PurchaseCandidateListCard, {
+          candidates: [
+            buildCandidate({
+              id: 73,
+              name: "追加済み単体候補",
+            }),
+          ],
+          selectionMode: true,
+          selectedCandidateIds: [],
+          alreadyAddedCandidateIds: [73],
+          onToggleCandidate: vi.fn(),
+          isCandidateSelectable: () => true,
+        }),
+      );
+    });
+
+    const checkbox = container.querySelector<HTMLInputElement>(
+      '[data-testid="purchase-candidate-checkbox-73"]',
+    );
+
+    expect(checkbox?.checked).toBe(true);
+    expect(checkbox?.disabled).toBe(false);
+    expect(container.textContent).toContain("追加済み");
+  });
+
   it("selection mode では複数候補に候補選択枠を表示する", async () => {
     const { default: PurchaseCandidateListCard } =
       await import("./purchase-candidate-list-card");
@@ -546,5 +577,100 @@ describe("PurchaseCandidateListCard", () => {
         '[data-testid="purchase-candidate-checkbox-72"]',
       )?.disabled,
     ).toBe(true);
+  });
+
+  it("selection mode では複数候補の追加済み候補を checked のまま操作できる", async () => {
+    const { default: PurchaseCandidateListCard } =
+      await import("./purchase-candidate-list-card");
+
+    await act(async () => {
+      root.render(
+        React.createElement(PurchaseCandidateListCard, {
+          candidates: [
+            buildCandidate({
+              id: 81,
+              name: "ブラック候補",
+              group_id: 90,
+              group_order: 1,
+              colors: [
+                {
+                  role: "main",
+                  mode: "preset",
+                  value: "black",
+                  hex: "#111111",
+                  label: "ブラック",
+                },
+              ],
+            }),
+            buildCandidate({
+              id: 82,
+              name: "ネイビー候補",
+              group_id: 90,
+              group_order: 2,
+              colors: [
+                {
+                  role: "main",
+                  mode: "preset",
+                  value: "navy",
+                  hex: "#1F3A5F",
+                  label: "ネイビー",
+                },
+              ],
+            }),
+          ],
+          selectionMode: true,
+          selectedCandidateIds: [],
+          alreadyAddedCandidateIds: [81],
+          onToggleCandidate: vi.fn(),
+          isCandidateSelectable: () => true,
+        }),
+      );
+    });
+
+    const addedCheckbox = container.querySelector<HTMLInputElement>(
+      '[data-testid="purchase-candidate-checkbox-81"]',
+    );
+    const selectableCheckbox = container.querySelector<HTMLInputElement>(
+      '[data-testid="purchase-candidate-checkbox-82"]',
+    );
+
+    expect(addedCheckbox?.checked).toBe(true);
+    expect(addedCheckbox?.disabled).toBe(false);
+    expect(selectableCheckbox?.checked).toBe(false);
+    expect(container.textContent).toContain("追加済み");
+  });
+
+  it("selection mode では追加済み候補のチェックを外すと解除予定を表示する", async () => {
+    const { default: PurchaseCandidateListCard } =
+      await import("./purchase-candidate-list-card");
+
+    const onToggleCandidate = vi.fn();
+
+    await act(async () => {
+      root.render(
+        React.createElement(PurchaseCandidateListCard, {
+          candidates: [
+            buildCandidate({
+              id: 91,
+              name: "単体候補",
+            }),
+          ],
+          selectionMode: true,
+          selectedCandidateIds: [],
+          alreadyAddedCandidateIds: [91],
+          pendingRemoveCandidateIds: [91],
+          onToggleCandidate,
+          isCandidateSelectable: () => true,
+        }),
+      );
+    });
+
+    const checkbox = container.querySelector<HTMLInputElement>(
+      '[data-testid="purchase-candidate-checkbox-91"]',
+    );
+
+    expect(checkbox?.checked).toBe(false);
+    expect(checkbox?.disabled).toBe(false);
+    expect(container.textContent).toContain("解除予定");
   });
 });

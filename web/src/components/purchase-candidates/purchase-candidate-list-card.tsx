@@ -24,6 +24,8 @@ type PurchaseCandidateListCardProps = {
   detailQueryString?: string;
   selectionMode?: boolean;
   selectedCandidateIds?: number[];
+  alreadyAddedCandidateIds?: number[];
+  pendingRemoveCandidateIds?: number[];
   onToggleCandidate?: (candidateId: number) => void;
   isCandidateSelectable?: (candidate: PurchaseCandidateListItem) => boolean;
 };
@@ -103,9 +105,19 @@ export default function PurchaseCandidateListCard({
   detailQueryString,
   selectionMode = false,
   selectedCandidateIds = [],
+  alreadyAddedCandidateIds = [],
+  pendingRemoveCandidateIds = [],
   onToggleCandidate,
   isCandidateSelectable,
 }: PurchaseCandidateListCardProps) {
+  const alreadyAddedCandidateIdSet = useMemo(
+    () => new Set(alreadyAddedCandidateIds),
+    [alreadyAddedCandidateIds],
+  );
+  const pendingRemoveCandidateIdSet = useMemo(
+    () => new Set(pendingRemoveCandidateIds),
+    [pendingRemoveCandidateIds],
+  );
   const sortedCandidates = useMemo(
     () =>
       [...candidates].sort((a, b) => {
@@ -233,23 +245,58 @@ export default function PurchaseCandidateListCard({
                   selectable ? "bg-white/90" : "bg-gray-100 text-gray-500"
                 }`}
               >
-                <span className="flex items-center gap-3">
-                  <input
-                    type="checkbox"
-                    data-testid={`purchase-candidate-checkbox-${candidate.id}`}
-                    checked={selectedCandidateIds.includes(candidate.id)}
-                    disabled={!selectable}
-                    onChange={() => onToggleCandidate?.(candidate.id)}
-                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  />
-                  <span className="font-medium text-gray-700">
-                    {checkboxLabel}
-                  </span>
-                </span>
-                <span className="text-xs text-gray-500">
-                  {PURCHASE_CANDIDATE_STATUS_LABELS[candidate.status]}
-                  {!selectable ? " / 対象外" : ""}
-                </span>
+                {(() => {
+                  const alreadyAdded = alreadyAddedCandidateIdSet.has(
+                    candidate.id,
+                  );
+                  const pendingRemove = pendingRemoveCandidateIdSet.has(
+                    candidate.id,
+                  );
+                  const pendingAdd =
+                    selectedCandidateIds.includes(candidate.id) &&
+                    !alreadyAdded;
+                  const checked =
+                    pendingAdd || (alreadyAdded && !pendingRemove);
+                  const disabled = !selectable && !alreadyAdded;
+
+                  return (
+                    <>
+                      <span className="flex items-center gap-3">
+                        <input
+                          type="checkbox"
+                          data-testid={`purchase-candidate-checkbox-${candidate.id}`}
+                          checked={checked}
+                          disabled={disabled}
+                          onChange={() => onToggleCandidate?.(candidate.id)}
+                          className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        <span className="font-medium text-gray-700">
+                          {checkboxLabel}
+                        </span>
+                      </span>
+                      <span className="flex flex-wrap items-center justify-end gap-1.5 text-xs text-gray-500">
+                        <span>
+                          {PURCHASE_CANDIDATE_STATUS_LABELS[candidate.status]}
+                        </span>
+                        {pendingRemove ? (
+                          <span className="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700">
+                            解除予定
+                          </span>
+                        ) : alreadyAdded ? (
+                          <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700">
+                            追加済み
+                          </span>
+                        ) : pendingAdd ? (
+                          <span className="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-[11px] font-medium text-blue-700">
+                            追加予定
+                          </span>
+                        ) : !selectable ? (
+                          <span>対象外</span>
+                        ) : null}
+                      </span>
+                    </>
+                  );
+                })()}
               </label>
             );
           })}
@@ -272,12 +319,18 @@ export default function PurchaseCandidateListCard({
     const selectable = isCandidateSelectable
       ? isCandidateSelectable(candidate)
       : true;
+    const alreadyAdded = alreadyAddedCandidateIdSet.has(candidate.id);
+    const pendingRemove = pendingRemoveCandidateIdSet.has(candidate.id);
+    const pendingAdd =
+      selectedCandidateIds.includes(candidate.id) && !alreadyAdded;
+    const checked = pendingAdd || (alreadyAdded && !pendingRemove);
+    const disabled = !selectable && !alreadyAdded;
 
     return (
       <label
         data-testid="purchase-candidate-single-selection-toggle"
         className={`inline-flex items-center gap-2 self-start rounded-lg border px-3 py-2 text-sm ${
-          selectable
+          selectable && !alreadyAdded
             ? "border-blue-100 bg-blue-50/70 text-gray-700"
             : "border-gray-200 bg-gray-100 text-gray-500"
         }`}
@@ -285,12 +338,25 @@ export default function PurchaseCandidateListCard({
         <input
           type="checkbox"
           data-testid={`purchase-candidate-checkbox-${candidate.id}`}
-          checked={selectedCandidateIds.includes(candidate.id)}
-          disabled={!selectable}
+          checked={checked}
+          disabled={disabled}
           onChange={() => onToggleCandidate?.(candidate.id)}
           className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
         />
         <span>{selectable ? "買い物メモに追加" : "対象外"}</span>
+        {pendingRemove ? (
+          <span className="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700">
+            解除予定
+          </span>
+        ) : alreadyAdded ? (
+          <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700">
+            追加済み
+          </span>
+        ) : pendingAdd ? (
+          <span className="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-[11px] font-medium text-blue-700">
+            追加予定
+          </span>
+        ) : null}
       </label>
     );
   };

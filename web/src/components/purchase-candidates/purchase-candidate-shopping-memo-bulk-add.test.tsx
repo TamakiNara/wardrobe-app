@@ -7,7 +7,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { PurchaseCandidateListItem } from "@/types/purchase-candidates";
 
 const fetchShoppingMemosMock = vi.fn();
+const fetchShoppingMemoDetailMock = vi.fn();
 const addItemsToShoppingMemoMock = vi.fn();
+const removeItemFromShoppingMemoMock = vi.fn();
 
 vi.mock("next/link", () => ({
   default: ({ children, href, ...props }: React.ComponentProps<"a">) =>
@@ -16,8 +18,12 @@ vi.mock("next/link", () => ({
 
 vi.mock("@/lib/api/shopping-memos", () => ({
   fetchShoppingMemos: (...args: unknown[]) => fetchShoppingMemosMock(...args),
+  fetchShoppingMemoDetail: (...args: unknown[]) =>
+    fetchShoppingMemoDetailMock(...args),
   addItemsToShoppingMemo: (...args: unknown[]) =>
     addItemsToShoppingMemoMock(...args),
+  removeItemFromShoppingMemo: (...args: unknown[]) =>
+    removeItemFromShoppingMemoMock(...args),
 }));
 
 function buildCandidate(
@@ -46,6 +52,13 @@ function buildCandidate(
     images: [],
     updated_at: "2026-05-07T10:00:00+09:00",
     ...overrides,
+  };
+}
+
+function buildMemoDetailItem(candidateId: number, itemId: number) {
+  return {
+    shopping_memo_item_id: itemId,
+    purchase_candidate_id: candidateId,
   };
 }
 
@@ -87,342 +100,382 @@ describe("PurchaseCandidateShoppingMemoBulkAdd", () => {
     });
   }
 
-  it("選択モードで追加先メモの選択欄を表示する", async () => {
+  async function openSelectionMode() {
+    await act(async () => {
+      container
+        .querySelector("button")
+        ?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      await Promise.resolve();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+  }
+
+  async function selectMemo(value: string) {
+    const select = container.querySelector(
+      "select",
+    ) as HTMLSelectElement | null;
+
+    await act(async () => {
+      if (select) {
+        select.value = value;
+        select.dispatchEvent(new Event("change", { bubbles: true }));
+      }
+      await Promise.resolve();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+  }
+
+  function findApplyButton() {
+    return Array.from(container.querySelectorAll("button")).find((button) =>
+      button.textContent?.includes("変更を反映"),
+    ) as HTMLButtonElement | undefined;
+  }
+
+  it("追加先メモを選ぶと detail を取得する", async () => {
     fetchShoppingMemosMock.mockResolvedValue({
-      shoppingMemos: [
-        { id: 5, name: "春夏セール候補", memo: null, status: "draft" },
-      ],
+      shoppingMemos: [{ id: 5, name: "春夏物", memo: null, status: "draft" }],
+    });
+    fetchShoppingMemoDetailMock.mockResolvedValue({
+      shoppingMemo: { groups: [] },
     });
 
     await renderComponent([buildCandidate({ id: 1, name: "候補A" })]);
+    await openSelectionMode();
+    await selectMemo("5");
 
-    await act(async () => {
-      container
-        .querySelector("button")
-        ?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-      await Promise.resolve();
-      await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(fetchShoppingMemoDetailMock).toHaveBeenCalledWith(5);
+  });
+
+  it("追加済みの単体候補は checked で表示され、disabled にはならない", async () => {
+    fetchShoppingMemosMock.mockResolvedValue({
+      shoppingMemos: [{ id: 5, name: "春夏物", memo: null, status: "draft" }],
+    });
+    fetchShoppingMemoDetailMock.mockResolvedValue({
+      shoppingMemo: {
+        groups: [
+          {
+            items: [buildMemoDetailItem(12, 301)],
+          },
+        ],
+      },
     });
 
-    expect(container.textContent).toContain("買い物メモへ追加");
-    expect(
-      container.querySelectorAll(
-        '[data-testid="shopping-memo-bulk-add-heading"]',
-      ),
-    ).toHaveLength(1);
-    expect(container.textContent).toContain("追加先");
-    expect(container.textContent).toContain("追加する");
-    expect(container.querySelector("select")).not.toBeNull();
-    expect(container.textContent).not.toContain(
-      "追加先の買い物メモ追加先の買い物メモ",
+    await renderComponent([buildCandidate({ id: 12, name: "単体候補" })]);
+    await openSelectionMode();
+    await selectMemo("5");
+
+    const checkbox = container.querySelector<HTMLInputElement>(
+      '[data-testid="purchase-candidate-checkbox-12"]',
     );
+
+    expect(checkbox?.checked).toBe(true);
+    expect(checkbox?.disabled).toBe(false);
+    expect(container.textContent).toContain("追加済み");
   });
 
-  it("追加先メモが未選択の間は追加ボタンを disabled にする", async () => {
+  it("追加済み候補のチェックを外すと解除予定になる", async () => {
     fetchShoppingMemosMock.mockResolvedValue({
-      shoppingMemos: [
-        { id: 5, name: "春夏セール候補", memo: null, status: "draft" },
-      ],
+      shoppingMemos: [{ id: 5, name: "春夏物", memo: null, status: "draft" }],
+    });
+    fetchShoppingMemoDetailMock.mockResolvedValue({
+      shoppingMemo: {
+        groups: [
+          {
+            items: [buildMemoDetailItem(21, 401)],
+          },
+        ],
+      },
     });
 
-    await renderComponent([buildCandidate({ id: 2, name: "候補A" })]);
+    await renderComponent([buildCandidate({ id: 21, name: "追加済み候補" })]);
+    await openSelectionMode();
+    await selectMemo("5");
 
     await act(async () => {
-      container
-        .querySelector("button")
-        ?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-      await Promise.resolve();
-      await new Promise((resolve) => setTimeout(resolve, 0));
-    });
-
-    const addButton = Array.from(container.querySelectorAll("button")).find(
-      (button) => button.textContent?.includes("追加する"),
-    ) as HTMLButtonElement | undefined;
-    const select = container.querySelector(
-      "select",
-    ) as HTMLSelectElement | null;
-
-    expect(select).not.toBeNull();
-    expect(select?.value).toBe("");
-    expect(addButton?.disabled).toBe(true);
-    expect(container.textContent).toContain(
-      "追加先の買い物メモを選択してください。",
-    );
-  });
-
-  it("候補が未選択の間は追加ボタンを disabled にする", async () => {
-    fetchShoppingMemosMock.mockResolvedValue({
-      shoppingMemos: [
-        { id: 5, name: "春夏セール候補", memo: null, status: "draft" },
-      ],
-    });
-
-    await renderComponent([buildCandidate({ id: 3, name: "候補A" })]);
-
-    await act(async () => {
-      container
-        .querySelector("button")
-        ?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-      await Promise.resolve();
-      await new Promise((resolve) => setTimeout(resolve, 0));
-    });
-
-    const select = container.querySelector(
-      "select",
-    ) as HTMLSelectElement | null;
-
-    await act(async () => {
-      if (select) {
-        select.value = "5";
-        select.dispatchEvent(new Event("change", { bubbles: true }));
-      }
-    });
-
-    const addButton = Array.from(container.querySelectorAll("button")).find(
-      (button) => button.textContent?.includes("追加する"),
-    ) as HTMLButtonElement | undefined;
-
-    expect(addButton?.disabled).toBe(true);
-    expect(container.textContent).toContain("追加する候補を選択してください。");
-  });
-
-  it("追加先メモと候補を選ぶと追加ボタンが enabled になる", async () => {
-    fetchShoppingMemosMock.mockResolvedValue({
-      shoppingMemos: [
-        { id: 5, name: "春夏セール候補", memo: null, status: "draft" },
-      ],
-    });
-
-    await renderComponent([
-      buildCandidate({ id: 4, name: "候補A" }),
-      buildCandidate({ id: 5, name: "候補B", status: "on_hold" }),
-    ]);
-
-    await act(async () => {
-      container
-        .querySelector("button")
-        ?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-      await Promise.resolve();
-      await new Promise((resolve) => setTimeout(resolve, 0));
-    });
-
-    const select = container.querySelector(
-      "select",
-    ) as HTMLSelectElement | null;
-
-    await act(async () => {
-      if (select) {
-        select.value = "5";
-        select.dispatchEvent(new Event("change", { bubbles: true }));
-      }
-      container
-        .querySelector<HTMLInputElement>(
-          '[data-testid="purchase-candidate-checkbox-4"]',
-        )
-        ?.click();
-    });
-
-    const addButton = Array.from(container.querySelectorAll("button")).find(
-      (button) => button.textContent?.includes("追加する"),
-    ) as HTMLButtonElement | undefined;
-
-    expect(addButton?.disabled).toBe(false);
-  });
-
-  it("既存メモを選んで追加でき、追加後に選択を解除する", async () => {
-    fetchShoppingMemosMock.mockResolvedValue({
-      shoppingMemos: [
-        { id: 7, name: "春夏セール候補", memo: null, status: "draft" },
-        { id: 9, name: "終了メモ", memo: null, status: "closed" },
-      ],
-    });
-    addItemsToShoppingMemoMock.mockResolvedValue({
-      added_count: 2,
-      skipped_count: 2,
-      duplicate_count: 1,
-      invalid_status_count: 1,
-    });
-
-    await renderComponent([
-      buildCandidate({ id: 21, name: "候補A" }),
-      buildCandidate({ id: 22, name: "候補B", status: "on_hold" }),
-    ]);
-
-    await act(async () => {
-      container
-        .querySelector("button")
-        ?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-      await Promise.resolve();
-      await new Promise((resolve) => setTimeout(resolve, 0));
-    });
-
-    const select = container.querySelector(
-      "select",
-    ) as HTMLSelectElement | null;
-    expect(select?.textContent).toContain("春夏セール候補");
-    expect(select?.textContent).not.toContain("終了メモ");
-
-    await act(async () => {
-      if (select) {
-        select.value = "7";
-        select.dispatchEvent(new Event("change", { bubbles: true }));
-      }
       container
         .querySelector<HTMLInputElement>(
           '[data-testid="purchase-candidate-checkbox-21"]',
         )
         ?.click();
+    });
+
+    const checkbox = container.querySelector<HTMLInputElement>(
+      '[data-testid="purchase-candidate-checkbox-21"]',
+    );
+
+    expect(checkbox?.checked).toBe(false);
+    expect(container.textContent).toContain("解除予定");
+    expect(container.textContent).toContain("追加 0件 / 解除 1件");
+  });
+
+  it("未追加候補をチェックすると追加予定になり、変更を反映が enabled になる", async () => {
+    fetchShoppingMemosMock.mockResolvedValue({
+      shoppingMemos: [{ id: 5, name: "春夏物", memo: null, status: "draft" }],
+    });
+    fetchShoppingMemoDetailMock.mockResolvedValue({
+      shoppingMemo: { groups: [] },
+    });
+
+    await renderComponent([buildCandidate({ id: 31, name: "未追加候補" })]);
+    await openSelectionMode();
+    await selectMemo("5");
+
+    await act(async () => {
       container
         .querySelector<HTMLInputElement>(
-          '[data-testid="purchase-candidate-checkbox-22"]',
+          '[data-testid="purchase-candidate-checkbox-31"]',
         )
         ?.click();
     });
 
-    const addButton = Array.from(container.querySelectorAll("button")).find(
-      (button) => button.textContent?.includes("追加する"),
-    );
+    expect(container.textContent).toContain("追加予定");
+    expect(container.textContent).toContain("追加 1件 / 解除 0件");
+    expect(findApplyButton()?.disabled).toBe(false);
+  });
 
-    await act(async () => {
-      addButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-      await Promise.resolve();
+  it("変更がない場合は変更を反映が disabled になる", async () => {
+    fetchShoppingMemosMock.mockResolvedValue({
+      shoppingMemos: [{ id: 5, name: "春夏物", memo: null, status: "draft" }],
+    });
+    fetchShoppingMemoDetailMock.mockResolvedValue({
+      shoppingMemo: {
+        groups: [
+          {
+            items: [buildMemoDetailItem(41, 501)],
+          },
+        ],
+      },
     });
 
-    expect(addItemsToShoppingMemoMock).toHaveBeenCalledWith(7, [21, 22]);
-    expect(container.textContent).toContain("2件を買い物メモに追加しました。");
-    expect(container.textContent).toContain("1件は追加済みでした。");
-    expect(container.textContent).toContain("1件は対象外でした。");
+    await renderComponent([buildCandidate({ id: 41, name: "追加済み候補" })]);
+    await openSelectionMode();
+    await selectMemo("5");
+
+    expect(findApplyButton()?.disabled).toBe(true);
+    expect(container.textContent).toContain(
+      "追加または解除する候補を選択してください。",
+    );
+  });
+
+  it("追加予定がある場合は bulk add API を呼ぶ", async () => {
+    fetchShoppingMemosMock.mockResolvedValue({
+      shoppingMemos: [{ id: 5, name: "春夏物", memo: null, status: "draft" }],
+    });
+    fetchShoppingMemoDetailMock
+      .mockResolvedValueOnce({
+        shoppingMemo: { groups: [] },
+      })
+      .mockResolvedValueOnce({
+        shoppingMemo: {
+          groups: [
+            {
+              items: [buildMemoDetailItem(51, 601)],
+            },
+          ],
+        },
+      });
+    addItemsToShoppingMemoMock.mockResolvedValue({
+      added_count: 1,
+      skipped_count: 0,
+      duplicate_count: 0,
+      invalid_status_count: 0,
+    });
+
+    await renderComponent([buildCandidate({ id: 51, name: "追加候補" })]);
+    await openSelectionMode();
+    await selectMemo("5");
+
+    await act(async () => {
+      container
+        .querySelector<HTMLInputElement>(
+          '[data-testid="purchase-candidate-checkbox-51"]',
+        )
+        ?.click();
+    });
+
+    await act(async () => {
+      findApplyButton()?.dispatchEvent(
+        new MouseEvent("click", { bubbles: true }),
+      );
+      await Promise.resolve();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    expect(addItemsToShoppingMemoMock).toHaveBeenCalledWith(5, [51]);
+    expect(container.textContent).toContain("1件を買い物メモに追加しました。");
     expect(container.textContent).toContain("選択して追加");
-    expect(
-      container.querySelector('[data-testid="purchase-candidate-checkbox-21"]'),
-    ).toBeNull();
   });
 
-  it("買い物メモがない場合は作成リンクを表示し、追加ボタンを無効にする", async () => {
+  it("解除予定がある場合は DELETE API を呼ぶ", async () => {
     fetchShoppingMemosMock.mockResolvedValue({
-      shoppingMemos: [],
+      shoppingMemos: [{ id: 5, name: "春夏物", memo: null, status: "draft" }],
     });
+    fetchShoppingMemoDetailMock
+      .mockResolvedValueOnce({
+        shoppingMemo: {
+          groups: [
+            {
+              items: [buildMemoDetailItem(61, 701)],
+            },
+          ],
+        },
+      })
+      .mockResolvedValueOnce({
+        shoppingMemo: { groups: [] },
+      });
+    removeItemFromShoppingMemoMock.mockResolvedValue({ message: "deleted" });
 
-    await renderComponent([buildCandidate({ id: 11, name: "候補A" })]);
+    await renderComponent([buildCandidate({ id: 61, name: "解除候補" })]);
+    await openSelectionMode();
+    await selectMemo("5");
 
     await act(async () => {
       container
-        .querySelector("button")
-        ?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+        .querySelector<HTMLInputElement>(
+          '[data-testid="purchase-candidate-checkbox-61"]',
+        )
+        ?.click();
+    });
+
+    await act(async () => {
+      findApplyButton()?.dispatchEvent(
+        new MouseEvent("click", { bubbles: true }),
+      );
       await Promise.resolve();
       await new Promise((resolve) => setTimeout(resolve, 0));
     });
 
-    const addButton = Array.from(container.querySelectorAll("button")).find(
-      (button) => button.textContent?.includes("追加する"),
-    ) as HTMLButtonElement | undefined;
-
-    expect(container.textContent).toContain(
-      "追加先の買い物メモがありません。先に買い物メモを作成してください。",
-    );
-    expect(container.innerHTML).toContain('href="/shopping-memos/new"');
-    expect(addButton?.disabled).toBe(true);
+    expect(removeItemFromShoppingMemoMock).toHaveBeenCalledWith(5, 701);
+    expect(container.textContent).toContain("1件を買い物メモから外しました。");
   });
 
-  it("追加先メモ取得失敗時は取得エラーを表示する", async () => {
-    fetchShoppingMemosMock.mockRejectedValue(new Error("network"));
+  it("追加と解除の両方がある場合は両方の API を呼ぶ", async () => {
+    fetchShoppingMemosMock.mockResolvedValue({
+      shoppingMemos: [{ id: 5, name: "春夏物", memo: null, status: "draft" }],
+    });
+    fetchShoppingMemoDetailMock
+      .mockResolvedValueOnce({
+        shoppingMemo: {
+          groups: [
+            {
+              items: [buildMemoDetailItem(71, 801)],
+            },
+          ],
+        },
+      })
+      .mockResolvedValueOnce({
+        shoppingMemo: {
+          groups: [
+            {
+              items: [buildMemoDetailItem(72, 802)],
+            },
+          ],
+        },
+      });
+    addItemsToShoppingMemoMock.mockResolvedValue({
+      added_count: 1,
+      skipped_count: 0,
+      duplicate_count: 0,
+      invalid_status_count: 0,
+    });
+    removeItemFromShoppingMemoMock.mockResolvedValue({ message: "deleted" });
 
-    await renderComponent([buildCandidate({ id: 13, name: "候補A" })]);
+    await renderComponent([
+      buildCandidate({ id: 71, name: "既追加候補" }),
+      buildCandidate({ id: 72, name: "新規追加候補" }),
+    ]);
+    await openSelectionMode();
+    await selectMemo("5");
 
     await act(async () => {
       container
-        .querySelector("button")
-        ?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+        .querySelector<HTMLInputElement>(
+          '[data-testid="purchase-candidate-checkbox-71"]',
+        )
+        ?.click();
+      container
+        .querySelector<HTMLInputElement>(
+          '[data-testid="purchase-candidate-checkbox-72"]',
+        )
+        ?.click();
+    });
+
+    await act(async () => {
+      findApplyButton()?.dispatchEvent(
+        new MouseEvent("click", { bubbles: true }),
+      );
       await Promise.resolve();
       await new Promise((resolve) => setTimeout(resolve, 0));
     });
 
-    expect(container.textContent).toContain(
-      "追加先の買い物メモを読み込めませんでした。",
-    );
+    expect(addItemsToShoppingMemoMock).toHaveBeenCalledWith(5, [72]);
+    expect(removeItemFromShoppingMemoMock).toHaveBeenCalledWith(5, 801);
+    expect(container.textContent).toContain("買い物メモを更新しました。");
   });
 
-  it("複数候補では候補ごとの選択枠を表示する", async () => {
+  it("未追加の purchased は選択不可だが、追加済みの purchased は解除できる", async () => {
     fetchShoppingMemosMock.mockResolvedValue({
-      shoppingMemos: [
-        { id: 5, name: "春夏セール候補", memo: null, status: "draft" },
-      ],
+      shoppingMemos: [{ id: 5, name: "春夏物", memo: null, status: "draft" }],
+    });
+    fetchShoppingMemoDetailMock.mockResolvedValue({
+      shoppingMemo: {
+        groups: [
+          {
+            items: [buildMemoDetailItem(82, 901)],
+          },
+        ],
+      },
     });
 
     await renderComponent([
-      buildCandidate({ id: 31, name: "ブラック" }),
-      buildCandidate({ id: 32, name: "ネイビー", group_order: 1 }),
+      buildCandidate({ id: 80, name: "通常候補", status: "considering" }),
+      buildCandidate({ id: 81, name: "未追加購入済み", status: "purchased" }),
+      buildCandidate({ id: 82, name: "追加済み購入済み", status: "purchased" }),
     ]);
+    await openSelectionMode();
+    await selectMemo("5");
 
-    await act(async () => {
-      container
-        .querySelector("button")
-        ?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-      await Promise.resolve();
-      await new Promise((resolve) => setTimeout(resolve, 0));
-    });
-
-    expect(
-      container.querySelector(
-        '[data-testid="purchase-candidate-selection-controls"]',
-      ),
-    ).not.toBeNull();
-  });
-
-  it("単体候補では情報欄側の軽い選択UIを維持する", async () => {
-    fetchShoppingMemosMock.mockResolvedValue({
-      shoppingMemos: [
-        { id: 5, name: "春夏セール候補", memo: null, status: "draft" },
-      ],
-    });
-
-    await renderComponent([buildCandidate({ id: 12, name: "単体候補" })]);
-
-    await act(async () => {
-      container
-        .querySelector("button")
-        ?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-      await Promise.resolve();
-      await new Promise((resolve) => setTimeout(resolve, 0));
-    });
-
-    expect(
-      container.querySelector(
-        '[data-testid="purchase-candidate-selection-controls"]',
-      ),
-    ).toBeNull();
-    expect(
-      container.querySelector(
-        '[data-testid="purchase-candidate-single-selection-toggle"]',
-      ),
-    ).not.toBeNull();
-  });
-
-  it("purchased は追加対象外のまま disabled で表示する", async () => {
-    fetchShoppingMemosMock.mockResolvedValue({
-      shoppingMemos: [
-        { id: 5, name: "春夏セール候補", memo: null, status: "draft" },
-      ],
-    });
-
-    await renderComponent([
-      buildCandidate({ id: 41, name: "候補A" }),
-      buildCandidate({ id: 42, name: "候補B", status: "purchased" }),
-    ]);
-
-    await act(async () => {
-      container
-        .querySelector("button")
-        ?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-      await Promise.resolve();
-      await new Promise((resolve) => setTimeout(resolve, 0));
-    });
-
-    const disabledCheckbox = container.querySelector<HTMLInputElement>(
-      '[data-testid="purchase-candidate-checkbox-42"]',
+    const checkboxes = Array.from(
+      container.querySelectorAll<HTMLInputElement>('input[type="checkbox"]'),
+    );
+    const disabledCheckbox = checkboxes.find((checkbox) => checkbox.disabled);
+    const removableCheckbox = checkboxes.find(
+      (checkbox) => checkbox.checked && !checkbox.disabled,
     );
 
-    expect(disabledCheckbox?.disabled).toBe(true);
-    expect(container.textContent).toContain("対象外");
+    const purchasedCheckbox = container.querySelector<HTMLInputElement>(
+      '[data-testid="purchase-candidate-checkbox-81"]',
+    );
+
+    expect(purchasedCheckbox?.disabled).toBe(true);
+    expect(removableCheckbox).toBeDefined();
+
+    await act(async () => {
+      removableCheckbox?.click();
+    });
+
+    expect(container.textContent).toContain("解除予定");
+  });
+
+  it("detail 取得失敗時も画面が壊れず、候補を選択できる", async () => {
+    fetchShoppingMemosMock.mockResolvedValue({
+      shoppingMemos: [{ id: 5, name: "春夏物", memo: null, status: "draft" }],
+    });
+    fetchShoppingMemoDetailMock.mockRejectedValue(new Error("detail failed"));
+
+    await renderComponent([buildCandidate({ id: 91, name: "候補A" })]);
+    await openSelectionMode();
+    await selectMemo("5");
+
+    await act(async () => {
+      container
+        .querySelector<HTMLInputElement>(
+          '[data-testid="purchase-candidate-checkbox-91"]',
+        )
+        ?.click();
+    });
+
+    expect(container.textContent).toContain("追加 1件 / 解除 0件");
+    expect(container.textContent).not.toContain("追加済み");
   });
 });
