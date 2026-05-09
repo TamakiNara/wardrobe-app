@@ -255,19 +255,104 @@ current:
 
 ## status / edge cases
 
-- `draft`
-  - 通常の編集中メモ
-- `closed`
-  - current backend では item remove までは禁止していない
-  - 追加 UI / 編集制御全体は後続整理
+### current backend API
 
-edge cases:
+- `PATCH /api/shopping-memos/{id}` は存在する
+- `DELETE /api/shopping-memos/{id}` は存在する
+- `POST /api/shopping-memos/{id}/items` は `closed` で 422
+- `DELETE /api/shopping-memos/{id}/items/{itemId}` は current backend では `closed` でも通る
+- import/export では `draft / closed` の status を保持する
+
+### current frontend UI
+
+- 買い物メモ一覧は実装済み
+- 買い物メモ作成は実装済み
+- 買い物メモ詳細は実装済み
+- 購入検討一覧から既存 memo への候補追加 / 解除は実装済み
+- 買い物メモ詳細で候補をメモから外す UI は実装済み
+- 買い物メモ名 / memo 本文の編集 UI は未実装
+- status を `closed` にする UI は未実装
+- `closed` を `draft` に戻す UI は未実装
+- 買い物メモ自体を削除する UI は未実装
+- 購入検討一覧の追加先候補には `draft` memo だけを表示する
+
+### current の意味
+
+- `draft`
+  - current UI で日常的に使う通常の買い物メモ
+- `closed`
+  - backend / seed / import-export 上は存在する status
+  - current frontend では詳細表示できる
+  - current frontend では追加先候補には出さない
+  - ただし current frontend には `closed` へ変更する UI も、`draft` に戻す UI もまだない
+  - そのため current では「完全な編集不可状態」とまでは確定していない
+
+### 推奨する意味
+
+- `draft`
+  - 比較中のアクティブな買い物メモ
+  - 候補追加 / 候補解除 / 将来の memo 編集の対象
+- `closed`
+  - 比較終了後の参照用メモ
+  - 日常導線では追加先候補から外す
+  - ただし、編集 / 削除 / reopen をどう扱うかは UI を作る前に決める
+
+### 操作可否表
+
+| 操作                            | backend API current | frontend UI current    | 推奨 / 後続                   |
+| ------------------------------- | ------------------- | ---------------------- | ----------------------------- |
+| 一覧表示                        | 可                  | 可                     | 維持                          |
+| 詳細表示                        | 可                  | 可                     | 維持                          |
+| 作成                            | 可                  | 可                     | 維持                          |
+| name / memo 更新                | API は可            | UI 未実装              | 後続判断                      |
+| status 更新 (`draft -> closed`) | API は可            | UI 未実装              | 終了操作を作る前に方針確定    |
+| status 更新 (`closed -> draft`) | API は可            | UI 未実装              | reopen を許可するか要判断     |
+| 買い物メモ削除                  | API は可            | UI 未実装              | 後続判断                      |
+| 候補追加                        | `closed` は不可     | `draft` のみ追加先表示 | 維持                          |
+| 候補解除                        | API は可            | UI 実装済み            | `closed` で許可するか後続判断 |
+| 購入検討一覧の追加先候補に出す  | API 上は可能        | `draft` のみ表示       | 維持                          |
+| import/export                   | 可                  | UI では直接操作対象外  | 維持                          |
+| seed / demo data                | 可                  | `closed` seed あり     | 維持                          |
+
+### UI 方針
+
+- 一覧では `draft` を `検討中`、`closed` を `終了` として badge 表示する
+- 詳細でも `終了` badge を表示する
+- `closed` memo は購入検討一覧の追加先候補に出さない
+- current frontend には `closed` へ変更する UI、`draft` に戻す UI、memo 削除 UI はまだない
+- 将来 `closed` の編集制御を入れる場合は、詳細で「終了済みのメモです」の補足を出し、候補解除や memo 編集を隠す / disabled にする案を第一候補とする
+- `closed -> draft` の reopen 導線が必要かは後続判断に残す
+
+### backend 方針
+
+- `POST /api/shopping-memos/{id}/items`
+  - current でも `closed` は 422
+  - この方針を維持する
+- `DELETE /api/shopping-memos/{id}/items/{itemId}`
+  - current では `closed` でも許可している
+  - 将来 `closed` で禁止するか、UI とセットで判断する
+- `PATCH /api/shopping-memos/{id}`
+  - current では `name / memo / status` を status に関係なく更新できる
+  - 将来は `closed` の編集可能範囲を絞るかを判断する
+- `DELETE /api/shopping-memos/{id}`
+  - current では `draft` / `closed` ともに許可できる
+  - UI を作るかどうかは別判断
+
+### current 実装との差分
+
+- current backend には `PATCH` / `DELETE` API があるが、current frontend には対応 UI がまだない
+- current backend は `closed` memo の item remove をまだ禁止していない
+- current frontend でも `closed` detail 上の候補解除操作は残っている
+- 一方で、購入検討一覧の追加先候補から `closed` memo を外す挙動、item add を拒否する挙動、status を import/export で保持する挙動は current と整理方針が一致している
+
+### edge cases
 
 - duplicate add は backend 側で skip
 - 他 user の purchase candidate は追加不可
 - `purchased / dropped` の新規追加は不可
 - 価格未設定は合計対象外
 - memo item remove は `shopping_memo_items.id` 指定
+- `closed` memo の編集制御は backend API current と frontend UI current を分けて整理し、後続タスクとして扱う
 
 ## import / export 方針
 
@@ -338,7 +423,7 @@ current:
 - 買い物メモ詳細内で候補を追加する UI
 - 購入検討詳細から単体で買い物メモへ追加する導線
 - 新規買い物メモを作成して即追加する導線
-- closed memo の編集制御方針
+- closed memo の編集制御実装
 - 送料 / クーポン
 - `shopping_memo_group_adjustments`
 - manual group
@@ -349,5 +434,5 @@ current:
 
 - 買い物メモ詳細内で候補を追加する UI
 - 購入検討詳細からの単体追加
-- closed memo 編集制御の整理
+- closed memo 編集制御の実装
 - `shopping_memo_group_adjustments`
