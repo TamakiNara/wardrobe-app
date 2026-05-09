@@ -16,10 +16,10 @@ docs 内に散らばっている planned / TODO / 後続 / 要再判断を、**c
 
 ## サマリ
 
-- 棚卸しした docs 由来タスク: **26件**
+- 棚卸しした docs 由来タスク: **27件**
 - 種別別件数:
   - `bug`: 2
-  - `ui`: 5
+  - `ui`: 6
   - `feature`: 6
   - `design`: 6
   - `docs`: 3
@@ -27,7 +27,7 @@ docs 内に散らばっている planned / TODO / 後続 / 要再判断を、**c
 - 優先度案:
   - `high`: 6
   - `medium`: 12
-  - `low`: 8
+  - `low`: 9
 
 ## バグ / 違和感
 
@@ -45,6 +45,8 @@ docs 内に散らばっている planned / TODO / 後続 / 要再判断を、**c
 | UI-03 | 買い物メモ追加モードの選択中候補可視化          | 現在選択中の候補をより分かりやすく見せる                                   | `shopping-memos.md` / `未実装 / planned`                                                                                    | shopping memos   | ui   | medium | 現行 bulk add UI 維持      | yes              |
 | UI-04 | closed memo の補足表示と操作ロック見せ方        | `終了済みのメモです` 補足や disabled 表示をどう見せるか決める              | `shopping-memos.md` / `status / edge cases`                                                                                 | shopping memos   | ui   | medium | closed 方針整理            | needs design     |
 | UI-05 | item サムネイルの dedicated mode / 簡略化再判断 | 極小サイズ時の簡略化や `allinone + bottoms` の dedicated mode 化を判断する | `items/thumbnail-current-reference.md`, `items/thumbnail-skin-exposure.md`                                                  | items thumbnails | ui   | low    | current サムネイル責務維持 | needs design     |
+
+| UI-06 | custom dropdown / popover とボトムナビの重なり確認 | fixed bottom nav / safe-area と dropdown / popover が干渉しないかを確認し、画面下部の選択肢が見えているのに押せない状態を防ぐ。ColorSelect は current で対応済みだが、他の custom select / combobox / popover / dropdown menu / date picker / modal 内 select / mobile bottom sheet 的 UI でも同観点の確認を行う | 手元タスク, ColorSelect dropdown と bottom nav 干渉修正の運用メモ | shared ui / navigation | ui | low | 新しい dropdown / popover UI の追加時 | yes |
 
 ## 機能追加
 
@@ -126,7 +128,7 @@ docs 内に散らばっている planned / TODO / 後続 / 要再判断を、**c
 | 実寸自由項目のtemplate昇格                                | docs 明記あり      | `DES-04`                                                                                       |
 | `sale_ends_at` / `discount_ends_at` のinternal name見直し | docs 明記あり      | `DES-05`                                                                                       |
 | 買い物メモの期限表示詳細化                                | docs 明記あり      | `UI-02`                                                                                        |
-| custom dropdown / popover とボトムナビの重なり確認        | docs 未明記        | 要確認。UI 確認タスクとして別途追加候補                                                        |
+| custom dropdown / popover とボトムナビの重なり確認        | docs 明記あり      | `UI-06`                                                                                        |
 
 ## 次に進める候補 5 件
 
