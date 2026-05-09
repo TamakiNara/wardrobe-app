@@ -53,6 +53,7 @@
 - [color thumbnails](./color-thumbnails.md)
 - [purchase candidates](./purchase-candidates.md)
 - [shopping memos](./shopping-memos.md)
+- [logging](./logging.md)
 - [task backlog](./task-backlog.md)
 - [ui: page header guidelines](./ui/page-header-guidelines.md)
 - [planning: next features](./planning/next-features.md)
