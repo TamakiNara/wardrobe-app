@@ -40,16 +40,25 @@ item は、所持品そのものに加えて、次の履歴・派生データと
 
 - 物理削除 API は存在する
   - `DELETE /api/items/{id}`
+- route は `auth:web` 配下で、`user_id` scope をかけた `findOrFail` で対象 item を取得する
+- そのため、他 user の item を削除することはできない
 - item status 操作 API は存在する
   - `POST /api/items/{id}/dispose`
   - `POST /api/items/{id}/reactivate`
 - care status 操作 API は存在する
   - `POST /api/items/{id}/care-status`
+- 削除成功時:
+  - `200`
+  - `{"message":"deleted"}`
 - current delete API は、以下の参照がある item を `422` で拒否する
   - `outfit_items`
   - `wear_log_items`
 - current delete API の拒否文言:
   - `このアイテムは参照中のため完全に削除できません。手放す操作を利用してください。`
+- 削除不可時の response は **message のみ**で、`reasons` 配列はまだない
+- route の実装上、`active` / `disposed` の別で delete 可否は分けていない
+  - 参照がなければ `disposed` でも delete できる想定
+  - ただし `disposed` item の削除は current feature test で明示確認されていない
 
 ### frontend UI current
 
@@ -57,7 +66,13 @@ item は、所持品そのものに加えて、次の履歴・派生データと
 - `care_status` は item 詳細画面から操作できる
 - 物理削除 button component 自体は存在する
   - `web/src/components/items/delete-item-button.tsx`
+- `delete-item-button.tsx` の current 挙動
+  - `window.confirm("このアイテムを削除しますか？\n削除したデータは元に戻せません。")`
+  - `DELETE /api/items/{id}` を BFF 経由で呼ぶ
+  - 成功時は `/items` へ遷移して `router.refresh()`
+  - 失敗時は画面内に generic error を表示する
 - ただし current item 詳細画面には delete button は結線されておらず、**通常の画面導線としては未実装扱い**とする
+- current button は API の `message` を generic user-facing 文言へ畳んでおり、削除不可理由を個別表示する実装にはなっていない
 
 ### current status / care_status
 
@@ -132,7 +147,10 @@ current の主対象:
 
 - `item_images.item_id -> items.id` は `cascadeOnDelete`
 - ただし current 実装では、item 削除時に storage 上の画像ファイルをまとめて削除する処理は確認できていない
+- `ItemImageService::deleteImage()` には単体画像削除時の storage cleanup がある
+- しかし item delete API からはその cleanup は呼ばれていない
 - そのため、将来 delete を正式導線にする場合は **storage ファイル cleanup** を別途実装判断する必要がある
+- current のままでは file orphan が残る可能性がある
 
 ### materials
 
@@ -146,6 +164,7 @@ current の主対象:
 - `converted_item_id -> items.id` は `nullOnDelete`
 - そのため item を削除すると、purchase candidate 側の item 化参照は `null` になり得る
 - 技術的には整合するが、**「item 化済み履歴」をどう解釈するか**は別途要判断
+- current feature test では、この relation がある item を delete した時の挙動は明示確認されていない
 
 ---
 
@@ -230,6 +249,11 @@ current の主対象:
 }
 ```
 
+補足:
+
+- current API はまだ `reasons` を返さず、message のみ
+- UI で削除不可理由を出し分けたい場合は、`DELETE` response 拡張か `delete-check` 導入が必要になり得る
+
 ### `GET /api/items/{id}/delete-check`
 
 - 現時点では必須ではない
@@ -265,6 +289,16 @@ current の主対象:
 
 - `このアイテムは着用履歴またはコーディネートに使われているため削除できません。`
 - `履歴を残したい場合は「手放す」を利用してください。`
+
+### current button を使い回す場合の論点
+
+- current `delete-item-button.tsx` は BFF / confirm / redirect の基本動作はすでに持っている
+- 一方で次は未対応
+  - item 詳細への結線
+  - 削除不可理由の出し分け
+  - storage file cleanup 前提の文言
+  - `converted_item_id` がある item の扱い説明
+- そのため、**完全に作り直す必須性はないが、そのまま結線する前に仕様差分を吸収する修正が必要** と整理する
 
 ---
 
@@ -312,14 +346,50 @@ current の主対象:
 
 ---
 
+## tests の current
+
+current feature / component test で確認できること:
+
+- `ItemsEndpointsTest`
+  - unreferenced item を delete できる
+  - outfit 参照あり item は `422`
+  - wear log 参照あり item は `422`
+- `delete-item-button.test.tsx`
+  - `500` 失敗時に raw DB error を画面へ出さない
+
+current で未確認のもの:
+
+- 他 user item の delete
+- `disposed` item の delete
+- images / materials を持つ item の delete
+- `converted_item_id` がある item の delete
+- item delete 後の storage file cleanup
+
+---
+
+## UI 実装前の判断事項
+
+- image file cleanup 未実装のまま delete UI を出すか
+- `converted_item_id` がある item を delete 可能にするか
+- 削除不可理由を API response に追加するか
+- `delete-check` API を作るか
+- current `delete-item-button.tsx` を修正して使うか、作り直すか
+- item detail のどこに置くか
+- `状態管理` セクションとどう分けるか
+- confirm 文言に image cleanup や履歴影響をどこまで書くか
+- 成功後の遷移先を `/items` 固定でよいか
+
+---
+
 ## 実装する場合の次ステップ
 
 1. delete 可否条件を backend validation として明文化する
-2. purchase candidate 由来 item の扱いを決める
-3. item delete 時の image file cleanup を実装するか決める
-4. item 詳細に delete UI を正式導線として置くか決める
-5. delete 不可理由の UI 表示方式を決める
-6. structured log を `item.delete.*` / `item.status.*` として追加する
+2. 他 user item / disposed item / converted item を含む delete test を追加する
+3. purchase candidate 由来 item の扱いを決める
+4. item delete 時の image file cleanup を実装するか決める
+5. item 詳細に delete UI を正式導線として置くか決める
+6. delete 不可理由の UI 表示方式を決める
+7. structured log を `item.delete.*` / `item.status.*` として追加する
 
 ---
 
