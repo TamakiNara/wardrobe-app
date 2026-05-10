@@ -12,6 +12,7 @@ use App\Models\UserBrand;
 use App\Models\UserTpo;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -3756,12 +3757,16 @@ class ItemsEndpointsTest extends TestCase
         }
     }
 
-    public function test_delete_item_deletes_item_image_rows_via_cascade(): void
+    public function test_delete_item_deletes_item_image_rows_and_files_via_cascade(): void
     {
+        Storage::fake('public');
+
         $user = User::factory()->create();
         $item = $this->createItem($user, [
             'name' => '画像付きアイテム',
         ]);
+        Storage::disk('public')->put(sprintf('items/%d/first.png', $item->id), 'first');
+        Storage::disk('public')->put(sprintf('items/%d/second.png', $item->id), 'second');
         $item->images()->createMany([
             [
                 'disk' => 'public',
@@ -3803,6 +3808,9 @@ class ItemsEndpointsTest extends TestCase
                 'id' => $imageId,
             ]);
         }
+
+        Storage::disk('public')->assertMissing(sprintf('items/%d/first.png', $item->id));
+        Storage::disk('public')->assertMissing(sprintf('items/%d/second.png', $item->id));
     }
 
     public function test_delete_item_nulls_converted_item_id_on_purchase_candidates(): void
@@ -3833,6 +3841,56 @@ class ItemsEndpointsTest extends TestCase
             'id' => $candidate->id,
             'converted_item_id' => null,
         ]);
+    }
+
+    public function test_delete_item_logs_warning_when_image_cleanup_fails_but_still_deletes_item(): void
+    {
+        Log::spy();
+
+        $user = User::factory()->create();
+        $item = $this->createItem($user, [
+            'name' => 'cleanup失敗アイテム',
+        ]);
+        $image = $item->images()->create([
+            'disk' => 'missing-disk',
+            'path' => sprintf('items/%d/missing.png', $item->id),
+            'original_filename' => 'missing.png',
+            'mime_type' => 'image/png',
+            'file_size' => 1000,
+            'sort_order' => 1,
+            'is_primary' => true,
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->deleteJson("/api/items/{$item->id}", [], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('message', 'deleted');
+
+        $this->assertDatabaseMissing('items', [
+            'id' => $item->id,
+        ]);
+        $this->assertDatabaseMissing('item_images', [
+            'id' => $image->id,
+        ]);
+
+        Log::shouldHaveReceived('warning')
+            ->once()
+            ->withArgs(function (string $message, array $context) use ($user, $item) {
+                return $message === 'item.delete.image_cleanup_failed'
+                    && ($context['operation'] ?? null) === 'item.delete.image_cleanup_failed'
+                    && ($context['user_id'] ?? null) === $user->id
+                    && ($context['item_id'] ?? null) === $item->id
+                    && ($context['image_count'] ?? null) === 1
+                    && ($context['failed_count'] ?? null) === 1
+                    && ($context['failures'][0]['disk'] ?? null) === 'missing-disk'
+                    && ($context['failures'][0]['path_basename'] ?? null) === 'missing.png'
+                    && isset($context['failures'][0]['exception_class'])
+                    && isset($context['failures'][0]['message']);
+            });
     }
 
     public function test_delete_item_returns_422_when_item_is_referenced_by_outfit(): void

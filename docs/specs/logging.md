@@ -1,7 +1,7 @@
 # Logging
 
 この docs は、アプリ全体のログ設計方針を整理するための正本とする。  
-今回は **実装変更なし** で、current の状況確認と、今後実装する場合の方針整理だけを扱う。
+current の実装状況と、今後追加する場合の方針を分けて扱う。
 
 ## 概要
 
@@ -143,12 +143,15 @@ current:
 current:
 
 - create / update / delete / disposed / reactivate 相当の処理はある
-- ただし structured log はほぼ未整備
+- item delete 時の image cleanup failure については warning structured log を導入済み
+  - `item.delete.image_cleanup_failed`
+- ただし `item.delete.completed` や `item.status.disposed / reactivated` は未整備
 
 不足:
 
-- delete
-- disposed / reactivate
+- `item.delete.completed`
+- `item.status.disposed`
+- `item.status.reactivated`
 - image sync failure
 
 ### wear log
@@ -556,7 +559,7 @@ current:
 1. import / export に structured log を追加する
 2. weather external API failure に `warning / error` log を追加する
 3. shopping memo bulk add / remove に `info` log を追加する
-4. item delete / disposed / reactivate に `info` log を追加する
+4. item delete の completed log と disposed / reactivate に `info` log を追加する
 5. 共通の log context builder / helper を作るか判断する
 6. `request_id / correlation_id` は後続判断にする
 7. DB audit log は import / delete / bulk operation だけ候補として別設計する
@@ -569,11 +572,14 @@ current:
 - ただし structured application log は未整備
 - import-export と weather external API failure には structured log を導入済み
 - shopping memo bulk add / item remove にも structured log を導入済み
-- item state change は引き続き未整備
+- item delete の image cleanup failure warning は導入済み
+- item state change と delete completed info は引き続き未整備
 
 ### planned
 
-- item delete / disposed / reactivate
+- `item.delete.completed`
+- `item.status.disposed`
+- `item.status.reactivated`
 
 から順に structured log を入れる
 

@@ -57,8 +57,8 @@ item は、所持品そのものに加えて、次の履歴・派生データと
   - `このアイテムは参照中のため完全に削除できません。手放す操作を利用してください。`
 - 削除不可時の response は **message のみ**で、`reasons` 配列はまだない
 - route の実装上、`active` / `disposed` の別で delete 可否は分けていない
-  - 参照がなければ `disposed` でも delete できる想定
-  - ただし `disposed` item の削除は current feature test で明示確認されていない
+  - 参照がなければ `disposed` でも delete できる
+  - current feature test でも `disposed` item の delete 成功を確認済み
 
 ### frontend UI current
 
@@ -146,11 +146,9 @@ current の主対象:
 ### images
 
 - `item_images.item_id -> items.id` は `cascadeOnDelete`
-- ただし current 実装では、item 削除時に storage 上の画像ファイルをまとめて削除する処理は確認できていない
-- `ItemImageService::deleteImage()` には単体画像削除時の storage cleanup がある
-- しかし item delete API からはその cleanup は呼ばれていない
-- そのため、将来 delete を正式導線にする場合は **storage ファイル cleanup** を別途実装判断する必要がある
-- current のままでは file orphan が残る可能性がある
+- current 実装では、item 削除時に対象 image file の `disk + path` を先に確保し、**DB 上の item delete 成功後に storage file cleanup を行う**
+- `ItemImageService::deleteImage()` には単体画像削除時の storage cleanup があり、item delete でも同系統の cleanup を使う
+- file delete に失敗しても item delete 自体は成功扱いとし、orphan になりうる file は warning log で追えるようにする
 
 #### current の画像保存方針
 
@@ -167,7 +165,8 @@ current の主対象:
 - item update / 画像同期:
   - `ItemImageSync` は差し替え・コピー時の整合を扱う
 - item delete:
-  - storage file cleanup は未実装
+  - DB delete 後に storage file cleanup を行う
+  - cleanup failure は `item.delete.image_cleanup_failed` warning log を残す
 
 ### materials
 
@@ -181,7 +180,7 @@ current の主対象:
 - `converted_item_id -> items.id` は `nullOnDelete`
 - そのため item を削除すると、purchase candidate 側の item 化参照は `null` になり得る
 - 技術的には整合するが、**「item 化済み履歴」をどう解釈するか**は別途要判断
-- current feature test では、この relation がある item を delete した時の挙動は明示確認されていない
+- current feature test では、この relation がある item を delete した時に candidate 自体は残り、`converted_item_id` が `null` になることを確認済み
 
 ---
 
@@ -236,7 +235,7 @@ current の主対象:
   - `wear_log_items`
     参照がある item の delete を拒否している
 - この方向性は妥当で、今後 UI を正式導線にする場合も維持を第一候補とする
-- さらに purchase candidate 由来・storage file cleanup まで考慮して、delete 可否判定を明文化するのが次段階
+- さらに purchase candidate 由来 relation まで考慮して、delete 可否判定を明文化するのが次段階
 
 ### image file cleanup の推奨
 
@@ -351,7 +350,7 @@ current の主対象:
 - confirm を出す
 - `この操作は取り消せません。`
 - `画像も削除されます。`
-  - 実際に storage cleanup を入れるなら明記
+  - current backend は storage cleanup 済み前提で文言を合わせられる
 
 ### 削除不可の場合
 
@@ -377,11 +376,12 @@ current の主対象:
 
 ### UI 結線前の扱い
 
-- image cleanup 方針の確定は、UI 結線前の **blocker 寄り** とする
-- 推奨は、**cleanup 実装も UI 結線前に先に入れる**
-- 理由:
-  - current のまま delete UI を出すと orphan file を継続的に増やしうる
-  - item delete は取り消せない物理削除として見せる想定なので、storage 側も可能な範囲で整合している方が自然
+- image cleanup 方針と backend 実装は current で揃った
+- そのため UI 結線前の主な論点は
+  - 削除不可理由の見せ方
+  - `converted_item_id` がある item の扱い
+  - confirm 文言
+    へ移ったと整理する
 
 ---
 
@@ -468,21 +468,22 @@ current feature / component test で確認できること:
   - `disposed` item でも unreferenced なら delete できる
   - item materials を持つ item は delete でき、DB row も cascade で消える
   - item image rows を持つ item は delete でき、DB row も cascade で消える
+  - item image rows を持つ item は delete でき、storage file も cleanup される
   - `converted_item_id` を持つ purchase candidate があっても item は delete でき、candidate 側は `nullOnDelete`
   - outfit 参照あり item は `422`
   - wear log 参照あり item は `422`
+  - image cleanup failure が起きても item delete 自体は成功し、warning log を残す
 - `delete-item-button.test.tsx`
   - `500` 失敗時に raw DB error を画面へ出さない
 
 current で未確認のもの:
 
-- item delete 後の storage file cleanup
+- image cleanup failure を後続 cleanup job で再回収するか
 
 ---
 
 ## UI 実装前の判断事項
 
-- image file cleanup 未実装のまま delete UI を出すか
 - `converted_item_id` がある item を delete 可能にするか
 - 削除不可理由を API response に追加するか
 - `delete-check` API を作るか
@@ -494,21 +495,18 @@ current で未確認のもの:
 
 推奨整理:
 
-- cleanup 方針の確定は blocker
-- cleanup 実装も、可能なら UI 結線前に先に行う
+- cleanup は current backend で対応済み
+- 次は UI と API message の整合を詰める
 
 ---
 
 ## 実装する場合の次ステップ
 
 1. delete 可否条件を backend validation として明文化する
-2. 他 user item / disposed item / converted item を含む delete test を追加する
-3. purchase candidate 由来 item の扱いを決める
-4. item delete 時の image file cleanup を実装する
-5. cleanup failure warning log を追加する
-6. item 詳細に delete UI を正式導線として置くか決める
-7. delete 不可理由の UI 表示方式を決める
-8. structured log を `item.delete.*` / `item.status.*` として追加する
+2. purchase candidate 由来 item の扱いを決める
+3. item 詳細に delete UI を正式導線として置くか決める
+4. delete 不可理由の UI 表示方式を決める
+5. `item.delete.completed` / `item.status.*` の structured log を追加する
 
 ---
 

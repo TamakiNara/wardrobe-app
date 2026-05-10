@@ -17,6 +17,7 @@ use App\Models\Item;
 use App\Models\Outfit;
 use App\Services\Brands\UserBrandService;
 use App\Services\Items\ItemDuplicateService;
+use App\Services\Items\ItemImageService;
 use App\Services\Items\ItemStoreService;
 use App\Services\Items\ItemUpdateService;
 use App\Services\Settings\UserPreferenceService;
@@ -33,6 +34,7 @@ use App\Support\TpoSelectionResolver;
 use App\Support\UserPreferencePayloadBuilder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 
 if (! function_exists('defaultRolledOutVisibleCategoryIds')) {
@@ -371,6 +373,7 @@ Route::prefix('api')->middleware(['web'])->group(function () {
     Route::middleware('auth:web')->delete('/items/{id}', function (Request $request, int $id) {
         $item = Item::query()
             ->where('user_id', $request->user()->id)
+            ->with('images')
             ->findOrFail($id);
 
         $hasOutfitReference = $item->outfitItems()->exists();
@@ -382,7 +385,21 @@ Route::prefix('api')->middleware(['web'])->group(function () {
             ], 422);
         }
 
+        $imagesForCleanup = $item->images->all();
         $item->delete();
+
+        $cleanupFailures = app(ItemImageService::class)->deleteStoredImages($imagesForCleanup);
+
+        if ($cleanupFailures !== []) {
+            Log::warning('item.delete.image_cleanup_failed', [
+                'operation' => 'item.delete.image_cleanup_failed',
+                'user_id' => $request->user()->id,
+                'item_id' => $item->id,
+                'image_count' => count($imagesForCleanup),
+                'failed_count' => count($cleanupFailures),
+                'failures' => $cleanupFailures,
+            ]);
+        }
 
         return response()->json([
             'message' => 'deleted',

@@ -9,6 +9,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
+use Throwable;
 
 class ItemImageService
 {
@@ -67,6 +68,45 @@ class ItemImageService
                 $remainingImages->first()->forceFill(['is_primary' => true])->save();
             }
         });
+    }
+
+    /**
+     * @param  iterable<ItemImage>  $images
+     * @return array<int, array{
+     *     disk: string,
+     *     path_basename: string,
+     *     exception_class: class-string<Throwable>,
+     *     message: string
+     * }>
+     */
+    public function deleteStoredImages(iterable $images): array
+    {
+        $failures = [];
+
+        foreach ($images as $image) {
+            if (
+                ! $image instanceof ItemImage
+                || $image->disk === null
+                || $image->disk === ''
+                || $image->path === null
+                || $image->path === ''
+            ) {
+                continue;
+            }
+
+            try {
+                $this->deleteStoredImage($image);
+            } catch (Throwable $exception) {
+                $failures[] = [
+                    'disk' => $image->disk,
+                    'path_basename' => basename($image->path),
+                    'exception_class' => $exception::class,
+                    'message' => $exception->getMessage(),
+                ];
+            }
+        }
+
+        return $failures;
     }
 
     private function findOwnedItem(User $user, int $itemId): Item
