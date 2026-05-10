@@ -209,7 +209,7 @@ export default async function OutfitDetailPage({
             ) : null
           }
           actions={
-            <>
+            <div className="flex w-full flex-wrap items-center justify-end gap-3 md:max-w-[32rem]">
               <Link
                 href={backHref}
                 className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
@@ -229,7 +229,7 @@ export default async function OutfitDetailPage({
                 編集
               </Link>
               <DeleteOutfitButton outfitId={outfit.id} />
-            </>
+            </div>
           }
         />
 

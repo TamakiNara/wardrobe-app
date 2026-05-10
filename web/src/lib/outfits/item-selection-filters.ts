@@ -19,16 +19,34 @@ export type OutfitItemSelectionFilters = {
   tpo: string;
 };
 
-function matchesSeasonFilter(seasons: string[], filterSeason: string) {
+function normalizeStringList(values: string[] | null | undefined) {
+  if (!Array.isArray(values)) {
+    return [];
+  }
+
+  return values.filter(
+    (value): value is string => typeof value === "string" && value !== "",
+  );
+}
+
+function matchesSeasonFilter(
+  seasons: string[] | null | undefined,
+  filterSeason: string,
+) {
+  const normalizedSeasons = normalizeStringList(seasons);
+
   if (filterSeason === "") {
     return true;
   }
 
-  if (seasons.length === 0) {
+  if (normalizedSeasons.length === 0) {
     return true;
   }
 
-  return seasons.includes(filterSeason) || seasons.includes("オール");
+  return (
+    normalizedSeasons.includes(filterSeason) ||
+    normalizedSeasons.includes("オール")
+  );
 }
 
 function normalizeText(value?: string | null) {
@@ -91,7 +109,7 @@ export function buildOutfitItemBrandOptions(
 
 export function buildOutfitItemTpoOptions(items: ItemRecord[]) {
   return Array.from(
-    new Set(items.flatMap((item) => item.tpos.filter((tpo) => tpo !== ""))),
+    new Set(items.flatMap((item) => normalizeStringList(item.tpos))),
   ).sort((left, right) => left.localeCompare(right, "ja-JP"));
 }
 
@@ -135,7 +153,9 @@ export function filterOutfitCandidateItems(
       normalizedSubcategory === "" ||
       currentSubcategory === normalizedSubcategory;
     const matchesSeason = matchesSeasonFilter(item.seasons, filters.season);
-    const matchesTpo = filters.tpo === "" || item.tpos.includes(filters.tpo);
+    const matchesTpo =
+      filters.tpo === "" ||
+      normalizeStringList(item.tpos).includes(filters.tpo);
 
     return (
       matchesKeyword &&

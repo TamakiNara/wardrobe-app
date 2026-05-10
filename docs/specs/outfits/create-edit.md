@@ -272,6 +272,12 @@ Outfit は、以下の役割を持つ。
 
 `DELETE /api/outfits/{id}`
 
+- current frontend では native `window.confirm()` は使わず、detail 画面の削除導線で button 内のアプリ確認 UI を表示する
+- 見出しは `コーディネートを削除しますか？`
+- 本文は `この操作は取り消せません。` と `コーディネートに含まれるアイテム自体は削除されません。` を表示する
+- success 時は `/outfits` へ遷移する
+- backend error message が safe に表示できる場合はそのまま表示し、internal error marker を含む場合は fallback を表示する
+
 関連資料:
 
 - DB: `docs/data/database.md`
