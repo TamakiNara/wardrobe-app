@@ -1535,7 +1535,52 @@ pagination meta は表示カード単位で扱う。
 - 本文は `この操作は取り消せません。` と `関連する表示や比較にも影響する場合があります。` を基本とする
 - success 時は `/purchase-candidates?message=deleted` へ遷移する
 - backend error message が安全に表示できる場合はそのまま表示し、internal error marker を含む場合は fallback を表示する
-- `shopping_memo_items.purchase_candidate_id` は current DB で `restrictOnDelete` のため、買い物メモに含まれる candidate の削除 UX は後続で再整理する
+- `shopping_memo_items.purchase_candidate_id` は current DB で `restrictOnDelete`
+- current backend には「買い物メモに含まれているため削除不可」の事前チェックや専用 `422` message はまだない
+- そのため、買い物メモに含まれる candidate を削除すると、current では DB 制約由来の失敗に依存した挙動になりやすい
+- current frontend は backend message が安全ならそのまま表示するが、DB 例外由来の内容は fallback に寄る可能性があり、ユーザーには削除理由が十分に伝わらない
+
+#### 買い物メモに含まれている場合の削除方針案
+
+案A: 削除不可にする
+
+- backend で事前に shopping memo 所属をチェックする
+- `422` と user-facing message を返す
+- message 候補:
+  - `この購入検討は買い物メモに含まれているため削除できません。先に買い物メモから外してください。`
+- 長所:
+  - current の `restrictOnDelete` と整合する
+  - 比較中の候補が買い物メモから突然消えない
+  - ユーザーに次の行動が分かりやすい
+- 短所:
+  - 先に買い物メモから外す手間がある
+
+案B: 削除時に shopping memo item も自動削除する
+
+- purchase candidate を削除すると、関連 `shopping_memo_items` も同時に削除する
+- 長所:
+  - ユーザー操作が少ない
+- 短所:
+  - 比較中メモから候補が自動で消える
+  - current DB 制約と逆方向
+  - 影響が見えづらい
+
+案C: 影響を明示して削除する
+
+- backend は cascade または明示削除に寄せる
+- frontend confirm で「買い物メモからも外れる」ことを明示する
+- 長所:
+  - UX 上の説明はしやすい
+- 短所:
+  - backend / DB 制約変更が必要
+  - 比較中メモへの影響が大きい
+
+#### 推奨
+
+- MVP では案Aを第一候補とする
+- 買い物メモに含まれている購入検討は、先に買い物メモから外してから削除する
+- backend は DB exception 任せにせず、将来は事前チェックで `422` + user-facing message を返す
+- frontend はその `422` message をそのまま表示すれば十分で、初期段階では `delete-check` API までは不要
 
 ### duplicate draft 生成
 
