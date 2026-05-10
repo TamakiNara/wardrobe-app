@@ -1536,9 +1536,11 @@ pagination meta は表示カード単位で扱う。
 - success 時は `/purchase-candidates?message=deleted` へ遷移する
 - backend error message が安全に表示できる場合はそのまま表示し、internal error marker を含む場合は fallback を表示する
 - `shopping_memo_items.purchase_candidate_id` は current DB で `restrictOnDelete`
-- current backend には「買い物メモに含まれているため削除不可」の事前チェックや専用 `422` message はまだない
-- そのため、買い物メモに含まれる candidate を削除すると、current では DB 制約由来の失敗に依存した挙動になりやすい
-- current frontend は backend message が安全ならそのまま表示するが、DB 例外由来の内容は fallback に寄る可能性があり、ユーザーには削除理由が十分に伝わらない
+- current backend では、買い物メモに含まれている candidate を削除する前に shopping memo 所属を事前チェックする
+- 含まれている場合は `422` を返し、message は次を正本とする
+  - `この購入検討は買い物メモに含まれているため削除できません。先に買い物メモから外してください。`
+- その場合、purchase candidate も `shopping_memo_items` も削除しない
+- current frontend はこの backend message を safe な user-facing message としてそのまま表示できる
 
 #### 買い物メモに含まれている場合の削除方針案
 
@@ -1579,7 +1581,7 @@ pagination meta は表示カード単位で扱う。
 
 - MVP では案Aを第一候補とする
 - 買い物メモに含まれている購入検討は、先に買い物メモから外してから削除する
-- backend は DB exception 任せにせず、将来は事前チェックで `422` + user-facing message を返す
+- backend は DB exception 任せにせず、事前チェックで `422` + user-facing message を返す
 - frontend はその `422` message をそのまま表示すれば十分で、初期段階では `delete-check` API までは不要
 
 ### duplicate draft 生成

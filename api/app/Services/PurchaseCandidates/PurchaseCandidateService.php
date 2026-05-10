@@ -21,6 +21,8 @@ use Illuminate\Validation\ValidationException;
 
 class PurchaseCandidateService
 {
+    public const DELETE_BLOCKED_BY_SHOPPING_MEMO_MESSAGE = 'この購入検討は買い物メモに含まれているため削除できません。先に買い物メモから外してください。';
+
     public function __construct(
         private readonly UserBrandService $userBrandService,
     ) {}
@@ -159,6 +161,16 @@ class PurchaseCandidateService
     public function delete(User $user, int $candidateId): void
     {
         $candidate = $this->findOwnedCandidate($user, $candidateId);
+
+        if ($candidate->shoppingMemoItems()
+            ->whereHas('shoppingMemo', function ($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })
+            ->exists()) {
+            throw ValidationException::withMessages([
+                'purchase_candidate' => self::DELETE_BLOCKED_BY_SHOPPING_MEMO_MESSAGE,
+            ]);
+        }
 
         DB::transaction(function () use ($candidate) {
             $images = $candidate->images()->get();

@@ -112,6 +112,7 @@ fields:
 - memo 削除時は `shopping_memo_items` も cascade
 - purchase candidate 削除は restrict 方針
 - そのため、買い物メモに含まれている purchase candidate は current DB 制約上そのままでは削除できない
+- current backend では、purchase candidate 削除前に shopping memo 所属を事前チェックし、含まれている場合は `422` + `先に買い物メモから外してください。` を返す
 
 ### 未実装
 
@@ -362,7 +363,7 @@ current:
 - 価格未設定は合計対象外
 - memo item remove は `shopping_memo_items.id` 指定
 - `closed` memo の編集制御は backend API current と frontend UI current を分けて整理し、後続タスクとして扱う
-- 購入検討削除と買い物メモ所属が衝突した場合の current UX は未整理で、将来は「先に買い物メモから外してください」の `422` message を返す案を第一候補とする
+- 購入検討削除と買い物メモ所属が衝突した場合は、current backend で `422` + `先に買い物メモから外してください。` を返す
 
 ## import / export 方針
 
@@ -433,7 +434,6 @@ current:
 - 買い物メモ詳細内で候補を追加する UI
 - 購入検討詳細から単体で買い物メモへ追加する導線
 - 新規買い物メモを作成して即追加する導線
-- 買い物メモに含まれている購入検討の削除 UX 整理
 - closed memo の編集制御実装
 - 送料 / クーポン
 - `shopping_memo_group_adjustments`

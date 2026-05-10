@@ -78,7 +78,16 @@ class PurchaseCandidateController extends Controller
 
     public function destroy(Request $request, int $id): JsonResponse
     {
-        $this->purchaseCandidateService->delete($request->user(), $id);
+        try {
+            $this->purchaseCandidateService->delete($request->user(), $id);
+        } catch (ValidationException $exception) {
+            $errors = $exception->errors();
+
+            return response()->json([
+                'message' => $errors['purchase_candidate'][0] ?? $exception->getMessage(),
+                'errors' => $errors,
+            ], 422);
+        }
 
         return response()->json([
             'message' => 'deleted',

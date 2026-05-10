@@ -7,7 +7,10 @@ use App\Models\CategoryMaster;
 use App\Models\Item;
 use App\Models\PurchaseCandidate;
 use App\Models\PurchaseCandidateGroup;
+use App\Models\ShoppingMemo;
+use App\Models\ShoppingMemoItem;
 use App\Models\User;
+use App\Services\PurchaseCandidates\PurchaseCandidateService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -1273,6 +1276,54 @@ class PurchaseCandidateEndpointsTest extends TestCase
 
         $this->assertDatabaseMissing('purchase_candidates', [
             'id' => $candidate->id,
+        ]);
+    }
+
+    public function test_delete_purchase_candidate_returns_user_facing_message_when_candidate_is_in_shopping_memo(): void
+    {
+        $user = User::factory()->create();
+        $candidate = $this->createCandidate($user);
+        $memo = ShoppingMemo::query()->create([
+            'user_id' => $user->id,
+            'name' => '春夏物',
+            'memo' => '比較中',
+            'status' => 'draft',
+        ]);
+
+        $memoItem = ShoppingMemoItem::query()->create([
+            'shopping_memo_id' => $memo->id,
+            'purchase_candidate_id' => $candidate->id,
+            'quantity' => 1,
+            'priority' => null,
+            'memo' => null,
+            'sort_order' => 0,
+        ]);
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $response = $this->deleteJson("/api/purchase-candidates/{$candidate->id}", [], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonPath(
+                'message',
+                PurchaseCandidateService::DELETE_BLOCKED_BY_SHOPPING_MEMO_MESSAGE,
+            )
+            ->assertJsonPath(
+                'errors.purchase_candidate.0',
+                PurchaseCandidateService::DELETE_BLOCKED_BY_SHOPPING_MEMO_MESSAGE,
+            );
+
+        $this->assertDatabaseHas('purchase_candidates', [
+            'id' => $candidate->id,
+        ]);
+        $this->assertDatabaseHas('shopping_memo_items', [
+            'id' => $memoItem->id,
+            'shopping_memo_id' => $memo->id,
+            'purchase_candidate_id' => $candidate->id,
         ]);
     }
 
