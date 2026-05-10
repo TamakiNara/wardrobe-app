@@ -7,6 +7,7 @@
 - [items: tops](./items/tops.md)
 - [items: underwear](./items/underwear.md)
 - [items: status management](./items/status-management.md)
+- [items: delete policy](./items/delete-policy.md)
 - [items: detail status UI](./items/detail-status-ui.md)
 - [items: material composition](./items/material-composition.md)
 - [items: closet view](./items/closet-view.md)
