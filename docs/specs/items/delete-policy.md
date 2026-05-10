@@ -67,7 +67,7 @@ item は、所持品そのものに加えて、次の履歴・派生データと
 - 物理削除 button component 自体は存在する
   - `web/src/components/items/delete-item-button.tsx`
 - `delete-item-button.tsx` の current 挙動
-  - `window.confirm("このアイテムを削除しますか？\n削除したデータは元に戻せません。")`
+  - native `window.confirm()` は使わず、component 内の確認 UI を表示する
   - `DELETE /api/items/{id}` を BFF 経由で呼ぶ
   - 成功時は `/items` へ遷移して `router.refresh()`
   - 失敗時は画面内に generic error を表示する
@@ -78,7 +78,7 @@ item は、所持品そのものに加えて、次の履歴・派生データと
 
 - `delete-item-button.tsx` は current で item detail 最下部の `削除` セクションに結線済み
 - button 文言は `アイテムを削除する`
-- confirm では、取り消せないこと・`手放す` との違い・登録画像削除を明示する
+- 確認 UI では、取り消せないこと・`手放す` との違い・登録画像削除を明示する
 - `422` の削除不可 message は generic error に潰さず、そのまま表示する
 
 ### current status / care_status

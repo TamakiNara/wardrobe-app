@@ -22,6 +22,7 @@ item 詳細画面で行う status 操作 UI の仕様を整理する。
 - status 変更は通常の create / update とは別導線で扱う
 - UI は現在の status に応じて 1 つだけ主要アクションを表示する
 - 物理削除は `状態管理` の主導線には混ぜず、item detail 最下部の `削除` セクションで補助的に扱う
+- 削除確認は native confirm ではなく、item detail 内のアプリ確認 UI で行う
 - `care_status` は item 詳細から付与 / 解除する
 - `care_status` は主 status と別導線で扱い、通常編集フォームには混ぜても主 status の代替にはしない
 - `複製` / `色違い追加` は status 操作とは別系統の派生作成導線として扱う

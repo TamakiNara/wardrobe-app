@@ -19,10 +19,18 @@ async function waitForEffects() {
   await new Promise((resolve) => setTimeout(resolve, 0));
 }
 
+function findButtonByText(
+  container: HTMLDivElement,
+  label: string,
+): HTMLButtonElement | undefined {
+  return Array.from(container.querySelectorAll("button")).find(
+    (button): button is HTMLButtonElement => button.textContent === label,
+  );
+}
+
 describe("DeleteItemButton", () => {
   let container: HTMLDivElement;
   let root: ReturnType<typeof createRoot>;
-  let confirmMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -30,8 +38,6 @@ describe("DeleteItemButton", () => {
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
-    confirmMock = vi.fn().mockReturnValue(true);
-    vi.stubGlobal("confirm", confirmMock);
   });
 
   afterEach(() => {
@@ -58,53 +64,67 @@ describe("DeleteItemButton", () => {
     expect(container.textContent).toContain("アイテムを削除する");
   });
 
-  it("confirm文言がdelete policyどおり", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockResolvedValue({
-        ok: true,
-        status: 200,
-        json: async () => ({ message: "deleted" }),
-      }),
-    );
+  it("初期状態では確認UIを表示しない", async () => {
+    await renderDeleteButton();
+
+    expect(container.textContent).not.toContain("アイテムを削除しますか？");
+    expect(container.textContent).not.toContain("この操作は取り消せません。");
+    expect(container.textContent).not.toContain("キャンセル");
+  });
+
+  it("削除ボタンを押すと確認UIが表示され、native confirmは使わない", async () => {
+    const confirmMock = vi.fn();
+    const fetchMock = vi.fn();
+    vi.stubGlobal("confirm", confirmMock);
+    vi.stubGlobal("fetch", fetchMock);
 
     await renderDeleteButton();
 
-    const button = container.querySelector("button");
+    const openButton = findButtonByText(container, "アイテムを削除する");
 
     await act(async () => {
-      button?.click();
+      openButton?.click();
       await waitForEffects();
     });
 
-    expect(confirmMock).toHaveBeenCalledWith(
-      [
-        "このアイテムを削除しますか？",
-        "この操作は取り消せません。実際に手放しただけの場合は「手放す」を使ってください。",
-        "登録画像も削除されます。",
-      ].join("\n"),
+    expect(confirmMock).not.toHaveBeenCalled();
+    expect(container.textContent).toContain("アイテムを削除しますか？");
+    expect(container.textContent).toContain("この操作は取り消せません。");
+    expect(container.textContent).toContain(
+      "実際に手放しただけの場合は「手放す」を使ってください。",
     );
+    expect(container.textContent).toContain("登録画像も削除されます。");
+    expect(container.textContent).toContain("キャンセル");
+    expect(container.textContent).toContain("削除する");
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("confirmをキャンセルした場合はDELETEしない", async () => {
-    confirmMock.mockReturnValue(false);
+  it("キャンセルした場合はDELETEしない", async () => {
     const fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);
 
     await renderDeleteButton();
 
-    const button = container.querySelector("button");
+    const openButton = findButtonByText(container, "アイテムを削除する");
 
     await act(async () => {
-      button?.click();
+      openButton?.click();
+      await waitForEffects();
+    });
+
+    const cancelButton = findButtonByText(container, "キャンセル");
+
+    await act(async () => {
+      cancelButton?.click();
       await waitForEffects();
     });
 
     expect(fetchMock).not.toHaveBeenCalled();
     expect(pushMock).not.toHaveBeenCalled();
+    expect(container.textContent).not.toContain("この操作は取り消せません。");
   });
 
-  it("confirm後にDELETEを呼び、成功時は/itemsへ遷移する", async () => {
+  it("削除するを押すとDELETEを呼び、成功時は/itemsへ遷移する", async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       status: 200,
@@ -114,10 +134,17 @@ describe("DeleteItemButton", () => {
 
     await renderDeleteButton();
 
-    const button = container.querySelector("button");
+    const openButton = findButtonByText(container, "アイテムを削除する");
 
     await act(async () => {
-      button?.click();
+      openButton?.click();
+      await waitForEffects();
+    });
+
+    const submitButton = findButtonByText(container, "削除する");
+
+    await act(async () => {
+      submitButton?.click();
       await waitForEffects();
     });
 
@@ -143,10 +170,17 @@ describe("DeleteItemButton", () => {
 
     await renderDeleteButton();
 
-    const button = container.querySelector("button");
+    const openButton = findButtonByText(container, "アイテムを削除する");
 
     await act(async () => {
-      button?.click();
+      openButton?.click();
+      await waitForEffects();
+    });
+
+    const submitButton = findButtonByText(container, "削除する");
+
+    await act(async () => {
+      submitButton?.click();
       await waitForEffects();
     });
 
@@ -167,10 +201,17 @@ describe("DeleteItemButton", () => {
 
     await renderDeleteButton();
 
-    const button = container.querySelector("button");
+    const openButton = findButtonByText(container, "アイテムを削除する");
 
     await act(async () => {
-      button?.click();
+      openButton?.click();
+      await waitForEffects();
+    });
+
+    const submitButton = findButtonByText(container, "削除する");
+
+    await act(async () => {
+      submitButton?.click();
       await waitForEffects();
     });
 
@@ -191,14 +232,20 @@ describe("DeleteItemButton", () => {
 
     await renderDeleteButton();
 
-    const button = container.querySelector("button");
+    const openButton = findButtonByText(container, "アイテムを削除する");
 
     await act(async () => {
-      button?.click();
+      openButton?.click();
       await waitForEffects();
     });
 
-    expect(confirmMock).toHaveBeenCalled();
+    const submitButton = findButtonByText(container, "削除する");
+
+    await act(async () => {
+      submitButton?.click();
+      await waitForEffects();
+    });
+
     expect(container.textContent).toContain("アイテムを削除できませんでした。");
     expect(container.textContent).not.toContain("SQLSTATE");
   });
