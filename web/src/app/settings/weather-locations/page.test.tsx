@@ -608,7 +608,50 @@ describe("SettingsWeatherLocationsPage", () => {
     ).toBeNull();
   });
 
-  it("地域を削除できる", async () => {
+  it("地域削除の確認UIを表示して削除できる", async () => {
+    const confirmMock = vi.spyOn(window, "confirm").mockReturnValue(true);
+    const { default: SettingsWeatherLocationsPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(SettingsWeatherLocationsPage));
+      await waitForEffects();
+    });
+
+    expect(container.textContent).not.toContain("天気地点を削除しますか？");
+
+    const deleteButtons = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button"),
+    ).filter((button) => button.textContent === "削除");
+
+    await act(async () => {
+      deleteButtons[0]?.click();
+      await waitForEffects();
+    });
+
+    expect(confirmMock).not.toHaveBeenCalled();
+    expect(container.textContent).toContain("天気地点を削除しますか？");
+    expect(container.textContent).toContain(
+      "この地点を使った今後の天気取得ができなくなります。",
+    );
+    expect(container.textContent).toContain(
+      "登録済みの天気記録は削除されません。",
+    );
+
+    const confirmDeleteButton = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button"),
+    ).find((button) => button.textContent === "削除する");
+
+    await act(async () => {
+      confirmDeleteButton?.click();
+      await waitForEffects();
+    });
+
+    expect(deleteUserWeatherLocationMock).toHaveBeenCalledWith(1);
+    expect(container.textContent).toContain("地域を削除しました。");
+    confirmMock.mockRestore();
+  });
+
+  it("削除確認でキャンセルするとDELETEしない", async () => {
     const confirmMock = vi.spyOn(window, "confirm").mockReturnValue(true);
     const { default: SettingsWeatherLocationsPage } = await import("./page");
 
@@ -619,14 +662,25 @@ describe("SettingsWeatherLocationsPage", () => {
 
     const deleteButtons = Array.from(
       container.querySelectorAll<HTMLButtonElement>("button"),
-    ).filter((button) => button.textContent?.includes("削除"));
+    ).filter((button) => button.textContent === "削除");
 
     await act(async () => {
       deleteButtons[0]?.click();
       await waitForEffects();
     });
 
-    expect(deleteUserWeatherLocationMock).toHaveBeenCalledWith(1);
+    const cancelButton = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button"),
+    ).find((button) => button.textContent === "キャンセル");
+
+    await act(async () => {
+      cancelButton?.click();
+      await waitForEffects();
+    });
+
+    expect(confirmMock).not.toHaveBeenCalled();
+    expect(deleteUserWeatherLocationMock).not.toHaveBeenCalled();
+    expect(container.textContent).not.toContain("天気地点を削除しますか？");
     confirmMock.mockRestore();
   });
 
@@ -650,16 +704,67 @@ describe("SettingsWeatherLocationsPage", () => {
 
     const deleteButtons = Array.from(
       container.querySelectorAll<HTMLButtonElement>("button"),
-    ).filter((button) => button.textContent?.includes("削除"));
+    ).filter((button) => button.textContent === "削除");
 
     await act(async () => {
       deleteButtons[1]?.click();
       await waitForEffects();
     });
 
+    const confirmDeleteButton = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button"),
+    ).find((button) => button.textContent === "削除する");
+
+    await act(async () => {
+      confirmDeleteButton?.click();
+      await waitForEffects();
+    });
+
     expect(container.textContent).toContain(
       "この地域は天気記録で使用中のため削除できません。",
     );
+    expect(confirmMock).not.toHaveBeenCalled();
+    confirmMock.mockRestore();
+  });
+
+  it("削除失敗時にfallbackメッセージを表示しraw DB errorを出さない", async () => {
+    const confirmMock = vi.spyOn(window, "confirm").mockReturnValue(true);
+    deleteUserWeatherLocationMock.mockRejectedValueOnce(
+      new ApiClientError(500, {
+        message: "SQLSTATE[23000]: Integrity constraint violation",
+      }),
+    );
+
+    const { default: SettingsWeatherLocationsPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(SettingsWeatherLocationsPage));
+      await waitForEffects();
+    });
+
+    const deleteButtons = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button"),
+    ).filter((button) => button.textContent === "削除");
+
+    await act(async () => {
+      deleteButtons[0]?.click();
+      await waitForEffects();
+    });
+
+    const confirmDeleteButton = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button"),
+    ).find((button) => button.textContent === "削除する");
+
+    await act(async () => {
+      confirmDeleteButton?.click();
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain(
+      "地域の削除に失敗しました。時間をおいて再度お試しください。",
+    );
+    expect(container.textContent).not.toContain("SQLSTATE");
+    expect(confirmMock).not.toHaveBeenCalled();
     confirmMock.mockRestore();
   });
   it("上下ボタンで表示順を更新できる", async () => {

@@ -151,6 +151,9 @@ function SettingsWeatherLocationsPageContent() {
   const [showEditLegacyFields, setShowEditLegacyFields] = useState(false);
   const [updatingId, setUpdatingId] = useState<number | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [confirmingDeleteId, setConfirmingDeleteId] = useState<number | null>(
+    null,
+  );
   const [reorderingId, setReorderingId] = useState<number | null>(null);
   const [expandedLegacyDetails, setExpandedLegacyDetails] = useState<
     Record<number, boolean>
@@ -388,6 +391,7 @@ function SettingsWeatherLocationsPageContent() {
 
   function startEditingLocation(location: UserWeatherLocationRecord) {
     resetMessages();
+    setConfirmingDeleteId(null);
     setEditingId(location.id);
     setEditName(location.name);
     setEditJmaRegionCode(location.jma_forecast_region_code ?? "");
@@ -486,17 +490,12 @@ function SettingsWeatherLocationsPageContent() {
   async function handleDeleteLocation(location: UserWeatherLocationRecord) {
     if (deletingId !== null || reorderingId !== null) return;
 
-    const confirmed = window.confirm(
-      `「${location.name}」を削除しますか？既存の天気記録で使っている地域は削除できません。`,
-    );
-
-    if (!confirmed) return;
-
     resetMessages();
     setDeletingId(location.id);
 
     try {
       await deleteUserWeatherLocation(location.id);
+      setConfirmingDeleteId(null);
       await refreshLocations();
       setListMessage("地域を削除しました。");
     } catch (error) {
@@ -1214,66 +1213,110 @@ function SettingsWeatherLocationsPageContent() {
                           ) : null}
                         </div>
 
-                        <div className="flex flex-wrap items-center gap-2">
-                          <button
-                            type="button"
-                            onClick={() =>
-                              handleMoveLocation(location.id, "up")
-                            }
-                            disabled={index === 0 || isListActionPending}
-                            aria-label={`${location.name} を上へ移動`}
-                            data-testid={`weather-location-move-up-${location.id}`}
-                            className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white p-2 text-gray-600 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:border-gray-200 disabled:text-gray-400"
-                          >
-                            <MoveUpIcon className="h-4 w-4" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() =>
-                              handleMoveLocation(location.id, "down")
-                            }
-                            disabled={
-                              index === sortedLocations.length - 1 ||
-                              isListActionPending
-                            }
-                            aria-label={`${location.name} を下へ移動`}
-                            data-testid={`weather-location-move-down-${location.id}`}
-                            className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white p-2 text-gray-600 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:border-gray-200 disabled:text-gray-400"
-                          >
-                            <MoveDownIcon className="h-4 w-4" />
-                          </button>
-                          {!location.is_default ? (
+                        <div className="w-full md:w-auto md:max-w-xl">
+                          <div className="flex flex-wrap items-center gap-2 md:justify-end">
                             <button
                               type="button"
-                              onClick={() => handleMakeDefault(location)}
-                              disabled={isListActionPending}
-                              className="rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm font-medium text-blue-700 transition hover:bg-blue-50 disabled:cursor-not-allowed disabled:border-gray-200 disabled:text-gray-400"
+                              onClick={() =>
+                                handleMoveLocation(location.id, "up")
+                              }
+                              disabled={index === 0 || isListActionPending}
+                              aria-label={`${location.name} を上へ移動`}
+                              data-testid={`weather-location-move-up-${location.id}`}
+                              className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white p-2 text-gray-600 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:border-gray-200 disabled:text-gray-400"
                             >
-                              デフォルトにする
+                              <MoveUpIcon className="h-4 w-4" />
                             </button>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                handleMoveLocation(location.id, "down")
+                              }
+                              disabled={
+                                index === sortedLocations.length - 1 ||
+                                isListActionPending
+                              }
+                              aria-label={`${location.name} を下へ移動`}
+                              data-testid={`weather-location-move-down-${location.id}`}
+                              className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white p-2 text-gray-600 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:border-gray-200 disabled:text-gray-400"
+                            >
+                              <MoveDownIcon className="h-4 w-4" />
+                            </button>
+                            {!location.is_default ? (
+                              <button
+                                type="button"
+                                onClick={() => handleMakeDefault(location)}
+                                disabled={isListActionPending}
+                                className="rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm font-medium text-blue-700 transition hover:bg-blue-50 disabled:cursor-not-allowed disabled:border-gray-200 disabled:text-gray-400"
+                              >
+                                デフォルトにする
+                              </button>
+                            ) : null}
+
+                            <button
+                              type="button"
+                              onClick={() => startEditingLocation(location)}
+                              disabled={isListActionPending}
+                              className="inline-flex items-center gap-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:border-gray-200 disabled:text-gray-400"
+                            >
+                              <EditIcon className="h-4 w-4" />
+                              編集
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                resetMessages();
+                                setConfirmingDeleteId(location.id);
+                              }}
+                              disabled={
+                                deletingId === location.id ||
+                                reorderingId !== null
+                              }
+                              className="rounded-lg border border-red-200 bg-white px-3 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:border-gray-200 disabled:text-gray-400"
+                            >
+                              {deletingId === location.id
+                                ? "削除中..."
+                                : "削除"}
+                            </button>
+                          </div>
+
+                          {confirmingDeleteId === location.id ? (
+                            <div className="mt-4 rounded-xl border border-red-200 bg-red-50/70 px-4 py-4 md:ml-auto md:max-w-xl">
+                              <p className="text-sm font-semibold text-red-900">
+                                天気地点を削除しますか？
+                              </p>
+                              <div className="mt-2 space-y-1 text-sm text-red-800">
+                                <p>この操作は取り消せません。</p>
+                                <p>
+                                  この地点を使った今後の天気取得ができなくなります。
+                                </p>
+                                <p>登録済みの天気記録は削除されません。</p>
+                              </div>
+                              <div className="mt-4 flex flex-wrap items-center gap-3">
+                                <button
+                                  type="button"
+                                  onClick={() => setConfirmingDeleteId(null)}
+                                  disabled={deletingId === location.id}
+                                  className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:border-gray-200 disabled:text-gray-400"
+                                >
+                                  キャンセル
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    void handleDeleteLocation(location)
+                                  }
+                                  disabled={deletingId === location.id}
+                                  className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-gray-300"
+                                >
+                                  {deletingId === location.id
+                                    ? "削除中..."
+                                    : "削除する"}
+                                </button>
+                              </div>
+                            </div>
                           ) : null}
-
-                          <button
-                            type="button"
-                            onClick={() => startEditingLocation(location)}
-                            disabled={isListActionPending}
-                            className="inline-flex items-center gap-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:border-gray-200 disabled:text-gray-400"
-                          >
-                            <EditIcon className="h-4 w-4" />
-                            編集
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteLocation(location)}
-                            disabled={
-                              deletingId === location.id ||
-                              reorderingId !== null
-                            }
-                            className="rounded-lg border border-red-200 bg-white px-3 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:border-gray-200 disabled:text-gray-400"
-                          >
-                            {deletingId === location.id ? "削除中..." : "削除"}
-                          </button>
                         </div>
                       </div>
                     )}
