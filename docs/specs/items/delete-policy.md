@@ -152,6 +152,23 @@ current の主対象:
 - そのため、将来 delete を正式導線にする場合は **storage ファイル cleanup** を別途実装判断する必要がある
 - current のままでは file orphan が残る可能性がある
 
+#### current の画像保存方針
+
+- item image は `disk + path` で管理する
+- current の主な保存先 disk は `public`
+- upload 時の path は `items/{item_id}/...`
+- item 化や複製時も、current 実装では item ごとの保存先へ **物理コピー** している
+- そのため current の item image は、少なくとも通常運用では **item 専用 file** とみなしてよい
+
+#### current の cleanup 実装
+
+- 単体画像削除:
+  - `ItemImageService::deleteImage()` が storage file を削除する
+- item update / 画像同期:
+  - `ItemImageSync` は差し替え・コピー時の整合を扱う
+- item delete:
+  - storage file cleanup は未実装
+
 ### materials
 
 - `item_materials.item_id -> items.id` は `cascadeOnDelete`
@@ -221,6 +238,28 @@ current の主対象:
 - この方向性は妥当で、今後 UI を正式導線にする場合も維持を第一候補とする
 - さらに purchase candidate 由来・storage file cleanup まで考慮して、delete 可否判定を明文化するのが次段階
 
+### image file cleanup の推奨
+
+比較:
+
+- 案A:
+  - item delete では DB row だけ消し、storage file は残す
+  - 実装は軽いが orphan file が残る
+- 案B:
+  - item delete 時に item image の storage file も削除する
+  - DB と storage の意味を揃えやすい
+- 案C:
+  - DB row のみ先に消し、後続 cleanup job で orphan file を掃除する
+  - 仕組みが重く、MVP にはやや過剰
+
+推奨:
+
+- **案Bを第一候補**とする
+- 理由:
+  - current の item image は item 専用 file として扱いやすい
+  - 物理削除の意味と一致する
+  - orphan file を運用課題として積み上げにくい
+
 ---
 
 ## API 案
@@ -253,6 +292,42 @@ current の主対象:
 
 - current API はまだ `reasons` を返さず、message のみ
 - UI で削除不可理由を出し分けたい場合は、`DELETE` response 拡張か `delete-check` 導入が必要になり得る
+
+### image cleanup 実装時の順序案
+
+第一候補:
+
+- DB transaction 中に削除対象 file path を取得する
+- item delete を commit する
+- commit 後に storage file delete を実行する
+
+理由:
+
+- DB 整合を優先できる
+- file delete failure で item delete 全体を巻き戻さずに済む
+- transaction と storage 操作の責務を分けやすい
+
+比較:
+
+- file delete → DB delete
+  - file は消えたのに DB が残るリスクがある
+- DB delete → file delete
+  - 方向性はよいが、削除対象 path を commit 前に確保しておく設計を明示した方が安全
+- transaction 中に path 取得 → commit 後 delete
+  - 第一候補
+
+### file delete failure 時の扱い
+
+第一候補:
+
+- item delete 自体は成功させる
+- file cleanup failure は warning log に残す
+
+理由:
+
+- storage 一時エラーで物理削除全体を止める方が UX 影響が大きい
+- orphan file は後から回収できる
+- current delete policy では履歴参照のない item を対象にする前提なので、DB delete を優先してよい
 
 ### `GET /api/items/{id}/delete-check`
 
@@ -300,6 +375,14 @@ current の主対象:
   - `converted_item_id` がある item の扱い説明
 - そのため、**完全に作り直す必須性はないが、そのまま結線する前に仕様差分を吸収する修正が必要** と整理する
 
+### UI 結線前の扱い
+
+- image cleanup 方針の確定は、UI 結線前の **blocker 寄り** とする
+- 推奨は、**cleanup 実装も UI 結線前に先に入れる**
+- 理由:
+  - current のまま delete UI を出すと orphan file を継続的に増やしうる
+  - item delete は取り消せない物理削除として見せる想定なので、storage 側も可能な範囲で整合している方が自然
+
 ---
 
 ## logging 方針
@@ -326,6 +409,25 @@ current の主対象:
   - `item.delete.rejected`
     を再検討する
 
+### image cleanup failure
+
+- `warning`
+- operation:
+  - `item.delete.image_cleanup_failed`
+- context 候補:
+  - `user_id`
+  - `item_id`
+  - `image_count`
+  - `failed_count`
+  - `disk`
+  - `path_basename`
+
+ログに出さない:
+
+- 画像 URL 全文
+- 長い path 全文
+- memo 本文
+
 ### disposed / reactivate
 
 - `info`
@@ -339,10 +441,20 @@ current の主対象:
 
 - 物理削除された item は export されない
 - `disposed` item は export される
+- item images は current import/export で backup payload に含まれる
+  - `disk`
+  - `original_filename`
+  - `mime_type`
+  - `file_size`
+  - `sort_order`
+  - `is_primary`
+  - `content_base64`
+- restore 時は item ごとの保存先に file を再生成する
 - そのため、backup / restore の観点でも
   - delete は「履歴ごと消す」
   - disposed は「履歴を残して運用から外す」
     という意味の差を持つ
+- item delete 時に item 専用 file を cleanup する方針は、current import/export と矛盾しない
 
 ---
 
@@ -352,6 +464,11 @@ current feature / component test で確認できること:
 
 - `ItemsEndpointsTest`
   - unreferenced item を delete できる
+  - 他 user item は delete できず `404`
+  - `disposed` item でも unreferenced なら delete できる
+  - item materials を持つ item は delete でき、DB row も cascade で消える
+  - item image rows を持つ item は delete でき、DB row も cascade で消える
+  - `converted_item_id` を持つ purchase candidate があっても item は delete でき、candidate 側は `nullOnDelete`
   - outfit 参照あり item は `422`
   - wear log 参照あり item は `422`
 - `delete-item-button.test.tsx`
@@ -359,10 +476,6 @@ current feature / component test で確認できること:
 
 current で未確認のもの:
 
-- 他 user item の delete
-- `disposed` item の delete
-- images / materials を持つ item の delete
-- `converted_item_id` がある item の delete
 - item delete 後の storage file cleanup
 
 ---
@@ -379,6 +492,11 @@ current で未確認のもの:
 - confirm 文言に image cleanup や履歴影響をどこまで書くか
 - 成功後の遷移先を `/items` 固定でよいか
 
+推奨整理:
+
+- cleanup 方針の確定は blocker
+- cleanup 実装も、可能なら UI 結線前に先に行う
+
 ---
 
 ## 実装する場合の次ステップ
@@ -386,10 +504,11 @@ current で未確認のもの:
 1. delete 可否条件を backend validation として明文化する
 2. 他 user item / disposed item / converted item を含む delete test を追加する
 3. purchase candidate 由来 item の扱いを決める
-4. item delete 時の image file cleanup を実装するか決める
-5. item 詳細に delete UI を正式導線として置くか決める
-6. delete 不可理由の UI 表示方式を決める
-7. structured log を `item.delete.*` / `item.status.*` として追加する
+4. item delete 時の image file cleanup を実装する
+5. cleanup failure warning log を追加する
+6. item 詳細に delete UI を正式導線として置くか決める
+7. delete 不可理由の UI 表示方式を決める
+8. structured log を `item.delete.*` / `item.status.*` として追加する
 
 ---
 
