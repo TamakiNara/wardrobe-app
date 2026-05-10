@@ -1583,6 +1583,8 @@ pagination meta は表示カード単位で扱う。
 - 買い物メモに含まれている購入検討は、先に買い物メモから外してから削除する
 - backend は DB exception 任せにせず、事前チェックで `422` + user-facing message を返す
 - frontend はその `422` message をそのまま表示すれば十分で、初期段階では `delete-check` API までは不要
+- ただし current UI では、編集画面表示時点ではまだ削除不可状態を事前表示していない
+- 将来は、detail / edit response に `is_used_in_shopping_memos` や `shopping_memo_count` を含め、削除セクションで disabled や補足文を出す案を第一候補とする
 
 ### duplicate draft 生成
 
