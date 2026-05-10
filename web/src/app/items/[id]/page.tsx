@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import ColorChip from "@/components/items/color-chip";
+import DeleteItemButton from "@/components/items/delete-item-button";
 import ItemCareStatusAction from "@/components/items/item-care-status-action";
 import ItemDuplicateActions from "@/components/items/item-duplicate-actions";
 import ItemStatusAction from "@/components/items/item-status-action";
@@ -832,6 +833,21 @@ export default async function ItemPage({
                     />
                   </div>
                 </section>
+              </div>
+            </section>
+
+            <section className="rounded-2xl border border-red-200 bg-white p-6 shadow-sm">
+              <h2 className="text-lg font-semibold text-gray-900">削除</h2>
+              <div className="mt-3 space-y-4">
+                <div className="space-y-2 text-sm text-gray-600">
+                  <p>
+                    誤って登録したアイテムなど、履歴として残す必要がない場合にのみ削除してください。
+                  </p>
+                  <p>
+                    実際に手放したアイテムは「手放す」を使うと、履歴を残したまま管理できます。
+                  </p>
+                </div>
+                <DeleteItemButton itemId={item.id} />
               </div>
             </section>
           </div>

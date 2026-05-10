@@ -27,6 +27,11 @@ vi.mock("@/components/items/item-care-status-action", () => ({
   default: () => React.createElement("div", null, "care-status-action"),
 }));
 
+vi.mock("@/components/items/delete-item-button", () => ({
+  default: () =>
+    React.createElement("button", { type: "button" }, "アイテムを削除する"),
+}));
+
 vi.mock("@/components/items/item-duplicate-actions", () => ({
   default: () =>
     React.createElement(
@@ -179,8 +184,16 @@ describe("アイテム詳細画面", () => {
     expect(markup).toContain("duplicate-actions");
     expect(markup).toContain("status-action");
     expect(markup).toContain("care-status-action");
+    expect(markup).toContain("削除");
+    expect(markup).toContain("アイテムを削除する");
     expect(markup).toContain(
       "所持しなくなった場合は「手放す」を使います。必要になった時は「クローゼットに戻す」で通常状態へ戻せます。",
+    );
+    expect(markup).toContain(
+      "誤って登録したアイテムなど、履歴として残す必要がない場合にのみ削除してください。",
+    );
+    expect(markup).toContain(
+      "実際に手放したアイテムは「手放す」を使うと、履歴を残したまま管理できます。",
     );
     expect(markup).toContain("仕様・属性");
     expect(markup).toContain("クロップド丈");
@@ -196,6 +209,9 @@ describe("アイテム詳細画面", () => {
     );
     expect(markup.indexOf("coat.png")).toBeLessThan(
       markup.indexOf(">status-action<"),
+    );
+    expect(markup.indexOf(">status-action<")).toBeLessThan(
+      markup.indexOf(">アイテムを削除する<"),
     );
     expect(markup.indexOf(">編集<")).toBeLessThan(
       markup.indexOf(">一覧へ戻る<"),

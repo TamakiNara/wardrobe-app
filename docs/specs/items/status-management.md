@@ -167,7 +167,7 @@ item status は、item を通常利用対象として扱うかどうかを管理
 - `dispose` / `reactivate` は item 詳細画面からの専用操作導線として扱う
 - `disposed` item は通常一覧、outfit 候補、wear logs 候補から除外する
 - `disposed` item は `GET /api/items/disposed` と `/items/disposed` の dedicated 一覧で確認し、詳細画面から `reactivate` する
-- 物理削除 API は残すが、通常の UI 主導線には置かない
+- 物理削除 API は残すが、通常の UI 主導線には置かず、item detail 最下部の補助的な `削除` セクションで扱う
 - `outfit_items` / `wear_log_items` 参照がある item の物理削除は `422` で拒否する
 - item を `disposed` にした時、その item を含む `active` outfit は `invalid` に遷移する
 - `reactivate` しても related outfit は自動 `restore` しない

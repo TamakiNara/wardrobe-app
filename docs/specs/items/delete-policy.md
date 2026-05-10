@@ -76,7 +76,10 @@ item は、所持品そのものに加えて、次の履歴・派生データと
 
 補足:
 
-- `delete-item-button.tsx` は current でどこからも import されておらず、component test も raw DB error のマスク確認が中心で、item detail 結線用の文言・導線は未調整
+- `delete-item-button.tsx` は current で item detail 最下部の `削除` セクションに結線済み
+- button 文言は `アイテムを削除する`
+- confirm では、取り消せないこと・`手放す` との違い・登録画像削除を明示する
+- `422` の削除不可 message は generic error に潰さず、そのまま表示する
 
 ### current status / care_status
 
@@ -512,12 +515,12 @@ current:
   - `422` message を item detail 下部の補助セクションでどう見せるか未整理
   - item detail 最下部の補助操作としては見た目が強め
 
-### 今回は実装しないこと
+### 後続判断
 
-- item detail への実際の結線
-- `delete-item-button.tsx` の見た目や文言の修正
 - `delete-check` API の追加
 - `reasons` 配列の API response 追加
+- 一覧条件を保持した削除後遷移や success message の追加
+- `converted_item_id` がある item への事前警告を出すか
 
 ---
 
