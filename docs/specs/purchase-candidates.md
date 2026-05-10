@@ -1530,6 +1530,13 @@ pagination meta は表示カード単位で扱う。
 
 `DELETE /api/purchase-candidates/{id}`
 
+- current frontend では、編集画面 footer の削除導線で native `window.confirm()` は使わず、button 内のアプリ確認 UI を表示する
+- 見出しは `購入検討を削除しますか？`
+- 本文は `この操作は取り消せません。` と `関連する表示や比較にも影響する場合があります。` を基本とする
+- success 時は `/purchase-candidates?message=deleted` へ遷移する
+- backend error message が安全に表示できる場合はそのまま表示し、internal error marker を含む場合は fallback を表示する
+- `shopping_memo_items.purchase_candidate_id` は current DB で `restrictOnDelete` のため、買い物メモに含まれる candidate の削除 UX は後続で再整理する
+
 ### duplicate draft 生成
 
 `POST /api/purchase-candidates/{id}/duplicate`
