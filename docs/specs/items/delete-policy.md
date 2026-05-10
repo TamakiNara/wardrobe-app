@@ -74,6 +74,10 @@ item は、所持品そのものに加えて、次の履歴・派生データと
 - ただし current item 詳細画面には delete button は結線されておらず、**通常の画面導線としては未実装扱い**とする
 - current button は API の `message` を generic user-facing 文言へ畳んでおり、削除不可理由を個別表示する実装にはなっていない
 
+補足:
+
+- `delete-item-button.tsx` は current でどこからも import されておらず、component test も raw DB error のマスク確認が中心で、item detail 結線用の文言・導線は未調整
+
 ### current status / care_status
 
 - `status`
@@ -441,6 +445,79 @@ current:
 - operations:
   - `item.status.disposed`
   - `item.status.reactivated`
+
+## item detail への delete UI 結線方針
+
+### 表示位置の推奨
+
+- 推奨は **item detail 最下部に `削除` または `危険な操作` セクションとして置く** 方針
+- `状態管理` セクションには `手放す` / `クローゼットに戻す` / `care_status` だけを残し、物理削除は別の塊として距離を取る
+- 編集画面よりも、詳細を確認したあとに判断できる item detail を第一候補にする
+
+理由:
+
+- `手放す` は日常的な状態管理で、物理削除とは役割が違う
+- 物理削除は取り消せない補助操作なので、通常操作から距離を取った方が誤操作を防ぎやすい
+- item detail 末尾なら、対象情報を確認してから慎重に削除する流れに合わせやすい
+
+### 文言方針
+
+- button 文言の第一候補:
+  - `アイテムを削除する`
+- 説明文の第一候補:
+  - `誤って登録したアイテムなど、履歴として残す必要がない場合にのみ削除してください。実際に手放したアイテムは「手放す」を使うと、履歴を残したまま管理できます。`
+- confirm の第一候補:
+  - `このアイテムを削除しますか？`
+  - `この操作は取り消せません。実際に手放しただけの場合は「手放す」を使ってください。`
+- 画像削除を補足する場合:
+  - `登録画像も削除されます。`
+
+### 削除不可時の扱い
+
+- MVP では `delete-check` API を追加せず、`DELETE` 実行後の `422 + message` をそのまま表示する
+- current backend message:
+  - `このアイテムは参照中のため完全に削除できません。手放す操作を利用してください。`
+- そのため UI では
+  - 事前の可否判定や reasons 配列の出し分けは行わない
+  - API message をそのまま表示する
+  - `手放す` を代替導線として案内する
+
+### 成功時の挙動
+
+- MVP の第一候補は current component と同じく `/items` へ戻す
+- 一覧条件保持や query message は後続で再判断する
+
+### active / disposed の扱い
+
+- current backend に合わせて、active / disposed のどちらでも delete UI は出してよい
+- ただし説明文では、実際に手放しただけのケースは `disposed` を優先導線として案内する
+- 参照がある item は backend が `422` を返す前提で扱う
+
+### converted_item_id がある item の扱い
+
+- current backend に合わせ、wear log / outfit 参照がなければ MVP では削除可能として扱う
+- purchase candidate 側の `converted_item_id` は `nullOnDelete` なので、delete 後に関係が切れることは docs 上で認識しておく
+- UI でこのケースを事前判定するのは MVP では不要とする
+
+### 既存 delete-item-button の扱い
+
+- **作り直しより既存 `delete-item-button.tsx` の修正再利用を第一候補** とする
+- 再利用しやすい点:
+  - BFF の `DELETE /api/items/{id}` 導線がある
+  - success 時 `/items` へ遷移する current 流儀に沿っている
+  - generic error 表示と confirm の基本動作をすでに持っている
+- 結線前に調整が必要な点:
+  - button 文言が `削除する` で対象が曖昧
+  - confirm が短く、`手放す` との違いが伝わりにくい
+  - `422` message を item detail 下部の補助セクションでどう見せるか未整理
+  - item detail 最下部の補助操作としては見た目が強め
+
+### 今回は実装しないこと
+
+- item detail への実際の結線
+- `delete-item-button.tsx` の見た目や文言の修正
+- `delete-check` API の追加
+- `reasons` 配列の API response 追加
 
 ---
 
