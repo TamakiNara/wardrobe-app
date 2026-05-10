@@ -143,16 +143,21 @@ current:
 current:
 
 - create / update / delete / disposed / reactivate 相当の処理はある
+- item delete completed の info structured log を導入済み
+  - `item.delete.completed`
+- item status change の info structured log を導入済み
+  - `item.status.disposed`
+  - `item.status.reactivated`
 - item delete 時の image cleanup failure については warning structured log を導入済み
   - `item.delete.image_cleanup_failed`
-- ただし `item.delete.completed` や `item.status.disposed / reactivated` は未整備
+- item delete / status change の unexpected failure には error log を導入済み
+  - `item.delete.failed`
+  - `item.status.change_failed`
 
 不足:
 
-- `item.delete.completed`
-- `item.status.disposed`
-- `item.status.reactivated`
 - image sync failure
+- `item.delete.rejected`
 
 ### wear log
 
@@ -559,7 +564,7 @@ current:
 1. import / export に structured log を追加する
 2. weather external API failure に `warning / error` log を追加する
 3. shopping memo bulk add / remove に `info` log を追加する
-4. item delete の completed log と disposed / reactivate に `info` log を追加する
+4. item の rejected / image sync failure など、未整備の operation を追加する
 5. 共通の log context builder / helper を作るか判断する
 6. `request_id / correlation_id` は後続判断にする
 7. DB audit log は import / delete / bulk operation だけ候補として別設計する
@@ -572,16 +577,15 @@ current:
 - ただし structured application log は未整備
 - import-export と weather external API failure には structured log を導入済み
 - shopping memo bulk add / item remove にも structured log を導入済み
+- item delete completed / failed を導入済み
+- item delete image cleanup failure warning を導入済み
+- item status disposed / reactivated / change_failed を導入済み
 - item delete の image cleanup failure warning は導入済み
-- item state change と delete completed info は引き続き未整備
 
 ### planned
 
-- `item.delete.completed`
-- `item.status.disposed`
-- `item.status.reactivated`
-
-から順に structured log を入れる
+- `item.delete.rejected`
+- image sync failure
 
 ### 要再判断
 

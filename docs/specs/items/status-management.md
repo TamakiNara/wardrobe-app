@@ -190,7 +190,11 @@ item status は、item を通常利用対象として扱うかどうかを管理
 ## logging 方針との関係
 
 - `disposed` は outfit / wear logs に影響するため、軽微な項目編集より記録価値が高い
-- logging では `item_disposed` `item_reactivated` を最小セットに含める
+- current では次の structured log を導入済み
+  - `item.status.disposed`
+  - `item.status.reactivated`
+  - `item.status.change_failed`
+- logging では status change の operation / user_id / item_id / status_before / status_after / elapsed_ms を最小セットに含める
 - 副作用で発生する `outfit_invalidated` も関連イベントとして扱う
 
 ---

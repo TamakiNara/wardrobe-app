@@ -3843,6 +3843,98 @@ class ItemsEndpointsTest extends TestCase
         ]);
     }
 
+    public function test_delete_item_logs_completed_context(): void
+    {
+        Storage::fake('public');
+        Log::spy();
+
+        $user = User::factory()->create();
+        $item = $this->createItem($user, [
+            'name' => 'ログ確認アイテム',
+            'status' => 'active',
+            'memo' => 'delete log memo',
+        ]);
+        Storage::disk('public')->put(sprintf('items/%d/first.png', $item->id), 'first');
+        Storage::disk('public')->put(sprintf('items/%d/second.png', $item->id), 'second');
+        $item->images()->createMany([
+            [
+                'disk' => 'public',
+                'path' => sprintf('items/%d/first.png', $item->id),
+                'original_filename' => 'first.png',
+                'mime_type' => 'image/png',
+                'file_size' => 1000,
+                'sort_order' => 1,
+                'is_primary' => true,
+            ],
+            [
+                'disk' => 'public',
+                'path' => sprintf('items/%d/second.png', $item->id),
+                'original_filename' => 'second.png',
+                'mime_type' => 'image/png',
+                'file_size' => 1000,
+                'sort_order' => 2,
+                'is_primary' => false,
+            ],
+        ]);
+        $item->materials()->createMany([
+            [
+                'part_label' => '本体',
+                'material_name' => '綿',
+                'ratio' => 80,
+            ],
+            [
+                'part_label' => '本体',
+                'material_name' => 'ポリエステル',
+                'ratio' => 20,
+            ],
+        ]);
+        $candidate = $this->createPurchaseCandidate($user, [
+            'status' => 'purchased',
+            'converted_item_id' => $item->id,
+            'converted_at' => now(),
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->deleteJson("/api/items/{$item->id}", [], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('message', 'deleted');
+
+        Log::shouldHaveReceived('info')
+            ->once()
+            ->withArgs(function (string $message, array $context) use ($user, $item) {
+                $encodedContext = json_encode($context, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+                return $message === 'item.delete.completed'
+                    && ($context['operation'] ?? null) === 'item.delete.completed'
+                    && ($context['user_id'] ?? null) === $user->id
+                    && ($context['item_id'] ?? null) === $item->id
+                    && ($context['result'] ?? null) === 'success'
+                    && ($context['status_before'] ?? null) === 'active'
+                    && ($context['outfits_count'] ?? null) === 0
+                    && ($context['wear_logs_count'] ?? null) === 0
+                    && ($context['images_count'] ?? null) === 2
+                    && ($context['materials_count'] ?? null) === 2
+                    && ($context['converted_purchase_candidates_count'] ?? null) === 1
+                    && ($context['image_cleanup_failed_count'] ?? null) === 0
+                    && isset($context['elapsed_ms'])
+                    && ! array_key_exists('name', $context)
+                    && ! array_key_exists('memo', $context)
+                    && is_string($encodedContext)
+                    && ! str_contains($encodedContext, 'ログ確認アイテム')
+                    && ! str_contains($encodedContext, 'delete log memo')
+                    && ! str_contains($encodedContext, sprintf('items/%d/first.png', $item->id));
+            });
+
+        $this->assertDatabaseHas('purchase_candidates', [
+            'id' => $candidate->id,
+            'converted_item_id' => null,
+        ]);
+    }
+
     public function test_delete_item_logs_warning_when_image_cleanup_fails_but_still_deletes_item(): void
     {
         Log::spy();
@@ -3890,6 +3982,16 @@ class ItemsEndpointsTest extends TestCase
                     && ($context['failures'][0]['path_basename'] ?? null) === 'missing.png'
                     && isset($context['failures'][0]['exception_class'])
                     && isset($context['failures'][0]['message']);
+            });
+
+        Log::shouldHaveReceived('info')
+            ->once()
+            ->withArgs(function (string $message, array $context) use ($user, $item) {
+                return $message === 'item.delete.completed'
+                    && ($context['operation'] ?? null) === 'item.delete.completed'
+                    && ($context['user_id'] ?? null) === $user->id
+                    && ($context['item_id'] ?? null) === $item->id
+                    && ($context['image_cleanup_failed_count'] ?? null) === 1;
             });
     }
 
@@ -3956,6 +4058,74 @@ class ItemsEndpointsTest extends TestCase
         $this->assertDatabaseHas('items', [
             'id' => $item->id,
         ]);
+    }
+
+    public function test_post_item_dispose_logs_status_change(): void
+    {
+        Log::spy();
+
+        $user = User::factory()->create();
+        $item = $this->createItem($user, [
+            'status' => 'active',
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson("/api/items/{$item->id}/dispose", [], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('message', 'disposed')
+            ->assertJsonPath('item.status', 'disposed');
+
+        Log::shouldHaveReceived('info')
+            ->once()
+            ->withArgs(function (string $message, array $context) use ($user, $item) {
+                return $message === 'item.status.disposed'
+                    && ($context['operation'] ?? null) === 'item.status.disposed'
+                    && ($context['user_id'] ?? null) === $user->id
+                    && ($context['item_id'] ?? null) === $item->id
+                    && ($context['status_before'] ?? null) === 'active'
+                    && ($context['status_after'] ?? null) === 'disposed'
+                    && isset($context['elapsed_ms'])
+                    && ! array_key_exists('name', $context)
+                    && ! array_key_exists('memo', $context);
+            });
+    }
+
+    public function test_post_item_reactivate_logs_status_change(): void
+    {
+        Log::spy();
+
+        $user = User::factory()->create();
+        $item = $this->createItem($user, [
+            'status' => 'disposed',
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->postJson("/api/items/{$item->id}/reactivate", [], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('message', 'reactivated')
+            ->assertJsonPath('item.status', 'active');
+
+        Log::shouldHaveReceived('info')
+            ->once()
+            ->withArgs(function (string $message, array $context) use ($user, $item) {
+                return $message === 'item.status.reactivated'
+                    && ($context['operation'] ?? null) === 'item.status.reactivated'
+                    && ($context['user_id'] ?? null) === $user->id
+                    && ($context['item_id'] ?? null) === $item->id
+                    && ($context['status_before'] ?? null) === 'disposed'
+                    && ($context['status_after'] ?? null) === 'active'
+                    && isset($context['elapsed_ms'])
+                    && ! array_key_exists('name', $context)
+                    && ! array_key_exists('memo', $context);
+            });
     }
 
     public function test_post_item_care_status_updates_and_clears_care_status(): void

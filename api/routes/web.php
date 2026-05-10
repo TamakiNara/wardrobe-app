@@ -15,6 +15,7 @@ use App\Http\Requests\ItemUpdateRequest;
 use App\Models\CategoryMaster;
 use App\Models\Item;
 use App\Models\Outfit;
+use App\Models\PurchaseCandidate;
 use App\Services\Brands\UserBrandService;
 use App\Services\Items\ItemDuplicateService;
 use App\Services\Items\ItemImageService;
@@ -385,25 +386,63 @@ Route::prefix('api')->middleware(['web'])->group(function () {
             ], 422);
         }
 
+        $startedAt = hrtime(true);
+        $statusBefore = $item->status ?? 'active';
+        $outfitsCount = $item->outfitItems()->count();
+        $wearLogsCount = $item->wearLogItems()->count();
         $imagesForCleanup = $item->images->all();
-        $item->delete();
+        $imagesCount = count($imagesForCleanup);
+        $materialsCount = $item->materials()->count();
+        $convertedPurchaseCandidatesCount = PurchaseCandidate::query()
+            ->where('converted_item_id', $item->id)
+            ->count();
 
-        $cleanupFailures = app(ItemImageService::class)->deleteStoredImages($imagesForCleanup);
+        try {
+            $item->delete();
 
-        if ($cleanupFailures !== []) {
-            Log::warning('item.delete.image_cleanup_failed', [
-                'operation' => 'item.delete.image_cleanup_failed',
+            $cleanupFailures = app(ItemImageService::class)->deleteStoredImages($imagesForCleanup);
+
+            if ($cleanupFailures !== []) {
+                Log::warning('item.delete.image_cleanup_failed', [
+                    'operation' => 'item.delete.image_cleanup_failed',
+                    'user_id' => $request->user()->id,
+                    'item_id' => $item->id,
+                    'image_count' => $imagesCount,
+                    'failed_count' => count($cleanupFailures),
+                    'failures' => $cleanupFailures,
+                ]);
+            }
+
+            Log::info('item.delete.completed', [
+                'operation' => 'item.delete.completed',
                 'user_id' => $request->user()->id,
                 'item_id' => $item->id,
-                'image_count' => count($imagesForCleanup),
-                'failed_count' => count($cleanupFailures),
-                'failures' => $cleanupFailures,
+                'result' => 'success',
+                'status_before' => $statusBefore,
+                'outfits_count' => $outfitsCount,
+                'wear_logs_count' => $wearLogsCount,
+                'images_count' => $imagesCount,
+                'materials_count' => $materialsCount,
+                'converted_purchase_candidates_count' => $convertedPurchaseCandidatesCount,
+                'image_cleanup_failed_count' => count($cleanupFailures),
+                'elapsed_ms' => (int) round((hrtime(true) - $startedAt) / 1_000_000),
             ]);
-        }
 
-        return response()->json([
-            'message' => 'deleted',
-        ]);
+            return response()->json([
+                'message' => 'deleted',
+            ]);
+        } catch (\Throwable $exception) {
+            Log::error('item.delete.failed', [
+                'operation' => 'item.delete.failed',
+                'user_id' => $request->user()->id,
+                'item_id' => $item->id,
+                'exception_class' => $exception::class,
+                'message' => $exception->getMessage(),
+                'elapsed_ms' => (int) round((hrtime(true) - $startedAt) / 1_000_000),
+            ]);
+
+            throw $exception;
+        }
     });
 
     Route::middleware('auth:web')->controller(ItemImageController::class)->group(function () {

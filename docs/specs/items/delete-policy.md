@@ -387,7 +387,7 @@ current の主対象:
 
 ## logging 方針
 
-今回は実装しないが、将来の第一候補は次とする。
+current では、item delete に関して次の structured log を導入済み。
 
 ### item delete
 
@@ -400,6 +400,13 @@ current の主対象:
   - `outfits_count`
   - `wear_logs_count`
   - `elapsed_ms`
+
+current:
+
+- item delete success 時に `item.delete.completed`
+- item delete 中の想定外例外時に `item.delete.failed`
+- image cleanup failure 時に `item.delete.image_cleanup_failed`
+- `item.delete.completed` には `image_cleanup_failed_count` を含める
 
 ### item delete rejected
 
@@ -506,7 +513,8 @@ current で未確認のもの:
 2. purchase candidate 由来 item の扱いを決める
 3. item 詳細に delete UI を正式導線として置くか決める
 4. delete 不可理由の UI 表示方式を決める
-5. `item.delete.completed` / `item.status.*` の structured log を追加する
+5. `item.delete.rejected` を追加するか判断する
+6. `item.status.*` 以外の item operation log を追加する
 
 ---
 
