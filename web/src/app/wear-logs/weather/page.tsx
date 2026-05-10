@@ -72,6 +72,47 @@ function getFirstValidationMessage(data: unknown, keys: string[]) {
   return null;
 }
 
+function getSafeApiMessage(data: unknown) {
+  if (!data || typeof data !== "object") {
+    return null;
+  }
+
+  const payload = data as { message?: unknown; error?: unknown };
+  const message =
+    typeof payload.message === "string"
+      ? payload.message
+      : typeof payload.error === "string"
+        ? payload.error
+        : null;
+
+  if (!message || message.trim() === "") {
+    return null;
+  }
+
+  if (
+    [
+      /SQLSTATE/i,
+      /\bPDOException\b/i,
+      /\bQueryException\b/i,
+      /\bIlluminate\\/i,
+      /\bstack trace\b/i,
+      /\bexception\b/i,
+      /\bselect\b.+\bfrom\b/i,
+      /\binsert\s+into\b/i,
+      /\bupdate\b.+\bset\b/i,
+      /\bdelete\s+from\b/i,
+    ].some((pattern) => pattern.test(message))
+  ) {
+    return null;
+  }
+
+  if (Object.keys(flattenValidationErrors(data)).length > 0) {
+    return null;
+  }
+
+  return message;
+}
+
 function buildReturnHref(date: string, returnTo: string | null) {
   if (returnTo) {
     return returnTo;
@@ -244,6 +285,9 @@ function WearLogWeatherPageContent() {
   const [pageError, setPageError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [confirmingDeleteId, setConfirmingDeleteId] = useState<number | null>(
+    null,
+  );
   const [fetchingForecast, setFetchingForecast] = useState(false);
   const [fetchingObserved, setFetchingObserved] = useState(false);
   const [sourceType, setSourceType] = useState<
@@ -402,6 +446,7 @@ function WearLogWeatherPageContent() {
       setTemperatureLow("");
       setMemo("");
       setSaveTemporaryLocation(false);
+      setConfirmingDeleteId(null);
       setSourceType("manual");
       setSourceName("manual");
       setSourceFetchedAt(null);
@@ -437,6 +482,7 @@ function WearLogWeatherPageContent() {
 
   const applyRecordToForm = useCallback((record: WeatherRecord) => {
     setEditingRecordId(record.id);
+    setConfirmingDeleteId(null);
     if (record.location_id !== null) {
       setLocationMode("saved");
       setSelectedLocationId(record.location_id);
@@ -706,14 +752,6 @@ function WearLogWeatherPageContent() {
       return;
     }
 
-    const confirmed = window.confirm(
-      `「${record.location_name}」の天気を削除しますか？`,
-    );
-
-    if (!confirmed) {
-      return;
-    }
-
     setSaveMessage(null);
     setFetchMessage(null);
     setPageError(null);
@@ -723,6 +761,7 @@ function WearLogWeatherPageContent() {
       await deleteWeatherRecord(record.id);
       setSaveMessage("天気情報を削除しました。");
       const nextLocations = sortLocations(locations);
+      setConfirmingDeleteId(null);
       setRecords((current) =>
         current.filter((currentRecord) => currentRecord.id !== record.id),
       );
@@ -730,10 +769,11 @@ function WearLogWeatherPageContent() {
     } catch (error) {
       if (error instanceof ApiClientError) {
         setPageError(
-          getUserFacingSubmitErrorMessage(
-            error.data,
-            "天気情報の削除に失敗しました。時間をおいて再度お試しください。",
-          ),
+          getSafeApiMessage(error.data) ??
+            getUserFacingSubmitErrorMessage(
+              error.data,
+              "天気情報の削除に失敗しました。時間をおいて再度お試しください。",
+            ),
         );
       } else {
         setPageError(
@@ -1427,39 +1467,77 @@ function WearLogWeatherPageContent() {
                   />
                 </label>
 
-                <div className="flex flex-wrap items-center gap-3">
-                  <button
-                    type="submit"
-                    disabled={
-                      saving ||
-                      (locationMode === "saved" &&
-                        selectedLocationId === null) ||
-                      (locationMode === "temporary" &&
-                        normalizeLocationName(temporaryLocationName) === "")
-                    }
-                    className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300"
-                  >
-                    {activeRecord ? "天気を更新" : "天気を登録"}
-                  </button>
+                <div className="space-y-3">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <button
+                      type="submit"
+                      disabled={
+                        saving ||
+                        (locationMode === "saved" &&
+                          selectedLocationId === null) ||
+                        (locationMode === "temporary" &&
+                          normalizeLocationName(temporaryLocationName) === "")
+                      }
+                      className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300"
+                    >
+                      {activeRecord ? "天気を更新" : "天気を登録"}
+                    </button>
 
-                  {activeRecord ? (
-                    <>
-                      <button
-                        type="button"
-                        disabled={deletingId === activeRecord.id}
-                        onClick={() => void handleDelete(activeRecord)}
-                        className="inline-flex items-center justify-center rounded-lg border border-red-200 px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
-                      >
-                        削除
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => resetDraft()}
-                        className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
-                      >
-                        新しい天気を入力
-                      </button>
-                    </>
+                    {activeRecord ? (
+                      <>
+                        <button
+                          type="button"
+                          disabled={deletingId === activeRecord.id}
+                          onClick={() => {
+                            setPageError(null);
+                            setConfirmingDeleteId(activeRecord.id);
+                          }}
+                          className="inline-flex items-center justify-center rounded-lg border border-red-200 px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          削除
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => resetDraft()}
+                          className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+                        >
+                          新しい天気を入力
+                        </button>
+                      </>
+                    ) : null}
+                  </div>
+
+                  {activeRecord && confirmingDeleteId === activeRecord.id ? (
+                    <div className="w-full rounded-xl border border-red-200 bg-red-50/70 px-4 py-4">
+                      <p className="text-sm font-semibold text-red-900">
+                        天気記録を削除しますか？
+                      </p>
+                      <div className="mt-2 space-y-1 text-sm text-red-800">
+                        <p>この操作は取り消せません。</p>
+                        <p>登録済みの天気情報だけを削除します。</p>
+                        <p>着用履歴やアイテム自体は削除されません。</p>
+                      </div>
+                      <div className="mt-4 flex flex-wrap items-center gap-3">
+                        <button
+                          type="button"
+                          disabled={deletingId === activeRecord.id}
+                          onClick={() => setConfirmingDeleteId(null)}
+                          className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          キャンセル
+                        </button>
+                        <button
+                          type="button"
+                          disabled={deletingId === activeRecord.id}
+                          onClick={() => void handleDelete(activeRecord)}
+                          className="inline-flex items-center justify-center rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-red-300"
+                        >
+                          {deletingId === activeRecord.id
+                            ? "削除中…"
+                            : "削除する"}
+                        </button>
+                      </div>
+                    </div>
                   ) : null}
                 </div>
               </form>

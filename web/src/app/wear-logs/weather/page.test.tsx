@@ -4,6 +4,7 @@ import React from "react";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { ApiClientError } from "@/lib/api/client";
 import type { UserWeatherLocationRecord } from "@/types/settings";
 import type { WeatherRecord } from "@/types/weather";
 
@@ -102,6 +103,24 @@ describe("WearLogWeatherPage", () => {
     timezone: "Asia/Tokyo",
     is_default: false,
     display_order: 4,
+    created_at: null,
+    updated_at: null,
+  };
+
+  const savedWeatherRecord: WeatherRecord = {
+    id: 11,
+    weather_date: "2026-05-04",
+    location_id: 1,
+    location_name: "川口",
+    location_name_snapshot: "川口",
+    forecast_area_code_snapshot: "110010",
+    weather_code: "sunny",
+    temperature_high: 23,
+    temperature_low: 14,
+    memo: "朝は晴れ",
+    source_type: "manual",
+    source_name: "manual",
+    source_fetched_at: null,
     created_at: null,
     updated_at: null,
   };
@@ -338,5 +357,145 @@ describe("WearLogWeatherPage", () => {
         source_name: "open_meteo_jma_forecast",
       }),
     );
+  });
+
+  it("天気削除でアプリ内確認 UI を表示して削除できる", async () => {
+    const confirmSpy = vi
+      .spyOn(window, "confirm")
+      .mockImplementation(() => true);
+    fetchWeatherRecordsByDateMock.mockResolvedValue({
+      weatherRecords: [savedWeatherRecord] satisfies WeatherRecord[],
+    });
+    deleteWeatherRecordMock.mockResolvedValue({
+      message: "deleted",
+    });
+
+    const { default: WearLogWeatherPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(WearLogWeatherPage));
+      await waitForEffects();
+    });
+
+    expect(container.textContent).not.toContain("天気記録を削除しますか？");
+    expect(getButtonByText("削除")).toBeDefined();
+
+    await act(async () => {
+      getButtonByText("削除")!.dispatchEvent(
+        new MouseEvent("click", { bubbles: true }),
+      );
+      await waitForEffects();
+    });
+
+    expect(confirmSpy).not.toHaveBeenCalled();
+    expect(container.textContent).toContain("天気記録を削除しますか？");
+    expect(container.textContent).toContain(
+      "登録済みの天気情報だけを削除します。",
+    );
+    expect(container.textContent).toContain(
+      "着用履歴やアイテム自体は削除されません。",
+    );
+    expect(getButtonByText("キャンセル")).toBeDefined();
+    expect(getButtonByText("削除する")).toBeDefined();
+
+    await act(async () => {
+      getButtonByText("キャンセル")!.dispatchEvent(
+        new MouseEvent("click", { bubbles: true }),
+      );
+      await waitForEffects();
+    });
+
+    expect(deleteWeatherRecordMock).not.toHaveBeenCalled();
+    expect(container.textContent).not.toContain("天気記録を削除しますか？");
+
+    await act(async () => {
+      getButtonByText("削除")!.dispatchEvent(
+        new MouseEvent("click", { bubbles: true }),
+      );
+      await waitForEffects();
+    });
+
+    await act(async () => {
+      getButtonByText("削除する")!.dispatchEvent(
+        new MouseEvent("click", { bubbles: true }),
+      );
+      await waitForEffects();
+    });
+
+    expect(deleteWeatherRecordMock).toHaveBeenCalledWith(savedWeatherRecord.id);
+    expect(container.textContent).toContain("天気情報を削除しました。");
+    expect(container.textContent).not.toContain("天気記録を削除しますか？");
+  });
+
+  it("天気削除で backend の safe な message を表示する", async () => {
+    fetchWeatherRecordsByDateMock.mockResolvedValue({
+      weatherRecords: [savedWeatherRecord] satisfies WeatherRecord[],
+    });
+    deleteWeatherRecordMock.mockRejectedValue(
+      new ApiClientError(422, {
+        message: "この天気情報は削除できません。",
+      }),
+    );
+
+    const { default: WearLogWeatherPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(WearLogWeatherPage));
+      await waitForEffects();
+    });
+
+    await act(async () => {
+      getButtonByText("削除")!.dispatchEvent(
+        new MouseEvent("click", { bubbles: true }),
+      );
+      await waitForEffects();
+    });
+
+    await act(async () => {
+      getButtonByText("削除する")!.dispatchEvent(
+        new MouseEvent("click", { bubbles: true }),
+      );
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain("この天気情報は削除できません。");
+  });
+
+  it("天気削除で raw DB error ではなく fallback message を表示する", async () => {
+    fetchWeatherRecordsByDateMock.mockResolvedValue({
+      weatherRecords: [savedWeatherRecord] satisfies WeatherRecord[],
+    });
+    deleteWeatherRecordMock.mockRejectedValue(
+      new ApiClientError(500, {
+        message:
+          "SQLSTATE[23000]: Integrity constraint violation: 1451 Cannot delete",
+      }),
+    );
+
+    const { default: WearLogWeatherPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(WearLogWeatherPage));
+      await waitForEffects();
+    });
+
+    await act(async () => {
+      getButtonByText("削除")!.dispatchEvent(
+        new MouseEvent("click", { bubbles: true }),
+      );
+      await waitForEffects();
+    });
+
+    await act(async () => {
+      getButtonByText("削除する")!.dispatchEvent(
+        new MouseEvent("click", { bubbles: true }),
+      );
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain(
+      "天気情報の削除に失敗しました。時間をおいて再度お試しください。",
+    );
+    expect(container.textContent).not.toContain("SQLSTATE");
   });
 });
