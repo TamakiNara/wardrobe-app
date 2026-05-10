@@ -157,15 +157,15 @@ export default async function WearLogDetailPage({
         />
 
         <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div className="min-w-0 flex-1">
+          <div className="space-y-4">
+            <div className="min-w-0">
               {isPastPlanned ? (
                 <p className="text-sm text-gray-600">
                   この予定は過去日の未着用記録です。着用済みへ更新できます。
                 </p>
               ) : null}
             </div>
-            <div className="flex w-full shrink-0 flex-wrap items-center justify-start gap-3 md:ml-auto md:w-auto md:justify-end">
+            <div className="flex w-full flex-wrap items-center justify-start gap-3 md:justify-end">
               <WearLogStatusAction wearLog={wearLog} />
               <DeleteWearLogButton wearLogId={String(wearLog.id)} />
             </div>
