@@ -3671,6 +3671,170 @@ class ItemsEndpointsTest extends TestCase
         ]);
     }
 
+    public function test_delete_item_returns_404_for_other_users_item(): void
+    {
+        $owner = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $item = $this->createItem($owner, [
+            'name' => '他人のアイテム',
+        ]);
+
+        $this->actingAs($otherUser, 'web');
+
+        $response = $this->deleteJson("/api/items/{$item->id}", [], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertNotFound();
+
+        $this->assertDatabaseHas('items', [
+            'id' => $item->id,
+            'user_id' => $owner->id,
+        ]);
+    }
+
+    public function test_delete_item_deletes_unreferenced_disposed_item(): void
+    {
+        $user = User::factory()->create();
+        $item = $this->createItem($user, [
+            'name' => '手放し済み誤登録アイテム',
+            'status' => 'disposed',
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->deleteJson("/api/items/{$item->id}", [], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('message', 'deleted');
+
+        $this->assertDatabaseMissing('items', [
+            'id' => $item->id,
+        ]);
+    }
+
+    public function test_delete_item_deletes_item_materials_via_cascade(): void
+    {
+        $user = User::factory()->create();
+        $item = $this->createItem($user, [
+            'name' => '素材付きアイテム',
+        ]);
+        $item->materials()->createMany([
+            [
+                'part_label' => '本体',
+                'material_name' => '綿',
+                'ratio' => 80,
+            ],
+            [
+                'part_label' => '本体',
+                'material_name' => 'ポリエステル',
+                'ratio' => 20,
+            ],
+        ]);
+
+        $materialIds = $item->materials()->pluck('id')->all();
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->deleteJson("/api/items/{$item->id}", [], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('message', 'deleted');
+
+        $this->assertDatabaseMissing('items', [
+            'id' => $item->id,
+        ]);
+
+        foreach ($materialIds as $materialId) {
+            $this->assertDatabaseMissing('item_materials', [
+                'id' => $materialId,
+            ]);
+        }
+    }
+
+    public function test_delete_item_deletes_item_image_rows_via_cascade(): void
+    {
+        $user = User::factory()->create();
+        $item = $this->createItem($user, [
+            'name' => '画像付きアイテム',
+        ]);
+        $item->images()->createMany([
+            [
+                'disk' => 'public',
+                'path' => sprintf('items/%d/first.png', $item->id),
+                'original_filename' => 'first.png',
+                'mime_type' => 'image/png',
+                'file_size' => 1000,
+                'sort_order' => 1,
+                'is_primary' => true,
+            ],
+            [
+                'disk' => 'public',
+                'path' => sprintf('items/%d/second.png', $item->id),
+                'original_filename' => 'second.png',
+                'mime_type' => 'image/png',
+                'file_size' => 1000,
+                'sort_order' => 2,
+                'is_primary' => false,
+            ],
+        ]);
+
+        $imageIds = $item->images()->pluck('id')->all();
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->deleteJson("/api/items/{$item->id}", [], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('message', 'deleted');
+
+        $this->assertDatabaseMissing('items', [
+            'id' => $item->id,
+        ]);
+
+        foreach ($imageIds as $imageId) {
+            $this->assertDatabaseMissing('item_images', [
+                'id' => $imageId,
+            ]);
+        }
+    }
+
+    public function test_delete_item_nulls_converted_item_id_on_purchase_candidates(): void
+    {
+        $user = User::factory()->create();
+        $item = $this->createItem($user, [
+            'name' => 'item化済みアイテム',
+        ]);
+        $candidate = $this->createPurchaseCandidate($user, [
+            'status' => 'purchased',
+            'converted_item_id' => $item->id,
+            'converted_at' => now(),
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->deleteJson("/api/items/{$item->id}", [], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('message', 'deleted');
+
+        $this->assertDatabaseMissing('items', [
+            'id' => $item->id,
+        ]);
+        $this->assertDatabaseHas('purchase_candidates', [
+            'id' => $candidate->id,
+            'converted_item_id' => null,
+        ]);
+    }
+
     public function test_delete_item_returns_422_when_item_is_referenced_by_outfit(): void
     {
         $user = User::factory()->create();
