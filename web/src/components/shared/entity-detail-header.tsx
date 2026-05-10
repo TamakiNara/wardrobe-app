@@ -11,6 +11,9 @@ type EntityDetailHeaderProps = {
   eyebrow: string;
   title: string;
   details?: ReactNode;
+  // actions はヘッダー右上のコンパクトな操作群向け。
+  // confirm panel や warning のような横幅を取る UI は、
+  // ヘッダー外または詳細ページ側の下段へ配置する。
   actions?: ReactNode;
 };
 
@@ -48,8 +51,8 @@ export function EntityDetailHeader({
     <>
       <EntityDetailBreadcrumbs items={breadcrumbs} />
       <header className="overflow-hidden rounded-3xl border border-gray-200 bg-white p-6 shadow-sm md:p-7">
-        <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between md:gap-8">
-          <div className="min-w-0 max-w-2xl space-y-3">
+        <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between md:gap-8">
+          <div className="min-w-0 flex-1 space-y-3 md:max-w-2xl">
             <p className="text-sm font-medium tracking-wide text-gray-500">
               {eyebrow}
             </p>
