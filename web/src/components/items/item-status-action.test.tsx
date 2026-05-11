@@ -46,21 +46,8 @@ describe("ItemStatusAction", () => {
     globalThis.IS_REACT_ACT_ENVIRONMENT = false;
   });
 
-  it("active item では確認後に dispose API を呼び、再取得を促す", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockResolvedValue({
-        ok: true,
-        status: 200,
-        json: async () => ({
-          message: "disposed",
-          item: {
-            id: 1,
-            status: "disposed",
-          },
-        }),
-      }),
-    );
+  it("active item では初期状態で確認UIを表示しない", async () => {
+    vi.stubGlobal("fetch", vi.fn());
 
     const { default: ItemStatusAction } = await import("./item-status-action");
 
@@ -71,24 +58,96 @@ describe("ItemStatusAction", () => {
       await waitForEffects();
     });
 
-    const button = container.querySelector("button");
+    expect(container.querySelector('[role="alertdialog"]')).toBeNull();
+  });
+
+  it("active item では手放す押下で確認UIを出し、キャンセルではAPIを呼ばない", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { default: ItemStatusAction } = await import("./item-status-action");
 
     await act(async () => {
-      button?.click();
+      root.render(
+        React.createElement(ItemStatusAction, { itemId: 1, status: "active" }),
+      );
       await waitForEffects();
     });
 
-    expect(confirmMock).toHaveBeenCalledWith(
-      expect.stringContaining(
-        "通常一覧やコーディネート候補、着用履歴の登録候補から除外されます。",
-      ),
+    const triggerButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent === "手放す",
     );
-    expect(confirmMock).toHaveBeenCalledWith(
-      expect.stringContaining(
-        "このアイテムを含むコーディネートは無効になります。",
-      ),
+
+    await act(async () => {
+      triggerButton?.click();
+      await waitForEffects();
+    });
+
+    expect(confirmMock).not.toHaveBeenCalled();
+    expect(container.textContent).toContain("このアイテムを手放しますか？");
+    expect(container.textContent).toContain(
+      "アイテムは削除されず、手放した状態として残ります。",
     );
-    expect(global.fetch).toHaveBeenCalledWith("/api/items/1/dispose", {
+    expect(container.textContent).toContain(
+      "着用履歴やコーディネートの記録は維持されます。",
+    );
+
+    const cancelButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent === "キャンセル",
+    );
+
+    await act(async () => {
+      cancelButton?.click();
+      await waitForEffects();
+    });
+
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(container.querySelector('[role="alertdialog"]')).toBeNull();
+  });
+
+  it("active item では確認UI内の手放すで dispose API を呼び、成功時に再取得する", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        message: "disposed",
+        item: {
+          id: 1,
+          status: "disposed",
+        },
+      }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { default: ItemStatusAction } = await import("./item-status-action");
+
+    await act(async () => {
+      root.render(
+        React.createElement(ItemStatusAction, { itemId: 1, status: "active" }),
+      );
+      await waitForEffects();
+    });
+
+    const triggerButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent === "手放す",
+    );
+
+    await act(async () => {
+      triggerButton?.click();
+      await waitForEffects();
+    });
+
+    const confirmButtons = Array.from(
+      container.querySelectorAll("button"),
+    ).filter((button) => button.textContent === "手放す");
+    const confirmButton = confirmButtons[1] ?? null;
+
+    await act(async () => {
+      confirmButton?.click();
+      await waitForEffects();
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith("/api/items/1/dispose", {
       method: "POST",
       headers: {
         Accept: "application/json",
@@ -98,23 +157,22 @@ describe("ItemStatusAction", () => {
     });
     expect(refreshMock).toHaveBeenCalled();
     expect(container.textContent).toContain("アイテムを手放しました。");
+    expect(container.querySelector('[role="alertdialog"]')).toBeNull();
   });
 
-  it("disposed item では reactivate API を呼び、確認ダイアログは出さない", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockResolvedValue({
-        ok: true,
-        status: 200,
-        json: async () => ({
-          message: "reactivated",
-          item: {
-            id: 1,
-            status: "active",
-          },
-        }),
+  it("disposed item ではクローゼットに戻すを直接実行し、確認UIを出さない", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        message: "reactivated",
+        item: {
+          id: 1,
+          status: "active",
+        },
       }),
-    );
+    });
+    vi.stubGlobal("fetch", fetchMock);
 
     const { default: ItemStatusAction } = await import("./item-status-action");
 
@@ -138,7 +196,8 @@ describe("ItemStatusAction", () => {
     });
 
     expect(confirmMock).not.toHaveBeenCalled();
-    expect(global.fetch).toHaveBeenCalledWith("/api/items/1/reactivate", {
+    expect(container.querySelector('[role="alertdialog"]')).toBeNull();
+    expect(fetchMock).toHaveBeenCalledWith("/api/items/1/reactivate", {
       method: "POST",
       headers: {
         Accept: "application/json",
@@ -152,17 +211,15 @@ describe("ItemStatusAction", () => {
     );
   });
 
-  it("500系エラーでも raw message を表示しない", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockResolvedValue({
-        ok: false,
-        status: 500,
-        json: async () => ({
-          message: "SQLSTATE[42S22]: Unknown column custom_label",
-        }),
+  it("safe な backend message はそのまま表示する", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 422,
+      json: async () => ({
+        message: "このアイテムは現在更新できません。",
       }),
-    );
+    });
+    vi.stubGlobal("fetch", fetchMock);
 
     const { default: ItemStatusAction } = await import("./item-status-action");
 
@@ -176,16 +233,91 @@ describe("ItemStatusAction", () => {
       await waitForEffects();
     });
 
-    const button = container.querySelector("button");
+    const triggerButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent === "手放す",
+    );
 
     await act(async () => {
-      button?.click();
+      triggerButton?.click();
       await waitForEffects();
     });
+
+    const confirmButtons = Array.from(
+      container.querySelectorAll("button"),
+    ).filter((button) => button.textContent === "手放す");
+    const confirmButton = confirmButtons[1] ?? null;
+
+    await act(async () => {
+      confirmButton?.click();
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain(
+      "このアイテムは現在更新できません。",
+    );
+  });
+
+  it("unsafe な raw message や message 不在では fallback を表示する", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        json: async () => ({
+          message: "SQLSTATE[42S22]: Unknown column custom_label",
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        json: async () => ({}),
+      });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { default: ItemStatusAction } = await import("./item-status-action");
+
+    await act(async () => {
+      root.render(
+        React.createElement(ItemStatusAction, {
+          itemId: 1,
+          status: "active",
+        }),
+      );
+      await waitForEffects();
+    });
+
+    const runDisposeAttempt = async () => {
+      const triggerButton = Array.from(
+        container.querySelectorAll("button"),
+      ).find((button) => button.textContent === "手放す");
+
+      await act(async () => {
+        triggerButton?.click();
+        await waitForEffects();
+      });
+
+      const confirmButtons = Array.from(
+        container.querySelectorAll("button"),
+      ).filter((button) => button.textContent === "手放す");
+      const confirmButton = confirmButtons[1] ?? null;
+
+      await act(async () => {
+        confirmButton?.click();
+        await waitForEffects();
+      });
+    };
+
+    await runDisposeAttempt();
 
     expect(container.textContent).toContain(
       "アイテム状態の更新に失敗しました。時間をおいて再度お試しください。",
     );
     expect(container.textContent).not.toContain("SQLSTATE");
+
+    await runDisposeAttempt();
+
+    expect(container.textContent).toContain(
+      "アイテム状態の更新に失敗しました。時間をおいて再度お試しください。",
+    );
   });
 });

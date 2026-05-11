@@ -10,8 +10,30 @@ type ItemStatusActionProps = {
   status: ItemStatus;
 };
 
-const DISPOSE_CONFIRM_MESSAGE =
-  "このアイテムを手放しますか？\n\n通常一覧やコーディネート候補、着用履歴の登録候補から除外されます。\nこのアイテムを含むコーディネートは無効になります。";
+const STATUS_FALLBACK_ERROR_MESSAGE =
+  "アイテム状態の更新に失敗しました。時間をおいて再度お試しください。";
+
+function getStatusErrorMessage(data: unknown): string {
+  if (
+    data &&
+    typeof data === "object" &&
+    "message" in data &&
+    typeof data.message === "string"
+  ) {
+    const message = data.message.trim();
+
+    if (
+      message !== "" &&
+      !/SQLSTATE|PDOException|QueryException|Illuminate\\|stack trace|exception/i.test(
+        message,
+      )
+    ) {
+      return message;
+    }
+  }
+
+  return getUserFacingSubmitErrorMessage(data, STATUS_FALLBACK_ERROR_MESSAGE);
+}
 
 function getActionConfig(status: ItemStatus) {
   if (status === "disposed") {
@@ -36,6 +58,7 @@ export default function ItemStatusAction({
   status,
 }: ItemStatusActionProps) {
   const router = useRouter();
+  const [isConfirming, setIsConfirming] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -47,12 +70,19 @@ export default function ItemStatusAction({
   const { endpoint, buttonLabel, submittingLabel, successMessage } =
     getActionConfig(status);
 
-  async function handleClick() {
-    if (status === "active") {
-      const ok = window.confirm(DISPOSE_CONFIRM_MESSAGE);
-      if (!ok) return;
-    }
+  function openConfirm() {
+    setError(null);
+    setSuccess(null);
+    setIsConfirming(true);
+  }
 
+  function closeConfirm() {
+    if (submitting) return;
+
+    setIsConfirming(false);
+  }
+
+  async function handleSubmit() {
     setSubmitting(true);
     setError(null);
     setSuccess(null);
@@ -81,28 +111,31 @@ export default function ItemStatusAction({
           return;
         }
 
-        setError(
-          getUserFacingSubmitErrorMessage(
-            data,
-            "アイテム状態の更新に失敗しました。時間をおいて再度お試しください。",
-          ),
-        );
+        setError(getStatusErrorMessage(data));
         return;
       }
 
+      setIsConfirming(false);
       setSuccess(successMessage);
       router.refresh();
     } catch {
-      setError(
-        "アイテム状態の更新に失敗しました。時間をおいて再度お試しください。",
-      );
+      setError(STATUS_FALLBACK_ERROR_MESSAGE);
     } finally {
       setSubmitting(false);
     }
   }
 
+  function handleClick() {
+    if (status === "active") {
+      openConfirm();
+      return;
+    }
+
+    void handleSubmit();
+  }
+
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col items-start gap-2">
       <button
         type="button"
         onClick={handleClick}
@@ -110,13 +143,55 @@ export default function ItemStatusAction({
         className={
           status === "disposed"
             ? "rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
-            : "rounded-lg border border-red-300 px-4 py-2 text-sm font-medium text-red-700 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+            : "rounded-lg border border-amber-300 bg-amber-50 px-4 py-2 text-sm font-medium text-amber-800 transition hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-50"
         }
       >
         {submitting ? submittingLabel : buttonLabel}
       </button>
-      {error && <p className="text-sm text-red-600">{error}</p>}
-      {success && <p className="text-sm text-green-600">{success}</p>}
+
+      {status === "active" && isConfirming ? (
+        <div
+          role="alertdialog"
+          aria-labelledby={`item-dispose-confirm-title-${itemId}`}
+          aria-describedby={`item-dispose-confirm-body-${itemId}`}
+          className="w-full rounded-xl border border-amber-200 bg-white p-4 shadow-sm"
+        >
+          <h3
+            id={`item-dispose-confirm-title-${itemId}`}
+            className="text-sm font-semibold text-slate-900"
+          >
+            このアイテムを手放しますか？
+          </h3>
+          <div
+            id={`item-dispose-confirm-body-${itemId}`}
+            className="mt-2 space-y-1 text-sm text-slate-700"
+          >
+            <p>アイテムは削除されず、手放した状態として残ります。</p>
+            <p>着用履歴やコーディネートの記録は維持されます。</p>
+          </div>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={closeConfirm}
+              disabled={submitting}
+              className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              キャンセル
+            </button>
+            <button
+              type="button"
+              onClick={() => void handleSubmit()}
+              disabled={submitting}
+              className="rounded-lg border border-amber-200 bg-amber-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {submitting ? "更新中..." : "手放す"}
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      {error && <p className="w-full text-sm text-red-600">{error}</p>}
+      {success && <p className="w-full text-sm text-green-600">{success}</p>}
     </div>
   );
 }

@@ -167,6 +167,7 @@ item status は、item を通常利用対象として扱うかどうかを管理
 - `dispose` / `reactivate` は item 詳細画面からの専用操作導線として扱う
 - `disposed` item は通常一覧、outfit 候補、wear logs 候補から除外する
 - `disposed` item は `GET /api/items/disposed` と `/items/disposed` の dedicated 一覧で確認し、詳細画面から `reactivate` する
+- `手放す` の確認は native confirm ではなく、item detail の状態管理セクション内でアプリ内確認 UI を表示する
 - 物理削除 API は残すが、通常の UI 主導線には置かず、item detail 最下部の補助的な `削除` セクションで扱う
 - `outfit_items` / `wear_log_items` 参照がある item の物理削除は `422` で拒否する
 - item を `disposed` にした時、その item を含む `active` outfit は `invalid` に遷移する
@@ -213,3 +214,4 @@ item status は、item を通常利用対象として扱うかどうかを管理
 - item が `active` に戻っても outfit は自動 `restore` しない
 - delete と `disposed` は役割を分け、初期実装範囲では `disposed` を優先する
 - 通常のユーザー向け主操作は `手放す` / `クローゼットに戻す` とする
+- `手放す` は物理削除ではなく `disposed` への状態変更であり、確認 UI でもその違いが分かる文言を使う
