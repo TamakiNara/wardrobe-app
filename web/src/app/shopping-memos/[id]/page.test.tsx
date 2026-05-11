@@ -255,7 +255,7 @@ describe("ShoppingMemoDetailPage", () => {
     expect(markup).toContain('aria-label="買い物メモから外す"');
     expect(markup).not.toContain(">外す<");
     expect(markup).toContain("商品ページ");
-    expect(markup.indexOf("買い物メモから外す")).toBeLessThan(
+    expect(markup.indexOf("買い物メモから外す")).toBeGreaterThan(
       markup.indexOf("商品ページ"),
     );
     expect(markup).toContain("https://example.com/101.jpg");

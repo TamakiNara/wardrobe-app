@@ -321,23 +321,17 @@ function renderGroupItem(
           </div>
         </div>
 
-        <div className="space-y-3">
-          <div className="flex items-center justify-between gap-3">
+        <div className="relative w-full space-y-3">
+          <div className="flex items-start gap-3">
             <Link
               href={buildPurchaseCandidateDetailHref(
                 item.purchase_candidate_id,
                 shoppingMemoId,
               )}
-              className="block min-w-0 flex-1 text-base font-semibold text-gray-900 hover:underline"
+              className="block min-w-0 flex-1 pr-10 text-base font-semibold text-gray-900 hover:underline"
             >
               {item.name}
             </Link>
-            <div className="shrink-0">
-              <ShoppingMemoItemRemoveAction
-                memoId={shoppingMemoId}
-                shoppingMemoItemId={item.shopping_memo_item_id}
-              />
-            </div>
           </div>
 
           <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_8rem] md:items-start">
@@ -443,6 +437,15 @@ function renderGroupItem(
               >
                 購入検討詳細を見る
               </Link>
+            </div>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_8rem]">
+            <div className="md:col-span-2">
+              <ShoppingMemoItemRemoveAction
+                memoId={shoppingMemoId}
+                shoppingMemoItemId={item.shopping_memo_item_id}
+              />
             </div>
           </div>
         </div>
