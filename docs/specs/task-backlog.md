@@ -16,7 +16,7 @@ docs 内に散らばっている planned / TODO / 後続 / 要再判断を、**c
 
 ## サマリ
 
-- 棚卸しした docs 由来タスク: **29件**
+- 棚卸しした docs 由来タスク: **31件**
 - 種別別件数:
   - `bug`: 2
   - `ui`: 10
@@ -50,7 +50,7 @@ docs 内に散らばっている planned / TODO / 後続 / 要再判断を、**c
 | UI-08 | 購入検討削除前に買い物メモ所属による削除不可状態を事前表示する | current では DELETE 実行後に backend `422` で削除不可が分かるため、purchase candidate detail / edit response に `is_used_in_shopping_memos` や `shopping_memo_count` を追加する案を第一候補として、編集画面の削除セクションで disabled 表示や補足文を出せるようにする。案A: detail / edit response に所属情報を含める。案B: delete-check API を追加する。案C: 常時注意文だけ表示する。推奨は案A。        | `purchase-candidates.md`, `shopping-memos.md`                                                                                                                                 | purchase candidates / shopping memos | ui   | medium | backend 422 実装済み / response 拡張方針判断   | needs design     |
 | UI-09 | 詳細画面ヘッダーのレイアウトテンプレート整理                   | 詳細画面の header / actions / footer 相当の配置ルールを整理し、`EntityDetailHeader` の `actions` にはコンパクトな操作群だけを置き、削除確認 UI・warning・補足文のような横幅を取る UI はヘッダー下段またはページ側の独立エリアへ逃がす方針を正本化する。item / outfit / purchase candidate / shopping memo へ展開できるテンプレートとしてまとめる。                                                       | `ui/page-header-guidelines.md`, `items/delete-policy.md`, `outfits/create-edit.md`, 各 detail page current 実装                                                               | shared detail header                 | ui   | medium | current detail header 棚卸し / confirm UI 方針 | yes              |
 | UI-10 | 401 alert + login redirect のアプリ内通知化                    | `window.alert()` を使って `401` / セッション切れ / ログイン再要求を通知している箇所を棚卸しし、画面内通知・ログイン導線へ置き換える。削除確認などの native confirm 置き換えとは別タスクとして扱う。                                                                                                                                                                                                      | `web/src` の alert 使用箇所, 手元確認メモ                                                                                                                                     | auth / error notification            | ui   | medium | 401 alert 棚卸し / UX 整理                     | yes              |
-| UI-11 | import-export 復元確認 prompt の UI 置き換え                   | `window.prompt()` を使っているバックアップ復元前の確認を、既存の確認 UI パターンに寄せた画面内 UI へ置き換える。確認文字列の入力を維持するか、より適切な復元確認フローに再設計するかを含めて整理する。                                                                                                                                                                                                   | `import-export.md`, `web/src/app/settings/import-export/page.tsx`                                                                                                             | import-export / destructive restore  | ui   | medium | current prompt 棚卸し / 復元 UX 再設計         | needs design     |
+| UI-11 | import-export 復元確認 prompt の UI 置き換え                   | `window.prompt()` を使っていたバックアップ復元前の確認を、確認文字列入力つきの画面内 UI へ置き換える。current では `バックアップから復元する` 押下後に確認 UI を開き、`インポート` と一致した場合だけ `復元する` を実行できる。                                                                                                                                                                          | `import-export.md`, `web/src/app/settings/import-export/page.tsx`                                                                                                             | import-export / destructive restore  | ui   | medium | current 復元確認 UI 実装済み                   | yes              |
 
 ## 機能追加
 

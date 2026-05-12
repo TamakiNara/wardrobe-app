@@ -28,6 +28,16 @@ async function waitForEffects() {
   await new Promise((resolve) => setTimeout(resolve, 0));
 }
 
+function setInputValue(input: HTMLInputElement, value: string) {
+  const valueSetter = Object.getOwnPropertyDescriptor(
+    HTMLInputElement.prototype,
+    "value",
+  )?.set;
+
+  valueSetter?.call(input, value);
+  input.dispatchEvent(new Event("input", { bubbles: true }));
+}
+
 describe("ImportExportPage", () => {
   let container: HTMLDivElement;
   let root: ReturnType<typeof createRoot>;
@@ -40,7 +50,6 @@ describe("ImportExportPage", () => {
   let showSaveFilePickerMock: ReturnType<typeof vi.fn>;
   let writableWriteMock: ReturnType<typeof vi.fn>;
   let writableCloseMock: ReturnType<typeof vi.fn>;
-  let promptMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -119,8 +128,6 @@ describe("ImportExportPage", () => {
         },
       },
     });
-    promptMock = vi.fn(() => "インポート");
-    vi.stubGlobal("prompt", promptMock);
     Object.defineProperty(window, "showSaveFilePicker", {
       value: showSaveFilePickerMock,
       configurable: true,
@@ -296,7 +303,21 @@ describe("ImportExportPage", () => {
     );
   });
 
-  it("JSON ファイルを選択して復元できる", async () => {
+  it("初期状態では復元確認 UI を表示しない", async () => {
+    const { default: ImportExportPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(ImportExportPage));
+      await waitForEffects();
+    });
+
+    expect(container.textContent).not.toContain("バックアップを復元しますか？");
+    expect(
+      container.querySelector<HTMLInputElement>("#import-confirmation-input"),
+    ).toBeNull();
+  });
+
+  it("JSON ファイルを選択して復元確認 UI から復元できる", async () => {
     const { default: ImportExportPage } = await import("./page");
 
     await act(async () => {
@@ -340,7 +361,36 @@ describe("ImportExportPage", () => {
       await waitForEffects();
     });
 
-    expect(globalThis.prompt).toHaveBeenCalledTimes(1);
+    expect(container.textContent).toContain("バックアップを復元しますか？");
+    expect(container.textContent).toContain(
+      "実行するには「インポート」と入力してください。",
+    );
+
+    const confirmationInput = container.querySelector<HTMLInputElement>(
+      "#import-confirmation-input",
+    );
+    let executeButton = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button"),
+    ).find((button) => button.textContent === "復元する");
+
+    expect(confirmationInput).not.toBeNull();
+    expect(executeButton?.disabled).toBe(true);
+
+    await act(async () => {
+      setInputValue(confirmationInput!, "インポート");
+      await waitForEffects();
+    });
+
+    executeButton = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button"),
+    ).find((button) => button.textContent === "復元する");
+    expect(executeButton?.disabled).toBe(false);
+
+    await act(async () => {
+      executeButton!.click();
+      await waitForEffects();
+    });
+
     expect(importUserDataMock).toHaveBeenCalledWith({
       version: 1,
       exported_at: "2026-04-24T12:34:56+09:00",
@@ -355,12 +405,11 @@ describe("ImportExportPage", () => {
     expect(container.textContent).toContain(
       "復元が完了しました。アイテム 1 件（表示対象 1 件）、購入検討 2 件、コーディネート 3 件（表示対象 2 件）、着用履歴 4 件を復元しました。",
     );
+    expect(container.textContent).not.toContain("バックアップを復元しますか？");
   });
 
-  it("確認文字列が一致しない場合はインポートしない", async () => {
+  it("キャンセルで復元を実行しない", async () => {
     const { default: ImportExportPage } = await import("./page");
-
-    promptMock.mockReturnValueOnce("キャンセル");
 
     await act(async () => {
       root.render(React.createElement(ImportExportPage));
@@ -403,9 +452,224 @@ describe("ImportExportPage", () => {
       await waitForEffects();
     });
 
+    const cancelButton = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button"),
+    ).find((button) => button.textContent === "キャンセル");
+
+    await act(async () => {
+      cancelButton!.click();
+      await waitForEffects();
+    });
+
     expect(importUserDataMock).not.toHaveBeenCalled();
+    expect(container.textContent).not.toContain("バックアップを復元しますか？");
+  });
+
+  it("確認文字列が未一致の間は復元を実行しない", async () => {
+    const { default: ImportExportPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(ImportExportPage));
+      await waitForEffects();
+    });
+
+    const input = container.querySelector<HTMLInputElement>("#import-file");
+    const importButton = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button"),
+    ).find((button) => button.textContent === "バックアップから復元する");
+    const file = new File(
+      [
+        JSON.stringify({
+          version: 1,
+          exported_at: "2026-04-24T12:34:56+09:00",
+          owner: {
+            user_id: 1,
+          },
+          items: [],
+          purchase_candidates: [],
+          outfits: [],
+          wear_logs: [],
+        }),
+      ],
+      "backup.json",
+      { type: "application/json" },
+    );
+
+    await act(async () => {
+      Object.defineProperty(input, "files", {
+        value: [file],
+        configurable: true,
+      });
+      input!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    await act(async () => {
+      importButton!.click();
+      await waitForEffects();
+    });
+
+    const confirmationInput = container.querySelector<HTMLInputElement>(
+      "#import-confirmation-input",
+    );
+    let executeButton = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button"),
+    ).find((button) => button.textContent === "復元する");
+
+    await act(async () => {
+      setInputValue(confirmationInput!, "キャンセル");
+      await waitForEffects();
+    });
+
+    executeButton = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button"),
+    ).find((button) => button.textContent === "復元する");
+    expect(importUserDataMock).not.toHaveBeenCalled();
+    expect(executeButton?.disabled).toBe(true);
+    expect(container.textContent).toContain("確認文字列が一致しません。");
+  });
+
+  it("復元 API の安全なエラーメッセージを表示する", async () => {
+    const { default: ImportExportPage } = await import("./page");
+
+    importUserDataMock.mockRejectedValueOnce(
+      new Error("バックアップを復元できませんでした。"),
+    );
+
+    await act(async () => {
+      root.render(React.createElement(ImportExportPage));
+      await waitForEffects();
+    });
+
+    const input = container.querySelector<HTMLInputElement>("#import-file");
+    const importButton = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button"),
+    ).find((button) => button.textContent === "バックアップから復元する");
+    const file = new File(
+      [
+        JSON.stringify({
+          version: 1,
+          exported_at: "2026-04-24T12:34:56+09:00",
+          owner: {
+            user_id: 1,
+          },
+          items: [],
+          purchase_candidates: [],
+          outfits: [],
+          wear_logs: [],
+        }),
+      ],
+      "backup.json",
+      { type: "application/json" },
+    );
+
+    await act(async () => {
+      Object.defineProperty(input, "files", {
+        value: [file],
+        configurable: true,
+      });
+      input!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    await act(async () => {
+      importButton!.click();
+      await waitForEffects();
+    });
+
+    const confirmationInput = container.querySelector<HTMLInputElement>(
+      "#import-confirmation-input",
+    );
+    let executeButton = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button"),
+    ).find((button) => button.textContent === "復元する");
+
+    await act(async () => {
+      setInputValue(confirmationInput!, "インポート");
+      await waitForEffects();
+    });
+
+    executeButton = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button"),
+    ).find((button) => button.textContent === "復元する");
+    await act(async () => {
+      executeButton!.click();
+      await waitForEffects();
+    });
+
     expect(container.textContent).toContain(
-      "確認文字列が一致しなかったため、インポートを中止しました。",
+      "バックアップを復元できませんでした。",
+    );
+  });
+
+  it("復元 API のメッセージがない場合はフォールバックを表示する", async () => {
+    const { default: ImportExportPage } = await import("./page");
+
+    importUserDataMock.mockRejectedValueOnce({ reason: "unexpected" });
+
+    await act(async () => {
+      root.render(React.createElement(ImportExportPage));
+      await waitForEffects();
+    });
+
+    const input = container.querySelector<HTMLInputElement>("#import-file");
+    const importButton = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button"),
+    ).find((button) => button.textContent === "バックアップから復元する");
+    const file = new File(
+      [
+        JSON.stringify({
+          version: 1,
+          exported_at: "2026-04-24T12:34:56+09:00",
+          owner: {
+            user_id: 1,
+          },
+          items: [],
+          purchase_candidates: [],
+          outfits: [],
+          wear_logs: [],
+        }),
+      ],
+      "backup.json",
+      { type: "application/json" },
+    );
+
+    await act(async () => {
+      Object.defineProperty(input, "files", {
+        value: [file],
+        configurable: true,
+      });
+      input!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    await act(async () => {
+      importButton!.click();
+      await waitForEffects();
+    });
+
+    const confirmationInput = container.querySelector<HTMLInputElement>(
+      "#import-confirmation-input",
+    );
+    let executeButton = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button"),
+    ).find((button) => button.textContent === "復元する");
+
+    await act(async () => {
+      setInputValue(confirmationInput!, "インポート");
+      await waitForEffects();
+    });
+
+    executeButton = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button"),
+    ).find((button) => button.textContent === "復元する");
+    await act(async () => {
+      executeButton!.click();
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain(
+      "インポート・エクスポートの処理に失敗しました。",
     );
   });
 });

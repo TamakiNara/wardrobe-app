@@ -93,12 +93,16 @@ function buildPendingExportFileName() {
   return `wardrobe-export-${normalized}.json`;
 }
 
+const IMPORT_CONFIRMATION_TEXT = "インポート";
+
 function ImportExportPageContent() {
   const [exporting, setExporting] = useState(false);
   const [importing, setImporting] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isImportConfirmOpen, setIsImportConfirmOpen] = useState(false);
+  const [importConfirmationText, setImportConfirmationText] = useState("");
 
   const selectedFileLabel = useMemo(() => {
     if (!selectedFile) {
@@ -107,6 +111,11 @@ function ImportExportPageContent() {
 
     return selectedFile.name;
   }, [selectedFile]);
+
+  const isImportConfirmationMatched =
+    importConfirmationText === IMPORT_CONFIRMATION_TEXT;
+  const shouldShowImportConfirmationError =
+    importConfirmationText.length > 0 && !isImportConfirmationMatched;
 
   async function saveExportBlob(
     blob: Blob,
@@ -206,20 +215,24 @@ function ImportExportPageContent() {
     }
   }
 
-  async function handleImport() {
+  function handleImportIntent() {
     if (!selectedFile || importing) return;
 
-    const confirmedText = window.prompt(
-      "実行するには「インポート」と入力してください。\n実行すると、現在のアイテム・購入検討・コーディネート・着用履歴はすべて削除されて置き換わります。",
-    );
+    setSuccessMessage(null);
+    setErrorMessage(null);
+    setImportConfirmationText("");
+    setIsImportConfirmOpen(true);
+  }
 
-    if (confirmedText !== "インポート") {
-      setSuccessMessage(null);
-      setErrorMessage(
-        "確認文字列が一致しなかったため、インポートを中止しました。",
-      );
-      return;
-    }
+  function handleImportCancel() {
+    if (importing) return;
+
+    setImportConfirmationText("");
+    setIsImportConfirmOpen(false);
+  }
+
+  async function handleImport() {
+    if (!selectedFile || importing || !isImportConfirmationMatched) return;
 
     setImporting(true);
     setSuccessMessage(null);
@@ -234,6 +247,8 @@ function ImportExportPageContent() {
         `復元が完了しました。アイテム ${response.counts.items.total} 件（表示対象 ${response.counts.items.visible} 件）、購入検討 ${response.counts.purchase_candidates.total} 件、コーディネート ${response.counts.outfits.total} 件（表示対象 ${response.counts.outfits.visible} 件）、着用履歴 ${response.counts.wear_logs.total} 件を復元しました。`,
       );
       setSelectedFile(null);
+      setImportConfirmationText("");
+      setIsImportConfirmOpen(false);
     } catch (error) {
       if (error instanceof SyntaxError) {
         setErrorMessage(
@@ -325,6 +340,8 @@ function ImportExportPageContent() {
                     setSelectedFile(file);
                     setSuccessMessage(null);
                     setErrorMessage(null);
+                    setImportConfirmationText("");
+                    setIsImportConfirmOpen(false);
                   }}
                   className="sr-only"
                 />
@@ -337,12 +354,73 @@ function ImportExportPageContent() {
 
             <button
               type="button"
-              onClick={handleImport}
+              onClick={handleImportIntent}
               disabled={!selectedFile || importing}
               className="rounded-lg border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-700 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:border-gray-200 disabled:text-gray-400"
             >
               {importing ? "復元中..." : "バックアップから復元する"}
             </button>
+
+            {isImportConfirmOpen ? (
+              <div className="w-full space-y-4 rounded-xl border border-amber-300 bg-amber-50 px-4 py-4 text-left shadow-sm">
+                <div className="space-y-2">
+                  <h3 className="text-sm font-semibold text-amber-950">
+                    バックアップを復元しますか？
+                  </h3>
+                  <p className="text-sm text-amber-900">
+                    現在のデータは、バックアップファイルの内容で復元されます。
+                    <br />
+                    この操作は元に戻せません。
+                    <br />
+                    実行するには「インポート」と入力してください。
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <label
+                    htmlFor="import-confirmation-input"
+                    className="block text-sm font-medium text-amber-950"
+                  >
+                    確認入力
+                  </label>
+                  <input
+                    id="import-confirmation-input"
+                    type="text"
+                    value={importConfirmationText}
+                    onChange={(event) =>
+                      setImportConfirmationText(event.target.value)
+                    }
+                    placeholder={IMPORT_CONFIRMATION_TEXT}
+                    autoComplete="off"
+                    className="w-full rounded-lg border border-amber-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
+                  />
+                  {shouldShowImportConfirmationError ? (
+                    <p className="text-sm text-red-700">
+                      確認文字列が一致しません。
+                    </p>
+                  ) : null}
+                </div>
+
+                <div className="flex flex-col gap-2 sm:flex-row">
+                  <button
+                    type="button"
+                    onClick={handleImportCancel}
+                    disabled={importing}
+                    className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:text-gray-400"
+                  >
+                    キャンセル
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleImport}
+                    disabled={!isImportConfirmationMatched || importing}
+                    className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-gray-300"
+                  >
+                    {importing ? "復元中..." : "復元する"}
+                  </button>
+                </div>
+              </div>
+            ) : null}
           </div>
         </SettingsCard>
 

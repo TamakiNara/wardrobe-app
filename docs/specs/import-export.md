@@ -32,6 +32,15 @@ weather 関連でここで扱うデータ:
 
 ## current
 
+### 復元実行前の確認 UI
+
+- current では、バックアップ復元前の確認に native `window.prompt()` は使わない
+- `バックアップから復元する` 押下時に、画面内の確認 UI を表示する
+- 確認 UI には入力欄を出し、`インポート` と一致した場合だけ `復元する` を実行できる
+- `キャンセル` では復元 API を呼ばない
+- 復元対象や restore 順序、payload 仕様は既存どおりで変更しない
+- export 側の UI / API には影響しない
+
 ### structured logging
 
 - current では import / export に Laravel structured log を入れている
