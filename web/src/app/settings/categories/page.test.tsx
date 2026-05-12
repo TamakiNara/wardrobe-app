@@ -145,6 +145,7 @@ function getCategoryCheckboxes(container: HTMLDivElement) {
 describe("SettingsCategoriesPage", () => {
   let container: HTMLDivElement;
   let root: ReturnType<typeof createRoot>;
+  let confirmMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -162,6 +163,8 @@ describe("SettingsCategoriesPage", () => {
     });
     fetchItemsMock.mockResolvedValue(sampleItems);
     searchParamsValue = "";
+    confirmMock = vi.fn().mockReturnValue(true);
+    vi.stubGlobal("confirm", confirmMock);
   });
 
   afterEach(() => {
@@ -169,6 +172,7 @@ describe("SettingsCategoriesPage", () => {
       root.unmount();
     });
     container.remove();
+    vi.unstubAllGlobals();
     globalThis.IS_REACT_ACT_ENVIRONMENT = false;
   });
 
@@ -302,5 +306,89 @@ describe("SettingsCategoriesPage", () => {
       ],
     });
     expect(pushMock).toHaveBeenCalledWith("/");
+  });
+
+  it("大分類をOFFにする前に画面内確認UIを表示し、キャンセルで変更を維持する", async () => {
+    const { default: SettingsCategoriesPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(SettingsCategoriesPage));
+      await waitForEffects();
+    });
+
+    const offButtons = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button"),
+    ).filter((button) => button.textContent === "すべてOFF");
+    expect(offButtons.length).toBeGreaterThan(0);
+
+    await act(async () => {
+      offButtons[0]!.click();
+      await waitForEffects();
+    });
+
+    expect(confirmMock).not.toHaveBeenCalled();
+    expect(container.textContent).toContain("この大分類を非表示にしますか？");
+    expect(container.textContent).toContain(
+      "登録済みのアイテム自体は削除されません。",
+    );
+    expect(getSaveButtons(container).every((button) => button.disabled)).toBe(
+      true,
+    );
+
+    const cancelButton = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button"),
+    ).find((button) => button.textContent === "キャンセル");
+    expect(cancelButton).toBeTruthy();
+
+    await act(async () => {
+      cancelButton!.click();
+      await waitForEffects();
+    });
+
+    expect(container.querySelector('[role="alertdialog"]')).not.toBeTruthy();
+    expect(getSaveButtons(container).every((button) => button.disabled)).toBe(
+      true,
+    );
+  });
+
+  it("カテゴリを非表示にする前に画面内確認UIを表示し、確定後も保存まではAPIを呼ばない", async () => {
+    const { default: SettingsCategoriesPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(SettingsCategoriesPage));
+      await waitForEffects();
+    });
+
+    const checkboxes = getCategoryCheckboxes(container);
+    expect(checkboxes[0]?.checked).toBe(true);
+
+    await act(async () => {
+      checkboxes[0]!.click();
+      await waitForEffects();
+    });
+
+    expect(confirmMock).not.toHaveBeenCalled();
+    expect(container.textContent).toContain("このカテゴリを非表示にしますか？");
+    expect(container.textContent).toContain(
+      "登録済みのアイテム自体は削除されません。",
+    );
+    expect(checkboxes[0]?.checked).toBe(true);
+    expect(updateCategoryVisibilitySettingsMock).not.toHaveBeenCalled();
+
+    const confirmButtons = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button"),
+    ).filter((button) => button.textContent === "非表示にする");
+    expect(confirmButtons.length).toBeGreaterThan(0);
+
+    await act(async () => {
+      confirmButtons[0]!.click();
+      await waitForEffects();
+    });
+
+    expect(checkboxes[0]?.checked).toBe(false);
+    expect(updateCategoryVisibilitySettingsMock).not.toHaveBeenCalled();
+    expect(getSaveButtons(container).every((button) => !button.disabled)).toBe(
+      true,
+    );
   });
 });

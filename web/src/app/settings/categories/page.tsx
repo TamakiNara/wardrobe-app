@@ -19,6 +19,18 @@ import {
 import type { CategoryGroupRecord } from "@/types/categories";
 import type { ItemRecord } from "@/types/items";
 
+type PendingVisibilityChange =
+  | {
+      type: "group";
+      groupId: string;
+      groupName: string;
+    }
+  | {
+      type: "category";
+      categoryId: string;
+      categoryName: string;
+    };
+
 function buildVisibilityFromIds(
   groups: CategoryGroupRecord[],
   visibleCategoryIds: string[],
@@ -106,6 +118,8 @@ function SettingsCategoriesPageContent() {
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [requiresInitialSave, setRequiresInitialSave] = useState(false);
+  const [pendingVisibilityChange, setPendingVisibilityChange] =
+    useState<PendingVisibilityChange | null>(null);
 
   const isOnboardingCustom =
     searchParams.get("mode") === "onboarding" &&
@@ -210,59 +224,6 @@ function SettingsCategoriesPageContent() {
     [registeredItems],
   );
 
-  function confirmGroupVisibilityChange(
-    group: CategoryGroupRecord,
-    enabled: boolean,
-  ) {
-    const alreadyMatched = group.categories.every(
-      (category) => (visibility[category.id] !== false) === enabled,
-    );
-
-    if (alreadyMatched || enabled) {
-      return true;
-    }
-
-    const itemCount = getRegisteredItemCountForGroup(
-      group,
-      registeredItemCountByCategoryId,
-    );
-
-    if (itemCount === 0) {
-      return true;
-    }
-
-    const message = [
-      `${group.name}をすべてOFFにしますか？`,
-      `現在${itemCount}アイテムがこの大分類に登録されています。`,
-      "非表示にしてもデータは削除されません。\n変更後は「表示設定を保存」を押してください。",
-    ].join("\n\n");
-
-    return window.confirm(message);
-  }
-
-  function confirmCategoryVisibilityChange(categoryId: string) {
-    const itemCount = getRegisteredItemCountForCategory(
-      categoryId,
-      registeredItemCountByCategoryId,
-    );
-
-    if (itemCount === 0) {
-      return true;
-    }
-
-    const categoryName =
-      groups
-        .flatMap((group) => group.categories)
-        .find((category) => category.id === categoryId)?.name ?? categoryId;
-    const message = [
-      `${categoryName}をOFFにしますか？`,
-      `現在${itemCount}アイテムがこのカテゴリに登録されています。`,
-      "非表示にしてもデータは削除されません。\n変更後は「表示設定を保存」を押してください。",
-    ].join("\n\n");
-
-    return window.confirm(message);
-  }
-
   function toggleGroup(groupId: string) {
     setExpandedGroups((current) => ({
       ...current,
@@ -270,13 +231,18 @@ function SettingsCategoriesPageContent() {
     }));
   }
 
-  function setGroupVisibility(group: CategoryGroupRecord, enabled: boolean) {
-    if (!confirmGroupVisibilityChange(group, enabled)) {
-      return;
-    }
-
+  function clearMessages() {
     setSaveMessage(null);
     setSaveError(null);
+  }
+
+  function closePendingVisibilityChange() {
+    setPendingVisibilityChange(null);
+  }
+
+  function applyGroupVisibility(group: CategoryGroupRecord, enabled: boolean) {
+    clearMessages();
+    setPendingVisibilityChange(null);
     setVisibility((current) => {
       const next = { ...current };
       for (const category of group.categories) {
@@ -286,18 +252,109 @@ function SettingsCategoriesPageContent() {
     });
   }
 
-  function toggleCategory(categoryId: string) {
-    const willEnable = visibility[categoryId] === false;
-    if (!willEnable && !confirmCategoryVisibilityChange(categoryId)) {
+  function applyCategoryVisibility(categoryId: string, enabled: boolean) {
+    clearMessages();
+    setPendingVisibilityChange(null);
+    setVisibility((current) => ({
+      ...current,
+      [categoryId]: enabled,
+    }));
+  }
+
+  function requestGroupVisibilityChange(
+    group: CategoryGroupRecord,
+    enabled: boolean,
+  ) {
+    const alreadyMatched = group.categories.every(
+      (category) => (visibility[category.id] !== false) === enabled,
+    );
+
+    if (alreadyMatched) {
       return;
     }
 
-    setSaveMessage(null);
-    setSaveError(null);
-    setVisibility((current) => ({
-      ...current,
-      [categoryId]: !(current[categoryId] !== false),
-    }));
+    if (enabled) {
+      applyGroupVisibility(group, true);
+      return;
+    }
+
+    const itemCount = getRegisteredItemCountForGroup(
+      group,
+      registeredItemCountByCategoryId,
+    );
+
+    if (itemCount === 0) {
+      applyGroupVisibility(group, false);
+      return;
+    }
+
+    clearMessages();
+    setPendingVisibilityChange({
+      type: "group",
+      groupId: group.id,
+      groupName: group.name,
+    });
+  }
+
+  function requestCategoryVisibilityChange(categoryId: string) {
+    const willEnable = visibility[categoryId] === false;
+
+    if (willEnable) {
+      applyCategoryVisibility(categoryId, true);
+      return;
+    }
+
+    const itemCount = getRegisteredItemCountForCategory(
+      categoryId,
+      registeredItemCountByCategoryId,
+    );
+
+    if (itemCount === 0) {
+      applyCategoryVisibility(categoryId, false);
+      return;
+    }
+
+    const categoryName =
+      groups
+        .flatMap((group) => group.categories)
+        .find((category) => category.id === categoryId)?.name ?? categoryId;
+
+    clearMessages();
+    setPendingVisibilityChange({
+      type: "category",
+      categoryId,
+      categoryName,
+    });
+  }
+
+  function confirmPendingVisibilityChange() {
+    if (!pendingVisibilityChange) {
+      return;
+    }
+
+    if (pendingVisibilityChange.type === "group") {
+      const targetGroup = groups.find(
+        (group) => group.id === pendingVisibilityChange.groupId,
+      );
+
+      if (!targetGroup) {
+        setPendingVisibilityChange(null);
+        return;
+      }
+
+      applyGroupVisibility(targetGroup, false);
+      return;
+    }
+
+    applyCategoryVisibility(pendingVisibilityChange.categoryId, false);
+  }
+
+  function setGroupVisibility(group: CategoryGroupRecord, enabled: boolean) {
+    requestGroupVisibilityChange(group, enabled);
+  }
+
+  function toggleCategory(categoryId: string) {
+    requestCategoryVisibilityChange(categoryId);
   }
 
   async function handleSave() {
@@ -443,28 +500,119 @@ function SettingsCategoriesPageContent() {
                       </div>
                     </div>
 
+                    {pendingVisibilityChange?.type === "group" &&
+                    pendingVisibilityChange.groupId === group.id ? (
+                      <div
+                        role="alertdialog"
+                        aria-labelledby={`category-group-confirm-title-${group.id}`}
+                        aria-describedby={`category-group-confirm-body-${group.id}`}
+                        className="mt-4 rounded-xl border border-amber-200 bg-white p-4 shadow-sm"
+                      >
+                        <h3
+                          id={`category-group-confirm-title-${group.id}`}
+                          className="text-sm font-semibold text-slate-900"
+                        >
+                          この大分類を非表示にしますか？
+                        </h3>
+                        <div
+                          id={`category-group-confirm-body-${group.id}`}
+                          className="mt-2 space-y-1 text-sm text-slate-700"
+                        >
+                          <p>
+                            {pendingVisibilityChange.groupName}
+                            に含まれるカテゴリも表示対象から外れます。
+                          </p>
+                          <p>登録済みのアイテム自体は削除されません。</p>
+                        </div>
+                        <div className="mt-4 flex flex-wrap gap-2">
+                          <button
+                            type="button"
+                            onClick={closePendingVisibilityChange}
+                            className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                          >
+                            キャンセル
+                          </button>
+                          <button
+                            type="button"
+                            onClick={confirmPendingVisibilityChange}
+                            className="rounded-lg border border-amber-200 bg-amber-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-amber-600"
+                          >
+                            非表示にする
+                          </button>
+                        </div>
+                      </div>
+                    ) : null}
+
                     {isExpanded ? (
                       <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
                         {group.categories.map((category) => {
                           const checked = visibility[category.id] !== false;
 
                           return (
-                            <label
+                            <div
                               key={category.id}
-                              className="flex cursor-pointer items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-3"
+                              className="rounded-xl border border-gray-200 bg-white px-4 py-3"
                             >
-                              <div>
-                                <p className="text-sm font-medium text-gray-900">
-                                  {category.name}
-                                </p>
-                              </div>
-                              <input
-                                type="checkbox"
-                                checked={checked}
-                                onChange={() => toggleCategory(category.id)}
-                                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                              />
-                            </label>
+                              <label className="flex cursor-pointer items-center justify-between">
+                                <div>
+                                  <p className="text-sm font-medium text-gray-900">
+                                    {category.name}
+                                  </p>
+                                </div>
+                                <input
+                                  type="checkbox"
+                                  checked={checked}
+                                  onChange={() => toggleCategory(category.id)}
+                                  className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                />
+                              </label>
+
+                              {pendingVisibilityChange?.type === "category" &&
+                              pendingVisibilityChange.categoryId ===
+                                category.id ? (
+                                <div
+                                  role="alertdialog"
+                                  aria-labelledby={`category-confirm-title-${category.id}`}
+                                  aria-describedby={`category-confirm-body-${category.id}`}
+                                  className="mt-3 rounded-xl border border-amber-200 bg-white p-4 shadow-sm"
+                                >
+                                  <h3
+                                    id={`category-confirm-title-${category.id}`}
+                                    className="text-sm font-semibold text-slate-900"
+                                  >
+                                    このカテゴリを非表示にしますか？
+                                  </h3>
+                                  <div
+                                    id={`category-confirm-body-${category.id}`}
+                                    className="mt-2 space-y-1 text-sm text-slate-700"
+                                  >
+                                    <p>
+                                      {pendingVisibilityChange.categoryName}
+                                      は登録画面や一覧の表示対象から外れます。
+                                    </p>
+                                    <p>
+                                      登録済みのアイテム自体は削除されません。
+                                    </p>
+                                  </div>
+                                  <div className="mt-4 flex flex-wrap gap-2">
+                                    <button
+                                      type="button"
+                                      onClick={closePendingVisibilityChange}
+                                      className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                                    >
+                                      キャンセル
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={confirmPendingVisibilityChange}
+                                      className="rounded-lg border border-amber-200 bg-amber-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-amber-600"
+                                    >
+                                      非表示にする
+                                    </button>
+                                  </div>
+                                </div>
+                              ) : null}
+                            </div>
                           );
                         })}
                       </div>
