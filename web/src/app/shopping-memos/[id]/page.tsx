@@ -296,8 +296,10 @@ function renderGroupItem(
   const nearestDeadline = resolveNearestItemDeadline(item);
   const nearestDeadlineLabel = formatDateTime(nearestDeadline);
   const hasSalePrice = item.sale_price !== null;
-  const shouldShowLineTotal =
-    item.quantity > 1 && item.line_total !== null && item.is_total_included;
+  const lineTotalLabel =
+    item.quantity > 1 && item.line_total !== null && item.is_total_included
+      ? formatPrice(item.line_total)
+      : null;
   const metadata = [
     item.brand,
     item.quantity > 1 ? `数量 ${item.quantity}` : null,
@@ -388,9 +390,9 @@ function renderGroupItem(
                       通常価格 {formatPrice(item.price)}
                     </p>
                   ) : null}
-                  {shouldShowLineTotal ? (
+                  {lineTotalLabel ? (
                     <p className="text-xs text-gray-600">
-                      小計 {formatPrice(item.line_total)}
+                      小計 {lineTotalLabel}
                     </p>
                   ) : null}
                 </div>

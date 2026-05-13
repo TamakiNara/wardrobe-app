@@ -112,7 +112,7 @@ describe("ShoppingMemoDetailPage", () => {
                       price: null,
                       sale_price: null,
                       unit_price: null,
-                      quantity: 1,
+                      quantity: 2,
                       line_total: null,
                       is_total_included: true,
                       sale_ends_at: null,
@@ -238,6 +238,8 @@ describe("ShoppingMemoDetailPage", () => {
     expect(markup).toContain("リネンシャツ");
     expect(markup).toContain("白Tシャツ");
     expect(markup).toContain("価格未設定");
+    expect(markup).toContain("数量 2");
+    expect(markup).not.toContain("小計 0円");
     expect(markup).toContain("購入済み");
     expect(markup).toContain("合計対象外");
     expect(markup).toContain("期限切れ");
