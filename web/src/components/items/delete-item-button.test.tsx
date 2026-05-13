@@ -7,7 +7,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const pushMock = vi.fn();
 const refreshMock = vi.fn();
-const routerMock = { push: pushMock, refresh: refreshMock };
+const replaceMock = vi.fn();
+const routerMock = {
+  push: pushMock,
+  refresh: refreshMock,
+  replace: replaceMock,
+};
 
 vi.mock("next/navigation", () => ({
   useRouter: () => routerMock,
@@ -153,6 +158,37 @@ describe("DeleteItemButton", () => {
     });
     expect(pushMock).toHaveBeenCalledWith("/items");
     expect(refreshMock).toHaveBeenCalled();
+  });
+
+  it("401 では native alert を出さず、login 通知付きで replace する", async () => {
+    const alertMock = vi.fn();
+    vi.stubGlobal("alert", alertMock);
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 401,
+      json: async () => ({ message: "unauthorized" }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await renderDeleteButton();
+
+    const openButton = findButtonByText(container, "アイテムを削除する");
+
+    await act(async () => {
+      openButton?.click();
+      await waitForEffects();
+    });
+
+    const submitButton = findButtonByText(container, "削除する");
+
+    await act(async () => {
+      submitButton?.click();
+      await waitForEffects();
+    });
+
+    expect(alertMock).not.toHaveBeenCalled();
+    expect(replaceMock).toHaveBeenCalledWith("/login?message=session_expired");
+    expect(pushMock).not.toHaveBeenCalledWith("/login");
   });
 
   it("backendの422 messageをそのまま表示する", async () => {

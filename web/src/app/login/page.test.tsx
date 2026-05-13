@@ -8,6 +8,7 @@ import { mapLoginErrorMessage } from "./page";
 
 const pushMock = vi.fn();
 const refreshMock = vi.fn();
+let searchParamsValue = "";
 
 function setInputValue(input: HTMLInputElement, value: string) {
   const descriptor = Object.getOwnPropertyDescriptor(
@@ -23,6 +24,7 @@ vi.mock("next/navigation", () => ({
     push: pushMock,
     refresh: refreshMock,
   }),
+  useSearchParams: () => new URLSearchParams(searchParamsValue),
 }));
 
 describe("mapLoginErrorMessage", () => {
@@ -58,6 +60,7 @@ describe("LoginPage", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    searchParamsValue = "";
     globalThis.IS_REACT_ACT_ENVIRONMENT = true;
     container = document.createElement("div");
     document.body.appendChild(container);
@@ -106,5 +109,71 @@ describe("LoginPage", () => {
 
     expect(pushMock).toHaveBeenCalledWith("/");
     expect(refreshMock).toHaveBeenCalled();
+  });
+
+  it("session_expired message ではログイン案内を表示する", async () => {
+    searchParamsValue = "message=session_expired";
+
+    const { default: LoginPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(LoginPage));
+    });
+
+    expect(container.textContent).toContain(
+      "ログインが必要です。もう一度ログインしてください。",
+    );
+  });
+
+  it("未知の message query ではログイン案内を表示しない", async () => {
+    searchParamsValue = "message=unknown";
+
+    const { default: LoginPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(LoginPage));
+    });
+
+    expect(container.textContent).not.toContain(
+      "ログインが必要です。もう一度ログインしてください。",
+    );
+  });
+
+  it("session_expired message があってもログイン失敗表示は維持する", async () => {
+    searchParamsValue = "message=session_expired";
+    fetchMock.mockResolvedValueOnce({
+      ok: false,
+      json: async () => ({ message: "invalid credentials" }),
+    } as Response);
+
+    const { default: LoginPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(LoginPage));
+    });
+
+    const emailInput = container.querySelector("#email") as HTMLInputElement;
+    const passwordInput = container.querySelector(
+      "#password",
+    ) as HTMLInputElement;
+    const form = container.querySelector("form");
+
+    await act(async () => {
+      setInputValue(emailInput, "user@example.com");
+      setInputValue(passwordInput, "wrong-password");
+    });
+
+    await act(async () => {
+      form?.dispatchEvent(
+        new Event("submit", { bubbles: true, cancelable: true }),
+      );
+    });
+
+    expect(container.textContent).toContain(
+      "ログインが必要です。もう一度ログインしてください。",
+    );
+    expect(container.textContent).toContain(
+      "メールアドレスまたはパスワードが正しくありません。",
+    );
   });
 });

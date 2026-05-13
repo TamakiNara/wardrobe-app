@@ -8,11 +8,13 @@ import WearLogStatusAction from "./wear-log-status-action";
 
 const pushMock = vi.fn();
 const refreshMock = vi.fn();
+const replaceMock = vi.fn();
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({
     push: pushMock,
     refresh: refreshMock,
+    replace: replaceMock,
   }),
 }));
 
@@ -27,6 +29,7 @@ describe("WearLogStatusAction", () => {
     document.body.appendChild(container);
     pushMock.mockReset();
     refreshMock.mockReset();
+    replaceMock.mockReset();
     fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);
     vi.stubGlobal("alert", vi.fn());
@@ -149,5 +152,55 @@ describe("WearLogStatusAction", () => {
     expect(button?.hasAttribute("disabled")).toBe(true);
     expect(container.textContent).toContain("この画面からは状態変更できません");
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("401 では native alert を出さず、login 通知付きで replace する", async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: false,
+      status: 401,
+      json: async () => ({
+        message: "unauthorized",
+      }),
+    } as Response);
+
+    await act(async () => {
+      root.render(
+        React.createElement(WearLogStatusAction, {
+          wearLog: {
+            id: 1,
+            status: "planned",
+            event_date: "2026-03-27",
+            display_order: 2,
+            source_outfit_id: 3,
+            source_outfit_name: "通勤コーデ",
+            source_outfit_status: "active",
+            memo: "メモ",
+            created_at: "2026-03-27T00:00:00Z",
+            updated_at: "2026-03-27T00:00:00Z",
+            items: [
+              {
+                id: 11,
+                source_item_id: 101,
+                item_name: "白シャツ",
+                source_item_status: "active",
+                source_item_care_status: null,
+                sort_order: 1,
+                item_source_type: "outfit",
+              },
+            ],
+          },
+        }),
+      );
+    });
+
+    const button = container.querySelector("button");
+
+    await act(async () => {
+      button?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+
+    expect(window.alert).not.toHaveBeenCalled();
+    expect(replaceMock).toHaveBeenCalledWith("/login?message=session_expired");
+    expect(pushMock).not.toHaveBeenCalledWith("/login");
   });
 });

@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { getLoginNoticeMessage } from "@/lib/auth/unauthorized";
 
 export function mapLoginErrorMessage(message?: string | null): string {
   if (!message) {
@@ -26,12 +27,15 @@ export function mapLoginErrorMessage(message?: string | null): string {
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const loginNoticeMessage = getLoginNoticeMessage(searchParams.get("message"));
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -76,6 +80,12 @@ export default function LoginPage() {
         </h1>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {loginNoticeMessage && (
+            <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+              {loginNoticeMessage}
+            </div>
+          )}
+
           <div>
             <label
               htmlFor="email"

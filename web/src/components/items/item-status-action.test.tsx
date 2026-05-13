@@ -7,7 +7,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const pushMock = vi.fn();
 const refreshMock = vi.fn();
-const routerMock = { push: pushMock, refresh: refreshMock };
+const replaceMock = vi.fn();
+const routerMock = {
+  push: pushMock,
+  refresh: refreshMock,
+  replace: replaceMock,
+};
 
 vi.mock("next/navigation", () => ({
   useRouter: () => routerMock,
@@ -255,6 +260,38 @@ describe("ItemStatusAction", () => {
     expect(container.textContent).toContain(
       "このアイテムは現在更新できません。",
     );
+  });
+
+  it("401 では native alert を出さず、login 通知付きで replace する", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 401,
+      json: async () => ({ message: "unauthorized" }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { default: ItemStatusAction } = await import("./item-status-action");
+
+    await act(async () => {
+      root.render(
+        React.createElement(ItemStatusAction, {
+          itemId: 1,
+          status: "disposed",
+        }),
+      );
+      await waitForEffects();
+    });
+
+    const button = container.querySelector("button");
+
+    await act(async () => {
+      button?.click();
+      await waitForEffects();
+    });
+
+    expect(alertMock).not.toHaveBeenCalled();
+    expect(replaceMock).toHaveBeenCalledWith("/login?message=session_expired");
+    expect(pushMock).not.toHaveBeenCalledWith("/login");
   });
 
   it("unsafe な raw message や message 不在では fallback を表示する", async () => {

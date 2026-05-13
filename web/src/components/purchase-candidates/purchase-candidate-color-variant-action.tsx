@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ApiClientError, apiFetch } from "@/lib/api/client";
 import { getUserFacingSubmitErrorMessage } from "@/lib/api/error-message";
+import { redirectToLoginForSessionExpired } from "@/lib/auth/unauthorized";
 import { savePurchaseCandidateColorVariantPayload } from "@/lib/purchase-candidates/duplicate";
 import type { PurchaseCandidateColorVariantResponse } from "@/types/purchase-candidates";
 
@@ -51,8 +52,7 @@ export default function PurchaseCandidateColorVariantAction({
     } catch (error) {
       if (error instanceof ApiClientError) {
         if (error.status === 401) {
-          window.alert("セッションが切れました。再度ログインしてください。");
-          router.push("/login");
+          redirectToLoginForSessionExpired(router);
           return;
         }
 

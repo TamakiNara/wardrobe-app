@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { getUserFacingSubmitErrorMessage } from "@/lib/api/error-message";
+import { redirectToLoginForSessionExpired } from "@/lib/auth/unauthorized";
 
 type DeleteWearLogButtonProps = {
   wearLogId: string;
@@ -64,8 +65,7 @@ export default function DeleteWearLogButton({
       const data = await response.json().catch(() => null);
 
       if (response.status === 401) {
-        window.alert("セッションが切れました。再度ログインしてください。");
-        router.push("/login");
+        redirectToLoginForSessionExpired(router);
         return;
       }
 

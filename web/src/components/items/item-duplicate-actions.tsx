@@ -6,6 +6,7 @@ import { CircleAlert } from "lucide-react";
 import { useState } from "react";
 import { ApiClientError, apiFetch } from "@/lib/api/client";
 import { getUserFacingSubmitErrorMessage } from "@/lib/api/error-message";
+import { redirectToLoginForSessionExpired } from "@/lib/auth/unauthorized";
 import { saveItemDuplicatePayload } from "@/lib/items/duplicate";
 import type {
   ItemColorVariantResponse,
@@ -16,8 +17,6 @@ const DUPLICATE_DRAFT_ERROR_MESSAGE =
   "複製を開始できませんでした。時間をおいて再度お試しください。";
 const COLOR_VARIANT_DRAFT_ERROR_MESSAGE =
   "色違い追加を開始できませんでした。時間をおいて再度お試しください。";
-const LOGIN_REQUIRED_ERROR_MESSAGE =
-  "セッションが切れました。再度ログインしてください。";
 const UNEXPECTED_ERROR_MESSAGE =
   "処理に失敗しました。時間をおいて再度お試しください。";
 
@@ -97,8 +96,7 @@ export default function ItemDuplicateActions({
     } catch (error) {
       if (error instanceof ApiClientError) {
         if (error.status === 401) {
-          window.alert(LOGIN_REQUIRED_ERROR_MESSAGE);
-          router.push("/login");
+          redirectToLoginForSessionExpired(router);
           return;
         }
 

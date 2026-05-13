@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getUserFacingSubmitErrorMessage } from "@/lib/api/error-message";
+import { redirectToLoginForSessionExpired } from "@/lib/auth/unauthorized";
 import type { ItemCareStatus } from "@/types/items";
 
 type ItemCareStatusActionProps = {
@@ -64,8 +65,7 @@ export default function ItemCareStatusAction({
       const data = await res.json().catch(() => null);
 
       if (res.status === 401) {
-        window.alert("ログインが必要です。再度ログインしてください。");
-        router.push("/login");
+        redirectToLoginForSessionExpired(router);
         return;
       }
 

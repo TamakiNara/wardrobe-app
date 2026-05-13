@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { redirectToLoginForSessionExpired } from "@/lib/auth/unauthorized";
 import type { WearLogRecord } from "@/types/wear-logs";
 
 type WearLogStatusActionProps = {
@@ -84,8 +85,7 @@ export default function WearLogStatusAction({
       const data = await response.json().catch(() => null);
 
       if (response.status === 401) {
-        window.alert("セッションが切れました。再度ログインしてください。");
-        router.push("/login");
+        redirectToLoginForSessionExpired(router);
         return;
       }
 

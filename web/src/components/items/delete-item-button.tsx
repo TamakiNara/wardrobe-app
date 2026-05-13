@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { getUserFacingSubmitErrorMessage } from "@/lib/api/error-message";
+import { redirectToLoginForSessionExpired } from "@/lib/auth/unauthorized";
 
 type DeleteItemButtonProps = {
   itemId: number;
@@ -61,10 +62,7 @@ export default function DeleteItemButton({ itemId }: DeleteItemButtonProps) {
       const data = await res.json().catch(() => null);
 
       if (res.status === 401) {
-        window.alert(
-          "ログインが必要です。再度ログインしてからお試しください。",
-        );
-        router.push("/login");
+        redirectToLoginForSessionExpired(router);
         return;
       }
 

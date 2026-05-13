@@ -6,10 +6,12 @@ import { createRoot } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const pushMock = vi.fn();
+const replaceMock = vi.fn();
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({
     push: pushMock,
+    replace: replaceMock,
   }),
 }));
 
@@ -142,6 +144,39 @@ describe("OutfitDuplicateAction", () => {
       "対象のコーディネートが見つかりませんでした。",
     );
     expect(pushMock).not.toHaveBeenCalled();
+  });
+
+  it("401 では native alert を出さず、login 通知付きで replace する", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(JSON.stringify({ message: "unauthorized" }), {
+          status: 401,
+          headers: {
+            "content-type": "application/json",
+          },
+        }),
+      ),
+    );
+
+    const { default: OutfitDuplicateAction } =
+      await import("./outfit-duplicate-action");
+
+    await act(async () => {
+      root.render(React.createElement(OutfitDuplicateAction, { outfitId: 10 }));
+      await waitForEffects();
+    });
+
+    const button = container.querySelector("button");
+
+    await act(async () => {
+      button?.click();
+      await waitForEffects();
+    });
+
+    expect(window.alert).not.toHaveBeenCalled();
+    expect(replaceMock).toHaveBeenCalledWith("/login?message=session_expired");
+    expect(pushMock).not.toHaveBeenCalledWith("/login");
   });
 
   it("duplicate の 500 raw message は表示しない", async () => {
