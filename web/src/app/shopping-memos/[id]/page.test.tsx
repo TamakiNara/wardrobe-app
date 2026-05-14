@@ -266,7 +266,9 @@ describe("ShoppingMemoDetailPage", () => {
     expect(markup).toContain("8,620円");
     expect(markup).toContain("期限:</span> 2026/05/07 23:59");
     expect(markup).toContain("期限:</span> 2026/05/10 10:00");
+    expect(markup).toContain("grid grid-cols-[5.5rem_minmax(0,1fr)] gap-4");
     expect(markup).toContain("lg:grid-cols-2");
+    expect(markup).toContain("lg:[&amp;:has([role=alertdialog])]:col-span-2");
     expect(markup).toContain('href="/purchase-candidates"');
     expect(markup).toContain('href="/shopping-memos"');
     expect(markup).toContain(

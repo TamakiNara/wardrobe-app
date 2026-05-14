@@ -309,9 +309,9 @@ function renderGroupItem(
   return (
     <article
       key={item.shopping_memo_item_id}
-      className="border-b border-gray-200/80 pb-4 last:border-b-0 last:pb-0"
+      className="border-b border-gray-200/80 pb-4 last:border-b-0 last:pb-0 lg:[&:has([role=alertdialog])]:col-span-2"
     >
-      <div className="grid gap-4 md:grid-cols-[6.5rem_minmax(0,1fr)]">
+      <div className="grid grid-cols-[5.5rem_minmax(0,1fr)] gap-4 md:grid-cols-[6.5rem_minmax(0,1fr)]">
         <div className="overflow-hidden rounded-lg">
           <div className="aspect-square">
             <SafeImage
@@ -323,7 +323,7 @@ function renderGroupItem(
           </div>
         </div>
 
-        <div className="relative w-full space-y-3">
+        <div className="relative min-w-0 space-y-3">
           <div className="flex items-start gap-3">
             <Link
               href={buildPurchaseCandidateDetailHref(
@@ -442,13 +442,11 @@ function renderGroupItem(
             </div>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_8rem]">
-            <div className="md:col-span-2">
-              <ShoppingMemoItemRemoveAction
-                memoId={shoppingMemoId}
-                shoppingMemoItemId={item.shopping_memo_item_id}
-              />
-            </div>
+          <div className="pt-1">
+            <ShoppingMemoItemRemoveAction
+              memoId={shoppingMemoId}
+              shoppingMemoItemId={item.shopping_memo_item_id}
+            />
           </div>
         </div>
       </div>
