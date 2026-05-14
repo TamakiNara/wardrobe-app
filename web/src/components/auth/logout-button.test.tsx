@@ -26,16 +26,29 @@ vi.mock("lucide-react", () => ({
 describe("LogoutButton", () => {
   let container: HTMLDivElement;
   let root: ReturnType<typeof createRoot>;
+  let fetchMock: ReturnType<typeof vi.fn>;
+  let alertMock: ReturnType<typeof vi.fn>;
+  let consoleErrorMock: ReturnType<typeof vi.spyOn>;
+
+  async function renderLogoutButton() {
+    const { default: LogoutButton } = await import("./logout-button");
+
+    await act(async () => {
+      root.render(React.createElement(LogoutButton));
+    });
+  }
 
   beforeEach(() => {
+    vi.clearAllMocks();
     globalThis.IS_REACT_ACT_ENVIRONMENT = true;
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
-    pushMock.mockReset();
-    refreshMock.mockReset();
-    vi.stubGlobal("fetch", vi.fn());
-    vi.stubGlobal("alert", vi.fn());
+    fetchMock = vi.fn();
+    alertMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    vi.stubGlobal("alert", alertMock);
+    consoleErrorMock = vi.spyOn(console, "error").mockImplementation(() => {});
   });
 
   afterEach(() => {
@@ -43,18 +56,73 @@ describe("LogoutButton", () => {
       root.unmount();
     });
     container.remove();
+    consoleErrorMock.mockRestore();
     vi.unstubAllGlobals();
     globalThis.IS_REACT_ACT_ENVIRONMENT = false;
   });
 
   it("ログアウトアイコン付きで描画できる", async () => {
-    const { default: LogoutButton } = await import("./logout-button");
-
-    await act(async () => {
-      root.render(React.createElement(LogoutButton));
-    });
+    await renderLogoutButton();
 
     expect(container.textContent).toContain("ログアウト");
     expect(container.querySelector('[data-icon="LogOut"]')).not.toBeNull();
+  });
+
+  it("ログアウト成功時は login へ遷移して refresh する", async () => {
+    fetchMock.mockResolvedValueOnce({ ok: true } as Response);
+
+    await renderLogoutButton();
+
+    const button = container.querySelector("button");
+
+    await act(async () => {
+      button?.click();
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith("/api/auth/logout", {
+      method: "POST",
+    });
+    expect(pushMock).toHaveBeenCalledWith("/login");
+    expect(refreshMock).toHaveBeenCalled();
+  });
+
+  it("ログアウト失敗時は native alert を使わず画面内にエラーを表示する", async () => {
+    fetchMock.mockResolvedValueOnce({ ok: false } as Response);
+
+    await renderLogoutButton();
+
+    const button = container.querySelector("button");
+
+    await act(async () => {
+      button?.click();
+    });
+
+    expect(alertMock).not.toHaveBeenCalled();
+    expect(container.textContent).toContain("ログアウトに失敗しました。");
+    expect(pushMock).not.toHaveBeenCalled();
+    expect(refreshMock).not.toHaveBeenCalled();
+  });
+
+  it("再実行時に古いエラーをクリアする", async () => {
+    fetchMock
+      .mockResolvedValueOnce({ ok: false } as Response)
+      .mockImplementationOnce(() => new Promise<Response>(() => undefined));
+
+    await renderLogoutButton();
+
+    const button = container.querySelector("button");
+
+    await act(async () => {
+      button?.click();
+    });
+
+    expect(container.textContent).toContain("ログアウトに失敗しました。");
+
+    await act(async () => {
+      button?.click();
+    });
+
+    expect(container.textContent).not.toContain("ログアウトに失敗しました。");
+    expect(container.textContent).toContain("ログアウト中...");
   });
 });

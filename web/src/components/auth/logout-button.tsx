@@ -7,9 +7,11 @@ import { useState } from "react";
 export default function LogoutButton() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function handleLogout() {
     setLoading(true);
+    setError(null);
 
     try {
       const res = await fetch("/api/auth/logout", {
@@ -24,21 +26,28 @@ export default function LogoutButton() {
       router.refresh();
     } catch (error) {
       console.error(error);
-      alert("ログアウトに失敗しました。");
+      setError("ログアウトに失敗しました。");
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <button
-      type="button"
-      onClick={handleLogout}
-      disabled={loading}
-      className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
-    >
-      <LogOut aria-hidden="true" className="h-4 w-4" strokeWidth={1.8} />
-      {loading ? "ログアウト中..." : "ログアウト"}
-    </button>
+    <div className="flex flex-col items-start gap-2">
+      <button
+        type="button"
+        onClick={handleLogout}
+        disabled={loading}
+        className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        <LogOut aria-hidden="true" className="h-4 w-4" strokeWidth={1.8} />
+        {loading ? "ログアウト中..." : "ログアウト"}
+      </button>
+      {error ? (
+        <p role="alert" className="text-sm text-red-600">
+          {error}
+        </p>
+      ) : null}
+    </div>
   );
 }
