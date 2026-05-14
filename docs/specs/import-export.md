@@ -55,6 +55,20 @@ weather 関連でここで扱うデータ:
 - count / skipped count / result は log context に含める
 - raw backup payload や import file 全文は log に出さない
 
+### wear_logs feedback_tags の import 互換
+
+- current では `wear_logs.feedback_tags` を validation 前に import 用正規化へ通す
+- 旧 backup 互換として、既知の legacy tag は current tag に mapping する
+  - `temperature_matched` -> `temperature_gap_ready`
+  - `felt_confident` -> `mood_matched`
+- current で廃止済みの legacy tag は保存せず drop する
+  - `humidity_uncomfortable`
+- current の allow-list に存在しない unknown tag も保存せず drop する
+- feedback tag は補助情報として扱い、unsupported tag だけを理由に import 全体を `422` で拒否しない
+- wear log 本体や他の validation が valid であれば import は継続し、valid な feedback tag だけを復元する
+- current response の `counts` / skipped summary と structured log には、drop した feedback tag 件数は個別反映しない
+- drop 情報を import summary / warning log に出すかは後続で再判断する
+
 ### shopping_memos
 
 - `shopping_memos` は current の import/export 対象

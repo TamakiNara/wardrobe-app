@@ -319,13 +319,13 @@ class ImportExportWearLogsTest extends TestCase
         $this->assertNull($importedWearLog->wearLogItems->firstOrFail()->source_item_id);
     }
 
-    public function test_import_rejects_invalid_wear_log_feedback_tag_and_keeps_existing_data(): void
+    public function test_import_drops_unsupported_wear_log_feedback_tags_and_restores_valid_tags(): void
     {
         Storage::fake('public');
 
         $user = User::factory()->create();
         $this->createCategory('tops_shirt_blouse', 'tops', 'シャツ・ブラウス');
-        $current = $this->seedWearLogSourceData($user);
+        $this->seedWearLogSourceData($user);
 
         $this->actingAs($user, 'web');
 
@@ -333,7 +333,11 @@ class ImportExportWearLogsTest extends TestCase
             'Accept' => 'application/json',
         ])->assertOk()->json();
 
-        $exportPayload['wear_logs'][0]['feedback_tags'] = ['comfortable_all_day', 'humidity_uncomfortable'];
+        $exportPayload['wear_logs'][0]['feedback_tags'] = [
+            'comfortable_all_day',
+            'humidity_uncomfortable',
+            'unknown_feedback_tag',
+        ];
 
         $token = $this->issueCsrfToken();
 
@@ -342,13 +346,15 @@ class ImportExportWearLogsTest extends TestCase
             'X-CSRF-TOKEN' => $token,
         ]);
 
-        $response->assertStatus(422);
+        $response->assertOk()
+            ->assertJsonPath('counts.wear_logs.total', 1);
 
-        $this->assertDatabaseHas('wear_logs', [
-            'id' => $current['wearLog']->id,
-            'user_id' => $user->id,
-            'overall_rating' => 'good',
-            'feedback_memo' => '冷房は問題なかった',
-        ]);
+        $importedWearLog = WearLog::query()
+            ->where('user_id', $user->id)
+            ->sole();
+
+        $this->assertSame(['comfortable_all_day'], $importedWearLog->feedback_tags);
+        $this->assertSame('good', $importedWearLog->overall_rating);
+        $this->assertSame('冷房は問題なかった', $importedWearLog->feedback_memo);
     }
 }
