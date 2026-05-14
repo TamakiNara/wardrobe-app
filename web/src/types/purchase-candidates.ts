@@ -106,6 +106,8 @@ export type PurchaseCandidateRecord = {
   group_candidates: PurchaseCandidateGroupCandidate[];
   converted_item_id: number | null;
   converted_at: string | null;
+  is_used_in_shopping_memos: boolean;
+  shopping_memo_count: number;
   colors: PurchaseCandidateColor[];
   seasons: string[];
   tpos: string[];

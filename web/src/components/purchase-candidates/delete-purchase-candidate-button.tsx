@@ -9,6 +9,8 @@ const DELETE_ERROR_MESSAGE =
 
 type DeletePurchaseCandidateButtonProps = {
   candidateId: string;
+  isUsedInShoppingMemos?: boolean;
+  shoppingMemoCount?: number;
 };
 
 function getDeleteErrorMessage(data: unknown): string {
@@ -35,14 +37,25 @@ function getDeleteErrorMessage(data: unknown): string {
 
 export default function DeletePurchaseCandidateButton({
   candidateId,
+  isUsedInShoppingMemos = false,
+  shoppingMemoCount = 0,
 }: DeletePurchaseCandidateButtonProps) {
   const router = useRouter();
   const [isConfirming, setIsConfirming] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const normalizedShoppingMemoCount = Math.max(0, shoppingMemoCount);
+  const isDeleteBlockedByShoppingMemo =
+    isUsedInShoppingMemos || normalizedShoppingMemoCount > 0;
 
   function openConfirm() {
     setError(null);
+
+    if (isDeleteBlockedByShoppingMemo) {
+      setIsConfirming(false);
+      return;
+    }
+
     setIsConfirming(true);
   }
 
@@ -53,6 +66,11 @@ export default function DeletePurchaseCandidateButton({
   }
 
   async function handleDelete() {
+    if (isDeleteBlockedByShoppingMemo) {
+      setIsConfirming(false);
+      return;
+    }
+
     setSubmitting(true);
     setError(null);
 
@@ -88,13 +106,32 @@ export default function DeletePurchaseCandidateButton({
       <button
         type="button"
         onClick={openConfirm}
-        disabled={submitting}
+        disabled={submitting || isDeleteBlockedByShoppingMemo}
         className="inline-flex items-center justify-center rounded-lg border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
       >
         購入検討を削除する
       </button>
 
-      {isConfirming && (
+      {isDeleteBlockedByShoppingMemo && (
+        <div
+          role="status"
+          className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800"
+        >
+          <p className="font-medium">
+            買い物メモに含まれているため削除できません
+          </p>
+          <p className="mt-1">
+            {normalizedShoppingMemoCount > 0
+              ? `この購入検討は ${normalizedShoppingMemoCount} 件の買い物メモに含まれています。`
+              : "この購入検討は買い物メモに含まれています。"}
+          </p>
+          <p className="mt-1">
+            削除するには、先に買い物メモから外してください。
+          </p>
+        </div>
+      )}
+
+      {!isDeleteBlockedByShoppingMemo && isConfirming && (
         <div
           role="alertdialog"
           aria-labelledby={`purchase-candidate-delete-confirm-title-${candidateId}`}

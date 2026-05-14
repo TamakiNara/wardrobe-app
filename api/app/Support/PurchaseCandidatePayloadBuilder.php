@@ -184,6 +184,9 @@ class PurchaseCandidatePayloadBuilder
     public static function buildDetail(PurchaseCandidate $candidate): array
     {
         $candidate->loadMissing(['category', 'colors', 'seasons', 'tpos', 'images', 'materials']);
+        $shoppingMemoCount = $candidate->shoppingMemoItems()
+            ->whereHas('shoppingMemo', fn ($query) => $query->where('user_id', $candidate->user_id))
+            ->count();
 
         return [
             'id' => $candidate->id,
@@ -217,6 +220,8 @@ class PurchaseCandidatePayloadBuilder
             'group_candidates' => self::buildGroupCandidates($candidate),
             'converted_item_id' => $candidate->converted_item_id,
             'converted_at' => $candidate->converted_at?->toISOString(),
+            'is_used_in_shopping_memos' => $shoppingMemoCount > 0,
+            'shopping_memo_count' => $shoppingMemoCount,
             'colors' => $candidate->colors
                 ->sortBy('sort_order')
                 ->values()

@@ -571,7 +571,55 @@ class PurchaseCandidateEndpointsTest extends TestCase
             ->assertJsonPath('purchaseCandidate.colors.0.value', 'navy')
             ->assertJsonPath('purchaseCandidate.seasons.0', '春')
             ->assertJsonPath('purchaseCandidate.tpos.0', '休日')
+            ->assertJsonPath('purchaseCandidate.is_used_in_shopping_memos', false)
+            ->assertJsonPath('purchaseCandidate.shopping_memo_count', 0)
             ->assertJsonPath('purchaseCandidate.materials', []);
+    }
+
+    public function test_get_purchase_candidate_returns_user_scoped_shopping_memo_usage(): void
+    {
+        $user = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $candidate = $this->createCandidate($user);
+        $memo = ShoppingMemo::query()->create([
+            'user_id' => $user->id,
+            'name' => '春夏物',
+            'memo' => null,
+            'status' => 'draft',
+        ]);
+        $otherMemo = ShoppingMemo::query()->create([
+            'user_id' => $otherUser->id,
+            'name' => '他人のメモ',
+            'memo' => null,
+            'status' => 'draft',
+        ]);
+
+        ShoppingMemoItem::query()->create([
+            'shopping_memo_id' => $memo->id,
+            'purchase_candidate_id' => $candidate->id,
+            'quantity' => 1,
+            'priority' => null,
+            'memo' => null,
+            'sort_order' => 0,
+        ]);
+        ShoppingMemoItem::query()->create([
+            'shopping_memo_id' => $otherMemo->id,
+            'purchase_candidate_id' => $candidate->id,
+            'quantity' => 1,
+            'priority' => null,
+            'memo' => null,
+            'sort_order' => 0,
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->getJson("/api/purchase-candidates/{$candidate->id}", [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('purchaseCandidate.is_used_in_shopping_memos', true)
+            ->assertJsonPath('purchaseCandidate.shopping_memo_count', 1);
     }
 
     public function test_get_purchase_candidate_includes_same_group_candidates_in_order(): void

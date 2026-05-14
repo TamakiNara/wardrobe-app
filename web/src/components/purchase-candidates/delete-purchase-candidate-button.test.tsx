@@ -51,7 +51,12 @@ describe("DeletePurchaseCandidateButton", () => {
     globalThis.IS_REACT_ACT_ENVIRONMENT = false;
   });
 
-  async function renderDeleteButton() {
+  async function renderDeleteButton(
+    props: {
+      isUsedInShoppingMemos?: boolean;
+      shoppingMemoCount?: number;
+    } = {},
+  ) {
     const { default: DeletePurchaseCandidateButton } =
       await import("./delete-purchase-candidate-button");
 
@@ -59,6 +64,7 @@ describe("DeletePurchaseCandidateButton", () => {
       root.render(
         React.createElement(DeletePurchaseCandidateButton, {
           candidateId: "10",
+          ...props,
         }),
       );
       await waitForEffects();
@@ -96,6 +102,37 @@ describe("DeletePurchaseCandidateButton", () => {
     );
     expect(container.textContent).toContain("キャンセル");
     expect(container.textContent).toContain("削除する");
+  });
+
+  it("買い物メモ所属ありでは削除不可理由を表示し、確認UIを開かない", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+
+    await renderDeleteButton({
+      isUsedInShoppingMemos: true,
+      shoppingMemoCount: 2,
+    });
+
+    expect(container.textContent).toContain(
+      "買い物メモに含まれているため削除できません",
+    );
+    expect(container.textContent).toContain(
+      "この購入検討は 2 件の買い物メモに含まれています。",
+    );
+    expect(container.textContent).toContain(
+      "削除するには、先に買い物メモから外してください。",
+    );
+
+    const openButton = findButtonByText(container, "購入検討を削除する");
+    expect(openButton?.disabled).toBe(true);
+
+    await act(async () => {
+      openButton?.click();
+      await waitForEffects();
+    });
+
+    expect(container.textContent).not.toContain("購入検討を削除しますか？");
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("キャンセルした場合はDELETEしない", async () => {

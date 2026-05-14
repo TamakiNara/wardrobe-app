@@ -1,10 +1,32 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { buildPageMetadata } from "@/lib/metadata";
 import DeletePurchaseCandidateButton from "@/components/purchase-candidates/delete-purchase-candidate-button";
 import PurchaseCandidateForm from "@/components/purchase-candidates/purchase-candidate-form";
 import { FormPageHeader } from "@/components/shared/form-page-header";
+import { fetchLaravelWithCookie } from "@/lib/server/laravel";
+import type { PurchaseCandidateDetailResponse } from "@/types/purchase-candidates";
 
 export const metadata = buildPageMetadata("購入検討編集");
+
+async function getPurchaseCandidate(id: string) {
+  const response = await fetchLaravelWithCookie(
+    `/api/purchase-candidates/${id}`,
+  );
+  const data = (await response
+    .json()
+    .catch(() => null)) as PurchaseCandidateDetailResponse | null;
+
+  if (response.status === 401) {
+    redirect("/login");
+  }
+
+  if (!response.ok || !data?.purchaseCandidate) {
+    redirect("/purchase-candidates");
+  }
+
+  return data.purchaseCandidate;
+}
 
 export default async function EditPurchaseCandidatePage({
   params,
@@ -14,6 +36,7 @@ export default async function EditPurchaseCandidatePage({
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { id } = await params;
+  const candidate = await getPurchaseCandidate(id);
   const resolvedSearchParams = (await searchParams) ?? {};
   const returnTo =
     typeof resolvedSearchParams.return_to === "string"
@@ -54,7 +77,13 @@ export default async function EditPurchaseCandidatePage({
           mode="edit"
           candidateId={id}
           cancelHref={`/purchase-candidates/${id}?return_to=${encodeURIComponent(returnTo)}&return_label=${encodeURIComponent(returnLabel)}`}
-          footerAction={<DeletePurchaseCandidateButton candidateId={id} />}
+          footerAction={
+            <DeletePurchaseCandidateButton
+              candidateId={id}
+              isUsedInShoppingMemos={candidate.is_used_in_shopping_memos}
+              shoppingMemoCount={candidate.shopping_memo_count}
+            />
+          }
         />
       </div>
     </main>

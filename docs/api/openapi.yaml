@@ -4586,6 +4586,8 @@ components:
         - group_candidates
         - converted_item_id
         - converted_at
+        - is_used_in_shopping_memos
+        - shopping_memo_count
         - colors
         - seasons
         - tpos
@@ -4737,6 +4739,15 @@ components:
           type: string
           format: date-time
           nullable: true
+        is_used_in_shopping_memos:
+          type: boolean
+          example: true
+          description: current user の買い物メモに含まれているため削除不可になるかどうか。
+        shopping_memo_count:
+          type: integer
+          minimum: 0
+          example: 2
+          description: この購入検討を含む current user の買い物メモ件数。
         images:
           type: array
           items:

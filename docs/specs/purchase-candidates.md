@@ -1541,6 +1541,8 @@ pagination meta は表示カード単位で扱う。
   - `この購入検討は買い物メモに含まれているため削除できません。先に買い物メモから外してください。`
 - その場合、purchase candidate も `shopping_memo_items` も削除しない
 - current frontend はこの backend message を safe な user-facing message としてそのまま表示できる
+- current detail response には `is_used_in_shopping_memos` / `shopping_memo_count` を含める
+- current edit 画面の削除 UI は、買い物メモ所属ありの場合に削除ボタンを disabled にし、削除前から理由を表示する
 
 #### 買い物メモに含まれている場合の削除方針案
 
@@ -1582,9 +1584,10 @@ pagination meta は表示カード単位で扱う。
 - MVP では案Aを第一候補とする
 - 買い物メモに含まれている購入検討は、先に買い物メモから外してから削除する
 - backend は DB exception 任せにせず、事前チェックで `422` + user-facing message を返す
-- frontend はその `422` message をそのまま表示すれば十分で、初期段階では `delete-check` API までは不要
-- ただし current UI では、編集画面表示時点ではまだ削除不可状態を事前表示していない
-- 将来は、detail / edit response に `is_used_in_shopping_memos` や `shopping_memo_count` を含め、削除セクションで disabled や補足文を出す案を第一候補とする
+- frontend はその `422` message を fallback として維持する
+- current UI では、編集画面表示時点で `shopping_memo_count` を見て削除不可状態を事前表示する
+- detail / edit response には `is_used_in_shopping_memos` と `shopping_memo_count` を含める
+- `delete-check` API は current では不要。将来、削除不可理由が増えて事前判定が複雑になった場合に再検討する
 
 ### duplicate draft 生成
 
