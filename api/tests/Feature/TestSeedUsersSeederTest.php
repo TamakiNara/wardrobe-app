@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Item;
 use App\Models\PurchaseCandidate;
+use App\Models\ShoppingMemoItem;
 use App\Models\User;
 use App\Models\UserBrand;
 use App\Models\UserTpo;
@@ -65,7 +66,7 @@ class TestSeedUsersSeederTest extends TestCase
         $this->assertCount(0, UserBrand::query()->where('user_id', $emptyUser->id)->get());
 
         $this->assertDatabaseCount('items', 69);
-        $this->assertDatabaseCount('purchase_candidates', 22);
+        $this->assertDatabaseCount('purchase_candidates', 32);
 
         $this->assertNotNull($standardUser->visible_category_ids);
         $this->assertCount(85, $standardUser->visible_category_ids);
@@ -77,7 +78,10 @@ class TestSeedUsersSeederTest extends TestCase
                 ->every(fn ($outfit) => $outfit->outfit_items_count > 0),
         );
         $this->assertCount(33, $standardUser->items);
-        $this->assertCount(20, PurchaseCandidate::query()->where('user_id', $standardUser->id)->get());
+        $this->assertCount(30, PurchaseCandidate::query()->where('user_id', $standardUser->id)->get());
+        $this->assertCount(10, ShoppingMemoItem::query()
+            ->whereHas('shoppingMemo', fn ($query) => $query->where('user_id', $standardUser->id))
+            ->get());
 
         $standardTpos = UserTpo::query()
             ->where('user_id', $standardUser->id)
