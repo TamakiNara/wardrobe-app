@@ -12,7 +12,10 @@ import {
   PURCHASE_CANDIDATE_PRIORITY_LABELS,
   PURCHASE_CANDIDATE_STATUS_LABELS,
 } from "@/lib/purchase-candidates/labels";
-import { formatPurchaseCandidateDateTime } from "@/lib/purchase-candidates/date-time";
+import {
+  formatPurchaseCandidateDateTime,
+  isPurchaseCandidateSaleActive,
+} from "@/lib/purchase-candidates/date-time";
 import type {
   PurchaseCandidateColor,
   PurchaseCandidateImageRecord,
@@ -168,6 +171,10 @@ export default function PurchaseCandidateListCard({
   const selectedMainColorCustomLabel = selectedMainColor?.custom_label?.trim();
   const classificationLabel =
     resolveCandidateClassificationLabel(selectedCandidate);
+  const isSaleActive = isPurchaseCandidateSaleActive(
+    selectedCandidate.sale_price,
+    selectedCandidate.discount_ends_at,
+  );
   const showPreviousImage = () => {
     setSelectedImageState({
       candidateId: selectedCandidate.id,
@@ -492,7 +499,7 @@ export default function PurchaseCandidateListCard({
 
           <section className="flex flex-col justify-between rounded-xl bg-gray-50 px-3 py-2.5">
             <div className="flex items-start justify-between gap-3">
-              {selectedCandidate.sale_price !== null ? (
+              {isSaleActive ? (
                 <span className="inline-flex rounded-full border border-rose-200 bg-rose-50 px-2 py-0.5 text-xs font-medium text-rose-700">
                   セール中
                 </span>
@@ -506,20 +513,18 @@ export default function PurchaseCandidateListCard({
                 <div className="flex items-end justify-end gap-1">
                   <span
                     className={`text-lg font-semibold leading-none ${
-                      selectedCandidate.sale_price !== null
-                        ? "text-rose-700"
-                        : "text-gray-900"
+                      isSaleActive ? "text-rose-700" : "text-gray-900"
                     }`}
                   >
                     {formatPriceNumber(
-                      selectedCandidate.sale_price ?? selectedCandidate.price,
+                      isSaleActive
+                        ? selectedCandidate.sale_price
+                        : selectedCandidate.price,
                     )}
                   </span>
                   <span
                     className={`text-xs leading-5 ${
-                      selectedCandidate.sale_price !== null
-                        ? "text-rose-700"
-                        : "text-gray-500"
+                      isSaleActive ? "text-rose-700" : "text-gray-500"
                     }`}
                   >
                     円
@@ -528,29 +533,25 @@ export default function PurchaseCandidateListCard({
               </div>
             </div>
 
-            <div className="space-y-1.5 border-t border-gray-200 pt-2 text-xs text-gray-500">
-              {selectedCandidate.sale_price !== null ? (
+            {isSaleActive ? (
+              <div className="space-y-1.5 border-t border-gray-200 pt-2 text-xs text-gray-500">
                 <div className="flex items-center justify-between gap-3">
                   <span>通常価格</span>
                   <span>{formatPrice(selectedCandidate.price)}</span>
                 </div>
-              ) : (
-                <div className="h-[18px]" aria-hidden="true" />
-              )}
-              {selectedCandidate.discount_ends_at ? (
-                <div className="flex items-center justify-between gap-3">
-                  <span>セール終了日</span>
-                  <span className="font-medium text-rose-700">
-                    {formatPurchaseCandidateDateTime(
-                      selectedCandidate.discount_ends_at,
-                      "short",
-                    )}
-                  </span>
-                </div>
-              ) : (
-                <div className="h-[18px]" aria-hidden="true" />
-              )}
-            </div>
+                {selectedCandidate.discount_ends_at ? (
+                  <div className="flex items-center justify-between gap-3">
+                    <span>セール終了日</span>
+                    <span className="font-medium text-rose-700">
+                      {formatPurchaseCandidateDateTime(
+                        selectedCandidate.discount_ends_at,
+                        "short",
+                      )}
+                    </span>
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
           </section>
 
           <div className="mt-auto flex items-center justify-end gap-3 pt-1.5">

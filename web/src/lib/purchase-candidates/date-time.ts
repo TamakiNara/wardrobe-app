@@ -83,3 +83,38 @@ export function hasPurchaseCandidateDateTimeValue(
 ): boolean {
   return normalizePurchaseCandidateDateTimeValue(value) !== "";
 }
+
+function parsePurchaseCandidateDeadline(
+  value: string | null | undefined,
+): Date | null {
+  if (!value) {
+    return null;
+  }
+
+  const trimmedValue = value.trim();
+  const normalizedLocalValue = normalizeLocalDateTimeMatch(trimmedValue);
+  const parsedValue = normalizedLocalValue
+    ? `${normalizedLocalValue}+09:00`
+    : trimmedValue;
+  const date = new Date(parsedValue);
+
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+export function isPurchaseCandidateSaleActive(
+  salePrice: number | null | undefined,
+  discountEndsAt: string | null | undefined,
+  now = new Date(),
+): boolean {
+  if (salePrice === null || salePrice === undefined) {
+    return false;
+  }
+
+  if (!discountEndsAt) {
+    return true;
+  }
+
+  const deadline = parsePurchaseCandidateDeadline(discountEndsAt);
+
+  return deadline !== null && deadline.getTime() > now.getTime();
+}

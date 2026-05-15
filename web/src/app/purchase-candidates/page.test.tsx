@@ -220,8 +220,8 @@ describe("PurchaseCandidatesPage", () => {
             brand_name: "在宅ブランド",
             price: 19800,
             sale_price: 14800,
-            sale_ends_at: "2026-03-31T18:00:00+09:00",
-            discount_ends_at: "2026-03-31T18:00:00+09:00",
+            sale_ends_at: "2026-06-30T18:00:00+09:00",
+            discount_ends_at: "2026-06-30T18:00:00+09:00",
             purchase_url: "https://example.test/products/coat",
             colors: [
               {

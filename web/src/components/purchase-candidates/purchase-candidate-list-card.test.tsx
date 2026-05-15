@@ -57,6 +57,7 @@ describe("PurchaseCandidateListCard", () => {
       root.unmount();
     });
     container.remove();
+    vi.useRealTimers();
     globalThis.IS_REACT_ACT_ENVIRONMENT = false;
   });
 
@@ -431,6 +432,9 @@ describe("PurchaseCandidateListCard", () => {
   });
 
   it("セール終了日時を日本時間で表示する", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-05-01T00:00:00+09:00"));
+
     const { default: PurchaseCandidateListCard } =
       await import("./purchase-candidate-list-card");
 
@@ -449,6 +453,64 @@ describe("PurchaseCandidateListCard", () => {
     });
 
     expect(container.textContent).toContain("05/07 23:59");
+  });
+
+  it("セール終了日時が未来の場合はセール中として表示する", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-05-10T00:00:00+09:00"));
+
+    const { default: PurchaseCandidateListCard } =
+      await import("./purchase-candidate-list-card");
+
+    await act(async () => {
+      root.render(
+        React.createElement(PurchaseCandidateListCard, {
+          candidates: [
+            buildCandidate({
+              id: 61,
+              price: 12000,
+              sale_price: 7800,
+              discount_ends_at: "2026-05-11T01:59",
+            }),
+          ],
+        }),
+      );
+    });
+
+    expect(container.textContent).toContain("セール中");
+    expect(container.textContent).toContain("7,800");
+    expect(container.textContent).toContain("通常価格");
+    expect(container.textContent).toContain("12,000円");
+  });
+
+  it("セール終了日時が過去の場合はセール中として強調しない", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-05-15T00:00:00+09:00"));
+
+    const { default: PurchaseCandidateListCard } =
+      await import("./purchase-candidate-list-card");
+
+    await act(async () => {
+      root.render(
+        React.createElement(PurchaseCandidateListCard, {
+          candidates: [
+            buildCandidate({
+              id: 62,
+              price: 12000,
+              sale_price: 7800,
+              discount_ends_at: "2026-05-11T01:59",
+            }),
+          ],
+        }),
+      );
+    });
+
+    expect(container.textContent).not.toContain("セール中");
+    expect(container.textContent).toContain("12,000");
+    expect(container.textContent).not.toContain("7,800");
+    expect(container.textContent).not.toContain("通常価格");
+    expect(container.textContent).not.toContain("セール終了日");
+    expect(container.textContent).not.toContain("05/11 01:59");
   });
 
   it("selection mode では単体候補に軽い選択行だけを表示する", async () => {
