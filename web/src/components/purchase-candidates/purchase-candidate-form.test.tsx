@@ -2873,7 +2873,9 @@ describe("購入検討フォーム", () => {
     await renderForm();
 
     await setCategorySelection("skirts", "skirts_skirt");
-    setNativeValue(getShapeSelect() as HTMLSelectElement, "narrow");
+    await act(async () => {
+      setNativeValue(getShapeSelect() as HTMLSelectElement, "narrow");
+    });
     await openSizeDetails();
 
     expect(
@@ -3140,6 +3142,15 @@ describe("購入検討フォーム", () => {
         name: "サイズ候補配置テスト",
         category_id: "tops_tshirt_cutsew",
         shape: "tshirt",
+        brand_name: null,
+        price: null,
+        release_date: null,
+        sale_price: null,
+        sale_ends_at: null,
+        discount_ends_at: null,
+        purchase_url: null,
+        memo: null,
+        wanted_reason: null,
         size_gender: "men",
         size_label: "L",
         size_note: "",
@@ -3147,6 +3158,9 @@ describe("購入検討フォーム", () => {
         alternate_size_label: "M",
         alternate_size_note: "",
         alternate_size_details: null,
+        spec: null,
+        is_rain_ok: false,
+        sheerness: null,
         colors: [
           {
             role: "main",
@@ -3373,6 +3387,15 @@ describe("購入検討フォーム", () => {
         name: "サイズ候補タブ入れ替えテスト",
         category_id: "tops_tshirt_cutsew",
         shape: "tshirt",
+        brand_name: null,
+        price: null,
+        release_date: null,
+        sale_price: null,
+        sale_ends_at: null,
+        discount_ends_at: null,
+        purchase_url: null,
+        memo: null,
+        wanted_reason: null,
         size_gender: "women",
         size_label: "L",
         size_note: "ゆったり寄り",
@@ -3380,6 +3403,9 @@ describe("購入検討フォーム", () => {
         alternate_size_label: "M",
         alternate_size_note: "ジャスト寄り",
         alternate_size_details: null,
+        spec: null,
+        is_rain_ok: false,
+        sheerness: null,
         colors: [
           {
             role: "main",
