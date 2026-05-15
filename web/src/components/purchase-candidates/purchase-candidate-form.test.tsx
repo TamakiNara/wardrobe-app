@@ -4,6 +4,7 @@ import React from "react";
 import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { PurchaseCandidateRecord } from "@/types/purchase-candidates";
 
 const pushMock = vi.fn();
 const refreshMock = vi.fn();
@@ -300,6 +301,7 @@ describe("購入検討フォーム", () => {
   async function renderForm(props?: {
     mode?: "create" | "edit";
     candidateId?: string;
+    initialCandidate?: PurchaseCandidateRecord;
     initialCategoryId?: string;
     initialCategoryGroupId?: string;
   }) {
@@ -318,6 +320,54 @@ describe("購入検討フォーム", () => {
     await act(async () => {
       await Promise.resolve();
     });
+  }
+
+  function buildPurchaseCandidate(
+    overrides: Partial<PurchaseCandidateRecord> = {},
+  ): PurchaseCandidateRecord {
+    return {
+      id: 12,
+      status: "considering",
+      priority: "medium",
+      name: "通勤ブラウス",
+      category_id: "tops_shirt_blouse",
+      shape: "shirt",
+      category_name: "シャツ・ブラウス",
+      brand_name: null,
+      price: null,
+      release_date: null,
+      sale_price: null,
+      sale_ends_at: null,
+      discount_ends_at: null,
+      purchase_url: null,
+      memo: null,
+      wanted_reason: null,
+      size_gender: null,
+      size_label: null,
+      size_note: null,
+      size_details: null,
+      alternate_size_label: null,
+      alternate_size_note: null,
+      alternate_size_details: null,
+      spec: null,
+      is_rain_ok: false,
+      sheerness: null,
+      group_id: null,
+      group_order: null,
+      group_candidates: [],
+      converted_item_id: null,
+      converted_at: null,
+      is_used_in_shopping_memos: false,
+      shopping_memo_count: 0,
+      colors: [],
+      seasons: [],
+      tpos: [],
+      materials: [],
+      images: [],
+      created_at: null,
+      updated_at: null,
+      ...overrides,
+    };
   }
 
   it("新規作成ではユーザー設定済みの TPO を表示する", async () => {
@@ -383,6 +433,24 @@ describe("購入検討フォーム", () => {
       container.querySelectorAll<HTMLButtonElement>("button[aria-pressed]"),
     ).find((button) => button.textContent?.includes("通勤"));
 
+    expect(commutingButton).not.toBeUndefined();
+    expect(commutingButton?.getAttribute("aria-pressed")).toBe("true");
+  });
+
+  it("編集時に initialCandidate がある場合は detail を再取得しない", async () => {
+    await renderForm({
+      mode: "edit",
+      candidateId: "12",
+      initialCandidate: buildPurchaseCandidate({
+        tpos: ["通勤"],
+      }),
+    });
+
+    const commutingButton = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button[aria-pressed]"),
+    ).find((button) => button.textContent?.includes("通勤"));
+
+    expect(fetchMock).not.toHaveBeenCalled();
     expect(commutingButton).not.toBeUndefined();
     expect(commutingButton?.getAttribute("aria-pressed")).toBe("true");
   });

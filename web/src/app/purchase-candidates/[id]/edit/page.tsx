@@ -76,6 +76,7 @@ export default async function EditPurchaseCandidatePage({
         <PurchaseCandidateForm
           mode="edit"
           candidateId={id}
+          initialCandidate={candidate}
           cancelHref={`/purchase-candidates/${id}?return_to=${encodeURIComponent(returnTo)}&return_label=${encodeURIComponent(returnLabel)}`}
           footerAction={
             <DeletePurchaseCandidateButton

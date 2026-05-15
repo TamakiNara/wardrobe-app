@@ -130,6 +130,7 @@ import type { UserTpoRecord } from "@/types/settings";
 type PurchaseCandidateFormProps = {
   mode: "create" | "edit";
   candidateId?: string;
+  initialCandidate?: PurchaseCandidateRecord;
   cancelHref?: string;
   initialCategoryId?: string;
   initialCategoryGroupId?: string;
@@ -451,6 +452,7 @@ function ReviewHintIcon() {
 export default function PurchaseCandidateForm({
   mode,
   candidateId,
+  initialCandidate,
   cancelHref = "/purchase-candidates",
   initialCategoryId,
   initialCategoryGroupId,
@@ -1048,26 +1050,30 @@ export default function PurchaseCandidateForm({
         };
 
         if (mode === "edit" && candidateId) {
-          const response = await fetch(
-            `/api/purchase-candidates/${candidateId}`,
-            {
-              headers: { Accept: "application/json" },
-            },
-          );
+          let candidate = initialCandidate;
 
-          if (response.status === 401) {
-            router.push("/login");
-            return;
+          if (!candidate) {
+            const response = await fetch(
+              `/api/purchase-candidates/${candidateId}`,
+              {
+                headers: { Accept: "application/json" },
+              },
+            );
+
+            if (response.status === 401) {
+              router.push("/login");
+              return;
+            }
+
+            if (!response.ok) {
+              router.push("/purchase-candidates");
+              return;
+            }
+
+            const data =
+              (await response.json()) as PurchaseCandidateDetailResponse;
+            candidate = data.purchaseCandidate;
           }
-
-          if (!response.ok) {
-            router.push("/purchase-candidates");
-            return;
-          }
-
-          const data =
-            (await response.json()) as PurchaseCandidateDetailResponse;
-          const candidate = data.purchaseCandidate;
 
           setStatus(candidate.status);
           setPriority(candidate.priority);
@@ -1189,7 +1195,14 @@ export default function PurchaseCandidateForm({
     }
 
     loadInitialData();
-  }, [candidateId, initialCategoryGroupId, initialCategoryId, mode, router]);
+  }, [
+    candidateId,
+    initialCandidate,
+    initialCategoryGroupId,
+    initialCategoryId,
+    mode,
+    router,
+  ]);
 
   useEffect(() => {
     if (mode !== "create") {

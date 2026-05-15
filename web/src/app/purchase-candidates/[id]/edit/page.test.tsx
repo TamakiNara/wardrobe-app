@@ -23,10 +23,12 @@ vi.mock("@/lib/server/laravel", () => ({
 vi.mock("@/components/purchase-candidates/purchase-candidate-form", () => ({
   default: ({
     candidateId,
+    initialCandidate,
     cancelHref,
     footerAction,
   }: {
     candidateId: string;
+    initialCandidate?: { id: number };
     cancelHref?: string;
     footerAction?: React.ReactNode;
   }) =>
@@ -34,6 +36,7 @@ vi.mock("@/components/purchase-candidates/purchase-candidate-form", () => ({
       "div",
       {
         "data-cancel-href": cancelHref,
+        "data-initial-candidate-id": initialCandidate?.id,
       },
       `purchase-candidate-form:${candidateId}`,
       footerAction,
@@ -97,6 +100,7 @@ describe("EditPurchaseCandidatePage", () => {
     expect(markup).toContain(
       'data-cancel-href="/purchase-candidates/14?return_to=',
     );
+    expect(markup).toContain('data-initial-candidate-id="14"');
     expect(markup).toContain("purchase-candidate-form:14");
     expect(markup).toContain("delete-purchase-candidate-button:14");
     expect(markup).toContain('data-used-in-shopping-memos="false"');
