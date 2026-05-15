@@ -135,7 +135,7 @@ export default function PurchaseCandidateBrandFilterField({
       {open ? (
         <div
           id={`${inputId}-suggestions`}
-          className="absolute z-20 mt-2 max-h-64 w-full overflow-y-auto rounded-xl border border-gray-200 bg-white p-2 shadow-lg"
+          className="absolute z-[60] mt-2 max-h-64 w-full overflow-y-auto rounded-xl border border-gray-200 bg-white p-2 shadow-lg"
         >
           {suggestions.length === 0 ? (
             <p className="px-3 py-2 text-sm text-gray-500">
