@@ -27,7 +27,11 @@ import {
   fetchWeatherRecordsByDate,
   updateWeatherRecord,
 } from "@/lib/api/weather";
-import { formatJapaneseDate, getWeatherCodeLabel } from "@/lib/weather/labels";
+import {
+  formatJapaneseDate,
+  formatWeatherTemperature,
+  getWeatherCodeLabel,
+} from "@/lib/weather/labels";
 import { WEATHER_CODE_DEFINITIONS } from "@/lib/weather/weather-code-definitions";
 import type { UserWeatherLocationRecord } from "@/types/settings";
 import type {
@@ -321,6 +325,12 @@ function WearLogWeatherPageContent() {
     null,
   );
   const [, setObservedRawWeatherCode] = useState<number | null>(null);
+  const [observedTemperatureHigh, setObservedTemperatureHigh] = useState<
+    number | null
+  >(null);
+  const [observedTemperatureLow, setObservedTemperatureLow] = useState<
+    number | null
+  >(null);
   const [observedPrecipitation, setObservedPrecipitation] = useState<
     number | null
   >(null);
@@ -414,6 +424,8 @@ function WearLogWeatherPageContent() {
     observedTimeBlockWeather?.daytime ??
     observedTimeBlockWeather?.night,
   );
+  const hasObservedTemperatureDetails =
+    observedTemperatureHigh !== null || observedTemperatureLow !== null;
   const hasObservedPrecipitationDetails =
     observedPrecipitation !== null ||
     observedRainSum !== null ||
@@ -462,6 +474,8 @@ function WearLogWeatherPageContent() {
       setObservedTimeBlockWeather(null);
       setObservedHasRainInTimeBlocks(false);
       setObservedRawWeatherCode(null);
+      setObservedTemperatureHigh(null);
+      setObservedTemperatureLow(null);
       setObservedPrecipitation(null);
       setObservedRainSum(null);
       setObservedSnowfallSum(null);
@@ -517,6 +531,8 @@ function WearLogWeatherPageContent() {
     setObservedTimeBlockWeather(null);
     setObservedHasRainInTimeBlocks(false);
     setObservedRawWeatherCode(null);
+    setObservedTemperatureHigh(null);
+    setObservedTemperatureLow(null);
     setObservedPrecipitation(null);
     setObservedRainSum(null);
     setObservedSnowfallSum(null);
@@ -548,6 +564,8 @@ function WearLogWeatherPageContent() {
     setObservedTimeBlockWeather(null);
     setObservedHasRainInTimeBlocks(false);
     setObservedRawWeatherCode(null);
+    setObservedTemperatureHigh(null);
+    setObservedTemperatureLow(null);
     setObservedPrecipitation(null);
     setObservedRainSum(null);
     setObservedSnowfallSum(null);
@@ -579,6 +597,8 @@ function WearLogWeatherPageContent() {
     setObservedTimeBlockWeather(observed.time_block_weather ?? null);
     setObservedHasRainInTimeBlocks(observed.has_rain_in_time_blocks ?? false);
     setObservedRawWeatherCode(observed.raw_weather_code);
+    setObservedTemperatureHigh(observed.temperature_high);
+    setObservedTemperatureLow(observed.temperature_low);
     setObservedPrecipitation(observed.precipitation);
     setObservedRainSum(observed.rain_sum);
     setObservedSnowfallSum(observed.snowfall_sum);
@@ -1324,6 +1344,35 @@ function WearLogWeatherPageContent() {
                           {getWeatherCodeLabel(weatherCode)}
                         </span>
                       </p>
+                      {hasObservedTemperatureDetails ? (
+                        <p>
+                          気温:{" "}
+                          {observedTemperatureHigh !== null ? (
+                            <>
+                              最高{" "}
+                              <span className="font-medium">
+                                {formatWeatherTemperature(
+                                  observedTemperatureHigh,
+                                )}
+                              </span>
+                            </>
+                          ) : null}
+                          {observedTemperatureHigh !== null &&
+                          observedTemperatureLow !== null
+                            ? " / "
+                            : null}
+                          {observedTemperatureLow !== null ? (
+                            <>
+                              最低{" "}
+                              <span className="font-medium">
+                                {formatWeatherTemperature(
+                                  observedTemperatureLow,
+                                )}
+                              </span>
+                            </>
+                          ) : null}
+                        </p>
+                      ) : null}
                       {hasObservedTimeBlockWeather ? (
                         <p className="leading-6">
                           時間帯: 朝{" "}

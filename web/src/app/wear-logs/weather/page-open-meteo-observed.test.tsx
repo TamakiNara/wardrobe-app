@@ -298,6 +298,9 @@ describe("WearLogWeatherPage Open-Meteo historical integration", () => {
     expect(container.textContent).toContain("取得した実績");
     expect(container.textContent).toContain("Open-Meteo Historical");
     expect(container.textContent).toContain("代表天気:");
+    expect(container.textContent).toContain("気温:");
+    expect(container.textContent).toContain("最高 22.1℃");
+    expect(container.textContent).toContain("最低 13.4℃");
     expect(container.textContent).toContain("時間帯:");
     expect(container.textContent).toContain("朝 雨");
     expect(container.textContent).toContain("昼 くもり");
@@ -394,8 +397,8 @@ describe("WearLogWeatherPage Open-Meteo historical integration", () => {
         forecast_area_code: null,
         weather_code: "rain",
         raw_weather_code: 61,
-        temperature_high: 21.5,
-        temperature_low: 12.3,
+        temperature_high: 0,
+        temperature_low: -4.2,
         precipitation: 3.2,
         rain_sum: 3.2,
         snowfall_sum: 0,
@@ -422,8 +425,8 @@ describe("WearLogWeatherPage Open-Meteo historical integration", () => {
         location_name_snapshot: "川口",
         forecast_area_code_snapshot: null,
         weather_code: "rain",
-        temperature_high: 21.5,
-        temperature_low: 12.3,
+        temperature_high: 0,
+        temperature_low: -4.2,
         memo: null,
         source_type: "historical_api",
         source_name: "open_meteo_historical",
@@ -449,10 +452,13 @@ describe("WearLogWeatherPage Open-Meteo historical integration", () => {
 
     expect(
       (container.querySelector("#temperature-high") as HTMLInputElement).value,
-    ).toBe("21.5");
+    ).toBe("0");
     expect(
       (container.querySelector("#temperature-low") as HTMLInputElement).value,
-    ).toBe("12.3");
+    ).toBe("-4.2");
+    expect(container.textContent).toContain("気温:");
+    expect(container.textContent).toContain("最高 0℃");
+    expect(container.textContent).toContain("最低 -4.2℃");
 
     await act(async () => {
       (
@@ -465,8 +471,8 @@ describe("WearLogWeatherPage Open-Meteo historical integration", () => {
       9,
       expect.objectContaining({
         weather_code: "rain",
-        temperature_high: 21.5,
-        temperature_low: 12.3,
+        temperature_high: 0,
+        temperature_low: -4.2,
         source_type: "historical_api",
         source_name: "open_meteo_historical",
         source_fetched_at: "2026-05-03T10:00:00+09:00",
