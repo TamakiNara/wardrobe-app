@@ -970,4 +970,63 @@ class WeatherEndpointsTest extends TestCase
             ->assertJsonPath('weatherRecord.source_name', 'tsukumijima')
             ->assertJsonPath('weatherRecord.source_fetched_at', '2026-05-01T10:00:00.000000Z');
     }
+
+    public function test_weather_record_update_replaces_forecast_temperatures_with_observed_temperatures(): void
+    {
+        $user = User::factory()->create();
+        $token = $this->issueCsrfToken();
+        $location = UserWeatherLocation::query()->create([
+            'user_id' => $user->id,
+            'name' => 'Kawaguchi',
+            'forecast_area_code' => null,
+            'latitude' => 35.8617,
+            'longitude' => 139.6455,
+            'timezone' => 'Asia/Tokyo',
+            'is_default' => true,
+            'display_order' => 1,
+        ]);
+        $record = WeatherRecord::query()->create([
+            'user_id' => $user->id,
+            'weather_date' => '2026-05-02',
+            'location_id' => $location->id,
+            'location_name_snapshot' => $location->name,
+            'forecast_area_code_snapshot' => null,
+            'weather_code' => 'cloudy',
+            'temperature_high' => 27.0,
+            'temperature_low' => 18.0,
+            'source_type' => 'forecast_api',
+            'source_name' => 'open_meteo_jma_forecast',
+            'source_fetched_at' => '2026-05-01T10:00:00+09:00',
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->patchJson("/api/weather-records/{$record->id}", [
+            'weather_code' => 'rain',
+            'temperature_high' => 21.5,
+            'temperature_low' => 12.3,
+            'source_type' => 'historical_api',
+            'source_name' => 'open_meteo_historical',
+            'source_fetched_at' => '2026-05-03T10:00:00+09:00',
+        ], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('weatherRecord.weather_code', 'rain')
+            ->assertJsonPath('weatherRecord.temperature_high', 21.5)
+            ->assertJsonPath('weatherRecord.temperature_low', 12.3)
+            ->assertJsonPath('weatherRecord.source_type', 'historical_api')
+            ->assertJsonPath('weatherRecord.source_name', 'open_meteo_historical');
+
+        $this->assertDatabaseHas('weather_records', [
+            'id' => $record->id,
+            'weather_code' => 'rain',
+            'temperature_high' => 21.5,
+            'temperature_low' => 12.3,
+            'source_type' => 'historical_api',
+            'source_name' => 'open_meteo_historical',
+        ]);
+    }
 }
