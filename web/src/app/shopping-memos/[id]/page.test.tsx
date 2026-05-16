@@ -279,6 +279,93 @@ describe("ShoppingMemoDetailPage", () => {
     );
   });
 
+  it("期限切れの sale price を現在有効な価格として表示しない", async () => {
+    vi.setSystemTime(new Date("2026-05-16T00:00:00+09:00"));
+    fetchLaravelWithCookieMock.mockImplementation(async (path: string) => {
+      if (path === "/api/shopping-memos/5") {
+        return {
+          status: 200,
+          ok: true,
+          json: async () => ({
+            shoppingMemo: {
+              id: 5,
+              name: "期限切れセール確認",
+              memo: null,
+              status: "draft",
+              item_count: 1,
+              group_count: 1,
+              subtotal: 2629,
+              has_price_unset: false,
+              nearest_deadline: null,
+              created_at: "2026-05-01T10:00:00+09:00",
+              updated_at: "2026-05-15T09:30:00+09:00",
+              groups: [
+                {
+                  type: "domain",
+                  key: "domain:example.com",
+                  display_name: "example.com",
+                  subtotal: 2629,
+                  has_price_unset: false,
+                  nearest_deadline: null,
+                  items: [
+                    {
+                      shopping_memo_item_id: 51,
+                      purchase_candidate_id: 201,
+                      name: "期限切れセール候補",
+                      brand: "Sample Brand",
+                      purchase_url: "https://example.com/item/201",
+                      status: "considering",
+                      price: 2629,
+                      sale_price: 2120,
+                      unit_price: 2629,
+                      quantity: 1,
+                      line_total: 2629,
+                      is_total_included: true,
+                      sale_ends_at: null,
+                      discount_ends_at: "2026-05-11T01:59:00+09:00",
+                      memo: null,
+                      priority: "medium",
+                      sort_order: 1,
+                    },
+                  ],
+                },
+              ],
+            },
+          }),
+        };
+      }
+
+      if (path === "/api/purchase-candidates/201") {
+        return {
+          status: 200,
+          ok: true,
+          json: async () => ({
+            purchaseCandidate: {
+              images: [],
+            },
+          }),
+        };
+      }
+
+      throw new Error(`unexpected path: ${path}`);
+    });
+
+    const { default: ShoppingMemoDetailPage } = await import("./page");
+    const markup = renderToStaticMarkup(
+      await ShoppingMemoDetailPage({
+        params: Promise.resolve({ id: "5" }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+
+    expect(markup).toContain("期限切れセール候補");
+    expect(markup).not.toContain("セール中");
+    expect(markup).not.toContain("通常価格");
+    expect(markup).not.toContain("2,120");
+    expect(markup).toContain("2,629");
+    expect(markup).toContain("2,629円");
+  });
+
   it("item が空なら empty state を表示する", async () => {
     fetchLaravelWithCookieMock.mockImplementation(async (path: string) => {
       expect(path).toBe("/api/shopping-memos/2");

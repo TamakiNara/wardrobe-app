@@ -5,6 +5,7 @@ import ShoppingMemoItemRemoveAction from "@/components/shopping-memos/shopping-m
 import { IndexPageHeader } from "@/components/shared/index-page-header";
 import { PurchaseUrlLink } from "@/components/shared/purchase-url-link";
 import { buildPageMetadata } from "@/lib/metadata";
+import { isPurchaseCandidateSaleActive } from "@/lib/purchase-candidates/date-time";
 import { fetchLaravelWithCookie } from "@/lib/server/laravel";
 import type {
   PurchaseCandidateDetailResponse,
@@ -295,7 +296,10 @@ function renderGroupItem(
 ) {
   const nearestDeadline = resolveNearestItemDeadline(item);
   const nearestDeadlineLabel = formatDateTime(nearestDeadline);
-  const hasSalePrice = item.sale_price !== null;
+  const hasSalePrice = isPurchaseCandidateSaleActive(
+    item.sale_price,
+    item.discount_ends_at,
+  );
   const lineTotalLabel =
     item.quantity > 1 && item.line_total !== null && item.is_total_included
       ? formatPrice(item.line_total)

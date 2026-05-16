@@ -9,12 +9,20 @@ use App\Models\ShoppingMemo;
 use App\Models\ShoppingMemoItem;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
 use Tests\TestCase;
 
 class ShoppingMemoEndpointsTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function tearDown(): void
+    {
+        Carbon::setTestNow();
+
+        parent::tearDown();
+    }
 
     private function issueCsrfToken(): string
     {
@@ -355,6 +363,8 @@ class ShoppingMemoEndpointsTest extends TestCase
 
     public function test_detail_response_groups_items_and_calculates_subtotals(): void
     {
+        Carbon::setTestNow(Carbon::parse('2026-05-01 00:00:00'));
+
         $user = User::factory()->create();
         $memo = $this->createShoppingMemo($user, [
             'name' => '比較用メモ',
@@ -456,5 +466,74 @@ class ShoppingMemoEndpointsTest extends TestCase
             ->assertJsonPath('shoppingMemos.0.subtotal', 14800)
             ->assertJsonPath('shoppingMemos.0.has_price_unset', true)
             ->assertJsonPath('shoppingMemos.0.nearest_deadline', '2026-05-08T10:00:00+00:00');
+    }
+
+    public function test_detail_response_uses_regular_price_when_sale_price_is_expired(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-05-16 00:00:00'));
+
+        $user = User::factory()->create();
+        $memo = $this->createShoppingMemo($user);
+        $expiredSaleCandidate = $this->createCandidate($user, [
+            'name' => '期限切れセール候補',
+            'price' => 2629,
+            'sale_price' => 2120,
+            'discount_ends_at' => '2026-05-11 01:59:00',
+            'status' => 'considering',
+        ]);
+        $activeSaleCandidate = $this->createCandidate($user, [
+            'name' => '有効セール候補',
+            'price' => 3000,
+            'sale_price' => 2500,
+            'discount_ends_at' => '2026-05-20 01:59:00',
+            'status' => 'considering',
+        ]);
+        $openEndedSaleCandidate = $this->createCandidate($user, [
+            'name' => '期限未設定セール候補',
+            'price' => 5000,
+            'sale_price' => 4500,
+            'discount_ends_at' => null,
+            'status' => 'considering',
+        ]);
+        $priceUnsetExpiredSaleCandidate = $this->createCandidate($user, [
+            'name' => '通常価格未設定の期限切れセール候補',
+            'price' => null,
+            'sale_price' => 1980,
+            'discount_ends_at' => '2026-05-11 01:59:00',
+            'status' => 'considering',
+        ]);
+
+        foreach ([
+            [$expiredSaleCandidate, 1, 1],
+            [$activeSaleCandidate, 2, 1],
+            [$openEndedSaleCandidate, 3, 1],
+            [$priceUnsetExpiredSaleCandidate, 4, 1],
+        ] as [$candidate, $sortOrder, $quantity]) {
+            ShoppingMemoItem::query()->create([
+                'shopping_memo_id' => $memo->id,
+                'purchase_candidate_id' => $candidate->id,
+                'quantity' => $quantity,
+                'sort_order' => $sortOrder,
+            ]);
+        }
+
+        $this
+            ->actingAs($user, 'web')
+            ->getJson(sprintf('/api/shopping-memos/%d', $memo->id))
+            ->assertOk()
+            ->assertJsonPath('shoppingMemo.subtotal', 9629)
+            ->assertJsonPath('shoppingMemo.has_price_unset', true)
+            ->assertJsonPath('shoppingMemo.groups.0.items.0.name', '期限切れセール候補')
+            ->assertJsonPath('shoppingMemo.groups.0.items.0.unit_price', 2629)
+            ->assertJsonPath('shoppingMemo.groups.0.items.0.line_total', 2629)
+            ->assertJsonPath('shoppingMemo.groups.0.items.1.name', '有効セール候補')
+            ->assertJsonPath('shoppingMemo.groups.0.items.1.unit_price', 2500)
+            ->assertJsonPath('shoppingMemo.groups.0.items.1.line_total', 2500)
+            ->assertJsonPath('shoppingMemo.groups.0.items.2.name', '期限未設定セール候補')
+            ->assertJsonPath('shoppingMemo.groups.0.items.2.unit_price', 4500)
+            ->assertJsonPath('shoppingMemo.groups.0.items.2.line_total', 4500)
+            ->assertJsonPath('shoppingMemo.groups.0.items.3.name', '通常価格未設定の期限切れセール候補')
+            ->assertJsonPath('shoppingMemo.groups.0.items.3.unit_price', null)
+            ->assertJsonPath('shoppingMemo.groups.0.items.3.line_total', null);
     }
 }

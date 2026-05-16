@@ -198,7 +198,7 @@ class ShoppingMemoPayloadBuilder
 
     private static function resolveUnitPrice(PurchaseCandidate $candidate): ?int
     {
-        if ($candidate->sale_price !== null) {
+        if (self::isSalePriceActive($candidate)) {
             return (int) $candidate->sale_price;
         }
 
@@ -207,6 +207,19 @@ class ShoppingMemoPayloadBuilder
         }
 
         return null;
+    }
+
+    private static function isSalePriceActive(PurchaseCandidate $candidate): bool
+    {
+        if ($candidate->sale_price === null) {
+            return false;
+        }
+
+        if ($candidate->discount_ends_at === null) {
+            return true;
+        }
+
+        return $candidate->discount_ends_at->isFuture();
     }
 
     private static function extractNormalizedHost(?string $url): ?string

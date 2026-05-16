@@ -238,7 +238,10 @@ current:
 
 ## 金額計算
 
-- `unit_price = sale_price ?? price`
+- `unit_price` は current 有効価格を使う
+  - `sale_price` があり、`discount_ends_at` が未設定または現在時刻より未来の場合は `sale_price`
+  - `discount_ends_at` が過去の場合は、期限切れの `sale_price` を現在有効価格として扱わず `price`
+  - `price` もない場合は価格未設定
 - quantity は DB にあるが、MVP UI では基本 `1`
 - `considering / on_hold` は合計対象
 - `purchased / dropped` は合計対象外
