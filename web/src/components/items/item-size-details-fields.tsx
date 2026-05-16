@@ -84,7 +84,7 @@ export default function ItemSizeDetailsFields({
   const measurementRangeRowClassName = "space-y-1.5";
   const rangeInputPairClassName =
     "grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-end gap-2";
-  const customValueGridClassName = "space-y-2";
+  const customValueGridClassName = measurementValueGridClassName;
   const numericWrapperClassName = "h-10 max-w-full pr-3";
   const numericInputClassName = `${FORM_CONTROL_INNER_INPUT_CLASS} px-3 text-sm`;
   const textInputClassName = getFormControlClassName({
@@ -398,7 +398,7 @@ export default function ItemSizeDetailsFields({
 
                       return (
                         <>
-                          <div className="grid gap-2.5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
+                          <div className="grid gap-2.5 lg:grid-cols-[minmax(0,1fr)_auto]">
                             <input
                               type="text"
                               placeholder="項目名"
@@ -408,20 +408,6 @@ export default function ItemSizeDetailsFields({
                                 onUpdateCustomSizeField(
                                   field.id,
                                   "label",
-                                  e.target.value,
-                                )
-                              }
-                              className={textInputClassName}
-                            />
-                            <input
-                              type="text"
-                              placeholder="例: ヌード寸 / 約 / 後ろ約"
-                              value={field.note}
-                              disabled={disabled}
-                              onChange={(e) =>
-                                onUpdateCustomSizeField(
-                                  field.id,
-                                  "note",
                                   e.target.value,
                                 )
                               }
@@ -469,6 +455,28 @@ export default function ItemSizeDetailsFields({
                                 </span>
                               </div>
                             </div>
+                            <div>
+                              <label className="mb-0.5 block text-xs font-medium text-gray-500">
+                                注記
+                              </label>
+                              <input
+                                type="text"
+                                inputMode="text"
+                                placeholder="例: ヌード寸 / 約 / 後ろ約"
+                                value={field.note}
+                                disabled={disabled}
+                                onChange={(e) =>
+                                  onUpdateCustomSizeField(
+                                    field.id,
+                                    "note",
+                                    e.target.value,
+                                  )
+                                }
+                                className={textInputClassName}
+                              />
+                            </div>
+                          </div>
+                          <div className="space-y-2">
                             <button
                               type="button"
                               disabled={disabled}

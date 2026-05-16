@@ -16,27 +16,26 @@ docs 内に散らばっている planned / TODO / 後続 / 要再判断を、**c
 
 ## サマリ
 
-- 棚卸しした docs / 手元タスク由来タスク: **44件**
+- 棚卸しした docs / 手元タスク由来タスク: **43件**
 - 種別別件数:
-  - `bug`: 4
+  - `bug`: 3
   - `ui`: 14
   - `feature`: 8
   - `design`: 10
   - `docs`: 4
   - `deferred`: 4
 - 優先度案:
-  - `high`: 9
+  - `high`: 8
   - `medium`: 22
   - `low`: 13
 
 ## バグ / 違和感
 
-| ID     | タスク名                                             | 内容                                                                                                                                         | 出典 docs / section                                                                                    | 関連機能                    | 種別 | 優先度 | 依存関係                    | すぐ実装できるか |
-| ------ | ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ | --------------------------- | ---- | ------ | --------------------------- | ---------------- |
-| BUG-01 | 天気 docs の current / planned / legacy 食い違い解消 | 天気 docs 群で current / planned / legacy の説明がずれる箇所を再整理する                                                                     | `wears/weather-docs-reorganization.md`, `wears/weather-current-status.md`, `wears/weather-fetching.md` | weather                     | bug  | medium | docs 整理                   | yes              |
-| BUG-02 | 着用履歴の日詳細モーダルの情報密度見直し             | row ごとのサムネイル位置や情報密度の違和感を見直す                                                                                           | `wears/wear-logs.md` / `要再判断`                                                                      | wear logs                   | bug  | medium | current UI 確認             | yes              |
-| BUG-03 | 実寸自由項目入力欄のレイアウト差異修正               | item / purchase candidate の実寸自由項目で、単一値と注記の並び・余白・幅が template 項目と揃っているか確認し、同じ入力 UI として自然に揃える | 手元タスク                                                                                             | items / purchase candidates | bug  | high   | current measurement UI 確認 | yes              |
-| BUG-05 | 振り返り未記入時の振り返りありアイコン表示条件修正   | 着用履歴で振り返り本文が空文字 / null / whitespace の場合は、memo や feedback の有無と混同せず「振り返りあり」扱いにしない                   | 手元タスク, `wears/wear-logs.md`                                                                       | wear logs                   | bug  | high   | icon 表示条件確認           | yes              |
+| ID     | タスク名                                             | 内容                                                                                                                       | 出典 docs / section                                                                                    | 関連機能  | 種別 | 優先度 | 依存関係          | すぐ実装できるか |
+| ------ | ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ | --------- | ---- | ------ | ----------------- | ---------------- |
+| BUG-01 | 天気 docs の current / planned / legacy 食い違い解消 | 天気 docs 群で current / planned / legacy の説明がずれる箇所を再整理する                                                   | `wears/weather-docs-reorganization.md`, `wears/weather-current-status.md`, `wears/weather-fetching.md` | weather   | bug  | medium | docs 整理         | yes              |
+| BUG-02 | 着用履歴の日詳細モーダルの情報密度見直し             | row ごとのサムネイル位置や情報密度の違和感を見直す                                                                         | `wears/wear-logs.md` / `要再判断`                                                                      | wear logs | bug  | medium | current UI 確認   | yes              |
+| BUG-05 | 振り返り未記入時の振り返りありアイコン表示条件修正   | 着用履歴で振り返り本文が空文字 / null / whitespace の場合は、memo や feedback の有無と混同せず「振り返りあり」扱いにしない | 手元タスク, `wears/wear-logs.md`                                                                       | wear logs | bug  | high   | icon 表示条件確認 | yes              |
 
 ## UI改善
 
@@ -128,46 +127,44 @@ docs 内に散らばっている planned / TODO / 後続 / 要再判断を、**c
 
 ## 手元タスクとの対応
 
-| 手元タスク                                                | 対応状況         | 対応 backlog / メモ                                                                       |
-| --------------------------------------------------------- | ---------------- | ----------------------------------------------------------------------------------------- |
-| 適宜アイコンを使って視覚化                                | backlog 統合済み | `UI-01`                                                                                   |
-| 実寸自由項目入力欄のレイアウト差異                        | backlog 追加済み | `BUG-03`                                                                                  |
-| 伸縮性 / 裏地 / 洗濯方法 / 洗濯表示                       | backlog 追加済み | `DES-09`。素材・混率の実装タスクは `FEAT-03`                                              |
-| セットアップ登録・リンク追加                              | docs 明記あり    | `FEAT-01`                                                                                 |
-| 今季よく着たアイテムの統計                                | backlog 統合済み | `FEAT-05`                                                                                 |
-| アイテム削除                                              | docs 明記あり    | `FEAT-02`                                                                                 |
-| コーディネート参考メモ・画像管理、購入検討とのリンク      | backlog 追加済み | `FEAT-08`                                                                                 |
-| 着用履歴からアイテム単位での着用回数集計                  | backlog 統合済み | `FEAT-05`                                                                                 |
-| 特定TPOを一覧で初期表示しない                             | backlog 追加済み | `DES-10`。`settings/tpos.md` の inactive 表示とは別論点                                   |
-| ログ設計                                                  | docs 明記あり    | `DES-01`                                                                                  |
-| 機能単位のdocsフォーマット化 / 重複整理                   | docs 明記あり    | `DOC-01`                                                                                  |
-| 画面遷移図                                                | backlog 追加済み | `DOC-04`                                                                                  |
-| 正規化                                                    | docs 明記あり    | `DES-02`, `DES-03`                                                                        |
-| 旧天気API関連のPhase E以降                                | docs 明記あり    | `DEF-04`                                                                                  |
-| purchase candidate TPOのIDベース化                        | backlog 統合済み | `DES-02`                                                                                  |
-| 色名解決helper共通化                                      | backlog 統合済み | `DES-03`                                                                                  |
-| 実寸自由項目のtemplate昇格                                | backlog 統合済み | `DES-04`                                                                                  |
-| `sale_ends_at` / `discount_ends_at` のinternal name見直し | backlog 統合済み | `DES-05`                                                                                  |
-| 買い物メモの期限表示詳細化                                | docs 明記あり    | `UI-02`                                                                                   |
-| custom dropdown / popover とボトムナビの重なり確認        | 一部対応済み     | `UI-06`。BrandFilter z-index は修正済み。viewport 下端 / placement / overlay ルールは残件 |
-| 天気の予報→実績更新時の差分表示                           | backlog 追加済み | `UI-11`                                                                                   |
-| 振り返り未記入時の振り返りありアイコン表示条件修正        | backlog 追加済み | `BUG-05`                                                                                  |
-| 着用履歴カレンダー凡例の色整理                            | backlog 追加済み | `UI-12`                                                                                   |
-| 着用履歴と天気登録の相互リンク                            | backlog 追加済み | `UI-13`                                                                                   |
-| 着用履歴の振り返り導線改善                                | backlog 追加済み | `UI-14`                                                                                   |
-| アイテムからコーディネートを検索する                      | backlog 追加済み | `FEAT-07`                                                                                 |
-| コーディネート作成時のアイテム選択 UI 改善                | backlog 追加済み | `UI-15`                                                                                   |
-| 楽天URLの店単位 group 化確認                              | backlog 追加済み | `DES-08`                                                                                  |
+| 手元タスク                                                | 対応状況         | 対応 backlog / メモ                                                                                              |
+| --------------------------------------------------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------- |
+| 適宜アイコンを使って視覚化                                | backlog 統合済み | `UI-01`                                                                                                          |
+| 実寸自由項目入力欄のレイアウト差異                        | 対応済み         | item / purchase candidate 共通の `ItemSizeDetailsFields` で自由項目の単一値 / 注記配置を template 項目に合わせた |
+| 伸縮性 / 裏地 / 洗濯方法 / 洗濯表示                       | backlog 追加済み | `DES-09`。素材・混率の実装タスクは `FEAT-03`                                                                     |
+| セットアップ登録・リンク追加                              | docs 明記あり    | `FEAT-01`                                                                                                        |
+| 今季よく着たアイテムの統計                                | backlog 統合済み | `FEAT-05`                                                                                                        |
+| アイテム削除                                              | docs 明記あり    | `FEAT-02`                                                                                                        |
+| コーディネート参考メモ・画像管理、購入検討とのリンク      | backlog 追加済み | `FEAT-08`                                                                                                        |
+| 着用履歴からアイテム単位での着用回数集計                  | backlog 統合済み | `FEAT-05`                                                                                                        |
+| 特定TPOを一覧で初期表示しない                             | backlog 追加済み | `DES-10`。`settings/tpos.md` の inactive 表示とは別論点                                                          |
+| ログ設計                                                  | docs 明記あり    | `DES-01`                                                                                                         |
+| 機能単位のdocsフォーマット化 / 重複整理                   | docs 明記あり    | `DOC-01`                                                                                                         |
+| 画面遷移図                                                | backlog 追加済み | `DOC-04`                                                                                                         |
+| 正規化                                                    | docs 明記あり    | `DES-02`, `DES-03`                                                                                               |
+| 旧天気API関連のPhase E以降                                | docs 明記あり    | `DEF-04`                                                                                                         |
+| purchase candidate TPOのIDベース化                        | backlog 統合済み | `DES-02`                                                                                                         |
+| 色名解決helper共通化                                      | backlog 統合済み | `DES-03`                                                                                                         |
+| 実寸自由項目のtemplate昇格                                | backlog 統合済み | `DES-04`                                                                                                         |
+| `sale_ends_at` / `discount_ends_at` のinternal name見直し | backlog 統合済み | `DES-05`                                                                                                         |
+| 買い物メモの期限表示詳細化                                | docs 明記あり    | `UI-02`                                                                                                          |
+| custom dropdown / popover とボトムナビの重なり確認        | 一部対応済み     | `UI-06`。BrandFilter z-index は修正済み。viewport 下端 / placement / overlay ルールは残件                        |
+| 天気の予報→実績更新時の差分表示                           | backlog 追加済み | `UI-11`                                                                                                          |
+| 振り返り未記入時の振り返りありアイコン表示条件修正        | backlog 追加済み | `BUG-05`                                                                                                         |
+| 着用履歴カレンダー凡例の色整理                            | backlog 追加済み | `UI-12`                                                                                                          |
+| 着用履歴と天気登録の相互リンク                            | backlog 追加済み | `UI-13`                                                                                                          |
+| 着用履歴の振り返り導線改善                                | backlog 追加済み | `UI-14`                                                                                                          |
+| アイテムからコーディネートを検索する                      | backlog 追加済み | `FEAT-07`                                                                                                        |
+| コーディネート作成時のアイテム選択 UI 改善                | backlog 追加済み | `UI-15`                                                                                                          |
+| 楽天URLの店単位 group 化確認                              | backlog 追加済み | `DES-08`                                                                                                         |
 
-## 次に進める候補 4 件
+## 次に進める候補 3 件
 
-1. `BUG-03` 実寸自由項目入力欄のレイアウト差異修正
-   理由: 仕様変更ではなく UI polish / bugfix として小さく進めやすい。
-2. `BUG-05` 振り返り未記入時の振り返りありアイコン表示条件修正
+1. `BUG-05` 振り返り未記入時の振り返りありアイコン表示条件修正
    理由: 表示の意味が誤解されやすく、条件確認と修正の範囲が比較的限定される。
-3. `FEAT-07` アイテムからコーディネートを検索する
+2. `FEAT-07` アイテムからコーディネートを検索する
    理由: item detail / wear log 登録導線に効き、outfit relation の活用価値が高い。
-4. `DOC-01` 機能単位 docs のフォーマット化 / 重複整理
+3. `DOC-01` 機能単位 docs のフォーマット化 / 重複整理
    理由: 他タスクの判断コストを下げやすく、今後の依頼の前提整理になる。
 
 ## 運用案
