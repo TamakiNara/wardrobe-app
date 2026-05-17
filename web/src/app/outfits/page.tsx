@@ -51,6 +51,12 @@ type OutfitsResponse = {
     page: number;
     lastPage: number;
     availableTpos?: string[];
+    filters?: {
+      item?: {
+        id: number;
+        name: string | null;
+      } | null;
+    };
   };
 };
 
@@ -124,6 +130,7 @@ async function getOutfits(
       page: data.meta?.page ?? 1,
       lastPage: data.meta?.lastPage ?? 1,
       availableTpos: data.meta?.availableTpos ?? [],
+      filters: data.meta?.filters ?? {},
     },
   };
 }
@@ -175,7 +182,12 @@ export default async function OutfitsPage({
   }
 
   const data = await getOutfits(resolvedSearchParams);
-  const itemCount = data.meta.totalAll === 0 ? await getItemCount() : 0;
+  const itemIdParam = resolvedSearchParams.item_id;
+  const hasItemFilter = Array.isArray(itemIdParam)
+    ? Boolean(itemIdParam[0]?.trim())
+    : Boolean(itemIdParam?.trim());
+  const itemCount =
+    data.meta.totalAll === 0 && !hasItemFilter ? await getItemCount() : 0;
   const outfits = data.outfits;
 
   return (
@@ -208,7 +220,7 @@ export default async function OutfitsPage({
           }
         />
 
-        {data.meta.totalAll === 0 ? (
+        {data.meta.totalAll === 0 && !hasItemFilter ? (
           <section className="rounded-2xl border border-dashed border-gray-300 bg-white p-10 text-center shadow-sm">
             <h2 className="text-lg font-semibold text-gray-900">
               まだコーディネートが登録されていません
@@ -238,6 +250,7 @@ export default async function OutfitsPage({
             currentPage={data.meta.page}
             lastPage={data.meta.lastPage}
             availableTpos={data.meta.availableTpos ?? []}
+            itemFilter={data.meta.filters?.item ?? null}
             initialSeasonFilter={initialSeasonFilter}
             skinTonePreset={skinTonePreset}
             initialVisibleCategoryIds={initialVisibleCategoryIds}

@@ -22,6 +22,17 @@
 - `tpo`
 - `sort`
 - `page`
+- `item_id`
+
+### `item_id`
+
+- item detail の「このアイテムを含むコーディネートを見る」導線から `/outfits?item_id={id}` として渡す
+- backend はログインユーザー所有の item に限定して、その item を含む outfit のみ返す
+- 他 user の item_id / 存在しない item_id の場合は 0 件扱いにし、item summary は返さない
+- 自分の item であれば `disposed` でも検索条件として受け付ける
+- 一覧画面では `meta.filters.item` があれば「{item name} を含むコーディネート」と表示し、summary がなければ generic 表示にする
+- keyword / season / currentSeason / tpo / sort / page の変更時も `item_id` は維持し、解除導線を押した場合だけ外す
+- `item_id` filter 中は currentSeason の自動適用を行わない
 
 ---
 

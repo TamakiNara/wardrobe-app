@@ -137,7 +137,13 @@ describe("OutfitsList", () => {
     const { default: OutfitsList } = await import("./outfits-list");
 
     await act(async () => {
-      root.render(React.createElement(OutfitsList, defaultListProps));
+      root.render(
+        React.createElement(OutfitsList, {
+          ...defaultListProps,
+          lastPage: 3,
+          totalCount: 30,
+        }),
+      );
       await waitForEffects();
     });
 
@@ -279,7 +285,13 @@ describe("OutfitsList", () => {
     const { default: OutfitsList } = await import("./outfits-list");
 
     await act(async () => {
-      root.render(React.createElement(OutfitsList, defaultListProps));
+      root.render(
+        React.createElement(OutfitsList, {
+          ...defaultListProps,
+          lastPage: 3,
+          totalCount: 30,
+        }),
+      );
       await waitForEffects();
     });
 
@@ -461,6 +473,98 @@ describe("OutfitsList", () => {
       {
         scroll: false,
       },
+    );
+  });
+  it("item_id filter 中の見出しと解除導線を表示する", async () => {
+    searchParamsValue = "item_id=101";
+    fetchCategoryVisibilitySettingsMock.mockResolvedValue({
+      visibleCategoryIds: ["tops_tshirt_cutsew", "tops_shirt_blouse"],
+    });
+
+    const { default: OutfitsList } = await import("./outfits-list");
+
+    await act(async () => {
+      root.render(
+        React.createElement(OutfitsList, {
+          ...defaultListProps,
+          itemFilter: {
+            id: 101,
+            name: "逋ｽT",
+          },
+        }),
+      );
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain("「逋ｽT」を含むコーディネート");
+
+    const clearItemFilterButton = Array.from(
+      container.querySelectorAll("button"),
+    ).find((button) => button.textContent?.includes("絞り込みを解除"));
+
+    await act(async () => {
+      clearItemFilterButton?.click();
+      await waitForEffects();
+    });
+
+    expect(replaceMock).toHaveBeenCalledWith("/outfits", { scroll: false });
+  });
+
+  it("item_id filter 中に他条件を変更しても item_id query を維持する", async () => {
+    searchParamsValue = "item_id=101";
+    fetchCategoryVisibilitySettingsMock.mockResolvedValue({
+      visibleCategoryIds: ["tops_tshirt_cutsew", "tops_shirt_blouse"],
+    });
+
+    const { default: OutfitsList } = await import("./outfits-list");
+
+    await act(async () => {
+      root.render(
+        React.createElement(OutfitsList, {
+          ...defaultListProps,
+          lastPage: 3,
+          totalCount: 30,
+        }),
+      );
+      await waitForEffects();
+    });
+
+    const nextButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent?.includes("次へ"),
+    );
+
+    await act(async () => {
+      nextButton?.click();
+      await waitForEffects();
+    });
+
+    expect(replaceMock).toHaveBeenCalledWith("/outfits?page=2&item_id=101", {
+      scroll: false,
+    });
+  });
+
+  it("item_id filter 中の空状態は専用文言を表示する", async () => {
+    searchParamsValue = "item_id=999";
+    fetchCategoryVisibilitySettingsMock.mockResolvedValue({
+      visibleCategoryIds: ["tops_tshirt_cutsew", "tops_shirt_blouse"],
+    });
+
+    const { default: OutfitsList } = await import("./outfits-list");
+
+    await act(async () => {
+      root.render(
+        React.createElement(OutfitsList, {
+          ...defaultListProps,
+          outfits: [],
+          totalCount: 0,
+          itemFilter: null,
+        }),
+      );
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain(
+      "「指定したアイテム」を含むコーディネートはまだありません。",
     );
   });
 });

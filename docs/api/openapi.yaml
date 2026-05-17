@@ -935,6 +935,14 @@ paths:
         meta.page / meta.lastPage を含む。
       security:
         - SessionCookieAuth: []
+      parameters:
+        - name: item_id
+          in: query
+          required: false
+          description: 指定 item を含む outfit のみに絞り込む。対象 item はログインユーザー所有に限定し、他 user / 存在しない item_id は 0 件として扱う。
+          schema:
+            type: integer
+            minimum: 1
       responses:
         "200":
           description: 取得成功
@@ -3833,6 +3841,24 @@ components:
               type: array
               items:
                 type: string
+            filters:
+              type: object
+              properties:
+                item:
+                  type: object
+                  nullable: true
+                  description: item_id filter がログインユーザー所有 item に一致した場合のみ返す最小 summary。
+                  required:
+                    - id
+                    - name
+                  properties:
+                    id:
+                      type: integer
+                      example: 123
+                    name:
+                      type: string
+                      nullable: true
+                      example: BOODY クルーネックTシャツ
 
     OutfitResponse:
       type: object

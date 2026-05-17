@@ -182,6 +182,12 @@ describe("アイテム詳細画面", () => {
     expect(markup).toContain('target="_blank"');
     expect(markup).toContain('rel="noreferrer"');
     expect(markup).toContain("duplicate-actions");
+    expect(markup).toContain('href="/outfits?item_id=1"');
+    expect(markup).toContain("関連コーディネート");
+    expect(markup).toContain(
+      "このアイテムを含むコーディネートを確認できます。",
+    );
+    expect(markup).toContain("コーディネートを見る");
     expect(markup).toContain("status-action");
     expect(markup).toContain("care-status-action");
     expect(markup).toContain("削除");

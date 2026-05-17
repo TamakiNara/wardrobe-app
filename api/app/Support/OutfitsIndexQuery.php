@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Models\Item;
 use App\Models\Outfit;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
@@ -16,6 +17,10 @@ class OutfitsIndexQuery
         $tpo = trim((string) $request->query('tpo', ''));
         $sort = $request->query('sort') === 'name_asc' ? 'name_asc' : 'updated_at_desc';
         $page = ListQuerySupport::normalizePage($request->query('page', 1));
+        $hasItemFilter = $request->query('item_id') !== null && trim((string) $request->query('item_id')) !== '';
+        $itemFilter = $hasItemFilter
+            ? self::resolveItemFilter($user, $request->query('item_id'))
+            : null;
         $visibleOutfitsQuery = self::buildVisibleOutfitsQuery($user, $status);
         $visibleOutfits = $visibleOutfitsQuery
             ->get(['id', 'name', 'seasons', 'tpo_ids', 'tpos']);
@@ -32,7 +37,9 @@ class OutfitsIndexQuery
             $season,
             $tpo,
             $sort,
-            $tpoNameById->all()
+            $tpoNameById->all(),
+            $hasItemFilter,
+            $itemFilter?->id
         );
         $pagination = $query->paginate(ListQuerySupport::PAGE_SIZE, ['*'], 'page', $page);
 
@@ -46,6 +53,12 @@ class OutfitsIndexQuery
                 'totalAll' => $visibleOutfits->count(),
                 'page' => $pagination->currentPage(),
                 'lastPage' => $pagination->lastPage(),
+                'filters' => [
+                    'item' => $itemFilter ? [
+                        'id' => $itemFilter->id,
+                        'name' => $itemFilter->name,
+                    ] : null,
+                ],
                 'availableTpos' => ListQuerySupport::buildOrderedOptions(
                     $visibleOutfits->flatMap(
                         fn (Outfit $outfit) => UserTpoNameResolver::resolveNamesFromMap($tpoNameById, $outfit->tpo_ids ?? [], $outfit->tpos ?? [])
@@ -63,6 +76,22 @@ class OutfitsIndexQuery
             ->where('status', $status);
     }
 
+    private static function resolveItemFilter(User $user, mixed $itemId): ?Item
+    {
+        $normalizedItemId = filter_var($itemId, FILTER_VALIDATE_INT, [
+            'options' => ['min_range' => 1],
+        ]);
+
+        if ($normalizedItemId === false) {
+            return null;
+        }
+
+        return Item::query()
+            ->where('user_id', $user->id)
+            ->whereKey((int) $normalizedItemId)
+            ->first(['id', 'name']);
+    }
+
     private static function buildFilteredOutfitsQuery(
         User $user,
         string $status,
@@ -70,10 +99,22 @@ class OutfitsIndexQuery
         string $season,
         string $tpo,
         string $sort,
-        array $tpoNameById
+        array $tpoNameById,
+        bool $hasItemFilter,
+        ?int $itemFilterId
     ): Builder {
         $query = self::buildVisibleOutfitsQuery($user, $status)
             ->with(['outfitItems.item', 'user']);
+
+        if ($hasItemFilter) {
+            if ($itemFilterId === null) {
+                $query->whereRaw('1 = 0');
+            } else {
+                $query->whereHas('outfitItems', function (Builder $builder) use ($itemFilterId) {
+                    $builder->where('item_id', $itemFilterId);
+                });
+            }
+        }
 
         if ($keyword !== '') {
             $query->where('name', 'like', '%'.$keyword.'%');

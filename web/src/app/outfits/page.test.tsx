@@ -23,15 +23,18 @@ vi.mock("@/components/outfits/outfits-list", () => ({
   default: ({
     initialSeasonFilter,
     skinTonePreset,
+    itemFilter,
   }: {
     initialSeasonFilter?: string;
     skinTonePreset?: string;
+    itemFilter?: { id: number; name: string | null } | null;
   }) =>
     React.createElement(
       "div",
       {
         "data-initial-season": initialSeasonFilter ?? "",
         "data-skin-tone-preset": skinTonePreset ?? "",
+        "data-item-filter-name": itemFilter?.name ?? "",
       },
       "outfits-list",
     ),
@@ -280,5 +283,57 @@ describe("OutfitsPage", () => {
     );
     expect(markup).toContain('data-initial-season="秋"');
     expect(markup).toContain('data-skin-tone-preset="neutral_medium"');
+  });
+  it("item_id query を outfit 一覧 API に渡し、item filter summary を一覧へ渡す", async () => {
+    fetchMock
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          preferences: {
+            currentSeason: null,
+            defaultWearLogStatus: null,
+            skinTonePreset: "neutral_medium",
+          },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          visibleCategoryIds: [],
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          outfits: [{ id: 1, name: "関連コーデ" }],
+          meta: {
+            total: 1,
+            totalAll: 4,
+            page: 1,
+            lastPage: 1,
+            filters: {
+              item: {
+                id: 42,
+                name: "ネイビーカーディガン",
+              },
+            },
+          },
+        }),
+      });
+
+    const { default: OutfitsPage } = await import("./page");
+    const markup = renderToStaticMarkup(
+      await OutfitsPage({
+        searchParams: Promise.resolve({ item_id: "42" }),
+      }),
+    );
+
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      3,
+      "http://localhost:8000/api/outfits?item_id=42",
+      expect.any(Object),
+    );
+    expect(markup).toContain('data-item-filter-name="ネイビーカーディガン"');
   });
 });

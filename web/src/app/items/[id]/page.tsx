@@ -411,6 +411,25 @@ export default async function ItemPage({
           }
         />
 
+        <section className="rounded-2xl border border-blue-100 bg-white p-4 shadow-sm">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-sm font-semibold text-gray-900">
+                関連コーディネート
+              </h2>
+              <p className="mt-1 text-sm text-gray-600">
+                このアイテムを含むコーディネートを確認できます。
+              </p>
+            </div>
+            <Link
+              href={`/outfits?item_id=${item.id}`}
+              className="inline-flex items-center justify-center self-start rounded-lg border border-blue-200 px-4 py-2 text-sm font-medium text-blue-700 transition hover:bg-blue-50 sm:self-auto"
+            >
+              コーディネートを見る
+            </Link>
+          </div>
+        </section>
+
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_15rem] xl:grid-cols-[minmax(0,1fr)_17rem]">
           <div className="space-y-6">
             {groupItems.length > 1 ? (

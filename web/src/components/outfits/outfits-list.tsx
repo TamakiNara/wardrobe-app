@@ -48,6 +48,10 @@ export type OutfitsListProps = {
   currentPage: number;
   lastPage: number;
   availableTpos: string[];
+  itemFilter?: {
+    id: number;
+    name: string | null;
+  } | null;
   initialSeasonFilter?: string;
   skinTonePreset?: SkinTonePreset;
   initialVisibleCategoryIds?: string[] | null;
@@ -89,6 +93,7 @@ function buildQueryString({
   tpo,
   sort,
   page,
+  itemId,
 }: {
   keyword: string;
   season: string;
@@ -96,6 +101,7 @@ function buildQueryString({
   tpo: string;
   sort: OutfitSortValue;
   page: number;
+  itemId: string;
 }): string {
   const params = new URLSearchParams();
 
@@ -121,6 +127,10 @@ function buildQueryString({
     params.set("page", String(page));
   }
 
+  if (itemId) {
+    params.set("item_id", itemId);
+  }
+
   return params.toString();
 }
 
@@ -130,6 +140,7 @@ export default function OutfitsList({
   currentPage,
   lastPage,
   availableTpos,
+  itemFilter = null,
   initialSeasonFilter = "",
   skinTonePreset,
   initialVisibleCategoryIds,
@@ -145,6 +156,7 @@ export default function OutfitsList({
   const tpoFilter = searchParams.get("tpo") ?? "";
   const sort = normalizeSort(searchParams.get("sort"));
   const page = normalizePage(searchParams.get("page"));
+  const itemIdFilter = searchParams.get("item_id") ?? "";
 
   const [isComposingKeyword, setIsComposingKeyword] = useState(false);
   const [draftKeyword, setDraftKeyword] = useState(keyword);
@@ -166,6 +178,7 @@ export default function OutfitsList({
         tpo: string;
         sort: OutfitSortValue;
         page: number;
+        itemId: string;
       }>,
     ) => {
       const nextSeason = nextValues.season ?? seasonFilter;
@@ -177,6 +190,7 @@ export default function OutfitsList({
         tpo: nextValues.tpo ?? tpoFilter,
         sort: nextValues.sort ?? sort,
         page: nextValues.page ?? page,
+        itemId: nextValues.itemId ?? itemIdFilter,
       });
 
       router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, {
@@ -191,12 +205,18 @@ export default function OutfitsList({
       router,
       seasonFilter,
       sort,
+      itemIdFilter,
       tpoFilter,
     ],
   );
 
   useEffect(() => {
-    if (seasonFilter || currentSeasonFilter || !initialSeasonFilter) {
+    if (
+      seasonFilter ||
+      currentSeasonFilter ||
+      itemIdFilter ||
+      !initialSeasonFilter
+    ) {
       return;
     }
 
@@ -212,6 +232,7 @@ export default function OutfitsList({
     currentSeasonFilter,
     hasClearedInitialSeason,
     initialSeasonFilter,
+    itemIdFilter,
     seasonFilter,
     updateQuery,
   ]);
@@ -256,8 +277,11 @@ export default function OutfitsList({
     effectiveSeasonFilter ||
     tpoFilter ||
     sort !== DEFAULT_SORT ||
-    currentPage > 1,
+    currentPage > 1 ||
+    itemIdFilter,
   );
+  const hasItemFilter = itemIdFilter !== "";
+  const itemFilterLabel = itemFilter?.name?.trim() || "指定したアイテム";
 
   return (
     <div className="space-y-6">
@@ -364,6 +388,7 @@ export default function OutfitsList({
                 tpo: "",
                 sort: DEFAULT_SORT,
                 page: 1,
+                itemId: "",
               });
             }}
             className="text-sm font-medium text-blue-600 hover:underline disabled:text-gray-400 disabled:no-underline"
@@ -374,7 +399,30 @@ export default function OutfitsList({
         </div>
       </section>
 
-      {outfits.length === 0 ? (
+      {hasItemFilter ? (
+        <section className="rounded-2xl border border-blue-200 bg-blue-50 px-5 py-4 text-sm text-blue-900 shadow-sm">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="font-medium">
+              「{itemFilterLabel}」を含むコーディネート
+            </p>
+            <button
+              type="button"
+              onClick={() => updateQuery({ itemId: "", page: 1 })}
+              className="self-start text-sm font-medium text-blue-700 hover:underline sm:self-auto"
+            >
+              絞り込みを解除
+            </button>
+          </div>
+        </section>
+      ) : null}
+
+      {outfits.length === 0 && hasItemFilter ? (
+        <section className="rounded-2xl border border-dashed border-gray-300 bg-white p-10 text-center shadow-sm">
+          <h2 className="text-lg font-semibold text-gray-900">
+            「{itemFilterLabel}」を含むコーディネートはまだありません。
+          </h2>
+        </section>
+      ) : outfits.length === 0 ? (
         <section className="rounded-2xl border border-dashed border-gray-300 bg-white p-10 text-center shadow-sm">
           <h2 className="text-lg font-semibold text-gray-900">
             条件に一致するコーディネートがありません

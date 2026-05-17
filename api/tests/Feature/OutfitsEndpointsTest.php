@@ -93,6 +93,198 @@ class OutfitsEndpointsTest extends TestCase
             ->assertJsonPath('outfits.0.name', '自分のコーデ');
     }
 
+    public function test_get_outfits_filters_by_owned_item_id_and_returns_filter_summary(): void
+    {
+        $user = User::factory()->create();
+        $targetItem = $this->createItem($user, ['name' => 'Target Cardigan']);
+        $otherItem = $this->createItem($user, ['name' => 'Other Shirt']);
+        $otherUser = User::factory()->create();
+        $otherUsersItem = $this->createItem($otherUser, ['name' => 'Other Users Item']);
+
+        $matchedOutfit = Outfit::query()->create([
+            'user_id' => $user->id,
+            'name' => 'Target Outfit',
+            'memo' => null,
+            'seasons' => ['春'],
+            'tpos' => ['休日'],
+        ]);
+        $matchedOutfit->outfitItems()->create([
+            'item_id' => $targetItem->id,
+            'sort_order' => 1,
+        ]);
+
+        $unmatchedOutfit = Outfit::query()->create([
+            'user_id' => $user->id,
+            'name' => 'Other Outfit',
+            'memo' => null,
+            'seasons' => ['春'],
+            'tpos' => ['休日'],
+        ]);
+        $unmatchedOutfit->outfitItems()->create([
+            'item_id' => $otherItem->id,
+            'sort_order' => 1,
+        ]);
+
+        $otherUsersOutfit = Outfit::query()->create([
+            'user_id' => $otherUser->id,
+            'name' => 'Other Users Outfit',
+            'memo' => null,
+            'seasons' => ['春'],
+            'tpos' => ['休日'],
+        ]);
+        $otherUsersOutfit->outfitItems()->create([
+            'item_id' => $otherUsersItem->id,
+            'sort_order' => 1,
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->getJson("/api/outfits?item_id={$targetItem->id}", [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonCount(1, 'outfits')
+            ->assertJsonPath('outfits.0.id', $matchedOutfit->id)
+            ->assertJsonPath('outfits.0.name', 'Target Outfit')
+            ->assertJsonPath('meta.total', 1)
+            ->assertJsonPath('meta.totalAll', 2)
+            ->assertJsonPath('meta.filters.item.id', $targetItem->id)
+            ->assertJsonPath('meta.filters.item.name', 'Target Cardigan');
+
+        $response->assertJsonMissing([
+            'id' => $unmatchedOutfit->id,
+        ]);
+        $response->assertJsonMissing([
+            'id' => $otherUsersOutfit->id,
+        ]);
+    }
+
+    public function test_get_outfits_item_id_filter_combines_with_existing_filters(): void
+    {
+        $user = User::factory()->create();
+        $targetItem = $this->createItem($user, ['name' => 'Target Cardigan']);
+
+        $matchedOutfit = Outfit::query()->create([
+            'user_id' => $user->id,
+            'name' => 'Summer Target Outfit 02',
+            'memo' => null,
+            'seasons' => ['夏'],
+            'tpos' => ['休日'],
+        ]);
+        $matchedOutfit->outfitItems()->create([
+            'item_id' => $targetItem->id,
+            'sort_order' => 1,
+        ]);
+
+        $seasonMismatchOutfit = Outfit::query()->create([
+            'user_id' => $user->id,
+            'name' => 'Winter Target Outfit',
+            'memo' => null,
+            'seasons' => ['冬'],
+            'tpos' => ['休日'],
+        ]);
+        $seasonMismatchOutfit->outfitItems()->create([
+            'item_id' => $targetItem->id,
+            'sort_order' => 1,
+        ]);
+
+        $keywordMismatchOutfit = Outfit::query()->create([
+            'user_id' => $user->id,
+            'name' => 'Summer Other Outfit',
+            'memo' => null,
+            'seasons' => ['夏'],
+            'tpos' => ['休日'],
+        ]);
+        $keywordMismatchOutfit->outfitItems()->create([
+            'item_id' => $targetItem->id,
+            'sort_order' => 1,
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->getJson("/api/outfits?item_id={$targetItem->id}&keyword=Target&season=%E5%A4%8F&tpo=%E4%BC%91%E6%97%A5&sort=name_asc", [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonCount(1, 'outfits')
+            ->assertJsonPath('outfits.0.id', $matchedOutfit->id)
+            ->assertJsonPath('meta.total', 1)
+            ->assertJsonPath('meta.totalAll', 3);
+
+        $response->assertJsonMissing([
+            'id' => $seasonMismatchOutfit->id,
+        ]);
+        $response->assertJsonMissing([
+            'id' => $keywordMismatchOutfit->id,
+        ]);
+    }
+
+    public function test_get_outfits_returns_empty_for_other_users_item_id_without_summary(): void
+    {
+        $user = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $otherUsersItem = $this->createItem($otherUser, ['name' => 'Other Users Item']);
+
+        $otherUsersOutfit = Outfit::query()->create([
+            'user_id' => $otherUser->id,
+            'name' => 'Other Users Outfit',
+            'memo' => null,
+            'seasons' => ['春'],
+            'tpos' => ['休日'],
+        ]);
+        $otherUsersOutfit->outfitItems()->create([
+            'item_id' => $otherUsersItem->id,
+            'sort_order' => 1,
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->getJson("/api/outfits?item_id={$otherUsersItem->id}", [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonCount(0, 'outfits')
+            ->assertJsonPath('meta.total', 0)
+            ->assertJsonPath('meta.filters.item', null);
+    }
+
+    public function test_get_outfits_accepts_owned_disposed_item_id_filter(): void
+    {
+        $user = User::factory()->create();
+        $disposedItem = $this->createItem($user, [
+            'name' => 'Disposed Cardigan',
+            'status' => 'disposed',
+        ]);
+
+        $outfit = Outfit::query()->create([
+            'user_id' => $user->id,
+            'status' => 'active',
+            'name' => 'Disposed Item Outfit',
+            'memo' => null,
+            'seasons' => ['春'],
+            'tpos' => ['休日'],
+        ]);
+        $outfit->outfitItems()->create([
+            'item_id' => $disposedItem->id,
+            'sort_order' => 1,
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->getJson("/api/outfits?item_id={$disposedItem->id}", [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonCount(1, 'outfits')
+            ->assertJsonPath('outfits.0.id', $outfit->id)
+            ->assertJsonPath('meta.filters.item.id', $disposedItem->id)
+            ->assertJsonPath('meta.filters.item.name', 'Disposed Cardigan');
+    }
+
     public function test_get_outfits_excludes_invalid_outfits_from_normal_list(): void
     {
         $user = User::factory()->create();
