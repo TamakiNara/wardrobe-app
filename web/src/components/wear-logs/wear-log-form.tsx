@@ -832,9 +832,24 @@ export default function WearLogForm({
     });
   }
 
-  function handleRelatedOutfitSelect(outfitId: number) {
+  function handleSelectedItemRemove(itemId: number) {
+    setSelectedItems((prev) =>
+      prev.filter((item) => item.sourceItemId !== itemId),
+    );
+  }
+
+  function handleSourceOutfitSelect(outfitId: number) {
     setSourceOutfitId(outfitId);
     setSelectedItems([]);
+  }
+
+  function handleSourceOutfitClear() {
+    setSourceOutfitId(null);
+    setSelectedItems([]);
+  }
+
+  function handleRelatedOutfitSelect(outfitId: number) {
+    handleSourceOutfitSelect(outfitId);
     setRelatedOutfitCandidates([]);
     setRelatedOutfitStatus("idle");
   }
@@ -1231,6 +1246,35 @@ export default function WearLogForm({
           </div>
 
           <div className="grid gap-3 md:grid-cols-2">
+            {currentSourceOutfit ? (
+              <div
+                data-testid="wear-log-selected-outfit-summary"
+                className="rounded-xl border border-blue-100 bg-blue-50/70 p-4"
+              >
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-blue-900">
+                      選択中のコーディネート
+                    </p>
+                    <p className="mt-1 font-semibold text-gray-900">
+                      {currentSourceOutfit.name ?? "名称未設定"}
+                    </p>
+                    <p className="mt-1 text-sm text-gray-600">
+                      コーディネートとして記録します。
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    data-testid="wear-log-selected-outfit-clear"
+                    onClick={handleSourceOutfitClear}
+                    className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+                  >
+                    解除
+                  </button>
+                </div>
+              </div>
+            ) : null}
+
             <button
               type="button"
               onClick={() => setSourceOutfitId(null)}
@@ -1272,7 +1316,8 @@ export default function WearLogForm({
                   <div className="flex items-start justify-between gap-3">
                     <button
                       type="button"
-                      onClick={() => setSourceOutfitId(outfit.id)}
+                      data-testid={`wear-log-outfit-select-${outfit.id}`}
+                      onClick={() => handleSourceOutfitSelect(outfit.id)}
                       className="min-w-0 flex-1 text-left"
                     >
                       <div className="flex items-start gap-3">
@@ -1502,7 +1547,10 @@ export default function WearLogForm({
           </div>
 
           {relatedOutfitStatus !== "idle" && (
-            <div className="rounded-2xl border border-blue-100 bg-blue-50/60 p-4">
+            <div
+              data-testid="wear-log-related-outfits"
+              className="rounded-2xl border border-blue-100 bg-blue-50/60 p-4"
+            >
               <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                 <div className="space-y-1">
                   <h3 className="text-sm font-semibold text-gray-900">
@@ -1642,6 +1690,17 @@ export default function WearLogForm({
                     </div>
 
                     <div className="flex items-center gap-2 sm:shrink-0">
+                      {sourceOutfitId === null &&
+                      item.itemSourceType === "manual" ? (
+                        <button
+                          type="button"
+                          data-testid={`wear-log-selected-item-remove-${item.id}`}
+                          onClick={() => handleSelectedItemRemove(item.id)}
+                          className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+                        >
+                          解除
+                        </button>
+                      ) : null}
                       <button
                         type="button"
                         onClick={() => moveSelectedItem(index, -1)}

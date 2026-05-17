@@ -410,6 +410,322 @@ describe("WearLogForm", () => {
     );
   });
 
+  it("選択中 item の解除でその item を payload から外せる", async () => {
+    fetchAllPaginatedCandidatesMock
+      .mockResolvedValueOnce({
+        status: 200,
+        entries: [
+          {
+            id: 1,
+            name: "白T",
+            status: "active",
+            category: "tops",
+            shape: "tshirt",
+            colors: [],
+          },
+          {
+            id: 2,
+            name: "黒パンツ",
+            status: "active",
+            category: "pants",
+            shape: "straight",
+            colors: [],
+          },
+        ],
+      })
+      .mockResolvedValueOnce({
+        status: 200,
+        entries: [],
+      });
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValueOnce({
+        ok: true,
+        status: 201,
+        json: async () => ({
+          message: "created",
+          wearLog: {
+            id: 1,
+          },
+        }),
+      }),
+    );
+
+    const { default: WearLogForm } = await import("./wear-log-form");
+
+    await act(async () => {
+      root.render(React.createElement(WearLogForm, { mode: "create" }));
+    });
+    await act(async () => {
+      await waitForEffects();
+    });
+
+    await act(async () => {
+      container
+        .querySelector<HTMLInputElement>('input[id="wear-log-item-1"]')
+        ?.click();
+      await waitForEffects();
+    });
+    await act(async () => {
+      container
+        .querySelector<HTMLInputElement>('input[id="wear-log-item-2"]')
+        ?.click();
+      await waitForEffects();
+    });
+
+    await act(async () => {
+      container
+        .querySelector<HTMLButtonElement>(
+          '[data-testid="wear-log-selected-item-remove-1"]',
+        )
+        ?.click();
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain("選択中 1 件");
+    expect(
+      container.querySelector<HTMLInputElement>('input[id="wear-log-item-1"]')
+        ?.checked,
+    ).toBe(false);
+    expect(
+      container.querySelector<HTMLInputElement>('input[id="wear-log-item-2"]')
+        ?.checked,
+    ).toBe(true);
+
+    const dateInput =
+      container.querySelector<HTMLInputElement>('input[type="date"]');
+    const submitButton = container.querySelector<HTMLButtonElement>(
+      'button[type="submit"]',
+    );
+
+    await act(async () => {
+      const setter = Object.getOwnPropertyDescriptor(
+        window.HTMLInputElement.prototype,
+        "value",
+      )?.set;
+      setter?.call(dateInput, "2026-03-24");
+      dateInput?.dispatchEvent(new Event("input", { bubbles: true }));
+      submitButton?.click();
+      await waitForEffects();
+    });
+
+    expect(global.fetch).toHaveBeenLastCalledWith(
+      "/api/wear-logs",
+      expect.objectContaining({
+        body: JSON.stringify({
+          status: "planned",
+          event_date: "2026-03-24",
+          display_order: 1,
+          source_outfit_id: null,
+          memo: "",
+          outdoor_temperature_feel: "comfortable",
+          indoor_temperature_feel: "comfortable",
+          overall_rating: null,
+          feedback_tags: null,
+          feedback_memo: "",
+          items: [
+            {
+              source_item_id: 2,
+              sort_order: 1,
+              item_source_type: "manual",
+            },
+          ],
+        }),
+      }),
+    );
+  });
+
+  it("item 1件解除後は関連コーディネート候補を閉じる", async () => {
+    fetchAllPaginatedCandidatesMock
+      .mockResolvedValueOnce({
+        status: 200,
+        entries: [
+          {
+            id: 1,
+            name: "白T",
+            status: "active",
+            category: "tops",
+            shape: "tshirt",
+            colors: [],
+          },
+        ],
+      })
+      .mockResolvedValueOnce({
+        status: 200,
+        entries: [],
+      })
+      .mockResolvedValueOnce({
+        status: 200,
+        entries: [
+          {
+            id: 5,
+            name: "白Tコーデ",
+            status: "active",
+            seasons: ["春"],
+            tpos: ["休日"],
+            outfit_items: [],
+          },
+        ],
+      });
+
+    const { default: WearLogForm } = await import("./wear-log-form");
+
+    await act(async () => {
+      root.render(React.createElement(WearLogForm, { mode: "create" }));
+    });
+    await act(async () => {
+      await waitForEffects();
+    });
+
+    await act(async () => {
+      container
+        .querySelector<HTMLInputElement>('input[id="wear-log-item-1"]')
+        ?.click();
+      await waitForEffects();
+    });
+
+    expect(
+      container.querySelector('[data-testid="wear-log-related-outfits"]'),
+    ).not.toBeNull();
+
+    await act(async () => {
+      container
+        .querySelector<HTMLButtonElement>(
+          '[data-testid="wear-log-selected-item-remove-1"]',
+        )
+        ?.click();
+      await waitForEffects();
+    });
+
+    expect(
+      container.querySelector('[data-testid="wear-log-related-outfits"]'),
+    ).toBeNull();
+    expect(container.textContent).toContain("選択中 0 件");
+  });
+
+  it("選択中 outfit の解除で source_outfit_id を外し、手動 item は自動復元しない", async () => {
+    fetchAllPaginatedCandidatesMock
+      .mockResolvedValueOnce({
+        status: 200,
+        entries: [
+          {
+            id: 1,
+            name: "白T",
+            status: "active",
+            category: "tops",
+            shape: "tshirt",
+            colors: [],
+          },
+        ],
+      })
+      .mockResolvedValueOnce({
+        status: 200,
+        entries: [
+          {
+            id: 5,
+            name: "白Tコーデ",
+            status: "active",
+            seasons: ["春"],
+            tpos: ["休日"],
+            outfit_items: [
+              {
+                id: 51,
+                item_id: 1,
+                sort_order: 1,
+                item: {
+                  id: 1,
+                  name: "白T",
+                  category: "tops",
+                  shape: "tshirt",
+                  colors: [],
+                },
+              },
+            ],
+          },
+        ],
+      })
+      .mockResolvedValueOnce({
+        status: 200,
+        entries: [
+          {
+            id: 5,
+            name: "白Tコーデ",
+            status: "active",
+            seasons: ["春"],
+            tpos: ["休日"],
+            outfit_items: [
+              {
+                id: 51,
+                item_id: 1,
+                sort_order: 1,
+                item: {
+                  id: 1,
+                  name: "白T",
+                  category: "tops",
+                  shape: "tshirt",
+                  colors: [],
+                },
+              },
+            ],
+          },
+        ],
+      });
+
+    const { default: WearLogForm } = await import("./wear-log-form");
+
+    await act(async () => {
+      root.render(React.createElement(WearLogForm, { mode: "create" }));
+    });
+    await act(async () => {
+      await waitForEffects();
+    });
+
+    await act(async () => {
+      container
+        .querySelector<HTMLInputElement>('input[id="wear-log-item-1"]')
+        ?.click();
+      await waitForEffects();
+    });
+
+    const useOutfitButton = Array.from(
+      container.querySelectorAll("button"),
+    ).find((button) =>
+      button.textContent?.includes("このコーディネートを使う"),
+    );
+
+    await act(async () => {
+      useOutfitButton?.click();
+      await waitForEffects();
+    });
+
+    expect(
+      container.querySelector(
+        '[data-testid="wear-log-selected-outfit-summary"]',
+      ),
+    ).not.toBeNull();
+
+    await act(async () => {
+      container
+        .querySelector<HTMLButtonElement>(
+          '[data-testid="wear-log-selected-outfit-clear"]',
+        )
+        ?.click();
+      await waitForEffects();
+    });
+
+    expect(
+      container.querySelector(
+        '[data-testid="wear-log-selected-outfit-summary"]',
+      ),
+    ).toBeNull();
+    expect(container.textContent).toContain("選択中 0 件");
+    expect(
+      container.querySelector<HTMLInputElement>('input[id="wear-log-item-1"]')
+        ?.checked,
+    ).toBe(false);
+  });
+
   it("item 1件選択時の関連コーディネート候補が空の場合は空状態を表示する", async () => {
     fetchAllPaginatedCandidatesMock
       .mockResolvedValueOnce({
