@@ -446,7 +446,12 @@ describe("WearLogCalendar", () => {
     expect(weatherMarker).not.toBeNull();
     expect(weatherMarker?.className).toContain("text-emerald-600");
     expect(plannedDot).not.toBeNull();
+    expect(plannedDot?.className).toContain("text-amber-500");
+    expect(
+      plannedDot?.querySelector("circle")?.getAttribute("stroke-dasharray"),
+    ).toBe("3 2");
     expect(wornDot).not.toBeNull();
+    expect(wornDot?.className).toContain("bg-indigo-600");
     expect(feedbackMarker).not.toBeNull();
     expect(markerRow?.children[0]).toBe(weatherMarker);
     expect(markerRow?.children[1]).toBe(plannedDot?.parentElement);

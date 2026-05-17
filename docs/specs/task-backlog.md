@@ -16,17 +16,17 @@ docs 内に散らばっている planned / TODO / 後続 / 要再判断を、**c
 
 ## サマリ
 
-- 棚卸しした docs / 手元タスク由来タスク: **43件**
+- 棚卸しした docs / 手元タスク由来タスク: **42件**
 - 種別別件数:
   - `bug`: 3
-  - `ui`: 14
+  - `ui`: 13
   - `feature`: 8
   - `design`: 10
   - `docs`: 4
   - `deferred`: 4
 - 優先度案:
   - `high`: 8
-  - `medium`: 22
+  - `medium`: 21
   - `low`: 13
 
 ## バグ / 違和感
@@ -51,7 +51,6 @@ docs 内に散らばっている planned / TODO / 後続 / 要再判断を、**c
 | UI-09 | 詳細画面ヘッダーのレイアウトテンプレート整理                 | 詳細画面の header / actions / footer 相当の配置ルールを整理し、`EntityDetailHeader` の `actions` にはコンパクトな操作群だけを置き、削除確認 UI・warning・補足文のような横幅を取る UI はヘッダー下段またはページ側の独立エリアへ逃がす方針を正本化する。item / outfit / purchase candidate / shopping memo へ展開できるテンプレートとしてまとめる。                                                                                                                                                                               | `ui/page-header-guidelines.md`, `items/delete-policy.md`, `outfits/create-edit.md`, 各 detail page current 実装                         | shared detail header                 | ui   | medium | current detail header 棚卸し / confirm UI 方針 | yes              |
 | UI-10 | 認証エラー通知と login 後復帰の設計整理                      | current の 401 は `/login?message=session_expired` へ遷移し、login page 側で通知する。後続では、`return_to` / `next` によるログイン後復帰、Toast / Notification component の導入要否、一般エラー通知 UI の共通化を検討する。                                                                                                                                                                                                                                                                                                     | `web/src` の alert 使用箇所, 手元確認メモ                                                                                               | auth / error notification            | ui   | medium | current 401 redirect helper / login message    | needs design     |
 | UI-11 | 天気の予報から実績更新時の差分表示                           | 予報から実績へ更新する際、天気 / 気温 / 最高気温 / 最低気温 / 降水 / 湿度 / 風 / 体感に関係する項目が、更新前から更新後へどう変わるか比較表示する。最高・最低気温は forecast / observed 取得値が payload / DB / frontend 表示へ反映されることを回帰テストで確認済み。取得した実績欄への最高・最低気温表示は対応済みで、残件は更新前→更新後の差分比較表示。                                                                                                                                                                       | 手元タスク, `wears/weather-current-status.md`                                                                                           | weather                              | ui   | medium | weather update 挙動確認済み                    | needs design     |
-| UI-12 | 着用履歴カレンダー凡例の色整理                               | 予定 / 着用済み / 予報 / 実績 / 今日 / 選択日の色が直感的に区別できるように整理し、予定・着用済みの囲み色が予報と被らない配色へ調整する。色だけに依存しすぎない表示も検討する                                                                                                                                                                                                                                                                                                                                                    | 手元タスク, `wears/wear-logs.md`                                                                                                        | wear logs / weather                  | ui   | medium | current calendar 表示確認                      | yes              |
 | UI-13 | 着用履歴と天気登録の相互リンク                               | wear log detail から当日の天気登録・天気詳細へ移動しやすくし、weather record 側から関連する着用履歴へ戻れる導線を検討する。複数着用履歴がある日の扱い、登録済み / 未登録の表示差分も整理する                                                                                                                                                                                                                                                                                                                                     | 手元タスク, `wears/wear-logs.md`, `wears/weather-current-status.md`                                                                     | wear logs / weather                  | ui   | medium | weather record と wear log の紐づけ確認        | needs design     |
 | UI-14 | 着用履歴の振り返り導線改善                                   | 着用履歴詳細画面では、コーディネート・アイテム・天気などの記録内容と、服装の振り返り入力が同じ画面に混在している。まず、着用履歴詳細の主責務を「記録を見る / 編集する画面」として整理し、振り返り入力を詳細内に残すのか、専用ページ・専用セクション・アンカー導線などに分けるのか検討する。検討時には、詳細画面に残す情報、詳細・一覧・カレンダーから振り返りへ移動する導線、`has_feedback` / カレンダーアイコンが「振り返りあり」なのか「服装フィードバックあり」なのか、初期値だけで入力済みに見えない判定もあわせて整理する。 | 手元タスク, `wears/wear-logs.md`                                                                                                        | wear logs                            | ui   | medium | BUG-05 と同時整理                              | needs design     |
 | UI-15 | コーディネート作成時のアイテム選択 UI 改善                   | コーディネート作成時の選択中 item の見やすさ、順番入れ替え、item 詳細リンク、色チップ、画像表示、季節 / TPO 選択位置を見直す。季節 / TPO がコーディネート自体の属性なのか、選択 item 由来なのかも UI 順序とあわせて検討する                                                                                                                                                                                                                                                                                                      | 手元タスク, `outfits/create-edit.md`                                                                                                    | outfits / items                      | ui   | medium | current outfit create/edit UI 確認             | needs design     |
@@ -151,7 +150,7 @@ docs 内に散らばっている planned / TODO / 後続 / 要再判断を、**c
 | custom dropdown / popover とボトムナビの重なり確認        | 一部対応済み     | `UI-06`。BrandFilter z-index は修正済み。viewport 下端 / placement / overlay ルールは残件                        |
 | 天気の予報→実績更新時の差分表示                           | backlog 追加済み | `UI-11`                                                                                                          |
 | 振り返り未記入時の振り返りありアイコン表示条件修正        | backlog 統合済み | `BUG-05`。`has_feedback` と「振り返りあり」アイコンの意味を `UI-14` とあわせて整理する                           |
-| 着用履歴カレンダー凡例の色整理                            | backlog 追加済み | `UI-12`                                                                                                          |
+| 着用履歴カレンダー凡例の色整理                            | 対応済み         | 予定は amber の破線 outline、着用済みは indigo の塗り、予報は sky、実績は emerald として凡例と実表示を揃えた     |
 | 着用履歴と天気登録の相互リンク                            | backlog 追加済み | `UI-13`                                                                                                          |
 | 着用履歴の振り返り導線改善                                | backlog 追加済み | `UI-14`                                                                                                          |
 | アイテムからコーディネートを検索する                      | backlog 追加済み | `FEAT-07`                                                                                                        |

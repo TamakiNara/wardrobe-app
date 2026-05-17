@@ -319,7 +319,7 @@ function renderWearLogCalendarMarker(
 
     return (
       <span
-        className="inline-flex h-3.5 w-3.5 shrink-0 items-center justify-center text-blue-300"
+        className="inline-flex h-3.5 w-3.5 shrink-0 items-center justify-center text-amber-500"
         data-status={dot.status}
         data-feedback="false"
         data-marker-kind="dot-outline"
@@ -333,6 +333,7 @@ function renderWearLogCalendarMarker(
             fill="white"
             stroke="currentColor"
             strokeWidth="1.5"
+            strokeDasharray="3 2"
           />
         </svg>
       </span>
@@ -431,7 +432,7 @@ function renderWearLogCalendarStatusMarker(
   if (dot.status !== "worn") {
     return (
       <span
-        className="inline-flex h-3.5 w-3.5 shrink-0 items-center justify-center text-blue-300"
+        className="inline-flex h-3.5 w-3.5 shrink-0 items-center justify-center text-amber-500"
         data-status={dot.status}
         data-marker-kind="dot-outline"
         aria-label={ariaLabel}
@@ -444,6 +445,7 @@ function renderWearLogCalendarStatusMarker(
             fill="white"
             stroke="currentColor"
             strokeWidth="1.5"
+            strokeDasharray="3 2"
           />
         </svg>
       </span>
@@ -452,7 +454,7 @@ function renderWearLogCalendarStatusMarker(
 
   return (
     <span
-      className="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white"
+      className="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-white"
       data-status={dot.status}
       data-marker-kind="check-filled"
       aria-label={ariaLabel}
@@ -574,12 +576,12 @@ export default function WearLogCalendar({
         </div>
 
         <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-gray-600">
-          <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5">
-            <span className="h-3.5 w-3.5 rounded-full border border-blue-300 bg-white" />
+          <div className="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5">
+            <span className="h-3.5 w-3.5 rounded-full border border-dashed border-amber-500 bg-white" />
             <span>予定</span>
           </div>
-          <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5">
-            <span className="inline-flex h-3.5 w-3.5 items-center justify-center rounded-full bg-blue-600 text-white">
+          <div className="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1.5">
+            <span className="inline-flex h-3.5 w-3.5 items-center justify-center rounded-full bg-indigo-600 text-white">
               <Check className="h-2.5 w-2.5" strokeWidth={2.8} />
             </span>
             <span>着用済み</span>
