@@ -32,6 +32,29 @@ async function waitForEffects() {
   await Promise.resolve();
 }
 
+async function openCandidateList(container: HTMLElement, testId: string) {
+  const toggle = container.querySelector<HTMLButtonElement>(
+    `[data-testid="${testId}"]`,
+  );
+
+  if (toggle?.getAttribute("aria-expanded") === "true") {
+    return;
+  }
+
+  await act(async () => {
+    toggle?.click();
+    await waitForEffects();
+  });
+}
+
+async function openItemCandidateList(container: HTMLElement) {
+  await openCandidateList(container, "wear-log-item-list-toggle");
+}
+
+async function openOutfitCandidateList(container: HTMLElement) {
+  await openCandidateList(container, "wear-log-outfit-list-toggle");
+}
+
 describe("WearLogForm", () => {
   let container: HTMLDivElement;
   let root: ReturnType<typeof createRoot>;
@@ -55,6 +78,33 @@ describe("WearLogForm", () => {
     container.remove();
     vi.unstubAllGlobals();
     globalThis.IS_REACT_ACT_ENVIRONMENT = false;
+  });
+
+  it("初期表示では item / outfit 候補一覧を閉じ、候補取得を遅延する", async () => {
+    const { default: WearLogForm } = await import("./wear-log-form");
+
+    await act(async () => {
+      root.render(React.createElement(WearLogForm, { mode: "create" }));
+      await waitForEffects();
+    });
+
+    expect(
+      container
+        .querySelector('[data-testid="wear-log-item-list-toggle"]')
+        ?.getAttribute("aria-expanded"),
+    ).toBe("false");
+    expect(
+      container
+        .querySelector('[data-testid="wear-log-outfit-list-toggle"]')
+        ?.getAttribute("aria-expanded"),
+    ).toBe("false");
+    expect(
+      container.querySelector('[data-testid="wear-log-item-search"]'),
+    ).toBeNull();
+    expect(
+      container.querySelector('[data-testid="wear-log-outfit-search"]'),
+    ).toBeNull();
+    expect(fetchAllPaginatedCandidatesMock).not.toHaveBeenCalled();
   });
 
   it("通常導線の新規登録で item のみを送信できる", async () => {
@@ -157,6 +207,8 @@ describe("WearLogForm", () => {
     await act(async () => {
       await waitForEffects();
     });
+    await openItemCandidateList(container);
+    await openOutfitCandidateList(container);
 
     expect(container.textContent).toContain(
       "「必須」が付いた項目は登録に必要です。",
@@ -336,6 +388,9 @@ describe("WearLogForm", () => {
       await waitForEffects();
     });
 
+    await openItemCandidateList(container);
+    await openOutfitCandidateList(container);
+
     const checkbox = container.querySelector<HTMLInputElement>(
       'input[id="wear-log-item-1"]',
     );
@@ -461,6 +516,9 @@ describe("WearLogForm", () => {
       await waitForEffects();
     });
 
+    await openItemCandidateList(container);
+    await openOutfitCandidateList(container);
+
     await act(async () => {
       container
         .querySelector<HTMLInputElement>('input[id="wear-log-item-1"]')
@@ -578,6 +636,9 @@ describe("WearLogForm", () => {
       await waitForEffects();
     });
 
+    await openItemCandidateList(container);
+    await openOutfitCandidateList(container);
+
     await act(async () => {
       container
         .querySelector<HTMLInputElement>('input[id="wear-log-item-1"]')
@@ -681,6 +742,9 @@ describe("WearLogForm", () => {
       await waitForEffects();
     });
 
+    await openItemCandidateList(container);
+    await openOutfitCandidateList(container);
+
     await act(async () => {
       container
         .querySelector<HTMLInputElement>('input[id="wear-log-item-1"]')
@@ -757,6 +821,9 @@ describe("WearLogForm", () => {
       await waitForEffects();
     });
 
+    await openItemCandidateList(container);
+    await openOutfitCandidateList(container);
+
     await act(async () => {
       container
         .querySelector<HTMLInputElement>('input[id="wear-log-item-1"]')
@@ -799,6 +866,9 @@ describe("WearLogForm", () => {
       root.render(React.createElement(WearLogForm, { mode: "create" }));
       await waitForEffects();
     });
+
+    await openItemCandidateList(container);
+    await openOutfitCandidateList(container);
 
     await act(async () => {
       container
@@ -850,6 +920,9 @@ describe("WearLogForm", () => {
       root.render(React.createElement(WearLogForm, { mode: "create" }));
       await waitForEffects();
     });
+
+    await openItemCandidateList(container);
+    await openOutfitCandidateList(container);
 
     await act(async () => {
       container
@@ -915,6 +988,9 @@ describe("WearLogForm", () => {
       root.render(React.createElement(WearLogForm, { mode: "create" }));
       await waitForEffects();
     });
+
+    await openItemCandidateList(container);
+    await openOutfitCandidateList(container);
 
     const checkbox = container.querySelector<HTMLInputElement>(
       'input[type="checkbox"]',
@@ -1022,6 +1098,9 @@ describe("WearLogForm", () => {
     await act(async () => {
       await waitForEffects();
     });
+
+    await openItemCandidateList(container);
+    await openOutfitCandidateList(container);
 
     expect(container.textContent).toContain(
       "「必須」が付いた項目は更新に必要です。",
@@ -1137,6 +1216,9 @@ describe("WearLogForm", () => {
       await waitForEffects();
     });
 
+    await openItemCandidateList(container);
+    await openOutfitCandidateList(container);
+
     expect(container.textContent).toContain("ネイビーパンツ");
 
     const dateInput =
@@ -1232,6 +1314,9 @@ describe("WearLogForm", () => {
       await waitForEffects();
     });
 
+    await openItemCandidateList(container);
+    await openOutfitCandidateList(container);
+
     expect(container.textContent).toContain("重複トップス");
     expect(
       container.querySelectorAll('input[id="wear-log-item-276"]').length,
@@ -1304,6 +1389,9 @@ describe("WearLogForm", () => {
     await act(async () => {
       await waitForEffects();
     });
+
+    await openItemCandidateList(container);
+    await openOutfitCandidateList(container);
 
     const checkboxes = Array.from(
       container.querySelectorAll<HTMLInputElement>('input[type="checkbox"]'),
@@ -1421,6 +1509,9 @@ describe("WearLogForm", () => {
       await waitForEffects();
     });
 
+    await openItemCandidateList(container);
+    await openOutfitCandidateList(container);
+
     const searchInput = container.querySelector<HTMLInputElement>(
       '[data-testid="wear-log-outfit-search"]',
     );
@@ -1528,6 +1619,9 @@ describe("WearLogForm", () => {
     await act(async () => {
       await waitForEffects();
     });
+
+    await openItemCandidateList(container);
+    await openOutfitCandidateList(container);
 
     const searchInput = container.querySelector<HTMLInputElement>(
       '[data-testid="wear-log-item-search"]',
@@ -1639,6 +1733,9 @@ describe("WearLogForm", () => {
       await waitForEffects();
     });
 
+    await openItemCandidateList(container);
+    await openOutfitCandidateList(container);
+
     expect(container.textContent).toContain("グレージュ");
     expect(container.textContent).not.toContain("カスタムカラー");
   });
@@ -1708,6 +1805,9 @@ describe("WearLogForm", () => {
       await waitForEffects();
     });
 
+    await openItemCandidateList(container);
+    await openOutfitCandidateList(container);
+
     const outfitSeasonSelect = container.querySelector<HTMLSelectElement>(
       '[data-testid="wear-log-outfit-season-filter"]',
     );
@@ -1764,6 +1864,9 @@ describe("WearLogForm", () => {
       await waitForEffects();
     });
 
+    await openItemCandidateList(container);
+    await openOutfitCandidateList(container);
+
     const categorySelect = container.querySelector<HTMLSelectElement>(
       '[data-testid="wear-log-item-category-filter"]',
     );
@@ -1818,6 +1921,9 @@ describe("WearLogForm", () => {
     await act(async () => {
       await waitForEffects();
     });
+
+    await openItemCandidateList(container);
+    await openOutfitCandidateList(container);
 
     const dateInput =
       container.querySelector<HTMLInputElement>('input[type="date"]');
@@ -1892,6 +1998,9 @@ describe("WearLogForm", () => {
     await act(async () => {
       await waitForEffects();
     });
+
+    await openItemCandidateList(container);
+    await openOutfitCandidateList(container);
 
     const dateInput =
       container.querySelector<HTMLInputElement>('input[type="date"]');

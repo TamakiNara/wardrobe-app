@@ -410,6 +410,22 @@ function getColorDisplayLabel(
   return label || "色未設定";
 }
 
+type CandidateLoadStatus = "idle" | "loading" | "success" | "error";
+
+function mapItemRecordToSelectable(item: ItemRecord): WearLogSelectableItem {
+  return {
+    id: item.id,
+    name: item.name,
+    status: item.status,
+    care_status: item.care_status,
+    category: item.category,
+    shape: item.shape,
+    colors: item.colors ?? [],
+    seasons: item.seasons ?? [],
+    tpos: item.tpos ?? [],
+  };
+}
+
 export default function WearLogForm({
   mode,
   wearLogId,
@@ -460,6 +476,14 @@ export default function WearLogForm({
     WearLogSelectableOutfit[]
   >([]);
   const [selectedItems, setSelectedItems] = useState<SelectedWearLogItem[]>([]);
+  const [initialWearLogData, setInitialWearLogData] =
+    useState<WearLogRecord | null>(null);
+  const [isItemListOpen, setIsItemListOpen] = useState(false);
+  const [isOutfitListOpen, setIsOutfitListOpen] = useState(false);
+  const [itemCandidateStatus, setItemCandidateStatus] =
+    useState<CandidateLoadStatus>("idle");
+  const [outfitCandidateStatus, setOutfitCandidateStatus] =
+    useState<CandidateLoadStatus>("idle");
   const [relatedOutfitCandidates, setRelatedOutfitCandidates] = useState<
     WearLogSelectableOutfit[]
   >([]);
@@ -503,48 +527,13 @@ export default function WearLogForm({
           wearLogData = detailData.wearLog;
         }
 
-        const [itemsResult, outfitsResult] = await Promise.all([
-          fetchAllPaginatedCandidates<ItemRecord, "items">(
-            "/api/items",
-            "items",
-          ),
-          fetchAllPaginatedCandidates<OutfitCandidate, "outfits">(
-            "/api/outfits",
-            "outfits",
-          ),
-        ]);
-
-        if (itemsResult.status === 401 || outfitsResult.status === 401) {
-          router.push("/login");
-          return;
-        }
-
-        if (itemsResult.status !== 200 || outfitsResult.status !== 200) {
-          setLoadError("着用履歴フォームの初期化に失敗しました。");
-          return;
-        }
-
-        const nextItems = mergeWearLogItemCandidates(
-          itemsResult.entries.map((item) => ({
-            id: item.id,
-            name: item.name,
-            status: item.status,
-            care_status: item.care_status,
-            category: item.category,
-            shape: item.shape,
-            colors: item.colors ?? [],
-            seasons: item.seasons ?? [],
-            tpos: item.tpos ?? [],
-          })),
-          wearLogData,
-        );
-        const nextOutfits = mergeWearLogOutfitCandidates(
-          outfitsResult.entries.map(mapOutfitCandidateToSelectable),
-          wearLogData,
-        );
-
-        setCandidateItems(nextItems);
-        setCandidateOutfits(nextOutfits);
+        setInitialWearLogData(wearLogData);
+        setCandidateItems(mergeWearLogItemCandidates([], wearLogData));
+        setCandidateOutfits(mergeWearLogOutfitCandidates([], wearLogData));
+        setItemCandidateStatus("idle");
+        setOutfitCandidateStatus("idle");
+        setIsItemListOpen(false);
+        setIsOutfitListOpen(false);
         if (wearLogData) {
           setStatus(wearLogData.status);
           setEventDate(wearLogData.event_date);
@@ -588,6 +577,100 @@ export default function WearLogForm({
     router,
     wearLogId,
   ]);
+
+  async function loadItemCandidates() {
+    setItemCandidateStatus("loading");
+
+    try {
+      const result = await fetchAllPaginatedCandidates<ItemRecord, "items">(
+        "/api/items",
+        "items",
+      );
+
+      if (result.status === 401) {
+        router.push("/login");
+        return;
+      }
+
+      if (result.status !== 200) {
+        setItemCandidateStatus("error");
+        return;
+      }
+
+      setCandidateItems(
+        mergeWearLogItemCandidates(
+          result.entries.map(mapItemRecordToSelectable),
+          initialWearLogData,
+        ),
+      );
+      setItemCandidateStatus("success");
+    } catch {
+      setItemCandidateStatus("error");
+    }
+  }
+
+  async function loadOutfitCandidates() {
+    setOutfitCandidateStatus("loading");
+
+    try {
+      const result = await fetchAllPaginatedCandidates<
+        OutfitCandidate,
+        "outfits"
+      >("/api/outfits", "outfits");
+
+      if (result.status === 401) {
+        router.push("/login");
+        return;
+      }
+
+      if (result.status !== 200) {
+        setOutfitCandidateStatus("error");
+        return;
+      }
+
+      setCandidateOutfits(
+        mergeWearLogOutfitCandidates(
+          result.entries.map(mapOutfitCandidateToSelectable),
+          initialWearLogData,
+        ),
+      );
+      setOutfitCandidateStatus("success");
+    } catch {
+      setOutfitCandidateStatus("error");
+    }
+  }
+
+  function handleItemListToggle() {
+    setIsItemListOpen((current) => {
+      const next = !current;
+
+      if (
+        next &&
+        itemCandidateStatus !== "success" &&
+        itemCandidateStatus !== "loading"
+      ) {
+        void loadItemCandidates();
+      }
+
+      return next;
+    });
+  }
+
+  function handleOutfitListToggle() {
+    setIsOutfitListOpen((current) => {
+      const next = !current;
+
+      if (
+        next &&
+        outfitCandidateStatus !== "success" &&
+        outfitCandidateStatus !== "loading"
+      ) {
+        void loadOutfitCandidates();
+      }
+
+      return next;
+    });
+  }
 
   const selectedItemIds = useMemo(() => {
     return selectedItems.map((item) => item.sourceItemId);
@@ -849,6 +932,20 @@ export default function WearLogForm({
   }
 
   function handleRelatedOutfitSelect(outfitId: number) {
+    const relatedOutfit = relatedOutfitCandidates.find(
+      (outfit) => outfit.id === outfitId,
+    );
+
+    if (relatedOutfit) {
+      setCandidateOutfits((prev) => {
+        if (prev.some((outfit) => outfit.id === outfitId)) {
+          return prev;
+        }
+
+        return [relatedOutfit, ...prev];
+      });
+    }
+
     handleSourceOutfitSelect(outfitId);
     setRelatedOutfitCandidates([]);
     setRelatedOutfitStatus("idle");
@@ -1187,186 +1284,231 @@ export default function WearLogForm({
         </div>
 
         <section className="space-y-4">
-          <h2 className="text-lg font-semibold text-gray-900">
-            コーディネートを選択
-          </h2>
-          <p className="text-sm text-gray-500">
-            名前、構成数、季節、TPOを見ながら選べます。
-          </p>
-          <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
-              キーワードで絞り込む
-            </label>
-            <input
-              data-testid="wear-log-outfit-search"
-              type="search"
-              value={outfitKeyword}
-              onChange={(event) => setOutfitKeyword(event.target.value)}
-              placeholder="コーディネート名で検索"
-              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-            />
-          </div>
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">
-                季節
-              </label>
-              <select
-                data-testid="wear-log-outfit-season-filter"
-                value={outfitSeasonFilter}
-                onChange={(event) => setOutfitSeasonFilter(event.target.value)}
-                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-              >
-                <option value="">指定なし</option>
-                {WEAR_LOG_FILTER_SEASONS.map((season) => (
-                  <option key={season} value={season}>
-                    {season}
-                  </option>
-                ))}
-              </select>
+              <h2 className="text-lg font-semibold text-gray-900">
+                コーディネートを選択
+              </h2>
+              <p className="mt-1 text-sm text-gray-500">
+                名前、構成数、季節、TPOを見ながら選べます。
+              </p>
             </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">
-                TPO
-              </label>
-              <select
-                data-testid="wear-log-outfit-tpo-filter"
-                value={outfitTpoFilter}
-                onChange={(event) => setOutfitTpoFilter(event.target.value)}
-                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-              >
-                <option value="">指定なし</option>
-                {TPO_OPTIONS.map((tpo) => (
-                  <option key={tpo} value={tpo}>
-                    {tpo}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div className="grid gap-3 md:grid-cols-2">
-            {currentSourceOutfit ? (
-              <div
-                data-testid="wear-log-selected-outfit-summary"
-                className="rounded-xl border border-blue-100 bg-blue-50/70 p-4"
-              >
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-blue-900">
-                      選択中のコーディネート
-                    </p>
-                    <p className="mt-1 font-semibold text-gray-900">
-                      {currentSourceOutfit.name ?? "名称未設定"}
-                    </p>
-                    <p className="mt-1 text-sm text-gray-600">
-                      コーディネートとして記録します。
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    data-testid="wear-log-selected-outfit-clear"
-                    onClick={handleSourceOutfitClear}
-                    className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
-                  >
-                    解除
-                  </button>
-                </div>
-              </div>
-            ) : null}
-
             <button
               type="button"
-              onClick={() => setSourceOutfitId(null)}
-              className={`rounded-xl border px-4 py-4 text-left transition ${
-                sourceOutfitId === null
-                  ? "border-blue-500 bg-blue-50"
-                  : "border-gray-300 bg-white hover:bg-gray-50"
-              }`}
+              data-testid="wear-log-outfit-list-toggle"
+              aria-expanded={isOutfitListOpen}
+              onClick={handleOutfitListToggle}
+              className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
             >
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="font-medium text-gray-900">指定しない</p>
+              {isOutfitListOpen ? "一覧を閉じる" : "一覧を開く"}
+            </button>
+          </div>
+
+          {currentSourceOutfit ? (
+            <div
+              data-testid="wear-log-selected-outfit-summary"
+              className="rounded-xl border border-blue-100 bg-blue-50/70 p-4"
+            >
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-blue-900">
+                    選択中のコーディネート
+                  </p>
+                  <p className="mt-1 font-semibold text-gray-900">
+                    {currentSourceOutfit.name ?? "名称未設定"}
+                  </p>
                   <p className="mt-1 text-sm text-gray-600">
-                    アイテムのみで着用履歴を記録します。
+                    コーディネートとして記録します。
                   </p>
                 </div>
-                {sourceOutfitId === null ? (
-                  <span className="rounded-full border border-blue-200 bg-white px-2 py-0.5 text-xs font-medium text-blue-700">
-                    選択中
-                  </span>
-                ) : null}
-              </div>
-            </button>
-
-            {filteredOutfits.map((outfit) => {
-              const isSelected = sourceOutfitId === outfit.id;
-              const outfitItems = getOutfitItems(outfit);
-              const itemNamesLabel = getOutfitItemNames(outfit).join(" / ");
-
-              return (
-                <div
-                  key={outfit.id}
-                  className={`rounded-xl border p-4 transition ${
-                    isSelected
-                      ? "border-blue-500 bg-blue-50"
-                      : "border-gray-300 bg-white"
-                  }`}
+                <button
+                  type="button"
+                  data-testid="wear-log-selected-outfit-clear"
+                  onClick={handleSourceOutfitClear}
+                  className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
                 >
-                  <div className="flex items-start justify-between gap-3">
+                  解除
+                </button>
+              </div>
+            </div>
+          ) : null}
+
+          {!isOutfitListOpen ? (
+            <p className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-4 text-sm text-gray-600">
+              コーディネート候補一覧は閉じています。必要なときに開いて選択できます。
+            </p>
+          ) : (
+            <div className="space-y-4">
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">
+                  キーワードで絞り込む
+                </label>
+                <input
+                  data-testid="wear-log-outfit-search"
+                  type="search"
+                  value={outfitKeyword}
+                  onChange={(event) => setOutfitKeyword(event.target.value)}
+                  placeholder="コーディネート名で検索"
+                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                />
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                    季節
+                  </label>
+                  <select
+                    data-testid="wear-log-outfit-season-filter"
+                    value={outfitSeasonFilter}
+                    onChange={(event) =>
+                      setOutfitSeasonFilter(event.target.value)
+                    }
+                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  >
+                    <option value="">指定なし</option>
+                    {WEAR_LOG_FILTER_SEASONS.map((season) => (
+                      <option key={season} value={season}>
+                        {season}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                    TPO
+                  </label>
+                  <select
+                    data-testid="wear-log-outfit-tpo-filter"
+                    value={outfitTpoFilter}
+                    onChange={(event) => setOutfitTpoFilter(event.target.value)}
+                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  >
+                    <option value="">指定なし</option>
+                    {TPO_OPTIONS.map((tpo) => (
+                      <option key={tpo} value={tpo}>
+                        {tpo}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {outfitCandidateStatus === "loading" ? (
+                <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-6 text-sm text-gray-600">
+                  コーディネート候補を読み込んでいます。
+                </div>
+              ) : null}
+
+              {outfitCandidateStatus === "error" ? (
+                <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-sm text-red-700">
+                  コーディネート候補を取得できませんでした。
+                </div>
+              ) : null}
+
+              {outfitCandidateStatus === "success" ? (
+                <>
+                  <div className="grid gap-3 md:grid-cols-2">
                     <button
                       type="button"
-                      data-testid={`wear-log-outfit-select-${outfit.id}`}
-                      onClick={() => handleSourceOutfitSelect(outfit.id)}
-                      className="min-w-0 flex-1 text-left"
+                      onClick={() => setSourceOutfitId(null)}
+                      className={`rounded-xl border px-4 py-4 text-left transition ${
+                        sourceOutfitId === null
+                          ? "border-blue-500 bg-blue-50"
+                          : "border-gray-300 bg-white hover:bg-gray-50"
+                      }`}
                     >
-                      <div className="flex items-start gap-3">
-                        {outfitItems.length > 0 ? (
-                          <div className="shrink-0 pt-0.5">
-                            <OutfitColorThumbnail
-                              outfitItems={outfitItems}
-                              size="small"
-                            />
-                          </div>
-                        ) : null}
-                        <div className="min-w-0 flex-1">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <p className="font-medium text-gray-900">
-                              {outfit.name ?? "名称未設定"}
-                            </p>
-                            {isSelected ? (
-                              <span className="rounded-full border border-blue-200 bg-white px-2 py-0.5 text-xs font-medium text-blue-700">
-                                選択中
-                              </span>
-                            ) : null}
-                            {outfit.status === "invalid" ? (
-                              <span className="rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800">
-                                現在は利用不可
-                              </span>
-                            ) : null}
-                          </div>
-                          <p className="mt-2 text-sm text-gray-600">
-                            {itemNamesLabel || "構成アイテム未設定"}
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="font-medium text-gray-900">
+                            指定しない
+                          </p>
+                          <p className="mt-1 text-sm text-gray-600">
+                            アイテムのみで着用履歴を記録します。
                           </p>
                         </div>
+                        {sourceOutfitId === null ? (
+                          <span className="rounded-full border border-blue-200 bg-white px-2 py-0.5 text-xs font-medium text-blue-700">
+                            選択中
+                          </span>
+                        ) : null}
                       </div>
                     </button>
 
-                    <Link
-                      href={buildOutfitDetailHref(outfit.id)}
-                      className="shrink-0 text-sm font-medium text-blue-600 hover:underline"
-                    >
-                      詳細
-                    </Link>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+                    {filteredOutfits.map((outfit) => {
+                      const isSelected = sourceOutfitId === outfit.id;
+                      const outfitItems = getOutfitItems(outfit);
+                      const itemNamesLabel =
+                        getOutfitItemNames(outfit).join(" / ");
 
-          {filteredOutfits.length === 0 && (
-            <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-6 text-sm text-gray-600">
-              条件に一致するコーディネート候補がありません。
+                      return (
+                        <div
+                          key={outfit.id}
+                          className={`rounded-xl border p-4 transition ${
+                            isSelected
+                              ? "border-blue-500 bg-blue-50"
+                              : "border-gray-300 bg-white"
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <button
+                              type="button"
+                              data-testid={`wear-log-outfit-select-${outfit.id}`}
+                              onClick={() =>
+                                handleSourceOutfitSelect(outfit.id)
+                              }
+                              className="min-w-0 flex-1 text-left"
+                            >
+                              <div className="flex items-start gap-3">
+                                {outfitItems.length > 0 ? (
+                                  <div className="shrink-0 pt-0.5">
+                                    <OutfitColorThumbnail
+                                      outfitItems={outfitItems}
+                                      size="small"
+                                    />
+                                  </div>
+                                ) : null}
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    <p className="font-medium text-gray-900">
+                                      {outfit.name ?? "名称未設定"}
+                                    </p>
+                                    {isSelected ? (
+                                      <span className="rounded-full border border-blue-200 bg-white px-2 py-0.5 text-xs font-medium text-blue-700">
+                                        選択中
+                                      </span>
+                                    ) : null}
+                                    {outfit.status === "invalid" ? (
+                                      <span className="rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800">
+                                        現在は利用不可
+                                      </span>
+                                    ) : null}
+                                  </div>
+                                  <p className="mt-2 text-sm text-gray-600">
+                                    {itemNamesLabel || "構成アイテム未設定"}
+                                  </p>
+                                </div>
+                              </div>
+                            </button>
+
+                            <Link
+                              href={buildOutfitDetailHref(outfit.id)}
+                              className="shrink-0 text-sm font-medium text-blue-600 hover:underline"
+                            >
+                              詳細
+                            </Link>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {filteredOutfits.length === 0 && (
+                    <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-6 text-sm text-gray-600">
+                      条件に一致するコーディネート候補がありません。
+                    </div>
+                  )}
+                </>
+              ) : null}
             </div>
           )}
 
@@ -1382,169 +1524,207 @@ export default function WearLogForm({
             <h2 className="text-lg font-semibold text-gray-900">
               アイテムを選択
             </h2>
-            <span className="rounded-full border border-gray-300 bg-gray-50 px-3 py-1 text-sm text-gray-700">
-              選択中 {selectedItems.length} 件
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="rounded-full border border-gray-300 bg-gray-50 px-3 py-1 text-sm text-gray-700">
+                選択中 {selectedItems.length} 件
+              </span>
+              <button
+                type="button"
+                data-testid="wear-log-item-list-toggle"
+                aria-expanded={isItemListOpen}
+                onClick={handleItemListToggle}
+                className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+              >
+                {isItemListOpen ? "一覧を閉じる" : "一覧を開く"}
+              </button>
+            </div>
           </div>
 
-          <div className="space-y-4">
-            <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">
-                キーワードで絞り込む
-              </label>
-              <input
-                data-testid="wear-log-item-search"
-                type="search"
-                value={itemKeyword}
-                onChange={(event) => setItemKeyword(event.target.value)}
-                placeholder="アイテム名・カテゴリ・形で検索"
-                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-              />
-            </div>
-            <div className="grid gap-4 md:grid-cols-3">
+          {!isItemListOpen ? (
+            <p className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-4 text-sm text-gray-600">
+              アイテム候補一覧は閉じています。必要なときに開いて選択できます。
+            </p>
+          ) : (
+            <div className="space-y-4">
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">
-                  カテゴリ
+                  キーワードで絞り込む
                 </label>
-                <select
-                  data-testid="wear-log-item-category-filter"
-                  value={itemCategoryFilter}
-                  onChange={(event) =>
-                    setItemCategoryFilter(event.target.value)
-                  }
+                <input
+                  data-testid="wear-log-item-search"
+                  type="search"
+                  value={itemKeyword}
+                  onChange={(event) => setItemKeyword(event.target.value)}
+                  placeholder="アイテム名・カテゴリ・形で検索"
                   className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                >
-                  <option value="">指定なし</option>
-                  {ITEM_CATEGORIES.filter((category) =>
-                    availableItemCategoryValues.includes(category.value),
-                  ).map((category) => (
-                    <option key={category.value} value={category.value}>
-                      {category.label}
-                    </option>
-                  ))}
-                </select>
+                />
               </div>
-              <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">
-                  季節
-                </label>
-                <select
-                  data-testid="wear-log-item-season-filter"
-                  value={itemSeasonFilter}
-                  onChange={(event) => setItemSeasonFilter(event.target.value)}
-                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                >
-                  <option value="">指定なし</option>
-                  {WEAR_LOG_FILTER_SEASONS.map((season) => (
-                    <option key={season} value={season}>
-                      {season}
-                    </option>
-                  ))}
-                </select>
+              <div className="grid gap-4 md:grid-cols-3">
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                    カテゴリ
+                  </label>
+                  <select
+                    data-testid="wear-log-item-category-filter"
+                    value={itemCategoryFilter}
+                    onChange={(event) =>
+                      setItemCategoryFilter(event.target.value)
+                    }
+                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  >
+                    <option value="">指定なし</option>
+                    {ITEM_CATEGORIES.filter((category) =>
+                      availableItemCategoryValues.includes(category.value),
+                    ).map((category) => (
+                      <option key={category.value} value={category.value}>
+                        {category.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                    季節
+                  </label>
+                  <select
+                    data-testid="wear-log-item-season-filter"
+                    value={itemSeasonFilter}
+                    onChange={(event) =>
+                      setItemSeasonFilter(event.target.value)
+                    }
+                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  >
+                    <option value="">指定なし</option>
+                    {WEAR_LOG_FILTER_SEASONS.map((season) => (
+                      <option key={season} value={season}>
+                        {season}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                    TPO
+                  </label>
+                  <select
+                    data-testid="wear-log-item-tpo-filter"
+                    value={itemTpoFilter}
+                    onChange={(event) => setItemTpoFilter(event.target.value)}
+                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  >
+                    <option value="">指定なし</option>
+                    {TPO_OPTIONS.map((tpo) => (
+                      <option key={tpo} value={tpo}>
+                        {tpo}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
-              <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">
-                  TPO
-                </label>
-                <select
-                  data-testid="wear-log-item-tpo-filter"
-                  value={itemTpoFilter}
-                  onChange={(event) => setItemTpoFilter(event.target.value)}
-                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                >
-                  <option value="">指定なし</option>
-                  {TPO_OPTIONS.map((tpo) => (
-                    <option key={tpo} value={tpo}>
-                      {tpo}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
 
-            {candidateItems.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-6 text-sm text-gray-600">
-                候補に表示できるアイテムがありません。
-              </div>
-            ) : filteredItems.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-6 text-sm text-gray-600">
-                条件に一致するアイテム候補がありません。
-              </div>
-            ) : (
-              <div className="grid gap-3 md:grid-cols-2">
-                {filteredItems.map((item) => {
-                  const checked = selectedItemIds.includes(item.id);
-                  const checkboxId = `wear-log-item-${item.id}`;
+              {itemCandidateStatus === "loading" ? (
+                <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-6 text-sm text-gray-600">
+                  アイテム候補を読み込んでいます。
+                </div>
+              ) : null}
 
-                  return (
-                    <div
-                      key={item.id}
-                      className={`rounded-xl border p-4 transition ${
-                        checked
-                          ? "border-blue-500 bg-blue-50"
-                          : "border-gray-300 bg-white"
-                      }`}
-                    >
-                      <div className="flex items-start gap-3">
-                        <input
-                          id={checkboxId}
-                          type="checkbox"
-                          className="mt-1 h-4 w-4"
-                          checked={checked}
-                          onChange={() => handleItemToggle(item.id)}
-                        />
+              {itemCandidateStatus === "error" ? (
+                <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-sm text-red-700">
+                  アイテム候補を取得できませんでした。
+                </div>
+              ) : null}
 
-                        <div className="min-w-0 flex-1">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <label
-                              htmlFor={checkboxId}
-                              className="cursor-pointer font-medium text-gray-900"
-                            >
-                              {item.name ?? "名称未設定"}
-                            </label>
-                            <Link
-                              href={buildItemDetailHref(item.id)}
-                              className="text-sm font-medium text-blue-600 hover:underline"
-                            >
-                              詳細
-                            </Link>
+              {itemCandidateStatus === "success" &&
+              candidateItems.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-6 text-sm text-gray-600">
+                  候補に表示できるアイテムがありません。
+                </div>
+              ) : null}
+
+              {itemCandidateStatus === "success" &&
+              candidateItems.length > 0 &&
+              filteredItems.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-6 text-sm text-gray-600">
+                  条件に一致するアイテム候補がありません。
+                </div>
+              ) : null}
+
+              {itemCandidateStatus === "success" && filteredItems.length > 0 ? (
+                <div className="grid gap-3 md:grid-cols-2">
+                  {filteredItems.map((item) => {
+                    const checked = selectedItemIds.includes(item.id);
+                    const checkboxId = `wear-log-item-${item.id}`;
+
+                    return (
+                      <div
+                        key={item.id}
+                        className={`rounded-xl border p-4 transition ${
+                          checked
+                            ? "border-blue-500 bg-blue-50"
+                            : "border-gray-300 bg-white"
+                        }`}
+                      >
+                        <div className="flex items-start gap-3">
+                          <input
+                            id={checkboxId}
+                            type="checkbox"
+                            className="mt-1 h-4 w-4"
+                            checked={checked}
+                            onChange={() => handleItemToggle(item.id)}
+                          />
+
+                          <div className="min-w-0 flex-1">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <label
+                                htmlFor={checkboxId}
+                                className="cursor-pointer font-medium text-gray-900"
+                              >
+                                {item.name ?? "名称未設定"}
+                              </label>
+                              <Link
+                                href={buildItemDetailHref(item.id)}
+                                className="text-sm font-medium text-blue-600 hover:underline"
+                              >
+                                詳細
+                              </Link>
+                              {item.status === "disposed" && (
+                                <span className="rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800">
+                                  手放し済み
+                                </span>
+                              )}
+                              {item.care_status === "in_cleaning" && (
+                                <span className="rounded-full border border-sky-300 bg-sky-50 px-2 py-0.5 text-xs font-medium text-sky-800">
+                                  {ITEM_CARE_STATUS_LABELS.in_cleaning}
+                                </span>
+                              )}
+                            </div>
+                            <p className="mt-2 text-sm text-gray-600">
+                              {findItemCategoryLabel(item.category) ||
+                                "カテゴリ未設定"}
+                              {" / "}
+                              {findItemShapeLabel(item.category, item.shape) ||
+                                "形未設定"}
+                            </p>
+                            {renderColorSummary(item)}
                             {item.status === "disposed" && (
-                              <span className="rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800">
-                                手放し済み
-                              </span>
+                              <p className="mt-1 text-sm text-amber-800">
+                                このアイテムは現在の候補には使えません。
+                              </p>
                             )}
                             {item.care_status === "in_cleaning" && (
-                              <span className="rounded-full border border-sky-300 bg-sky-50 px-2 py-0.5 text-xs font-medium text-sky-800">
-                                {ITEM_CARE_STATUS_LABELS.in_cleaning}
-                              </span>
+                              <p className="mt-1 text-sm text-sky-800">
+                                クリーニング中ですが、予定・着用履歴ともに保存はできます。
+                              </p>
                             )}
                           </div>
-                          <p className="mt-2 text-sm text-gray-600">
-                            {findItemCategoryLabel(item.category) ||
-                              "カテゴリ未設定"}
-                            {" / "}
-                            {findItemShapeLabel(item.category, item.shape) ||
-                              "形未設定"}
-                          </p>
-                          {renderColorSummary(item)}
-                          {item.status === "disposed" && (
-                            <p className="mt-1 text-sm text-amber-800">
-                              このアイテムは現在の候補には使えません。
-                            </p>
-                          )}
-                          {item.care_status === "in_cleaning" && (
-                            <p className="mt-1 text-sm text-sky-800">
-                              クリーニング中ですが、予定・着用履歴ともに保存はできます。
-                            </p>
-                          )}
                         </div>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
+                    );
+                  })}
+                </div>
+              ) : null}
+            </div>
+          )}
 
           {relatedOutfitStatus !== "idle" && (
             <div
