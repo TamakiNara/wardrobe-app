@@ -759,10 +759,21 @@ wear log form では、手動 item を 1 件選択した時だけ、既存の `G
 - 服装フィードバック系項目は、詳細画面内の専用セクション、または振り返り専用導線へ移す前提で UI / docs を整理する
 - ただし現行の作成 / 更新 API は wear log 全体更新であり、`items` も含めて送る必要があるため、既存 API を流用した専用導線では詳細を取得して送信内容を再構成する必要がある
 
+API 方針:
+
+- 現行の `PUT /api/wear-logs/{id}` は、`status`、`event_date`、`display_order`、`source_outfit_id`、`memo`、服装フィードバック系項目、`items` をまとめて送る全体更新寄りの API として扱う
+- `items` は空配列を含めて必須であり、更新時は既存の `wear_log_items` を削除してから送信内容で再同期する
+- そのため、振り返り専用導線から既存 update API を流用すると、`items` / `source_outfit_id` の再構成ミスで着用記録本体を壊すリスクがある
+- 振り返り専用導線では、第一候補として `PATCH /api/wear-logs/{id}/feedback` のような服装フィードバック専用 API を検討する
+- 専用 API は `overall_rating`、`outdoor_temperature_feel`、`indoor_temperature_feel`、`feedback_tags`、`feedback_memo` だけを更新し、`event_date`、`status`、`display_order`、`source_outfit_id`、`items`、`memo` は更新しない
+- endpoint 名は、API では既存 field 名に合わせて `/feedback` を第一候補とする。UI 文言では「振り返り」として表示してよい
+- 専用 API でも user scope は既存 detail / update と同様にログインユーザーの wear log のみに限定し、他 user の wear log は current 方針に合わせて 404 とする
+- validation は既存 update の enum / nullable 方針を再利用し、`feedback_tags` は allowed values の正規化・重複除去を維持する
+
 中期方針:
 
 - `/wear-logs/{id}/reflection` のような振り返り専用ページ、または詳細画面からの専用編集導線を検討する
-- フィードバック専用更新 API が必要か、既存の更新 API の全体更新で足りるかを実装前に判断する
+- 振り返り専用導線を実装する場合は、服装フィードバック専用更新 API を第一候補にする
 - `has_feedback` / カレンダーアイコン / aria-label は、画面分離後に「服装フィードバックあり」なのか「振り返りメモあり」なのかを再定義する
 
 ---
