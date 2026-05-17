@@ -78,6 +78,17 @@ class WearLogController extends Controller
         ]);
     }
 
+    public function updateFeedback(Request $request, int $id): JsonResponse
+    {
+        $validated = $this->validateFeedbackRequest($request);
+        $wearLog = $this->wearLogService->updateFeedback($request->user(), $id, $validated);
+
+        return response()->json([
+            'message' => 'updated',
+            'wearLog' => WearLogPayloadBuilder::buildDetail($wearLog),
+        ]);
+    }
+
     public function destroy(Request $request, int $id): JsonResponse
     {
         $this->wearLogService->delete($request->user(), $id);
@@ -107,6 +118,18 @@ class WearLogController extends Controller
             'items.*.item_source_type' => ['required', 'string', 'in:outfit,manual'],
         ], [
             'items.present' => 'items は空配列を含めて必ず指定してください。',
+        ]);
+    }
+
+    private function validateFeedbackRequest(Request $request): array
+    {
+        return $request->validate([
+            'outdoor_temperature_feel' => ['nullable', 'string', 'in:'.implode(',', WearLogFeedbackSupport::TEMPERATURE_FEELS)],
+            'indoor_temperature_feel' => ['nullable', 'string', 'in:'.implode(',', WearLogFeedbackSupport::TEMPERATURE_FEELS)],
+            'overall_rating' => ['nullable', 'string', 'in:'.implode(',', WearLogFeedbackSupport::OVERALL_RATINGS)],
+            'feedback_tags' => ['nullable', 'array'],
+            'feedback_tags.*' => ['required', 'string', 'in:'.implode(',', WearLogFeedbackSupport::FEEDBACK_TAGS)],
+            'feedback_memo' => ['nullable', 'string'],
         ]);
     }
 }

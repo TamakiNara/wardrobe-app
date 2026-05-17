@@ -80,6 +80,36 @@ class WearLogService
         });
     }
 
+    public function updateFeedback(User $user, int $wearLogId, array $validated): WearLog
+    {
+        $wearLog = $this->findOwnedWearLog($user, $wearLogId);
+
+        return DB::transaction(function () use ($wearLog, $validated) {
+            $updates = [];
+
+            foreach ([
+                'outdoor_temperature_feel',
+                'indoor_temperature_feel',
+                'overall_rating',
+                'feedback_memo',
+            ] as $field) {
+                if (array_key_exists($field, $validated)) {
+                    $updates[$field] = $validated[$field];
+                }
+            }
+
+            if (array_key_exists('feedback_tags', $validated)) {
+                $updates['feedback_tags'] = WearLogFeedbackSupport::normalizeFeedbackTags($validated['feedback_tags']);
+            }
+
+            if ($updates !== []) {
+                $wearLog->update($updates);
+            }
+
+            return $wearLog->fresh()->load(['sourceOutfit', 'wearLogItems.sourceItem']);
+        });
+    }
+
     public function findOwnedWearLog(User $user, int $wearLogId): WearLog
     {
         return WearLog::query()

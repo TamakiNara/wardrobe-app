@@ -1296,6 +1296,48 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ValidationErrorResponse"
+  /api/wear-logs/{wearLogId}/feedback:
+    patch:
+      tags:
+        - Wear Logs
+      summary: wear log 服装フィードバック更新
+      description: |
+        wear log の服装フィードバック / 振り返り項目だけを更新する。
+        `event_date` / `status` / `display_order` / `source_outfit_id` / `items` / `memo` は更新しない。
+        未送信の feedback 項目は保持し、明示的に `null` を送った項目はクリアする。
+      security:
+        - SessionCookieAuth: []
+      parameters:
+        - name: wearLogId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - $ref: "#/components/parameters/XCsrfTokenHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WearLogFeedbackUpdateRequest"
+      responses:
+        "200":
+          description: wear log 服装フィードバック更新成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WearLogMutationResponse"
+        "401":
+          description: 未認証
+        "404":
+          description: 未検出（対象なし・他人データ秘匿を含む）
+        "422":
+          description: バリデーションエラー
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+
   /api/wear-logs/{wearLogId}:
     get:
       tags:
@@ -4084,6 +4126,39 @@ components:
             保存時は UI 上の最終順序に従って sort_order を連番で扱う。
           items:
             $ref: "#/components/schemas/WearLogItemUpsert"
+
+    WearLogFeedbackUpdateRequest:
+      type: object
+      description: |
+        wear log の服装フィードバック / 振り返り項目だけを更新する PATCH payload。
+        `event_date` / `status` / `display_order` / `source_outfit_id` / `items` / `memo` は更新対象外。
+        未送信の feedback 項目は保持し、明示的に `null` を送った項目はクリアする。
+      properties:
+        outdoor_temperature_feel:
+          allOf:
+            - $ref: "#/components/schemas/WearLogTemperatureFeel"
+          nullable: true
+        indoor_temperature_feel:
+          allOf:
+            - $ref: "#/components/schemas/WearLogTemperatureFeel"
+          nullable: true
+        overall_rating:
+          allOf:
+            - $ref: "#/components/schemas/WearLogOverallRating"
+          nullable: true
+        feedback_tags:
+          type: array
+          nullable: true
+          items:
+            $ref: "#/components/schemas/WearLogFeedbackTag"
+          description: |
+            服装の振り返りタグ。重複は保存時に一意化し、空配列は `null` として扱う。
+        feedback_memo:
+          type: string
+          nullable: true
+          description: |
+            振り返りメモ。
+            feedback_tags だけでは表しきれない体感・評価・改善メモを残します。
 
     WearLogListItem:
       type: object

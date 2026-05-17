@@ -674,6 +674,39 @@ wear log 自体の仕様ではないが、`source_outfit_id` の再利用や inv
 
 `PUT /api/wear-logs/{id}`
 
+### 服装フィードバック更新
+
+`PATCH /api/wear-logs/{id}/feedback`
+
+服装フィードバック / 振り返り項目だけを更新する専用 API。
+
+更新対象:
+
+- `overall_rating`
+- `outdoor_temperature_feel`
+- `indoor_temperature_feel`
+- `feedback_tags`
+- `feedback_memo`
+
+更新しない対象:
+
+- `event_date`
+- `status`
+- `display_order`
+- `source_outfit_id`
+- `items`
+- `memo`
+- weather record
+
+方針:
+
+- 未送信の feedback 項目は現在値を保持する
+- 明示的に `null` を送った feedback 項目はクリアする
+- `feedback_tags` は既存 update API と同じ allowed values を使い、保存時に重複を一意化する
+- `items` / `source_outfit_id` / `memo` などの非対象 field が payload に含まれても、更新対象には含めない
+- response は既存 create / update と同じく `message` と更新後の `wearLog` detail payload を返す
+- user scope は既存 detail / update と同じくログインユーザーの wear log に限定し、他 user の wear log は 404 とする
+
 ### 削除
 
 `DELETE /api/wear-logs/{id}`
@@ -764,16 +797,16 @@ API 方針:
 - 現行の `PUT /api/wear-logs/{id}` は、`status`、`event_date`、`display_order`、`source_outfit_id`、`memo`、服装フィードバック系項目、`items` をまとめて送る全体更新寄りの API として扱う
 - `items` は空配列を含めて必須であり、更新時は既存の `wear_log_items` を削除してから送信内容で再同期する
 - そのため、振り返り専用導線から既存 update API を流用すると、`items` / `source_outfit_id` の再構成ミスで着用記録本体を壊すリスクがある
-- 振り返り専用導線では、第一候補として `PATCH /api/wear-logs/{id}/feedback` のような服装フィードバック専用 API を検討する
+- backend API として `PATCH /api/wear-logs/{id}/feedback` を用意し、服装フィードバック / 振り返り項目だけを安全に更新できるようにする
 - 専用 API は `overall_rating`、`outdoor_temperature_feel`、`indoor_temperature_feel`、`feedback_tags`、`feedback_memo` だけを更新し、`event_date`、`status`、`display_order`、`source_outfit_id`、`items`、`memo` は更新しない
-- endpoint 名は、API では既存 field 名に合わせて `/feedback` を第一候補とする。UI 文言では「振り返り」として表示してよい
+- endpoint 名は、API では既存 field 名に合わせて `/feedback` とする。UI 文言では「振り返り」として表示してよい
 - 専用 API でも user scope は既存 detail / update と同様にログインユーザーの wear log のみに限定し、他 user の wear log は current 方針に合わせて 404 とする
 - validation は既存 update の enum / nullable 方針を再利用し、`feedback_tags` は allowed values の正規化・重複除去を維持する
 
 中期方針:
 
 - `/wear-logs/{id}/reflection` のような振り返り専用ページ、または詳細画面からの専用編集導線を検討する
-- 振り返り専用導線を実装する場合は、服装フィードバック専用更新 API を第一候補にする
+- 振り返り専用導線を実装する場合は、`PATCH /api/wear-logs/{id}/feedback` を使い、着用記録本体を更新しない
 - `has_feedback` / カレンダーアイコン / aria-label は、画面分離後に「服装フィードバックあり」なのか「振り返りメモあり」なのかを再定義する
 
 ---

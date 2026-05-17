@@ -716,6 +716,7 @@ Route::prefix('api')->middleware(['web'])->group(function () {
     Route::middleware('auth:web')->post('/wear-logs', [WearLogController::class, 'store']);
     Route::middleware('auth:web')->get('/wear-logs/calendar', [WearLogController::class, 'calendar']);
     Route::middleware('auth:web')->get('/wear-logs/by-date', [WearLogController::class, 'byDate']);
+    Route::middleware('auth:web')->patch('/wear-logs/{id}/feedback', [WearLogController::class, 'updateFeedback']);
     Route::middleware('auth:web')->get('/wear-logs/{id}', [WearLogController::class, 'show']);
     Route::middleware('auth:web')->put('/wear-logs/{id}', [WearLogController::class, 'update']);
     Route::middleware('auth:web')->delete('/wear-logs/{id}', [WearLogController::class, 'destroy']);

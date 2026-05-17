@@ -1489,6 +1489,179 @@ class WearLogEndpointsTest extends TestCase
         $this->assertSame('updated memo', $wearLog->feedback_memo);
     }
 
+    public function test_patch_wear_log_feedback_updates_feedback_fields_only(): void
+    {
+        $user = User::factory()->create();
+        $item = $this->createItem($user);
+        $outfit = $this->createOutfit($user);
+        $wearLog = $this->createWearLog($user, [
+            'status' => 'planned',
+            'event_date' => '2026-03-24',
+            'display_order' => 3,
+            'source_outfit_id' => $outfit->id,
+            'memo' => 'original memo',
+            'outdoor_temperature_feel' => 'cold',
+            'indoor_temperature_feel' => 'comfortable',
+            'overall_rating' => 'neutral',
+            'feedback_tags' => ['rain_problem'],
+            'feedback_memo' => 'initial memo',
+        ]);
+        $wearLogItem = $wearLog->wearLogItems()->create([
+            'source_item_id' => $item->id,
+            'sort_order' => 1,
+            'item_source_type' => 'outfit',
+        ]);
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $response = $this->patchJson("/api/wear-logs/{$wearLog->id}/feedback", [
+            'status' => 'worn',
+            'event_date' => '2026-03-30',
+            'display_order' => 9,
+            'source_outfit_id' => null,
+            'memo' => 'should be ignored',
+            'items' => [],
+            'outdoor_temperature_feel' => 'slightly_hot',
+            'indoor_temperature_feel' => 'slightly_cold',
+            'overall_rating' => 'good',
+            'feedback_tags' => ['worked_for_tpo', 'worked_for_tpo', 'color_worked_well'],
+            'feedback_memo' => 'updated feedback memo',
+        ], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('message', 'updated')
+            ->assertJsonPath('wearLog.outdoor_temperature_feel', 'slightly_hot')
+            ->assertJsonPath('wearLog.indoor_temperature_feel', 'slightly_cold')
+            ->assertJsonPath('wearLog.overall_rating', 'good')
+            ->assertJsonPath('wearLog.feedback_tags.0', 'worked_for_tpo')
+            ->assertJsonPath('wearLog.feedback_tags.1', 'color_worked_well')
+            ->assertJsonPath('wearLog.feedback_memo', 'updated feedback memo')
+            ->assertJsonPath('wearLog.status', 'planned')
+            ->assertJsonPath('wearLog.event_date', '2026-03-24')
+            ->assertJsonPath('wearLog.display_order', 3)
+            ->assertJsonPath('wearLog.source_outfit_id', $outfit->id)
+            ->assertJsonPath('wearLog.memo', 'original memo')
+            ->assertJsonPath('wearLog.items.0.source_item_id', $item->id);
+
+        $wearLog->refresh();
+        $this->assertSame('planned', $wearLog->status);
+        $this->assertSame('2026-03-24', $wearLog->event_date->format('Y-m-d'));
+        $this->assertSame(3, $wearLog->display_order);
+        $this->assertSame($outfit->id, $wearLog->source_outfit_id);
+        $this->assertSame('original memo', $wearLog->memo);
+        $this->assertSame('slightly_hot', $wearLog->outdoor_temperature_feel);
+        $this->assertSame('slightly_cold', $wearLog->indoor_temperature_feel);
+        $this->assertSame('good', $wearLog->overall_rating);
+        $this->assertSame(['worked_for_tpo', 'color_worked_well'], $wearLog->feedback_tags);
+        $this->assertSame('updated feedback memo', $wearLog->feedback_memo);
+
+        $this->assertDatabaseHas('wear_log_items', [
+            'id' => $wearLogItem->id,
+            'wear_log_id' => $wearLog->id,
+            'source_item_id' => $item->id,
+            'sort_order' => 1,
+            'item_source_type' => 'outfit',
+        ]);
+    }
+
+    public function test_patch_wear_log_feedback_preserves_omitted_feedback_fields_and_clears_nulls(): void
+    {
+        $user = User::factory()->create();
+        $wearLog = $this->createWearLog($user, [
+            'outdoor_temperature_feel' => 'cold',
+            'indoor_temperature_feel' => 'comfortable',
+            'overall_rating' => 'neutral',
+            'feedback_tags' => ['rain_problem'],
+            'feedback_memo' => 'initial memo',
+        ]);
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $response = $this->patchJson("/api/wear-logs/{$wearLog->id}/feedback", [
+            'overall_rating' => null,
+            'feedback_tags' => null,
+            'feedback_memo' => null,
+        ], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('wearLog.outdoor_temperature_feel', 'cold')
+            ->assertJsonPath('wearLog.indoor_temperature_feel', 'comfortable')
+            ->assertJsonPath('wearLog.overall_rating', null)
+            ->assertJsonPath('wearLog.feedback_tags', null)
+            ->assertJsonPath('wearLog.feedback_memo', null);
+
+        $wearLog->refresh();
+        $this->assertSame('cold', $wearLog->outdoor_temperature_feel);
+        $this->assertSame('comfortable', $wearLog->indoor_temperature_feel);
+        $this->assertNull($wearLog->overall_rating);
+        $this->assertNull($wearLog->feedback_tags);
+        $this->assertNull($wearLog->feedback_memo);
+    }
+
+    public function test_patch_wear_log_feedback_returns_404_for_other_users_record(): void
+    {
+        $user = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $wearLog = $this->createWearLog($otherUser);
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $response = $this->patchJson("/api/wear-logs/{$wearLog->id}/feedback", [
+            'overall_rating' => 'good',
+        ], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertStatus(404);
+    }
+
+    public function test_patch_wear_log_feedback_validates_feedback_values(): void
+    {
+        $user = User::factory()->create();
+        $wearLog = $this->createWearLog($user);
+
+        $this->actingAs($user, 'web');
+        $token = $this->issueCsrfToken();
+
+        $response = $this->patchJson("/api/wear-logs/{$wearLog->id}/feedback", [
+            'outdoor_temperature_feel' => 'freezing',
+            'indoor_temperature_feel' => 'humid',
+            'overall_rating' => 'excellent',
+            'feedback_tags' => ['unknown_tag'],
+        ], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors([
+                'outdoor_temperature_feel',
+                'indoor_temperature_feel',
+                'overall_rating',
+                'feedback_tags.0',
+            ]);
+
+        $arrayResponse = $this->patchJson("/api/wear-logs/{$wearLog->id}/feedback", [
+            'feedback_tags' => 'worked_for_tpo',
+        ], [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $arrayResponse->assertStatus(422)
+            ->assertJsonValidationErrors(['feedback_tags']);
+    }
+
     public function test_get_wear_logs_and_detail_include_feedback_fields(): void
     {
         $user = User::factory()->create();
