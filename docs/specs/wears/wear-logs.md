@@ -715,6 +715,16 @@ wear log 自体の仕様ではないが、`source_outfit_id` の再利用や inv
 - `items` が空配列で `source_outfit_id` がある場合、現時点の実装では source outfit の構成を `wear_log_items` として保存する
 - 更新時は明細込み **全体更新** を前提とする
 
+### item 起点の outfit 候補導線（planned）
+
+item detail から `/outfits?item_id={id}` へ遷移して、その item を含む outfit だけを一覧表示する導線と API filter は、wear log 登録 / 編集で item から outfit 候補を探すための土台として扱う。
+
+MVP では、wear log form で手動 item を 1 件選択した時だけ、既存の `GET /api/outfits?item_id={id}` を使って「このアイテムを含むコーディネート候補」を表示する。
+
+候補 outfit を選択した場合は、wear log を outfit ベースの記録へ切り替える。具体的には `source_outfit_id` を設定し、手動 item 選択はクリアして `items: []` として送ることで、backend 側の既存仕様どおり outfit 構成 item を `wear_log_items` に展開する。
+
+この方針により、`source_outfit_id` と手動 `items` が同時に見えて記録の意味が曖昧になることを避ける。複数 item からの複合 outfit 検索、recommendation、outfit 作成 UI 連携はこの MVP では扱わない。
+
 ---
 
 ## バリデーション方針
