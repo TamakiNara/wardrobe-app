@@ -105,6 +105,20 @@ type OutfitCandidate = {
   }>;
 };
 
+function mapOutfitCandidateToSelectable(
+  outfit: OutfitCandidate,
+): WearLogSelectableOutfit {
+  return {
+    id: outfit.id,
+    name: outfit.name,
+    status: outfit.status ?? "active",
+    seasons: outfit.seasons ?? [],
+    tpos: outfit.tpos ?? [],
+    itemCount: (outfit.outfitItems ?? outfit.outfit_items ?? []).length,
+    outfitItems: outfit.outfitItems ?? outfit.outfit_items ?? [],
+  };
+}
+
 const TEMPERATURE_FEEL_OPTIONS: WearLogTemperatureFeel[] = [
   "cold",
   "slightly_cold",
@@ -446,6 +460,12 @@ export default function WearLogForm({
     WearLogSelectableOutfit[]
   >([]);
   const [selectedItems, setSelectedItems] = useState<SelectedWearLogItem[]>([]);
+  const [relatedOutfitCandidates, setRelatedOutfitCandidates] = useState<
+    WearLogSelectableOutfit[]
+  >([]);
+  const [relatedOutfitStatus, setRelatedOutfitStatus] = useState<
+    "idle" | "loading" | "success" | "error"
+  >("idle");
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -519,15 +539,7 @@ export default function WearLogForm({
           wearLogData,
         );
         const nextOutfits = mergeWearLogOutfitCandidates(
-          outfitsResult.entries.map((outfit) => ({
-            id: outfit.id,
-            name: outfit.name,
-            status: outfit.status ?? "active",
-            seasons: outfit.seasons ?? [],
-            tpos: outfit.tpos ?? [],
-            itemCount: (outfit.outfitItems ?? outfit.outfit_items ?? []).length,
-            outfitItems: outfit.outfitItems ?? outfit.outfit_items ?? [],
-          })),
+          outfitsResult.entries.map(mapOutfitCandidateToSelectable),
           wearLogData,
         );
 
@@ -580,6 +592,18 @@ export default function WearLogForm({
   const selectedItemIds = useMemo(() => {
     return selectedItems.map((item) => item.sourceItemId);
   }, [selectedItems]);
+
+  const singleManualSelectedItemId = useMemo(() => {
+    if (sourceOutfitId !== null || selectedItems.length !== 1) {
+      return null;
+    }
+
+    const [selectedItem] = selectedItems;
+
+    return selectedItem.itemSourceType === "manual"
+      ? selectedItem.sourceItemId
+      : null;
+  }, [selectedItems, sourceOutfitId]);
 
   const selectedItemRecords = useMemo(() => {
     return selectedItems
@@ -708,6 +732,55 @@ export default function WearLogForm({
     itemTpoFilter,
   ]);
 
+  useEffect(() => {
+    if (singleManualSelectedItemId === null) {
+      setRelatedOutfitCandidates([]);
+      setRelatedOutfitStatus("idle");
+      return;
+    }
+
+    let active = true;
+
+    async function loadRelatedOutfits() {
+      setRelatedOutfitStatus("loading");
+
+      try {
+        const result = await fetchAllPaginatedCandidates<
+          OutfitCandidate,
+          "outfits"
+        >(`/api/outfits?item_id=${singleManualSelectedItemId}`, "outfits");
+
+        if (!active) {
+          return;
+        }
+
+        if (result.status !== 200) {
+          setRelatedOutfitCandidates([]);
+          setRelatedOutfitStatus("error");
+          return;
+        }
+
+        setRelatedOutfitCandidates(
+          result.entries.map(mapOutfitCandidateToSelectable),
+        );
+        setRelatedOutfitStatus("success");
+      } catch {
+        if (!active) {
+          return;
+        }
+
+        setRelatedOutfitCandidates([]);
+        setRelatedOutfitStatus("error");
+      }
+    }
+
+    void loadRelatedOutfits();
+
+    return () => {
+      active = false;
+    };
+  }, [singleManualSelectedItemId]);
+
   function toggleFeedbackTag(tag: WearLogFeedbackTag) {
     setFeedbackTags((prev) => {
       if (prev.includes(tag)) {
@@ -757,6 +830,13 @@ export default function WearLogForm({
         },
       ];
     });
+  }
+
+  function handleRelatedOutfitSelect(outfitId: number) {
+    setSourceOutfitId(outfitId);
+    setSelectedItems([]);
+    setRelatedOutfitCandidates([]);
+    setRelatedOutfitStatus("idle");
   }
 
   function moveSelectedItem(sourceIndex: number, direction: -1 | 1) {
@@ -1420,6 +1500,104 @@ export default function WearLogForm({
               </div>
             )}
           </div>
+
+          {relatedOutfitStatus !== "idle" && (
+            <div className="rounded-2xl border border-blue-100 bg-blue-50/60 p-4">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                <div className="space-y-1">
+                  <h3 className="text-sm font-semibold text-gray-900">
+                    このアイテムを含むコーディネート候補
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    既存のコーディネートとして記録する場合は、候補から選択できます。
+                  </p>
+                </div>
+                {singleManualSelectedItemId !== null ? (
+                  <Link
+                    href={`/outfits?item_id=${singleManualSelectedItemId}`}
+                    className="text-sm font-medium text-blue-700 hover:underline"
+                  >
+                    一覧で見る
+                  </Link>
+                ) : null}
+              </div>
+
+              {relatedOutfitStatus === "loading" ? (
+                <p className="mt-4 text-sm text-gray-600">
+                  コーディネート候補を確認しています。
+                </p>
+              ) : null}
+
+              {relatedOutfitStatus === "error" ? (
+                <p className="mt-4 text-sm text-red-700">
+                  コーディネート候補を取得できませんでした。
+                </p>
+              ) : null}
+
+              {relatedOutfitStatus === "success" &&
+              relatedOutfitCandidates.length === 0 ? (
+                <p className="mt-4 text-sm text-gray-600">
+                  このアイテムを含むコーディネートはありません。
+                </p>
+              ) : null}
+
+              {relatedOutfitStatus === "success" &&
+              relatedOutfitCandidates.length > 0 ? (
+                <div className="mt-4 grid gap-3 md:grid-cols-2">
+                  {relatedOutfitCandidates.map((outfit) => {
+                    const outfitItems = getOutfitItems(outfit);
+                    const itemNamesLabel =
+                      getOutfitItemNames(outfit).join(" / ");
+
+                    return (
+                      <div
+                        key={outfit.id}
+                        className="rounded-xl border border-blue-100 bg-white p-4 shadow-sm"
+                      >
+                        <div className="flex items-start gap-3">
+                          {outfitItems.length > 0 ? (
+                            <div className="shrink-0 pt-0.5">
+                              <OutfitColorThumbnail
+                                outfitItems={outfitItems}
+                                size="small"
+                              />
+                            </div>
+                          ) : null}
+                          <div className="min-w-0 flex-1">
+                            <p className="font-medium text-gray-900">
+                              {outfit.name ?? "名称未設定"}
+                            </p>
+                            <p className="mt-2 text-sm text-gray-600">
+                              {itemNamesLabel || "構成アイテム未設定"}
+                            </p>
+                            <div className="mt-2 flex flex-wrap gap-2 text-xs text-gray-600">
+                              {(outfit.seasons ?? []).length > 0 ? (
+                                <span className="rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5">
+                                  季節: {(outfit.seasons ?? []).join(" / ")}
+                                </span>
+                              ) : null}
+                              {(outfit.tpos ?? []).length > 0 ? (
+                                <span className="rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5">
+                                  TPO: {(outfit.tpos ?? []).join(" / ")}
+                                </span>
+                              ) : null}
+                            </div>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleRelatedOutfitSelect(outfit.id)}
+                          className="mt-4 inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
+                        >
+                          このコーディネートを使う
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : null}
+            </div>
+          )}
 
           {selectedItemRecords.length > 0 && (
             <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
