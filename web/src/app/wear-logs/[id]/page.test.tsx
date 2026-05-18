@@ -125,8 +125,14 @@ describe("WearLogDetailPage", () => {
     expect(markup).toContain("メモ: 日差しが強かった");
     expect(markup).toContain('data-weather-code="sunny"');
     expect(markup).toContain('href="/items/33"');
+    expect(markup).toContain("一覧へ戻る");
+    expect(markup).toContain('href="/wear-logs/55/edit"');
+    expect(markup).toContain("着用内容を編集");
     expect(markup).toContain('href="/wear-logs/55/reflection"');
-    expect(markup).toContain("振り返りを編集する");
+    expect(markup).toContain("振り返りを編集");
+    expect(markup).toContain("予定に戻す");
+    expect(markup).toContain("削除");
+    expect(markup).not.toContain("着用内容や服装の振り返りを編集できます。");
   });
 
   it("振り返りも天気も未登録なら該当セクションを出さない", async () => {
@@ -163,7 +169,9 @@ describe("WearLogDetailPage", () => {
       }),
     );
 
-    expect(markup).not.toContain("服装の振り返り");
+    expect(markup).not.toContain("総合評価");
+    expect(markup).not.toContain("振り返りメモ");
     expect(markup).not.toContain("この日の天気");
+    expect(markup).toContain("振り返りはまだ記録されていません。");
   });
 });
