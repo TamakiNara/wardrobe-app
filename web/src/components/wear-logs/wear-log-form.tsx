@@ -11,7 +11,6 @@ import {
 import { useRouter } from "next/navigation";
 import FieldLabel from "@/components/forms/field-label";
 import OutfitColorThumbnail from "@/components/outfits/outfit-color-thumbnail";
-import WearLogFeedbackFields from "@/components/wear-logs/wear-log-feedback-fields";
 import { formatLocalDateYmd } from "@/lib/date/local-date";
 import {
   findItemCategoryLabel,
@@ -278,9 +277,9 @@ export default function WearLogForm({
   const [sourceOutfitId, setSourceOutfitId] = useState<number | null>(null);
   const [memo, setMemo] = useState("");
   const [outdoorTemperatureFeel, setOutdoorTemperatureFeel] =
-    useState<WearLogTemperatureFeel | null>("comfortable");
+    useState<WearLogTemperatureFeel | null>(null);
   const [indoorTemperatureFeel, setIndoorTemperatureFeel] =
-    useState<WearLogTemperatureFeel | null>("comfortable");
+    useState<WearLogTemperatureFeel | null>(null);
   const [overallRating, setOverallRating] =
     useState<WearLogOverallRating | null>(null);
   const [feedbackTags, setFeedbackTags] = useState<WearLogFeedbackTag[]>([]);
@@ -366,12 +365,8 @@ export default function WearLogForm({
           setDisplayOrder(wearLogData.display_order);
           setSourceOutfitId(wearLogData.source_outfit_id);
           setMemo(wearLogData.memo ?? "");
-          setOutdoorTemperatureFeel(
-            wearLogData.outdoor_temperature_feel ?? "comfortable",
-          );
-          setIndoorTemperatureFeel(
-            wearLogData.indoor_temperature_feel ?? "comfortable",
-          );
+          setOutdoorTemperatureFeel(wearLogData.outdoor_temperature_feel);
+          setIndoorTemperatureFeel(wearLogData.indoor_temperature_feel);
           setOverallRating(wearLogData.overall_rating);
           setFeedbackTags(wearLogData.feedback_tags ?? []);
           setFeedbackMemo(wearLogData.feedback_memo ?? "");
@@ -380,8 +375,8 @@ export default function WearLogForm({
           setStatus(initialStatus);
           setEventDate(initialEventDate ?? formatLocalDateYmd());
           setDisplayOrder(initialDisplayOrder);
-          setOutdoorTemperatureFeel("comfortable");
-          setIndoorTemperatureFeel("comfortable");
+          setOutdoorTemperatureFeel(null);
+          setIndoorTemperatureFeel(null);
           setOverallRating(null);
           setFeedbackTags([]);
           setFeedbackMemo("");
@@ -1707,27 +1702,6 @@ export default function WearLogForm({
         </section>
       </section>
 
-      <section className="space-y-6 rounded-2xl border border-gray-200 bg-gray-50/40 p-5 md:p-6">
-        <div className="space-y-1">
-          <h2 className="text-lg font-semibold text-gray-900">????</h2>
-          <p className="text-sm text-gray-500">
-            ???????????????????????????????
-          </p>
-        </div>
-
-        <WearLogFeedbackFields
-          overallRating={overallRating}
-          onOverallRatingChange={setOverallRating}
-          outdoorTemperatureFeel={outdoorTemperatureFeel}
-          onOutdoorTemperatureFeelChange={setOutdoorTemperatureFeel}
-          indoorTemperatureFeel={indoorTemperatureFeel}
-          onIndoorTemperatureFeelChange={setIndoorTemperatureFeel}
-          feedbackTags={feedbackTags}
-          onFeedbackTagsChange={setFeedbackTags}
-          feedbackMemo={feedbackMemo}
-          onFeedbackMemoChange={setFeedbackMemo}
-        />
-      </section>
       <section className="space-y-4 scroll-mt-24" data-error-key="memo">
         <h2 className="text-lg font-semibold text-gray-900">着用メモ</h2>
         <p className="text-xs text-gray-500">
