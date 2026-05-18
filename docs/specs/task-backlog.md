@@ -203,9 +203,8 @@ frontend route はユーザー向け概念として `/wear-logs/{id}/reflection`
 
 #### 残件
 
-- Reflection page の MVP は実装済みだが、入力 UI は元の WearLogForm の振り返り欄と完全には一致していない。次回、WearLogForm にある総合評価の選択カード、屋外 / 屋内の温度感のスライダー風 UI、`よかったこと` / `気になったこと` / `TPO・見た目` の feedback tag ボタン群、気になったことの折りたたみ表示、`feedback_memo` の label / placeholder を reflection page 側へ移植する。
-- 可能なら WearLogForm から振り返り入力 UI 部品を切り出して reflection page と共用する。大規模リファクタになりすぎる場合は、まず reflection page 側へ最小移植する。
-- Reflection page 側の入力 UI を WearLogForm と揃えた後、WearLogForm から服装フィードバック系 field を外す。
+- Reflection page の MVP は実装済みで、入力 UI も WearLogForm の振り返り欄に合わせた共通 UI 部品へ整理済み。総合評価の選択カード、屋外 / 屋内の温度感のスライダー風 UI、`よかったこと` / `気になったこと` / `TPO・見た目` の feedback tag ボタン群、気になったことの折りたたみ表示、`feedback_memo` の label / placeholder は reflection page と WearLogForm で揃える。
+- 次の段階で、WearLogForm から服装フィードバック系 field を外す。
 - calendar / list から reflection page へ直接移動する導線を検討する。
 - `has_feedback` / カレンダーアイコン / aria-label が「服装フィードバックあり」なのか「振り返りメモあり」なのかを再定義する。
 

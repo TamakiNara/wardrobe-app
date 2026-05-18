@@ -142,18 +142,19 @@ describe("WearLogReflectionPage", () => {
     expect(container.textContent).toContain("川口");
     expect(container.textContent).toContain("晴れ / 最高 22℃ / 最低 13℃");
     expect(container.textContent).toContain("普通");
-    expect(container.textContent).toContain("色合わせがよかった");
+    expect(container.textContent).toContain("色合わせ");
+    expect(container.textContent).toContain("よかった");
 
     expect(
-      container.querySelector<HTMLSelectElement>(
-        "#reflection-outdoor-temperature-feel",
-      )?.value,
-    ).toBe("slightly_cold");
+      container
+        .querySelector('[data-testid="outdoor-temperature-feel"]')
+        ?.textContent?.includes("少し寒い"),
+    ).toBe(true);
     expect(
-      container.querySelector<HTMLSelectElement>(
-        "#reflection-indoor-temperature-feel",
-      )?.value,
-    ).toBe("comfortable");
+      container
+        .querySelector('[data-testid="indoor-temperature-feel"]')
+        ?.textContent?.includes("ちょうどいい"),
+    ).toBe(true);
     expect(
       container.querySelector<HTMLTextAreaElement>(
         'textarea[placeholder="例: 室内は少し寒かった、色合わせがよかった"]',
@@ -173,11 +174,11 @@ describe("WearLogReflectionPage", () => {
       await waitForEffects();
     });
 
-    const outdoorSelect = container.querySelector<HTMLSelectElement>(
-      "#reflection-outdoor-temperature-feel",
+    const outdoorSlider = container.querySelector<HTMLInputElement>(
+      '[data-testid="outdoor-temperature-feel"] input[type="range"]',
     );
-    const indoorSelect = container.querySelector<HTMLSelectElement>(
-      "#reflection-indoor-temperature-feel",
+    const indoorSlider = container.querySelector<HTMLInputElement>(
+      '[data-testid="indoor-temperature-feel"] input[type="range"]',
     );
     const memoField = container.querySelector<HTMLTextAreaElement>(
       'textarea[placeholder="例: 室内は少し寒かった、色合わせがよかった"]',
@@ -189,14 +190,14 @@ describe("WearLogReflectionPage", () => {
         .find((button) => button.textContent?.includes("よかった"))
         ?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
 
-      const selectSetter = Object.getOwnPropertyDescriptor(
-        window.HTMLSelectElement.prototype,
+      const rangeSetter = Object.getOwnPropertyDescriptor(
+        window.HTMLInputElement.prototype,
         "value",
       )?.set;
-      selectSetter?.call(outdoorSelect, "hot");
-      outdoorSelect?.dispatchEvent(new Event("change", { bubbles: true }));
-      selectSetter?.call(indoorSelect, "");
-      indoorSelect?.dispatchEvent(new Event("change", { bubbles: true }));
+      rangeSetter?.call(outdoorSlider, "4");
+      outdoorSlider?.dispatchEvent(new Event("change", { bubbles: true }));
+      rangeSetter?.call(indoorSlider, "3");
+      indoorSlider?.dispatchEvent(new Event("change", { bubbles: true }));
 
       Array.from(container.querySelectorAll("button"))
         .find((button) => button.textContent?.includes("雨でも問題なかった"))
@@ -218,7 +219,7 @@ describe("WearLogReflectionPage", () => {
     expect(updateWearLogFeedbackMock).toHaveBeenCalledWith(55, {
       overall_rating: "good",
       outdoor_temperature_feel: "hot",
-      indoor_temperature_feel: null,
+      indoor_temperature_feel: "slightly_hot",
       feedback_tags: ["color_worked_well", "rain_ready"],
       feedback_memo: "雨でも快適だった",
     });
