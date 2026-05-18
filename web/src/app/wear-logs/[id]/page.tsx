@@ -147,6 +147,12 @@ export default async function WearLogDetailPage({
                 一覧へ戻る
               </Link>
               <Link
+                href={`/wear-logs/${wearLog.id}/reflection`}
+                className="inline-flex items-center justify-center rounded-lg border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700 transition hover:bg-blue-100"
+              >
+                振り返りを編集する
+              </Link>
+              <Link
                 href={`/wear-logs/${wearLog.id}/edit`}
                 className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
               >

@@ -125,6 +125,8 @@ describe("WearLogDetailPage", () => {
     expect(markup).toContain("メモ: 日差しが強かった");
     expect(markup).toContain('data-weather-code="sunny"');
     expect(markup).toContain('href="/items/33"');
+    expect(markup).toContain('href="/wear-logs/55/reflection"');
+    expect(markup).toContain("振り返りを編集する");
   });
 
   it("振り返りも天気も未登録なら該当セクションを出さない", async () => {

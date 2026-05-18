@@ -136,6 +136,14 @@ export type WearLogMutationResponse = {
   wearLog: WearLogRecord;
 };
 
+export type WearLogFeedbackUpdatePayload = {
+  overall_rating?: WearLogOverallRating | null;
+  outdoor_temperature_feel?: WearLogTemperatureFeel | null;
+  indoor_temperature_feel?: WearLogTemperatureFeel | null;
+  feedback_tags?: WearLogFeedbackTag[] | null;
+  feedback_memo?: string | null;
+};
+
 export type WearLogCalendarDot = {
   status: WearLogStatus;
   has_feedback: boolean;

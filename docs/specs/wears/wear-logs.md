@@ -805,19 +805,19 @@ API 方針:
 
 frontend route / 導線方針:
 
-- frontend の振り返り専用画面は `/wear-logs/{id}/reflection` を第一候補とする
+- frontend の振り返り専用画面は `/wear-logs/{id}/reflection` とする
 - backend API は field 名・内部責務に合わせて `/api/wear-logs/{id}/feedback` とし、frontend route はユーザー向け概念に合わせて `reflection` とする
 - UI 文言は「振り返り」を基本とし、API / field 名では `feedback` を使う
 - 専用画面で編集する field は `overall_rating`、`outdoor_temperature_feel`、`indoor_temperature_feel`、`feedback_tags`、`feedback_memo` に限定する
 - 専用画面では context として着用日、status、選択中 outfit / item の概要、天気概要を読み取り表示してよいが、編集対象にはしない
-- detail 画面には `振り返りを書く` / `振り返りを編集する` 導線を追加する。MVP では detail からの導線を優先し、calendar / list からの直接導線は後続で検討する
+- detail 画面には `振り返りを編集する` 導線を追加する。MVP では detail からの導線を優先し、calendar / list からの直接導線は後続で検討する
 - 保存後は `/wear-logs/{id}` の detail に戻り、更新後の振り返り内容を確認できるようにする
 
 中期方針:
 
-- `/wear-logs/{id}/reflection` のような振り返り専用ページ、または詳細画面からの専用編集導線を検討する
-- 振り返り専用導線を実装する場合は、`PATCH /api/wear-logs/{id}/feedback` を使い、着用記録本体を更新しない
-- reflection page と detail からの導線が用意できた段階で、WearLogForm から服装フィードバック系 field を外す。reflection page 実装前に外すと、既存の入力導線が途切れるため避ける
+- `/wear-logs/{id}/reflection` の MVP と detail からの専用編集導線は実装済み
+- 振り返り専用導線は `PATCH /api/wear-logs/{id}/feedback` を使い、着用記録本体を更新しない
+- 次の段階で、WearLogForm から服装フィードバック系 field を外す
 - `has_feedback` / カレンダーアイコン / aria-label は、画面分離後に「服装フィードバックあり」なのか「振り返りメモあり」なのかを再定義する
 
 ---
