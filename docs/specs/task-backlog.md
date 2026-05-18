@@ -16,16 +16,16 @@ docs 内に散らばっている planned / TODO / 後続 / 要再判断を、**c
 
 ## サマリ
 
-- 棚卸しした docs / 手元タスク由来タスク: **42件**
+- 棚卸しした docs / 手元タスク由来タスク: **41件**
 - 種別別件数:
-  - `バグ`: 3
+  - `バグ`: 2
   - `UI`: 13
   - `機能`: 8
   - `設計`: 10
   - `ドキュメント`: 4
   - `後回し`: 4
 - 優先度案:
-  - `高`: 8
+  - `高`: 7
   - `中`: 21
   - `低`: 13
 
@@ -52,17 +52,6 @@ row ごとのサムネイル位置や情報密度の違和感を見直す
 - 優先度: `中`
 - 依存関係: current UI 確認
 - すぐ実装できるか: `可`
-
-### BUG-05 振り返りありアイコンの意味整理と表示条件修正
-
-calendar の `has_feedback` と「振り返りあり」アイコンが、振り返り本文ありを意味するのか、評価・温度感・tag を含む feedback 入力ありを意味するのかを UI-14 とあわせて整理する
-
-- 出典 / 対象箇所: 手元タスク, `wears/wear-logs.md`
-- 関連機能: wear logs
-- 種別: `バグ`
-- 優先度: `高`
-- 依存関係: UI-14 と同時整理
-- すぐ実装できるか: `要設計`
 
 ## UI改善
 
@@ -205,13 +194,12 @@ frontend route はユーザー向け概念として `/wear-logs/{id}/reflection`
 
 - Reflection page の MVP は実装済みで、入力 UI も WearLogForm の振り返り欄に合わせた共通 UI 部品へ整理済み。総合評価の選択カード、屋外 / 屋内の温度感のスライダー風 UI、`よかったこと` / `気になったこと` / `TPO・見た目` の feedback tag ボタン群、気になったことの折りたたみ表示、`feedback_memo` の label / placeholder は reflection page と WearLogForm で揃える。
 - calendar / list から reflection page へ直接移動する導線を検討する。
-- `has_feedback` / カレンダーアイコン / aria-label が「服装フィードバックあり」なのか「振り返りメモあり」なのかを再定義する。
 
 - 出典 / 対象箇所: 手元タスク, `wears/wear-logs.md`
 - 関連機能: wear logs
 - 種別: `UI`
 - 優先度: `中`
-- 依存関係: BUG-05 と同時整理
+- 依存関係: reflection page の運用確認
 - すぐ実装できるか: `要設計`
 
 ### UI-15 コーディネート作成時のアイテム選択 UI 改善
@@ -544,7 +532,7 @@ legacy columns / 互換終了 / export 縮小を Phase E 以降で進める
 - item カテゴリ別の `shape` / `spec` 再判断は、カテゴリごとの細分化をやめて `DES-06` に統合した
 - 購入検討 docs の sale 要約表示や比較系の後続は、分析 / 可視化の流れとして `FEAT-05` に近いものは寄せ、shopping memo 追加導線は `FEAT-06` に寄せた
 - 手元タスクのうち、native dialog 置き換え、BrandFilter z-index、購入検討削除不可の事前表示、backend test 既存失敗解消は完了済みとして新規追加しない
-- 着用履歴の振り返り関連は、カレンダーアイコンの意味整理 (`BUG-05`) と導線改善 (`UI-14`) を分けて管理するが、実装判断は同時に行う
+- 着用履歴の振り返り関連は、カレンダーアイコンの意味整理を `has_feedback` の current 仕様として反映済み。導線改善や calendar / list から reflection page への直接導線は `UI-14` に残す
 - 着用統計と今季よく着た item は、別々のタスクにせず `FEAT-05` に統合した
 - 期限表示と `sale_ends_at` / `discount_ends_at` internal name の再判断は、同じ期限設計として `DES-05` に統合した
 
@@ -614,8 +602,8 @@ legacy columns / 互換終了 / export 縮小を Phase E 以降で進める
   - 対応状況: backlog 追加済み
   - 対応 backlog / メモ: `UI-11`
 - 振り返り未記入時の振り返りありアイコン表示条件修正
-  - 対応状況: backlog 統合済み
-  - 対応 backlog / メモ: `BUG-05`。`has_feedback` と「振り返りあり」アイコンの意味を `UI-14` とあわせて整理する
+  - 対応状況: 対応済み
+  - 対応 backlog / メモ: `has_feedback` は reflection page の対象 field に何らかの入力がある状態として維持し、calendar の文言を `振り返り入力あり` に整理した。導線改善は `UI-14` に残す
 - 着用履歴カレンダー凡例の色整理
   - 対応状況: 対応済み
   - 対応 backlog / メモ: 予定は amber の破線 outline、着用済みは indigo の塗り、予報は sky、実績は emerald として凡例と実表示を揃えた
@@ -637,8 +625,8 @@ legacy columns / 互換終了 / export 縮小を Phase E 以降で進める
 
 ## 次に進める候補 3 件
 
-1. `BUG-05` 振り返りありアイコンの意味整理と表示条件修正
-   理由: カレンダーアイコンの意味と詳細画面の振り返りセクションの責務が混ざっており、UI-14 とあわせて先に定義すると後続実装が安全になる。
+1. `UI-14` 着用履歴の振り返り導線改善
+   理由: reflection page と `振り返り入力あり` 表示は整ったため、次は calendar / list から reflection page への直接導線や導線全体の polish を検討しやすい。
 2. `UI-15` コーディネート作成時のアイテム選択 UI 改善
    理由: outfit 作成体験に直結し、item 詳細リンク・選択済み item の見やすさ・季節 / TPO の入力順整理をまとめて改善しやすい。
 3. `DOC-01` 機能単位 docs のフォーマット化 / 重複整理

@@ -175,7 +175,7 @@ describe("WearLogCalendar", () => {
     expect(container.textContent).toContain("着用済み");
     expect(container.textContent).toContain("予報の天気");
     expect(container.textContent).toContain("実績の天気");
-    expect(container.textContent).toContain("振り返りあり");
+    expect(container.textContent).toContain("振り返り入力あり");
     expect(container.textContent).not.toContain("手入力の天気");
     expect(container.textContent).toContain("2026年3月");
     expect(container.textContent).toContain("+1");
@@ -399,7 +399,7 @@ describe("WearLogCalendar", () => {
     expect(holidayButton?.getAttribute("data-holiday-name")).toBe("春分の日");
   });
 
-  it("天気アイコン・着用状態・振り返りをその順で表示する", async () => {
+  it("天気アイコン・着用状態・振り返り入力をその順で表示する", async () => {
     const { default: WearLogCalendar } = await import("./wear-log-calendar");
 
     await act(async () => {
@@ -463,6 +463,7 @@ describe("WearLogCalendar", () => {
     expect(feedbackMarker?.getAttribute("data-feedback-icon")).toBe(
       "square-pen",
     );
+    expect(feedbackMarker?.getAttribute("aria-label")).toBe("振り返り入力あり");
     expect(container.textContent).toContain("+1");
   });
 
@@ -515,7 +516,7 @@ describe("WearLogCalendar", () => {
     expect(forecastMarker?.className).toContain("text-sky-600");
   });
 
-  it("振り返りがない日は day-level 振り返りアイコンを表示しない", async () => {
+  it("振り返り入力がない日は day-level 振り返り入力アイコンを表示しない", async () => {
     const { default: WearLogCalendar } = await import("./wear-log-calendar");
 
     await act(async () => {

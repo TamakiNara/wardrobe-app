@@ -288,8 +288,8 @@ function renderWearLogCalendarMarker(
 ) {
   const ariaLabel = dot.has_feedback
     ? dot.status === "worn"
-      ? "着用済み・振り返りあり"
-      : "予定・振り返りあり"
+      ? "着用済み・振り返り入力あり"
+      : "予定・振り返り入力あり"
     : dot.status === "worn"
       ? "着用済み"
       : "予定";
@@ -617,7 +617,7 @@ export default function WearLogCalendar({
             >
               <SquarePen className="h-3.5 w-3.5" strokeWidth={2.2} />
             </span>
-            <span>振り返りあり</span>
+            <span>振り返り入力あり</span>
           </div>
         </div>
 
@@ -717,7 +717,7 @@ export default function WearLogCalendar({
                             className="inline-flex h-4 w-4 shrink-0 items-center justify-center text-slate-500"
                             data-marker-kind="feedback-note"
                             data-feedback-icon="square-pen"
-                            aria-label="振り返りあり"
+                            aria-label="振り返り入力あり"
                           >
                             <SquarePen
                               className="h-3.5 w-3.5"

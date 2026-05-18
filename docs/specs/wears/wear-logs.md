@@ -424,9 +424,9 @@ wear logs 一覧は、一覧共通仕様に従う。
 - marker は `display_order asc` 順に最大 3 件分とし、4 件以上は `+n` で省略表示する
 - 月セル上では `planned / worn` の文字は出さず、dot の濃淡で状態を見分ける
 - current API の `has_feedback` は、`overall_rating` / 温度感 / `feedback_tags` / `feedback_memo` のいずれかがある wear log を対象にする
-- current UI では `has_feedback=true` のとき、書き込み系 icon と `振り返りあり` aria-label で補助表示している
-- ただし、着用履歴詳細では記録内容の表示・編集と服装の振り返り入力が同じ画面に混在しているため、今後 UI-14 で詳細画面の責務分離を検討する
-- その際、calendar の `has_feedback` / icon 表示が「振り返りメモあり」なのか「服装フィードバックあり」なのかもあわせて整理する
+- `memo` は登録時メモであり、`has_feedback` には含めない
+- current UI では `has_feedback=true` のとき、書き込み系 icon と `振り返り入力あり` aria-label で補助表示する
+- `振り返り入力あり` は `feedback_memo` だけではなく、reflection page の対象 field（総合評価 / 温度感 / feedback tags / 振り返りメモ）のいずれかが入力されていることを示す
 - カレンダーセルでは振り返り内容の本文や feedback_memo は出さない
 - カレンダーの週開始は 現時点の実装では月曜始まりを既定とし、settings の `calendarWeekStart` で日曜始まりへ切り替えられる
 - 月移動はカレンダー専用 query として扱い、一覧 API とは責務を分ける
@@ -491,9 +491,8 @@ wear log の主表示は **当時の記録内容** とし、`current status` は
   - 気になった点
   - フィードバックメモ
     を表示する
-- 服装フィードバックがすべて未入力の場合は、詳細画面ではセクション自体を表示しない
-- 現在は、着用記録の表示・編集と服装の振り返り入力が同一画面内にある。今後 UI-14 で、詳細画面の主責務を「記録を見る / 編集する画面」として整理し、振り返り入力を詳細内に残すのか、専用ページ・専用セクション・アンカー導線などに分けるのか検討する
-- その責務分離にあわせて、calendar の `has_feedback` / icon 表示が「振り返りメモあり」なのか「服装フィードバックあり」なのかも再整理する
+- 服装フィードバックがすべて未入力の場合は、詳細画面では空状態を表示し、`振り返りを編集` 導線は維持する
+- `has_feedback` / calendar icon は、reflection page の対象 field に何らかの入力があることを `振り返り入力あり` として表示する
 - 同日の `weather_records` がある場合は、`この日の天気` セクションを別で表示する
 - `wear_logs` 自体は `weather_record_id` を持たず、MVP では日付一致で参照する
 
@@ -818,7 +817,7 @@ frontend route / 導線方針:
 
 - `/wear-logs/{id}/reflection` の MVP と detail からの専用編集導線は実装済み
 - 振り返り専用導線は `PATCH /api/wear-logs/{id}/feedback` を使い、着用記録本体を更新しない
-- `has_feedback` / カレンダーアイコン / aria-label は、画面分離後に「服装フィードバックあり」なのか「振り返りメモあり」なのかを再定義する
+- `has_feedback` / カレンダーアイコン / aria-label は、reflection page の対象 field に何らかの入力があることを `振り返り入力あり` として扱う
 
 ---
 
