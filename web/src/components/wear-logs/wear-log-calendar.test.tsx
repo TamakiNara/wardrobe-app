@@ -223,7 +223,12 @@ describe("WearLogCalendar", () => {
     expect(container.textContent).toContain("メモ: 日中はよく晴れた");
     expect(container.textContent).toContain("振り返りメモ");
     expect(container.innerHTML).toContain('href="/wear-logs/11"');
+    expect(container.innerHTML).toContain('href="/wear-logs/11/reflection"');
+    expect(container.textContent).toContain("振り返りを編集");
     expect(container.innerHTML).toContain("wear-log-modal-color-thumbnail");
+    expect(
+      findDayButton(container, "2026-03-05")?.querySelector("a"),
+    ).toBeNull();
   });
 
   it("日付詳細モーダルで複数天気のバッジと内容を確認できる", async () => {

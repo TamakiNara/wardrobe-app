@@ -893,12 +893,20 @@ export default function WearLogCalendar({
                                 </p>
                               </div>
                             </div>
-                            <Link
-                              href={`/wear-logs/${wearLog.id}`}
-                              className="text-sm font-medium text-blue-600 hover:underline"
-                            >
-                              詳細
-                            </Link>
+                            <div className="flex shrink-0 flex-col items-end gap-2 text-sm font-medium sm:flex-row sm:items-center">
+                              <Link
+                                href={`/wear-logs/${wearLog.id}`}
+                                className="text-blue-600 hover:underline"
+                              >
+                                詳細
+                              </Link>
+                              <Link
+                                href={`/wear-logs/${wearLog.id}/reflection`}
+                                className="text-blue-600 hover:underline"
+                              >
+                                振り返りを編集
+                              </Link>
+                            </div>
                           </div>
 
                           <p className="mt-2 text-xs text-gray-500">
