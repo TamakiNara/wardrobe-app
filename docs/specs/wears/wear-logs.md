@@ -809,7 +809,7 @@ frontend route / 導線方針:
 - UI 文言は「振り返り」を基本とし、API / field 名では `feedback` を使う
 - 専用画面で編集する field は `overall_rating`、`outdoor_temperature_feel`、`indoor_temperature_feel`、`feedback_tags`、`feedback_memo` に限定する
 - 専用画面では context として着用日、status、選択中 outfit / item の概要、天気概要を読み取り表示してよいが、編集対象にはしない
-- detail 画面には `振り返りを編集する` 導線を追加する。MVP では detail からの導線を優先し、calendar / list からの直接導線は後続で検討する
+- detail 画面には `振り返りを編集する` 導線を追加する。calendar / list からの導線は、wear log を一意に特定できる場所から出す。calendar では小さい `振り返り入力あり` icon そのものを link にせず、日付詳細 panel 内の wear log card に `振り返りを編集` を追加する案を第一候補にする。list では既存の `詳細` 導線を維持したうえで、必要なら card 内に `振り返りを編集` を追加する
 - 保存後は `/wear-logs/{id}` の detail に戻り、更新後の振り返り内容を確認できるようにする
 - 現在の reflection page MVP は、総合評価カード、屋外 / 屋内の温度感のスライダー風 UI、feedback tag ボタン群、気になったことの折りたたみ表示、`feedback_memo` の label / placeholder を WearLogForm の振り返り欄と揃えた共通 UI 部品で表示する
 
