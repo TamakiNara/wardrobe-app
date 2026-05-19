@@ -7,6 +7,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Outfit, OutfitsListProps } from "./outfits-list";
 
 const fetchCategoryVisibilitySettingsMock = vi.fn();
+const fetchAllPaginatedCandidatesMock = vi.fn();
 const replaceMock = vi.fn();
 const pushMock = vi.fn();
 let searchParamsValue = "";
@@ -24,6 +25,10 @@ vi.mock("next/navigation", () => ({
 
 vi.mock("@/lib/api/settings", () => ({
   fetchCategoryVisibilitySettings: fetchCategoryVisibilitySettingsMock,
+}));
+
+vi.mock("@/lib/wear-logs/candidates", () => ({
+  fetchAllPaginatedCandidates: fetchAllPaginatedCandidatesMock,
 }));
 
 vi.mock("@/components/outfits/outfit-duplicate-action", () => ({
@@ -497,6 +502,8 @@ describe("OutfitsList", () => {
     });
 
     expect(container.textContent).toContain("「逋ｽT」を含むコーディネート");
+    expect(container.textContent).toContain("選択中:");
+    expect(container.textContent).toContain("「逋ｽT」");
 
     const clearItemFilterButton = Array.from(
       container.querySelectorAll("button"),
@@ -508,6 +515,131 @@ describe("OutfitsList", () => {
     });
 
     expect(replaceMock).toHaveBeenCalledWith("/outfits", { scroll: false });
+  });
+
+  it("使用アイテム一覧を開いて item_id filter を開始できる", async () => {
+    fetchCategoryVisibilitySettingsMock.mockResolvedValue({
+      visibleCategoryIds: ["tops_tshirt_cutsew", "tops_shirt_blouse"],
+    });
+    fetchAllPaginatedCandidatesMock.mockResolvedValue({
+      status: 200,
+      entries: [
+        {
+          id: 201,
+          name: "Vネックカーディガン",
+          status: "active",
+          category: "tops",
+          shape: "cardigan",
+          colors: [
+            {
+              role: "main",
+              mode: "preset",
+              value: "white",
+              hex: "#eeeeee",
+              label: "ホワイト",
+            },
+          ],
+          seasons: ["春"],
+          tpos: ["休日"],
+        },
+        {
+          id: 202,
+          name: "黒パンツ",
+          status: "active",
+          category: "pants",
+          shape: "tapered",
+          colors: [],
+          seasons: ["冬"],
+          tpos: ["仕事"],
+        },
+      ],
+    });
+
+    const { default: OutfitsList } = await import("./outfits-list");
+
+    await act(async () => {
+      root.render(
+        React.createElement(OutfitsList, {
+          ...defaultListProps,
+          initialVisibleCategoryIds: [
+            "tops_tshirt_cutsew",
+            "tops_shirt_blouse",
+          ],
+        }),
+      );
+      await waitForEffects();
+    });
+
+    expect(fetchAllPaginatedCandidatesMock).not.toHaveBeenCalled();
+    expect(container.textContent).not.toContain("Vネックカーディガン");
+
+    const openItemListButton = Array.from(
+      container.querySelectorAll("button"),
+    ).find((button) => button.textContent?.includes("アイテム一覧を開く"));
+
+    await act(async () => {
+      openItemListButton?.click();
+      await waitForEffects();
+    });
+
+    expect(fetchAllPaginatedCandidatesMock).toHaveBeenCalledWith(
+      "/api/items",
+      "items",
+    );
+    expect(container.textContent).toContain("Vネックカーディガン");
+    expect(container.textContent).toContain("黒パンツ");
+    expect(container.textContent).toContain("トップス / カーディガン");
+    expect(container.textContent).toContain("ホワイト");
+
+    const itemSearchInput = container.querySelector<HTMLInputElement>(
+      "#outfit-item-filter-keyword",
+    );
+    const categorySelect = Array.from(
+      container.querySelectorAll("select"),
+    ).find((select) =>
+      Array.from(select.options).some(
+        (option) => option.textContent === "トップス",
+      ),
+    );
+
+    await act(async () => {
+      const valueSetter = Object.getOwnPropertyDescriptor(
+        window.HTMLInputElement.prototype,
+        "value",
+      )?.set;
+      valueSetter?.call(itemSearchInput, "カーディガン");
+      itemSearchInput!.dispatchEvent(new Event("input", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain("Vネックカーディガン");
+    expect(container.textContent).not.toContain("黒パンツ");
+
+    await act(async () => {
+      const valueSetter = Object.getOwnPropertyDescriptor(
+        window.HTMLSelectElement.prototype,
+        "value",
+      )?.set;
+      valueSetter?.call(categorySelect, "tops");
+      categorySelect?.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain("Vネックカーディガン");
+    expect(container.textContent).not.toContain("黒パンツ");
+
+    const selectItemButton = Array.from(
+      container.querySelectorAll("button"),
+    ).find((button) => button.textContent?.includes("Vネックカーディガン"));
+
+    await act(async () => {
+      selectItemButton?.click();
+      await waitForEffects();
+    });
+
+    expect(replaceMock).toHaveBeenCalledWith("/outfits?item_id=201", {
+      scroll: false,
+    });
   });
 
   it("item_id filter 中に他条件を変更しても item_id query を維持する", async () => {

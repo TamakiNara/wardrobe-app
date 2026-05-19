@@ -16,17 +16,17 @@ docs 内に散らばっている planned / TODO / 後続 / 要再判断を、**c
 
 ## サマリ
 
-- 棚卸しした docs / 手元タスク由来タスク: **42件**
+- 棚卸しした docs / 手元タスク由来タスク: **44件**
 - 種別別件数:
-  - `バグ`: 2
+  - `バグ`: 3
   - `UI`: 13
   - `機能`: 8
-  - `設計`: 11
+  - `設計`: 12
   - `ドキュメント`: 4
   - `後回し`: 4
 - 優先度案:
   - `高`: 7
-  - `中`: 22
+  - `中`: 24
   - `低`: 13
 
 ## バグ / 違和感
@@ -52,6 +52,17 @@ row ごとのサムネイル位置や情報密度の違和感を見直す
 - 優先度: `中`
 - 依存関係: current UI 確認
 - すぐ実装できるか: `可`
+
+### BUG-03 着用履歴の選択済み item がカテゴリ未設定 / 形未設定になるか確認
+
+WearLogForm の item 選択で、選択済み item が `カテゴリ未設定 / 形未設定` と表示されるケースがある。item 候補カード側ではカテゴリ / 形を表示できているため、選択済み summary 側の data mapping や edit 初期値で category / shape が欠落していないか確認する
+
+- 出典 / 対象箇所: 手元確認, `web/src/components/wear-logs/wear-log-form.tsx`
+- 関連機能: wear logs / items
+- 種別: `バグ`
+- 優先度: `中`
+- 依存関係: WearLogForm の item 候補 / 選択済み summary の data mapping 確認
+- すぐ実装できるか: `要確認`
 
 ## UI改善
 
@@ -432,7 +443,7 @@ item を起点に既存 outfit を探す導線の適用画面を整理する。D
 
 - `GET /api/outfits?item_id={id}` は実装済み。
 - item detail から `/outfits?item_id={id}` へ遷移できる。
-- outfit list では `item_id` filter の表示・解除ができる。
+- outfit list では、使用アイテム filter から `item_id` filter を開始でき、`item_id` filter の表示・解除ができる。
 - wear log 登録 / 編集では、item 1件選択時に、その item を含む outfit 候補を表示できる。
 - wear log の関連 outfit 候補選択時は `source_outfit_id` を設定し、手動 item 選択はクリアする。保存時は `source_outfit_id` あり、`items: []` の payload になり、backend 側の既存仕様で outfit 構成 item を展開する。
 
@@ -452,7 +463,7 @@ item を起点に既存 outfit を探す導線の適用画面を整理する。D
 
 #### 残件
 
-- outfit list の `item_id` filter 時 empty state 文言を確認する。
+- outfit list の `item_id` filter 時 empty state は専用文言を維持する。
 - 必要なら item detail から「このアイテムを使ってコーディネートを作成」導線を別タスク化する。
 - 既存 outfit を参考にした複製作成は別タスクとして扱う。
 - outfit 作成時の重複候補表示は別タスクとして扱う。
@@ -470,6 +481,34 @@ item を起点に既存 outfit を探す導線の適用画面を整理する。D
 - 種別: `設計`
 - 優先度: `中`
 - 依存関係: FEAT-07 item_id filter MVP
+- すぐ実装できるか: `要設計`
+
+### DES-12 item picker のカテゴリ / サブカテゴリ絞り込み整理
+
+outfit list の使用アイテム filter と WearLogForm の item 選択で、カテゴリだけでなくカテゴリ → サブカテゴリの順に絞り込めるようにするか整理する。item 数が多い画面では、カテゴリだけだと候補が残りすぎるため、サブカテゴリまで指定できる導線を検討する
+
+#### 検討対象
+
+- outfit list の使用アイテム filter
+  - 現状はカテゴリ / 季節 / TPO で絞り込める。
+  - サブカテゴリを追加する場合、カテゴリ選択後に対応する形だけを出す。
+- WearLogForm の item 選択
+  - 着用履歴登録 / 編集でも同じカテゴリ → サブカテゴリ絞り込みを検討する。
+  - 選択済み item summary や outfit 候補表示と競合しない配置にする。
+
+#### 判断観点
+
+- item master のカテゴリ / 形ラベルと一致させる。
+- カテゴリ未選択時にサブカテゴリをどう表示するか決める。
+- 既存の keyword / 季節 / TPO filter と併用できるようにする。
+- API / DB 変更なしの client-side filter で足りるか確認する。
+- outfit new / edit の作成補助とは混同しない。
+
+- 出典 / 対象箇所: 手元確認, `web/src/components/outfits/outfits-list.tsx`, `web/src/components/wear-logs/wear-log-form.tsx`
+- 関連機能: outfits / wear logs / items
+- 種別: `設計`
+- 優先度: `中`
+- 依存関係: item category / shape master の current 表示確認
 - すぐ実装できるか: `要設計`
 
 ## ドキュメント整理

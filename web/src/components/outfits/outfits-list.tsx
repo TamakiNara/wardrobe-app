@@ -8,7 +8,13 @@ import OutfitDuplicateAction from "@/components/outfits/outfit-duplicate-action"
 import { isItemVisibleByCategorySettings } from "@/lib/api/categories";
 import { fetchCategoryVisibilitySettings } from "@/lib/api/settings";
 import { SEASON_OPTIONS } from "@/lib/master-data/item-attributes";
-import type { ItemSpec } from "@/types/items";
+import {
+  findItemCategoryLabel,
+  findItemShapeLabel,
+  ITEM_CATEGORIES,
+} from "@/lib/master-data/item-shapes";
+import { fetchAllPaginatedCandidates } from "@/lib/wear-logs/candidates";
+import type { ItemRecord, ItemSpec } from "@/types/items";
 import type { SkinTonePreset } from "@/types/settings";
 
 export type OutfitItem = {
@@ -58,12 +64,16 @@ export type OutfitsListProps = {
 };
 
 type OutfitSortValue = "updated_at_desc" | "name_asc";
+type ItemFilterLoadStatus = "idle" | "loading" | "success" | "error";
 
 const DEFAULT_SORT: OutfitSortValue = "updated_at_desc";
 const SORT_OPTIONS: Array<{ value: OutfitSortValue; label: string }> = [
   { value: "updated_at_desc", label: "更新順" },
   { value: "name_asc", label: "名前順" },
 ];
+const ITEM_FILTER_SEASONS = SEASON_OPTIONS.filter(
+  (season) => season !== "オール",
+);
 
 function normalizeSort(value: string | null): OutfitSortValue {
   if (value === "name_asc") {
@@ -84,6 +94,64 @@ function normalizePage(value: string | null): number {
   }
 
   return page;
+}
+
+function matchesItemSeasonFilter(seasons: string[], filterSeason: string) {
+  if (filterSeason === "") {
+    return true;
+  }
+
+  if (seasons.length === 0) {
+    return true;
+  }
+
+  return seasons.includes(filterSeason) || seasons.includes("オール");
+}
+
+function getColorDisplayLabel(
+  color: NonNullable<ItemRecord["colors"]>[number],
+) {
+  const customLabel = color.custom_label?.trim();
+
+  if (customLabel) {
+    return customLabel;
+  }
+
+  const label = color.label?.trim();
+  return label || "色未設定";
+}
+
+function renderItemColorSummary(item: ItemRecord) {
+  const colors = item.colors ?? [];
+  const mainColor = colors.find((color) => color.role === "main");
+  const subColor = colors.find((color) => color.role === "sub");
+
+  if (!mainColor && !subColor) {
+    return null;
+  }
+
+  return (
+    <div className="mt-2 flex flex-wrap gap-2">
+      {mainColor && (
+        <span className="inline-flex items-center gap-2 rounded-full border border-gray-300 bg-white px-2.5 py-1 text-xs text-gray-700">
+          <span
+            className="h-3 w-3 rounded-full border border-gray-300"
+            style={{ backgroundColor: mainColor.hex }}
+          />
+          {getColorDisplayLabel(mainColor)}
+        </span>
+      )}
+      {subColor && (
+        <span className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs text-gray-700">
+          <span
+            className="h-3 w-3 rounded-full border border-gray-300"
+            style={{ backgroundColor: subColor.hex }}
+          />
+          {getColorDisplayLabel(subColor)}
+        </span>
+      )}
+    </div>
+  );
 }
 
 function buildQueryString({
@@ -164,6 +232,16 @@ export default function OutfitsList({
     initialVisibleCategoryIds ?? null,
   );
   const [hasClearedInitialSeason, setHasClearedInitialSeason] = useState(false);
+  const [isItemFilterOpen, setIsItemFilterOpen] = useState(false);
+  const [itemFilterKeyword, setItemFilterKeyword] = useState("");
+  const [itemCategoryFilter, setItemCategoryFilter] = useState("");
+  const [itemSeasonFilter, setItemSeasonFilter] = useState("");
+  const [itemTpoFilter, setItemTpoFilter] = useState("");
+  const [itemFilterCandidates, setItemFilterCandidates] = useState<
+    ItemRecord[]
+  >([]);
+  const [itemFilterLoadStatus, setItemFilterLoadStatus] =
+    useState<ItemFilterLoadStatus>("idle");
 
   useEffect(() => {
     setDraftKeyword(keyword);
@@ -272,6 +350,47 @@ export default function OutfitsList({
     };
   }, [draftKeyword, isComposingKeyword, keyword, updateQuery]);
 
+  async function loadItemFilterCandidates() {
+    setItemFilterLoadStatus("loading");
+    try {
+      const response = await fetchAllPaginatedCandidates<ItemRecord, "items">(
+        "/api/items",
+        "items",
+      );
+
+      if (response.status !== 200) {
+        setItemFilterCandidates([]);
+        setItemFilterLoadStatus("error");
+        return;
+      }
+
+      setItemFilterCandidates(
+        response.entries.toSorted((a, b) =>
+          (a.name ?? "").localeCompare(b.name ?? "", "ja"),
+        ),
+      );
+      setItemFilterLoadStatus("success");
+    } catch {
+      setItemFilterCandidates([]);
+      setItemFilterLoadStatus("error");
+    }
+  }
+
+  function handleItemFilterToggle() {
+    setIsItemFilterOpen((current) => {
+      const next = !current;
+      if (
+        next &&
+        itemFilterLoadStatus !== "success" &&
+        itemFilterLoadStatus !== "loading"
+      ) {
+        void loadItemFilterCandidates();
+      }
+
+      return next;
+    });
+  }
+
   const hasActiveFilters = Boolean(
     keyword ||
     effectiveSeasonFilter ||
@@ -282,6 +401,39 @@ export default function OutfitsList({
   );
   const hasItemFilter = itemIdFilter !== "";
   const itemFilterLabel = itemFilter?.name?.trim() || "指定したアイテム";
+  const normalizedItemFilterKeyword = itemFilterKeyword.trim().toLowerCase();
+  const availableItemCategoryValues = Array.from(
+    new Set(
+      itemFilterCandidates
+        .map((item) => item.category)
+        .filter(
+          (category): category is string =>
+            typeof category === "string" && category !== "",
+        ),
+    ),
+  );
+  const filteredItemCandidates = itemFilterCandidates.filter((item) => {
+    const itemName = (item.name ?? "名称未設定").toLowerCase();
+    const categoryLabel = (
+      findItemCategoryLabel(item.category) ?? ""
+    ).toLowerCase();
+    const shapeLabel = (
+      findItemShapeLabel(item.category, item.shape) ?? ""
+    ).toLowerCase();
+    const seasons = item.seasons ?? [];
+    const tpos = item.tpos ?? [];
+    const matchesKeyword =
+      !normalizedItemFilterKeyword ||
+      itemName.includes(normalizedItemFilterKeyword) ||
+      categoryLabel.includes(normalizedItemFilterKeyword) ||
+      shapeLabel.includes(normalizedItemFilterKeyword);
+    const matchesCategory =
+      itemCategoryFilter === "" || item.category === itemCategoryFilter;
+    const matchesSeason = matchesItemSeasonFilter(seasons, itemSeasonFilter);
+    const matchesTpo = itemTpoFilter === "" || tpos.includes(itemTpoFilter);
+
+    return matchesKeyword && matchesCategory && matchesSeason && matchesTpo;
+  });
 
   return (
     <div className="space-y-6">
@@ -367,6 +519,191 @@ export default function OutfitsList({
                 </option>
               ))}
             </select>
+          </div>
+
+          <div className="md:col-span-2 xl:col-span-5">
+            <div className="flex flex-col gap-3 rounded-xl border border-gray-200 bg-gray-50 p-4">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-700">
+                    使用アイテム
+                  </p>
+                  <p className="mt-1 text-xs text-gray-500">
+                    手持ちアイテムから選んで、含まれるコーディネートを絞り込みます。
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleItemFilterToggle}
+                  className="self-start rounded-lg border border-blue-200 bg-white px-4 py-2 text-sm font-medium text-blue-700 transition hover:bg-blue-50 sm:self-auto"
+                >
+                  {isItemFilterOpen
+                    ? "アイテム一覧を閉じる"
+                    : "アイテム一覧を開く"}
+                </button>
+              </div>
+
+              {hasItemFilter ? (
+                <div className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-900">
+                  <span className="font-medium">選択中: </span>「
+                  {itemFilterLabel}」
+                </div>
+              ) : null}
+
+              {isItemFilterOpen ? (
+                <div className="space-y-3">
+                  <label
+                    htmlFor="outfit-item-filter-keyword"
+                    className="sr-only"
+                  >
+                    使用アイテムを絞り込む
+                  </label>
+                  <input
+                    id="outfit-item-filter-keyword"
+                    type="search"
+                    value={itemFilterKeyword}
+                    onChange={(e) => setItemFilterKeyword(e.target.value)}
+                    placeholder="アイテム名・カテゴリ・形で絞り込み"
+                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  />
+                  <div className="grid gap-3 md:grid-cols-3">
+                    <div>
+                      <label className="mb-1 block text-sm font-medium text-gray-700">
+                        カテゴリ
+                      </label>
+                      <select
+                        value={itemCategoryFilter}
+                        onChange={(e) => setItemCategoryFilter(e.target.value)}
+                        className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                      >
+                        <option value="">指定なし</option>
+                        {ITEM_CATEGORIES.filter((category) =>
+                          availableItemCategoryValues.includes(category.value),
+                        ).map((category) => (
+                          <option key={category.value} value={category.value}>
+                            {category.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="mb-1 block text-sm font-medium text-gray-700">
+                        季節
+                      </label>
+                      <select
+                        value={itemSeasonFilter}
+                        onChange={(e) => setItemSeasonFilter(e.target.value)}
+                        className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                      >
+                        <option value="">指定なし</option>
+                        {ITEM_FILTER_SEASONS.map((season) => (
+                          <option key={season} value={season}>
+                            {season}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="mb-1 block text-sm font-medium text-gray-700">
+                        TPO
+                      </label>
+                      <select
+                        value={itemTpoFilter}
+                        onChange={(e) => setItemTpoFilter(e.target.value)}
+                        className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                      >
+                        <option value="">指定なし</option>
+                        {availableTpos.map((tpo) => (
+                          <option key={tpo} value={tpo}>
+                            {tpo}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  {itemFilterLoadStatus === "loading" ? (
+                    <p className="rounded-xl border border-dashed border-gray-300 bg-white p-4 text-sm text-gray-600">
+                      アイテム候補を読み込んでいます。
+                    </p>
+                  ) : null}
+
+                  {itemFilterLoadStatus === "error" ? (
+                    <p className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+                      アイテム候補を取得できませんでした。
+                    </p>
+                  ) : null}
+
+                  {itemFilterLoadStatus === "success" &&
+                  itemFilterCandidates.length === 0 ? (
+                    <p className="rounded-xl border border-dashed border-gray-300 bg-white p-4 text-sm text-gray-600">
+                      候補に表示できるアイテムがありません。
+                    </p>
+                  ) : null}
+
+                  {itemFilterLoadStatus === "success" &&
+                  itemFilterCandidates.length > 0 &&
+                  filteredItemCandidates.length === 0 ? (
+                    <p className="rounded-xl border border-dashed border-gray-300 bg-white p-4 text-sm text-gray-600">
+                      条件に一致するアイテム候補がありません。
+                    </p>
+                  ) : null}
+
+                  {itemFilterLoadStatus === "success" &&
+                  filteredItemCandidates.length > 0 ? (
+                    <div className="max-h-96 overflow-y-auto pr-1">
+                      <ul className="grid gap-2 md:grid-cols-2">
+                        {filteredItemCandidates.map((item) => {
+                          const itemName = item.name?.trim() || "名称未設定";
+                          const categoryLabel =
+                            findItemCategoryLabel(item.category) ||
+                            "カテゴリ未設定";
+                          const shapeLabel =
+                            findItemShapeLabel(item.category, item.shape) ||
+                            "形未設定";
+                          const isSelected = String(item.id) === itemIdFilter;
+                          return (
+                            <li key={item.id}>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  updateQuery({
+                                    itemId: String(item.id),
+                                    page: 1,
+                                  })
+                                }
+                                className={`w-full rounded-lg border px-3 py-2 text-left text-sm transition ${
+                                  isSelected
+                                    ? "border-blue-500 bg-blue-50"
+                                    : "border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-50"
+                                }`}
+                              >
+                                <span className="flex items-center justify-between gap-2">
+                                  <span className="font-medium text-gray-900">
+                                    {itemName}
+                                  </span>
+                                  {isSelected ? (
+                                    <span className="shrink-0 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
+                                      選択中
+                                    </span>
+                                  ) : null}
+                                </span>
+                                <span className="mt-1 block text-xs text-gray-500">
+                                  {categoryLabel} / {shapeLabel}
+                                </span>
+                                {renderItemColorSummary(item)}
+                              </button>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
+            </div>
           </div>
         </div>
 
