@@ -426,57 +426,44 @@ current の wear log feedback tag import は lenient import とし、legacy / un
 
 ### DES-11 item から outfit を検索する導線の適用画面整理
 
-現在、item detail と wear log 登録 / 編集では、item を起点に outfit を検索・候補表示する導線がある。一方で、コーディネート一覧・コーディネート新規・コーディネート編集では、同じ導線をどこまで提供するべきか未整理。
+item を起点に既存 outfit を探す導線の適用画面を整理する。DES-11 では「既存 outfit を探す」参照・検索の導線までを扱い、「既存 outfit を使って新しく作る」作成補助は別機能として扱う。
 
 #### 現状
 
-- outfit list API は `item_id` filter 対応済み。
+- `GET /api/outfits?item_id={id}` は実装済み。
 - item detail から `/outfits?item_id={id}` へ遷移できる。
+- outfit list では `item_id` filter の表示・解除ができる。
 - wear log 登録 / 編集では、item 1件選択時に、その item を含む outfit 候補を表示できる。
+- wear log の関連 outfit 候補選択時は `source_outfit_id` を設定し、手動 item 選択はクリアする。保存時は `source_outfit_id` あり、`items: []` の payload になり、backend 側の既存仕様で outfit 構成 item を展開する。
 
-#### 検討対象
+#### 方針
 
-- コーディネート一覧
-  - item filter UI を一覧画面上で直接提供するか。
-  - `/outfits?item_id={id}` の URL filter だけで十分か。
-  - item 名表示・解除導線・他 filter との併用をどう扱うか。
-- コーディネート新規
-  - outfit 作成中に、選択した item を含む既存 outfit を参考として出すべきか。
-  - 既存 outfit の候補表示が、新規作成 UI を重くしないか。
-  - 「既存 outfit を複製して作る」導線と競合しないか。
-- コーディネート編集
-  - 既存 outfit に item を追加する時、その item を含む他 outfit を参考表示する必要があるか。
-  - 編集対象 outfit と候補 outfit の関係が分かりにくくならないか。
-  - 複製 / 新規作成との使い分け。
+- item → outfit 検索導線は、現時点では「参照・検索」として扱う。
+- MVP 範囲は item detail / outfit list / wear log 登録・編集までとする。
+- outfit new / outfit edit には、今すぐ同じ検索導線を直接追加しない。
+- item list への導線追加も現時点では後回しにする。
 
-#### 判断観点
+理由:
 
-- その画面の主目的と合うか。
-- item 選択 UI と outfit 検索 UI が混ざらないか。
-- 既存の `/outfits?item_id={id}` で足りるか。
-- 追加 UI によって画面が重くならないか。
-- wear log 側の候補表示と同じ component / API を使えるか。
-- 複数 item 検索が必要か。
-- まずは URL filter だけでよいか、画面内 UI が必要か。
+- outfit new では、作成補助・複製・重複確認と責務が混ざりやすい。
+- outfit edit では、未保存変更や別 outfit への遷移の扱いが必要になる。
+- item list は操作過多になりやすく、現時点では item detail 経由で代替できる。
+- 検索導線と作成補助を混同しないため。
 
-#### 方針候補
+#### 残件
 
-- コーディネート一覧
-  - `item_id` URL filter は current 対応済み。
-  - 画面内で item filter を選べる UI が必要か検討する。
-- コーディネート新規
-  - すぐには入れず、既存 outfit の参考表示・複製導線と合わせて検討する。
-- コーディネート編集
-  - すぐには入れず、item 追加 UI の改善や outfit 複製導線と合わせて検討する。
+- outfit list の `item_id` filter 時 empty state 文言を確認する。
+- 必要なら item detail から「このアイテムを使ってコーディネートを作成」導線を別タスク化する。
+- 既存 outfit を参考にした複製作成は別タスクとして扱う。
+- outfit 作成時の重複候補表示は別タスクとして扱う。
+- outfit new / edit に導線を入れる場合は、複製・初期 item 選択・未保存変更確認の仕様を先に決める。
 
-#### 今回やらないこと
+#### メモ
 
-- 実装
-- 複数 item 検索
-- recommendation / suggestion
-- outfit 作成 UI の大幅変更
-- DB 変更
-- API 変更
+- DES-11 では「既存 outfit を探す」までを扱う。
+- 「既存 outfit を使って新しく作る」は別機能として扱う。
+- outfit new / edit に入れる場合は、検索ではなく作成補助機能として再設計する。
+- 後続の複製機能や item 初期選択付き新規作成と衝突しないようにする。
 
 - 出典 / 対象箇所: 手元タスク, `outfits/list-filters.md`, `outfits/create-edit.md`
 - 関連機能: items / outfits / wear logs
