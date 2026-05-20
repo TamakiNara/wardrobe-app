@@ -253,7 +253,7 @@ describe("ShoppingMemoDetailPage", () => {
       '>期限</p><p class="mt-1 text-sm font-medium text-gray-900">2026/05/07 23:59',
     );
     expect(markup).toContain("Sample Brand");
-    expect(markup).toContain("購入検討詳細を見る");
+    expect(markup).toContain("登録内容を見る");
     expect(markup).toContain('aria-label="買い物メモから外す"');
     expect(markup).not.toContain(">外す<");
     expect(markup).toContain("商品ページ");

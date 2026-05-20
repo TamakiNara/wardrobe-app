@@ -450,27 +450,25 @@ function renderGroupItem(
             </p>
           ) : null}
 
-          <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+          <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
             {item.purchase_url ? (
               <PurchaseUrlLink
                 url={item.purchase_url}
                 variant="list"
-                className="mr-auto"
+                className="rounded-full border border-gray-200 bg-white px-2.5 py-1"
               />
             ) : (
               <span className="text-xs text-gray-400">商品ページ未設定</span>
             )}
-            <div className="ml-auto flex flex-wrap items-center justify-end gap-3">
-              <Link
-                href={buildPurchaseCandidateDetailHref(
-                  item.purchase_candidate_id,
-                  shoppingMemoId,
-                )}
-                className="text-sm font-medium text-blue-600 hover:underline"
-              >
-                購入検討詳細を見る
-              </Link>
-            </div>
+            <Link
+              href={buildPurchaseCandidateDetailHref(
+                item.purchase_candidate_id,
+                shoppingMemoId,
+              )}
+              className="inline-flex items-center rounded-full border border-blue-100 bg-white px-2.5 py-1 text-xs font-medium text-blue-600 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+            >
+              登録内容を見る
+            </Link>
           </div>
 
           <div className="pt-1">
