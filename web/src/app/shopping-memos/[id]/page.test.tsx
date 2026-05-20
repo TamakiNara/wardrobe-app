@@ -264,8 +264,8 @@ describe("ShoppingMemoDetailPage", () => {
     expect(markup).not.toContain("グループ小計");
     expect(markup).toContain("小計");
     expect(markup).toContain("8,620円");
-    expect(markup).toContain("期限:</span> 2026/05/07 23:59");
-    expect(markup).toContain("期限:</span> 2026/05/10 10:00");
+    expect(markup).toContain("販売終了日:</span> 2026/05/07 23:59");
+    expect(markup).toContain("セール終了日:</span> 2026/05/10 10:00");
     expect(markup).toContain("grid grid-cols-[5.5rem_minmax(0,1fr)] gap-4");
     expect(markup).toContain("lg:grid-cols-2");
     expect(markup).toContain("lg:[&amp;:has([role=alertdialog])]:col-span-2");
@@ -364,6 +364,7 @@ describe("ShoppingMemoDetailPage", () => {
     expect(markup).not.toContain("2,120");
     expect(markup).toContain("2,629");
     expect(markup).toContain("2,629円");
+    expect(markup).toContain("セール終了日:</span> 2026/05/11 01:59");
   });
 
   it("item が空なら empty state を表示する", async () => {

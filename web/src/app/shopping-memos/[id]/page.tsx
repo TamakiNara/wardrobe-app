@@ -35,6 +35,11 @@ type DeadlineState = "expired" | "soon" | null;
 
 type ShoppingMemoItemImageMap = Record<number, string | null>;
 
+type ItemDeadline = {
+  value: string;
+  label: "販売終了日" | "セール終了日";
+};
+
 function formatPrice(value: number): string {
   return `${value.toLocaleString("ja-JP")}円`;
 }
@@ -66,14 +71,34 @@ function formatDateTime(value: string | null): string | null {
 
 function resolveNearestItemDeadline(
   item: ShoppingMemoGroupItem,
-): string | null {
-  const candidates = [item.sale_ends_at, item.discount_ends_at]
-    .filter((value): value is string => Boolean(value))
-    .map((value) => new Date(value))
-    .filter((value) => !Number.isNaN(value.getTime()))
-    .sort((left, right) => left.getTime() - right.getTime());
+): ItemDeadline | null {
+  const candidates = [
+    { value: item.sale_ends_at, label: "販売終了日" as const },
+    { value: item.discount_ends_at, label: "セール終了日" as const },
+  ]
+    .filter(
+      (
+        candidate,
+      ): candidate is { value: string; label: ItemDeadline["label"] } =>
+        Boolean(candidate.value),
+    )
+    .map((candidate) => ({
+      ...candidate,
+      date: new Date(candidate.value),
+    }))
+    .filter((candidate) => !Number.isNaN(candidate.date.getTime()))
+    .sort((left, right) => left.date.getTime() - right.date.getTime());
 
-  return candidates[0]?.toISOString() ?? null;
+  const nearest = candidates[0];
+
+  if (!nearest) {
+    return null;
+  }
+
+  return {
+    value: nearest.date.toISOString(),
+    label: nearest.label,
+  };
 }
 
 function resolveDeadlineState(value: string | null): DeadlineState {
@@ -295,7 +320,7 @@ function renderGroupItem(
   shoppingMemoId: number,
 ) {
   const nearestDeadline = resolveNearestItemDeadline(item);
-  const nearestDeadlineLabel = formatDateTime(nearestDeadline);
+  const nearestDeadlineLabel = formatDateTime(nearestDeadline?.value ?? null);
   const hasSalePrice = isPurchaseCandidateSaleActive(
     item.sale_price,
     item.discount_ends_at,
@@ -359,7 +384,7 @@ function renderGroupItem(
                     価格未設定
                   </span>
                 ) : null}
-                {renderDeadlineBadge(nearestDeadline)}
+                {renderDeadlineBadge(nearestDeadline?.value ?? null)}
               </div>
               {metadata.length > 0 ? (
                 <p className="flex flex-wrap gap-x-3 gap-y-1 text-sm text-gray-600">
@@ -412,7 +437,9 @@ function renderGroupItem(
 
           {nearestDeadlineLabel ? (
             <p className="text-sm text-gray-600">
-              <span className="font-medium text-gray-700">期限:</span>{" "}
+              <span className="font-medium text-gray-700">
+                {nearestDeadline?.label}:
+              </span>{" "}
               {nearestDeadlineLabel}
             </p>
           ) : null}
