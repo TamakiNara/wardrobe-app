@@ -710,7 +710,6 @@ export default function OutfitsList({
                                       {categoryLabel} / {shapeLabel}
                                       {brandName ? ` · ${brandName}` : ""}
                                     </span>
-                                    {renderItemColorSummary(item)}
                                   </button>
                                   <Link
                                     href={buildItemDetailHref(item.id)}
@@ -719,6 +718,7 @@ export default function OutfitsList({
                                     詳細
                                   </Link>
                                 </div>
+                                {renderItemColorSummary(item)}
                               </div>
                             </li>
                           );
