@@ -592,6 +592,13 @@ describe("OutfitsList", () => {
     expect(container.textContent).toContain("トップス / カーディガン");
     expect(container.textContent).toContain("UNIQLO");
     expect(container.textContent).toContain("ホワイト");
+    const itemDetailLink = container.querySelector<HTMLAnchorElement>(
+      'a[href^="/items/201?"]',
+    );
+    expect(itemDetailLink?.textContent).toContain("詳細");
+    expect(itemDetailLink?.getAttribute("href")).toBe(
+      `/items/201?return_to=%2Foutfits&return_label=${encodeURIComponent("コーディネート一覧")}`,
+    );
 
     const itemSearchInput = container.querySelector<HTMLInputElement>(
       "#outfit-item-filter-keyword",
