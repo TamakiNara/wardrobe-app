@@ -107,6 +107,57 @@ describe("WearLogForm", () => {
     expect(fetchAllPaginatedCandidatesMock).not.toHaveBeenCalled();
   });
 
+  it("編集時の選択済み item を取得済み候補のブランド・カテゴリ情報で補完する", async () => {
+    const { mergeWearLogItemCandidates } = await import("@/lib/wear-logs/form");
+
+    const mergedItems = mergeWearLogItemCandidates(
+      [
+        {
+          id: 1,
+          name: "Vネックカーディガン",
+          status: "active",
+          care_status: null,
+          brand_name: "UNIQLO",
+          category: "tops",
+          shape: "cardigan",
+          colors: [
+            {
+              role: "main",
+              mode: "preset",
+              value: "black",
+              hex: "#1F1F1F",
+              label: "黒",
+            },
+          ],
+          seasons: ["春"],
+          tpos: ["仕事"],
+        },
+      ],
+      {
+        items: [
+          {
+            source_item_id: 1,
+            item_name: "Vネックカーディガン",
+            source_item_status: "active",
+            item_source_type: "manual",
+            sort_order: 1,
+          },
+        ],
+      } as Parameters<typeof mergeWearLogItemCandidates>[1],
+    );
+
+    expect(mergedItems).toHaveLength(1);
+    expect(mergedItems[0]).toEqual(
+      expect.objectContaining({
+        id: 1,
+        brand_name: "UNIQLO",
+        category: "tops",
+        shape: "cardigan",
+      }),
+    );
+    expect(mergedItems[0]?.colors).toHaveLength(1);
+  });
+
   it("通常導線の新規登録で item のみを送信できる", async () => {
     fetchAllPaginatedCandidatesMock
       .mockResolvedValueOnce({
@@ -116,6 +167,7 @@ describe("WearLogForm", () => {
             id: 1,
             name: "白T",
             status: "active",
+            brand_name: "UNIQLO",
             category: "tops",
             shape: "tshirt",
             colors: [
@@ -228,6 +280,7 @@ describe("WearLogForm", () => {
     expect(container.textContent).toContain("通勤コーデ");
     expect(container.textContent).toContain("白シャツ / ネイビーパンツ");
     expect(container.textContent).toContain("トップス / Tシャツ/カットソー");
+    expect(container.textContent).toContain("UNIQLO");
     expect(container.textContent).toContain("白");
     expect(container.textContent).not.toContain(
       "このアイテムを含むコーディネート候補",

@@ -414,6 +414,7 @@ export default function OutfitsList({
   );
   const filteredItemCandidates = itemFilterCandidates.filter((item) => {
     const itemName = (item.name ?? "名称未設定").toLowerCase();
+    const brandName = (item.brand_name ?? "").toLowerCase();
     const categoryLabel = (
       findItemCategoryLabel(item.category) ?? ""
     ).toLowerCase();
@@ -425,6 +426,7 @@ export default function OutfitsList({
     const matchesKeyword =
       !normalizedItemFilterKeyword ||
       itemName.includes(normalizedItemFilterKeyword) ||
+      brandName.includes(normalizedItemFilterKeyword) ||
       categoryLabel.includes(normalizedItemFilterKeyword) ||
       shapeLabel.includes(normalizedItemFilterKeyword);
     const matchesCategory =
@@ -663,6 +665,7 @@ export default function OutfitsList({
                           const shapeLabel =
                             findItemShapeLabel(item.category, item.shape) ||
                             "形未設定";
+                          const brandName = item.brand_name?.trim();
                           const isSelected = String(item.id) === itemIdFilter;
                           return (
                             <li key={item.id}>
@@ -692,6 +695,7 @@ export default function OutfitsList({
                                 </span>
                                 <span className="mt-1 block text-xs text-gray-500">
                                   {categoryLabel} / {shapeLabel}
+                                  {brandName ? ` · ${brandName}` : ""}
                                 </span>
                                 {renderItemColorSummary(item)}
                               </button>

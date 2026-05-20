@@ -15,6 +15,7 @@ export type WearLogSelectableItem = {
   name: string | null;
   status: ItemStatus;
   care_status?: ItemCareStatus | null;
+  brand_name?: string | null;
   category?: string | null;
   shape?: string | null;
   colors?: ItemFormColor[];
@@ -73,11 +74,35 @@ export function mergeWearLogItemCandidates(
   return [...currentWearLogItems, ...candidates].reduce<
     WearLogSelectableItem[]
   >((carry, item) => {
-    if (carry.some((current) => current.id === item.id)) {
-      return carry;
+    const existingIndex = carry.findIndex((current) => current.id === item.id);
+
+    if (existingIndex === -1) {
+      return [...carry, item];
     }
 
-    return [...carry, item];
+    return carry.map((current, index) => {
+      if (index !== existingIndex) {
+        return current;
+      }
+
+      return {
+        ...current,
+        ...item,
+        care_status: item.care_status ?? current.care_status,
+        colors:
+          item.colors !== undefined && item.colors.length > 0
+            ? item.colors
+            : current.colors,
+        seasons:
+          item.seasons !== undefined && item.seasons.length > 0
+            ? item.seasons
+            : current.seasons,
+        tpos:
+          item.tpos !== undefined && item.tpos.length > 0
+            ? item.tpos
+            : current.tpos,
+      };
+    });
   }, []);
 }
 

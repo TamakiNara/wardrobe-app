@@ -244,6 +244,7 @@ function mapItemRecordToSelectable(item: ItemRecord): WearLogSelectableItem {
     name: item.name,
     status: item.status,
     care_status: item.care_status,
+    brand_name: item.brand_name,
     category: item.category,
     shape: item.shape,
     colors: item.colors ?? [],
@@ -601,6 +602,7 @@ export default function WearLogForm({
     return visibleCandidateItems
       .filter((item) => {
         const name = (item.name ?? "名称未設定").toLowerCase();
+        const brand = (item.brand_name ?? "").toLowerCase();
         const category = (
           findItemCategoryLabel(item.category) ?? ""
         ).toLowerCase();
@@ -612,6 +614,7 @@ export default function WearLogForm({
         const matchKeyword =
           !keyword ||
           name.includes(keyword) ||
+          brand.includes(keyword) ||
           category.includes(keyword) ||
           shape.includes(keyword);
         const matchCategory =
@@ -1500,6 +1503,9 @@ export default function WearLogForm({
                               {" / "}
                               {findItemShapeLabel(item.category, item.shape) ||
                                 "形未設定"}
+                              {item.brand_name?.trim()
+                                ? ` · ${item.brand_name.trim()}`
+                                : ""}
                             </p>
                             {renderColorSummary(item)}
                             {item.status === "disposed" && (
@@ -1661,6 +1667,9 @@ export default function WearLogForm({
                           {" / "}
                           {findItemShapeLabel(item.category, item.shape) ||
                             "形未設定"}
+                          {item.brand_name?.trim()
+                            ? ` · ${item.brand_name.trim()}`
+                            : ""}
                         </span>
                       </div>
                     </div>

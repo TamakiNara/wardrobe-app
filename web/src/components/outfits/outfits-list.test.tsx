@@ -528,6 +528,7 @@ describe("OutfitsList", () => {
           id: 201,
           name: "Vネックカーディガン",
           status: "active",
+          brand_name: "UNIQLO",
           category: "tops",
           shape: "cardigan",
           colors: [
@@ -589,6 +590,7 @@ describe("OutfitsList", () => {
     expect(container.textContent).toContain("Vネックカーディガン");
     expect(container.textContent).toContain("黒パンツ");
     expect(container.textContent).toContain("トップス / カーディガン");
+    expect(container.textContent).toContain("UNIQLO");
     expect(container.textContent).toContain("ホワイト");
 
     const itemSearchInput = container.querySelector<HTMLInputElement>(
