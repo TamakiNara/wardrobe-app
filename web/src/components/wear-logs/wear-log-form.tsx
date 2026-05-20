@@ -1457,10 +1457,10 @@ export default function WearLogForm({
                     return (
                       <div
                         key={item.id}
-                        className={`rounded-xl border p-4 transition ${
+                        className={`rounded-lg border px-3 py-2 text-sm transition ${
                           checked
                             ? "border-blue-500 bg-blue-50"
-                            : "border-gray-300 bg-white"
+                            : "border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-50"
                         }`}
                       >
                         <div className="flex items-start gap-3">
@@ -1473,40 +1473,46 @@ export default function WearLogForm({
                           />
 
                           <div className="min-w-0 flex-1">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <label
-                                htmlFor={checkboxId}
-                                className="cursor-pointer font-medium text-gray-900"
-                              >
-                                {item.name ?? "名称未設定"}
-                              </label>
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="min-w-0">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <label
+                                    htmlFor={checkboxId}
+                                    className="cursor-pointer font-medium text-gray-900"
+                                  >
+                                    {item.name ?? "名称未設定"}
+                                  </label>
+                                  {item.status === "disposed" && (
+                                    <span className="rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800">
+                                      手放し済み
+                                    </span>
+                                  )}
+                                  {item.care_status === "in_cleaning" && (
+                                    <span className="rounded-full border border-sky-300 bg-sky-50 px-2 py-0.5 text-xs font-medium text-sky-800">
+                                      {ITEM_CARE_STATUS_LABELS.in_cleaning}
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="mt-1 text-xs text-gray-500">
+                                  {findItemCategoryLabel(item.category) ||
+                                    "カテゴリ未設定"}
+                                  {" / "}
+                                  {findItemShapeLabel(
+                                    item.category,
+                                    item.shape,
+                                  ) || "形未設定"}
+                                  {item.brand_name?.trim()
+                                    ? ` · ${item.brand_name.trim()}`
+                                    : ""}
+                                </p>
+                              </div>
                               <Link
                                 href={buildItemDetailHref(item.id)}
-                                className="text-sm font-medium text-blue-600 hover:underline"
+                                className="shrink-0 text-sm font-medium text-blue-600 hover:underline"
                               >
                                 詳細
                               </Link>
-                              {item.status === "disposed" && (
-                                <span className="rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800">
-                                  手放し済み
-                                </span>
-                              )}
-                              {item.care_status === "in_cleaning" && (
-                                <span className="rounded-full border border-sky-300 bg-sky-50 px-2 py-0.5 text-xs font-medium text-sky-800">
-                                  {ITEM_CARE_STATUS_LABELS.in_cleaning}
-                                </span>
-                              )}
                             </div>
-                            <p className="mt-2 text-sm text-gray-600">
-                              {findItemCategoryLabel(item.category) ||
-                                "カテゴリ未設定"}
-                              {" / "}
-                              {findItemShapeLabel(item.category, item.shape) ||
-                                "形未設定"}
-                              {item.brand_name?.trim()
-                                ? ` · ${item.brand_name.trim()}`
-                                : ""}
-                            </p>
                             {renderColorSummary(item)}
                             {item.status === "disposed" && (
                               <p className="mt-1 text-sm text-amber-800">
