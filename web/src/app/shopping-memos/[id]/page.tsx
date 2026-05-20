@@ -346,7 +346,7 @@ function renderGroupItem(
   return (
     <article
       key={item.shopping_memo_item_id}
-      className="border-b border-gray-200/80 pb-4 last:border-b-0 last:pb-0 lg:[&:has([role=alertdialog])]:col-span-2"
+      className="border-b border-gray-200/80 pb-4 last:border-b-0 last:pb-0 lg:border-b-0 lg:pb-0 lg:[&:has([role=alertdialog])]:col-span-2"
     >
       <div className="grid grid-cols-[5.5rem_minmax(0,1fr)] gap-4 md:grid-cols-[6.5rem_minmax(0,1fr)]">
         <div className="overflow-hidden rounded-lg">
