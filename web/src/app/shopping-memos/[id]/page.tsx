@@ -334,6 +334,14 @@ function renderGroupItem(
     item.quantity > 1 ? `数量 ${item.quantity}` : null,
     item.priority ? `優先度 ${item.priority}` : null,
   ].filter((value): value is string => Boolean(value));
+  const deadlineDisplay = nearestDeadlineLabel ? (
+    <p className="text-xs text-gray-600 md:text-right">
+      <span className="font-medium text-gray-700">
+        {nearestDeadline?.label}:
+      </span>{" "}
+      {nearestDeadlineLabel}
+    </p>
+  ) : null;
 
   return (
     <article
@@ -395,10 +403,10 @@ function renderGroupItem(
               ) : null}
             </div>
 
-            <div className="min-w-[8rem] text-right md:justify-self-end md:self-start">
+            <div className="min-w-[8rem] space-y-1.5 text-left md:justify-self-end md:self-start md:text-right">
               {item.unit_price !== null ? (
-                <div className="flex flex-col items-end space-y-1.5">
-                  <div className="flex items-end justify-end gap-1">
+                <div className="flex flex-col items-start space-y-1.5 md:items-end">
+                  <div className="flex items-end justify-start gap-1 md:justify-end">
                     <span
                       className={`text-lg font-semibold leading-none ${
                         hasSalePrice ? "text-rose-700" : "text-gray-900"
@@ -432,17 +440,9 @@ function renderGroupItem(
                   </p>
                 </div>
               )}
+              {deadlineDisplay}
             </div>
           </div>
-
-          {nearestDeadlineLabel ? (
-            <p className="text-sm text-gray-600">
-              <span className="font-medium text-gray-700">
-                {nearestDeadline?.label}:
-              </span>{" "}
-              {nearestDeadlineLabel}
-            </p>
-          ) : null}
 
           {item.memo ? (
             <p className="rounded-xl bg-white px-3 py-2 text-sm leading-6 text-gray-600 ring-1 ring-gray-200">

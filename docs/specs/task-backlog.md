@@ -90,15 +90,20 @@ WearLogForm の item 選択で、選択済み item が `カテゴリ未設定 / 
 
 #### current
 
-- item row の代表期限表示は `販売終了日` / `セール終了日` の種別ラベル付きに変更済み
+- item row の代表期限表示は `販売終了日` / `セール終了日` の種別ラベル付きにし、価格欄近くへ寄せて表示済み
 
 #### remaining
 
-- group header の nearest deadline 表示
+- 各 item の期限表示で十分か確認し、必要なら group header の nearest deadline 表示を再検討
 - summary への期限 badge 追加
 - 販売終了日 / セール終了日の個別表示正式ルール
 - 比較しやすさと情報密度の再調整
 - DES-05 と連動する期限表示設計
+
+#### memo
+
+- group header の nearest deadline 表示は、現時点では実装前提にしない。item row には `販売終了日` / `セール終了日` の種別付き期限と `期限切れ` / `期限間近` badge があり、summary にも memo 全体の `一番近い期限` が表示されているため、group header にも期限を出すと全体期限 / group 期限 / item 期限が重複して情報量が増えすぎる可能性がある。
+- group 内 item が多い場合、group 折りたたみを導入する場合、店舗 / domain group 単位で購入判断する場合には有効な可能性があるため、完全に削除せず要否確認として残す。
 
 ### UI-03 買い物メモ追加モードの選択中候補可視化
 

@@ -266,6 +266,9 @@ describe("ShoppingMemoDetailPage", () => {
     expect(markup).toContain("8,620円");
     expect(markup).toContain("販売終了日:</span> 2026/05/07 23:59");
     expect(markup).toContain("セール終了日:</span> 2026/05/10 10:00");
+    expect(markup).toContain(
+      "min-w-[8rem] space-y-1.5 text-left md:justify-self-end md:self-start md:text-right",
+    );
     expect(markup).toContain("grid grid-cols-[5.5rem_minmax(0,1fr)] gap-4");
     expect(markup).toContain("lg:grid-cols-2");
     expect(markup).toContain("lg:[&amp;:has([role=alertdialog])]:col-span-2");
