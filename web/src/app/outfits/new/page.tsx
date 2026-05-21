@@ -247,6 +247,25 @@ export default function NewOutfitPage() {
     });
   }
 
+  function handleSelectedItemMove(itemId: number, direction: -1 | 1) {
+    setSelectedItemIds((prev) => {
+      const currentIndex = prev.indexOf(itemId);
+      const nextIndex = currentIndex + direction;
+
+      if (currentIndex === -1 || nextIndex < 0 || nextIndex >= prev.length) {
+        return prev;
+      }
+
+      const next = [...prev];
+      [next[currentIndex], next[nextIndex]] = [
+        next[nextIndex],
+        next[currentIndex],
+      ];
+
+      return next;
+    });
+  }
+
   const selectedItems = useMemo(() => {
     return selectedItemIds
       .map((id) => items.find((item) => item.id === id))
@@ -681,9 +700,32 @@ export default function NewOutfitPage() {
                 </p>
                 <ol className="space-y-2 text-sm text-gray-700">
                   {selectedItems.map((item, index) => (
-                    <li key={item.id}>
-                      {index + 1}. {item.name || "名称未設定"} (
-                      {formatItemClassification(item)})
+                    <li
+                      key={item.id}
+                      className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-white px-3 py-2 ring-1 ring-gray-200"
+                    >
+                      <span>
+                        {index + 1}. {item.name || "名称未設定"} (
+                        {formatItemClassification(item)})
+                      </span>
+                      <span className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          disabled={index === 0}
+                          onClick={() => handleSelectedItemMove(item.id, -1)}
+                          className="rounded-md border border-gray-300 px-2.5 py-1 text-xs font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:text-gray-400 disabled:hover:bg-white"
+                        >
+                          上へ
+                        </button>
+                        <button
+                          type="button"
+                          disabled={index === selectedItems.length - 1}
+                          onClick={() => handleSelectedItemMove(item.id, 1)}
+                          className="rounded-md border border-gray-300 px-2.5 py-1 text-xs font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:text-gray-400 disabled:hover:bg-white"
+                        >
+                          下へ
+                        </button>
+                      </span>
                     </li>
                   ))}
                 </ol>

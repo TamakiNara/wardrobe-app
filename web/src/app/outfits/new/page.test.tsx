@@ -380,6 +380,191 @@ describe("NewOutfitPage", () => {
     expect(container.querySelector("pre")).toBeNull();
   });
 
+  it("選択中アイテムを上へ移動して保存順に反映できる", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          items: [
+            {
+              id: 1,
+              name: "First item",
+              category: "tops",
+              shape: "shirt",
+              colors: [],
+              seasons: [],
+              tpos: [],
+            },
+            {
+              id: 2,
+              name: "Second item",
+              category: "bottoms",
+              shape: "pants",
+              colors: [],
+              seasons: [],
+              tpos: [],
+            },
+          ],
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 201,
+        json: async () => ({ id: 10 }),
+      });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { default: NewOutfitPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(NewOutfitPage));
+      await waitForEffects();
+    });
+
+    const checkboxes = container.querySelectorAll<HTMLInputElement>(
+      'input[type="checkbox"]',
+    );
+    const firstCheckbox = checkboxes[checkboxes.length - 2] ?? null;
+    const secondCheckbox = checkboxes[checkboxes.length - 1] ?? null;
+
+    await act(async () => {
+      firstCheckbox?.click();
+      secondCheckbox?.click();
+      await waitForEffects();
+    });
+
+    const moveUpButtons = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button"),
+    ).filter((button) => button.textContent?.includes("上へ"));
+    const moveDownButtons = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button"),
+    ).filter((button) => button.textContent?.includes("下へ"));
+
+    expect(moveUpButtons[0]?.disabled).toBe(true);
+    expect(moveDownButtons[1]?.disabled).toBe(true);
+
+    await act(async () => {
+      moveUpButtons[1]?.click();
+      await waitForEffects();
+    });
+
+    const submitButton = container.querySelector<HTMLButtonElement>(
+      'button[type="submit"]',
+    );
+
+    await act(async () => {
+      submitButton?.click();
+      await waitForEffects();
+    });
+
+    const postCall = fetchMock.mock.calls.find(
+      ([url, init]) =>
+        url === "/api/outfits" &&
+        (init as RequestInit | undefined)?.method === "POST",
+    );
+    const payload = JSON.parse(
+      ((postCall?.[1] as RequestInit | undefined)?.body as string) ?? "{}",
+    );
+
+    expect(payload.items).toEqual([
+      { item_id: 2, sort_order: 1 },
+      { item_id: 1, sort_order: 2 },
+    ]);
+  });
+
+  it("選択解除後も残ったアイテムの保存順を詰める", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          items: [
+            {
+              id: 1,
+              name: "First item",
+              category: "tops",
+              shape: "shirt",
+              colors: [],
+              seasons: [],
+              tpos: [],
+            },
+            {
+              id: 2,
+              name: "Second item",
+              category: "bottoms",
+              shape: "pants",
+              colors: [],
+              seasons: [],
+              tpos: [],
+            },
+            {
+              id: 3,
+              name: "Third item",
+              category: "outerwear",
+              shape: "jacket",
+              colors: [],
+              seasons: [],
+              tpos: [],
+            },
+          ],
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 201,
+        json: async () => ({ id: 10 }),
+      });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { default: NewOutfitPage } = await import("./page");
+
+    await act(async () => {
+      root.render(React.createElement(NewOutfitPage));
+      await waitForEffects();
+    });
+
+    const checkboxes = container.querySelectorAll<HTMLInputElement>(
+      'input[type="checkbox"]',
+    );
+    const firstCheckbox = checkboxes[checkboxes.length - 3] ?? null;
+    const secondCheckbox = checkboxes[checkboxes.length - 2] ?? null;
+    const thirdCheckbox = checkboxes[checkboxes.length - 1] ?? null;
+
+    await act(async () => {
+      firstCheckbox?.click();
+      secondCheckbox?.click();
+      thirdCheckbox?.click();
+      secondCheckbox?.click();
+      await waitForEffects();
+    });
+
+    const submitButton = container.querySelector<HTMLButtonElement>(
+      'button[type="submit"]',
+    );
+
+    await act(async () => {
+      submitButton?.click();
+      await waitForEffects();
+    });
+
+    const postCall = fetchMock.mock.calls.find(
+      ([url, init]) =>
+        url === "/api/outfits" &&
+        (init as RequestInit | undefined)?.method === "POST",
+    );
+    const payload = JSON.parse(
+      ((postCall?.[1] as RequestInit | undefined)?.body as string) ?? "{}",
+    );
+
+    expect(payload.items).toEqual([
+      { item_id: 1, sort_order: 1 },
+      { item_id: 3, sort_order: 2 },
+    ]);
+  });
+
   it("422 の field error を項目近くに表示する", async () => {
     vi.stubGlobal(
       "fetch",

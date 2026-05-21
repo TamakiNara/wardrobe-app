@@ -709,6 +709,152 @@ describe("EditOutfitPage", () => {
     expect(container.textContent).toContain("1. Office Shirt");
   });
 
+  it("既存アイテムをsort_order順で表示し、入れ替え後の順序を保存できる", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          outfit: {
+            id: 10,
+            name: "Sorted Outfit",
+            memo: null,
+            seasons: [],
+            tpos: [],
+            tpo_ids: [],
+            outfitItems: [
+              {
+                id: 201,
+                item_id: 1,
+                sort_order: 2,
+                item: {
+                  id: 1,
+                  name: "First item",
+                  status: "active",
+                  category: "tops",
+                  shape: "shirt",
+                  colors: [],
+                  seasons: [],
+                  tpos: [],
+                  tpo_ids: [],
+                },
+              },
+              {
+                id: 202,
+                item_id: 2,
+                sort_order: 1,
+                item: {
+                  id: 2,
+                  name: "Second item",
+                  status: "active",
+                  category: "bottoms",
+                  shape: "pants",
+                  colors: [],
+                  seasons: [],
+                  tpos: [],
+                  tpo_ids: [],
+                },
+              },
+            ],
+          },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          items: [
+            {
+              id: 1,
+              name: "First item",
+              status: "active",
+              category: "tops",
+              shape: "shirt",
+              colors: [],
+              seasons: [],
+              tpos: [],
+              tpo_ids: [],
+            },
+            {
+              id: 2,
+              name: "Second item",
+              status: "active",
+              category: "bottoms",
+              shape: "pants",
+              colors: [],
+              seasons: [],
+              tpos: [],
+              tpo_ids: [],
+            },
+          ],
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ id: 10 }),
+      });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { default: EditOutfitPage } = await import("./page");
+
+    await act(async () => {
+      root.render(
+        React.createElement(EditOutfitPage, {
+          params: Promise.resolve({ id: "10" }),
+        }),
+      );
+      await waitForEffects();
+    });
+
+    const firstPosition =
+      container.textContent?.indexOf("1. Second item") ?? -1;
+    const secondPosition =
+      container.textContent?.indexOf("2. First item") ?? -1;
+
+    expect(firstPosition).toBeGreaterThanOrEqual(0);
+    expect(secondPosition).toBeGreaterThan(firstPosition);
+
+    const moveUpButtons = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button"),
+    ).filter((button) => button.textContent?.includes("上へ"));
+    const moveDownButtons = Array.from(
+      container.querySelectorAll<HTMLButtonElement>("button"),
+    ).filter((button) => button.textContent?.includes("下へ"));
+
+    expect(moveUpButtons[0]?.disabled).toBe(true);
+    expect(moveDownButtons[1]?.disabled).toBe(true);
+
+    await act(async () => {
+      moveDownButtons[0]?.click();
+      await waitForEffects();
+    });
+
+    const submitButton = container.querySelector<HTMLButtonElement>(
+      'button[type="submit"]',
+    );
+
+    await act(async () => {
+      submitButton?.click();
+      await waitForEffects();
+    });
+
+    const putCall = fetchMock.mock.calls.find(
+      ([url, init]) =>
+        url === "/api/outfits/10" &&
+        (init as RequestInit | undefined)?.method === "PUT",
+    );
+    const payload = JSON.parse(
+      ((putCall?.[1] as RequestInit | undefined)?.body as string) ?? "{}",
+    );
+
+    expect(payload.items).toEqual([
+      { item_id: 1, sort_order: 1 },
+      { item_id: 2, sort_order: 2 },
+    ]);
+  });
+
   it("編集画面でも現在の季節設定をアイテム絞り込み初期値に反映する", async () => {
     fetchUserPreferencesMock.mockResolvedValue({
       preferences: {
