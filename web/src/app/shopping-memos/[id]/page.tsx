@@ -455,7 +455,7 @@ function renderGroupItem(
               <PurchaseUrlLink
                 url={item.purchase_url}
                 variant="list"
-                className="rounded-full border border-gray-200 bg-white px-2.5 py-1"
+                className="text-sm"
               />
             ) : (
               <span className="text-xs text-gray-400">商品ページ未設定</span>
@@ -465,7 +465,7 @@ function renderGroupItem(
                 item.purchase_candidate_id,
                 shoppingMemoId,
               )}
-              className="inline-flex items-center rounded-full border border-blue-100 bg-white px-2.5 py-1 text-xs font-medium text-blue-600 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+              className="text-xs font-medium text-blue-600 hover:underline"
             >
               登録内容を見る
             </Link>
