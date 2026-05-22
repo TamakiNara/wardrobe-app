@@ -725,6 +725,94 @@ class ImportExportEndpointsTest extends TestCase
             ->count());
     }
 
+    public function test_import_export_roundtrip_preserves_disposed_item_status(): void
+    {
+        Storage::fake('public');
+        Log::spy();
+
+        $user = User::factory()->create();
+        $this->createCategory('tops_shirt_blouse', 'tops', 'Tops');
+
+        Item::query()->create([
+            'user_id' => $user->id,
+            'name' => 'Active shirt',
+            'status' => 'active',
+            'category' => 'tops',
+            'subcategory' => 'shirt_blouse',
+            'shape' => 'shirt',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'white',
+                'hex' => '#ffffff',
+                'label' => 'White',
+                'custom_label' => '00 WHITE',
+            ]],
+            'tpos' => [],
+            'spec' => null,
+        ]);
+        Item::query()->create([
+            'user_id' => $user->id,
+            'name' => 'Disposed shirt',
+            'status' => 'disposed',
+            'category' => 'tops',
+            'subcategory' => 'shirt_blouse',
+            'shape' => 'shirt',
+            'colors' => [[
+                'role' => 'main',
+                'mode' => 'preset',
+                'value' => 'red',
+                'hex' => '#ff0000',
+                'label' => 'Red',
+                'custom_label' => '10 RED',
+            ]],
+            'tpos' => [],
+            'spec' => null,
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $exportResponse = $this->getJson('/api/export', [
+            'Accept' => 'application/json',
+        ]);
+        $exportResponse->assertOk();
+        $exportPayload = $exportResponse->json();
+        $exportedItems = collect($exportPayload['items'])->keyBy('name');
+
+        $this->assertSame('active', data_get($exportedItems->get('Active shirt'), 'status'));
+        $this->assertSame('disposed', data_get($exportedItems->get('Disposed shirt'), 'status'));
+        $this->assertSame('tops', data_get($exportedItems->get('Disposed shirt'), 'category'));
+        $this->assertSame('shirt_blouse', data_get($exportedItems->get('Disposed shirt'), 'subcategory'));
+        $this->assertSame('shirt', data_get($exportedItems->get('Disposed shirt'), 'shape'));
+        $this->assertSame('10 RED', data_get($exportedItems->get('Disposed shirt'), 'colors.0.custom_label'));
+
+        $token = $this->issueCsrfToken();
+        $importResponse = $this->postJson('/api/import', $exportPayload, [
+            'Accept' => 'application/json',
+            'X-CSRF-TOKEN' => $token,
+        ]);
+
+        $importResponse->assertOk()
+            ->assertJsonPath('counts.items.total', 2)
+            ->assertJsonPath('counts.items.visible', 1);
+
+        $restoredActiveItem = Item::query()
+            ->where('user_id', $user->id)
+            ->where('name', 'Active shirt')
+            ->firstOrFail();
+        $restoredDisposedItem = Item::query()
+            ->where('user_id', $user->id)
+            ->where('name', 'Disposed shirt')
+            ->firstOrFail();
+
+        $this->assertSame('active', $restoredActiveItem->status);
+        $this->assertSame('disposed', $restoredDisposedItem->status);
+        $this->assertSame('tops', $restoredDisposedItem->category);
+        $this->assertSame('shirt_blouse', $restoredDisposedItem->subcategory);
+        $this->assertSame('shirt', $restoredDisposedItem->shape);
+        $this->assertSame('10 RED', data_get($restoredDisposedItem->colors, '0.custom_label'));
+    }
+
     public function test_import_skips_shopping_memo_items_when_purchase_candidate_mapping_is_missing(): void
     {
         Storage::fake('public');

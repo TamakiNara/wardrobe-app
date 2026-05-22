@@ -64,22 +64,16 @@ item は、所持品そのものに加えて、次の履歴・派生データと
 
 - `手放す` / `クローゼットに戻す` は item 詳細画面の `状態管理` セクションから操作できる
 - `care_status` は item 詳細画面から操作できる
-- 物理削除 button component 自体は存在する
-  - `web/src/components/items/delete-item-button.tsx`
+- 物理削除 button は item detail 最下部の `削除` セクションに結線済み
+  - component: `web/src/components/items/delete-item-button.tsx`
 - `delete-item-button.tsx` の current 挙動
   - native `window.confirm()` は使わず、component 内の確認 UI を表示する
   - `DELETE /api/items/{id}` を BFF 経由で呼ぶ
   - 成功時は `/items` へ遷移して `router.refresh()`
-  - 失敗時は画面内に generic error を表示する
-- ただし current item 詳細画面には delete button は結線されておらず、**通常の画面導線としては未実装扱い**とする
-- current button は API の `message` を generic user-facing 文言へ畳んでおり、削除不可理由を個別表示する実装にはなっていない
-
-補足:
-
-- `delete-item-button.tsx` は current で item detail 最下部の `削除` セクションに結線済み
-- button 文言は `アイテムを削除する`
-- 確認 UI では、取り消せないこと・`手放す` との違い・登録画像削除を明示する
-- `422` の削除不可 message は generic error に潰さず、そのまま表示する
+  - button 文言は `アイテムを削除する`
+  - 確認 UI では、取り消せないこと・`手放す` との違い・登録画像削除を明示する
+  - `422` の削除不可 message は generic error に潰さず、そのまま表示する
+  - 500 系や raw error は user-facing fallback に畳む
 
 ### current status / care_status
 

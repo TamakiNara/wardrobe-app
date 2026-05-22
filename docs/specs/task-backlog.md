@@ -302,6 +302,20 @@ outfit list の使用アイテム filter / WearLogForm の item 選択では、i
 - 依存関係: current status 方針維持
 - すぐ実装できるか: `要設計`
 
+#### 対応済み
+
+- `disposed` / `reactivate` / delete の基本実装は current 対応済み。
+- `disposed` item の import/export roundtrip test を追加済み。
+- `items/delete-policy.md` の delete UI 記述を、item detail 最下部の `削除` セクションに結線済みの inline confirmation UI として整理済み。
+- wear log では、`disposed` item の新規指定不可と既存履歴保持を別の話として扱うことを docs に明記済み。
+
+#### 残件
+
+- delete-check API / structured reason の要否整理。
+- `item.delete.rejected` log の要否整理。
+- `converted_item_id` がある item の delete 可否と事前警告の整理。
+- `outfit_invalidated` 個別 event log、dispose reason、disposed_at の要否整理。
+
 ### FEAT-03 素材・混率管理
 
 素材明細 + 混率を item / purchase candidate へ導入する

@@ -105,8 +105,10 @@ item status は、item を通常利用対象として扱うかどうかを管理
 
 ### wear logs 候補
 
-- `disposed` item は wear logs の新規登録・更新時の候補から除外する
-- wear logs で `disposed` item を指定することは不可とする
+- `disposed` item は wear logs の新規登録・更新時の新規候補から除外する
+- 新しく `disposed` item を指定して保存することは不可とする
+- ただし、既存 wear log にすでに含まれる `disposed` item は、過去履歴保持のため同一 record の再保存に限り表示・保持できる
+- 新規選択不可と既存履歴保持は別の話として扱い、既存履歴の意味を壊すために削除・変更を強制しない
 
 ### `in_cleaning` item の扱い
 
@@ -165,7 +167,7 @@ item status は、item を通常利用対象として扱うかどうかを管理
 - item status は `active` / `disposed` を持つ
 - 通常の create / update payload に `status` は含めない
 - `dispose` / `reactivate` は item 詳細画面からの専用操作導線として扱う
-- `disposed` item は通常一覧、outfit 候補、wear logs 候補から除外する
+- `disposed` item は通常一覧、outfit 候補、wear logs の新規候補から除外する。既存 wear log に含まれる `disposed` item は履歴保持として表示・保持できる
 - `disposed` item は `GET /api/items/disposed` と `/items/disposed` の dedicated 一覧で確認し、詳細画面から `reactivate` する
 - `手放す` の確認は native confirm ではなく、item detail の状態管理セクション内でアプリ内確認 UI を表示する
 - 物理削除 API は残すが、通常の UI 主導線には置かず、item detail 最下部の補助的な `削除` セクションで扱う
