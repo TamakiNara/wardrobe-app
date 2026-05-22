@@ -41,8 +41,14 @@ import type { UserPreferencesResponse, UserTpoRecord } from "@/types/settings";
 
 type Item = ItemRecord;
 
+function getMainColor(item: Item): NonNullable<Item["colors"]>[number] | null {
+  const colors = item.colors ?? [];
+
+  return colors.find((color) => color.role === "main") ?? colors[0] ?? null;
+}
+
 function getMainColorLabel(item: Item): string | null {
-  const mainColor = item.colors?.[0];
+  const mainColor = getMainColor(item);
 
   if (!mainColor) {
     return null;
@@ -51,6 +57,10 @@ function getMainColorLabel(item: Item): string | null {
   const customLabel = mainColor.custom_label?.trim();
 
   return customLabel || mainColor.label;
+}
+
+function buildItemDetailHref(itemId: number): string {
+  return `/items/${itemId}?return_to=${encodeURIComponent("/outfits/new")}&return_label=${encodeURIComponent("コーディネート作成")}`;
 }
 
 const OUTFIT_ITEMS_LOAD_ERROR_MESSAGE =
@@ -640,9 +650,7 @@ export default function NewOutfitPage() {
                   <div className="grid gap-3 md:grid-cols-2">
                     {filteredItems.map((item) => {
                       const checked = selectedItemIds.includes(item.id);
-                      const mainColor =
-                        item.colors.find((c) => c.role === "main") ??
-                        item.colors[0];
+                      const mainColor = getMainColor(item);
                       const mainColorLabel = getMainColorLabel(item);
 
                       return (
@@ -699,35 +707,63 @@ export default function NewOutfitPage() {
                   選択中の順序
                 </p>
                 <ol className="space-y-2 text-sm text-gray-700">
-                  {selectedItems.map((item, index) => (
-                    <li
-                      key={item.id}
-                      className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-white px-3 py-2 ring-1 ring-gray-200"
-                    >
-                      <span>
-                        {index + 1}. {item.name || "名称未設定"} (
-                        {formatItemClassification(item)})
-                      </span>
-                      <span className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          disabled={index === 0}
-                          onClick={() => handleSelectedItemMove(item.id, -1)}
-                          className="rounded-md border border-gray-300 px-2.5 py-1 text-xs font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:text-gray-400 disabled:hover:bg-white"
-                        >
-                          上へ
-                        </button>
-                        <button
-                          type="button"
-                          disabled={index === selectedItems.length - 1}
-                          onClick={() => handleSelectedItemMove(item.id, 1)}
-                          className="rounded-md border border-gray-300 px-2.5 py-1 text-xs font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:text-gray-400 disabled:hover:bg-white"
-                        >
-                          下へ
-                        </button>
-                      </span>
-                    </li>
-                  ))}
+                  {selectedItems.map((item, index) => {
+                    const brandName = item.brand_name?.trim();
+                    const mainColor = getMainColor(item);
+                    const mainColorLabel = getMainColorLabel(item);
+
+                    return (
+                      <li
+                        key={item.id}
+                        className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-white px-3 py-2 ring-1 ring-gray-200"
+                      >
+                        <div className="min-w-0 space-y-1">
+                          <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                            <span className="font-medium text-gray-900">
+                              {index + 1}. {item.name || "名称未設定"}
+                            </span>
+                            <Link
+                              href={buildItemDetailHref(item.id)}
+                              className="text-xs font-medium text-blue-600 hover:underline"
+                            >
+                              詳細
+                            </Link>
+                          </div>
+                          <p className="text-xs text-gray-600">
+                            {formatItemClassification(item)}
+                            {brandName ? ` · ${brandName}` : ""}
+                          </p>
+                          {mainColor && mainColorLabel && (
+                            <div className="inline-flex items-center gap-1.5 rounded-full border border-gray-200 px-2 py-0.5 text-xs text-gray-600">
+                              <span
+                                className="h-3 w-3 rounded-full border border-gray-300"
+                                style={{ backgroundColor: mainColor.hex }}
+                              />
+                              {mainColorLabel}
+                            </div>
+                          )}
+                        </div>
+                        <span className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            disabled={index === 0}
+                            onClick={() => handleSelectedItemMove(item.id, -1)}
+                            className="rounded-md border border-gray-300 px-2.5 py-1 text-xs font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:text-gray-400 disabled:hover:bg-white"
+                          >
+                            上へ
+                          </button>
+                          <button
+                            type="button"
+                            disabled={index === selectedItems.length - 1}
+                            onClick={() => handleSelectedItemMove(item.id, 1)}
+                            className="rounded-md border border-gray-300 px-2.5 py-1 text-xs font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:text-gray-400 disabled:hover:bg-white"
+                          >
+                            下へ
+                          </button>
+                        </span>
+                      </li>
+                    );
+                  })}
                 </ol>
               </div>
             )}

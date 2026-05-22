@@ -732,9 +732,16 @@ describe("EditOutfitPage", () => {
                   id: 1,
                   name: "First item",
                   status: "active",
+                  brand_name: "Acme",
                   category: "tops",
                   shape: "shirt",
-                  colors: [],
+                  colors: [
+                    {
+                      role: "main",
+                      label: "Navy",
+                      hex: "#1f2a44",
+                    },
+                  ],
                   seasons: [],
                   tpos: [],
                   tpo_ids: [],
@@ -769,9 +776,16 @@ describe("EditOutfitPage", () => {
               id: 1,
               name: "First item",
               status: "active",
+              brand_name: "Acme",
               category: "tops",
               shape: "shirt",
-              colors: [],
+              colors: [
+                {
+                  role: "main",
+                  label: "Navy",
+                  hex: "#1f2a44",
+                },
+              ],
               seasons: [],
               tpos: [],
               tpo_ids: [],
@@ -825,6 +839,14 @@ describe("EditOutfitPage", () => {
 
     expect(moveUpButtons[0]?.disabled).toBe(true);
     expect(moveDownButtons[1]?.disabled).toBe(true);
+    expect(container.textContent).toContain("Acme");
+    expect(container.textContent).toContain("Navy");
+    const itemDetailLink = Array.from(container.querySelectorAll("a")).find(
+      (link) =>
+        link.getAttribute("href") ===
+        `/items/1?return_to=${encodeURIComponent("/outfits/10/edit")}&return_label=${encodeURIComponent("コーディネート編集")}`,
+    );
+    expect(itemDetailLink?.textContent).toContain("詳細");
 
     await act(async () => {
       moveDownButtons[0]?.click();

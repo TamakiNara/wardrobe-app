@@ -252,9 +252,8 @@ describe("NewOutfitPage", () => {
       "複製元の内容を初期値として読み込みました。",
     );
     expect(container.textContent).toContain("選択中 1 件");
-    expect(container.textContent).toContain(
-      "1. 白T (トップス / Tシャツ/カットソー)",
-    );
+    expect(container.textContent).toContain("1. 白T");
+    expect(container.textContent).toContain("トップス / Tシャツ/カットソー");
     expect(replaceMock).toHaveBeenCalledWith("/outfits/new");
   });
 
@@ -300,9 +299,8 @@ describe("NewOutfitPage", () => {
     expect(container.textContent).toContain(
       "2番目のアイテム: 手放したアイテムのため初期選択から除外",
     );
-    expect(container.textContent).toContain(
-      "1. 白T (トップス / Tシャツ/カットソー)",
-    );
+    expect(container.textContent).toContain("1. 白T");
+    expect(container.textContent).toContain("トップス / Tシャツ/カットソー");
   });
 
   it("duplicate 初期値が見つからない場合はエラーを表示し、通常新規作成として続けられる", async () => {
@@ -391,9 +389,16 @@ describe("NewOutfitPage", () => {
             {
               id: 1,
               name: "First item",
+              brand_name: "Acme",
               category: "tops",
               shape: "shirt",
-              colors: [],
+              colors: [
+                {
+                  role: "main",
+                  label: "Navy",
+                  hex: "#1f2a44",
+                },
+              ],
               seasons: [],
               tpos: [],
             },
@@ -444,6 +449,14 @@ describe("NewOutfitPage", () => {
 
     expect(moveUpButtons[0]?.disabled).toBe(true);
     expect(moveDownButtons[1]?.disabled).toBe(true);
+    expect(container.textContent).toContain("Acme");
+    expect(container.textContent).toContain("Navy");
+    const itemDetailLink = Array.from(container.querySelectorAll("a")).find(
+      (link) =>
+        link.getAttribute("href") ===
+        `/items/1?return_to=${encodeURIComponent("/outfits/new")}&return_label=${encodeURIComponent("コーディネート作成")}`,
+    );
+    expect(itemDetailLink?.textContent).toContain("詳細");
 
     await act(async () => {
       moveUpButtons[1]?.click();
