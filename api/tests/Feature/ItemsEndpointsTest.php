@@ -3837,6 +3837,12 @@ class ItemsEndpointsTest extends TestCase
             'converted_item_id' => $item->id,
             'converted_at' => now(),
         ]);
+        $otherUser = User::factory()->create();
+        $this->createPurchaseCandidate($otherUser, [
+            'status' => 'purchased',
+            'converted_item_id' => $item->id,
+            'converted_at' => now(),
+        ]);
 
         $this->actingAs($user, 'web');
 
@@ -4018,6 +4024,12 @@ class ItemsEndpointsTest extends TestCase
             'memo' => 'log に出さない memo',
         ]);
         $this->createPurchaseCandidate($user, [
+            'status' => 'purchased',
+            'converted_item_id' => $item->id,
+            'converted_at' => now(),
+        ]);
+        $otherUser = User::factory()->create();
+        $this->createPurchaseCandidate($otherUser, [
             'status' => 'purchased',
             'converted_item_id' => $item->id,
             'converted_at' => now(),

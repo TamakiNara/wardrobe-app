@@ -382,6 +382,7 @@ Route::prefix('api')->middleware(['web'])->group(function () {
         $outfitsCount = $item->outfitItems()->count();
         $wearLogsCount = $item->wearLogItems()->count();
         $convertedPurchaseCandidatesCount = PurchaseCandidate::query()
+            ->where('user_id', $item->user_id)
             ->where('converted_item_id', $item->id)
             ->count();
 
