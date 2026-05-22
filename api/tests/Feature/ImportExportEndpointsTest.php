@@ -158,10 +158,17 @@ class ImportExportEndpointsTest extends TestCase
                 'custom_label' => '00 WHITE',
             ]],
         ])->save();
-        $item->materials()->create([
-            'part_label' => '本体',
-            'material_name' => '綿',
-            'ratio' => 100,
+        $item->materials()->createMany([
+            [
+                'part_label' => '本体',
+                'material_name' => '綿',
+                'ratio' => 100,
+            ],
+            [
+                'part_label' => '裏地',
+                'material_name' => 'ポリエステル',
+                'ratio' => 100,
+            ],
         ]);
         $itemImagePath = sprintf('items/%d/source-item.png', $item->id);
         Storage::disk('public')->put($itemImagePath, base64_decode(self::PNG_BASE64));
@@ -246,10 +253,17 @@ class ImportExportEndpointsTest extends TestCase
             'tpo' => 'オフィス',
             'sort_order' => 1,
         ]);
-        $candidate->materials()->create([
-            'part_label' => '本体',
-            'material_name' => '麻',
-            'ratio' => 100,
+        $candidate->materials()->createMany([
+            [
+                'part_label' => '本体',
+                'material_name' => '麻',
+                'ratio' => 100,
+            ],
+            [
+                'part_label' => '裏地',
+                'material_name' => 'キュプラ',
+                'ratio' => 100,
+            ],
         ]);
         $candidateImagePath = sprintf('purchase-candidates/%d/source-candidate.png', $candidate->id);
         Storage::disk('public')->put($candidateImagePath, base64_decode(self::PNG_BASE64));
@@ -632,9 +646,44 @@ class ImportExportEndpointsTest extends TestCase
         $this->assertSame('slight', $importedItem->sheerness);
         $this->assertSame('long', data_get($importedItem->spec, 'tops.sleeve'));
         $this->assertSame('00 WHITE', data_get($importedItem->colors, '0.custom_label'));
+        $this->assertEqualsCanonicalizing([
+            [
+                'part_label' => '本体',
+                'material_name' => '綿',
+                'ratio' => 100,
+            ],
+            [
+                'part_label' => '裏地',
+                'material_name' => 'ポリエステル',
+                'ratio' => 100,
+            ],
+        ], $importedItem->materials
+            ->map(fn ($material) => [
+                'part_label' => $material->part_label,
+                'material_name' => $material->material_name,
+                'ratio' => $material->ratio,
+            ])
+            ->all());
         $this->assertSame('slight', $importedCandidate->sheerness);
         $this->assertSame('blouse', $importedCandidate->shape);
-        $this->assertSame('麻', $importedCandidate->materials->first()?->material_name);
+        $this->assertEqualsCanonicalizing([
+            [
+                'part_label' => '本体',
+                'material_name' => '麻',
+                'ratio' => 100,
+            ],
+            [
+                'part_label' => '裏地',
+                'material_name' => 'キュプラ',
+                'ratio' => 100,
+            ],
+        ], $importedCandidate->materials
+            ->map(fn ($material) => [
+                'part_label' => $material->part_label,
+                'material_name' => $material->material_name,
+                'ratio' => $material->ratio,
+            ])
+            ->all());
         $this->assertSame($importedItem->id, $importedCandidate->converted_item_id);
         $this->assertSame('2026-05-20 12:00:00', $importedCandidate->sale_ends_at?->format('Y-m-d H:i:s'));
         $this->assertSame('2026-05-01 12:00:00', $importedCandidate->discount_ends_at?->format('Y-m-d H:i:s'));

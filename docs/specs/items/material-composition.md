@@ -13,7 +13,7 @@ item に対して、素材と混率を扱えるようにする。
 
 - 優先順位と planning は `docs/specs/planning/next-features.md` を参照する
 - item / purchase candidate の保存方針は `docs/data/database.md` を参照する
-- 現状の API schema は `docs/api/openapi.yaml` を参照し、materials 反映は実装タイミングで判断する
+- 現状の API スキーマは `docs/api/openapi.yaml` を参照する
 - purchase candidate 側の仕様正本は `docs/specs/purchase-candidates.md` を参照する
 - 現状の実装メモは `docs/project/implementation-notes.md` を参照する
 
@@ -62,14 +62,17 @@ item に対して、素材と混率を扱えるようにする。
 ## 用語
 
 ### 区分
+
 素材明細のまとまりを表す単位。  
 例: `本体`, `裏地`, `別布`, `リブ`
 
 ### 素材明細
+
 1 件の素材情報。  
 `区分 / 素材名 / 混率` の 3 要素を持つ。
 
 ### 混率
+
 素材の割合。  
 整数値のみを扱う。
 
@@ -399,9 +402,10 @@ item と purchase candidate で、同じ構造を使う前提とする。
 
 - `part_label` の保存値は 現時点では自由文字列前提だが、将来コード化するかは未確定
 - 区分候補・素材候補は入力補助として書くに留め、settings 管理や master 管理へ広げるかは後続判断
-- purchase candidate 側への実装タイミングと、item 化時にどこまで無変換で引き継ぐかは別途確認が必要
-- OpenAPI / `docs/data/database.md` には、実装着手の段階で反映する。現時点では今回は未対応に留める
-- validation は spec で業務ルールを示し、OpenAPI は request / response の最小説明、実装メモは現時点の挙動補足に留める
+- purchase candidate 側も同じ構造で実装済みで、item 化時に素材明細を item 側へ引き継げる
+- OpenAPI / `docs/data/database.md` には、item / purchase candidate の基本構造を反映済み
+- `item_materials` と `purchase_candidate_materials` の `part_label` / `material_name` の DB カラム長を 100 に揃えるかは要判断
+- バリデーションは spec で業務ルールを示し、OpenAPI は request / response の最小説明、実装メモは現時点の挙動補足に留める
 
 ---
 

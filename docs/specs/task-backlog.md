@@ -319,14 +319,36 @@ outfit list の使用アイテム filter / WearLogForm の item 選択では、i
 
 ### FEAT-03 素材・混率管理
 
-素材明細 + 混率を item / purchase candidate へ導入する
+素材明細 + 混率を item / purchase candidate へ導入する。基本実装は現状対応済みで、候補管理・検索・分析などの拡張は後続で扱う。
 
 - 出典 / 対象箇所: `planning/next-features.md` / `素材・混率管理`, `items/material-composition.md`
 - 関連機能: items / purchase candidates
 - 種別: `機能`
 - 優先度: `高`
-- 依存関係: DB / API 設計確定
-- すぐ実装できるか: `要設計`
+- 依存関係: 基本実装は対応済み / 拡張は要設計
+- すぐ実装できるか: `一部対応済み`
+
+#### 現状
+
+- `item_materials` / `purchase_candidate_materials` は存在し、`part_label / material_name / ratio` の明細構造で保存する。
+- item / purchase candidate とも、素材・混率入力は任意で、空配列を許可する。
+- `ratio` は整数 1〜100 とし、区分ごとに合計 100% 必須、同一区分内で同素材重複不可とする。
+- `sort_order` は持たず、表示順は区分候補順、混率降順、素材名順で扱う。
+- item / purchase candidate の作成 / 編集 / 詳細に素材・混率を反映済み。
+- purchase candidate から item 化する際に materials を item 側へ引き継げる。
+- OpenAPI、`docs/data/database.md`、`docs/specs/purchase-candidates.md` には基本構造を反映済み。
+- import / export では item / purchase candidate の materials を往復復元できる。
+
+#### 残件
+
+- `item_materials` と `purchase_candidate_materials` の `part_label` / `material_name` の DB カラム長を 100 に揃えるか要判断。
+- 素材候補の設定管理。
+- 素材マスタ化。
+- 素材検索。
+- 分析・可視化。
+- 小数混率。
+- 品質表示全文保存。
+- 表示・入力 UI のさらなる調整。
 
 ### FEAT-04 検索・絞り込み強化
 
