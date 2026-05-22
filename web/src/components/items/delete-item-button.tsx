@@ -7,6 +7,7 @@ import { redirectToLoginForSessionExpired } from "@/lib/auth/unauthorized";
 
 type DeleteItemButtonProps = {
   itemId: number;
+  convertedPurchaseCandidatesCount?: number;
 };
 
 const DELETE_FALLBACK_ERROR_MESSAGE = "アイテムを削除できませんでした。";
@@ -33,7 +34,10 @@ function getDeleteErrorMessage(data: unknown): string {
   return getUserFacingSubmitErrorMessage(data, DELETE_FALLBACK_ERROR_MESSAGE);
 }
 
-export default function DeleteItemButton({ itemId }: DeleteItemButtonProps) {
+export default function DeleteItemButton({
+  itemId,
+  convertedPurchaseCandidatesCount = 0,
+}: DeleteItemButtonProps) {
   const router = useRouter();
   const [isConfirming, setIsConfirming] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -111,6 +115,11 @@ export default function DeleteItemButton({ itemId }: DeleteItemButtonProps) {
             <p>この操作は取り消せません。</p>
             <p>実際に手放しただけの場合は「手放す」を使ってください。</p>
             <p>登録画像も削除されます。</p>
+            {convertedPurchaseCandidatesCount > 0 && (
+              <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-amber-800">
+                このアイテムは購入検討からアイテム化されています。削除すると、購入検討との紐づきが解除されます。
+              </p>
+            )}
           </div>
           <div className="mt-4 flex flex-wrap gap-2">
             <button

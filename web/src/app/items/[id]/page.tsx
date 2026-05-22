@@ -866,7 +866,12 @@ export default async function ItemPage({
                     実際に手放したアイテムは「手放す」を使うと、履歴を残したまま管理できます。
                   </p>
                 </div>
-                <DeleteItemButton itemId={item.id} />
+                <DeleteItemButton
+                  itemId={item.id}
+                  convertedPurchaseCandidatesCount={
+                    item.converted_purchase_candidates_count ?? 0
+                  }
+                />
               </div>
             </section>
           </div>

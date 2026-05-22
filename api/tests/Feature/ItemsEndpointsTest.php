@@ -2784,6 +2784,17 @@ class ItemsEndpointsTest extends TestCase
             'is_primary' => true,
         ]);
         $item->materials()->createMany($this->buildMaterialsPayload());
+        $this->createPurchaseCandidate($user, [
+            'status' => 'purchased',
+            'converted_item_id' => $item->id,
+            'converted_at' => now(),
+        ]);
+        $otherUser = User::factory()->create();
+        $this->createPurchaseCandidate($otherUser, [
+            'status' => 'purchased',
+            'converted_item_id' => $item->id,
+            'converted_at' => now(),
+        ]);
 
         $this->actingAs($user, 'web');
 
@@ -2803,7 +2814,8 @@ class ItemsEndpointsTest extends TestCase
             ->assertJsonPath('item.is_rain_ok', true)
             ->assertJsonPath('item.images.0.path', 'items/1/coat.png')
             ->assertJsonPath('item.materials.0.material_name', '綿')
-            ->assertJsonPath('item.materials.2.part_label', '裏地');
+            ->assertJsonPath('item.materials.2.part_label', '裏地')
+            ->assertJsonPath('item.converted_purchase_candidates_count', 1);
     }
 
     public function test_get_item_returns_same_group_items_when_group_exists(): void
@@ -2876,7 +2888,8 @@ class ItemsEndpointsTest extends TestCase
             ->assertJsonPath('item.group_items.1.status', 'disposed')
             ->assertJsonPath('item.group_items.1.group_order', 2)
             ->assertJsonPath('item.group_items.1.images.0.original_filename', 'sibling.png')
-            ->assertJsonPath('item.group_items.1.colors.0.label', 'ホワイト');
+            ->assertJsonPath('item.group_items.1.colors.0.label', 'ホワイト')
+            ->assertJsonPath('item.converted_purchase_candidates_count', 0);
     }
 
     public function test_get_item_omits_tops_shape_from_spec_response(): void

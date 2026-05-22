@@ -54,11 +54,15 @@ describe("DeleteItemButton", () => {
     globalThis.IS_REACT_ACT_ENVIRONMENT = false;
   });
 
-  async function renderDeleteButton() {
+  async function renderDeleteButton(
+    props: { convertedPurchaseCandidatesCount?: number } = {},
+  ) {
     const { default: DeleteItemButton } = await import("./delete-item-button");
 
     await act(async () => {
-      root.render(React.createElement(DeleteItemButton, { itemId: 1 }));
+      root.render(
+        React.createElement(DeleteItemButton, { itemId: 1, ...props }),
+      );
       await waitForEffects();
     });
   }
@@ -102,6 +106,36 @@ describe("DeleteItemButton", () => {
     expect(container.textContent).toContain("キャンセル");
     expect(container.textContent).toContain("削除する");
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("購入検討からアイテム化された item では確認UIに warning を表示する", async () => {
+    await renderDeleteButton({ convertedPurchaseCandidatesCount: 1 });
+
+    const openButton = findButtonByText(container, "アイテムを削除する");
+
+    await act(async () => {
+      openButton?.click();
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain(
+      "このアイテムは購入検討からアイテム化されています。削除すると、購入検討との紐づきが解除されます。",
+    );
+  });
+
+  it("購入検討からアイテム化されていない item では converted warning を表示しない", async () => {
+    await renderDeleteButton({ convertedPurchaseCandidatesCount: 0 });
+
+    const openButton = findButtonByText(container, "アイテムを削除する");
+
+    await act(async () => {
+      openButton?.click();
+      await waitForEffects();
+    });
+
+    expect(container.textContent).not.toContain(
+      "このアイテムは購入検討からアイテム化されています。削除すると、購入検討との紐づきが解除されます。",
+    );
   });
 
   it("キャンセルした場合はDELETEしない", async () => {

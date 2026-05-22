@@ -5,6 +5,7 @@ namespace App\Support;
 use App\Models\Item;
 use App\Models\ItemImage;
 use App\Models\ItemMaterial;
+use App\Models\PurchaseCandidate;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
 
@@ -25,6 +26,10 @@ class ItemPayloadBuilder
             'group_id' => $item->group_id,
             'group_order' => $item->group_order,
             'group_items' => self::buildGroupItems($item),
+            'converted_purchase_candidates_count' => PurchaseCandidate::query()
+                ->where('user_id', $item->user_id)
+                ->where('converted_item_id', $item->id)
+                ->count(),
             'name' => $item->name,
             'status' => $item->status,
             'care_status' => $item->care_status,

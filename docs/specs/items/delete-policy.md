@@ -494,7 +494,8 @@ current:
 
 - current backend に合わせ、wear log / outfit 参照がなければ MVP では削除可能として扱う
 - purchase candidate 側の `converted_item_id` は `nullOnDelete` なので、delete 後に関係が切れることは docs 上で認識しておく
-- UI でこのケースを事前判定するのは MVP では不要とする
+- `converted_item_id` があるだけでは delete blocker にはしない
+- item detail の delete confirmation では、購入検討との紐づきが解除される warning を表示する
 
 ### 既存 delete-item-button の扱い
 
@@ -514,7 +515,7 @@ current:
 - `delete-check` API の追加
 - `reasons` 配列の API response 追加
 - 一覧条件を保持した削除後遷移や success message の追加
-- `converted_item_id` がある item への事前警告を出すか
+- delete 可否と warning を横断的に扱う場合の structured reason 整理
 
 ---
 
@@ -565,7 +566,7 @@ current で未確認のもの:
 
 ## UI 実装前の判断事項
 
-- `converted_item_id` がある item を delete 可能にするか
+- `converted_item_id` がある item の delete warning を delete-check / structured reason に統合するか
 - 削除不可理由を API response に追加するか
 - `delete-check` API を作るか
 - current `delete-item-button.tsx` を修正して使うか、作り直すか

@@ -28,8 +28,19 @@ vi.mock("@/components/items/item-care-status-action", () => ({
 }));
 
 vi.mock("@/components/items/delete-item-button", () => ({
-  default: () =>
-    React.createElement("button", { type: "button" }, "アイテムを削除する"),
+  default: ({
+    convertedPurchaseCandidatesCount,
+  }: {
+    convertedPurchaseCandidatesCount?: number;
+  }) =>
+    React.createElement(
+      "button",
+      {
+        type: "button",
+        "data-converted-count": convertedPurchaseCandidatesCount ?? 0,
+      },
+      "アイテムを削除する",
+    ),
 }));
 
 vi.mock("@/components/items/item-duplicate-actions", () => ({
@@ -86,6 +97,7 @@ describe("アイテム詳細画面", () => {
               ],
             },
             is_rain_ok: true,
+            converted_purchase_candidates_count: 1,
             category: "legwear",
             shape: "tights",
             colors: [],
@@ -192,6 +204,7 @@ describe("アイテム詳細画面", () => {
     expect(markup).toContain("care-status-action");
     expect(markup).toContain("削除");
     expect(markup).toContain("アイテムを削除する");
+    expect(markup).toContain('data-converted-count="1"');
     expect(markup).toContain(
       "所持しなくなった場合は「手放す」を使います。必要になった時は「クローゼットに戻す」で通常状態へ戻せます。",
     );

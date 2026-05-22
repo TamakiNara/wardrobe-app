@@ -172,6 +172,7 @@ item status は、item を通常利用対象として扱うかどうかを管理
 - `手放す` の確認は native confirm ではなく、item detail の状態管理セクション内でアプリ内確認 UI を表示する
 - 物理削除 API は残すが、通常の UI 主導線には置かず、item detail 最下部の補助的な `削除` セクションで扱う
 - `outfit_items` / `wear_log_items` 参照がある item の物理削除は `422` で拒否する
+- purchase candidate の `converted_item_id` があるだけでは物理削除の blocker にしない。削除すると購入検討との紐づきは切れるため、item detail の delete confirmation で warning を表示する
 - item を `disposed` にした時、その item を含む `active` outfit は `invalid` に遷移する
 - `reactivate` しても related outfit は自動 `restore` しない
 - `care_status = in_cleaning` は補助状態として扱い、候補除外や invalid 化の主制御には使わない
@@ -215,5 +216,6 @@ item status は、item を通常利用対象として扱うかどうかを管理
 - item を `disposed` にした時、関連 `active` outfit を `invalid` にする
 - item が `active` に戻っても outfit は自動 `restore` しない
 - delete と `disposed` は役割を分け、初期実装範囲では `disposed` を優先する
+- `converted_item_id` だけがある item は delete 可能だが、購入検討との紐づきが解除されることを削除前に warning する
 - 通常のユーザー向け主操作は `手放す` / `クローゼットに戻す` とする
 - `手放す` は物理削除ではなく `disposed` への状態変更であり、確認 UI でもその違いが分かる文言を使う

@@ -142,6 +142,7 @@ export type ItemRecord = {
   group_id?: number | null;
   group_order?: number | null;
   name: string | null;
+  converted_purchase_candidates_count?: number;
   status: ItemStatus;
   care_status?: ItemCareStatus | null;
   sheerness?: ItemSheerness | null;
