@@ -377,25 +377,42 @@ Route::prefix('api')->middleware(['web'])->group(function () {
             ->with('images')
             ->findOrFail($id);
 
-        $hasOutfitReference = $item->outfitItems()->exists();
-        $hasWearLogReference = $item->wearLogItems()->exists();
+        $startedAt = hrtime(true);
+        $statusBefore = $item->status ?? 'active';
+        $outfitsCount = $item->outfitItems()->count();
+        $wearLogsCount = $item->wearLogItems()->count();
+        $convertedPurchaseCandidatesCount = PurchaseCandidate::query()
+            ->where('converted_item_id', $item->id)
+            ->count();
 
-        if ($hasOutfitReference || $hasWearLogReference) {
+        if ($outfitsCount > 0 || $wearLogsCount > 0) {
+            $reason = match (true) {
+                $outfitsCount > 0 && $wearLogsCount > 0 => 'referenced_by_outfits_and_wear_logs',
+                $outfitsCount > 0 => 'referenced_by_outfits',
+                default => 'referenced_by_wear_logs',
+            };
+
+            Log::info('item.delete.rejected', [
+                'operation' => 'item.delete.rejected',
+                'user_id' => $request->user()->id,
+                'item_id' => $item->id,
+                'result' => 'rejected',
+                'item_status' => $statusBefore,
+                'outfit_items_count' => $outfitsCount,
+                'wear_log_items_count' => $wearLogsCount,
+                'converted_purchase_candidates_count' => $convertedPurchaseCandidatesCount,
+                'reason' => $reason,
+                'elapsed_ms' => (int) round((hrtime(true) - $startedAt) / 1_000_000),
+            ]);
+
             return response()->json([
                 'message' => 'このアイテムは参照中のため完全に削除できません。手放す操作を利用してください。',
             ], 422);
         }
 
-        $startedAt = hrtime(true);
-        $statusBefore = $item->status ?? 'active';
-        $outfitsCount = $item->outfitItems()->count();
-        $wearLogsCount = $item->wearLogItems()->count();
         $imagesForCleanup = $item->images->all();
         $imagesCount = count($imagesForCleanup);
         $materialsCount = $item->materials()->count();
-        $convertedPurchaseCandidatesCount = PurchaseCandidate::query()
-            ->where('converted_item_id', $item->id)
-            ->count();
 
         try {
             $item->delete();

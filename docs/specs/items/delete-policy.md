@@ -408,14 +408,27 @@ current:
 - item delete 中の想定外例外時に `item.delete.failed`
 - image cleanup failure 時に `item.delete.image_cleanup_failed`
 - `item.delete.completed` には `image_cleanup_failed_count` を含める
+- 参照あり item の物理削除拒否時に `item.delete.rejected` を `info` level で出す
 
 ### item delete rejected
 
-- validation 的な通常操作なら、初期段階ではログ不要でもよい
-- ただし調査価値が上がった場合は
-  - `warning`
-  - `item.delete.rejected`
-    を再検討する
+- `info`
+- operation: `item.delete.rejected`
+- context:
+  - `user_id`
+  - `item_id`
+  - `result: rejected`
+  - `item_status`
+  - `outfit_items_count`
+  - `wear_log_items_count`
+  - `converted_purchase_candidates_count`
+  - `reason`
+  - `elapsed_ms`
+- reason:
+  - `referenced_by_outfits`
+  - `referenced_by_wear_logs`
+  - `referenced_by_outfits_and_wear_logs`
+- raw payload / item 名 / memo / 画像 URL / stack trace は含めない
 
 ### image cleanup failure
 
@@ -588,8 +601,7 @@ current で未確認のもの:
 2. purchase candidate 由来 item の扱いを決める
 3. item 詳細に delete UI を正式導線として置くか決める
 4. delete 不可理由の UI 表示方式を決める
-5. `item.delete.rejected` を追加するか判断する
-6. `item.status.*` 以外の item operation log を追加する
+5. `item.status.*` 以外の item operation log を追加する
 
 ---
 

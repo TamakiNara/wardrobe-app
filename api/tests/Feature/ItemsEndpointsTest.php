@@ -4010,9 +4010,17 @@ class ItemsEndpointsTest extends TestCase
 
     public function test_delete_item_returns_422_when_item_is_referenced_by_outfit(): void
     {
+        Log::spy();
+
         $user = User::factory()->create();
         $item = $this->createItem($user, [
             'name' => '参照中トップス',
+            'memo' => 'log に出さない memo',
+        ]);
+        $this->createPurchaseCandidate($user, [
+            'status' => 'purchased',
+            'converted_item_id' => $item->id,
+            'converted_at' => now(),
         ]);
         $outfit = \App\Models\Outfit::query()->create([
             'user_id' => $user->id,
@@ -4038,10 +4046,35 @@ class ItemsEndpointsTest extends TestCase
         $this->assertDatabaseHas('items', [
             'id' => $item->id,
         ]);
+
+        Log::shouldHaveReceived('info')
+            ->once()
+            ->withArgs(function (string $message, array $context) use ($user, $item) {
+                $encodedContext = json_encode($context, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+                return $message === 'item.delete.rejected'
+                    && ($context['operation'] ?? null) === 'item.delete.rejected'
+                    && ($context['user_id'] ?? null) === $user->id
+                    && ($context['item_id'] ?? null) === $item->id
+                    && ($context['result'] ?? null) === 'rejected'
+                    && ($context['item_status'] ?? null) === 'active'
+                    && ($context['outfit_items_count'] ?? null) === 1
+                    && ($context['wear_log_items_count'] ?? null) === 0
+                    && ($context['converted_purchase_candidates_count'] ?? null) === 1
+                    && ($context['reason'] ?? null) === 'referenced_by_outfits'
+                    && isset($context['elapsed_ms'])
+                    && ! array_key_exists('name', $context)
+                    && ! array_key_exists('memo', $context)
+                    && is_string($encodedContext)
+                    && ! str_contains($encodedContext, '参照中トップス')
+                    && ! str_contains($encodedContext, 'log に出さない memo');
+            });
     }
 
     public function test_delete_item_returns_422_when_item_is_referenced_by_wear_log(): void
     {
+        Log::spy();
+
         $user = User::factory()->create();
         $item = $this->createItem($user, [
             'name' => '参照中ボトムス',
@@ -4071,6 +4104,77 @@ class ItemsEndpointsTest extends TestCase
         $this->assertDatabaseHas('items', [
             'id' => $item->id,
         ]);
+
+        Log::shouldHaveReceived('info')
+            ->once()
+            ->withArgs(function (string $message, array $context) use ($user, $item) {
+                return $message === 'item.delete.rejected'
+                    && ($context['operation'] ?? null) === 'item.delete.rejected'
+                    && ($context['user_id'] ?? null) === $user->id
+                    && ($context['item_id'] ?? null) === $item->id
+                    && ($context['result'] ?? null) === 'rejected'
+                    && ($context['item_status'] ?? null) === 'active'
+                    && ($context['outfit_items_count'] ?? null) === 0
+                    && ($context['wear_log_items_count'] ?? null) === 1
+                    && ($context['converted_purchase_candidates_count'] ?? null) === 0
+                    && ($context['reason'] ?? null) === 'referenced_by_wear_logs'
+                    && isset($context['elapsed_ms']);
+            });
+    }
+
+    public function test_delete_item_rejected_log_reports_outfit_and_wear_log_references(): void
+    {
+        Log::spy();
+
+        $user = User::factory()->create();
+        $item = $this->createItem($user);
+        $outfit = \App\Models\Outfit::query()->create([
+            'user_id' => $user->id,
+            'name' => '参照中コーデ',
+            'status' => 'active',
+            'seasons' => ['春'],
+            'tpos' => ['休日'],
+        ]);
+        $outfit->outfitItems()->create([
+            'item_id' => $item->id,
+            'sort_order' => 1,
+        ]);
+        $wearLog = \App\Models\WearLog::query()->create([
+            'user_id' => $user->id,
+            'event_date' => '2026-04-01',
+            'status' => 'worn',
+            'display_order' => 1,
+            'memo' => null,
+        ]);
+        $wearLog->wearLogItems()->create([
+            'source_item_id' => $item->id,
+            'item_source_type' => 'manual',
+            'sort_order' => 1,
+        ]);
+
+        $this->actingAs($user, 'web');
+
+        $response = $this->deleteJson("/api/items/{$item->id}", [], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertStatus(422);
+
+        Log::shouldHaveReceived('info')
+            ->once()
+            ->withArgs(function (string $message, array $context) use ($user, $item) {
+                return $message === 'item.delete.rejected'
+                    && ($context['operation'] ?? null) === 'item.delete.rejected'
+                    && ($context['user_id'] ?? null) === $user->id
+                    && ($context['item_id'] ?? null) === $item->id
+                    && ($context['result'] ?? null) === 'rejected'
+                    && ($context['item_status'] ?? null) === 'active'
+                    && ($context['outfit_items_count'] ?? null) === 1
+                    && ($context['wear_log_items_count'] ?? null) === 1
+                    && ($context['converted_purchase_candidates_count'] ?? null) === 0
+                    && ($context['reason'] ?? null) === 'referenced_by_outfits_and_wear_logs'
+                    && isset($context['elapsed_ms']);
+            });
     }
 
     public function test_post_item_dispose_logs_status_change(): void

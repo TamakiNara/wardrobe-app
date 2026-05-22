@@ -145,6 +145,8 @@ current:
 - create / update / delete / disposed / reactivate 相当の処理はある
 - item delete completed の info structured log を導入済み
   - `item.delete.completed`
+- item delete rejected の info structured log を導入済み
+  - `item.delete.rejected`
 - item status change の info structured log を導入済み
   - `item.status.disposed`
   - `item.status.reactivated`
@@ -157,7 +159,6 @@ current:
 不足:
 
 - image sync failure
-- `item.delete.rejected`
 
 ### wear log
 
@@ -386,6 +387,15 @@ level 方針:
 - reactivate
 - image sync failure
 
+current:
+
+- delete success: `item.delete.completed` / `info`
+- delete rejected: `item.delete.rejected` / `info`
+  - reason は `referenced_by_outfits` / `referenced_by_wear_logs` / `referenced_by_outfits_and_wear_logs`
+  - context は `user_id` / `item_id` / `result` / `item_status` / `outfit_items_count` / `wear_log_items_count` / `converted_purchase_candidates_count` / `reason` / `elapsed_ms`
+  - raw payload / item 名 / memo は含めない
+- delete image cleanup failure: `item.delete.image_cleanup_failed` / `warning`
+
 通常の create / update:
 
 - current MVP では必須ではない
@@ -578,13 +588,13 @@ current:
 - import-export と weather external API failure には structured log を導入済み
 - shopping memo bulk add / item remove にも structured log を導入済み
 - item delete completed / failed を導入済み
+- item delete rejected を導入済み
 - item delete image cleanup failure warning を導入済み
 - item status disposed / reactivated / change_failed を導入済み
 - item delete の image cleanup failure warning は導入済み
 
 ### planned
 
-- `item.delete.rejected`
 - image sync failure
 
 ### 要再判断

@@ -309,11 +309,11 @@ outfit list の使用アイテム filter / WearLogForm の item 選択では、i
 - `items/delete-policy.md` の delete UI 記述を、item detail 最下部の `削除` セクションに結線済みの inline confirmation UI として整理済み。
 - wear log では、`disposed` item の新規指定不可と既存履歴保持を別の話として扱うことを docs に明記済み。
 - `converted_item_id` がある item は delete blocker にせず、item detail の delete confirmation で購入検討との紐づきが解除される warning を表示済み。
+- 参照あり item の物理削除拒否時に `item.delete.rejected` info log を出す対応済み。
 
 #### 残件
 
 - delete-check API / structured reason の要否整理。
-- `item.delete.rejected` log の要否整理。
 - `converted_item_id` がある item の warning を delete-check API / structured reason と統合するかの整理。
 - `outfit_invalidated` 個別 event log、dispose reason、disposed_at の要否整理。
 
