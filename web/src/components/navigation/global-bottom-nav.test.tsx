@@ -117,6 +117,7 @@ describe("GlobalBottomNav", () => {
     const outerWrapper = wrappers[0];
     const card = wrappers[1];
 
+    expect(nav?.getAttribute("aria-label")).toBe("グローバルナビゲーション");
     expect(nav?.className).toContain("pointer-events-none");
     expect(outerWrapper?.className).toContain("pointer-events-none");
     expect(card?.className).toContain("pointer-events-auto");
