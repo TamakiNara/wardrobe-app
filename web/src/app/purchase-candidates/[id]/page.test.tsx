@@ -46,6 +46,28 @@ vi.mock(
 );
 
 vi.mock(
+  "@/components/purchase-candidates/purchase-candidate-shopping-memo-add",
+  () => ({
+    default: ({
+      candidateId,
+      candidateStatus,
+    }: {
+      candidateId: number;
+      candidateStatus: string;
+    }) =>
+      React.createElement(
+        "section",
+        {
+          "data-testid": "shopping-memo-add",
+          "data-candidate-id": candidateId,
+          "data-candidate-status": candidateStatus,
+        },
+        "買い物メモに追加",
+      ),
+  }),
+);
+
+vi.mock(
   "@/components/purchase-candidates/purchase-candidate-color-variant-action",
   () => ({
     default: ({
@@ -260,6 +282,10 @@ describe("購入検討詳細画面", () => {
     expect(markup).not.toContain("アイテム追加");
     expect(markup).toContain('href="/purchase-candidates"');
     expect(markup).toContain('href="/purchase-candidates/10/edit"');
+    expect(markup).toContain("買い物メモに追加");
+    expect(markup).toContain('data-testid="shopping-memo-add"');
+    expect(markup).toContain('data-candidate-id="10"');
+    expect(markup).toContain('data-candidate-status="on_hold"');
     expect(markup).toContain(">編集<");
   }, 10000);
 

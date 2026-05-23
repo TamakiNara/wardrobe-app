@@ -6,6 +6,7 @@ import PurchaseCandidateColorVariantAction from "@/components/purchase-candidate
 import PurchaseCandidateDetailImages from "@/components/purchase-candidates/purchase-candidate-detail-images";
 import PurchaseCandidateDuplicateAction from "@/components/purchase-candidates/purchase-candidate-duplicate-action";
 import PurchaseCandidateItemDraftAction from "@/components/purchase-candidates/purchase-candidate-item-draft-action";
+import PurchaseCandidateShoppingMemoAdd from "@/components/purchase-candidates/purchase-candidate-shopping-memo-add";
 import PurchaseCandidateSizeComparison from "@/components/purchase-candidates/purchase-candidate-size-comparison";
 import PurchaseCandidateSizeDetails from "@/components/purchase-candidates/purchase-candidate-size-details";
 import { PurchaseUrlLink } from "@/components/shared/purchase-url-link";
@@ -537,6 +538,11 @@ export default async function PurchaseCandidateDetailPage({
         <PurchaseCandidateGroupNavigation
           candidates={candidate.group_candidates ?? []}
           detailQueryString={detailQueryString}
+        />
+
+        <PurchaseCandidateShoppingMemoAdd
+          candidateId={candidate.id}
+          candidateStatus={candidate.status}
         />
 
         <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
