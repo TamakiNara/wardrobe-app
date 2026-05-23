@@ -180,7 +180,20 @@ describe("購入検討詳細画面", () => {
               ratio: 20,
             },
           ],
-          images: [],
+          images: [
+            {
+              id: 1,
+              purchase_candidate_id: 10,
+              disk: "public",
+              path: "purchase-candidates/10/main.jpg",
+              url: "https://example.test/images/main.jpg",
+              original_filename: "main.jpg",
+              mime_type: "image/jpeg",
+              file_size: 1024,
+              sort_order: 1,
+              is_primary: true,
+            },
+          ],
           created_at: "2026-03-24T10:00:00+09:00",
           updated_at: "2026-03-24T10:00:00+09:00",
         },
@@ -198,10 +211,38 @@ describe("購入検討詳細画面", () => {
         /<h2 class="text-lg font-semibold text-gray-900">([^<]+)<\/h2>/g,
       ),
     ).map((match) => match[1]);
+    const purchaseInfoIndex = markup.indexOf(">購入情報<");
+    const summaryStart = markup.indexOf(
+      'data-testid="purchase-decision-summary"',
+    );
+    const summaryMarkup = markup.slice(
+      summaryStart,
+      markup.indexOf('data-testid="shopping-memo-add"'),
+    );
 
     expect(markup).toContain("ネイビーコート");
     expect(markup).toContain("購入検討管理");
     expect(markup).toContain("一覧に戻る");
+    expect(summaryMarkup).not.toContain("購入判断");
+    expect(summaryMarkup).not.toContain("価格・期限・メモをまとめて確認");
+    expect(summaryMarkup).toContain(
+      'src="https://example.test/images/main.jpg"',
+    );
+    expect(summaryMarkup).toContain('alt="main.jpg"');
+    expect(summaryMarkup).not.toContain("商品属性");
+    expect(summaryMarkup).not.toContain("購入条件");
+    expect(summaryMarkup).toContain("価格");
+    expect(summaryMarkup).not.toContain(">色<");
+    expect(summaryMarkup).toContain("セール価格");
+    expect(summaryMarkup).toContain("セール終了日");
+    expect(summaryMarkup).toContain("販売終了日");
+    expect(summaryMarkup).toContain("Brand");
+    expect(summaryMarkup).toContain("ネイビー");
+    expect(summaryMarkup).toContain("レディース / M");
+    expect(summaryMarkup).toContain("理由");
+    expect(summaryMarkup).toContain("メモ");
+    expect(summaryStart).toBeGreaterThan(-1);
+    expect(summaryStart).toBeLessThan(markup.indexOf("買い物メモに追加"));
     expect(markup.indexOf("アイテムに追加する")).toBeLessThan(
       markup.indexOf(">編集<"),
     );
@@ -235,23 +276,26 @@ describe("購入検討詳細画面", () => {
     );
     expect(markup).toContain("14,800円");
     expect(markup).toContain("12,800円");
+    expect(markup).toContain("Brand");
     expect(markup).toContain("発売日");
     expect(markup).toContain("販売終了日");
     expect(markup).toContain("セール終了日");
-    expect(markup.indexOf(">想定価格<")).toBeLessThan(
-      markup.indexOf(">セール価格<"),
+    expect(markup.indexOf(">価格<")).toBeLessThan(markup.indexOf(">購入情報<"));
+    expect(markup.indexOf(">想定価格<")).toBeGreaterThan(purchaseInfoIndex);
+    expect(markup.indexOf(">想定価格<", purchaseInfoIndex)).toBeLessThan(
+      markup.indexOf(">セール価格<", purchaseInfoIndex),
     );
-    expect(markup.indexOf(">セール価格<")).toBeLessThan(
-      markup.indexOf(">セール終了日<"),
+    expect(markup.indexOf(">セール価格<", purchaseInfoIndex)).toBeLessThan(
+      markup.indexOf(">セール終了日<", purchaseInfoIndex),
     );
-    expect(markup.indexOf(">セール終了日<")).toBeLessThan(
-      markup.indexOf(">発売日<"),
+    expect(markup.indexOf(">セール終了日<", purchaseInfoIndex)).toBeLessThan(
+      markup.indexOf(">発売日<", purchaseInfoIndex),
     );
-    expect(markup.indexOf(">発売日<")).toBeLessThan(
-      markup.indexOf(">販売終了日<"),
+    expect(markup.indexOf(">発売日<", purchaseInfoIndex)).toBeLessThan(
+      markup.indexOf(">販売終了日<", purchaseInfoIndex),
     );
-    expect(markup.indexOf(">販売終了日<")).toBeLessThan(
-      markup.indexOf(">購入 URL<"),
+    expect(markup.indexOf(">販売終了日<", purchaseInfoIndex)).toBeLessThan(
+      markup.indexOf(">購入 URL<", purchaseInfoIndex),
     );
     expect(markup).toContain("example.test");
     expect(markup).toContain('target="_blank"');
@@ -262,6 +306,7 @@ describe("購入検討詳細画面", () => {
     expect(markup).toContain("トレンチ");
     expect(markup).toContain("レディース");
     expect(markup).toContain("理由");
+    expect(markup).toContain("メモ");
     expect(markup).toContain("厚手対応");
     expect(markup).toContain("素材・混率");
     expect(markup).toContain("本体");
@@ -402,6 +447,7 @@ describe("購入検討詳細画面", () => {
     );
 
     expect(markup).toContain("同じ商品の色違い");
+    expect(markup).toContain("色違いあり");
     expect(markup).toContain("色違い 3件");
     expect(markup).toContain("赤");
     expect(markup).toContain("64 BLUE");
@@ -1154,6 +1200,17 @@ describe("購入検討詳細画面", () => {
 
     expect(markup).toContain("買い物メモへ戻る");
     expect(markup).toContain('href="/shopping-memos/123"');
+    const summaryStart = markup.indexOf(
+      'data-testid="purchase-decision-summary"',
+    );
+    const summaryMarkup = markup.slice(
+      summaryStart,
+      markup.indexOf('data-testid="shopping-memo-add"'),
+    );
+    expect(summaryMarkup).toContain("価格");
+    expect(summaryMarkup).not.toContain("セール終了日");
+    expect(summaryMarkup).not.toContain("販売終了日");
+    expect(summaryMarkup).not.toContain("未設定");
   });
 
   it("買い物メモ戻り query がない通常アクセスでは戻りリンクを表示しない", async () => {

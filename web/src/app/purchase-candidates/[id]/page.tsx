@@ -9,6 +9,7 @@ import PurchaseCandidateItemDraftAction from "@/components/purchase-candidates/p
 import PurchaseCandidateShoppingMemoAdd from "@/components/purchase-candidates/purchase-candidate-shopping-memo-add";
 import PurchaseCandidateSizeComparison from "@/components/purchase-candidates/purchase-candidate-size-comparison";
 import PurchaseCandidateSizeDetails from "@/components/purchase-candidates/purchase-candidate-size-details";
+import SafeImage from "@/components/images/safe-image";
 import { PurchaseUrlLink } from "@/components/shared/purchase-url-link";
 import { EntityDetailHeader } from "@/components/shared/entity-detail-header";
 import { resolvePurchaseCandidateItemClassification } from "@/lib/items/classification";
@@ -30,6 +31,7 @@ import {
 import {
   PURCHASE_CANDIDATE_COLOR_ROLE_LABELS,
   PURCHASE_CANDIDATE_PRIORITY_LABELS,
+  PURCHASE_CANDIDATE_SIZE_GENDER_LABELS,
   PURCHASE_CANDIDATE_STATUS_LABELS,
 } from "@/lib/purchase-candidates/labels";
 import { formatPurchaseCandidateDateTime } from "@/lib/purchase-candidates/date-time";
@@ -226,6 +228,187 @@ function PurchaseCandidateGroupNavigation({
           );
         })}
       </nav>
+    </section>
+  );
+}
+
+function PurchaseDecisionSummaryCard({
+  candidate,
+}: {
+  candidate: PurchaseCandidateDetailResponse["purchaseCandidate"];
+}) {
+  const summaryImage =
+    candidate.images.find((image) => image.is_primary) ??
+    candidate.images[0] ??
+    null;
+  const summaryColor =
+    candidate.colors.find((color) => color.role === "main") ??
+    candidate.colors[0] ??
+    null;
+  const summaryColorLabel = summaryColor
+    ? resolveColorDisplayLabel(summaryColor)
+    : null;
+  const hasColorVariants = (candidate.group_candidates ?? []).some(
+    (groupCandidate) => !groupCandidate.is_current,
+  );
+  const summarySize = [
+    candidate.size_gender
+      ? PURCHASE_CANDIDATE_SIZE_GENDER_LABELS[candidate.size_gender]
+      : null,
+    candidate.size_label,
+  ].filter(Boolean);
+  const productDetails = [
+    candidate.brand_name
+      ? { label: "ブランド", value: candidate.brand_name }
+      : null,
+    summarySize.length > 0
+      ? { label: "サイズ", value: summarySize.join(" / ") }
+      : null,
+  ].filter((detail): detail is { label: string; value: string } =>
+    Boolean(detail),
+  );
+  const purchaseDetails = [
+    candidate.price !== null
+      ? { label: "価格", value: formatPrice(candidate.price) }
+      : null,
+    candidate.sale_price !== null
+      ? { label: "セール価格", value: formatPrice(candidate.sale_price) }
+      : null,
+    candidate.sale_ends_at
+      ? { label: "販売終了日", value: formatDateTime(candidate.sale_ends_at) }
+      : null,
+    candidate.discount_ends_at
+      ? {
+          label: "セール終了日",
+          value: formatDateTime(candidate.discount_ends_at),
+        }
+      : null,
+  ].filter((detail): detail is { label: string; value: string } =>
+    Boolean(detail),
+  );
+  const hasNotes = Boolean(candidate.wanted_reason || candidate.memo);
+
+  if (
+    !summaryImage &&
+    productDetails.length === 0 &&
+    purchaseDetails.length === 0 &&
+    !summaryColorLabel &&
+    !hasNotes &&
+    !candidate.purchase_url
+  ) {
+    return null;
+  }
+
+  return (
+    <section
+      className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm md:p-6"
+      data-testid="purchase-decision-summary"
+    >
+      <div className="grid gap-5 md:grid-cols-[minmax(0,12rem)_1fr] md:items-start">
+        {summaryImage ? (
+          <div className="flex max-h-56 items-center justify-center overflow-hidden rounded-xl border border-gray-200 bg-gray-50 p-2 md:max-h-none">
+            <SafeImage
+              src={summaryImage.url}
+              alt={summaryImage.original_filename ?? candidate.name}
+              className="max-h-52 w-full object-contain md:max-h-60"
+              fallback={
+                <div className="flex aspect-[3/4] w-full items-center justify-center rounded-lg bg-gray-100 px-3 text-center text-sm text-gray-500">
+                  画像を表示できません
+                </div>
+              }
+            />
+          </div>
+        ) : null}
+
+        <div className="min-w-0 space-y-4">
+          <div className="grid gap-5 lg:grid-cols-2">
+            <div className="space-y-3">
+              {productDetails.length > 0 ? (
+                <dl className="grid gap-3">
+                  {productDetails.map((detail) => (
+                    <div key={detail.label}>
+                      <dt className="text-xs font-medium text-gray-500">
+                        {detail.label}
+                      </dt>
+                      <dd className="mt-1 text-sm font-medium text-gray-900">
+                        {detail.value}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+              ) : null}
+
+              {summaryColorLabel && summaryColor ? (
+                <div
+                  aria-label={`色: ${summaryColorLabel}`}
+                  className="inline-flex flex-wrap items-center gap-2"
+                >
+                  <span className="inline-flex items-center gap-2 rounded-full border border-gray-300 bg-white px-2.5 py-1 text-xs text-gray-700">
+                    <span
+                      className="h-3 w-3 rounded-full border border-gray-300"
+                      style={{ backgroundColor: summaryColor.hex }}
+                    />
+                    {summaryColorLabel}
+                  </span>
+                  {hasColorVariants ? (
+                    <span className="text-xs font-medium text-gray-500">
+                      色違いあり
+                    </span>
+                  ) : null}
+                </div>
+              ) : null}
+            </div>
+
+            <div className="space-y-3">
+              {purchaseDetails.length > 0 ? (
+                <dl className="grid gap-3">
+                  {purchaseDetails.map((detail) => (
+                    <div key={detail.label}>
+                      <dt className="text-xs font-medium text-gray-500">
+                        {detail.label}
+                      </dt>
+                      <dd
+                        className={`mt-1 text-sm font-medium ${detail.label === "セール価格" ? "text-rose-700" : "text-gray-900"}`}
+                      >
+                        {detail.value}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+              ) : null}
+
+              {candidate.purchase_url ? (
+                <div className="text-sm">
+                  <PurchaseUrlLink url={candidate.purchase_url} />
+                </div>
+              ) : null}
+            </div>
+          </div>
+
+          {hasNotes ? (
+            <div className="grid gap-3 sm:grid-cols-2">
+              {candidate.wanted_reason ? (
+                <div className="rounded-xl bg-gray-50 p-3">
+                  <p className="text-xs font-medium text-gray-500">
+                    欲しい理由
+                  </p>
+                  <p className="mt-1 line-clamp-3 text-sm font-medium leading-6 text-gray-900">
+                    {candidate.wanted_reason}
+                  </p>
+                </div>
+              ) : null}
+              {candidate.memo ? (
+                <div className="rounded-xl bg-gray-50 p-3">
+                  <p className="text-xs font-medium text-gray-500">メモ</p>
+                  <p className="mt-1 line-clamp-3 text-sm font-medium leading-6 text-gray-900">
+                    {candidate.memo}
+                  </p>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+        </div>
+      </div>
     </section>
   );
 }
@@ -534,6 +717,8 @@ export default async function PurchaseCandidateDetailPage({
             </div>
           }
         />
+
+        <PurchaseDecisionSummaryCard candidate={candidate} />
 
         <PurchaseCandidateGroupNavigation
           candidates={candidate.group_candidates ?? []}
