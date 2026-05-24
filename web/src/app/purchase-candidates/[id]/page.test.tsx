@@ -165,6 +165,13 @@ describe("購入検討詳細画面", () => {
               hex: "#1F3A5F",
               label: "ネイビー",
             },
+            {
+              role: "sub",
+              mode: "preset",
+              value: "white",
+              hex: "#FFFFFF",
+              label: "白",
+            },
           ],
           seasons: ["春"],
           tpos: ["仕事"],
@@ -211,7 +218,6 @@ describe("購入検討詳細画面", () => {
         /<h2 class="text-lg font-semibold text-gray-900">([^<]+)<\/h2>/g,
       ),
     ).map((match) => match[1]);
-    const purchaseInfoIndex = markup.indexOf(">購入情報<");
     const summaryStart = markup.indexOf(
       'data-testid="purchase-decision-summary"',
     );
@@ -237,7 +243,8 @@ describe("購入検討詳細画面", () => {
     expect(summaryMarkup).toContain("セール終了日");
     expect(summaryMarkup).toContain("販売終了日");
     expect(summaryMarkup).toContain("Brand");
-    expect(summaryMarkup).toContain("ネイビー");
+    expect(summaryMarkup).toContain("メイン: ネイビー");
+    expect(summaryMarkup).toContain("サブ: 白");
     expect(summaryMarkup).toContain("レディース / M");
     expect(summaryMarkup).toContain("理由");
     expect(summaryMarkup).toContain("メモ");
@@ -256,51 +263,33 @@ describe("購入検討詳細画面", () => {
       markup.indexOf(">一覧に戻る<"),
     );
     expect(sectionTitles).toEqual([
-      "基本情報",
-      "購入情報",
       "分類",
-      "色 / 利用条件・特性",
+      "利用条件・特性",
       "サイズ・実寸",
       "手持ちアイテムとサイズ比較",
       "素材・混率",
-      "補足情報",
-      "画像",
     ]);
     expect(markup).toContain("保留中");
     expect(markup).toContain("優先度: 中");
     expect(markup).not.toContain(
       '<dt class="text-sm font-medium text-gray-700">ステータス</dt>',
     );
-    expect(markup).toContain(
-      '<dt class="text-sm font-medium text-gray-700">優先度</dt>',
-    );
     expect(markup).toContain("14,800円");
     expect(markup).toContain("12,800円");
     expect(markup).toContain("Brand");
-    expect(markup).toContain("発売日");
     expect(markup).toContain("販売終了日");
     expect(markup).toContain("セール終了日");
-    expect(markup.indexOf(">価格<")).toBeLessThan(markup.indexOf(">購入情報<"));
-    expect(markup.indexOf(">想定価格<")).toBeGreaterThan(purchaseInfoIndex);
-    expect(markup.indexOf(">想定価格<", purchaseInfoIndex)).toBeLessThan(
-      markup.indexOf(">セール価格<", purchaseInfoIndex),
-    );
-    expect(markup.indexOf(">セール価格<", purchaseInfoIndex)).toBeLessThan(
-      markup.indexOf(">セール終了日<", purchaseInfoIndex),
-    );
-    expect(markup.indexOf(">セール終了日<", purchaseInfoIndex)).toBeLessThan(
-      markup.indexOf(">発売日<", purchaseInfoIndex),
-    );
-    expect(markup.indexOf(">発売日<", purchaseInfoIndex)).toBeLessThan(
-      markup.indexOf(">販売終了日<", purchaseInfoIndex),
-    );
-    expect(markup.indexOf(">販売終了日<", purchaseInfoIndex)).toBeLessThan(
-      markup.indexOf(">購入 URL<", purchaseInfoIndex),
-    );
+    expect(markup).not.toContain(">基本情報<");
+    expect(markup).not.toContain(">購入情報<");
+    expect(markup).not.toContain(">想定価格<");
+    expect(markup).not.toContain(">発売日<");
+    expect(markup).not.toContain(">購入 URL<");
+    expect(markup).not.toContain(">色<");
+    expect(markup).not.toContain(">補足情報<");
+    expect(markup).not.toContain(">画像<");
     expect(markup).toContain("example.test");
     expect(markup).toContain('target="_blank"');
     expect(markup).toContain('rel="noreferrer"');
-    expect(markup).toContain('class="hidden md:block" aria-hidden="true"');
     expect(markup).toContain("コート");
     expect(markup).toContain("形");
     expect(markup).toContain("トレンチ");
@@ -578,6 +567,87 @@ describe("購入検討詳細画面", () => {
 
     expect(markup).toContain('href="/purchase-candidates/underwear"');
     expect(markup).toContain("アンダーウェア購入検討一覧");
+  });
+
+  it("画像が複数ある場合だけ画像一覧 section を表示する", async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        purchaseCandidate: {
+          id: 16,
+          status: "considering",
+          priority: "medium",
+          name: "画像あり候補",
+          category_id: "tops_shirt_blouse",
+          shape: "shirt",
+          category_name: "シャツ",
+          brand_name: null,
+          price: null,
+          release_date: null,
+          sale_price: null,
+          sale_ends_at: null,
+          discount_ends_at: null,
+          purchase_url: null,
+          memo: null,
+          wanted_reason: null,
+          size_gender: null,
+          size_label: null,
+          sheerness: null,
+          size_note: null,
+          size_details: null,
+          alternate_size_label: null,
+          alternate_size_note: null,
+          alternate_size_details: null,
+          is_rain_ok: false,
+          converted_item_id: null,
+          converted_at: null,
+          colors: [],
+          seasons: [],
+          tpos: [],
+          materials: [],
+          images: [
+            {
+              id: 1,
+              purchase_candidate_id: 16,
+              disk: "public",
+              path: "purchase-candidates/16/main.jpg",
+              url: "https://example.test/images/main.jpg",
+              original_filename: "main.jpg",
+              mime_type: "image/jpeg",
+              file_size: 1024,
+              sort_order: 1,
+              is_primary: true,
+            },
+            {
+              id: 2,
+              purchase_candidate_id: 16,
+              disk: "public",
+              path: "purchase-candidates/16/sub.jpg",
+              url: "https://example.test/images/sub.jpg",
+              original_filename: "sub.jpg",
+              mime_type: "image/jpeg",
+              file_size: 1024,
+              sort_order: 2,
+              is_primary: false,
+            },
+          ],
+          created_at: "2026-04-28T10:00:00+09:00",
+          updated_at: "2026-04-28T10:00:00+09:00",
+        },
+      }),
+    });
+
+    const { default: PurchaseCandidateDetailPage } = await import("./page");
+    const markup = renderToStaticMarkup(
+      await PurchaseCandidateDetailPage({
+        params: Promise.resolve({ id: "16" }),
+      }),
+    );
+
+    expect(markup).toContain(">画像一覧<");
+    expect(markup).toContain("https://example.test/images/main.jpg");
+    expect(markup).toContain("https://example.test/images/sub.jpg");
   });
 
   it("tops spec がある場合は分類内に仕様・属性を表示し、spec.tops.shape は出さない", async () => {

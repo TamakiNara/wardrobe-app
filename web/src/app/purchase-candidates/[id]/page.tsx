@@ -46,6 +46,7 @@ import type {
 } from "@/types/purchase-candidates";
 
 const fallbackMetadata = buildPageMetadata("購入検討詳細");
+const SUMMARY_NOTE_FULL_TEXT_THRESHOLD = 120;
 
 function formatPrice(price: number | null): string {
   if (price === null) {
@@ -59,16 +60,12 @@ function formatDateTime(value: string | null | undefined): string {
   return formatPurchaseCandidateDateTime(value, "long");
 }
 
-function formatDate(value: string | null | undefined): string {
-  if (!value) {
-    return "未設定";
-  }
-
-  return new Intl.DateTimeFormat("ja-JP", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(new Date(value));
+function shouldShowSupplementSection(
+  candidate: PurchaseCandidateDetailResponse["purchaseCandidate"],
+) {
+  return [candidate.wanted_reason, candidate.memo].some(
+    (value) => (value?.length ?? 0) > SUMMARY_NOTE_FULL_TEXT_THRESHOLD,
+  );
 }
 
 function getStatusBadgeClass(status: PurchaseCandidateStatus): string {
@@ -95,11 +92,6 @@ function resolveColorDisplayLabel(
   return color.custom_label?.trim() || color.label;
 }
 
-function formatDetailColorLabel(color: PurchaseCandidateColor): string {
-  const customLabel = color.role === "main" ? color.custom_label?.trim() : "";
-
-  return customLabel || color.label;
-}
 function resolveGroupCandidateColor(
   candidate: PurchaseCandidateGroupCandidate,
 ) {
@@ -241,13 +233,22 @@ function PurchaseDecisionSummaryCard({
     candidate.images.find((image) => image.is_primary) ??
     candidate.images[0] ??
     null;
-  const summaryColor =
-    candidate.colors.find((color) => color.role === "main") ??
-    candidate.colors[0] ??
-    null;
-  const summaryColorLabel = summaryColor
-    ? resolveColorDisplayLabel(summaryColor)
-    : null;
+  const summaryMainColor = candidate.colors.find(
+    (color) => color.role === "main",
+  );
+  const summarySubColor = candidate.colors.find(
+    (color) => color.role === "sub",
+  );
+  const summaryColorChips = [summaryMainColor, summarySubColor].filter(
+    (color): color is PurchaseCandidateColor => Boolean(color),
+  );
+  const summaryColorLabel =
+    summaryColorChips.length > 0
+      ? summaryColorChips
+          .map((color) => resolveColorDisplayLabel(color))
+          .filter(Boolean)
+          .join(" / ")
+      : null;
   const hasColorVariants = (candidate.group_candidates ?? []).some(
     (groupCandidate) => !groupCandidate.is_current,
   );
@@ -292,7 +293,7 @@ function PurchaseDecisionSummaryCard({
     !summaryImage &&
     productDetails.length === 0 &&
     purchaseDetails.length === 0 &&
-    !summaryColorLabel &&
+    summaryColorChips.length === 0 &&
     !hasNotes &&
     !candidate.purchase_url
   ) {
@@ -338,18 +339,31 @@ function PurchaseDecisionSummaryCard({
                 </dl>
               ) : null}
 
-              {summaryColorLabel && summaryColor ? (
+              {summaryColorChips.length > 0 ? (
                 <div
                   aria-label={`色: ${summaryColorLabel}`}
                   className="inline-flex flex-wrap items-center gap-2"
                 >
-                  <span className="inline-flex items-center gap-2 rounded-full border border-gray-300 bg-white px-2.5 py-1 text-xs text-gray-700">
-                    <span
-                      className="h-3 w-3 rounded-full border border-gray-300"
-                      style={{ backgroundColor: summaryColor.hex }}
-                    />
-                    {summaryColorLabel}
-                  </span>
+                  {summaryColorChips.map((color) => {
+                    const colorLabel = resolveColorDisplayLabel(color);
+                    return (
+                      <span
+                        key={`${color.role}-${color.value}`}
+                        className={`inline-flex items-center gap-2 rounded-full px-2.5 py-1 text-xs text-gray-700 ${
+                          color.role === "main"
+                            ? "border border-gray-300 bg-white"
+                            : "border border-gray-200 bg-gray-50"
+                        }`}
+                      >
+                        <span
+                          className="h-3 w-3 rounded-full border border-gray-300"
+                          style={{ backgroundColor: color.hex }}
+                        />
+                        {PURCHASE_CANDIDATE_COLOR_ROLE_LABELS[color.role]}:{" "}
+                        {colorLabel}
+                      </span>
+                    );
+                  })}
                   {hasColorVariants ? (
                     <span className="text-xs font-medium text-gray-500">
                       色違いあり
@@ -615,6 +629,8 @@ export default async function PurchaseCandidateDetailPage({
     resolvedShape: resolvedItemCategory?.shape,
   });
   const materialGroups = groupItemMaterialsForDisplay(candidate.materials);
+  const showSupplementSection = shouldShowSupplementSection(candidate);
+  const showImageSection = candidate.images.length > 1;
 
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-10">
@@ -731,89 +747,6 @@ export default async function PurchaseCandidateDetailPage({
         />
 
         <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-gray-900">基本情報</h2>
-          <dl className="mt-4 grid gap-4 md:grid-cols-2">
-            <div>
-              <dt className="text-sm font-medium text-gray-700">名前</dt>
-              <dd className="mt-1 text-sm text-gray-600">{candidate.name}</dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-700">ブランド</dt>
-              <dd className="mt-1 text-sm text-gray-600">
-                {candidate.brand_name ?? "未設定"}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-700">優先度</dt>
-              <dd className="mt-1 text-sm text-gray-600">
-                {PURCHASE_CANDIDATE_PRIORITY_LABELS[candidate.priority]}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-700">
-                アイテム化状況
-              </dt>
-              <dd className="mt-1 text-sm text-gray-600">
-                {candidate.converted_item_id !== null
-                  ? "アイテム化済み"
-                  : "未実施"}
-              </dd>
-            </div>
-          </dl>
-        </section>
-
-        <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-gray-900">購入情報</h2>
-          <dl className="mt-4 grid gap-4 md:grid-cols-2">
-            <div>
-              <dt className="text-sm font-medium text-gray-700">想定価格</dt>
-              <dd className="mt-1 text-sm text-gray-600">
-                {formatPrice(candidate.price)}
-              </dd>
-            </div>
-            <div className="hidden md:block" aria-hidden="true" />
-            <div>
-              <dt className="text-sm font-medium text-gray-700">セール価格</dt>
-              <dd
-                className={`mt-1 text-sm ${candidate.sale_price !== null ? "text-rose-700" : "text-gray-600"}`}
-              >
-                {formatPrice(candidate.sale_price)}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-700">
-                セール終了日
-              </dt>
-              <dd className="mt-1 text-sm text-gray-600">
-                {formatDateTime(candidate.discount_ends_at)}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-700">発売日</dt>
-              <dd className="mt-1 text-sm text-gray-600">
-                {formatDate(candidate.release_date)}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-700">販売終了日</dt>
-              <dd className="mt-1 text-sm text-gray-600">
-                {formatDateTime(candidate.sale_ends_at)}
-              </dd>
-            </div>
-            <div className="md:col-span-2">
-              <dt className="text-sm font-medium text-gray-700">購入 URL</dt>
-              <dd className="mt-1 text-sm text-gray-600">
-                {candidate.purchase_url ? (
-                  <PurchaseUrlLink url={candidate.purchase_url} />
-                ) : (
-                  "未設定"
-                )}
-              </dd>
-            </div>
-          </dl>
-        </section>
-
-        <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-gray-900">分類</h2>
           <dl className="mt-4 grid gap-4 md:grid-cols-2">
             {classificationDetails.map((detail) => (
@@ -851,24 +784,9 @@ export default async function PurchaseCandidateDetailPage({
 
         <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-gray-900">
-            色 / 利用条件・特性
+            利用条件・特性
           </h2>
           <div className="mt-4 grid gap-4 md:grid-cols-2">
-            <div>
-              <p className="text-sm font-medium text-gray-700">色</p>
-              <ul className="mt-2 space-y-1 text-sm text-gray-600">
-                {candidate.colors.length === 0 ? (
-                  <li>未設定</li>
-                ) : (
-                  candidate.colors.map((color) => (
-                    <li key={`${color.role}-${color.value}`}>
-                      {PURCHASE_CANDIDATE_COLOR_ROLE_LABELS[color.role]}:{" "}
-                      {formatDetailColorLabel(color)}
-                    </li>
-                  ))
-                )}
-              </ul>
-            </div>
             <div>
               <p className="text-sm font-medium text-gray-700">季節</p>
               <p className="mt-2 text-sm text-gray-600">
@@ -934,32 +852,42 @@ export default async function PurchaseCandidateDetailPage({
           )}
         </section>
 
-        <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-gray-900">補足情報</h2>
-          <dl className="mt-4 grid gap-4 md:grid-cols-2">
-            <div>
-              <dt className="text-sm font-medium text-gray-700">欲しい理由</dt>
-              <dd className="mt-1 text-sm text-gray-600">
-                {candidate.wanted_reason ?? "未設定"}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-700">メモ</dt>
-              <dd className="mt-1 text-sm text-gray-600">
-                {candidate.memo ?? "未設定"}
-              </dd>
-            </div>
-          </dl>
-        </section>
+        {showSupplementSection ? (
+          <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+            <h2 className="text-lg font-semibold text-gray-900">補足情報</h2>
+            <dl className="mt-4 grid gap-4 md:grid-cols-2">
+              {candidate.wanted_reason ? (
+                <div>
+                  <dt className="text-sm font-medium text-gray-700">
+                    欲しい理由
+                  </dt>
+                  <dd className="mt-1 text-sm text-gray-600">
+                    {candidate.wanted_reason}
+                  </dd>
+                </div>
+              ) : null}
+              {candidate.memo ? (
+                <div>
+                  <dt className="text-sm font-medium text-gray-700">メモ</dt>
+                  <dd className="mt-1 text-sm text-gray-600">
+                    {candidate.memo}
+                  </dd>
+                </div>
+              ) : null}
+            </dl>
+          </section>
+        ) : null}
 
-        <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-gray-900">画像</h2>
+        {showImageSection ? (
+          <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+            <h2 className="text-lg font-semibold text-gray-900">画像一覧</h2>
 
-          <PurchaseCandidateDetailImages
-            images={candidate.images}
-            candidateName={candidate.name}
-          />
-        </section>
+            <PurchaseCandidateDetailImages
+              images={candidate.images}
+              candidateName={candidate.name}
+            />
+          </section>
+        ) : null}
       </div>
     </main>
   );
