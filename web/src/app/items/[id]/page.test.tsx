@@ -214,7 +214,7 @@ describe("アイテム詳細画面", () => {
     expect(markup).toContain("プレビュー");
     expect(markup).not.toContain("代表画像プレビュー");
     expect(markup).not.toContain("代表画像を確認できます。");
-    expect(markup).toContain("基本情報");
+    expect(markup).not.toContain("基本情報");
     expect(markup).toContain("分類");
     expect(markup).toContain("色 / 利用条件・特性");
     expect(markup).not.toContain(">カラー<");

@@ -642,26 +642,6 @@ export default async function ItemPage({
             ) : null}
 
             <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-              <h2 className="text-lg font-semibold text-gray-900">基本情報</h2>
-              <dl className="mt-4 grid gap-4 md:grid-cols-2">
-                <div>
-                  <dt className="text-sm font-medium text-gray-700">名前</dt>
-                  <dd className="mt-1 text-sm text-gray-600">
-                    {item.name ?? "未設定"}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-sm font-medium text-gray-700">
-                    ブランド
-                  </dt>
-                  <dd className="mt-1 text-sm text-gray-600">
-                    {item.brand_name ?? "未設定"}
-                  </dd>
-                </div>
-              </dl>
-            </section>
-
-            <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
               <h2 className="text-lg font-semibold text-gray-900">分類</h2>
               <dl className="mt-4 grid gap-4 md:grid-cols-2">
                 {classificationDetails.map((detail) => (
