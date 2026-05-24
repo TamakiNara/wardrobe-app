@@ -100,7 +100,24 @@ describe("アイテム詳細画面", () => {
             converted_purchase_candidates_count: 1,
             category: "legwear",
             shape: "tights",
-            colors: [],
+            colors: [
+              {
+                role: "main",
+                mode: "preset",
+                value: "navy",
+                hex: "#1F3A5F",
+                label: "ネイビー",
+                custom_label: "64 BLUE",
+              },
+              {
+                role: "sub",
+                mode: "preset",
+                value: "gray",
+                hex: "#9CA3AF",
+                label: "グレー",
+                custom_label: "03 GRAY",
+              },
+            ],
             seasons: ["春"],
             tpos: ["仕事"],
             spec: {
@@ -163,10 +180,29 @@ describe("アイテム詳細画面", () => {
       }),
     );
 
+    const summaryStart = markup.indexOf('data-testid="item-detail-summary"');
+    const summaryEnd = markup.indexOf('href="/outfits?item_id=1"');
+    const summaryMarkup = markup.slice(summaryStart, summaryEnd);
+
     expect(markup).toContain("アイテム詳細");
     expect(markup).toContain("レインコート");
     expect(markup).toContain("Sample Brand");
+    expect(markup).toContain('data-testid="item-detail-summary"');
     expect(markup).toContain("19,800円");
+    expect(markup).toContain("64 BLUE");
+    expect(markup).toContain("03 GRAY");
+    expect(summaryMarkup).toContain("Sample Brand");
+    expect(summaryMarkup).toContain("64 BLUE");
+    expect(summaryMarkup).toContain("03 GRAY");
+    expect(summaryMarkup).toContain("春");
+    expect(summaryMarkup).toContain("仕事");
+    expect(summaryMarkup).toContain("雨対応");
+    expect(summaryMarkup).toContain("対応");
+    expect(summaryMarkup).toContain("クリーニング中");
+    expect(summaryMarkup).not.toContain("分類");
+    expect(summaryMarkup).not.toContain("メイン");
+    expect(summaryMarkup).not.toContain("サブ");
+    expect(summaryMarkup).not.toContain("色違いあり");
     expect(markup).toContain("レディース");
     expect(markup).toContain("厚手ニット込み");
     expect(markup).toContain("裄丈");
@@ -361,6 +397,7 @@ describe("アイテム詳細画面", () => {
     expect(markup).toContain("手放し済み");
     expect(markup).toContain("ネイビー");
     expect(markup).toContain("ホワイト");
+    expect(markup).toContain("色違いあり");
     expect(markup).toContain('href="/items/32"');
   });
 

@@ -194,6 +194,18 @@ function resolveItemColorDisplayLabel(color: ItemColor | undefined) {
   );
 }
 
+function ItemSummaryColorChip({ label, hex }: { label: string; hex: string }) {
+  return (
+    <span className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-2.5 py-1 text-xs text-gray-700">
+      <span
+        className="h-3 w-3 rounded-full border border-gray-300"
+        style={{ backgroundColor: hex }}
+      />
+      <span className="font-medium text-gray-800">{label}</span>
+    </span>
+  );
+}
+
 export async function generateMetadata({
   params,
 }: {
@@ -352,6 +364,40 @@ export default async function ItemPage({
       tone: "main" | "sub";
     } => Boolean(chip),
   );
+  const sizeSummary = [
+    item.size_gender ? ITEM_SIZE_GENDER_LABELS[item.size_gender] : "",
+    item.size_label ?? "",
+  ]
+    .filter(Boolean)
+    .join(" / ");
+  const hasColorVariants = groupItems.length > 1;
+  const summaryItemDetails = [
+    { label: "ブランド", value: item.brand_name ?? "" },
+    { label: "サイズ", value: sizeSummary },
+  ].filter((detail): detail is { label: string; value: string } =>
+    Boolean(detail.value),
+  );
+  const summaryConditionDetails = [
+    {
+      label: "季節",
+      value: item.seasons?.length ? item.seasons.join(" / ") : "",
+    },
+    {
+      label: "TPO",
+      value: item.tpos?.length ? item.tpos.join(" / ") : "",
+    },
+    { label: "雨対応", value: item.is_rain_ok ? "対応" : "非対応" },
+    {
+      label: "ケア状態",
+      value: item.care_status ? ITEM_CARE_STATUS_LABELS[item.care_status] : "",
+    },
+    {
+      label: "状態",
+      value: item.status === "disposed" ? "手放し済み" : "",
+    },
+  ].filter((detail): detail is { label: string; value: string } =>
+    Boolean(detail.value),
+  );
   const conditionDetails = [
     {
       label: "季節",
@@ -410,6 +456,84 @@ export default async function ItemPage({
             />
           }
         />
+
+        <section
+          data-testid="item-detail-summary"
+          className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm md:p-6"
+        >
+          <div className="grid gap-5 md:grid-cols-[minmax(0,12rem)_1fr] md:items-start">
+            {primaryImage?.url ? (
+              <div className="overflow-hidden rounded-2xl border border-gray-200 bg-gray-50">
+                <div className="flex min-h-[12rem] items-center justify-center p-3">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={primaryImage.url}
+                    alt={primaryImage.original_filename ?? "item image"}
+                    className="max-h-[13rem] w-full object-contain"
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="flex min-h-[10rem] items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-gray-50 text-sm text-gray-500">
+                画像なし
+              </div>
+            )}
+
+            <div className="space-y-5">
+              <div className="grid gap-5 sm:grid-cols-2">
+                <div className="space-y-4">
+                  {summaryItemDetails.length > 0 ? (
+                    <dl className="grid gap-4">
+                      {summaryItemDetails.map((detail) => (
+                        <div key={detail.label} className="space-y-1">
+                          <dt className="text-xs font-medium text-gray-500">
+                            {detail.label}
+                          </dt>
+                          <dd className="text-sm font-medium text-gray-900">
+                            {detail.value}
+                          </dd>
+                        </div>
+                      ))}
+                    </dl>
+                  ) : null}
+
+                  {colorChips.length > 0 || hasColorVariants ? (
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="sr-only">色</span>
+                      {colorChips.map((chip) => (
+                        <ItemSummaryColorChip
+                          key={chip.key}
+                          label={chip.label}
+                          hex={chip.hex}
+                        />
+                      ))}
+                      {hasColorVariants ? (
+                        <span className="text-xs font-medium text-gray-500">
+                          色違いあり
+                        </span>
+                      ) : null}
+                    </div>
+                  ) : null}
+                </div>
+
+                {summaryConditionDetails.length > 0 ? (
+                  <dl className="grid gap-4">
+                    {summaryConditionDetails.map((detail) => (
+                      <div key={detail.label} className="space-y-1">
+                        <dt className="text-xs font-medium text-gray-500">
+                          {detail.label}
+                        </dt>
+                        <dd className="text-sm font-medium text-gray-900">
+                          {detail.value}
+                        </dd>
+                      </div>
+                    ))}
+                  </dl>
+                ) : null}
+              </div>
+            </div>
+          </div>
+        </section>
 
         <section className="rounded-2xl border border-blue-100 bg-white p-4 shadow-sm">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
