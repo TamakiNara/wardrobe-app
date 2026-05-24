@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import DeleteItemButton from "@/components/items/delete-item-button";
@@ -311,6 +312,32 @@ export default async function ItemPage({
   const groupedMaterials = groupItemMaterialsForDisplay(item.materials);
   const groupItems = item.group_items ?? [];
   const itemMemo = item.memo?.trim() ? item.memo : null;
+  const purchaseUrl = item.purchase_url?.trim() ? item.purchase_url : null;
+  const purchasedAt = item.purchased_at?.trim() ? item.purchased_at : null;
+  const purchaseDetails: Array<{
+    label: string;
+    value: ReactNode;
+    isFullWidth?: boolean;
+  }> = [];
+  if (item.price !== null && item.price !== undefined) {
+    purchaseDetails.push({
+      label: "購入価格",
+      value: formatItemPrice(item.price),
+    });
+  }
+  if (purchasedAt) {
+    purchaseDetails.push({
+      label: "購入日",
+      value: purchasedAt.slice(0, 10),
+    });
+  }
+  if (purchaseUrl) {
+    purchaseDetails.push({
+      label: "購入 URL",
+      value: <PurchaseUrlLink url={purchaseUrl} />,
+      isFullWidth: true,
+    });
+  }
   const bottomsRiseLabel =
     BOTTOMS_RISE_OPTIONS.find(
       (option) => option.value === item.spec?.bottoms?.rise_type,
@@ -757,35 +784,26 @@ export default async function ItemPage({
             )}
           </section>
 
-          <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-gray-900">購入情報</h2>
-            <dl className="mt-4 grid gap-4 md:grid-cols-2">
-              <div>
-                <dt className="text-sm font-medium text-gray-700">購入価格</dt>
-                <dd className="mt-1 text-sm text-gray-600">
-                  {formatItemPrice(item.price ?? null)}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-sm font-medium text-gray-700">購入日</dt>
-                <dd className="mt-1 text-sm text-gray-600">
-                  {item.purchased_at
-                    ? item.purchased_at.slice(0, 10)
-                    : "未設定"}
-                </dd>
-              </div>
-              <div className="md:col-span-2">
-                <dt className="text-sm font-medium text-gray-700">購入 URL</dt>
-                <dd className="mt-1 text-sm text-gray-600">
-                  {item.purchase_url ? (
-                    <PurchaseUrlLink url={item.purchase_url} />
-                  ) : (
-                    "未設定"
-                  )}
-                </dd>
-              </div>
-            </dl>
-          </section>
+          {purchaseDetails.length > 0 ? (
+            <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+              <h2 className="text-lg font-semibold text-gray-900">購入情報</h2>
+              <dl className="mt-4 grid gap-4 md:grid-cols-2">
+                {purchaseDetails.map((detail) => (
+                  <div
+                    key={detail.label}
+                    className={detail.isFullWidth ? "md:col-span-2" : ""}
+                  >
+                    <dt className="text-sm font-medium text-gray-700">
+                      {detail.label}
+                    </dt>
+                    <dd className="mt-1 text-sm text-gray-600">
+                      {detail.value}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </section>
+          ) : null}
 
           {itemMemo ? (
             <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">

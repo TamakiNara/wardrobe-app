@@ -67,6 +67,63 @@ describe("アイテム詳細画面", () => {
     vi.stubGlobal("fetch", fetchMock);
   });
 
+  const buildItemFixture = (overrides: Record<string, unknown> = {}) => ({
+    id: 90,
+    name: "詳細テスト",
+    status: "active",
+    care_status: null,
+    sheerness: null,
+    brand_name: null,
+    price: null,
+    purchase_url: null,
+    memo: null,
+    purchased_at: null,
+    size_gender: null,
+    size_label: null,
+    size_note: null,
+    size_details: null,
+    is_rain_ok: false,
+    category: "tops",
+    subcategory: "shirt",
+    shape: "shirt",
+    colors: [],
+    seasons: [],
+    tpos: [],
+    spec: null,
+    images: [],
+    materials: [],
+    ...overrides,
+  });
+
+  const renderItemDetail = async (
+    item: ReturnType<typeof buildItemFixture>,
+    id = "90",
+  ) => {
+    fetchMock
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ item }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          preferences: {
+            skinTonePreset: "neutral_medium",
+          },
+        }),
+      });
+
+    const { default: ItemPage } = await import("./page");
+    return renderToStaticMarkup(
+      await ItemPage({
+        params: Promise.resolve({ id }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+  };
+
   it("purchase candidate 由来の追加項目と画像を表示できる", async () => {
     fetchMock
       .mockResolvedValueOnce({
@@ -274,6 +331,61 @@ describe("アイテム詳細画面", () => {
     expect(markup.indexOf(">編集<")).toBeLessThan(
       markup.indexOf(">一覧へ戻る<"),
     );
+  });
+
+  it("購入情報は値がある項目だけ表示する", async () => {
+    let markup = await renderItemDetail(buildItemFixture());
+
+    expect(markup).not.toContain("購入情報");
+    expect(markup).not.toContain("購入価格");
+    expect(markup).not.toContain("購入日");
+    expect(markup).not.toContain("購入 URL");
+
+    fetchMock.mockReset();
+    markup = await renderItemDetail(
+      buildItemFixture({
+        id: 91,
+        price: 1200,
+      }),
+      "91",
+    );
+
+    expect(markup).toContain("購入情報");
+    expect(markup).toContain("購入価格");
+    expect(markup).toContain("1,200円");
+    expect(markup).not.toContain("購入日");
+    expect(markup).not.toContain("購入 URL");
+
+    fetchMock.mockReset();
+    markup = await renderItemDetail(
+      buildItemFixture({
+        id: 92,
+        purchased_at: "2026-04-01T00:00:00.000000Z",
+      }),
+      "92",
+    );
+
+    expect(markup).toContain("購入情報");
+    expect(markup).toContain("購入日");
+    expect(markup).toContain("2026-04-01");
+    expect(markup).not.toContain("購入価格");
+    expect(markup).not.toContain("購入 URL");
+
+    fetchMock.mockReset();
+    markup = await renderItemDetail(
+      buildItemFixture({
+        id: 93,
+        purchase_url: "https://example.test/items/93",
+      }),
+      "93",
+    );
+
+    expect(markup).toContain("購入情報");
+    expect(markup).toContain("購入 URL");
+    expect(markup).toContain("example.test");
+    expect(markup).toContain('target="_blank"');
+    expect(markup).not.toContain("購入価格");
+    expect(markup).not.toContain("購入日");
   });
 
   it("画像が複数ある場合だけ画像一覧を表示する", async () => {
