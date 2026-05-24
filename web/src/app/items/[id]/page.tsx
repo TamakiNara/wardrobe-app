@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import ColorChip from "@/components/items/color-chip";
 import DeleteItemButton from "@/components/items/delete-item-button";
 import ItemCareStatusAction from "@/components/items/item-care-status-action";
 import ItemDuplicateActions from "@/components/items/item-duplicate-actions";
@@ -392,29 +391,12 @@ export default async function ItemPage({
       value: item.care_status ? ITEM_CARE_STATUS_LABELS[item.care_status] : "",
     },
     {
-      label: "状態",
-      value: item.status === "disposed" ? "手放し済み" : "",
-    },
-  ].filter((detail): detail is { label: string; value: string } =>
-    Boolean(detail.value),
-  );
-  const conditionDetails = [
-    {
-      label: "季節",
-      value: item.seasons?.length ? item.seasons.join(" / ") : "",
-    },
-    {
-      label: "TPO",
-      value: item.tpos?.length ? item.tpos.join(" / ") : "",
-    },
-    { label: "雨対応", value: item.is_rain_ok ? "対応" : "非対応" },
-    {
-      label: "ケア状態",
-      value: item.care_status ? ITEM_CARE_STATUS_LABELS[item.care_status] : "",
-    },
-    {
       label: "透け感",
       value: item.sheerness ? ITEM_SHEERNESS_LABELS[item.sheerness] : "",
+    },
+    {
+      label: "状態",
+      value: item.status === "disposed" ? "手放し済み" : "",
     },
   ].filter((detail): detail is { label: string; value: string } =>
     Boolean(detail.value),
@@ -677,54 +659,6 @@ export default async function ItemPage({
                   </div>
                 ) : null}
               </dl>
-            </section>
-
-            <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-              <h2 className="text-lg font-semibold text-gray-900">
-                色 / 利用条件・特性
-              </h2>
-              <div className="mt-4 space-y-5">
-                <div>
-                  {colorChips.length > 0 ? (
-                    <div className="space-y-3">
-                      {colorChips.map((chip) => (
-                        <div
-                          key={chip.key}
-                          className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3"
-                        >
-                          <p className="text-sm font-medium text-gray-700 sm:w-24 sm:flex-none">
-                            {chip.supportingLabel}
-                          </p>
-                          <ColorChip
-                            label={chip.label}
-                            hex={chip.hex}
-                            tone={chip.tone}
-                            showSupportingLabel={false}
-                            showHex={false}
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="mt-2 text-sm text-gray-600">未設定</p>
-                  )}
-                </div>
-
-                {conditionDetails.length > 0 ? (
-                  <dl className="grid gap-4 md:grid-cols-2">
-                    {conditionDetails.map((detail) => (
-                      <div key={detail.label}>
-                        <dt className="text-sm font-medium text-gray-700">
-                          {detail.label}
-                        </dt>
-                        <dd className="mt-1 text-sm text-gray-600">
-                          {detail.value}
-                        </dd>
-                      </div>
-                    ))}
-                  </dl>
-                ) : null}
-              </div>
             </section>
 
             <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">

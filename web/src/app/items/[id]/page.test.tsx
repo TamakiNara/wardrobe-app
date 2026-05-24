@@ -199,6 +199,8 @@ describe("アイテム詳細画面", () => {
     expect(summaryMarkup).toContain("雨対応");
     expect(summaryMarkup).toContain("対応");
     expect(summaryMarkup).toContain("クリーニング中");
+    expect(summaryMarkup).toContain("透け感");
+    expect(summaryMarkup).toContain("ややあり");
     expect(summaryMarkup).not.toContain("分類");
     expect(summaryMarkup).not.toContain("メイン");
     expect(summaryMarkup).not.toContain("サブ");
@@ -216,7 +218,8 @@ describe("アイテム詳細画面", () => {
     expect(markup).not.toContain("代表画像を確認できます。");
     expect(markup).not.toContain("基本情報");
     expect(markup).toContain("分類");
-    expect(markup).toContain("色 / 利用条件・特性");
+    expect(markup).not.toContain("色 / 利用条件・特性");
+    expect(markup).not.toContain("利用条件・特性");
     expect(markup).not.toContain(">カラー<");
     expect(markup).toContain("サイズ・実寸");
     expect(markup).toContain("購入情報");
@@ -955,7 +958,7 @@ describe("アイテム詳細画面", () => {
 
     expect(markup).toContain("64 BLUE");
     expect(markup).not.toContain("カスタムカラー");
-    expect(markup).toContain("メインカラー");
+    expect(markup).not.toContain("メインカラー");
     expect(markup).not.toContain("サブカラー");
   });
 
