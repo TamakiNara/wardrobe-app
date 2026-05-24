@@ -16,17 +16,17 @@ docs 内に散らばっている planned / TODO / 後続 / 要再判断を、**c
 
 ## サマリ
 
-- 棚卸しした docs / 手元タスク由来タスク: **47件**
+- 棚卸しした docs / 手元タスク由来タスク: **48件**
 - 種別別件数:
   - `バグ`: 3
   - `UI`: 15
-  - `機能`: 8
+  - `機能`: 9
   - `設計`: 13
   - `ドキュメント`: 4
   - `後回し`: 4
 - 優先度案:
   - `高`: 7
-  - `中`: 27
+  - `中`: 28
   - `低`: 13
 
 ## バグ / 違和感
@@ -454,6 +454,26 @@ item detail から outfit list へ遷移した場合の戻り導線、item list 
 - 種別: `機能`
 - 優先度: `低`
 - 依存関係: outfit 画像・メモ責務整理
+- すぐ実装できるか: `要設計`
+
+### FEAT-09 既存 item の色違いグループ化 / 紐付け
+
+既に作成済みの item 同士を、後から同じ商品の色違いとして group 化できるようにする。現在の `色違い追加` は現在の item を元に新しい色違い item を作成する導線、`複製` は類似 item を新規作成する導線として扱い、本タスクは既存 item を後から同じ色違い group に紐付ける機能として分けて設計する。
+
+#### 検討観点
+
+- 既存 item の検索・選択: item detail か item list のどちらから開始するか、名前 / ブランド / カテゴリ / 形 / 色 / status でどう候補を絞り込むか、disposed item、underwear など storage 区分が異なる item、すでに別 group に属する item を候補に含めるかを整理する。
+- group 化ルール: group_id がない item 同士の新規 group 化、既存 group への item 追加、別 group からの移動可否、group_order の決め方、現在表示中 item を先頭にするか、group 内並び替えの要否を整理する。
+- 解除・移動: 誤紐付け item を group から外せるか、外した item の group_id / group_order、group が 1 件になった場合の扱い、別 group への移動可否、解除時の確認 UI を整理する。
+- UI: item detail に `既存アイテムを色違いに追加` のような導線を置くか、色違い候補 UI とどう共存するか、`色違いを新規作成` との文言差をどう出すか、SP でも選びやすい picker / inline confirmation にするかを整理する。native confirm / alert / prompt は使わない。
+- backend / API: 既存 item を group に追加する API、group 解除 API、group 移動 API の要否、user scope、status validation、category / shape が異なる item の許容可否、outfit / wear log など既存参照への影響、import/export で group 情報を維持できるかを整理する。
+- データ整合性: group_id / group_order の一意性、同じ group 内で order が重複しないこと、別 user の item と紐付かないこと、削除 / disposed / reactivate 時の group 表示、item duplication / color variant 作成との関係を整理する。
+
+- 出典 / 対象箇所: 手元タスク, item detail / item list / color variant 導線
+- 関連機能: items / color variants / import-export
+- 種別: `機能`
+- 優先度: `中`
+- 依存関係: item group 設計 / color variant 作成導線の current 維持
 - すぐ実装できるか: `要設計`
 
 ## 設計整理
