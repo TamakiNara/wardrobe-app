@@ -213,7 +213,7 @@ describe("アイテム詳細画面", () => {
     expect(markup).toContain("対応");
     expect(markup).toContain("クリーニング中");
     expect(markup).not.toContain("画像一覧");
-    expect(markup).toContain("プレビュー");
+    expect(markup).not.toContain("プレビュー");
     expect(markup).not.toContain("代表画像プレビュー");
     expect(markup).not.toContain("代表画像を確認できます。");
     expect(markup).not.toContain("基本情報");
@@ -261,7 +261,7 @@ describe("アイテム詳細画面", () => {
     expect(markup).toContain("裏地: ポリエステル 100%");
     expect(markup).not.toContain("購入・サイズ情報");
     expect(markup).toContain("coat.png");
-    expect(markup.match(/>プレビュー</g)?.length ?? 0).toBe(1);
+    expect(markup.match(/>プレビュー</g)?.length ?? 0).toBe(0);
     expect(markup.indexOf(">duplicate-actions<")).toBeLessThan(
       markup.indexOf(">status-action<"),
     );
@@ -357,7 +357,7 @@ describe("アイテム詳細画面", () => {
     expect(markup).toContain("back.png");
     expect(markup).toContain("1枚目 / 代表画像");
     expect(markup).toContain("2枚目");
-    expect(markup.match(/>プレビュー</g)?.length ?? 0).toBe(1);
+    expect(markup.match(/>プレビュー</g)?.length ?? 0).toBe(0);
   });
 
   it("同じ商品の色違いナビを詳細画面に表示する", async () => {
