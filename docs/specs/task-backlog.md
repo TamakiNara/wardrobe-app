@@ -311,6 +311,7 @@ outfit list の使用アイテム filter / WearLogForm の item 選択では、i
 - アイテム詳細では、summary card 追加後に header / summary と重複する `基本情報` section を削除した。
 - アイテム詳細では、summary card の代表画像と重複するため、下部画像 section は複数画像がある場合のみ `画像一覧` として表示するよう整理した。
 - アイテム詳細では、色や利用条件系情報を summary 側へ寄せ、下部の `利用条件・特性` section を削除した。状態管理 section は操作用として維持する。
+- アイテム詳細では、memo 未設定時の `補足情報` section を非表示にし、補足情報は memo がある場合の詳細確認用に整理した。
 - 既存 section の重複整理、右側 preview の扱い、共通 component 化は未対応。
 
 - 出典 / 対象箇所: 手元タスク, 主要画面の現状 UI

@@ -310,6 +310,7 @@ export default async function ItemPage({
   const visibleCustomSizeFields = normalizedSizeDetails?.custom_fields ?? [];
   const groupedMaterials = groupItemMaterialsForDisplay(item.materials);
   const groupItems = item.group_items ?? [];
+  const itemMemo = item.memo?.trim() ? item.memo : null;
   const bottomsRiseLabel =
     BOTTOMS_RISE_OPTIONS.find(
       (option) => option.value === item.spec?.bottoms?.rise_type,
@@ -798,17 +799,21 @@ export default async function ItemPage({
               </dl>
             </section>
 
-            <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-              <h2 className="text-lg font-semibold text-gray-900">補足情報</h2>
-              <dl className="mt-4">
-                <div>
-                  <dt className="text-sm font-medium text-gray-700">メモ</dt>
-                  <dd className="mt-1 whitespace-pre-wrap text-sm text-gray-600">
-                    {item.memo ?? "未設定"}
-                  </dd>
-                </div>
-              </dl>
-            </section>
+            {itemMemo ? (
+              <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+                <h2 className="text-lg font-semibold text-gray-900">
+                  補足情報
+                </h2>
+                <dl className="mt-4">
+                  <div>
+                    <dt className="text-sm font-medium text-gray-700">メモ</dt>
+                    <dd className="mt-1 whitespace-pre-wrap text-sm text-gray-600">
+                      {itemMemo}
+                    </dd>
+                  </div>
+                </dl>
+              </section>
+            ) : null}
 
             {itemImages.length >= 2 ? (
               <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">

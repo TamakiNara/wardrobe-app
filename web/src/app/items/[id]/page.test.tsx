@@ -486,6 +486,7 @@ describe("アイテム詳細画面", () => {
     expect(markup).toContain("ホワイト");
     expect(markup).toContain("色違いあり");
     expect(markup).not.toContain("画像一覧");
+    expect(markup).not.toContain("補足情報");
     expect(markup).toContain('href="/items/32"');
   });
 
