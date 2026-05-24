@@ -876,44 +876,40 @@ export default async function ItemPage({
               </dl>
             </section>
 
-            <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-              <h2 className="text-lg font-semibold text-gray-900">画像</h2>
-              <div className="mt-4 space-y-4">
-                {itemImages.length > 0 ? (
-                  <div className="space-y-3">
-                    {itemImages.map((image) => (
-                      <article
-                        key={image.id ?? `${image.path}-${image.sort_order}`}
-                        className="overflow-hidden rounded-xl border border-gray-200 bg-gray-50"
-                      >
-                        {image.url ? (
-                          <div className="flex max-h-[28rem] min-h-[16rem] items-center justify-center bg-gray-50 p-3">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
-                              src={image.url}
-                              alt={image.original_filename ?? "item image"}
-                              className="h-full max-h-[24rem] w-full object-contain"
-                            />
-                          </div>
-                        ) : (
-                          <div className="flex aspect-[4/3] items-center justify-center bg-gray-100 text-sm text-gray-400">
-                            画像なし
-                          </div>
-                        )}
-                        <div className="p-3 text-sm text-gray-600">
-                          {image.sort_order}枚目
-                          {image.is_primary ? " / 代表画像" : ""}
+            {itemImages.length >= 2 ? (
+              <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+                <h2 className="text-lg font-semibold text-gray-900">
+                  画像一覧
+                </h2>
+                <div className="mt-4 space-y-3">
+                  {itemImages.map((image) => (
+                    <article
+                      key={image.id ?? `${image.path}-${image.sort_order}`}
+                      className="overflow-hidden rounded-xl border border-gray-200 bg-gray-50"
+                    >
+                      {image.url ? (
+                        <div className="flex max-h-[28rem] min-h-[16rem] items-center justify-center bg-gray-50 p-3">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={image.url}
+                            alt={image.original_filename ?? "item image"}
+                            className="h-full max-h-[24rem] w-full object-contain"
+                          />
                         </div>
-                      </article>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-gray-600">
-                    画像はまだありません。
-                  </p>
-                )}
-              </div>
-            </section>
+                      ) : (
+                        <div className="flex aspect-[4/3] items-center justify-center bg-gray-100 text-sm text-gray-400">
+                          画像なし
+                        </div>
+                      )}
+                      <div className="p-3 text-sm text-gray-600">
+                        {image.sort_order}枚目
+                        {image.is_primary ? " / 代表画像" : ""}
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </section>
+            ) : null}
 
             <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
               <h2 className="text-lg font-semibold text-gray-900">状態管理</h2>

@@ -210,7 +210,7 @@ describe("アイテム詳細画面", () => {
     expect(markup).toContain("購入後メモ");
     expect(markup).toContain("対応");
     expect(markup).toContain("クリーニング中");
-    expect(markup).toContain("画像");
+    expect(markup).not.toContain("画像一覧");
     expect(markup).toContain("プレビュー");
     expect(markup).not.toContain("代表画像プレビュー");
     expect(markup).not.toContain("代表画像を確認できます。");
@@ -271,6 +271,90 @@ describe("アイテム詳細画面", () => {
     expect(markup.indexOf(">編集<")).toBeLessThan(
       markup.indexOf(">一覧へ戻る<"),
     );
+  });
+
+  it("画像が複数ある場合だけ画像一覧を表示する", async () => {
+    fetchMock
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          item: {
+            id: 2,
+            name: "画像ありアイテム",
+            status: "active",
+            care_status: null,
+            brand_name: "Image Brand",
+            price: null,
+            purchase_url: null,
+            memo: null,
+            purchased_at: null,
+            size_gender: null,
+            size_label: null,
+            size_note: null,
+            size_details: null,
+            is_rain_ok: false,
+            category: "tops",
+            subcategory: "shirt",
+            shape: "shirt",
+            colors: [],
+            seasons: [],
+            tpos: [],
+            spec: null,
+            materials: [],
+            images: [
+              {
+                id: 10,
+                item_id: 2,
+                disk: "public",
+                path: "items/2/front.png",
+                url: "https://example.test/storage/items/2/front.png",
+                original_filename: "front.png",
+                mime_type: "image/png",
+                file_size: 1000,
+                sort_order: 1,
+                is_primary: true,
+              },
+              {
+                id: 11,
+                item_id: 2,
+                disk: "public",
+                path: "items/2/back.png",
+                url: "https://example.test/storage/items/2/back.png",
+                original_filename: "back.png",
+                mime_type: "image/png",
+                file_size: 1100,
+                sort_order: 2,
+                is_primary: false,
+              },
+            ],
+          },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          preferences: {
+            skinTonePreset: "neutral_medium",
+          },
+        }),
+      });
+
+    const { default: ItemPage } = await import("./page");
+    const markup = renderToStaticMarkup(
+      await ItemPage({
+        params: Promise.resolve({ id: "2" }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+
+    expect(markup).toContain("画像一覧");
+    expect(markup).toContain("front.png");
+    expect(markup).toContain("back.png");
+    expect(markup).toContain("1枚目 / 代表画像");
+    expect(markup).toContain("2枚目");
+    expect(markup.match(/>プレビュー</g)?.length ?? 0).toBe(1);
   });
 
   it("同じ商品の色違いナビを詳細画面に表示する", async () => {
@@ -398,6 +482,7 @@ describe("アイテム詳細画面", () => {
     expect(markup).toContain("ネイビー");
     expect(markup).toContain("ホワイト");
     expect(markup).toContain("色違いあり");
+    expect(markup).not.toContain("画像一覧");
     expect(markup).toContain('href="/items/32"');
   });
 

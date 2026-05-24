@@ -309,7 +309,8 @@ outfit list の使用アイテム filter / WearLogForm の item 選択では、i
 - アイテム詳細では、summary card をヘッダー直下に追加し、代表画像、ブランド、サイズ、色、季節 / TPO / 雨対応、ケア状態などを上部で確認できるようにした。
 - 分類は summary に戻さず、既存の分類 section に残した。
 - アイテム詳細では、summary card 追加後に header / summary と重複する `基本情報` section を削除した。
-- 既存 section の重複整理、右側 preview / 画像 section の扱い、共通 component 化は未対応。
+- アイテム詳細では、summary card の代表画像と重複するため、下部画像 section は複数画像がある場合のみ `画像一覧` として表示するよう整理した。
+- 既存 section の重複整理、右側 preview の扱い、共通 component 化は未対応。
 
 - 出典 / 対象箇所: 手元タスク, 主要画面の現状 UI
 - 関連機能: 共通 UI / 全画面
