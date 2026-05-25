@@ -156,20 +156,17 @@ export default async function WearLogDetailPage({
           }
         />
 
-        <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div className="min-w-0">
-              <h2 className="text-lg font-semibold text-gray-900">基本情報</h2>
-              {isPastPlanned ? (
-                <p className="mt-2 text-sm text-gray-600">
-                  この予定は過去日の未着用記録です。着用済みへ更新できます。
-                </p>
-              ) : null}
-            </div>
-            <div className="flex flex-wrap items-center gap-3 sm:justify-end">
-              <WearLogStatusAction wearLog={wearLog} />
-              <DeleteWearLogButton wearLogId={String(wearLog.id)} />
-            </div>
+        <section
+          className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm"
+          data-testid="wear-log-basic-info-section"
+        >
+          <div className="min-w-0">
+            <h2 className="text-lg font-semibold text-gray-900">基本情報</h2>
+            {isPastPlanned ? (
+              <p className="mt-2 text-sm text-gray-600">
+                この予定は過去日の未着用記録です。着用済みへ更新できます。
+              </p>
+            ) : null}
           </div>
 
           <div className="mt-5 border-t border-gray-100 pt-5">
@@ -199,6 +196,21 @@ export default async function WearLogDetailPage({
                 </dd>
               </div>
             </dl>
+          </div>
+        </section>
+
+        <section
+          className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm"
+          data-testid="wear-log-status-management-section"
+        >
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">状態管理</h2>
+              <p className="mt-2 text-sm text-gray-600">
+                予定と着用済みを切り替えます。
+              </p>
+            </div>
+            <WearLogStatusAction wearLog={wearLog} />
           </div>
         </section>
 
@@ -378,6 +390,19 @@ export default async function WearLogDetailPage({
               アイテムはまだありません。
             </p>
           )}
+        </section>
+
+        <section
+          className="rounded-2xl border border-red-200 bg-white p-6 shadow-sm"
+          data-testid="wear-log-delete-section"
+        >
+          <h2 className="text-lg font-semibold text-gray-900">削除</h2>
+          <p className="mt-2 text-sm text-gray-600">
+            誤って登録した着用履歴など、履歴として残す必要がない場合にのみ削除してください。
+          </p>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <DeleteWearLogButton wearLogId={String(wearLog.id)} />
+          </div>
         </section>
       </div>
     </main>

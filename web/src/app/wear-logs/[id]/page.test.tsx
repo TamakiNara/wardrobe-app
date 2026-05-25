@@ -20,6 +20,19 @@ vi.mock("@/lib/server/laravel", () => ({
   fetchLaravelWithCookie: fetchLaravelWithCookieMock,
 }));
 
+function getSectionMarkup(markup: string, testId: string): string {
+  const testIdIndex = markup.indexOf(`data-testid="${testId}"`);
+  expect(testIdIndex).toBeGreaterThanOrEqual(0);
+
+  const sectionStart = markup.lastIndexOf("<section", testIdIndex);
+  const sectionEnd = markup.indexOf("</section>", testIdIndex);
+
+  expect(sectionStart).toBeGreaterThanOrEqual(0);
+  expect(sectionEnd).toBeGreaterThanOrEqual(0);
+
+  return markup.slice(sectionStart, sectionEnd + "</section>".length);
+}
+
 describe("WearLogDetailPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -117,6 +130,32 @@ describe("WearLogDetailPage", () => {
     expect(markup).toContain("気分と合わなかった");
     expect(markup).toContain("着用メモ");
     expect(markup).toContain("朝は少し肌寒かった");
+    const basicInfoSection = getSectionMarkup(
+      markup,
+      "wear-log-basic-info-section",
+    );
+    expect(basicInfoSection).toContain("基本情報");
+    expect(basicInfoSection).toContain("状態");
+    expect(basicInfoSection).toContain("着用済み");
+    expect(basicInfoSection).toContain("日付");
+    expect(basicInfoSection).toContain("2026-04-30");
+    expect(basicInfoSection).toContain("表示順");
+    expect(basicInfoSection).toContain("1件目");
+    expect(basicInfoSection).toContain("着用メモ");
+    expect(basicInfoSection).toContain("朝は少し肌寒かった");
+    expect(basicInfoSection).not.toContain("予定に戻す");
+    expect(basicInfoSection).not.toContain("削除");
+    const statusManagementSection = getSectionMarkup(
+      markup,
+      "wear-log-status-management-section",
+    );
+    expect(statusManagementSection).toContain("状態管理");
+    expect(statusManagementSection).toContain("予定と着用済みを切り替えます。");
+    expect(statusManagementSection).not.toContain("現在の状態");
+    expect(statusManagementSection).toContain("予定に戻す");
+    expect(statusManagementSection).toContain(
+      'data-testid="wear-log-status-action"',
+    );
     expect(markup).toContain("振り返りメモ");
     expect(markup).toContain("この日の天気");
     expect(markup).toContain("川口");
@@ -132,6 +171,12 @@ describe("WearLogDetailPage", () => {
     expect(markup).toContain("振り返りを編集");
     expect(markup).toContain("予定に戻す");
     expect(markup).toContain("削除");
+    const deleteSection = getSectionMarkup(markup, "wear-log-delete-section");
+    expect(deleteSection).toContain("削除");
+    expect(deleteSection).toContain(
+      "誤って登録した着用履歴など、履歴として残す必要がない場合にのみ削除してください。",
+    );
+    expect(deleteSection).toContain('data-testid="wear-log-delete-action"');
     expect(markup).not.toContain("着用内容や服装の振り返りを編集できます。");
   });
 
