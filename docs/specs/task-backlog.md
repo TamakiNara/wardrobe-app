@@ -25,8 +25,8 @@ docs 内に散らばっている planned / TODO / 後続 / 要再判断を、**c
   - `ドキュメント`: 4
   - `後回し`: 4
 - 優先度案:
-  - `高`: 6
-  - `中`: 30
+  - `高`: 4
+  - `中`: 32
   - `低`: 13
 
 ## バグ / 違和感
@@ -411,7 +411,7 @@ outfit list の使用アイテム filter / WearLogForm の item 選択では、i
 - 出典 / 対象箇所: `planning/next-features.md` / `item状態管理の完成`, `items/status-management.md`, `items/delete-policy.md`
 - 関連機能: items
 - 種別: `機能`
-- 優先度: `高`
+- 優先度: `中`
 - 依存関係: current status 方針維持
 - すぐ実装できるか: `要設計`
 
@@ -426,9 +426,11 @@ outfit list の使用アイテム filter / WearLogForm の item 選択では、i
 
 #### 残件
 
-- delete-check API / structured reason の要否整理。
-- `converted_item_id` がある item の warning を delete-check API / structured reason と統合するかの整理。
-- `outfit_invalidated` 個別 event log、dispose reason、disposed_at の要否整理。
+- delete-check API / structured reason は、削除不可理由や warning を横断的に扱う必要が出た段階で再検討する。
+- `converted_item_id` がある item の warning は current 実装で最低限対応済み。structured reason との統合は後続判断とする。
+- `outfit_invalidated` 個別 event log は、運用上追跡が必要になった段階で検討する。
+- dispose reason / disposed_at は、手放し理由や時期を管理したくなった段階で検討する。
+- 残件は設計判断・運用判断が中心のため、今すぐ高優先度で追加実装を続ける段階ではない。
 
 ### FEAT-03 素材・混率管理
 
@@ -437,7 +439,7 @@ outfit list の使用アイテム filter / WearLogForm の item 選択では、i
 - 出典 / 対象箇所: `planning/next-features.md` / `素材・混率管理`, `items/material-composition.md`
 - 関連機能: items / purchase candidates
 - 種別: `機能`
-- 優先度: `高`
+- 優先度: `中`
 - 依存関係: 基本実装は対応済み / 拡張は要設計
 - すぐ実装できるか: `一部対応済み`
 
@@ -454,14 +456,12 @@ outfit list の使用アイテム filter / WearLogForm の item 選択では、i
 
 #### 残件
 
-- `item_materials` と `purchase_candidate_materials` の `part_label` / `material_name` の DB カラム長を 100 に揃えるか要判断。
-- 素材候補の設定管理。
-- 素材マスタ化。
-- 素材検索。
-- 分析・可視化。
-- 小数混率。
-- 品質表示全文保存。
-- 表示・入力 UI のさらなる調整。
+- `item_materials` と `purchase_candidate_materials` の `part_label` / `material_name` の DB カラム長を 100 に揃えるか、migration を入れるか要判断。
+- 素材候補の設定管理 / 素材マスタ化は、入力ゆれや検索が問題になってから検討する。
+- 素材検索 / 分析・可視化は、利用データが増えてから検討する。
+- 小数混率 / 品質表示全文保存は、実データで必要性が出たら検討する。
+- 表示・入力 UI のさらなる調整は、運用で困りごとが出たら戻る。
+- 残件は拡張・設計判断・将来対応が中心で、現状バグではないため高優先度からは外す。
 
 ### FEAT-04 検索・絞り込み強化
 
