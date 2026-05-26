@@ -237,6 +237,22 @@ current:
 - 購入検討詳細側では、戻り元がある場合だけ `買い物メモへ戻る` を表示する
 - 通常の購入検討詳細アクセスでは表示しない
 
+## 期限表示
+
+current:
+
+- 買い物メモ詳細の item row では、`sale_ends_at` / `discount_ends_at` のうち近い方を代表期限として 1 本表示する
+- 代表期限には `販売終了日` / `セール終了日` の種別ラベルを付ける
+- item row に `販売終了日` / `セール終了日` を常時 2 行表示する方針ではない
+- summary では memo 全体の `nearest_deadline` を `一番近い期限` として表示する
+- `期限切れ` / `期限間近` badge は item row の代表期限を基準に表示する
+- group header の nearest deadline は現時点では実装前提にしない。summary / item row と期限情報が重複しやすいため、group 折りたたみなど必要性が出た段階で再検討する
+
+期限 field の意味:
+
+- `sale_ends_at`: `販売終了日`。候補商品の販売・掲載が終わる日時
+- `discount_ends_at`: `セール終了日`。`sale_price` の値引き・セール条件が終わる日時
+
 ## 金額計算
 
 - `unit_price` は current 有効価格を使う
@@ -444,7 +460,7 @@ current:
 - 送料 / クーポン
 - `shopping_memo_group_adjustments`
 - manual group
-- `sale_ends_at / discount_ends_at` internal name 見直し後に必要なら期限表示を再調整する
+- `sale_ends_at / discount_ends_at` の internal name 見直しは DES-05 で中期以降に再判断する。current UI / docs では `販売終了日` / `セール終了日` の表示名を維持する
 - 買い物メモ詳細のさらなる表示改善
 
 ## 後続タスク
