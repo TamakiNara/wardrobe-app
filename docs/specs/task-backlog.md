@@ -506,11 +506,11 @@ outfit list の使用アイテム filter / WearLogForm の item 選択では、i
 
 #### 現状
 
-item detail から `/outfits?item_id={id}` へ遷移し、その item を含む outfit だけを一覧表示する導線と API filter は対応済み。wear log 登録 / 編集では、手動 item を1件選択した時に「このアイテムを含むコーディネート候補」を表示し、候補 outfit 選択で `source_outfit_id` を設定、手動 item 選択をクリアして outfit ベースの記録へ切り替える MVP も対応済み。選択中 item / outfit は選択中エリアから直接解除できる。item / outfit 候補一覧は初期状態では閉じ、開いた時に初回取得する構成へ変更済み。
+item detail から `/outfits?item_id={id}` へ遷移し、その item を含む outfit だけを一覧表示する導線と API filter は対応済み。item_id filter 付き outfit list では、対象 item の detail へ戻る `アイテム詳細へ戻る` 導線も表示する。wear log 登録 / 編集では、手動 item を1件選択した時に「このアイテムを含むコーディネート候補」を表示し、候補 outfit 選択で `source_outfit_id` を設定、手動 item 選択をクリアして outfit ベースの記録へ切り替える MVP も対応済み。選択中 item / outfit は選択中エリアから直接解除できる。item / outfit 候補一覧は初期状態では閉じ、開いた時に初回取得する構成へ変更済み。
 
 #### 残件
 
-item detail から outfit list へ遷移した場合の戻り導線、item list 側の導線、複数 item 検索の要否、wear log form の item / outfit 選択 UI polish は残件として扱う。単純に outfit 候補欄を item 一覧より上へ移動すると、item 選択後に上へ戻る必要があり操作の流れに反するため、選択した item カードの近くに候補を出す、候補欄へ自動スクロールする、item 一覧のさらなる折りたたみ、選択中エリアを sticky 化するなど操作導線として再検討する。あわせて、検索 / 絞り込み強化、選択中 outfit から詳細へ遷移する導線、item 手動選択と outfit 選択の状態表示、候補 outfit 欄の補足文・候補なし / loading / error 表示の見せ方を整理する。
+item list 側の導線、複数 item 検索の要否、outfit new / edit 連携、wear log form の item / outfit 選択 UI polish は残件として扱う。単純に outfit 候補欄を item 一覧より上へ移動すると、item 選択後に上へ戻る必要があり操作の流れに反するため、選択した item カードの近くに候補を出す、候補欄へ自動スクロールする、item 一覧のさらなる折りたたみ、選択中エリアを sticky 化するなど操作導線として再検討する。あわせて、検索 / 絞り込み強化、選択中 outfit から詳細へ遷移する導線、item 手動選択と outfit 選択の状態表示、候補 outfit 欄の補足文・候補なし / loading / error 表示の見せ方を整理する。
 
 - 出典 / 対象箇所: 手元タスク, `outfits/create-edit.md`, `items/status-management.md`, `outfits/list-filters.md`
 - 関連機能: items / outfits / wear logs

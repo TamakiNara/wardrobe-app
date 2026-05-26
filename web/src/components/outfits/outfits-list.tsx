@@ -767,13 +767,23 @@ export default function OutfitsList({
             <p className="font-medium">
               「{itemFilterLabel}」を含むコーディネート
             </p>
-            <button
-              type="button"
-              onClick={() => updateQuery({ itemId: "", page: 1 })}
-              className="self-start text-sm font-medium text-blue-700 hover:underline sm:self-auto"
-            >
-              絞り込みを解除
-            </button>
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+              {itemFilter ? (
+                <Link
+                  href={`/items/${itemFilter.id}`}
+                  className="text-sm font-medium text-blue-700 hover:underline"
+                >
+                  アイテム詳細へ戻る
+                </Link>
+              ) : null}
+              <button
+                type="button"
+                onClick={() => updateQuery({ itemId: "", page: 1 })}
+                className="text-sm font-medium text-blue-700 hover:underline"
+              >
+                絞り込みを解除
+              </button>
+            </div>
           </div>
         </section>
       ) : null}

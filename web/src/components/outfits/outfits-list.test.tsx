@@ -505,6 +505,13 @@ describe("OutfitsList", () => {
     expect(container.textContent).toContain("選択中:");
     expect(container.textContent).toContain("「逋ｽT」");
 
+    expect(container.textContent).toContain("アイテム詳細へ戻る");
+
+    const backToItemLink = Array.from(container.querySelectorAll("a")).find(
+      (link) => link.textContent?.includes("アイテム詳細へ戻る"),
+    );
+    expect(backToItemLink?.getAttribute("href")).toBe("/items/101");
+
     const clearItemFilterButton = Array.from(
       container.querySelectorAll("button"),
     ).find((button) => button.textContent?.includes("絞り込みを解除"));
@@ -515,6 +522,21 @@ describe("OutfitsList", () => {
     });
 
     expect(replaceMock).toHaveBeenCalledWith("/outfits", { scroll: false });
+  });
+
+  it("通常の outfit 一覧では item detail への戻り導線を表示しない", async () => {
+    fetchCategoryVisibilitySettingsMock.mockResolvedValue({
+      visibleCategoryIds: ["tops_tshirt_cutsew", "tops_shirt_blouse"],
+    });
+
+    const { default: OutfitsList } = await import("./outfits-list");
+
+    await act(async () => {
+      root.render(React.createElement(OutfitsList, defaultListProps));
+      await waitForEffects();
+    });
+
+    expect(container.textContent).not.toContain("アイテム詳細へ戻る");
   });
 
   it("使用アイテム一覧を開いて item_id filter を開始できる", async () => {
