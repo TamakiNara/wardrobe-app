@@ -16,17 +16,17 @@ docs 内に散らばっている planned / TODO / 後続 / 要再判断を、**c
 
 ## サマリ
 
-- 棚卸しした docs / 手元タスク由来タスク: **48件**
+- 棚卸しした docs / 手元タスク由来タスク: **49件**
 - 種別別件数:
   - `バグ`: 3
-  - `UI`: 15
+  - `UI`: 16
   - `機能`: 9
   - `設計`: 13
   - `ドキュメント`: 4
   - `後回し`: 4
 - 優先度案:
-  - `高`: 7
-  - `中`: 28
+  - `高`: 6
+  - `中`: 30
   - `低`: 13
 
 ## バグ / 違和感
@@ -79,31 +79,41 @@ WearLogForm の item 選択で、選択済み item が `カテゴリ未設定 / 
 
 ### UI-02 買い物メモ詳細の表示改善
 
-期限表示詳細化、比較しやすさ、情報密度の再調整
+買い物メモ詳細の item row を中心に、期限表示、価格とのまとまり、リンク導線、group 表示の情報密度を整理する。主要な表示改善は対応済みで、残件は期限表示設計や必要性が出た場合の再検討を中心に扱う
 
 - 出典 / 対象箇所: `shopping-memos.md` / `未実装 / planned`
 - 関連機能: shopping memos
 - 種別: `UI`
-- 優先度: `高`
+- 優先度: `中`
 - 依存関係: current 表示仕様の維持
-- すぐ実装できるか: `可`
+- すぐ実装できるか: `要確認`
 
 #### current
 
-- item row の代表期限表示は `販売終了日` / `セール終了日` の種別ラベル付きにし、価格欄近くへ寄せて表示済み
+- item row の代表期限表示は、`販売終了日` / `セール終了日` の種別ラベル付きにし、価格欄近くへ寄せて表示済み。
+- item row の link は `商品ページ` / `登録内容を見る` として整理済み。`商品ページ` は外部 link、`登録内容を見る` はアプリ内詳細 link として役割を分けている。
+- item row の link は pill button ではなく、通常 text link 寄りの見た目へ戻している。
+- PC / 2 列表示で左 item の下だけ中途半端な罫線が出る問題は調整済み。
+- group header の nearest deadline 表示は、現時点では実装前提にしない方針へ整理済み。
+- summary metric block 化は試したが、改善効果が薄かったため revert 済み。
 
 #### remaining
 
-- 各 item の期限表示で十分か確認し、必要なら group header の nearest deadline 表示を再検討
-- summary への期限 badge 追加
-- 販売終了日 / セール終了日の個別表示正式ルール
-- 比較しやすさと情報密度の再調整
-- DES-05 と連動する期限表示設計
+- 販売終了日 / セール終了日を両方個別表示する正式ルール。
+- DES-05 と連動する期限表示設計。
+- group 折りたたみが必要になった場合の group header 表示再検討。
+- item row の memo 長文表示 / 折りたたみの要否。
+- closed memo 操作ロックは UI-02 ではなく別タスクで扱う。
+- 代表候補画像や summary の大きな再設計は、現時点では保留する。
 
 #### memo
 
 - group header の nearest deadline 表示は、現時点では実装前提にしない。item row には `販売終了日` / `セール終了日` の種別付き期限と `期限切れ` / `期限間近` badge があり、summary にも memo 全体の `一番近い期限` が表示されているため、group header にも期限を出すと全体期限 / group 期限 / item 期限が重複して情報量が増えすぎる可能性がある。
 - group 内 item が多い場合、group 折りたたみを導入する場合、店舗 / domain group 単位で購入判断する場合には有効な可能性があるため、完全に削除せず要否確認として残す。
+- 現状の item row は、買い物判断の本体として情報を削りすぎない方針にする。
+- summary 側の大きな見た目変更より、group / item row の実用課題が出た時に戻る。
+- summary metric block 化では、候補数 / 小計 / 期限 / 価格未設定を block 化したが、重要度差が出にくく事務的に見えたため採用しなかった。
+- 現時点では UI-02 を無理に進めず、必要が出た段階で再検討する。
 
 ### UI-03 買い物メモ追加モードの選択中候補可視化
 
@@ -316,13 +326,59 @@ outfit list の使用アイテム filter / WearLogForm の item 選択では、i
 - アイテム詳細では、購入情報がすべて未設定の場合は `購入情報` section を非表示にし、値がある購入情報だけを詳細確認用として表示するよう整理した。
 - 着用履歴詳細では、`基本情報` section から状態変更操作と削除操作を分離し、`状態管理` section と `削除` section として整理した。
 - 着用履歴詳細の `基本情報` section の重複整理、着用メモの条件付き表示、item card 情報強化は未対応。
+- 着用履歴詳細では、summary card 追加を試したが、情報が整理されたというより並べ直しに見えたため revert した。現時点では summary 追加よりも、情報表示と操作の分離の方が有効だった。
+- 買い物メモ詳細では、summary metric block 化を試したが、小計 / 期限 / 価格未設定の重要度差が十分に出ず改善効果が薄かったため revert した。現時点では summary より group / item row の実用課題が出てきた段階で再検討する。
 - 既存 section のさらなる重複整理、共通 component 化は未対応。
+
+#### 中間まとめ
+
+- 購入検討詳細とアイテム詳細では、上部 summary card と下部 detail section の分担が有効だった。summary card は判断に必要な情報、下部 section は詳細確認、全文確認、操作に寄せる方針が画面整理に効いた。
+- アイテム詳細では、summary card 追加後に重複 section をかなり整理済み。基本情報、画像、色 / 利用条件、補足情報、購入情報、PC 右側 preview の扱いを段階的に見直した。
+- 着用履歴詳細では、summary card 追加より、基本情報 section から状態変更操作と削除操作を分離する方が改善効果があった。
+- 買い物メモ詳細では、summary metric block 化だけでは買い物判断しやすさの改善が弱かったため、group / item row の比較しやすさに実用課題が出てきた段階で戻る。
+
+#### 方針として分かったこと
+
+- detail 画面すべてに同じ summary card を入れるのではなく、画面目的ごとに判断する。
+- 画像や価格などが判断材料になる画面では summary card が有効になりやすい。
+- 操作と情報が混ざっている画面では、summary 追加より操作分離を優先する方が有効な場合がある。
+- 効果が薄い UI 試行は無理に残さず revert する。
+- 共通 component 化はまだ早く、もう少し画面単位の実績を見てから判断する。
+
+#### 残件
+
+- 購入検討詳細 / アイテム詳細の summary card 共通 component 化を検討する。
+- アイテム詳細のさらなる section 整理を検討する。
+- 着用履歴詳細の `基本情報` section 重複整理、着用メモの条件付き表示、item card 情報強化を検討する。
+- 買い物メモ詳細の group / item row 改善は、実用課題が出てから再検討する。
+- button / link / badge / section card の共通化を検討する。
+- 全体デザインの基準化を進める。
 
 - 出典 / 対象箇所: 手元タスク, 主要画面の現状 UI
 - 関連機能: 共通 UI / 全画面
 - 種別: `UI`
 - 優先度: `中`
 - 依存関係: 主要機能の current UI 維持 / UI-01・UI-09・DOC-04 との整理
+- すぐ実装できるか: `要設計`
+
+### UI-18 着用履歴登録後の振り返り登録導線
+
+着用履歴を登録したあと、続けて服装の振り返りを登録できる導線を追加する。着用内容の登録直後に総合評価、体感、よかったこと、気になったこと、メモを入力しやすくし、振り返り記録の入力漏れを減らせるか検討する。
+
+#### 検討観点
+
+- 導線を出す場所: 着用履歴作成完了後の遷移先、登録成功 message / toast、着用履歴詳細、着用履歴一覧、着用履歴作成フォーム内の submit 後 action のどこで提示するかを整理する。
+- 遷移先: 登録後に wear log detail へ遷移して `振り返りを登録` action を出すか、直接 `/wear-logs/{id}/reflection` へ遷移するか、`続けて振り返りを登録する` button を出してユーザーに選ばせるかを整理する。
+- 文言: `続けて振り返りを登録`、`服装の振り返りを登録`、`あとで登録する`、`詳細を見る` など、登録直後の自然な次アクションとして伝わる文言を検討する。
+- 対象 status: `worn` 登録時だけ出すか、`planned` 登録時は出さないか、過去日の planned を worn にした場合に出すか、outfit 由来 / item 手動登録で差をつけるかを整理する。
+- 既存導線との関係: 現在の `振り返りを編集` 導線、wear log detail、wear log create / edit、wear log list、status 変更、feedback / reflection page との役割を整理する。
+- 実装影響: frontend の redirect / router、API response の作成後 id、成功 message の持ち方、query parameter で action を伝えるか、test 影響、mobile bottom nav との干渉を確認する。
+
+- 出典 / 対象箇所: 手元タスク, `web/src/app/wear-logs/new`, `web/src/app/wear-logs/[id]/reflection`
+- 関連機能: wear logs / reflection
+- 種別: `UI`
+- 優先度: `中`
+- 依存関係: wear log create flow / reflection page の current 導線確認
 - すぐ実装できるか: `要設計`
 
 ## 機能追加
@@ -644,32 +700,44 @@ item を起点に既存 outfit を探す導線の適用画面を整理する。D
 - 依存関係: FEAT-07 item_id filter MVP
 - すぐ実装できるか: `要設計`
 
-### DES-12 item picker のカテゴリ / サブカテゴリ絞り込み整理
+### DES-12 item picker / item filter のカテゴリ / サブカテゴリ絞り込み整理
 
-outfit list の使用アイテム filter と WearLogForm の item 選択で、カテゴリだけでなくカテゴリ → サブカテゴリの順に絞り込めるようにするか整理する。item 数が多い画面では、カテゴリだけだと候補が残りすぎるため、サブカテゴリまで指定できる導線を検討する
+outfit list の使用アイテム filter と WearLogForm の item 選択で、カテゴリだけでなくカテゴリ → サブカテゴリの順に絞り込めるようにするか整理する。トップスなど item 数が多いカテゴリでは、カテゴリだけだと候補が残りすぎるため、サブカテゴリまで指定できる導線を検討する。コーディネート一覧だけで独自実装せず、同系統の item picker / item filter を横断して対象範囲と共通方針を確認する
 
 #### 検討対象
 
 - outfit list の使用アイテム filter
   - 現状はカテゴリ / 季節 / TPO で絞り込める。
-  - サブカテゴリを追加する場合、カテゴリ選択後に対応する形だけを出す。
+  - サブカテゴリを追加する場合、カテゴリ選択後に対応するサブカテゴリだけを出す。
 - WearLogForm の item 選択
   - 着用履歴登録 / 編集でも同じカテゴリ → サブカテゴリ絞り込みを検討する。
   - 選択済み item summary や outfit 候補表示と競合しない配置にする。
+- outfit 作成 / 編集の item 選択
+  - 選択中 item の順序入れ替え、詳細リンク、色チップなどの UI と競合しない配置にする。
+- その他 item picker / item selector
+  - 同系統の item 選択 UI がある画面を調査し、最初に 1 画面で実装してから横展開するか、共通 helper から整えるかを判断する。
 
 #### 判断観点
 
 - item master のカテゴリ / 形ラベルと一致させる。
 - カテゴリ未選択時にサブカテゴリをどう表示するか決める。
+- カテゴリ選択後に、そのカテゴリ配下のサブカテゴリだけを表示するか決める。
+- サブカテゴリは単一選択か複数選択かを決める。
+- サブカテゴリ未設定 item を候補に含めるか、`サブカテゴリ未設定` として選べるようにするかを決める。
+- shape まで絞り込む必要があるか、今回はサブカテゴリまでに留めるかを決める。
+- ブランド / 色 / status との組み合わせは今回扱うか、後続に分けるかを決める。
 - 既存の keyword / 季節 / TPO filter と併用できるようにする。
-- API / DB 変更なしの client-side filter で足りるか確認する。
+- API / DB 変更なしの client-side filter で足りるか、既存 API / `fetchItemsIndex` などの helper が category / subcategory filter を渡せるか確認する。
+- サブカテゴリ変更時に item 候補を再取得するか、取得済み一覧を frontend 側で絞り込むかを決める。
+- loading / empty / error 表示、現在選択中 item の見え方、SP での select 配置を整理する。
+- item picker 間で完全共通 component 化するかは急がず、まず対象画面調査 → 1 画面実装 → 着用履歴側などへの横展開 → 必要に応じて共通化の順で進める。
 - outfit new / edit の作成補助とは混同しない。
 
 - 出典 / 対象箇所: 手元確認, `web/src/components/outfits/outfits-list.tsx`, `web/src/components/wear-logs/wear-log-form.tsx`
-- 関連機能: outfits / wear logs / items
+- 関連機能: outfits / wear logs / items / item picker
 - 種別: `設計`
 - 優先度: `中`
-- 依存関係: item category / shape master の current 表示確認
+- 依存関係: item category / subcategory / shape master の current 表示確認
 - すぐ実装できるか: `要設計`
 
 ### DES-13 item / purchase candidate picker の共通化検討
