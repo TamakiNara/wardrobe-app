@@ -180,6 +180,133 @@ describe("WearLogDetailPage", () => {
     expect(markup).not.toContain("着用内容や服装の振り返りを編集できます。");
   });
 
+  it("作成直後の worn detail では振り返り登録への次アクションを表示する", async () => {
+    fetchLaravelWithCookieMock.mockResolvedValue({
+      status: 200,
+      ok: true,
+      json: async () => ({
+        wearLog: {
+          id: 57,
+          status: "worn",
+          event_date: "2026-05-23",
+          display_order: 1,
+          source_outfit_id: null,
+          source_outfit_name: null,
+          source_outfit_status: null,
+          memo: null,
+          outdoor_temperature_feel: null,
+          indoor_temperature_feel: null,
+          overall_rating: null,
+          feedback_tags: [],
+          feedback_memo: null,
+          weather_records: [],
+          items: [],
+          created_at: "2026-05-23T09:00:00Z",
+          updated_at: "2026-05-23T09:00:00Z",
+        },
+      }),
+    });
+
+    const { default: WearLogDetailPage } = await import("./page");
+    const markup = renderToStaticMarkup(
+      await WearLogDetailPage({
+        params: Promise.resolve({ id: "57" }),
+        searchParams: Promise.resolve({
+          created: "1",
+          next: "reflection",
+        }),
+      }),
+    );
+
+    expect(markup).toContain("着用履歴を登録しました。");
+    expect(markup).toContain("続けて振り返りを登録");
+    expect(markup).toContain('href="/wear-logs/57/reflection"');
+    expect(markup).toContain(
+      'data-testid="wear-log-created-reflection-prompt"',
+    );
+  });
+
+  it("query parameter がない場合は作成直後の振り返り導線を表示しない", async () => {
+    fetchLaravelWithCookieMock.mockResolvedValue({
+      status: 200,
+      ok: true,
+      json: async () => ({
+        wearLog: {
+          id: 58,
+          status: "worn",
+          event_date: "2026-05-24",
+          display_order: 1,
+          source_outfit_id: null,
+          source_outfit_name: null,
+          source_outfit_status: null,
+          memo: null,
+          outdoor_temperature_feel: null,
+          indoor_temperature_feel: null,
+          overall_rating: null,
+          feedback_tags: [],
+          feedback_memo: null,
+          weather_records: [],
+          items: [],
+          created_at: "2026-05-24T09:00:00Z",
+          updated_at: "2026-05-24T09:00:00Z",
+        },
+      }),
+    });
+
+    const { default: WearLogDetailPage } = await import("./page");
+    const markup = renderToStaticMarkup(
+      await WearLogDetailPage({
+        params: Promise.resolve({ id: "58" }),
+      }),
+    );
+
+    expect(markup).not.toContain("着用履歴を登録しました。");
+    expect(markup).not.toContain("続けて振り返りを登録");
+  });
+
+  it("planned detail では作成直後 query があっても振り返り登録への次アクションを表示しない", async () => {
+    fetchLaravelWithCookieMock.mockResolvedValue({
+      status: 200,
+      ok: true,
+      json: async () => ({
+        wearLog: {
+          id: 59,
+          status: "planned",
+          event_date: "2026-05-25",
+          display_order: 1,
+          source_outfit_id: null,
+          source_outfit_name: null,
+          source_outfit_status: null,
+          memo: null,
+          outdoor_temperature_feel: null,
+          indoor_temperature_feel: null,
+          overall_rating: null,
+          feedback_tags: [],
+          feedback_memo: null,
+          weather_records: [],
+          items: [],
+          created_at: "2026-05-25T09:00:00Z",
+          updated_at: "2026-05-25T09:00:00Z",
+        },
+      }),
+    });
+
+    const { default: WearLogDetailPage } = await import("./page");
+    const markup = renderToStaticMarkup(
+      await WearLogDetailPage({
+        params: Promise.resolve({ id: "59" }),
+        searchParams: Promise.resolve({
+          created: "1",
+          next: "reflection",
+        }),
+      }),
+    );
+
+    expect(markup).not.toContain("着用履歴を登録しました。");
+    expect(markup).not.toContain("続けて振り返りを登録");
+    expect(markup).toContain("振り返りを編集");
+  });
+
   it("振り返りも天気も未登録なら該当セクションを出さない", async () => {
     fetchLaravelWithCookieMock.mockResolvedValue({
       status: 200,

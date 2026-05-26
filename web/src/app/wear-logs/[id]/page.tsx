@@ -20,6 +20,14 @@ import type { WearLogRecord } from "@/types/wear-logs";
 
 const fallbackMetadata = buildPageMetadata("着用履歴詳細");
 
+type WearLogDetailSearchParams = Record<string, string | string[] | undefined>;
+
+function getSearchParamValue(
+  value: string | string[] | undefined,
+): string | undefined {
+  return Array.isArray(value) ? value[0] : value;
+}
+
 function getItemSourceTypeLabel(itemSourceType: "outfit" | "manual"): string {
   return itemSourceType === "outfit" ? "コーディネート由来" : "手動追加";
 }
@@ -95,14 +103,21 @@ async function getWearLog(id: string): Promise<WearLogRecord> {
 
 export default async function WearLogDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams?: Promise<WearLogDetailSearchParams>;
 }) {
   const { id } = await params;
+  const query = searchParams ? await searchParams : {};
   const wearLog = await getWearLog(id);
   const today = getTodayYmd();
   const isPastPlanned =
     wearLog.status === "planned" && wearLog.event_date < today;
+  const showCreatedReflectionPrompt =
+    wearLog.status === "worn" &&
+    getSearchParamValue(query.created) === "1" &&
+    getSearchParamValue(query.next) === "reflection";
   const feedbackSummary = splitWearLogFeedbackTags(wearLog.feedback_tags ?? []);
   const hasFeedbackSection =
     wearLog.overall_rating !== null ||
@@ -155,6 +170,30 @@ export default async function WearLogDetailPage({
             </>
           }
         />
+
+        {showCreatedReflectionPrompt ? (
+          <section
+            className="rounded-2xl border border-blue-200 bg-blue-50 px-5 py-4 shadow-sm"
+            data-testid="wear-log-created-reflection-prompt"
+          >
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm font-semibold text-blue-900">
+                  着用履歴を登録しました。
+                </p>
+                <p className="mt-1 text-sm text-blue-800">
+                  着用感や気になった点を続けて記録できます。
+                </p>
+              </div>
+              <Link
+                href={`/wear-logs/${wearLog.id}/reflection`}
+                className="inline-flex items-center justify-center rounded-lg border border-blue-300 bg-white px-4 py-2 text-sm font-medium text-blue-700 transition hover:bg-blue-100"
+              >
+                続けて振り返りを登録
+              </Link>
+            </div>
+          </section>
+        ) : null}
 
         <section
           className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm"

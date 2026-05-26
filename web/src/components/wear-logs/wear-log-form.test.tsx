@@ -347,6 +347,165 @@ describe("WearLogForm", () => {
     expect(container.textContent).toContain("キャンセル");
   });
 
+  it("worn の新規登録成功時は作成された detail の振り返り導線付き URL へ遷移する", async () => {
+    vi.useFakeTimers();
+    try {
+      fetchAllPaginatedCandidatesMock.mockResolvedValueOnce({
+        status: 200,
+        entries: [
+          {
+            id: 1,
+            name: "白T",
+            status: "active",
+            brand_name: "UNIQLO",
+            category: "tops",
+            shape: "tshirt",
+            colors: [],
+          },
+        ],
+      });
+
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockResolvedValueOnce({
+          ok: true,
+          status: 201,
+          json: async () => ({
+            message: "created",
+            wearLog: {
+              id: 88,
+              status: "worn",
+            },
+          }),
+        }),
+      );
+
+      const { default: WearLogForm } = await import("./wear-log-form");
+
+      await act(async () => {
+        root.render(
+          React.createElement(WearLogForm, {
+            mode: "create",
+            initialStatus: "worn",
+            initialEventDate: "2026-03-24",
+          }),
+        );
+        await waitForEffects();
+      });
+
+      await openItemCandidateList(container);
+
+      await act(async () => {
+        container
+          .querySelector<HTMLInputElement>('input[id="wear-log-item-1"]')
+          ?.click();
+        await waitForEffects();
+      });
+
+      await act(async () => {
+        container
+          .querySelector<HTMLButtonElement>('button[type="submit"]')
+          ?.click();
+        await waitForEffects();
+      });
+
+      expect(global.fetch).toHaveBeenLastCalledWith(
+        "/api/wear-logs",
+        expect.objectContaining({
+          method: "POST",
+          body: expect.stringContaining('"status":"worn"'),
+        }),
+      );
+
+      await act(async () => {
+        vi.advanceTimersByTime(800);
+        await waitForEffects();
+      });
+
+      expect(pushMock).toHaveBeenCalledWith(
+        "/wear-logs/88?created=1&next=reflection",
+      );
+      expect(refreshMock).toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("planned の新規登録成功時は振り返り導線用 query を付けない", async () => {
+    vi.useFakeTimers();
+    try {
+      fetchAllPaginatedCandidatesMock.mockResolvedValueOnce({
+        status: 200,
+        entries: [
+          {
+            id: 1,
+            name: "白T",
+            status: "active",
+            brand_name: "UNIQLO",
+            category: "tops",
+            shape: "tshirt",
+            colors: [],
+          },
+        ],
+      });
+
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockResolvedValueOnce({
+          ok: true,
+          status: 201,
+          json: async () => ({
+            message: "created",
+            wearLog: {
+              id: 89,
+              status: "planned",
+            },
+          }),
+        }),
+      );
+
+      const { default: WearLogForm } = await import("./wear-log-form");
+
+      await act(async () => {
+        root.render(
+          React.createElement(WearLogForm, {
+            mode: "create",
+            initialEventDate: "2026-03-24",
+          }),
+        );
+        await waitForEffects();
+      });
+
+      await openItemCandidateList(container);
+
+      await act(async () => {
+        container
+          .querySelector<HTMLInputElement>('input[id="wear-log-item-1"]')
+          ?.click();
+        await waitForEffects();
+      });
+
+      await act(async () => {
+        container
+          .querySelector<HTMLButtonElement>('button[type="submit"]')
+          ?.click();
+        await waitForEffects();
+      });
+
+      await act(async () => {
+        vi.advanceTimersByTime(800);
+        await waitForEffects();
+      });
+
+      expect(pushMock).toHaveBeenCalledWith("/wear-logs");
+      expect(pushMock).not.toHaveBeenCalledWith(
+        expect.stringContaining("next=reflection"),
+      );
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("item 1件選択時に関連コーディネート候補を表示し、候補選択で outfit ベースの payload に切り替える", async () => {
     fetchAllPaginatedCandidatesMock
       .mockResolvedValueOnce({

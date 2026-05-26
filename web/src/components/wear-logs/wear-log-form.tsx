@@ -35,6 +35,7 @@ import type { ItemSpec } from "@/types/items";
 import type {
   WearLogFeedbackTag,
   WearLogDetailResponse,
+  WearLogMutationResponse,
   WearLogOverallRating,
   WearLogRecord,
   WearLogStatus,
@@ -50,6 +51,11 @@ type WearLogFormProps = {
   initialEventDate?: string;
   initialDisplayOrder?: number;
   initialCurrentSeason?: string;
+};
+
+type WearLogSubmitResponse = Partial<WearLogMutationResponse> & {
+  errors?: unknown;
+  message?: string;
 };
 
 type OutfitCandidate = {
@@ -868,7 +874,9 @@ export default function WearLogForm({
         body: JSON.stringify(payload),
       });
 
-      const data = await response.json().catch(() => null);
+      const data = (await response
+        .json()
+        .catch(() => null)) as WearLogSubmitResponse | null;
 
       if (response.status === 401) {
         setFieldErrorSummary(null);
@@ -907,8 +915,15 @@ export default function WearLogForm({
           : "着用履歴を登録しました。",
       );
 
+      const successRedirectHref =
+        mode === "create" &&
+        data?.wearLog?.status === "worn" &&
+        typeof data.wearLog.id === "number"
+          ? `/wear-logs/${data.wearLog.id}?created=1&next=reflection`
+          : "/wear-logs";
+
       window.setTimeout(() => {
-        router.push("/wear-logs");
+        router.push(successRedirectHref);
         router.refresh();
       }, 800);
     } catch {
