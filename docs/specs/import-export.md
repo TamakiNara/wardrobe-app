@@ -69,6 +69,15 @@ weather 関連でここで扱うデータ:
 - current response の `counts` / skipped summary と structured log には、drop した feedback tag 件数は個別反映しない
 - drop 情報を import summary / warning log に出すかは後続で再判断する
 
+### TPO の import/export 可搬性
+
+- current では `user_tpos` 自体も export/import 対象とし、item / outfit の `tpo_ids` 復元に必要な対応表を作る。
+- `user_tpos.id` は環境間で変わりうるため、backup の可搬性は ID だけを正本にしない。
+- item / outfit は内部的には `tpo_ids` ベースへ寄っているが、export/import では `tpos` name fallback と `user_tpos` 定義を併用して互換性を保つ。
+- purchase candidate は current では `purchase_candidate_tpos.tpo` の name snapshot を export/import する。`tpo_ids` は持たない。
+- legacy payload で `tpo_ids` しかない場合は、同じ backup 内の `user_tpos` 定義と mapping できる範囲で復元する。
+- 将来 purchase candidate に `tpo_ids` を導入する場合も、export は name 可搬性を維持し、legacy name fallback を残す。
+
 ### shopping_memos
 
 - `shopping_memos` は current の import/export 対象
