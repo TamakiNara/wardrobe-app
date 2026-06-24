@@ -8,9 +8,10 @@ import OutfitDuplicateAction from "@/components/outfits/outfit-duplicate-action"
 import OutfitRestoreAction from "@/components/outfits/outfit-restore-action";
 import { EntityDetailHeader } from "@/components/shared/entity-detail-header";
 import { isItemVisibleByCategorySettings } from "@/lib/api/categories";
+import { resolveItemPhotoThumbnail } from "@/lib/items/photo-thumbnail";
 import { DEFAULT_SKIN_TONE_PRESET } from "@/lib/master-data/skin-tone-presets";
 import { fetchLaravelWithCookie } from "@/lib/server/laravel";
-import type { ItemFormColor, ItemSpec } from "@/types/items";
+import type { ItemFormColor, ItemImageRecord, ItemSpec } from "@/types/items";
 import type { SkinTonePreset } from "@/types/settings";
 
 const fallbackMetadata = buildPageMetadata("コーディネート詳細");
@@ -29,6 +30,7 @@ type OutfitItem = {
     status: "active" | "disposed";
     seasons: string[];
     tpos: string[];
+    images?: ItemImageRecord[];
   };
 };
 
@@ -104,6 +106,25 @@ function resolveOutfitItemColorLabel(color?: ItemFormColor) {
   const trimmedLabel = color?.label?.trim();
 
   return trimmedCustomLabel || trimmedLabel || "カスタムカラー";
+}
+
+function renderOutfitItemPhotoThumbnail(item: OutfitItem["item"]) {
+  const image = resolveItemPhotoThumbnail(item.images);
+
+  if (!image?.url) {
+    return null;
+  }
+
+  return (
+    <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl border border-gray-200 bg-gray-50">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={image.url}
+        alt={image.original_filename ?? item.name ?? "item image"}
+        className="h-full w-full object-cover"
+      />
+    </div>
+  );
 }
 
 export async function generateMetadata({
@@ -327,6 +348,7 @@ export default async function OutfitDetailPage({
                 const subColor = item.colors.find((c) => c.role === "sub");
                 const mainColorLabel = resolveOutfitItemColorLabel(mainColor);
                 const subColorLabel = resolveOutfitItemColorLabel(subColor);
+                const thumbnail = renderOutfitItemPhotoThumbnail(item);
 
                 return (
                   <article
@@ -335,50 +357,56 @@ export default async function OutfitDetailPage({
                   >
                     <p className="text-sm text-gray-500">{index + 1}番目</p>
 
-                    <div className="mt-1 flex items-start justify-between gap-4">
-                      <div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <h3 className="font-medium text-gray-900">
-                            {item.name || "名称未設定"}
-                          </h3>
-                          {item.status === "disposed" && (
-                            <span className="rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800">
-                              手放し済み
+                    <div className="mt-1 flex items-start gap-4">
+                      {thumbnail && <div className="shrink-0">{thumbnail}</div>}
+
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="min-w-0">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <h3 className="font-medium text-gray-900">
+                                {item.name || "名称未設定"}
+                              </h3>
+                              {item.status === "disposed" && (
+                                <span className="rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800">
+                                  手放し済み
+                                </span>
+                              )}
+                            </div>
+                            <p className="mt-1 text-sm text-gray-600">
+                              {item.category} / {item.shape}
+                            </p>
+                          </div>
+
+                          <Link
+                            href={`/items/${item.id}`}
+                            className="shrink-0 text-sm text-blue-600 hover:underline"
+                          >
+                            アイテム詳細
+                          </Link>
+                        </div>
+
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {mainColor && (
+                            <span className="inline-flex items-center gap-2 rounded-full border border-gray-300 px-3 py-1 text-sm">
+                              <span
+                                className="h-4 w-4 rounded-full border border-gray-300"
+                                style={{ backgroundColor: mainColor.hex }}
+                              />
+                              {mainColorLabel}
+                            </span>
+                          )}
+                          {subColor && (
+                            <span className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-sm">
+                              <span
+                                className="h-4 w-4 rounded-full border border-gray-300"
+                                style={{ backgroundColor: subColor.hex }}
+                              />
+                              {subColorLabel}
                             </span>
                           )}
                         </div>
-                        <p className="mt-1 text-sm text-gray-600">
-                          {item.category} / {item.shape}
-                        </p>
                       </div>
-
-                      <Link
-                        href={`/items/${item.id}`}
-                        className="text-sm text-blue-600 hover:underline"
-                      >
-                        アイテム詳細
-                      </Link>
-                    </div>
-
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      {mainColor && (
-                        <span className="inline-flex items-center gap-2 rounded-full border border-gray-300 px-3 py-1 text-sm">
-                          <span
-                            className="h-4 w-4 rounded-full border border-gray-300"
-                            style={{ backgroundColor: mainColor.hex }}
-                          />
-                          {mainColorLabel}
-                        </span>
-                      )}
-                      {subColor && (
-                        <span className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-sm">
-                          <span
-                            className="h-4 w-4 rounded-full border border-gray-300"
-                            style={{ backgroundColor: subColor.hex }}
-                          />
-                          {subColorLabel}
-                        </span>
-                      )}
                     </div>
                   </article>
                 );

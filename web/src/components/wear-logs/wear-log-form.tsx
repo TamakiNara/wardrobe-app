@@ -23,6 +23,7 @@ import {
   resolveCurrentItemSubcategoryValue,
 } from "@/lib/master-data/item-subcategories";
 import { ITEM_CARE_STATUS_LABELS } from "@/lib/items/metadata";
+import { resolveItemPhotoThumbnail } from "@/lib/items/photo-thumbnail";
 import { SEASON_OPTIONS, TPO_OPTIONS } from "@/lib/master-data/item-attributes";
 import { WEAR_LOG_STATUS_LABELS } from "@/lib/wear-logs/labels";
 import {
@@ -35,7 +36,7 @@ import {
   type WearLogSelectableOutfit,
 } from "@/lib/wear-logs/form";
 import { fetchAllPaginatedCandidates } from "@/lib/wear-logs/candidates";
-import type { ItemImageRecord, ItemRecord, ItemSpec } from "@/types/items";
+import type { ItemRecord, ItemSpec } from "@/types/items";
 import type {
   WearLogFeedbackTag,
   WearLogDetailResponse,
@@ -244,24 +245,6 @@ function getColorDisplayLabel(
 
   const label = color.label?.trim();
   return label || "色未設定";
-}
-
-function resolveItemPhotoThumbnail(
-  images: ItemImageRecord[] | undefined,
-): ItemImageRecord | null {
-  const imagesWithUrl = (images ?? []).filter((image) => image.url);
-
-  return (
-    imagesWithUrl.find((image) => image.is_primary) ??
-    [...imagesWithUrl].sort((left, right) => {
-      if (left.sort_order !== right.sort_order) {
-        return left.sort_order - right.sort_order;
-      }
-
-      return (left.id ?? 0) - (right.id ?? 0);
-    })[0] ??
-    null
-  );
 }
 
 function renderItemCandidateThumbnail(item: WearLogSelectableItem) {

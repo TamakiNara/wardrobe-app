@@ -8,7 +8,7 @@ class OutfitPayloadBuilder
 {
     public static function buildDetail(Outfit $outfit): array
     {
-        $outfit->loadMissing(['outfitItems.item', 'user']);
+        $outfit->loadMissing(['outfitItems.item.images', 'user']);
         $user = $outfit->user;
 
         return [
@@ -24,12 +24,22 @@ class OutfitPayloadBuilder
             'outfit_items' => $outfit->outfitItems
                 ->sortBy('sort_order')
                 ->values()
-                ->map(fn ($outfitItem) => [
-                    'id' => $outfitItem->id,
-                    'item_id' => $outfitItem->item_id,
-                    'sort_order' => $outfitItem->sort_order,
-                    'item' => $outfitItem->item,
-                ])
+                ->map(function ($outfitItem) {
+                    $item = $outfitItem->item;
+
+                    return [
+                        'id' => $outfitItem->id,
+                        'item_id' => $outfitItem->item_id,
+                        'sort_order' => $outfitItem->sort_order,
+                        'item' => $item === null ? null : array_merge($item->toArray(), [
+                            'images' => $item->images
+                                ->sortBy('sort_order')
+                                ->values()
+                                ->map(fn ($image) => ItemPayloadBuilder::buildImage($image))
+                                ->all(),
+                        ]),
+                    ];
+                })
                 ->all(),
         ];
     }

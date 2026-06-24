@@ -26,9 +26,10 @@ import {
   fetchUserPreferences,
   fetchUserTpos,
 } from "@/lib/api/settings";
+import { resolveItemPhotoThumbnail } from "@/lib/items/photo-thumbnail";
 import { fetchAllPaginatedCandidates } from "@/lib/wear-logs/candidates";
 import type { CreateOutfitPayload } from "@/types/outfits";
-import type { ItemImageRecord, ItemRecord } from "@/types/items";
+import type { ItemRecord } from "@/types/items";
 import { SEASON_OPTIONS } from "@/lib/master-data/item-attributes";
 import { mapPreferenceSeasonToFilterValue } from "@/lib/settings/preferences";
 import type { UserPreferencesResponse, UserTpoRecord } from "@/types/settings";
@@ -69,24 +70,6 @@ function getMainColorLabel(item: Item): string | null {
   const customLabel = mainColor.custom_label?.trim();
 
   return customLabel || mainColor.label;
-}
-
-function resolveItemPhotoThumbnail(
-  images: ItemImageRecord[] | undefined,
-): ItemImageRecord | null {
-  const imagesWithUrl = (images ?? []).filter((image) => image.url);
-
-  return (
-    imagesWithUrl.find((image) => image.is_primary) ??
-    [...imagesWithUrl].sort((left, right) => {
-      if (left.sort_order !== right.sort_order) {
-        return left.sort_order - right.sort_order;
-      }
-
-      return (left.id ?? 0) - (right.id ?? 0);
-    })[0] ??
-    null
-  );
 }
 
 function renderItemCandidateThumbnail(item: Item) {

@@ -789,6 +789,26 @@ class OutfitsEndpointsTest extends TestCase
         $user = User::factory()->create();
         $otherUser = User::factory()->create();
         $item = $this->createItem($user);
+        $item->images()->createMany([
+            [
+                'disk' => 'public',
+                'path' => 'items/first.jpg',
+                'original_filename' => 'first.jpg',
+                'mime_type' => 'image/jpeg',
+                'file_size' => 1234,
+                'sort_order' => 1,
+                'is_primary' => false,
+            ],
+            [
+                'disk' => 'public',
+                'path' => 'items/primary.jpg',
+                'original_filename' => 'primary.jpg',
+                'mime_type' => 'image/jpeg',
+                'file_size' => 2345,
+                'sort_order' => 2,
+                'is_primary' => true,
+            ],
+        ]);
 
         $ownedOutfit = Outfit::query()->create([
             'user_id' => $user->id,
@@ -815,7 +835,12 @@ class OutfitsEndpointsTest extends TestCase
         $this->getJson("/api/outfits/{$ownedOutfit->id}", [
             'Accept' => 'application/json',
         ])->assertOk()
-            ->assertJsonPath('outfit.id', $ownedOutfit->id);
+            ->assertJsonPath('outfit.id', $ownedOutfit->id)
+            ->assertJsonCount(2, 'outfit.outfit_items.0.item.images')
+            ->assertJsonPath('outfit.outfit_items.0.item.images.0.original_filename', 'first.jpg')
+            ->assertJsonPath('outfit.outfit_items.0.item.images.0.url', 'http://localhost:8000/storage/items/first.jpg')
+            ->assertJsonPath('outfit.outfit_items.0.item.images.1.original_filename', 'primary.jpg')
+            ->assertJsonPath('outfit.outfit_items.0.item.images.1.is_primary', true);
 
         $this->getJson("/api/outfits/{$otherOutfit->id}", [
             'Accept' => 'application/json',

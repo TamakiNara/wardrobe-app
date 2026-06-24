@@ -91,6 +91,30 @@ describe("OutfitDetailPage", () => {
                   spec: null,
                   seasons: [],
                   tpos: [],
+                  images: [
+                    {
+                      id: 11,
+                      disk: "public",
+                      path: "items/first.jpg",
+                      url: "/storage/items/first.jpg",
+                      original_filename: "first-photo.jpg",
+                      mime_type: "image/jpeg",
+                      file_size: 1234,
+                      sort_order: 1,
+                      is_primary: false,
+                    },
+                    {
+                      id: 12,
+                      disk: "public",
+                      path: "items/primary.jpg",
+                      url: "/storage/items/primary.jpg",
+                      original_filename: "primary-photo.jpg",
+                      mime_type: "image/jpeg",
+                      file_size: 2345,
+                      sort_order: 2,
+                      is_primary: true,
+                    },
+                  ],
                 },
               },
             ],
@@ -138,6 +162,9 @@ describe("OutfitDetailPage", () => {
     expect(markup).toContain("基本情報");
     expect(markup).toContain("手放し済み");
     expect(markup).toContain("restore-disabled");
+    expect(markup).toContain('src="/storage/items/primary.jpg"');
+    expect(markup).toContain('alt="primary-photo.jpg"');
+    expect(markup).not.toContain("/storage/items/first.jpg");
     expect(markup).toContain('href="/outfits/10/edit"');
     expect(markup).toContain('href="/wear-logs/12"');
     expect(markup).toContain("着用履歴詳細へ戻る");
@@ -388,6 +415,7 @@ describe("OutfitDetailPage", () => {
 
     expect(markup).toContain("青みラベンダー");
     expect(markup).not.toContain(">カスタムカラー<");
+    expect(markup).not.toContain("<img");
   });
 
   it("定義済みカラーは登録済みの色名をそのまま表示する", async () => {
