@@ -134,7 +134,7 @@ describe("OutfitsList", () => {
     globalThis.IS_REACT_ACT_ENVIRONMENT = false;
   });
 
-  it("カテゴリ表示設定に応じて表示アイテム数と注記を切り替える", async () => {
+  it("カテゴリ表示設定に応じて使用アイテム表示と注記を切り替える", async () => {
     fetchCategoryVisibilitySettingsMock.mockResolvedValue({
       visibleCategoryIds: ["tops_tshirt_cutsew"],
     });
@@ -152,7 +152,11 @@ describe("OutfitsList", () => {
       await waitForEffects();
     });
 
-    expect(container.textContent).toContain("表示アイテム数: 1");
+    expect(container.textContent).not.toContain("表示アイテム数");
+    expect(container.textContent).toContain("使用アイテム");
+    expect(container.textContent).toContain("白T");
+    expect(container.textContent).not.toContain("-白T");
+    expect(container.textContent).not.toContain("白T / シャツ");
     expect(container.textContent).toContain("1 件を非表示にしています");
     expect(container.textContent).toContain("duplicate-1");
     expect(
@@ -552,6 +556,7 @@ describe("OutfitsList", () => {
           status: "active",
           brand_name: "UNIQLO",
           category: "tops",
+          subcategory: "cardigan",
           shape: "cardigan",
           colors: [
             {
@@ -564,12 +569,39 @@ describe("OutfitsList", () => {
           ],
           seasons: ["春"],
           tpos: ["休日"],
+          images: [
+            {
+              id: 301,
+              item_id: 201,
+              disk: "public",
+              path: "items/cardigan-main.jpg",
+              url: "https://example.test/items/cardigan-main.jpg",
+              original_filename: "cardigan-main.jpg",
+              mime_type: "image/jpeg",
+              file_size: 12345,
+              sort_order: 2,
+              is_primary: true,
+            },
+            {
+              id: 302,
+              item_id: 201,
+              disk: "public",
+              path: "items/cardigan-sub.jpg",
+              url: "https://example.test/items/cardigan-sub.jpg",
+              original_filename: "cardigan-sub.jpg",
+              mime_type: "image/jpeg",
+              file_size: 12345,
+              sort_order: 1,
+              is_primary: false,
+            },
+          ],
         },
         {
           id: 202,
           name: "黒パンツ",
           status: "active",
           category: "pants",
+          subcategory: "pants",
           shape: "tapered",
           colors: [],
           seasons: ["冬"],
@@ -614,6 +646,11 @@ describe("OutfitsList", () => {
     expect(container.textContent).toContain("トップス / カーディガン");
     expect(container.textContent).toContain("UNIQLO");
     expect(container.textContent).toContain("ホワイト");
+    const itemPhotoThumbnail = container.querySelector<HTMLImageElement>(
+      'img[src="https://example.test/items/cardigan-main.jpg"]',
+    );
+    expect(itemPhotoThumbnail?.getAttribute("alt")).toBe("cardigan-main.jpg");
+    expect(container.querySelectorAll("img")).toHaveLength(1);
     const itemDetailLink = container.querySelector<HTMLAnchorElement>(
       'a[href^="/items/201?"]',
     );
@@ -659,6 +696,29 @@ describe("OutfitsList", () => {
     expect(container.textContent).toContain("Vネックカーディガン");
     expect(container.textContent).not.toContain("黒パンツ");
 
+    const subcategorySelect = Array.from(
+      container.querySelectorAll("select"),
+    ).find((select) =>
+      Array.from(select.options).some(
+        (option) => option.textContent === "カーディガン",
+      ),
+    );
+    expect(subcategorySelect).not.toBeUndefined();
+    expect(subcategorySelect?.disabled).toBe(false);
+
+    await act(async () => {
+      const valueSetter = Object.getOwnPropertyDescriptor(
+        window.HTMLSelectElement.prototype,
+        "value",
+      )?.set;
+      valueSetter?.call(subcategorySelect, "cardigan");
+      subcategorySelect?.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain("Vネックカーディガン");
+    expect(container.textContent).not.toContain("黒パンツ");
+
     const selectItemButton = Array.from(
       container.querySelectorAll("button"),
     ).find((button) => button.textContent?.includes("Vネックカーディガン"));
@@ -671,6 +731,104 @@ describe("OutfitsList", () => {
     expect(replaceMock).toHaveBeenCalledWith("/outfits?item_id=201", {
       scroll: false,
     });
+  });
+
+  it("使用アイテム filter のカテゴリ変更時に種類 filter をリセットする", async () => {
+    fetchCategoryVisibilitySettingsMock.mockResolvedValue({
+      visibleCategoryIds: ["tops_tshirt_cutsew", "tops_shirt_blouse"],
+    });
+    fetchAllPaginatedCandidatesMock.mockResolvedValue({
+      status: 200,
+      entries: [
+        {
+          id: 201,
+          name: "Vネックカーディガン",
+          status: "active",
+          category: "tops",
+          subcategory: "cardigan",
+          shape: "cardigan",
+          colors: [],
+          seasons: ["春"],
+          tpos: ["休日"],
+        },
+        {
+          id: 202,
+          name: "黒パンツ",
+          status: "active",
+          category: "pants",
+          subcategory: "pants",
+          shape: "pants",
+          colors: [],
+          seasons: ["冬"],
+          tpos: ["仕事"],
+        },
+      ],
+    });
+
+    const { default: OutfitsList } = await import("./outfits-list");
+
+    await act(async () => {
+      root.render(
+        React.createElement(OutfitsList, {
+          ...defaultListProps,
+          initialVisibleCategoryIds: [
+            "tops_tshirt_cutsew",
+            "tops_shirt_blouse",
+          ],
+        }),
+      );
+      await waitForEffects();
+    });
+
+    const openItemListButton = Array.from(
+      container.querySelectorAll("button"),
+    ).find((button) => button.textContent?.includes("アイテム一覧を開く"));
+
+    await act(async () => {
+      openItemListButton?.click();
+      await waitForEffects();
+    });
+
+    const valueSetter = Object.getOwnPropertyDescriptor(
+      window.HTMLSelectElement.prototype,
+      "value",
+    )?.set;
+    const findSelectByOption = (label: string) =>
+      Array.from(container.querySelectorAll("select")).find((select) =>
+        Array.from(select.options).some(
+          (option) => option.textContent === label,
+        ),
+      );
+    const categorySelect = findSelectByOption("トップス");
+
+    await act(async () => {
+      valueSetter?.call(categorySelect, "tops");
+      categorySelect?.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    let subcategorySelect = findSelectByOption("カーディガン");
+    expect(subcategorySelect?.value).toBe("");
+
+    await act(async () => {
+      valueSetter?.call(subcategorySelect, "cardigan");
+      subcategorySelect?.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    subcategorySelect = findSelectByOption("カーディガン");
+    expect(subcategorySelect?.value).toBe("cardigan");
+
+    await act(async () => {
+      valueSetter?.call(categorySelect, "pants");
+      categorySelect?.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    subcategorySelect = container.querySelector<HTMLSelectElement>(
+      'select[aria-label="使用アイテムの種類"]',
+    );
+    expect(subcategorySelect?.value).toBe("");
   });
 
   it("item_id filter 中に他条件を変更しても item_id query を維持する", async () => {

@@ -53,14 +53,14 @@ function normalizeText(value?: string | null) {
   return value?.trim().toLocaleLowerCase("ja-JP") ?? "";
 }
 
-function resolveCategory(item: ItemRecord) {
+export function resolveOutfitItemCategory(item: ItemRecord) {
   return (
     resolveCurrentItemCategoryValue(item.category, item.shape) ?? item.category
   );
 }
 
-function resolveSubcategory(item: ItemRecord) {
-  const currentCategory = resolveCategory(item);
+export function resolveOutfitItemSubcategory(item: ItemRecord) {
+  const currentCategory = resolveOutfitItemCategory(item);
 
   return (
     resolveCurrentItemSubcategoryValue(
@@ -73,7 +73,7 @@ function resolveSubcategory(item: ItemRecord) {
 
 export function buildOutfitItemCategoryOptions(items: ItemRecord[]) {
   const availableCategoryValues = new Set(
-    items.map((item) => resolveCategory(item)),
+    items.map((item) => resolveOutfitItemCategory(item)),
   );
 
   return ITEM_CATEGORIES.filter((category) =>
@@ -113,8 +113,8 @@ export function buildOutfitItemTpoOptions(items: ItemRecord[]) {
   ).sort((left, right) => left.localeCompare(right, "ja-JP"));
 }
 
-export function buildOutfitItemSubcategoryOptions(category: string) {
-  return [...getItemSubcategoryOptions(category)].sort((left, right) => {
+function sortSubcategoryOptions<T extends { value: string }>(options: T[]) {
+  return [...options].sort((left, right) => {
     if (left.value === "other") {
       return 1;
     }
@@ -127,6 +127,32 @@ export function buildOutfitItemSubcategoryOptions(category: string) {
   });
 }
 
+export function buildOutfitItemSubcategoryOptions(category: string) {
+  return sortSubcategoryOptions([...getItemSubcategoryOptions(category)]);
+}
+
+export function buildAvailableOutfitItemSubcategoryOptions(
+  items: ItemRecord[],
+  category: string,
+) {
+  if (!category) {
+    return [];
+  }
+
+  const availableValues = new Set(
+    items
+      .filter((item) => resolveOutfitItemCategory(item) === category)
+      .map((item) => resolveOutfitItemSubcategory(item))
+      .filter((value): value is string => value !== ""),
+  );
+
+  return sortSubcategoryOptions(
+    getItemSubcategoryOptions(category).filter((option) =>
+      availableValues.has(option.value),
+    ),
+  );
+}
+
 export function filterOutfitCandidateItems(
   items: ItemRecord[],
   filters: OutfitItemSelectionFilters,
@@ -137,8 +163,8 @@ export function filterOutfitCandidateItems(
     normalizeItemSubcategory(filters.category, filters.subcategory) ?? "";
 
   return items.filter((item) => {
-    const currentCategory = resolveCategory(item);
-    const currentSubcategory = resolveSubcategory(item);
+    const currentCategory = resolveOutfitItemCategory(item);
+    const currentSubcategory = resolveOutfitItemSubcategory(item);
     const matchesKeyword =
       normalizedKeyword === "" ||
       normalizeText(item.name).includes(normalizedKeyword) ||

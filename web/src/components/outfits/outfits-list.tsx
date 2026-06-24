@@ -13,6 +13,13 @@ import {
   findItemShapeLabel,
   ITEM_CATEGORIES,
 } from "@/lib/master-data/item-shapes";
+import { findItemSubcategoryLabel } from "@/lib/master-data/item-subcategories";
+import { resolveItemPhotoThumbnail } from "@/lib/items/photo-thumbnail";
+import {
+  buildAvailableOutfitItemSubcategoryOptions,
+  resolveOutfitItemCategory,
+  resolveOutfitItemSubcategory,
+} from "@/lib/outfits/item-selection-filters";
 import { fetchAllPaginatedCandidates } from "@/lib/wear-logs/candidates";
 import type { ItemRecord, ItemSpec } from "@/types/items";
 import type { SkinTonePreset } from "@/types/settings";
@@ -71,6 +78,7 @@ const SORT_OPTIONS: Array<{ value: OutfitSortValue; label: string }> = [
   { value: "updated_at_desc", label: "更新順" },
   { value: "name_asc", label: "名前順" },
 ];
+const OUTFIT_ITEM_SUMMARY_LIMIT = 3;
 const ITEM_FILTER_SEASONS = SEASON_OPTIONS.filter(
   (season) => season !== "オール",
 );
@@ -119,6 +127,21 @@ function getColorDisplayLabel(
 
   const label = color.label?.trim();
   return label || "色未設定";
+}
+
+function buildOutfitItemSummary(outfitItems: OutfitItem[]) {
+  const names = outfitItems
+    .slice(0, OUTFIT_ITEM_SUMMARY_LIMIT)
+    .map((outfitItem) => outfitItem.item.name?.trim() || "名称未設定");
+  const remainingCount = Math.max(
+    outfitItems.length - OUTFIT_ITEM_SUMMARY_LIMIT,
+    0,
+  );
+
+  return {
+    names,
+    remainingCount,
+  };
 }
 
 function renderItemColorSummary(item: ItemRecord) {
@@ -235,6 +258,7 @@ export default function OutfitsList({
   const [isItemFilterOpen, setIsItemFilterOpen] = useState(false);
   const [itemFilterKeyword, setItemFilterKeyword] = useState("");
   const [itemCategoryFilter, setItemCategoryFilter] = useState("");
+  const [itemSubcategoryFilter, setItemSubcategoryFilter] = useState("");
   const [itemSeasonFilter, setItemSeasonFilter] = useState("");
   const [itemTpoFilter, setItemTpoFilter] = useState("");
   const [itemFilterCandidates, setItemFilterCandidates] = useState<
@@ -414,21 +438,32 @@ export default function OutfitsList({
   const availableItemCategoryValues = Array.from(
     new Set(
       itemFilterCandidates
-        .map((item) => item.category)
+        .map((item) => resolveOutfitItemCategory(item))
         .filter(
           (category): category is string =>
             typeof category === "string" && category !== "",
         ),
     ),
   );
+  const availableItemSubcategoryOptions =
+    buildAvailableOutfitItemSubcategoryOptions(
+      itemFilterCandidates,
+      itemCategoryFilter,
+    );
   const filteredItemCandidates = itemFilterCandidates.filter((item) => {
     const itemName = (item.name ?? "名称未設定").toLowerCase();
     const brandName = (item.brand_name ?? "").toLowerCase();
+    const currentCategory = resolveOutfitItemCategory(item);
+    const currentSubcategory = resolveOutfitItemSubcategory(item);
     const categoryLabel = (
-      findItemCategoryLabel(item.category) ?? ""
+      findItemCategoryLabel(currentCategory) ?? ""
+    ).toLowerCase();
+    const subcategoryLabel = findItemSubcategoryLabel(
+      currentCategory,
+      currentSubcategory,
     ).toLowerCase();
     const shapeLabel = (
-      findItemShapeLabel(item.category, item.shape) ?? ""
+      findItemShapeLabel(currentCategory, item.shape) ?? ""
     ).toLowerCase();
     const seasons = item.seasons ?? [];
     const tpos = item.tpos ?? [];
@@ -437,13 +472,23 @@ export default function OutfitsList({
       itemName.includes(normalizedItemFilterKeyword) ||
       brandName.includes(normalizedItemFilterKeyword) ||
       categoryLabel.includes(normalizedItemFilterKeyword) ||
+      subcategoryLabel.includes(normalizedItemFilterKeyword) ||
       shapeLabel.includes(normalizedItemFilterKeyword);
     const matchesCategory =
-      itemCategoryFilter === "" || item.category === itemCategoryFilter;
+      itemCategoryFilter === "" || currentCategory === itemCategoryFilter;
+    const matchesSubcategory =
+      itemSubcategoryFilter === "" ||
+      currentSubcategory === itemSubcategoryFilter;
     const matchesSeason = matchesItemSeasonFilter(seasons, itemSeasonFilter);
     const matchesTpo = itemTpoFilter === "" || tpos.includes(itemTpoFilter);
 
-    return matchesKeyword && matchesCategory && matchesSeason && matchesTpo;
+    return (
+      matchesKeyword &&
+      matchesCategory &&
+      matchesSubcategory &&
+      matchesSeason &&
+      matchesTpo
+    );
   });
 
   return (
@@ -577,14 +622,17 @@ export default function OutfitsList({
                     placeholder="アイテム名・カテゴリ・形で絞り込み"
                     className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                   />
-                  <div className="grid gap-3 md:grid-cols-3">
+                  <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
                     <div>
                       <label className="mb-1 block text-sm font-medium text-gray-700">
                         カテゴリ
                       </label>
                       <select
                         value={itemCategoryFilter}
-                        onChange={(e) => setItemCategoryFilter(e.target.value)}
+                        onChange={(e) => {
+                          setItemCategoryFilter(e.target.value);
+                          setItemSubcategoryFilter("");
+                        }}
                         className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                       >
                         <option value="">指定なし</option>
@@ -593,6 +641,31 @@ export default function OutfitsList({
                         ).map((category) => (
                           <option key={category.value} value={category.value}>
                             {category.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="mb-1 block text-sm font-medium text-gray-700">
+                        種類
+                      </label>
+                      <select
+                        aria-label="使用アイテムの種類"
+                        value={itemSubcategoryFilter}
+                        onChange={(e) =>
+                          setItemSubcategoryFilter(e.target.value)
+                        }
+                        disabled={
+                          itemCategoryFilter === "" ||
+                          availableItemSubcategoryOptions.length === 0
+                        }
+                        className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:bg-gray-100 disabled:text-gray-400"
+                      >
+                        <option value="">指定なし</option>
+                        {availableItemSubcategoryOptions.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
                           </option>
                         ))}
                       </select>
@@ -669,12 +742,20 @@ export default function OutfitsList({
                         {filteredItemCandidates.map((item) => {
                           const itemName = item.name?.trim() || "名称未設定";
                           const categoryLabel =
-                            findItemCategoryLabel(item.category) ||
-                            "カテゴリ未設定";
+                            findItemCategoryLabel(
+                              resolveOutfitItemCategory(item),
+                            ) || "カテゴリ未設定";
                           const shapeLabel =
-                            findItemShapeLabel(item.category, item.shape) ||
-                            "形未設定";
+                            findItemShapeLabel(
+                              resolveOutfitItemCategory(item),
+                              item.shape,
+                            ) || "形未設定";
                           const brandName = item.brand_name?.trim();
+                          const itemPhotoThumbnail = resolveItemPhotoThumbnail(
+                            item.images,
+                          );
+                          const itemPhotoThumbnailUrl =
+                            itemPhotoThumbnail?.url ?? null;
                           const isSelected = String(item.id) === itemIdFilter;
                           return (
                             <li key={item.id}>
@@ -694,21 +775,38 @@ export default function OutfitsList({
                                         page: 1,
                                       })
                                     }
-                                    className="min-w-0 flex-1 text-left"
+                                    className="flex min-w-0 flex-1 items-start gap-3 text-left"
                                   >
-                                    <span className="flex items-center justify-between gap-2">
-                                      <span className="font-medium text-gray-900">
-                                        {itemName}
+                                    {itemPhotoThumbnailUrl ? (
+                                      <span className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-gray-200 bg-gray-50">
+                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                        <img
+                                          src={itemPhotoThumbnailUrl}
+                                          alt={
+                                            itemPhotoThumbnail?.original_filename ??
+                                            `${itemName}の写真`
+                                          }
+                                          className="h-full w-full object-cover"
+                                          loading="lazy"
+                                        />
                                       </span>
-                                      {isSelected ? (
-                                        <span className="shrink-0 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
-                                          選択中
+                                    ) : null}
+                                    <span className="min-w-0 flex-1">
+                                      <span className="flex items-start justify-between gap-2">
+                                        <span className="font-medium text-gray-900">
+                                          {itemName}
                                         </span>
-                                      ) : null}
-                                    </span>
-                                    <span className="mt-1 block text-xs text-gray-500">
-                                      {categoryLabel} / {shapeLabel}
-                                      {brandName ? ` · ${brandName}` : ""}
+                                        {isSelected ? (
+                                          <span className="shrink-0 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
+                                            選択中
+                                          </span>
+                                        ) : null}
+                                      </span>
+                                      <span className="mt-1 block text-xs text-gray-500">
+                                        {categoryLabel} / {shapeLabel}
+                                        {brandName ? ` · ${brandName}` : ""}
+                                      </span>
+                                      {renderItemColorSummary(item)}
                                     </span>
                                   </button>
                                   <Link
@@ -718,7 +816,6 @@ export default function OutfitsList({
                                     詳細
                                   </Link>
                                 </div>
-                                {renderItemColorSummary(item)}
                               </div>
                             </li>
                           );
@@ -816,9 +913,9 @@ export default function OutfitsList({
                       visibleCategoryIds,
                     ),
                   );
-            const itemCount = visibleOutfitItems.length;
             const hiddenItemCount =
               outfitItems.length - visibleOutfitItems.length;
+            const itemSummary = buildOutfitItemSummary(visibleOutfitItems);
 
             return (
               <article
@@ -846,9 +943,25 @@ export default function OutfitsList({
                         </p>
                       )}
 
-                      <p className="mt-4 text-sm text-gray-600">
-                        表示アイテム数: {itemCount}
-                      </p>
+                      {itemSummary.names.length > 0 && (
+                        <div className="mt-4 text-sm text-gray-600">
+                          <p className="font-medium text-gray-700">
+                            使用アイテム
+                          </p>
+                          <ul className="mt-2 space-y-1 border-l border-gray-200 pl-3">
+                            {itemSummary.names.map((name) => (
+                              <li key={name} className="leading-relaxed">
+                                {name}
+                              </li>
+                            ))}
+                            {itemSummary.remainingCount > 0 && (
+                              <li className="text-gray-500">
+                                ほか {itemSummary.remainingCount} 件
+                              </li>
+                            )}
+                          </ul>
+                        </div>
+                      )}
 
                       {hiddenItemCount > 0 && (
                         <p className="mt-1 text-sm text-amber-700">

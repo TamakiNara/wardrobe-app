@@ -3732,7 +3732,10 @@ components:
           minimum: 1
           example: 1
         item:
-          $ref: "#/components/schemas/ItemRecord"
+          allOf:
+            - $ref: "#/components/schemas/ItemRecord"
+          description: |
+            outfit 内の item payload。ItemRecord の images も含み、frontend は url がある登録済み写真を使用アイテムサムネイル候補に使える。
 
     OutfitRecord:
       type: object
