@@ -130,16 +130,19 @@ function getColorDisplayLabel(
 }
 
 function buildOutfitItemSummary(outfitItems: OutfitItem[]) {
-  const names = outfitItems
+  const items = outfitItems
     .slice(0, OUTFIT_ITEM_SUMMARY_LIMIT)
-    .map((outfitItem) => outfitItem.item.name?.trim() || "名称未設定");
+    .map((outfitItem) => ({
+      key: `${outfitItem.id}:${outfitItem.item_id}:${outfitItem.sort_order}`,
+      name: outfitItem.item.name?.trim() || "名称未設定",
+    }));
   const remainingCount = Math.max(
     outfitItems.length - OUTFIT_ITEM_SUMMARY_LIMIT,
     0,
   );
 
   return {
-    names,
+    items,
     remainingCount,
   };
 }
@@ -943,15 +946,15 @@ export default function OutfitsList({
                         </p>
                       )}
 
-                      {itemSummary.names.length > 0 && (
+                      {itemSummary.items.length > 0 && (
                         <div className="mt-4 text-sm text-gray-600">
                           <p className="font-medium text-gray-700">
                             使用アイテム
                           </p>
                           <ul className="mt-2 space-y-1 border-l border-gray-200 pl-3">
-                            {itemSummary.names.map((name) => (
-                              <li key={name} className="leading-relaxed">
-                                {name}
+                            {itemSummary.items.map((item) => (
+                              <li key={item.key} className="leading-relaxed">
+                                {item.name}
                               </li>
                             ))}
                             {itemSummary.remainingCount > 0 && (
