@@ -17,6 +17,7 @@ export type WearLogSelectableItem = {
   care_status?: ItemCareStatus | null;
   brand_name?: string | null;
   category?: string | null;
+  subcategory?: string | null;
   shape?: string | null;
   colors?: ItemFormColor[];
   seasons?: string[];
@@ -65,6 +66,7 @@ export function mergeWearLogItemCandidates(
             status: item.source_item_status ?? "active",
             care_status: null,
             category: null,
+            subcategory: null,
             shape: null,
             colors: [],
             seasons: [],
@@ -89,6 +91,7 @@ export function mergeWearLogItemCandidates(
         ...current,
         ...item,
         care_status: item.care_status ?? current.care_status,
+        subcategory: item.subcategory ?? current.subcategory,
         colors:
           item.colors !== undefined && item.colors.length > 0
             ? item.colors

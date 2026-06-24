@@ -17,6 +17,11 @@ import {
   findItemShapeLabel,
   ITEM_CATEGORIES,
 } from "@/lib/master-data/item-shapes";
+import {
+  getItemSubcategoryOptions,
+  normalizeItemSubcategory,
+  resolveCurrentItemSubcategoryValue,
+} from "@/lib/master-data/item-subcategories";
 import { ITEM_CARE_STATUS_LABELS } from "@/lib/items/metadata";
 import { SEASON_OPTIONS, TPO_OPTIONS } from "@/lib/master-data/item-attributes";
 import { WEAR_LOG_STATUS_LABELS } from "@/lib/wear-logs/labels";
@@ -252,6 +257,7 @@ function mapItemRecordToSelectable(item: ItemRecord): WearLogSelectableItem {
     care_status: item.care_status,
     brand_name: item.brand_name,
     category: item.category,
+    subcategory: item.subcategory,
     shape: item.shape,
     colors: item.colors ?? [],
     seasons: item.seasons ?? [],
@@ -297,6 +303,7 @@ export default function WearLogForm({
   const [outfitTpoFilter, setOutfitTpoFilter] = useState("");
   const [itemKeyword, setItemKeyword] = useState("");
   const [itemCategoryFilter, setItemCategoryFilter] = useState("");
+  const [itemSubcategoryFilter, setItemSubcategoryFilter] = useState("");
   const [itemSeasonFilter, setItemSeasonFilter] =
     useState(initialCurrentSeason);
   const [itemTpoFilter, setItemTpoFilter] = useState("");
@@ -586,6 +593,32 @@ export default function WearLogForm({
     );
   }, [visibleCandidateItems]);
 
+  const availableItemSubcategoryOptions = useMemo(() => {
+    if (itemCategoryFilter === "") {
+      return [];
+    }
+
+    const availableSubcategoryValues = new Set(
+      visibleCandidateItems
+        .filter((item) => item.category === itemCategoryFilter)
+        .map((item) =>
+          resolveCurrentItemSubcategoryValue(
+            itemCategoryFilter,
+            item.shape,
+            item.subcategory,
+          ),
+        )
+        .filter(
+          (subcategory): subcategory is string =>
+            typeof subcategory === "string" && subcategory !== "",
+        ),
+    );
+
+    return getItemSubcategoryOptions(itemCategoryFilter).filter((option) =>
+      availableSubcategoryValues.has(option.value),
+    );
+  }, [visibleCandidateItems, itemCategoryFilter]);
+
   const filteredOutfits = useMemo(() => {
     const keyword = outfitKeyword.trim().toLowerCase();
 
@@ -604,6 +637,8 @@ export default function WearLogForm({
 
   const filteredItems = useMemo(() => {
     const keyword = itemKeyword.trim().toLowerCase();
+    const normalizedSubcategory =
+      normalizeItemSubcategory(itemCategoryFilter, itemSubcategoryFilter) ?? "";
 
     return visibleCandidateItems
       .filter((item) => {
@@ -625,10 +660,27 @@ export default function WearLogForm({
           shape.includes(keyword);
         const matchCategory =
           itemCategoryFilter === "" || item.category === itemCategoryFilter;
+        const currentSubcategory =
+          itemCategoryFilter === ""
+            ? ""
+            : (resolveCurrentItemSubcategoryValue(
+                itemCategoryFilter,
+                item.shape,
+                item.subcategory,
+              ) ?? "");
+        const matchSubcategory =
+          normalizedSubcategory === "" ||
+          currentSubcategory === normalizedSubcategory;
         const matchSeason = matchesSeasonFilter(seasons, itemSeasonFilter);
         const matchTpo = itemTpoFilter === "" || tpos.includes(itemTpoFilter);
 
-        return matchKeyword && matchCategory && matchSeason && matchTpo;
+        return (
+          matchKeyword &&
+          matchCategory &&
+          matchSubcategory &&
+          matchSeason &&
+          matchTpo
+        );
       })
       .reduce<WearLogSelectableItem[]>((carry, item) => {
         if (carry.some((current) => current.id === item.id)) {
@@ -641,6 +693,7 @@ export default function WearLogForm({
     visibleCandidateItems,
     itemKeyword,
     itemCategoryFilter,
+    itemSubcategoryFilter,
     itemSeasonFilter,
     itemTpoFilter,
   ]);
@@ -1373,7 +1426,7 @@ export default function WearLogForm({
                   className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                 />
               </div>
-              <div className="grid gap-4 md:grid-cols-3">
+              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                 <div>
                   <label className="mb-1 block text-sm font-medium text-gray-700">
                     カテゴリ
@@ -1381,9 +1434,10 @@ export default function WearLogForm({
                   <select
                     data-testid="wear-log-item-category-filter"
                     value={itemCategoryFilter}
-                    onChange={(event) =>
-                      setItemCategoryFilter(event.target.value)
-                    }
+                    onChange={(event) => {
+                      setItemCategoryFilter(event.target.value);
+                      setItemSubcategoryFilter("");
+                    }}
                     className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                   >
                     <option value="">指定なし</option>
@@ -1392,6 +1446,30 @@ export default function WearLogForm({
                     ).map((category) => (
                       <option key={category.value} value={category.value}>
                         {category.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                    種類
+                  </label>
+                  <select
+                    data-testid="wear-log-item-subcategory-filter"
+                    value={itemSubcategoryFilter}
+                    onChange={(event) =>
+                      setItemSubcategoryFilter(event.target.value)
+                    }
+                    disabled={
+                      itemCategoryFilter === "" ||
+                      availableItemSubcategoryOptions.length === 0
+                    }
+                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400"
+                  >
+                    <option value="">指定なし</option>
+                    {availableItemSubcategoryOptions.map((subcategory) => (
+                      <option key={subcategory.value} value={subcategory.value}>
+                        {subcategory.label}
                       </option>
                     ))}
                   </select>

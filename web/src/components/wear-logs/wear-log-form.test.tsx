@@ -1761,7 +1761,7 @@ describe("WearLogForm", () => {
     expect(container.textContent).not.toContain("休日コーデ");
   });
 
-  it("アイテム候補を名前やカテゴリ・季節・TPOで絞り込めて、0件表示もできる", async () => {
+  it("アイテム候補を名前やカテゴリ・種類・季節・TPOで絞り込めて、0件表示もできる", async () => {
     fetchAllPaginatedCandidatesMock
       .mockResolvedValueOnce({
         status: 200,
@@ -1771,6 +1771,7 @@ describe("WearLogForm", () => {
             name: "白T",
             status: "active",
             category: "tops",
+            subcategory: "tshirt_cutsew",
             shape: "tshirt",
             colors: [
               {
@@ -1779,6 +1780,25 @@ describe("WearLogForm", () => {
                 value: "white",
                 hex: "#FFFFFF",
                 label: "白",
+              },
+            ],
+            seasons: ["春"],
+            tpos: ["仕事"],
+          },
+          {
+            id: 3,
+            name: "黒カーディガン",
+            status: "active",
+            category: "tops",
+            subcategory: "cardigan",
+            shape: "cardigan",
+            colors: [
+              {
+                role: "main",
+                mode: "preset",
+                value: "black",
+                hex: "#111827",
+                label: "黒",
               },
             ],
             seasons: ["春"],
@@ -1829,6 +1849,9 @@ describe("WearLogForm", () => {
     const categorySelect = container.querySelector<HTMLSelectElement>(
       '[data-testid="wear-log-item-category-filter"]',
     );
+    const subcategorySelect = container.querySelector<HTMLSelectElement>(
+      '[data-testid="wear-log-item-subcategory-filter"]',
+    );
     const seasonSelect = container.querySelector<HTMLSelectElement>(
       '[data-testid="wear-log-item-season-filter"]',
     );
@@ -1874,7 +1897,34 @@ describe("WearLogForm", () => {
     });
 
     expect(container.textContent).toContain("白T");
+    expect(container.textContent).toContain("黒カーディガン");
     expect(container.textContent).not.toContain("ネイビーパンツ");
+
+    await act(async () => {
+      const setter = Object.getOwnPropertyDescriptor(
+        window.HTMLSelectElement.prototype,
+        "value",
+      )?.set;
+      setter?.call(subcategorySelect, "tshirt_cutsew");
+      subcategorySelect?.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    expect(container.textContent).toContain("白T");
+    expect(container.textContent).not.toContain("黒カーディガン");
+    expect(container.textContent).not.toContain("ネイビーパンツ");
+
+    await act(async () => {
+      const setter = Object.getOwnPropertyDescriptor(
+        window.HTMLSelectElement.prototype,
+        "value",
+      )?.set;
+      setter?.call(categorySelect, "bottoms");
+      categorySelect?.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    expect(subcategorySelect?.value).toBe("");
 
     await act(async () => {
       const setter = Object.getOwnPropertyDescriptor(
