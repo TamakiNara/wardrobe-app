@@ -621,6 +621,19 @@ describe("EditOutfitPage", () => {
                 subcategory: "shirt_blouse",
                 shape: "shirt",
                 colors: [],
+                images: [
+                  {
+                    id: 302,
+                    disk: "public",
+                    path: "items/edit-office-shirt.jpg",
+                    url: "/items/edit-office-shirt.jpg",
+                    original_filename: "edit-office-shirt.jpg",
+                    mime_type: "image/jpeg",
+                    file_size: 1500,
+                    sort_order: 1,
+                    is_primary: true,
+                  },
+                ],
                 seasons: ["夏"],
                 tpos: ["仕事"],
                 tpo_ids: [],
@@ -635,6 +648,19 @@ describe("EditOutfitPage", () => {
                 subcategory: "pants",
                 shape: "wide",
                 colors: [],
+                images: [
+                  {
+                    id: 303,
+                    disk: "public",
+                    path: "items/edit-wide-pants.jpg",
+                    url: "/items/edit-wide-pants.jpg",
+                    original_filename: "edit-wide-pants.jpg",
+                    mime_type: "image/jpeg",
+                    file_size: 1500,
+                    sort_order: 1,
+                    is_primary: true,
+                  },
+                ],
                 seasons: ["冬"],
                 tpos: ["休日"],
                 tpo_ids: [],
@@ -679,6 +705,11 @@ describe("EditOutfitPage", () => {
     expect(
       filteredLabels.some((label) => label.textContent?.includes("Wide Pants")),
     ).toBe(true);
+    expect(
+      container
+        .querySelector('img[alt="edit-wide-pants.jpg"]')
+        ?.getAttribute("src"),
+    ).toBe("/items/edit-wide-pants.jpg");
     expect(
       filteredLabels.some((label) => label.textContent?.includes("Logo Tee")),
     ).toBe(false);

@@ -730,6 +730,19 @@ describe("NewOutfitPage", () => {
               subcategory: "shirt_blouse",
               shape: "shirt",
               colors: [],
+              images: [
+                {
+                  id: 202,
+                  disk: "public",
+                  path: "items/office-shirt.jpg",
+                  url: "/items/office-shirt.jpg",
+                  original_filename: "office-shirt.jpg",
+                  mime_type: "image/jpeg",
+                  file_size: 1500,
+                  sort_order: 1,
+                  is_primary: true,
+                },
+              ],
               seasons: ["夏"],
               tpos: ["仕事"],
             },
@@ -786,6 +799,11 @@ describe("NewOutfitPage", () => {
       await waitForEffects();
     });
 
+    expect(
+      container
+        .querySelector('img[alt="office-shirt.jpg"]')
+        ?.getAttribute("src"),
+    ).toBe("/items/office-shirt.jpg");
     expect(container.textContent).toContain("Office Shirt");
     expect(container.textContent).not.toContain("Wide Pants");
 

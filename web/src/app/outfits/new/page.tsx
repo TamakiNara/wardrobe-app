@@ -34,7 +34,7 @@ import {
   type DuplicateUnavailableItem,
 } from "@/lib/outfits/duplicate";
 import type { CreateOutfitPayload } from "@/types/outfits";
-import type { ItemRecord } from "@/types/items";
+import type { ItemImageRecord, ItemRecord } from "@/types/items";
 import { SEASON_OPTIONS } from "@/lib/master-data/item-attributes";
 import { mapPreferenceSeasonToFilterValue } from "@/lib/settings/preferences";
 import type { UserPreferencesResponse, UserTpoRecord } from "@/types/settings";
@@ -57,6 +57,43 @@ function getMainColorLabel(item: Item): string | null {
   const customLabel = mainColor.custom_label?.trim();
 
   return customLabel || mainColor.label;
+}
+
+function resolveItemPhotoThumbnail(
+  images: ItemImageRecord[] | undefined,
+): ItemImageRecord | null {
+  const imagesWithUrl = (images ?? []).filter((image) => image.url);
+
+  return (
+    imagesWithUrl.find((image) => image.is_primary) ??
+    [...imagesWithUrl].sort((left, right) => {
+      if (left.sort_order !== right.sort_order) {
+        return left.sort_order - right.sort_order;
+      }
+
+      return (left.id ?? 0) - (right.id ?? 0);
+    })[0] ??
+    null
+  );
+}
+
+function renderItemCandidateThumbnail(item: Item) {
+  const image = resolveItemPhotoThumbnail(item.images);
+
+  if (!image?.url) {
+    return null;
+  }
+
+  return (
+    <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl border border-gray-200 bg-gray-50">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={image.url}
+        alt={image.original_filename ?? item.name ?? "item image"}
+        className="h-full w-full object-cover"
+      />
+    </div>
+  );
 }
 
 function buildItemDetailHref(itemId: number): string {
@@ -652,6 +689,7 @@ export default function NewOutfitPage() {
                       const checked = selectedItemIds.includes(item.id);
                       const mainColor = getMainColor(item);
                       const mainColorLabel = getMainColorLabel(item);
+                      const thumbnail = renderItemCandidateThumbnail(item);
 
                       return (
                         <label
@@ -669,6 +707,10 @@ export default function NewOutfitPage() {
                               checked={checked}
                               onChange={() => handleItemToggle(item.id)}
                             />
+
+                            {thumbnail ? (
+                              <div className="shrink-0">{thumbnail}</div>
+                            ) : null}
 
                             <div className="min-w-0 flex-1">
                               <p className="font-medium text-gray-900">

@@ -1773,6 +1773,30 @@ describe("WearLogForm", () => {
             category: "tops",
             subcategory: "tshirt_cutsew",
             shape: "tshirt",
+            images: [
+              {
+                id: 101,
+                disk: "public",
+                path: "items/white-secondary.jpg",
+                url: "/items/white-secondary.jpg",
+                original_filename: "white-secondary.jpg",
+                mime_type: "image/jpeg",
+                file_size: 1200,
+                sort_order: 1,
+                is_primary: false,
+              },
+              {
+                id: 102,
+                disk: "public",
+                path: "items/white-primary.jpg",
+                url: "/items/white-primary.jpg",
+                original_filename: "white-primary.jpg",
+                mime_type: "image/jpeg",
+                file_size: 1400,
+                sort_order: 2,
+                is_primary: true,
+              },
+            ],
             colors: [
               {
                 role: "main",
@@ -1895,6 +1919,13 @@ describe("WearLogForm", () => {
       tpoSelect?.dispatchEvent(new Event("change", { bubbles: true }));
       await waitForEffects();
     });
+
+    expect(
+      container
+        .querySelector('img[alt="white-primary.jpg"]')
+        ?.getAttribute("src"),
+    ).toBe("/items/white-primary.jpg");
+    expect(container.querySelectorAll("img")).toHaveLength(1);
 
     expect(container.textContent).toContain("白T");
     expect(container.textContent).toContain("黒カーディガン");

@@ -1,4 +1,8 @@
-import type { ItemCareStatus, ItemStatus } from "@/types/items";
+import type {
+  ItemCareStatus,
+  ItemImageRecord,
+  ItemStatus,
+} from "@/types/items";
 import type { ItemFormColor } from "@/types/items";
 import type { ItemSpec } from "@/types/items";
 import type {
@@ -20,6 +24,7 @@ export type WearLogSelectableItem = {
   subcategory?: string | null;
   shape?: string | null;
   colors?: ItemFormColor[];
+  images?: ItemImageRecord[];
   seasons?: string[];
   tpos?: string[];
 };
@@ -69,6 +74,7 @@ export function mergeWearLogItemCandidates(
             subcategory: null,
             shape: null,
             colors: [],
+            images: [],
             seasons: [],
             tpos: [],
           }));
@@ -92,6 +98,8 @@ export function mergeWearLogItemCandidates(
         ...item,
         care_status: item.care_status ?? current.care_status,
         subcategory: item.subcategory ?? current.subcategory,
+        images:
+          item.images && item.images.length > 0 ? item.images : current.images,
         colors:
           item.colors !== undefined && item.colors.length > 0
             ? item.colors

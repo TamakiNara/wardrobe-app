@@ -35,8 +35,7 @@ import {
   type WearLogSelectableOutfit,
 } from "@/lib/wear-logs/form";
 import { fetchAllPaginatedCandidates } from "@/lib/wear-logs/candidates";
-import type { ItemRecord } from "@/types/items";
-import type { ItemSpec } from "@/types/items";
+import type { ItemImageRecord, ItemRecord, ItemSpec } from "@/types/items";
 import type {
   WearLogFeedbackTag,
   WearLogDetailResponse,
@@ -247,6 +246,43 @@ function getColorDisplayLabel(
   return label || "色未設定";
 }
 
+function resolveItemPhotoThumbnail(
+  images: ItemImageRecord[] | undefined,
+): ItemImageRecord | null {
+  const imagesWithUrl = (images ?? []).filter((image) => image.url);
+
+  return (
+    imagesWithUrl.find((image) => image.is_primary) ??
+    [...imagesWithUrl].sort((left, right) => {
+      if (left.sort_order !== right.sort_order) {
+        return left.sort_order - right.sort_order;
+      }
+
+      return (left.id ?? 0) - (right.id ?? 0);
+    })[0] ??
+    null
+  );
+}
+
+function renderItemCandidateThumbnail(item: WearLogSelectableItem) {
+  const image = resolveItemPhotoThumbnail(item.images);
+
+  if (!image?.url) {
+    return null;
+  }
+
+  return (
+    <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl border border-gray-200 bg-gray-50">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={image.url}
+        alt={image.original_filename ?? item.name ?? "item image"}
+        className="h-full w-full object-cover"
+      />
+    </div>
+  );
+}
+
 type CandidateLoadStatus = "idle" | "loading" | "success" | "error";
 
 function mapItemRecordToSelectable(item: ItemRecord): WearLogSelectableItem {
@@ -260,6 +296,7 @@ function mapItemRecordToSelectable(item: ItemRecord): WearLogSelectableItem {
     subcategory: item.subcategory,
     shape: item.shape,
     colors: item.colors ?? [],
+    images: item.images ?? [],
     seasons: item.seasons ?? [],
     tpos: item.tpos ?? [],
   };
@@ -1546,6 +1583,7 @@ export default function WearLogForm({
                   {filteredItems.map((item) => {
                     const checked = selectedItemIds.includes(item.id);
                     const checkboxId = `wear-log-item-${item.id}`;
+                    const thumbnail = renderItemCandidateThumbnail(item);
 
                     return (
                       <div
@@ -1564,6 +1602,10 @@ export default function WearLogForm({
                             checked={checked}
                             onChange={() => handleItemToggle(item.id)}
                           />
+
+                          {thumbnail ? (
+                            <div className="shrink-0">{thumbnail}</div>
+                          ) : null}
 
                           <div className="min-w-0 flex-1">
                             <div className="flex items-start justify-between gap-3">
