@@ -278,7 +278,8 @@ describe("WearLogForm", () => {
     expect(container.textContent).not.toContain("振り返りメモ");
     expect(container.textContent?.match(/必須/g)?.length).toBe(4);
     expect(container.textContent).toContain("通勤コーデ");
-    expect(container.textContent).toContain("白シャツ / ネイビーパンツ");
+    expect(container.textContent).toContain("白シャツ");
+    expect(container.textContent).toContain("ネイビーパンツ");
     expect(container.textContent).toContain("トップス / Tシャツ/カットソー");
     expect(container.textContent).toContain("UNIQLO");
     expect(container.textContent).toContain("白");

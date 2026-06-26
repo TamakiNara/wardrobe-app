@@ -234,6 +234,26 @@ function getOutfitItemNames(outfit: WearLogSelectableOutfit) {
   return getOutfitItemNameCandidates(outfit);
 }
 
+function renderOutfitItemNameList(itemNames: string[], className = "mt-1") {
+  if (itemNames.length === 0) {
+    return (
+      <p className={`${className} text-xs text-gray-500`}>構成アイテム未設定</p>
+    );
+  }
+
+  return (
+    <ul
+      className={`${className} space-y-1 border-l border-gray-200 pl-3 text-xs text-gray-500`}
+    >
+      {itemNames.map((name, index) => (
+        <li key={`${name}:${index}`} className="leading-relaxed">
+          {name}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 function getColorDisplayLabel(
   color: NonNullable<WearLogSelectableItem["colors"]>[number],
 ) {
@@ -1298,7 +1318,7 @@ export default function WearLogForm({
                     <button
                       type="button"
                       onClick={() => setSourceOutfitId(null)}
-                      className={`rounded-xl border px-4 py-4 text-left transition ${
+                      className={`rounded-lg border px-3 py-2 text-left text-sm transition ${
                         sourceOutfitId === null
                           ? "border-blue-500 bg-blue-50"
                           : "border-gray-300 bg-white hover:bg-gray-50"
@@ -1309,7 +1329,7 @@ export default function WearLogForm({
                           <p className="font-medium text-gray-900">
                             指定しない
                           </p>
-                          <p className="mt-1 text-sm text-gray-600">
+                          <p className="mt-1 text-xs text-gray-500">
                             アイテムのみで着用履歴を記録します。
                           </p>
                         </div>
@@ -1324,13 +1344,12 @@ export default function WearLogForm({
                     {filteredOutfits.map((outfit) => {
                       const isSelected = sourceOutfitId === outfit.id;
                       const outfitItems = getOutfitItems(outfit);
-                      const itemNamesLabel =
-                        getOutfitItemNames(outfit).join(" / ");
+                      const itemNames = getOutfitItemNames(outfit);
 
                       return (
                         <div
                           key={outfit.id}
-                          className={`rounded-xl border p-4 transition ${
+                          className={`rounded-lg border px-3 py-2 text-sm transition ${
                             isSelected
                               ? "border-blue-500 bg-blue-50"
                               : "border-gray-300 bg-white"
@@ -1370,9 +1389,7 @@ export default function WearLogForm({
                                       </span>
                                     ) : null}
                                   </div>
-                                  <p className="mt-2 text-sm text-gray-600">
-                                    {itemNamesLabel || "構成アイテム未設定"}
-                                  </p>
+                                  {renderOutfitItemNameList(itemNames)}
                                 </div>
                               </div>
                             </button>
@@ -1700,8 +1717,7 @@ export default function WearLogForm({
                 <div className="mt-4 grid gap-3 md:grid-cols-2">
                   {relatedOutfitCandidates.map((outfit) => {
                     const outfitItems = getOutfitItems(outfit);
-                    const itemNamesLabel =
-                      getOutfitItemNames(outfit).join(" / ");
+                    const itemNames = getOutfitItemNames(outfit);
 
                     return (
                       <div
@@ -1721,9 +1737,7 @@ export default function WearLogForm({
                             <p className="font-medium text-gray-900">
                               {outfit.name ?? "名称未設定"}
                             </p>
-                            <p className="mt-2 text-sm text-gray-600">
-                              {itemNamesLabel || "構成アイテム未設定"}
-                            </p>
+                            {renderOutfitItemNameList(itemNames, "mt-2")}
                             <div className="mt-2 flex flex-wrap gap-2 text-xs text-gray-600">
                               {(outfit.seasons ?? []).length > 0 ? (
                                 <span className="rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5">
