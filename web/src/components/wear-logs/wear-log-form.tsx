@@ -1225,7 +1225,7 @@ export default function WearLogForm({
               コーディネート候補一覧は閉じています。必要なときに開いて選択できます。
             </p>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3">
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">
                   キーワードで絞り込む
@@ -1236,10 +1236,10 @@ export default function WearLogForm({
                   value={outfitKeyword}
                   onChange={(event) => setOutfitKeyword(event.target.value)}
                   placeholder="コーディネート名で検索"
-                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                 />
               </div>
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-3 md:grid-cols-2">
                 <div>
                   <label className="mb-1 block text-sm font-medium text-gray-700">
                     季節
@@ -1250,7 +1250,7 @@ export default function WearLogForm({
                     onChange={(event) =>
                       setOutfitSeasonFilter(event.target.value)
                     }
-                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                   >
                     <option value="">指定なし</option>
                     {WEAR_LOG_FILTER_SEASONS.map((season) => (
@@ -1268,7 +1268,7 @@ export default function WearLogForm({
                     data-testid="wear-log-outfit-tpo-filter"
                     value={outfitTpoFilter}
                     onChange={(event) => setOutfitTpoFilter(event.target.value)}
-                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                   >
                     <option value="">指定なし</option>
                     {TPO_OPTIONS.map((tpo) => (
@@ -1432,7 +1432,7 @@ export default function WearLogForm({
               アイテム候補一覧は閉じています。必要なときに開いて選択できます。
             </p>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3">
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">
                   キーワードで絞り込む
@@ -1443,10 +1443,10 @@ export default function WearLogForm({
                   value={itemKeyword}
                   onChange={(event) => setItemKeyword(event.target.value)}
                   placeholder="アイテム名・カテゴリ・形で検索"
-                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                 />
               </div>
-              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
                 <div>
                   <label className="mb-1 block text-sm font-medium text-gray-700">
                     カテゴリ
@@ -1458,7 +1458,7 @@ export default function WearLogForm({
                       setItemCategoryFilter(event.target.value);
                       setItemSubcategoryFilter("");
                     }}
-                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                   >
                     <option value="">指定なし</option>
                     {ITEM_CATEGORIES.filter((category) =>
@@ -1484,7 +1484,7 @@ export default function WearLogForm({
                       itemCategoryFilter === "" ||
                       availableItemSubcategoryOptions.length === 0
                     }
-                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400"
+                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400"
                   >
                     <option value="">指定なし</option>
                     {availableItemSubcategoryOptions.map((subcategory) => (
@@ -1504,7 +1504,7 @@ export default function WearLogForm({
                     onChange={(event) =>
                       setItemSeasonFilter(event.target.value)
                     }
-                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                   >
                     <option value="">指定なし</option>
                     {WEAR_LOG_FILTER_SEASONS.map((season) => (
@@ -1522,7 +1522,7 @@ export default function WearLogForm({
                     data-testid="wear-log-item-tpo-filter"
                     value={itemTpoFilter}
                     onChange={(event) => setItemTpoFilter(event.target.value)}
-                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                   >
                     <option value="">指定なし</option>
                     {TPO_OPTIONS.map((tpo) => (
