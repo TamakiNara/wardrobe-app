@@ -114,7 +114,7 @@ export const TOPS_RULES: Record<TopsShapeValue, TopsRule> = {
   knit: {
     sleeves: ["short", "five", "seven", "long", "sleeveless"],
     lengths: ["short", "normal", "long"],
-    necks: ["crew", "v", "square", "turtle", "mock"],
+    necks: ["crew", "v", "square", "boat", "turtle", "mock"],
     designs: [],
     fits: ["normal", "oversized"],
     defaults: {

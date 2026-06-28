@@ -2689,6 +2689,19 @@ describe("新規登録画面", () => {
     expect(subcategorySelect).not.toBeNull();
 
     await act(async () => {
+      subcategorySelect!.value = "knit_sweater";
+      subcategorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
+      await waitForEffects();
+    });
+
+    const knitNeckSelect =
+      container.querySelector<HTMLSelectElement>("#tops-neck");
+    expect(knitNeckSelect).not.toBeNull();
+    expect(
+      Array.from(knitNeckSelect!.options).map((option) => option.value),
+    ).toEqual(["", "crew", "v", "square", "boat", "turtle", "mock"]);
+
+    await act(async () => {
       subcategorySelect!.value = "polo_shirt";
       subcategorySelect!.dispatchEvent(new Event("change", { bubbles: true }));
       await waitForEffects();

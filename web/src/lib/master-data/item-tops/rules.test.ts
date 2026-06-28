@@ -34,6 +34,15 @@ describe("TOPS_RULES", () => {
     expect(TOPS_RULES.sweatshirt.lengths).toContain("short");
     expect(TOPS_RULES.sweatshirt.necks).toEqual(["crew"]);
 
+    expect(TOPS_RULES.knit.necks).toEqual([
+      "crew",
+      "v",
+      "square",
+      "boat",
+      "turtle",
+      "mock",
+    ]);
+
     expect(TOPS_RULES.hoodie.sleeves).toContain("short");
     expect(TOPS_RULES.hoodie.sleeves).toContain("sleeveless");
     expect(TOPS_RULES.hoodie.lengths).toContain("short");
