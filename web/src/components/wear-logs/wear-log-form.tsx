@@ -63,6 +63,11 @@ type WearLogSubmitResponse = Partial<WearLogMutationResponse> & {
   message?: string;
 };
 
+const INITIAL_OUTFIT_CANDIDATE_LIMIT = 12;
+const OUTFIT_CANDIDATE_LIMIT_STEP = 12;
+const INITIAL_ITEM_CANDIDATE_LIMIT = 24;
+const ITEM_CANDIDATE_LIMIT_STEP = 24;
+
 type OutfitCandidate = {
   id: number;
   status?: "active" | "invalid";
@@ -359,6 +364,11 @@ export default function WearLogForm({
     useState<WearLogRecord | null>(null);
   const [isItemListOpen, setIsItemListOpen] = useState(false);
   const [isOutfitListOpen, setIsOutfitListOpen] = useState(false);
+  const [visibleOutfitCandidateCount, setVisibleOutfitCandidateCount] =
+    useState(INITIAL_OUTFIT_CANDIDATE_LIMIT);
+  const [visibleItemCandidateCount, setVisibleItemCandidateCount] = useState(
+    INITIAL_ITEM_CANDIDATE_LIMIT,
+  );
   const [itemCandidateStatus, setItemCandidateStatus] =
     useState<CandidateLoadStatus>("idle");
   const [outfitCandidateStatus, setOutfitCandidateStatus] =
@@ -413,6 +423,8 @@ export default function WearLogForm({
         setOutfitCandidateStatus("idle");
         setIsItemListOpen(false);
         setIsOutfitListOpen(false);
+        setVisibleOutfitCandidateCount(INITIAL_OUTFIT_CANDIDATE_LIMIT);
+        setVisibleItemCandidateCount(INITIAL_ITEM_CANDIDATE_LIMIT);
         if (wearLogData) {
           setStatus(wearLogData.status);
           setEventDate(wearLogData.event_date);
@@ -516,35 +528,37 @@ export default function WearLogForm({
   }
 
   function handleItemListToggle() {
-    setIsItemListOpen((current) => {
-      const next = !current;
+    const next = !isItemListOpen;
+
+    setIsItemListOpen(next);
+
+    if (next) {
+      setIsOutfitListOpen(false);
 
       if (
-        next &&
         itemCandidateStatus !== "success" &&
         itemCandidateStatus !== "loading"
       ) {
         void loadItemCandidates();
       }
-
-      return next;
-    });
+    }
   }
 
   function handleOutfitListToggle() {
-    setIsOutfitListOpen((current) => {
-      const next = !current;
+    const next = !isOutfitListOpen;
+
+    setIsOutfitListOpen(next);
+
+    if (next) {
+      setIsItemListOpen(false);
 
       if (
-        next &&
         outfitCandidateStatus !== "success" &&
         outfitCandidateStatus !== "loading"
       ) {
         void loadOutfitCandidates();
       }
-
-      return next;
-    });
+    }
   }
 
   const selectedItemIds = useMemo(() => {
@@ -659,6 +673,20 @@ export default function WearLogForm({
     );
   }, [visibleCandidateItems, itemCategoryFilter]);
 
+  useEffect(() => {
+    setVisibleOutfitCandidateCount(INITIAL_OUTFIT_CANDIDATE_LIMIT);
+  }, [outfitKeyword, outfitSeasonFilter, outfitTpoFilter]);
+
+  useEffect(() => {
+    setVisibleItemCandidateCount(INITIAL_ITEM_CANDIDATE_LIMIT);
+  }, [
+    itemKeyword,
+    itemCategoryFilter,
+    itemSubcategoryFilter,
+    itemSeasonFilter,
+    itemTpoFilter,
+  ]);
+
   const filteredOutfits = useMemo(() => {
     const keyword = outfitKeyword.trim().toLowerCase();
 
@@ -737,6 +765,47 @@ export default function WearLogForm({
     itemSeasonFilter,
     itemTpoFilter,
   ]);
+
+  const visibleOutfitCandidates = useMemo(() => {
+    const baseCandidates = filteredOutfits.slice(
+      0,
+      visibleOutfitCandidateCount,
+    );
+
+    if (sourceOutfitId === null) {
+      return baseCandidates;
+    }
+
+    const selectedCandidate = filteredOutfits.find(
+      (outfit) => outfit.id === sourceOutfitId,
+    );
+
+    if (
+      !selectedCandidate ||
+      baseCandidates.some((outfit) => outfit.id === selectedCandidate.id)
+    ) {
+      return baseCandidates;
+    }
+
+    return [...baseCandidates, selectedCandidate];
+  }, [filteredOutfits, sourceOutfitId, visibleOutfitCandidateCount]);
+
+  const visibleItemCandidates = useMemo(() => {
+    const baseCandidates = filteredItems.slice(0, visibleItemCandidateCount);
+    const baseCandidateIds = new Set(baseCandidates.map((item) => item.id));
+    const selectedCandidateIds = new Set(selectedItemIds);
+    const additionalSelectedCandidates = filteredItems.filter(
+      (item) =>
+        selectedCandidateIds.has(item.id) && !baseCandidateIds.has(item.id),
+    );
+
+    return [...baseCandidates, ...additionalSelectedCandidates];
+  }, [filteredItems, selectedItemIds, visibleItemCandidateCount]);
+
+  const hasMoreOutfitCandidates =
+    visibleOutfitCandidateCount < filteredOutfits.length;
+  const hasMoreItemCandidates =
+    visibleItemCandidateCount < filteredItems.length;
 
   useEffect(() => {
     if (singleManualSelectedItemId === null) {
@@ -1341,7 +1410,7 @@ export default function WearLogForm({
                       </div>
                     </button>
 
-                    {filteredOutfits.map((outfit) => {
+                    {visibleOutfitCandidates.map((outfit) => {
                       const isSelected = sourceOutfitId === outfit.id;
                       const outfitItems = getOutfitItems(outfit);
                       const itemNames = getOutfitItemNames(outfit);
@@ -1405,6 +1474,29 @@ export default function WearLogForm({
                       );
                     })}
                   </div>
+
+                  {filteredOutfits.length > 0 ? (
+                    <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                      <p className="text-xs text-gray-500">
+                        {`表示中: ${visibleOutfitCandidates.length} / ${filteredOutfits.length} 件`}
+                      </p>
+                      {hasMoreOutfitCandidates ? (
+                        <button
+                          type="button"
+                          data-testid="wear-log-outfit-show-more"
+                          onClick={() =>
+                            setVisibleOutfitCandidateCount(
+                              (current) =>
+                                current + OUTFIT_CANDIDATE_LIMIT_STEP,
+                            )
+                          }
+                          className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition hover:bg-gray-50"
+                        >
+                          さらに表示
+                        </button>
+                      ) : null}
+                    </div>
+                  ) : null}
 
                   {filteredOutfits.length === 0 && (
                     <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-6 text-sm text-gray-600">
@@ -1579,92 +1671,114 @@ export default function WearLogForm({
               ) : null}
 
               {itemCandidateStatus === "success" && filteredItems.length > 0 ? (
-                <div className="grid gap-3 md:grid-cols-2">
-                  {filteredItems.map((item) => {
-                    const checked = selectedItemIds.includes(item.id);
-                    const checkboxId = `wear-log-item-${item.id}`;
-                    const thumbnail = renderItemCandidateThumbnail(item);
+                <>
+                  <div className="grid gap-3 md:grid-cols-2">
+                    {visibleItemCandidates.map((item) => {
+                      const checked = selectedItemIds.includes(item.id);
+                      const checkboxId = `wear-log-item-${item.id}`;
+                      const thumbnail = renderItemCandidateThumbnail(item);
 
-                    return (
-                      <div
-                        key={item.id}
-                        className={`rounded-lg border px-3 py-2 text-sm transition ${
-                          checked
-                            ? "border-blue-500 bg-blue-50"
-                            : "border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-50"
-                        }`}
-                      >
-                        <div className="flex items-start gap-3">
-                          <input
-                            id={checkboxId}
-                            type="checkbox"
-                            className="mt-1 h-4 w-4"
-                            checked={checked}
-                            onChange={() => handleItemToggle(item.id)}
-                          />
+                      return (
+                        <div
+                          key={item.id}
+                          className={`rounded-lg border px-3 py-2 text-sm transition ${
+                            checked
+                              ? "border-blue-500 bg-blue-50"
+                              : "border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-50"
+                          }`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <input
+                              id={checkboxId}
+                              type="checkbox"
+                              className="mt-1 h-4 w-4"
+                              checked={checked}
+                              onChange={() => handleItemToggle(item.id)}
+                            />
 
-                          {thumbnail ? (
-                            <div className="shrink-0">{thumbnail}</div>
-                          ) : null}
+                            {thumbnail ? (
+                              <div className="shrink-0">{thumbnail}</div>
+                            ) : null}
 
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-start justify-between gap-3">
-                              <div className="min-w-0">
-                                <div className="flex flex-wrap items-center gap-2">
-                                  <label
-                                    htmlFor={checkboxId}
-                                    className="cursor-pointer font-medium text-gray-900"
-                                  >
-                                    {item.name ?? "名称未設定"}
-                                  </label>
-                                  {item.status === "disposed" && (
-                                    <span className="rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800">
-                                      手放し済み
-                                    </span>
-                                  )}
-                                  {item.care_status === "in_cleaning" && (
-                                    <span className="rounded-full border border-sky-300 bg-sky-50 px-2 py-0.5 text-xs font-medium text-sky-800">
-                                      {ITEM_CARE_STATUS_LABELS.in_cleaning}
-                                    </span>
-                                  )}
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="min-w-0">
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    <label
+                                      htmlFor={checkboxId}
+                                      className="cursor-pointer font-medium text-gray-900"
+                                    >
+                                      {item.name ?? "名称未設定"}
+                                    </label>
+                                    {item.status === "disposed" && (
+                                      <span className="rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800">
+                                        手放し済み
+                                      </span>
+                                    )}
+                                    {item.care_status === "in_cleaning" && (
+                                      <span className="rounded-full border border-sky-300 bg-sky-50 px-2 py-0.5 text-xs font-medium text-sky-800">
+                                        {ITEM_CARE_STATUS_LABELS.in_cleaning}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <p className="mt-1 text-xs text-gray-500">
+                                    {findItemCategoryLabel(item.category) ||
+                                      "カテゴリ未設定"}
+                                    {" / "}
+                                    {findItemShapeLabel(
+                                      item.category,
+                                      item.shape,
+                                    ) || "形未設定"}
+                                    {item.brand_name?.trim()
+                                      ? ` · ${item.brand_name.trim()}`
+                                      : ""}
+                                  </p>
                                 </div>
-                                <p className="mt-1 text-xs text-gray-500">
-                                  {findItemCategoryLabel(item.category) ||
-                                    "カテゴリ未設定"}
-                                  {" / "}
-                                  {findItemShapeLabel(
-                                    item.category,
-                                    item.shape,
-                                  ) || "形未設定"}
-                                  {item.brand_name?.trim()
-                                    ? ` · ${item.brand_name.trim()}`
-                                    : ""}
-                                </p>
+                                <Link
+                                  href={buildItemDetailHref(item.id)}
+                                  className="shrink-0 text-sm font-medium text-blue-600 hover:underline"
+                                >
+                                  詳細
+                                </Link>
                               </div>
-                              <Link
-                                href={buildItemDetailHref(item.id)}
-                                className="shrink-0 text-sm font-medium text-blue-600 hover:underline"
-                              >
-                                詳細
-                              </Link>
+                              {renderColorSummary(item)}
+                              {item.status === "disposed" && (
+                                <p className="mt-1 text-sm text-amber-800">
+                                  このアイテムは現在の候補には使えません。
+                                </p>
+                              )}
+                              {item.care_status === "in_cleaning" && (
+                                <p className="mt-1 text-sm text-sky-800">
+                                  クリーニング中ですが、予定・着用履歴ともに保存はできます。
+                                </p>
+                              )}
                             </div>
-                            {renderColorSummary(item)}
-                            {item.status === "disposed" && (
-                              <p className="mt-1 text-sm text-amber-800">
-                                このアイテムは現在の候補には使えません。
-                              </p>
-                            )}
-                            {item.care_status === "in_cleaning" && (
-                              <p className="mt-1 text-sm text-sky-800">
-                                クリーニング中ですが、予定・着用履歴ともに保存はできます。
-                              </p>
-                            )}
                           </div>
                         </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                      );
+                    })}
+                  </div>
+
+                  <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <p className="text-xs text-gray-500">
+                      {`表示中: ${visibleItemCandidates.length} / ${filteredItems.length} 件`}
+                    </p>
+                    {hasMoreItemCandidates ? (
+                      <button
+                        type="button"
+                        data-testid="wear-log-item-show-more"
+                        onClick={() =>
+                          setVisibleItemCandidateCount(
+                            (current) => current + ITEM_CANDIDATE_LIMIT_STEP,
+                          )
+                        }
+                        className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition hover:bg-gray-50"
+                      >
+                        さらに表示
+                      </button>
+                    ) : null}
+                  </div>
+                </>
               ) : null}
             </div>
           )}
