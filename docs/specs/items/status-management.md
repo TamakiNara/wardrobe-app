@@ -1,221 +1,199 @@
-# Item Status Management
+# アイテム状態管理
 
-item status の状態管理と、副作用を伴う運用方針を整理する。  
-この資料は item 状態管理ルールの正本とし、既存 docs の内容を item status 観点で集約する。  
-詳細画面のボタン配置や確認ダイアログなどの UI 導線は `docs/specs/items/detail-status-ui.md` を参照する。
+## 目的
 
-関連資料:
+アイテムを現在使える状態として扱うか、手放した状態として扱うか、補助的なケア状態を持つかを整理します。
 
-- DB: `docs/data/database.md`
-- API: `docs/api/openapi.yaml`
-- outfit 連携: `docs/specs/outfits/create-edit.md`
-- logging: `docs/specs/logging.md`
-- item 詳細 UI: `docs/specs/items/detail-status-ui.md`
-- item delete policy: `docs/specs/items/delete-policy.md`
-- duplicate / color variant: `docs/specs/items/duplicate-color-variant.md`
+アイテム状態は、通常一覧、コーディネート、着用履歴、削除可否に影響します。通常編集と状態変更の責務を分けることで、履歴や参照関係を壊さずにアイテムを管理できるようにします。
 
----
+## 適用範囲
 
-## 概要
+### この資料で扱うこと
 
-item status は、item を通常利用対象として扱うかどうかを管理する内部状態である。
+- 所有状態 `status`
+- 補助状態 `care_status`
+- 通常編集と状態変更操作の境界
+- 状態変更による一覧、候補、関連データへの影響
+- 状態管理との境界としての物理削除の扱い
+- 複製・色違い追加時の `care_status` の扱い
+- 状態管理として確認すべきテスト観点
 
-初期実装範囲では、item status に次の 2 値を持つ。
+### この資料で扱わないこと
+
+- 状態変更画面の配置、文言、確認ダイアログの詳細
+- 物理削除の詳細な許可条件、画像削除、削除ログ、削除 UI
+- 複製・色違い追加時の入力値生成ルールや画面導線
+- 各機能固有の詳細な画面仕様
+
+上記は関連 docs を参照します。
+
+## 状態仕様
+
+### 状態の全体像
+
+| 種別     | 値            | 意味                                  | 主な用途                             |
+| -------- | ------------- | ------------------------------------- | ------------------------------------ |
+| 所有状態 | `active`      | 現在利用できるアイテム                | 通常一覧、候補選択、編集             |
+| 所有状態 | `disposed`    | 手放した / 現在所持していないアイテム | 履歴保持、手放したアイテム一覧、復帰 |
+| ケア状態 | `null`        | 補助状態なし                          | 通常表示                             |
+| ケア状態 | `in_cleaning` | クリーニング中                        | バッジ、警告、解除導線               |
+
+`status` は主状態、`care_status` は補助状態です。`care_status` は候補除外や `invalid` 化の主制御には使いません。
+
+### 通常編集と状態変更の境界
+
+通常編集は、アイテムの基本属性、カテゴリ別属性、画像、購入情報、メモ、補助状態 `care_status` などを作成・更新する操作です。
+
+状態変更は、所有状態 `status` を切り替える操作です。通常編集とは副作用と責務が異なるため、通常の作成・更新 payload からは `status` を変更できません。
+
+| 操作                | 主な対象                    | 更新経路                           | 副作用                                       |
+| ------------------- | --------------------------- | ---------------------------------- | -------------------------------------------- |
+| 通常作成・更新      | アイテム属性、`care_status` | `ItemUpsertRequest`                | 関連 outfit の `invalid` 化は行わない        |
+| `disposed` への変更 | `status`                    | `POST /api/items/{id}/dispose`     | 関連する `active` outfit を `invalid` にする |
+| `active` への復帰   | `status`                    | `POST /api/items/{id}/reactivate`  | 関連 outfit は自動復旧しない                 |
+| ケア状態の即時更新  | `care_status`               | `POST /api/items/{id}/care-status` | 候補除外や `invalid` 化は行わない            |
+
+`care_status` は補助状態であり、通常の作成・更新 payload と item 詳細画面の即時更新の両方から変更できます。
+
+### 所有状態 `status`
+
+`status` は `active` / `disposed` を持ちます。
 
 - `active`
+  - 現在利用できるアイテムを表します。
+  - 通常一覧に表示します。
+  - コーディネートや着用履歴の新規候補に出せます。
 - `disposed`
+  - 手放した / 現在所持していないアイテムを表します。
+  - 通常一覧には表示しません。
+  - 手放したアイテム一覧で確認します。
+  - コーディネートや着用履歴の新規候補から除外します。
+  - 既存の着用履歴に含まれている場合は、履歴保持のため表示・保持できます。
+  - item 詳細画面から `active` へ戻せます。
 
-補助状態として、別カラム `care_status` を持つ。
+すでに `disposed` の item を `dispose` しようとした場合、またはすでに `active` の item を `reactivate` しようとした場合は validation error とします。
 
-- `null`
-- `in_cleaning`
+### ケア状態 `care_status`
 
----
+`care_status` は補助状態です。現在の許可値は `in_cleaning` のみで、補助状態なしは `null` です。
 
-## 役割分担
+- `in_cleaning` は「クリーニング中」を表します。
+- 通常一覧から除外しません。
+- コーディネート候補や着用履歴候補から除外しません。
+- 着用履歴では保存可能とし、UI で警告だけを出します。
+- `disposed` と同じ強い状態にはしません。
+- 複製・色違い追加時には引き継ぎません。
+
+## システム上の扱い
+
+### 画面
+
+この資料では、画面仕様のうち状態管理として守る原則だけを扱います。
+
+- `status` は通常の編集フォーム項目にしません。
+- `disposed` への変更と `active` への復帰は、item 詳細画面の専用操作として扱います。
+- `care_status` は補助状態として表示・編集します。
+- 物理削除は状態管理の主導線に混ぜず、削除用の補助導線として扱います。
+- 状態変更に伴う副作用は、画面だけで完結させず API / backend 側のルールとして扱います。
+
+ボタン配置、確認 UI、成功 / 失敗メッセージの詳細は `docs/specs/items/detail-status-ui.md` を参照します。
+
+### API
+
+| API 名                       | route                              | 役割                                        |
+| ---------------------------- | ---------------------------------- | ------------------------------------------- |
+| アイテム作成                 | `POST /api/items`                  | 通常作成。`status` は payload に含めない    |
+| アイテム更新                 | `PUT /api/items/{id}`              | 通常更新。`status` は payload に含めない    |
+| 手放したアイテム一覧取得     | `GET /api/items/disposed`          | `status = disposed` の item を取得する      |
+| アイテムを手放す             | `POST /api/items/{id}/dispose`     | `active` item を `disposed` にする          |
+| アイテムをクローゼットに戻す | `POST /api/items/{id}/reactivate`  | `disposed` item を `active` に戻す          |
+| ケア状態更新                 | `POST /api/items/{id}/care-status` | `care_status` を更新する                    |
+| アイテム物理削除             | `DELETE /api/items/{id}`           | 参照関係が許す場合に item record を削除する |
+
+`dispose` / `reactivate` は response に状態変更後の item を含みます。`care-status` は `care_status` 更新後の item を返します。
+
+### DB
+
+- `items.status`
+  - 型: string
+  - default: `active`
+  - 値: `active` / `disposed`
+- `items.care_status`
+  - 型: string nullable
+  - 値: `null` / `in_cleaning`
+
+### ログ
+
+状態管理仕様の責務は、状態変更の成功・失敗を追跡できる structured log を出力することです。
+詳細は `docs/specs/logging.md` を参照します。
+
+## 他機能への影響
+
+### コーディネート
+
+- `disposed` item は、新規作成・編集時の候補から除外します。
+- `disposed` item を含む保存は不可とします。
+- item を `disposed` にした時、その item を含む `active` outfit は `invalid` に遷移します。
+- item を `active` に戻しても、関連 outfit は自動復旧しません。
+- 復旧が必要な場合は、outfit 側の手動 `restore` 導線で扱います。
+
+### 着用履歴
+
+- `disposed` item は、新規登録・編集時の新規候補から除外します。
+- 新しく `disposed` item を指定して保存することは不可とします。
+- 既存の wear log にすでに含まれる `disposed` item は、過去履歴保持のため表示・保持できます。
+- `in_cleaning` item は保存可能です。ただし UI 上で警告を出します。
+
+### 物理削除
+
+`disposed` と物理削除は別の操作です。
 
 - `disposed`
-  - 「手放した / 現在所持していない」を表す主 status
-  - outfit / wear logs の候補や副作用に影響する
-- `reactivate`
-  - `disposed` item を `active` に戻す操作
-  - item 自体だけを復帰させ、related outfit の自動復旧は行わない
-- `delete`
-  - item record 自体を削除する操作
-  - 状態管理の代替ではなく、登録ミスや不要 record の整理に限定して扱う
-  - 通常の UI 主導線には置かず、例外用途の API として扱う
-  - item detail に出す場合も、`手放す` / `クローゼットに戻す` と同じ塊には混ぜず、画面最下部の補助的な削除セクションとして分ける
-- `care_status`
-  - 主 status ではなく補助状態
-  - 現時点では `in_cleaning` のみを持ち、候補除外や invalid 化の主制御には使わない
-- duplicate / color-variant
-  - 既存 item を元に新規 item draft を作る派生作成操作
-  - status 変更ではなく別 record 作成導線として扱う
+  - item record を残したまま、現在利用しない状態にします。
+  - 履歴や参照整合を守りたい場合に使います。
+  - 通常のユーザー向け主導線です。
 
----
+- 物理削除
+  - item record 自体を削除します。
+  - 誤登録、重複登録、不用 record の整理に限定します。
+  - `outfit_items` や `wear_log_items` から参照されている item は削除せず、`disposed` を優先します。
 
-## `disposed` の意味
+`outfit_items` または `wear_log_items` から参照されている item の物理削除は `422` で拒否します。参照がなければ `active` / `disposed` のどちらでも物理削除できます。
 
-- `disposed` は「手放した / 現在所持していない」状態を表す
-- wear logs や過去の参照を残す都合上、物理削除より `disposed` を優先する
-- 単なる軽微編集とは異なり、outfit / wear logs に影響する状態変更として扱う
+purchase candidate が `converted_item_id` で対象 item を参照していても、その参照だけでは物理削除を拒否する理由にはしません。
 
----
+物理削除時は、purchase candidate 側の `converted_item_id` を `null` にします。
 
-## `care_status` の意味
+削除条件、画像削除、削除ログ、削除 UI の詳細は `docs/specs/items/delete-policy.md` を参照します。
 
-- `care_status` は主 status ではなく補助状態として扱う
-- 現状の実装の許可値は `in_cleaning` のみ
-- `in_cleaning` は「クリーニング中」を表す
-- 主制御ではなく、バッジ表示・警告・解除導線などの補助 UI に使う
-- `disposed` と同列の強い状態にはしない
-- duplicate / color-variant 時には引き継がない
+## テスト観点
 
----
+### 状態変更
 
-## 通常 update payload との役割分担
+- 通常の作成・更新経路から `status` が変わらず、専用 route でだけ `active` / `disposed` を切り替えられること。
+- 同じ状態への `dispose` / `reactivate` が拒否され、関連 outfit などへ不要な副作用を出さないこと。
+- `dispose` 成功時に関連する `active` outfit が `invalid` になり、`reactivate` 成功時には自動復帰しないこと。
+- `care_status = in_cleaning` が候補除外、outfit の `invalid` 化、所有状態変更の代替にならないこと。
 
-### 方針
+### 関連機能
 
-- 通常の create / update payload に `status` は含めない
-- `status` は内部状態として管理する
-- `disposed` への変更は別導線で扱う前提とする
+- `disposed` item がコーディネート・着用履歴の新規候補から除外されること。
+- 既存の着用履歴に含まれる `disposed` item は、履歴保持のため表示・保持できること。
+- `in_cleaning` item を含む着用履歴は保存可能で、警告表示に留まること。
 
-### 理由
+### 物理削除との境界
 
-- `disposed` 変更時は、関連 outfit の `invalid` 化など副作用を伴う
-- 通常の項目更新と同列に扱うと、副作用の確認や制御が曖昧になりやすい
+- 物理削除可否が `status` ではなく参照関係で決まること。
+- 参照あり item の物理削除が拒否され、item と関連 record の状態が変わらないこと。
+- 参照なし item の物理削除では、purchase candidate 側の `converted_item_id` が解除されること。
 
-補足:
+## 関連 docs
 
-- OpenAPI でも `ItemUpsertRequest` は通常の項目更新 request として定義し、`status` 非包含方針を採用している
-
----
-
-## 一覧・候補からの除外
-
-### 通常一覧
-
-- `disposed` item は通常一覧から除外する
-
-### outfit 候補
-
-- `disposed` item は outfit の新規作成・更新時の候補から除外する
-- `disposed` item を含めた保存は不可とする
-
-### wear logs 候補
-
-- `disposed` item は wear logs の新規登録・更新時の新規候補から除外する
-- 新しく `disposed` item を指定して保存することは不可とする
-- ただし、既存 wear log にすでに含まれる `disposed` item は、過去履歴保持のため同一 record の再保存に限り表示・保持できる
-- 新規選択不可と既存履歴保持は別の話として扱い、既存履歴の意味を壊すために削除・変更を強制しない
-
-### `in_cleaning` item の扱い
-
-- `in_cleaning` item は通常一覧から除外しない
-- `in_cleaning` item は outfit の新規作成・更新候補から除外しない
-- `in_cleaning` item は wear logs の新規登録・更新候補から除外しない
-- wear logs では planned / worn ともに保存可能とし、UI 上で警告だけを出す
-
----
-
-## outfit への副作用
-
-### item を `disposed` にした時
-
-- その item を含む `active` outfit は `invalid` に遷移する
-- これは item status 変更に伴う副作用として扱う
-
-### item が `active` に戻った時
-
-- outfit は自動 `restore` しない
-- 復帰が必要な場合は、invalid outfit 側の手動 `restore` 導線で扱う前提とする
-
-### 副作用の意図
-
-- 通常利用できない item を含む outfit を通常一覧や再利用導線に残さないため
-- 利用可能かどうかを曖昧にしないため
-- 復帰時も自動反映ではなく、ユーザー判断を伴う運用に寄せるため
-
----
-
-## delete との役割分担
-
-### `disposed`
-
-- 「今は所持していないが、履歴や参照整合のためレコードは残す」状態
-- wear logs や関連 outfit への影響を考慮した状態管理の導線
-
-### delete
-
-- item レコード自体を削除する操作
-- wear logs で参照されている場合は安易に物理削除させず、まず `disposed` を優先誘導する
-- `outfit_items` / `wear_log_items` から参照されている item は、物理削除ではなく `disposed` を優先する
-
-### 方針
-
-- 「所持していない」と「履歴上も不要」は分けて扱う
-- 初期実装範囲では、参照整合や副作用を考えると `disposed` を優先する
-- 通常の画面導線では `手放す` / `クローゼットに戻す` を主操作にし、物理削除を前面に出さない
-
----
-
-## 現状の実装 / 今後対応 / 未確定
-
-### 現状の実装
-
-- item status は `active` / `disposed` を持つ
-- 通常の create / update payload に `status` は含めない
-- `dispose` / `reactivate` は item 詳細画面からの専用操作導線として扱う
-- `disposed` item は通常一覧、outfit 候補、wear logs の新規候補から除外する。既存 wear log に含まれる `disposed` item は履歴保持として表示・保持できる
-- `disposed` item は `GET /api/items/disposed` と `/items/disposed` の dedicated 一覧で確認し、詳細画面から `reactivate` する
-- `手放す` の確認は native confirm ではなく、item detail の状態管理セクション内でアプリ内確認 UI を表示する
-- 物理削除 API は残すが、通常の UI 主導線には置かず、item detail 最下部の補助的な `削除` セクションで扱う
-- `outfit_items` / `wear_log_items` 参照がある item の物理削除は `422` で拒否する
-- purchase candidate の `converted_item_id` があるだけでは物理削除の blocker にしない。削除すると購入検討との紐づきは切れるため、item detail の delete confirmation で warning を表示する
-- item を `disposed` にした時、その item を含む `active` outfit は `invalid` に遷移する
-- `reactivate` しても related outfit は自動 `restore` しない
-- `care_status = in_cleaning` は補助状態として扱い、候補除外や invalid 化の主制御には使わない
-- wear logs や過去参照を残す前提で、物理削除より `disposed` を優先する
-
-### 今後対応
-
-- 通常編集フォームへ `status` を混ぜない方針を維持する
-- related outfit invalid 化や wear logs 候補除外を、状態変更操作と一体で分かる UI に寄せる
-- `disposed` item を source にした duplicate / color-variant は許可しつつ、新規保存後 item は `active` 開始とする
-
-### 未確定
-
-- `disposed_at` / `dispose_reason` を 現在の schema に追加するか
-- event log で `item_disposed` / `item_reactivated` をどこまで現状の範囲に含めるか
-- `delete` をどの条件まで許容し、どこから `disposed` へ誘導するか
-
----
-
-## logging 方針との関係
-
-- `disposed` は outfit / wear logs に影響するため、軽微な項目編集より記録価値が高い
-- current では次の structured log を導入済み
-  - `item.status.disposed`
-  - `item.status.reactivated`
-  - `item.status.change_failed`
-- logging では status change の operation / user_id / item_id / status_before / status_after / elapsed_ms を最小セットに含める
-- 副作用で発生する `outfit_invalidated` も関連イベントとして扱う
-
----
-
-## 現時点のまとめ
-
-- item status は `active` / `disposed`
-- 補助状態として `care_status = in_cleaning | null` を持つ
-- `disposed` は「手放した / 現在所持していない」状態
-- `care_status` は主制御には使わず、補助表示・警告・解除導線に使う
-- 通常 update payload に `status` は含めない
-- `disposed` item は通常一覧 / outfit 候補 / wear logs 候補から除外する
-- `in_cleaning` item は通常一覧 / outfit 候補 / wear logs 候補から除外しない
-- item を `disposed` にした時、関連 `active` outfit を `invalid` にする
-- item が `active` に戻っても outfit は自動 `restore` しない
-- delete と `disposed` は役割を分け、初期実装範囲では `disposed` を優先する
-- `converted_item_id` だけがある item は delete 可能だが、購入検討との紐づきが解除されることを削除前に warning する
-- 通常のユーザー向け主操作は `手放す` / `クローゼットに戻す` とする
-- `手放す` は物理削除ではなく `disposed` への状態変更であり、確認 UI でもその違いが分かる文言を使う
+- `docs/specs/items/detail-status-ui.md`
+- `docs/specs/items/delete-policy.md`
+- `docs/specs/items/duplicate-color-variant.md`
+- `docs/specs/outfits/create-edit.md`
+- `docs/specs/wears/wear-logs.md`
+- `docs/specs/logging.md`
+- `docs/data/database.md`
+- `docs/api/openapi.yaml`
