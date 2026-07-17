@@ -1,0 +1,55 @@
+name: design
+description: 設計や仕様について決定が必要な事項を整理するフォームです。
+labels:
+  - design
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: 概要
+      description: Issueで解決、実現または決定する内容を記載してください。作業方法や調査結果ではなく、Issueの目的が分かる内容としてください。
+    validations:
+      required: true
+  - type: textarea
+    id: background
+    attributes:
+      label: 背景
+      description: Issueが必要になった経緯や、目的だけでは理解しにくい前提を記載してください。目的や概要と重複する場合は使用しないでください。
+  - type: textarea
+    id: current
+    attributes:
+      label: 現状
+      description: 現在の動作、仕様または問題が発生している状態を記載してください。
+  - type: textarea
+    id: decision
+    attributes:
+      label: 判断事項
+      description: 設計や仕様について決定が必要な内容を記載してください。
+    validations:
+      required: true
+  - type: textarea
+    id: approach
+    attributes:
+      label: 対応方針
+      description: 採用する対応方法や、変更時に維持する制約が既に決まっている場合に記載してください。
+  - type: textarea
+    id: completion
+    attributes:
+      label: 完了条件
+      description: このIssueを完了とする条件を具体的なチェックリストで記載してください。
+      placeholder: |
+        - [ ] ○○への遷移が可能
+        - [ ] ○○の場合の動作を確認
+        - [ ] ○○の仕様書を更新
+    validations:
+      required: true
+  - type: textarea
+    id: references
+    attributes:
+      label: 参考資料
+      description: Issueへ着手する前または作業中に参照するとよい資料を記載してください。
+      placeholder: |
+        docs/specs/...
+        #123
+        PR #45
+        https://...

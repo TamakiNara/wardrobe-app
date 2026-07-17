@@ -1,0 +1,21 @@
+name: common
+description: 概要と完了条件だけで登録できる共通フォームです。
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: 概要
+      description: Issueで解決、実現または決定する内容を記載してください。作業方法や調査結果ではなく、Issueの目的が分かる内容としてください。
+    validations:
+      required: true
+  - type: textarea
+    id: completion
+    attributes:
+      label: 完了条件
+      description: このIssueを完了とする条件を具体的なチェックリストで記載してください。
+      placeholder: |
+        - [ ] ○○への遷移が可能
+        - [ ] ○○の場合の動作を確認
+        - [ ] ○○の仕様書を更新
+    validations:
+      required: true
