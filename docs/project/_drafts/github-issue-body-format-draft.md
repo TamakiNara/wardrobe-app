@@ -121,6 +121,22 @@ Issueへ着手する前または作業中に参照するとよい資料を記載
 
 参考資料はIssue本文の末尾へ配置する。
 
+リポジトリ内ドキュメントは、GitHub Issue上でクリックして開けるMarkdownリンクとして記載する。
+
+リンクテキストにはファイル名だけでなく、リポジトリルートからのパスを記載する。
+
+リンク先には、対象リポジトリの `main` branch上の完全なGitHub URLを使用する。
+
+Issueページを基準に解決される `../docs/...` などの相対リンクは使用しない。
+
+完全URLをそのまま本文へ表示せず、Markdownリンクのリンク先として使用する。
+
+記載例:
+
+```md
+- [docs/specs/logging/logging-policy.md](https://github.com/TamakiNara/wardrobe-app/blob/main/docs/specs/logging/logging-policy.md)
+```
+
 ## 独立項目として設けない内容
 
 次の内容は、現時点では独立した共通項目として設けない。
